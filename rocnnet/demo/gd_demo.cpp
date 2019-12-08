@@ -138,13 +138,13 @@ int main (int argc, const char** argv)
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
 	auto train = trainer::sgd_train(model, sess,
-		eteq::convert_to_node(train_input), eteq::convert_to_node(train_output), approx);
+		eteq::to_node<PybindT>(train_input), eteq::to_node<PybindT>(train_output), approx);
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");
-	auto untrained_out = untrained_model.connect(testin);
-	auto out = model.connect(testin);
-	auto trained_out = trained_model->connect(testin);
+	auto untrained_out = untrained_model.connect(eteq::to_node<PybindT>(testin));
+	auto out = model.connect(eteq::to_node<PybindT>(testin));
+	auto trained_out = trained_model->connect(eteq::to_node<PybindT>(testin));
 	sess.track({
 		untrained_out->get_tensor(),
 		out->get_tensor(),
@@ -191,7 +191,7 @@ int main (int argc, const char** argv)
 		}
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		testin->assign(batch.data_.data(), batch.shape_);
+		testin->assign(batch);
 		sess.update();
 
 		float untrained_avgerr = 0;

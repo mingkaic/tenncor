@@ -126,9 +126,9 @@ struct SequentialModel final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	NodeptrT connect (NodeptrT input) const override
+	LinkptrT connect (LinkptrT input) const override
 	{
-		NodeptrT output;
+		LinkptrT output;
 		for (size_t i = 0, n = layers_.size(); i < n; ++i)
 		{
 			auto& layer = layers_[i];

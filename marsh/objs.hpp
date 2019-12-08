@@ -67,6 +67,11 @@ struct Number final : public iNumber
 
 	Number (T val) : val_(val) {}
 
+	Number<T>* clone (void) const
+	{
+		return static_cast<Number<T>*>(clone_impl());
+	}
+
 	size_t class_code (void) const override
 	{
 		static const std::type_info& tp = typeid(Number<T>);
@@ -99,7 +104,7 @@ struct Number final : public iNumber
 
 	T val_;
 
-protected:
+private:
 	iObject* clone_impl (void) const override
 	{
 		return new Number<T>(val_);
@@ -124,6 +129,11 @@ struct iArray : public iObject
 
 struct ObjArray final : public iArray
 {
+	ObjArray* clone (void) const
+	{
+		return static_cast<ObjArray*>(clone_impl());
+	}
+
 	size_t class_code (void) const override
 	{
 		static const std::type_info& tp = typeid(ObjArray);
@@ -186,7 +196,7 @@ struct ObjArray final : public iArray
 
 	std::vector<ObjptrT> contents_;
 
-protected:
+private:
 	iObject* clone_impl (void) const override
 	{
 		auto cpy = new ObjArray();
@@ -207,6 +217,11 @@ struct NumArray final : public iArray
 
 	NumArray (const std::vector<T>& contents) :
 		contents_(contents.begin(), contents.end()) {}
+
+	NumArray<T>* clone (void) const
+	{
+		return static_cast<NumArray<T>*>(clone_impl());
+	}
 
 	size_t class_code (void) const override
 	{
@@ -254,7 +269,7 @@ struct NumArray final : public iArray
 
 	std::vector<T> contents_;
 
-protected:
+private:
 	iObject* clone_impl (void) const override
 	{
 		return new NumArray<T>(contents_);
@@ -263,6 +278,11 @@ protected:
 
 struct Maps final : public iObject
 {
+	Maps* clone (void) const
+	{
+		return static_cast<Maps*>(clone_impl());
+	}
+
 	size_t class_code (void) const override
 	{
 		static const std::type_info& tp = typeid(Maps);
@@ -322,7 +342,7 @@ struct Maps final : public iObject
 
 	std::unordered_map<std::string,ObjptrT> contents_;
 
-protected:
+private:
 	iObject* clone_impl (void) const override
 	{
 		auto cpy = new Maps();

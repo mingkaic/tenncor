@@ -32,7 +32,7 @@ struct CversionCtx
 	/// Return function id (fid) of promising matcher once found
 	teq::TensptrT optimize (MatchCtxT& out, teq::iFunctor* f) const
 	{
-		const teq::CEdgesT& args = f->get_children();
+		const teq::EdgeRefsT& args = f->get_children();
 		std::string opname = f->get_opcode().name_;
 		AttrMapT attrs;
 		auto keys = f->ls_attrs();

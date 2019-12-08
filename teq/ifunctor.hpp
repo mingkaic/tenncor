@@ -29,17 +29,11 @@ struct iFunctor : public iTensor
 {
 	virtual ~iFunctor (void) = default;
 
-	/// Implementation of iTensor
-	void accept (iTraveler& visiter) override
-	{
-		visiter.visit(this);
-	}
-
 	/// Return operation encoding
 	virtual Opcode get_opcode (void) const = 0;
 
 	/// Return vector of functor arguments
-	virtual CEdgesT get_children (void) const = 0;
+	virtual EdgeRefsT get_children (void) const = 0;
 
 	virtual marsh::iObject* get_attr (std::string attr_name) const = 0;
 

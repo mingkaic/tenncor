@@ -37,7 +37,7 @@ struct DropoutBuilder final : public iLayerBuilder
 	LayerptrT build (void) const override;
 
 private:
-	NodeptrT mask_ = nullptr;
+	LinkptrT mask_ = nullptr;
 
 	std::string label_;
 };
@@ -60,7 +60,7 @@ struct Dropout final : public iLayer
 		tag(mask_->get_tensor(), LayerId(dropout_mask_key));
 	}
 
-	Dropout (NodeptrT mask, const std::string& label) : label_(label), mask_(mask)
+	Dropout (LinkptrT mask, const std::string& label) : label_(label), mask_(mask)
 	{
 		tag(mask_->get_tensor(), LayerId(dropout_mask_key));
 	}
@@ -120,7 +120,7 @@ struct Dropout final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	NodeptrT connect (NodeptrT input) const override
+	LinkptrT connect (LinkptrT input) const override
 	{
 		auto output = input * mask_; // todo: deactivate dropout layer when predicting
 		recursive_tag(output->get_tensor(), {
@@ -138,13 +138,13 @@ private:
 	void copy_helper (const Dropout& other, std::string label_prefix = "")
 	{
 		label_ = label_prefix + other.label_;
-		mask_ = NodeptrT(other.mask_->clone()); // todo: recurse copy
+		mask_ = LinkptrT(other.mask_->clone()); // todo: recurse copy
 		tag(mask_->get_tensor(), LayerId(dropout_weight_key));
 	}
 
 	std::string label_;
 
-	NodeptrT mask_;
+	LinkptrT mask_;
 };
 
 }

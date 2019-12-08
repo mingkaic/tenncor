@@ -14,7 +14,7 @@ _header_template = '''
 using {pybind} = {pybind_type};
 //>>> ^ pybind, pybind_type
 
-using NodeptrT = eteq::NodeptrT<{pybind}>;
+using LinkptrT = eteq::LinkptrT<{pybind}>;
 '''
 
 _source_template = '''
@@ -258,7 +258,7 @@ class PyAPIsPlugin:
             _header_template.format(
                 pybind=_pybindt, pybind_type=bindtype),
                 user_includes=[
-                    '"eteq/inode.hpp"'
+                    '"eteq/link.hpp"'
                 ], internal_refs=[])
 
         contents = {}

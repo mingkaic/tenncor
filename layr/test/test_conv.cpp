@@ -120,7 +120,7 @@ TEST(CONV, Connection)
 
 	auto x = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape({4, 10, 9, 2}), "x");
-	auto y = conv.connect(x);
+	auto y = conv.connect(eteq::to_node<PybindT>(x));
 
 	EXPECT_GRAPHEQ(
 		"(ADD[3\\6\\4\\2\\1\\1\\1\\1])\n"

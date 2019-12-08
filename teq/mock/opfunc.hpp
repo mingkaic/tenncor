@@ -28,31 +28,38 @@ struct MockOpfunc final : public teq::iOperableFunc
 		}
 	}
 
-	/// Implementation of iTensor
+	MockOpfunc (const MockOpfunc& other) :
+		updated_(other.updated_),
+		opcode_(other.opcode_),
+		shape_(other.shape_),
+		args_(other.args_),
+		coord_(other.coord_->clone()) {}
+
+	void accept (teq::iTraveler& visiter) override
+	{
+		visiter.visit(this);
+	}
+
 	teq::Shape shape (void) const override
 	{
 		return shape_;
 	}
 
-	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
 		return opcode_.name_;
 	}
 
-	/// Implementation of iFunctor
 	teq::Opcode get_opcode (void) const override
 	{
 		return opcode_;
 	}
 
-	/// Implementation of iFunctor
-	teq::CEdgesT get_children (void) const override
+	teq::EdgeRefsT get_children (void) const override
 	{
-		return teq::CEdgesT(args_.begin(), args_.end());
+		return teq::EdgeRefsT(args_.begin(), args_.end());
 	}
 
-	/// Implementation of iFunctor
 	marsh::iObject* get_attr (std::string attr_name) const override
 	{
 		if (attr_name == "coorder")
@@ -62,52 +69,49 @@ struct MockOpfunc final : public teq::iOperableFunc
 		return nullptr;
 	}
 
-	/// Implementation of iFunctor
 	std::vector<std::string> ls_attrs (void) const override
 	{
 		return {"coorder"};
 	}
 
-	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
 		args_[index] = MockEdge(arg);
 	}
 
-	/// Implementation of iOperableFunc
 	void update (void) override
 	{
 		updated_ = true;
 	}
 
-	/// Implementation of iData
 	void* data (void) override
 	{
 		return nullptr;
 	}
 
-	/// Implementation of iData
 	const void* data (void) const override
 	{
 		return nullptr;
 	}
 
-	/// Implementation of iData
 	size_t type_code (void) const override
 	{
 		return 0;
 	}
 
-	/// Implementation of iData
 	std::string type_label (void) const override
 	{
 		return "";
 	}
 
-	/// Implementation of iData
 	size_t nbytes (void) const override
 	{
 		return 0;
+	}
+
+	teq::iTensor* clone_impl (void) const override
+	{
+		return new MockOpfunc(*this);
 	}
 
 	bool updated_ = false;

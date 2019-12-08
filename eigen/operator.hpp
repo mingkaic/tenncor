@@ -313,7 +313,7 @@ EigenptrT<T> slice (teq::Shape outshape, const iEigenEdge<T>& in, const marsh::M
 }
 
 template <typename T>
-EigenptrT<T> group_concat (teq::Shape outshape, const EigenEdgesT<T>& group, const marsh::Maps& attrs)
+EigenptrT<T> group_concat (teq::Shape outshape, const EEdgeRefsT<T>& group, const marsh::Maps& attrs)
 {
 	assert(group.size() > 1);
 	teq::RankT dimension = get_coorder(attrs)[0];
@@ -340,7 +340,7 @@ EigenptrT<T> group_concat (teq::Shape outshape, const EigenEdgesT<T>& group, con
 }
 
 template <typename T>
-EigenptrT<T> group_sum (teq::Shape outshape, const EigenEdgesT<T>& group)
+EigenptrT<T> group_sum (teq::Shape outshape, const EEdgeRefsT<T>& group)
 {
 	assert(group.size() > 2);
 	std::vector<TensMapT<T>> args;
@@ -362,7 +362,7 @@ EigenptrT<T> group_sum (teq::Shape outshape, const EigenEdgesT<T>& group)
 }
 
 template <typename T>
-EigenptrT<T> group_prod (teq::Shape outshape, const EigenEdgesT<T>& group)
+EigenptrT<T> group_prod (teq::Shape outshape, const EEdgeRefsT<T>& group)
 {
 	assert(group.size() > 2);
 	std::vector<TensMapT<T>> args;

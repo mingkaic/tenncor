@@ -1,6 +1,6 @@
 opcode:
   operator_path: eigen/operator.hpp
-  params: eigen::EigenptrT<T>& out, teq::Shape outshape, const eigen::EigenEdgesT<T>& in, const marsh::Maps& attrs
+  params: eigen::EigenptrT<T>& out, teq::Shape outshape, const eigen::EEdgeRefsT<T>& in, const marsh::Maps& attrs
   opcalls:
     ABS: out = eigen::abs(outshape, in[0].get());
     NEG: out = eigen::neg(outshape, in[0].get());

@@ -23,7 +23,7 @@ TEST(APPROX, StochasticGD)
 		0, teq::Shape(slist), "root");
 
 	auto groups = layr::sgd(layr::VarErrsT{{leaf,
-		eteq::convert_to_node(root)}}, 0.67, "stuff");
+		eteq::to_node<PybindT>(root)}}, 0.67, "stuff");
 	ASSERT_EQ(1, groups.size());
 
 	auto ass = groups.at(0);
@@ -31,7 +31,7 @@ TEST(APPROX, StochasticGD)
 
 	auto assign = ass.at(0);
 	EXPECT_STREQ("sgd::stuff_grad_leaf", assign.label_.c_str());
-	EXPECT_EQ(assign.target_->get_tensor().get(), leaf->get_tensor().get());
+	EXPECT_EQ(assign.target_.get(), leaf.get());
 	EXPECT_GRAPHEQ(
 		"(SUB[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		" `--(variable:leaf[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -52,7 +52,7 @@ TEST(APPROX, RmsMomentum)
 		0, teq::Shape(slist), "root");
 
 	auto groups = layr::rms_momentum(layr::VarErrsT{{leaf,
-		eteq::convert_to_node(root)}}, 0.67, 0.78,
+		eteq::to_node<PybindT>(root)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon(), "stuff");
 	ASSERT_EQ(2, groups.size());
 
@@ -64,8 +64,8 @@ TEST(APPROX, RmsMomentum)
 
 	auto mom_assign = mom_ass.at(0);
 	EXPECT_STREQ("rms_momentum::stuff_momentum_leaf", mom_assign.label_.c_str());
-	auto mom = mom_assign.target_->get_tensor().get();
-	EXPECT_NE(mom, leaf->get_tensor().get());
+	auto mom = mom_assign.target_.get();
+	EXPECT_NE(mom, leaf.get());
 	EXPECT_STREQ("momentum", mom->to_string().c_str());
 	EXPECT_GRAPHEQ(
 		"(ADD[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -80,7 +80,7 @@ TEST(APPROX, RmsMomentum)
 
 	auto var_assign = var_ass.at(0);
 	EXPECT_STREQ("rms_momentum::stuff_grad_leaf", var_assign.label_.c_str());
-	EXPECT_EQ(var_assign.target_->get_tensor().get(), leaf->get_tensor().get());
+	EXPECT_EQ(var_assign.target_.get(), leaf.get());
 	EXPECT_GRAPHEQ(
 		"(SUB[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		" `--(variable:leaf[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -104,7 +104,7 @@ TEST(APPROX, GroupAssign)
 	auto err = eteq::make_variable_scalar<PybindT>(1, shape, "err");
 
 	auto groups = layr::rms_momentum(layr::VarErrsT{{leaf,
-		eteq::convert_to_node(err)}}, 0.67, 0.78,
+		eteq::to_node<PybindT>(err)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon(), "stuff");
 
 	teq::Session sess;
@@ -143,7 +143,7 @@ TEST(APPROX, GroupAssign)
 	// leaf is calculated next:
 	// leaf - 0.67 * err / sqrt(momentum) =
 	// 0 - 0.67 * 2 / sqrt(1) = -1.34
-	PybindT* t = err->data();
+	PybindT* t = (PybindT*) err->data();
 	std::vector<PybindT> expectt(shape.n_elems(), 2);
 	std::vector<PybindT> tvec(t, t + shape.n_elems());
 	EXPECT_VECEQ(expectt, tvec);
@@ -154,7 +154,7 @@ TEST(APPROX, GroupAssign)
 	std::vector<PybindT> ovec(o, o + shape.n_elems());
 	EXPECT_VECEQ(expecto, ovec);
 
-	PybindT* d = leaf->data();
+	PybindT* d = (PybindT*) leaf->data();
 	PybindT exdval = -1.34;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
@@ -171,7 +171,7 @@ TEST(APPROX, PreUpdateGroupAssign)
 	auto err = eteq::make_variable_scalar<PybindT>(1, shape, "err");
 
 	auto groups = layr::rms_momentum(layr::VarErrsT{{leaf,
-		eteq::convert_to_node(err)}}, 0.67, 0.78,
+		eteq::to_node<PybindT>(err)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon(), "stuff");
 
 	teq::Session sess;
@@ -204,21 +204,21 @@ TEST(APPROX, PreUpdateGroupAssign)
 	// leaf is calculated next:
 	// leaf - 0.67 * err / sqrt(momentum) =
 	// 0 - 0.67 * 2 / sqrt(1.66) = (ugly #)
-	PybindT* t = err->data();
+	PybindT* t = (PybindT*) err->data();
 	std::vector<PybindT> expectt(shape.n_elems(), 2);
 	std::vector<PybindT> tvec(t, t + shape.n_elems());
 	EXPECT_VECEQ(expectt, tvec);
 
 	ASSERT_EQ(2, groups.size());
 	ASSERT_EQ(1, groups[0].size());
-	PybindT* o = groups[0][0].target_->data();
+	PybindT* o = (PybindT*) groups[0][0].target_->data();
 	PybindT exoval = 1.66;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		ASSERT_GT(0.001, abs((exoval - o[i]) / exoval));
 	}
 
-	PybindT* d = leaf->data();
+	PybindT* d = (PybindT*) leaf->data();
 	PybindT exdval = -1.04004170445;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{

@@ -69,14 +69,15 @@ struct RBM final : public iLayer
 		auto hidden_contents = hidden_->get_contents();
 		auto weight = hidden_contents[0];
 		auto hbias = hidden_contents[1];
-		NodeptrT vbias = nullptr;
+		teq::TensptrT vbias = nullptr;
 
 		if (bias_init)
 		{
 			vbias = bias_init(teq::Shape({nvisible}), dense_bias_key);
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
-			eteq::to_node<PybindT>(weight)), vbias, nullptr, visible_key);
+			eteq::to_node<PybindT>(weight))->get_tensor(), 
+			vbias, nullptr, visible_key);
 		tag_sublayers();
 	}
 
@@ -151,7 +152,7 @@ struct RBM final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	NodeptrT connect (NodeptrT visible) const override
+	LinkptrT connect (LinkptrT visible) const override
 	{
 		auto output = activation_->connect(hidden_->connect(visible));
 		recursive_tag(output->get_tensor(), {
@@ -161,7 +162,7 @@ struct RBM final : public iLayer
 	}
 
 	/// Return visible reconstruction from hidden
-	NodeptrT backward_connect (NodeptrT hidden) const
+	LinkptrT backward_connect (LinkptrT hidden) const
 	{
 		auto output = activation_->connect(visible_->connect(hidden));
 		recursive_tag(output->get_tensor(), {
@@ -211,16 +212,17 @@ private:
 		label_ = label_prefix + other.label_;
 		hidden_ = DenseptrT(other.hidden_->clone(label_prefix));
 		auto hidden_contents = hidden_->get_contents();
-		NodeptrT vbias_node = nullptr;
+		teq::TensptrT vbias_cpy = nullptr;
 		auto other_vis_contents = other.visible_->get_contents();
 		if (auto vbias = other_vis_contents[1])
 		{
-			vbias_node = NodeptrT(eteq::to_node<PybindT>(vbias)->clone());
+			vbias_cpy = teq::TensptrT(vbias->clone());
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
-			eteq::to_node<PybindT>(hidden_contents[0])),
-			vbias_node, NodeptrT(other_vis_contents[2] == nullptr ? nullptr :
-				eteq::to_node<PybindT>(other_vis_contents[2])->clone()),
+			eteq::to_node<PybindT>(hidden_contents[0]))->get_tensor(),
+			vbias_cpy, eteq::to_node<PybindT>(
+				other_vis_contents[2] == nullptr ?
+				nullptr : teq::TensptrT(other_vis_contents[2]->clone())),
 			label_prefix + visible_key);
 
 		activation_ = UnaryptrT(other.activation_->clone(label_prefix));

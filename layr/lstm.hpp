@@ -156,7 +156,7 @@ struct LSTM final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	NodeptrT connect (NodeptrT input) const override
+	LinkptrT connect (LinkptrT input) const override
 	{
 		// expecting input of shape <nunits, sequence length, ANY>
 		// sequence is dimension 1
@@ -164,7 +164,7 @@ struct LSTM final : public iLayer
 		teq::Shape stateshape({(teq::DimT) this->get_noutput()});
 		auto prevstate = eteq::make_constant_scalar<PybindT>(0, stateshape);
 		auto prevhidden = eteq::make_constant_scalar<PybindT>(0, stateshape);
-		eteq::NodesT<PybindT> states;
+		eteq::LinksT<PybindT> states;
 		for (teq::DimT i = 0, nseq = inshape.at(1); i < nseq; ++i)
 		{
 			auto inslice = tenncor::slice(input, i, 1, 1);
@@ -232,10 +232,10 @@ private:
 		tag_sublayers();
 	}
 
-	std::pair<NodeptrT,NodeptrT> cell_connect (NodeptrT x,
-		NodeptrT prev_state, NodeptrT prev_hidden) const
+	std::pair<LinkptrT,LinkptrT> cell_connect (LinkptrT x,
+		LinkptrT prev_state, LinkptrT prev_hidden) const
 	{
-		NodeptrT xc = tenncor::concat(x, prev_hidden, 0);
+		LinkptrT xc = tenncor::concat(x, prev_hidden, 0);
 
 		auto gate = tenncor::tanh(gate_->connect(xc));
 		auto input = tenncor::sigmoid(ingate_->connect(xc));

@@ -77,7 +77,7 @@ struct DBNTrainer final
 
 		// setups:
 		// general rbm sampling
-		sample_pipes_.push_back(convert_to_node(trainx_));
+		sample_pipes_.push_back(eteq::to_node<PybindT>(trainx_));
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			sample_pipes_.push_back(sample_v2h(
@@ -104,8 +104,8 @@ struct DBNTrainer final
 			{
 				// if var is a weight or bias add assign with learning rate
 				// otherwise assign directly
-				auto next_var = estd::has(to_learn, varerr.first->get_tensor().get()) ?
-					eteq::convert_to_node<PybindT>(varerr.first) +
+				auto next_var = estd::has(to_learn, varerr.first.get()) ?
+					eteq::to_node<PybindT>(varerr.first) +
 					pretrain_lr * varerr.second : varerr.second;
 				assigns.push_back(layr::VarAssign{
 					fmts::sprintf("rbm_d%s_%d",
@@ -132,7 +132,7 @@ struct DBNTrainer final
 		auto& w = contents[0];
 		auto& b = contents[1];
 		auto final_out = softmax_layer->connect(dense_layer->connect(sample_pipes_.back()));
-		auto diff = eteq::convert_to_node(trainy_) - final_out;
+		auto diff = eteq::to_node<PybindT>(trainy_) - final_out;
 		auto l2_regularized = tenncor::matmul(tenncor::transpose(
 			sample_pipes_.back()), diff) - l2_reg * eteq::to_node<PybindT>(w);
 
@@ -141,28 +141,26 @@ struct DBNTrainer final
 		auto tlr_placeholder = eteq::make_variable_scalar<PybindT>(
 			train_lr, teq::Shape(), "learning_rate");
 		auto dw = eteq::to_node<PybindT>(w) +
-			tenncor::extend(eteq::convert_to_node(tlr_placeholder), 0,
+			tenncor::extend(eteq::to_node<PybindT>(tlr_placeholder), 0,
 				std::vector<teq::DimT>(wshape.begin(), wshape.end())) *
 			l2_regularized;
 		auto db = eteq::to_node<PybindT>(b) +
-			tenncor::extend(eteq::convert_to_node(tlr_placeholder), 0,
+			tenncor::extend(eteq::to_node<PybindT>(tlr_placeholder), 0,
 				std::vector<teq::DimT>(bshape.begin(), bshape.end())) *
 			tenncor::reduce_mean_1d(diff, 1);
-		auto dtrain_lr = eteq::convert_to_node(tlr_placeholder) * lr_scaling;
+		auto dtrain_lr = eteq::to_node<PybindT>(tlr_placeholder) * lr_scaling;
 
 		tupdates_ = {
 			layr::AssignsT{
 				layr::VarAssign{"logw_grad",
-					std::make_shared<eteq::VariableNode<PybindT>>(
-						std::static_pointer_cast<eteq::Variable<PybindT>>(w)), dw},
+					std::static_pointer_cast<eteq::Variable<PybindT>>(w), dw},
 				layr::VarAssign{"logb_grad",
-					std::make_shared<eteq::VariableNode<PybindT>>(
-						std::static_pointer_cast<eteq::Variable<PybindT>>(b)), db}},
+					std::static_pointer_cast<eteq::Variable<PybindT>>(b), db}},
 			layr::AssignsT{layr::VarAssign{"loglr_grad", tlr_placeholder, dtrain_lr}},
 		};
 		tcost_ = -tenncor::reduce_mean(tenncor::reduce_sum_1d(
-			eteq::convert_to_node(trainy_) * tenncor::log(final_out) +
-			((PybindT) 1 - eteq::convert_to_node(trainy_)) * tenncor::log((PybindT) 1 - final_out), 0));
+			eteq::to_node<PybindT>(trainy_) * tenncor::log(final_out) +
+			((PybindT) 1 - eteq::to_node<PybindT>(trainy_)) * tenncor::log((PybindT) 1 - final_out), 0));
 
 		train_sess_.track({
 			sample_pipes_.back()->get_tensor(),
@@ -221,15 +219,8 @@ struct DBNTrainer final
 		// assert len(self.sample_pipes) > 1, since self.n_layers > 0
 		auto to_ignore = sample_pipes_.back()->get_tensor().get();
 		auto prev_ignore = sample_pipes_[nlayers_ - 1]->get_tensor().get();
-		if (static_cast<eteq::Functor<PybindT>*>(prev_ignore)->is_uninit())
-		{
-			train_sess_.update_target({to_ignore}); // update everything
-		}
-		else
-		{
-			train_sess_.update_target({to_ignore},
-				{prev_ignore});
-		}
+		assert(false == static_cast<eteq::Functor<PybindT>*>(prev_ignore)->is_uninit());
+		train_sess_.update_target({to_ignore}, {prev_ignore});
 
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)
 		{
@@ -276,15 +267,15 @@ struct DBNTrainer final
 
 	eteq::VarptrT<PybindT> trainy_;
 
-	std::vector<NodeptrT> sample_pipes_;
+	std::vector<LinkptrT> sample_pipes_;
 
 	layr::AssignGroupsT rupdates_;
 
 	layr::AssignGroupsT tupdates_;
 
-	std::vector<NodeptrT> rcosts_;
+	std::vector<LinkptrT> rcosts_;
 
-	NodeptrT tcost_;
+	LinkptrT tcost_;
 
 	teq::Session pretrain_sess_;
 

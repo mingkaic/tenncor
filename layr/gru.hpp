@@ -146,14 +146,14 @@ struct GRU final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	NodeptrT connect (NodeptrT input) const override
+	LinkptrT connect (LinkptrT input) const override
 	{
 		// expecting input of shape <nunits, sequence length, ANY>
 		// sequence is dimension 1
 		teq::Shape inshape = input->shape();
 		auto state = eteq::make_constant_scalar<PybindT>(0,
 			teq::Shape({(teq::DimT) this->get_noutput()}));
-		eteq::NodesT<PybindT> states;
+		eteq::LinksT<PybindT> states;
 		for (teq::DimT i = 0, nseq = inshape.at(1); i < nseq; ++i)
 		{
 			auto inslice = tenncor::slice(input, i, 1, 1);
@@ -210,9 +210,9 @@ private:
 		tag_sublayers();
 	}
 
-	NodeptrT cell_connect (NodeptrT x, NodeptrT state) const
+	LinkptrT cell_connect (LinkptrT x, LinkptrT state) const
 	{
-		NodeptrT xc = tenncor::concat(x, state, 0);
+		LinkptrT xc = tenncor::concat(x, state, 0);
 		auto update = tenncor::sigmoid(ugate_->connect(xc));
 		auto reset = tenncor::sigmoid(rgate_->connect(xc));
 		auto hidden = tenncor::tanh(hgate_->connect(

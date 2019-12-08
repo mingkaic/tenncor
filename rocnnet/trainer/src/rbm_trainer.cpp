@@ -5,17 +5,17 @@
 namespace trainer
 {
 
-NodeptrT sample_v2h (const layr::RBM& model, NodeptrT x)
+LinkptrT sample_v2h (const layr::RBM& model, LinkptrT x)
 {
 	return tenncor::random::rand_binom_one(model.connect(x));
 }
 
-NodeptrT sample_h2v (const layr::RBM& model, NodeptrT x)
+LinkptrT sample_h2v (const layr::RBM& model, LinkptrT x)
 {
 	return tenncor::random::rand_binom_one(model.backward_connect(x));
 }
 
-NodeptrT gibbs_hvh (const layr::RBM& model, NodeptrT x)
+LinkptrT gibbs_hvh (const layr::RBM& model, LinkptrT x)
 {
 	return sample_v2h(model, sample_h2v(model, x));
 }
@@ -27,7 +27,7 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 	layr::AssignsT assigns;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
-		auto leaf_node = eteq::convert_to_node(leaves[i].first);
+		auto leaf_node = eteq::to_node<PybindT>(leaves[i].first);
 		auto err = leaves[i].second;
 
 		auto shape = err->shape();
@@ -40,7 +40,7 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 		teq::DimT shape_factor = it == et ? 1 : *it;
 		auto momentum = eteq::make_variable_scalar<PybindT>(0,
 			err->shape(), leaves[i].first->to_string() + "_momentum");
-		auto momentum_next = discount_factor * eteq::convert_to_node(momentum) +
+		auto momentum_next = discount_factor * eteq::to_node<PybindT>(momentum) +
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
 		auto leaf_next = leaf_node + momentum_next;
 
@@ -68,7 +68,7 @@ layr::VarErrsT cd_grad_approx (CDChainIO& io, const layr::RBM& model,
 		io.hidden_ = sample_v2h(model, io.visible_);
 	}
 	auto chain_it = nullptr == persistent ?
-		io.hidden_ : eteq::convert_to_node(persistent);
+		io.hidden_ : eteq::to_node<PybindT>(persistent);
 	for (size_t i = 0; i < cdk - 1; ++i)
 	{
 		chain_it = gibbs_hvh(model, chain_it);
@@ -88,8 +88,8 @@ layr::VarErrsT cd_grad_approx (CDChainIO& io, const layr::RBM& model,
 			{
 				return nullptr;
 			}
-			return std::make_shared<eteq::VariableNode<PybindT>>(
-				std::static_pointer_cast<eteq::Variable<PybindT>>(tens));
+			return std::static_pointer_cast<
+				eteq::Variable<PybindT>>(tens);
 		});
 
 	auto grad_w =
@@ -117,7 +117,7 @@ layr::VarErrsT cd_grad_approx (CDChainIO& io, const layr::RBM& model,
 }
 
 TrainErrF rbm_train (layr::RBM& model, teq::iSession& sess,
-	NodeptrT visible, PybindT learning_rate, PybindT discount_factor,
+	LinkptrT visible, PybindT learning_rate, PybindT discount_factor,
 	ErrorF err_func, size_t cdk) // todo: add persistent option
 {
 	CDChainIO chain_io(visible);
@@ -126,7 +126,7 @@ TrainErrF rbm_train (layr::RBM& model, teq::iSession& sess,
 
 	teq::TensptrsT to_track;
 	to_track.reserve(updates.size() + 1);
-	NodeptrT error = nullptr;
+	LinkptrT error = nullptr;
 	if (err_func)
 	{
 		error = err_func(chain_io.visible_, chain_io.visible_mean_);

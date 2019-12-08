@@ -146,7 +146,7 @@ struct iLayer
 	virtual teq::TensptrsT get_contents (void) const = 0;
 
 	/// Return the root of the graph that connects input with internal tensors
-	virtual NodeptrT connect (NodeptrT input) const = 0;
+	virtual LinkptrT connect (LinkptrT input) const = 0;
 
 protected:
 	virtual iLayer* clone_impl (const std::string& label_prefix) const = 0;

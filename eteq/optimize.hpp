@@ -107,18 +107,19 @@ struct FuncTarget final : public opt::iTarget
 	teq::TensptrT convert (
 		teq::Shape outshape, const opt::Candidate& candidate) const override
 	{
-		ArgsT<T> args;
+		LinksT<T> args;
 		for (auto& targ : args_)
 		{
 			auto arg = to_node<T>(targ.target_->convert(outshape, candidate));
-			args.push_back(Edge<T>(arg));
+			args.push_back(arg);
 		}
 		if (variadic_.size() > 0)
 		{
-			auto& edges = candidate.variadic_.at(variadic_);
-			for (const teq::iEdge& edge : edges)
+			auto& links = candidate.variadic_.at(variadic_);
+			for (const teq::iEdge& link : links)
 			{
-				args.push_back(*static_cast<const Edge<T>*>(&edge));
+				args.push_back(LinkptrT<T>(
+					static_cast<const iLink<T>*>(&link)->clone()));
 			}
 		}
 		marsh::Maps attrs;

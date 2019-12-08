@@ -59,7 +59,7 @@ static void NAME(benchmark::State& state)\
 		std::vector<double> data = random_data(shape.n_elems(), -35, 35);\
 		std::vector<T> convdata(data.begin(), data.end());\
 		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::NodeptrT<T> out = FUNC(eteq::NodeptrT<T>(var));\
+		eteq::LinkptrT<T> out = FUNC(eteq::to_node<T>(var));\
 		teq::Session session;\
 		session.track({out->get_tensor()});\
 		state.ResumeTiming();\
@@ -81,7 +81,7 @@ static void NAME(benchmark::State& state)\
 		std::vector<double> data = random_data(shape.n_elems(), 0, 35);\
 		std::vector<T> convdata(data.begin(), data.end());\
 		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::NodeptrT<T> out = FUNC(eteq::NodeptrT<T>(var));\
+		eteq::LinkptrT<T> out = FUNC(eteq::to_node<T>(var));\
 		teq::Session session;\
 		session.track({out->get_tensor()});\
 		state.ResumeTiming();\
@@ -133,7 +133,7 @@ static void NAME(benchmark::State& state)\
 		std::vector<T> convdata2(data2.begin(), data2.end());\
 		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
 		eteq::VarptrT<T> var2 = eteq::make_variable<T>(convdata2.data(), shape, "var2");\
-		eteq::NodeptrT<T> out = FUNC(eteq::NodeptrT<T>(var), eteq::NodeptrT<T>(var2));\
+		eteq::LinkptrT<T> out = FUNC(eteq::to_node<T>(var), eteq::to_node<T>(var2));\
 		teq::Session session;\
 		session.track({out->get_tensor()});\
 		state.ResumeTiming();\
@@ -191,8 +191,8 @@ static void BM_Matmul(benchmark::State& state)
 		std::vector<T> convdata2(data2.begin(), data2.end());
 		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), leftshape, "var");
 		eteq::VarptrT<T> var2 = eteq::make_variable<T>(convdata2.data(), rightshape, "var2");
-		eteq::NodeptrT<T> out = tenncor::matmul(
-			eteq::NodeptrT<T>(var), eteq::NodeptrT<T>(var2));
+		eteq::LinkptrT<T> out = tenncor::matmul(
+			eteq::to_node<T>(var), eteq::to_node<T>(var2));
 		teq::Session session;
 		session.track({out->get_tensor()});
 		state.ResumeTiming();
@@ -227,18 +227,18 @@ static void BM_MatmulComplex(benchmark::State& state)
 	eteq::VarptrT<int32_t> b = eteq::make_variable<int32_t>(bshape);
 	eteq::VarptrT<int32_t> c = eteq::make_variable<int32_t>(cshape);
 
-	eteq::NodeptrT<int32_t> atens(a);
-	eteq::NodeptrT<int32_t> btens(b);
-	eteq::NodeptrT<int32_t> ctens(c);
+	eteq::LinkptrT<int32_t> atens = eteq::to_node<int32_t>(a);
+	eteq::LinkptrT<int32_t> btens = eteq::to_node<int32_t>(b);
+	eteq::LinkptrT<int32_t> ctens = eteq::to_node<int32_t>(c);
 
 	auto d = tenncor::matmul(atens, btens);
 	auto e = tenncor::matmul(ctens, d);
 	auto f = tenncor::matmul(tenncor::transpose(d), tenncor::transpose(ctens));
 	auto dest = tenncor::matmul(e, f);
 
-	eteq::NodeptrT<int32_t> da = eteq::derive(dest, atens);
-	eteq::NodeptrT<int32_t> db = eteq::derive(dest, btens);
-	eteq::NodeptrT<int32_t> dc = eteq::derive(dest, ctens);
+	eteq::LinkptrT<int32_t> da = eteq::derive(dest, atens);
+	eteq::LinkptrT<int32_t> db = eteq::derive(dest, btens);
+	eteq::LinkptrT<int32_t> dc = eteq::derive(dest, ctens);
 	teq::Session session;
 	session.track({
 		da->get_tensor(),
@@ -282,12 +282,12 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	eteq::VarptrT<double> bias1 = eteq::make_variable<double>(bias1_shape);
 	eteq::VarptrT<double> out = eteq::make_variable<double>(out_shape);
 
-	eteq::NodeptrT<double> intens(in);
-	eteq::NodeptrT<double> weight0tens(weight0);
-	eteq::NodeptrT<double> bias0tens(bias0);
-	eteq::NodeptrT<double> weight1tens(weight1);
-	eteq::NodeptrT<double> bias1tens(bias1);
-	eteq::NodeptrT<double> outtens(out);
+	eteq::LinkptrT<double> intens = eteq::to_node<double>(in);
+	eteq::LinkptrT<double> weight0tens = eteq::to_node<double>(weight0);
+	eteq::LinkptrT<double> bias0tens = eteq::to_node<double>(bias0);
+	eteq::LinkptrT<double> weight1tens = eteq::to_node<double>(weight1);
+	eteq::LinkptrT<double> bias1tens = eteq::to_node<double>(bias1);
+	eteq::LinkptrT<double> outtens = eteq::to_node<double>(out);
 
 	auto layer0 =
 		tenncor::matmul(intens, weight0tens) +
@@ -355,12 +355,12 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	eteq::VarptrT<double> bias1 = eteq::make_variable<double>(bias1_shape);
 	eteq::VarptrT<double> out = eteq::make_variable<double>(out_shape);
 
-	eteq::NodeptrT<double> intens(in);
-	eteq::NodeptrT<double> weight0tens(weight0);
-	eteq::NodeptrT<double> bias0tens(bias0);
-	eteq::NodeptrT<double> weight1tens(weight1);
-	eteq::NodeptrT<double> bias1tens(bias1);
-	eteq::NodeptrT<double> outtens(out);
+	eteq::LinkptrT<double> intens = eteq::to_node<double>(in);
+	eteq::LinkptrT<double> weight0tens = eteq::to_node<double>(weight0);
+	eteq::LinkptrT<double> bias0tens = eteq::to_node<double>(bias0);
+	eteq::LinkptrT<double> weight1tens = eteq::to_node<double>(weight1);
+	eteq::LinkptrT<double> bias1tens = eteq::to_node<double>(bias1);
+	eteq::LinkptrT<double> outtens = eteq::to_node<double>(out);
 
 	auto layer0 =
 		tenncor::matmul(intens, weight0tens) +

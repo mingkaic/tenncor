@@ -21,8 +21,8 @@ namespace eteq
 
 /// Return reduction operator gradient of reduced functor node (bwd)
 template <typename T>
-NodeptrT<T> reduce_grad (teq::Shape shape,
-	NodeptrT<T> bwd, teq::FuncptrT fwd)
+LinkptrT<T> reduce_grad (teq::Shape shape,
+	LinkptrT<T> bwd, teq::FuncptrT fwd)
 {
 	std::vector<teq::DimT> bcast(teq::rank_cap, 1);
 	auto c = eigen::get_coorder(fwd.get());
@@ -45,7 +45,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 		size_t arg_idx) const override
 	{
 		auto args = op->get_children();
-		NodeptrT<T> out = nullptr;
+		LinkptrT<T> out = nullptr;
 		teq::Opcode opcode = op->get_opcode();
 		switch ((egen::_GENERATED_OPCODE) opcode.code_)
 		{
@@ -107,7 +107,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::MUL:
 			case egen::GROUP_PROD:
 			{
-				NodesT<T> nodes;
+				LinksT<T> nodes;
 				size_t nargs = args.size();
 				nodes.reserve(nargs);
 				for (size_t i = 0, n = nargs; i < n; ++i)
@@ -167,8 +167,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::MATMUL:
 			{
-				NodeptrT<T> lhs = to_node<T>(args[0].get().get_tensor());
-				NodeptrT<T> rhs = to_node<T>(args[1].get().get_tensor());
+				LinkptrT<T> lhs = to_node<T>(args[0].get().get_tensor());
+				LinkptrT<T> rhs = to_node<T>(args[1].get().get_tensor());
 				auto c = eigen::get_coorder(op.get());
 				eigen::PairVecT<teq::RankT> dims = eigen::decode_pair<teq::RankT>(c);
 				std::vector<teq::DimT> llist = teq::narrow_shape(lhs->shape());
@@ -205,7 +205,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 
 				// desired shape as follows:
 				// uncommon dimensions go in front ordered by <right uncommon><left uncommon><common>
-				NodeptrT<T> ext;
+				LinkptrT<T> ext;
 				std::vector<teq::RankT> permlist;
 				if (0 == arg_idx)
 				{
@@ -271,7 +271,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 	teq::TensptrT chain_rule (teq::FuncptrT op, const teq::TensptrT& local_der,
 		teq::TensptrT supcomp_grad, size_t arg_idx) const override
 	{
-		NodeptrT<T> out = nullptr;
+		LinkptrT<T> out = nullptr;
 		teq::Opcode opcode = op->get_opcode();
 		switch (opcode.code_)
 		{
@@ -633,7 +633,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 
 /// Derive root with respect to target and optimized
 template <typename T>
-NodeptrT<T> derive (NodeptrT<T> root, NodeptrT<T> target)
+LinkptrT<T> derive (LinkptrT<T> root, LinkptrT<T> target)
 {
 	GradientBuilder<T> builder;
 	teq::TensptrT derivative = builder.derive(

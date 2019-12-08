@@ -14,6 +14,15 @@ struct iEigenEdge : public teq::iEdge
 	virtual T* data (void) const = 0;
 };
 
+template <typename T>
+using EEdgeptrT = std::shared_ptr<iEigenEdge<T>>;
+
+template <typename T>
+using EEdgesT = std::vector<EEdgeptrT<T>>;
+
+template <typename T>
+using EEdgeRefsT = std::vector<std::reference_wrapper<const iEigenEdge<T>>>;
+
 const std::string shaper_key = "shape";
 
 const std::string coorder_key = "coorder";
@@ -21,9 +30,6 @@ const std::string coorder_key = "coorder";
 std::vector<teq::CDimT> get_coorder (const marsh::Maps& attrs);
 
 std::vector<teq::CDimT> get_coorder (const teq::iFunctor* func);
-
-template <typename T>
-using EigenEdgesT = std::vector<std::reference_wrapper<const eigen::iEigenEdge<T>>>;
 
 }
 

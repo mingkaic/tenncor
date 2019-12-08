@@ -18,19 +18,16 @@ struct MockEdge final : public teq::iEdge
 		}
 	}
 
-	/// Implementation of iEdge
 	teq::Shape shape (void) const override
 	{
 		return tensor_->shape();
 	}
 
-	/// Implementation of iEdge
 	teq::TensptrT get_tensor (void) const override
 	{
 		return tensor_;
 	}
 
-	/// Implementation of iEdge
 	void get_attrs (marsh::Maps& out) const override
 	{
 		if (shape_.size() > 0)

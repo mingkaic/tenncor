@@ -34,7 +34,7 @@ struct DQNTrainingContext final
 	layr::SeqModelptrT target_model_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
-	NodeptrT next_output_ = nullptr;
+	LinkptrT next_output_ = nullptr;
 };
 
 struct DQNInfo final
@@ -71,7 +71,7 @@ struct DQNTrainer final
 {
 	DQNTrainer (layr::SequentialModel& model,
 		teq::iSession& sess, layr::ApproxF update, DQNInfo param,
-		NodeUnarF gradprocess = [](eteq::NodeptrT<PybindT> in){ return in; },
+		NodeUnarF gradprocess = [](eteq::LinkptrT<PybindT> in){ return in; },
 		DQNTrainingContext ctx = DQNTrainingContext()) :
 		sess_(&sess),
 		params_(param),
@@ -101,25 +101,25 @@ struct DQNTrainer final
 			params_.mini_batch_size_}), "action_mask");
 
 		// forward action score computation
-		output_ = source_model_.connect(eteq::convert_to_node<PybindT>(input_));
+		output_ = source_model_.connect(eteq::to_node<PybindT>(input_));
 
 		train_out_ = source_model_.connect(
-			eteq::convert_to_node<PybindT>(train_input_));
+			eteq::to_node<PybindT>(train_input_));
 
 		// predicting target future rewards
 		ctx_.next_output_ = ctx_.target_model_->connect(
-			eteq::convert_to_node<PybindT>(next_input_));
+			eteq::to_node<PybindT>(next_input_));
 
 		auto target_values =
 			tenncor::reduce_max_1d(ctx_.next_output_, 0) *
-			eteq::convert_to_node<PybindT>(next_output_mask_);
+			eteq::to_node<PybindT>(next_output_mask_);
 		// reward for each instance in batch
-		future_reward_ = eteq::convert_to_node<PybindT>(reward_) +
+		future_reward_ = eteq::to_node<PybindT>(reward_) +
 			params_.discount_rate_ * target_values;
 
 		// prediction error
 		auto masked_output_score = tenncor::reduce_sum_1d(
-			train_out_ * eteq::convert_to_node<PybindT>(output_mask_), 0);
+			train_out_ * eteq::to_node<PybindT>(output_mask_), 0);
 		prediction_error_ = tenncor::reduce_mean(tenncor::square(
 			masked_output_score - future_reward_));
 
@@ -131,11 +131,8 @@ struct DQNTrainer final
 			if (auto var = std::dynamic_pointer_cast<
 				eteq::Variable<PybindT>>(tens))
 			{
-				auto varnode = std::make_shared<eteq::VariableNode<PybindT>>(var);
-				source_vars.push_back({
-					varnode,
-					gradprocess(eteq::derive(prediction_error_, eteq::convert_to_node(varnode)))
-				});
+				source_vars.push_back({var,gradprocess(eteq::derive(
+					prediction_error_, eteq::to_node<PybindT>(var)))});
 			}
 		}
 		updates_ = update(source_vars);
@@ -150,8 +147,7 @@ struct DQNTrainer final
 			if (auto var = std::dynamic_pointer_cast<
 				eteq::Variable<PybindT>>(tens))
 			{
-				target_vars.push_back(
-					std::make_shared<eteq::VariableNode<PybindT>>(var));
+				target_vars.push_back(var);
 			}
 		}
 
@@ -159,8 +155,8 @@ struct DQNTrainer final
 		for (size_t i = 0; i < nvars; i++)
 		{
 			// this is equivalent to target = (1-alpha) * target + alpha * source
-			auto target = eteq::convert_to_node<PybindT>(target_vars[i]);
-			auto source = eteq::convert_to_node<PybindT>(source_vars[i].first);
+			auto target = eteq::to_node<PybindT>(target_vars[i]);
+			auto source = eteq::to_node<PybindT>(source_vars[i].first);
 			auto diff = target - source;
 
 			auto target_next = target - params_.target_update_rate_ * diff;
@@ -291,7 +287,7 @@ struct DQNTrainer final
 		ctx_.n_train_called_++;
 	}
 
-	NodeptrT get_error (void) const
+	LinkptrT get_error (void) const
 	{
 		return prediction_error_;
 	}
@@ -306,14 +302,14 @@ struct DQNTrainer final
 	eteq::VarptrT<PybindT> input_ = nullptr;
 
 	// fanout: shape <noutput>
-	NodeptrT output_ = nullptr;
+	LinkptrT output_ = nullptr;
 
 	// === backward computation ===
 	// train fanin: shape <ninput, batchsize>
 	eteq::VarptrT<PybindT> train_input_ = nullptr;
 
 	// train fanout: shape <noutput, batchsize>
-	NodeptrT train_out_ = nullptr;
+	LinkptrT train_out_ = nullptr;
 
 	// === updates && optimizer ===
 	layr::AssignGroupsT updates_;
@@ -368,17 +364,17 @@ private:
 	eteq::VarptrT<PybindT> reward_ = nullptr;
 
 	// future reward calculated from reward history: <1, batchsize>
-	NodeptrT future_reward_ = nullptr;
+	LinkptrT future_reward_ = nullptr;
 
 	// === q-value computation ===
 	// weight output to get overall score: shape <noutput, batchsize>
 	eteq::VarptrT<PybindT> output_mask_ = nullptr;
 
 	// overall score: shape <noutput>
-	NodeptrT score_ = nullptr;
+	LinkptrT score_ = nullptr;
 
 	// future error that we want to minimize: scalar shape
-	NodeptrT prediction_error_ = nullptr;
+	LinkptrT prediction_error_ = nullptr;
 
 	// states
 	std::uniform_real_distribution<PybindT> explore_;

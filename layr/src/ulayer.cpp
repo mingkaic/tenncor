@@ -10,7 +10,7 @@ LayerptrT ULayerBuilder::build (void) const
 	return std::make_shared<ULayer>(utype_, params_, label_);
 }
 
-NodeptrT softmax_from_param (NodeptrT input, NodeptrT params)
+LinkptrT softmax_from_param (LinkptrT input, LinkptrT params)
 {
 	if (false == params->shape().compatible_after(teq::Shape{}, 0))
 	{
@@ -22,7 +22,7 @@ NodeptrT softmax_from_param (NodeptrT input, NodeptrT params)
 	return tenncor::softmax<PybindT>(input, dim, 1);
 }
 
-NodeptrT maxpool_from_param (NodeptrT input, NodeptrT params)
+LinkptrT maxpool_from_param (LinkptrT input, LinkptrT params)
 {
 	if (false == params->shape().compatible_after(teq::Shape({2}), 0))
 	{
@@ -35,7 +35,7 @@ NodeptrT maxpool_from_param (NodeptrT input, NodeptrT params)
 		{(teq::RankT) raw_params[0], (teq::RankT) raw_params[1]});
 }
 
-NodeptrT meanpool_from_param (NodeptrT input, NodeptrT params)
+LinkptrT meanpool_from_param (LinkptrT input, LinkptrT params)
 {
 	if (false == params->shape().compatible_after(teq::Shape({2}), 0))
 	{

@@ -183,8 +183,7 @@ struct ParentFinder final : public iTraveler
 			auto children = func->get_children();
 			for (size_t i = 0, n = children.size(); i < n; ++i)
 			{
-				auto& child = children[i];
-				auto tens = child.get().get_tensor();
+				auto tens = children[i].get().get_tensor();
 				tens->accept(*this);
 				parents_[tens.get()][func].push_back(i);
 			}

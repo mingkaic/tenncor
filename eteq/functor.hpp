@@ -6,14 +6,9 @@
 /// Eigen functor implementation of operable func
 ///
 
-#include "teq/iopfunc.hpp"
-
 #include "tag/locator.hpp"
 
-#include "eigen/generated/opcode.hpp"
-
-#include "eteq/edge.hpp"
-#include "eteq/observable.hpp"
+#include "eteq/ifunctor.hpp"
 
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP
@@ -23,30 +18,30 @@ namespace eteq
 
 /// Functor implementation of operable functor of Eigen operators
 template <typename T>
-struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
+struct Functor final : public iFunctor<T>
 {
 	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
 	static Functor<T>* get (egen::_GENERATED_OPCODE opcode,
-		ArgsT<T> args, marsh::Maps&& attrs)
+		LinksT<T> args, marsh::Maps&& attrs)
 	{
 		return new Functor<T>(opcode, args, std::move(attrs));
 	}
 
-	/// Return Functor move of other
-	static Functor<T>* get (Functor<T>&& other)
-	{
-		return new Functor<T>(std::move(other));
-	}
-
 	~Functor (void)
 	{
-		for (Edge<T>& arg : args_)
+		for (LinkptrT<T> arg : args_)
 		{
-			arg.get_node()->remove_parent(this);
+			arg->unsubscribe(this);
 		}
 	}
 
-	Functor (const Functor<T>& other) = delete;
+	/// Return deep copy of this Functor
+	Functor<T>* clone (void) const
+	{
+		return static_cast<Functor<T>*>(clone_impl());
+	}
+
+	Functor (Functor<T>&& other) = delete;
 
 	Functor<T>& operator = (const Functor<T>& other) = delete;
 
@@ -71,9 +66,16 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 	}
 
 	/// Implementation of iFunctor
-	teq::CEdgesT get_children (void) const override
+	teq::EdgeRefsT get_children (void) const override
 	{
-		return teq::CEdgesT(args_.begin(), args_.end());
+		teq::EdgeRefsT refs;
+		refs.reserve(args_.size());
+		std::transform(args_.begin(), args_.end(), std::back_inserter(refs),
+			[](LinkptrT<T> edge) -> const teq::iEdge&
+			{
+				return *edge;
+			});
+		return refs;
 	}
 
 	/// Implementation of iFunctor
@@ -98,13 +100,13 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 				"when there are only %d arguments",
 				index, args_.size());
 		}
-		auto edge = static_cast<Edge<T>*>(&args_[index]);
-		if (arg != edge->get_tensor())
+		auto link = static_cast<iLink<T>*>(args_[index].get());
+		if (arg != link->get_tensor())
 		{
 			uninitialize();
-			edge->get_node()->remove_parent(this);
+			link->unsubscribe(this);
 			teq::Shape nexshape = arg->shape();
-			teq::Shape curshape = edge->shape();
+			teq::Shape curshape = link->shape();
 			if (false == nexshape.compatible_after(curshape, 0))
 			{
 				logs::fatalf("cannot update child %d to argument with "
@@ -112,8 +114,8 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 					index, nexshape.to_string().c_str(),
 					curshape.to_string().c_str());
 			}
-			edge->set_node(to_node<T>(arg));
-			edge->get_node()->add_parent(this);
+			args_[index] = to_node<T>(arg);
+			link->subscribe(this);
 		}
 	}
 
@@ -147,27 +149,8 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 		return out_->get_ptr();
 	}
 
-	/// Implementation of iData
-	size_t type_code (void) const override
-	{
-		return egen::get_type<T>();
-	}
-
-	/// Implementation of iData
-	std::string type_label (void) const override
-	{
-		return egen::name_type(egen::get_type<T>());
-	}
-
-	/// Implementation of iData
-	size_t nbytes (void) const override
-	{
-		return sizeof(T) * shape_.n_elems();
-	}
-
-	/// Return true if functor has never been initialized or
-	/// was uninitialized, otherwise functor can return data
-	bool is_uninit (void) const
+	/// Implementation of iFunctor<T>
+	bool is_uninit (void) const override
 	{
 		return nullptr == out_;
 	}
@@ -189,15 +172,77 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 	/// Populate internal Eigen data object
 	void initialize (void)
 	{
+		eigen::EEdgeRefsT<T> refs;
+		refs.reserve(args_.size());
+		std::transform(args_.begin(), args_.end(), std::back_inserter(refs),
+			[](LinkptrT<T> edge) -> const eigen::iEigenEdge<T>&
+			{
+				return *edge;
+			});
 		egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-			out_, shape_, eigen::EigenEdgesT<T>(args_.begin(), args_.end()), attrs_);
+			out_, shape_, refs, attrs_);
 	}
 
 private:
 	Functor (egen::_GENERATED_OPCODE opcode,
-		ArgsT<T> args, marsh::Maps&& attrs);
+		LinksT<T> args, marsh::Maps&& attrs) :
+		opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
+		args_(args.begin(), args.end()),
+		attrs_(std::move(attrs))
+	{
+		if (args.empty())
+		{
+			logs::fatalf("cannot perform `%s` without arguments",
+				egen::name_op(opcode).c_str());
+		}
 
-	Functor (Functor<T>&& other) = default;
+		auto shape_attr = get_attr(eigen::shaper_key);
+		if (marsh::NumArray<double>* arr = nullptr == shape_attr ?
+			nullptr : shape_attr->template cast<marsh::NumArray<double>>())
+		{
+			std::vector<teq::DimT> slist(
+				arr->contents_.begin(), arr->contents_.end());
+			shape_ = teq::Shape(slist);
+		}
+		else
+		{
+			shape_ = args_.front()->shape();
+		}
+		common_init();
+	}
+
+	Functor (const Functor<T>& other) :
+		opcode_(other.opcode_),
+		shape_(other.shape_),
+		args_(other.args_)
+	{
+		std::unique_ptr<marsh::Maps> mattr(other.attrs_.clone());
+		attrs_ = std::move(*mattr);
+		common_init();
+	}
+
+	teq::iTensor* clone_impl (void) const override
+	{
+		return new Functor<T>(*this);
+	}
+
+	void common_init (void)
+	{
+		for (LinkptrT<T> arg : args_)
+		{
+			arg->subscribe(this);
+		}
+#ifndef SKIP_INIT
+		if (std::all_of(args_.begin(), args_.end(),
+			[](LinkptrT<T>& link)
+			{
+				return link->has_data();
+			}))
+		{
+			initialize();
+		}
+#endif // SKIP_INIT
+	}
 
 	eigen::EigenptrT<T> out_ = nullptr;
 
@@ -208,146 +253,22 @@ private:
 	teq::Shape shape_;
 
 	/// Tensor arguments (and children)
-	ArgsT<T> args_;
+	LinksT<T> args_;
 
 	marsh::Maps attrs_;
 };
 
 // todo: move these to eigen and auto-generate
-/// Functor's node wrapper
-template <typename T>
-struct FunctorNode final : public iNode<T>
-{
-	FunctorNode (std::shared_ptr<Functor<T>> f) : func_(f) {}
-
-	/// Return deep copy of this instance (with a copied functor)
-	FunctorNode<T>* clone (void) const
-	{
-		return static_cast<FunctorNode<T>*>(clone_impl());
-	}
-
-	/// Implementation of iNode<T>
-	T* data (void) override
-	{
-		return (T*) func_->data();
-	}
-
-	/// Implementation of iNode<T>
-	void update (void) override
-	{
-		func_->update();
-	}
-
-	/// Implementation of iNode<T>
-	teq::TensptrT get_tensor (void) const override
-	{
-		return func_;
-	}
-
-	/// Implementation of iNode<T>
-	bool has_data (void) const override
-	{
-		return false == func_->is_uninit();
-	}
-
-protected:
-	iNode<T>* clone_impl (void) const override
-	{
-		auto args = func_->get_children();
-		ArgsT<T> input_args;
-		input_args.reserve(args.size());
-		std::transform(args.begin(), args.end(),
-			std::back_inserter(input_args),
-			[](const teq::iEdge& arg) -> Edge<T>
-			{
-				return *static_cast<const Edge<T>*>(&arg);
-			});
-		marsh::Maps new_attrs;
-		auto keys = func_->ls_attrs();
-		for (std::string key : keys)
-		{
-			auto val = func_->get_attr(key);
-			if (nullptr != val)
-			{
-				new_attrs.contents_.emplace(key, val->clone());
-			}
-		}
-		return new FunctorNode(std::shared_ptr<Functor<T>>(Functor<T>::get(
-			(egen::_GENERATED_OPCODE) func_->get_opcode().code_, input_args,
-			std::move(new_attrs))));
-	}
-
-private:
-	/// Implementation of iNode<T>
-	void add_parent (Functor<T>* parent) override
-	{
-		func_->subscribe(parent);
-	}
-
-	/// Implementation of iNode<T>
-	void remove_parent (Functor<T>* parent) override
-	{
-		func_->unsubscribe(parent);
-	}
-
-	std::shared_ptr<Functor<T>> func_;
-};
-
-template <typename T>
-Functor<T>::Functor (egen::_GENERATED_OPCODE opcode,
-	ArgsT<T> args, marsh::Maps&& attrs) :
-	opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
-	args_(args), attrs_(std::move(attrs))
-{
-	static bool registered = register_builder<Functor<T>,T>(
-		[](teq::TensptrT tens)
-		{
-			return std::make_shared<FunctorNode<T>>(
-				std::static_pointer_cast<Functor<T>>(tens));
-		});
-	assert(registered);
-
-	if (args.empty())
-	{
-		logs::fatalf("cannot perform `%s` without arguments",
-			egen::name_op(opcode).c_str());
-	}
-
-	auto shape_attr = get_attr(eigen::shaper_key);
-	if (marsh::NumArray<double>* arr = nullptr == shape_attr ?
-		nullptr : shape_attr->template cast<marsh::NumArray<double>>())
-	{
-		std::vector<teq::DimT> slist(
-			arr->contents_.begin(), arr->contents_.end());
-		shape_ = teq::Shape(slist);
-	}
-	else
-	{
-		shape_ = args_.front().shape();
-	}
-	for (Edge<T>& arg : args_)
-	{
-		arg.get_node()->add_parent(this);
-	}
-#ifndef SKIP_INIT
-	if (std::all_of(args_.begin(), args_.end(),
-		[](Edge<T>& edge) { return edge.get_node()->has_data(); }))
-	{
-		initialize();
-	}
-#endif // SKIP_INIT
-}
-
 template <typename T,egen::_GENERATED_OPCODE OPCODE>
 struct FuncPacker final
 {
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes)
 	{
 		return true;
 	}
 
 	template <typename ...ARGS>
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, ARGS... args)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, ARGS... args)
 	{
 		return pack(attrs, nodes);
 	}
@@ -358,13 +279,13 @@ struct EmptyPacker
 {
 	virtual ~EmptyPacker (void) = default;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes)
 	{
 		return false;
 	}
 
 	template <typename ...ARGS>
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, ARGS... args)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, ARGS... args)
 	{
 		return pack(attrs, nodes);
 	}
@@ -377,7 +298,7 @@ struct ReducePacker : private EmptyPacker<T>
 
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, std::set<teq::RankT> dims)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, std::set<teq::RankT> dims)
 	{
 		if (std::any_of(dims.begin(), dims.end(),
 			[](teq::RankT d) { return d >= teq::rank_cap; }))
@@ -385,7 +306,7 @@ struct ReducePacker : private EmptyPacker<T>
 			logs::fatalf(
 				"cannot reduce dimensions beyond rank cap %d", teq::rank_cap);
 		}
-		NodeptrT<T> node = nodes.front();
+		LinkptrT<T> node = nodes.front();
 		teq::Shape shape = node->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		std::set<teq::RankT> sig_dims = dims;
@@ -419,7 +340,7 @@ struct ReducePacker : private EmptyPacker<T>
 		return true;
 	}
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, teq::RankT offset, teq::RankT ndims)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, teq::RankT offset, teq::RankT ndims)
 	{
 		if (offset >= teq::rank_cap)
 		{
@@ -461,9 +382,9 @@ struct FuncPacker<T,egen::ARGMAX> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, teq::RankT return_dim)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, teq::RankT return_dim)
 	{
-		NodeptrT<T> node = nodes.front();
+		LinkptrT<T> node = nodes.front();
 		teq::Shape shape = node->shape();
 		if (shape.n_elems() == 1 ||
 			(return_dim < teq::rank_cap && shape.at(return_dim) == 1))
@@ -495,7 +416,7 @@ struct FuncPacker<T,egen::SLICE> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, const eigen::PairVecT<teq::DimT>& extents)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, const eigen::PairVecT<teq::DimT>& extents)
 	{
 		if (extents.size() > teq::rank_cap)
 		{
@@ -503,7 +424,7 @@ struct FuncPacker<T,egen::SLICE> final : private EmptyPacker<T>
 				"cannot slice dimensions beyond rank_cap %d: using extent %s",
 				teq::rank_cap, eigen::to_string(extents).c_str());
 		}
-		NodeptrT<T> arg = nodes.front();
+		LinkptrT<T> arg = nodes.front();
 		teq::Shape shape = arg->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		slist.reserve(teq::rank_cap);
@@ -545,7 +466,7 @@ struct FuncPacker<T,egen::PAD> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, const eigen::PairVecT<teq::DimT>& paddings)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, const eigen::PairVecT<teq::DimT>& paddings)
 	{
 		if (paddings.size() > teq::rank_cap)
 		{
@@ -553,7 +474,7 @@ struct FuncPacker<T,egen::PAD> final : private EmptyPacker<T>
 				"cannot pad dimensions beyond rank_cap %d: using paddings %s",
 				teq::rank_cap, eigen::to_string(paddings).c_str());
 		}
-		NodeptrT<T> arg = nodes.front();
+		LinkptrT<T> arg = nodes.front();
 		teq::Shape shape = arg->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		size_t n = std::min(paddings.size(), (size_t) teq::rank_cap);
@@ -576,7 +497,7 @@ struct FuncPacker<T,egen::STRIDE> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, const std::vector<teq::DimT>& incrs)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, const std::vector<teq::DimT>& incrs)
 	{
 		if (incrs.size() > teq::rank_cap)
 		{
@@ -584,7 +505,7 @@ struct FuncPacker<T,egen::STRIDE> final : private EmptyPacker<T>
 				"using increments %s (will ignore those dimensions)", teq::rank_cap,
 				fmts::to_string(incrs.begin(), incrs.end()).c_str());
 		}
-		NodeptrT<T> arg = nodes.front();
+		LinkptrT<T> arg = nodes.front();
 		std::vector<double> coords(teq::rank_cap, 1);
 		size_t n = std::min(incrs.size(), (size_t) teq::rank_cap);
 		for (size_t i = 0; i < n; ++i)
@@ -611,7 +532,7 @@ struct FuncPacker<T,egen::SCATTER> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, const teq::Shape outshape,
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, const teq::Shape outshape,
 		const std::vector<teq::DimT>& incrs)
 	{
 		if (incrs.size() > teq::rank_cap)
@@ -620,7 +541,7 @@ struct FuncPacker<T,egen::SCATTER> final : private EmptyPacker<T>
 				"using increments %s (will ignore those dimensions)", teq::rank_cap,
 				fmts::to_string(incrs.begin(), incrs.end()).c_str());
 		}
-		NodeptrT<T> arg = nodes.front();
+		LinkptrT<T> arg = nodes.front();
 		std::vector<double> coords(teq::rank_cap, 1);
 		size_t n = std::min(incrs.size(), (size_t) teq::rank_cap);
 		for (size_t i = 0; i < n; ++i)
@@ -641,10 +562,10 @@ struct FuncPacker<T,egen::MATMUL> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, const eigen::PairVecT<teq::RankT>& dims)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, const eigen::PairVecT<teq::RankT>& dims)
 	{
-		NodeptrT<T> a = nodes[0];
-		NodeptrT<T> b = nodes[1];
+		LinkptrT<T> a = nodes[0];
+		LinkptrT<T> b = nodes[1];
 		teq::Shape ashape = a->shape();
 		teq::Shape bshape = b->shape();
 		// check common dimensions
@@ -706,10 +627,10 @@ struct FuncPacker<T,egen::CONV> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, const std::vector<teq::RankT>& dims)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, const std::vector<teq::RankT>& dims)
 	{
-		NodeptrT<T> image = nodes[0];
-		NodeptrT<T> kernel = nodes[1];
+		LinkptrT<T> image = nodes[0];
+		LinkptrT<T> kernel = nodes[1];
 		teq::Shape inshape = image->shape();
 		teq::Shape kernelshape = kernel->shape();
 		size_t n = std::min(dims.size(), (size_t) teq::rank_cap);
@@ -741,7 +662,7 @@ struct FuncPacker<T,egen::REVERSE> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, const std::vector<teq::RankT>& dims)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, const std::vector<teq::RankT>& dims)
 	{
 		attrs.contents_.emplace(eigen::coorder_key,
 			std::make_unique<marsh::NumArray<double>>(
@@ -766,14 +687,14 @@ struct FuncPacker<T,egen::PERMUTE> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, const std::vector<teq::RankT>& order)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, const std::vector<teq::RankT>& order)
 	{
 		if (is_inorder(order))
 		{
 			logs::debug("permuting with same dimensions ... treating as identity");
 			return false;
 		}
-		NodeptrT<T> arg = nodes.front();
+		LinkptrT<T> arg = nodes.front();
 		bool visited[teq::rank_cap];
 		std::fill(visited, visited + teq::rank_cap, false);
 		for (teq::RankT i = 0, n = order.size(); i < n; ++i)
@@ -815,7 +736,7 @@ struct FuncPacker<T,egen::EXTEND> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, const std::vector<teq::DimT>& bcast)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, const std::vector<teq::DimT>& bcast)
 	{
 		if (bcast.empty() || std::all_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 1 == d; }))
@@ -839,7 +760,7 @@ struct FuncPacker<T,egen::EXTEND> final : private EmptyPacker<T>
 		{
 			--nbcasts;
 		}
-		NodeptrT<T> arg = nodes.front();
+		LinkptrT<T> arg = nodes.front();
 		teq::Shape shape = arg->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		for (size_t i = 0; i < nbcasts; ++i)
@@ -860,7 +781,7 @@ struct FuncPacker<T,egen::EXTEND> final : private EmptyPacker<T>
 		return true;
 	}
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, teq::RankT offset, const std::vector<teq::DimT>& xlist)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, teq::RankT offset, const std::vector<teq::DimT>& xlist)
 	{
 		std::vector<teq::DimT> bcast(offset, 1);
 		bcast.insert(bcast.end(), xlist.begin(), xlist.end());
@@ -873,10 +794,10 @@ struct FuncPacker<T,egen::CONCAT> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, teq::RankT axis)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, teq::RankT axis)
 	{
-		NodeptrT<T> left = nodes[0];
-		NodeptrT<T> right = nodes[1];
+		LinkptrT<T> left = nodes[0];
+		LinkptrT<T> right = nodes[1];
 		teq::Shape leftshape = left->shape();
 		teq::Shape rightshape = right->shape();
 		std::vector<teq::DimT> slist(leftshape.begin(), leftshape.end());
@@ -897,7 +818,7 @@ struct FuncPacker<T,egen::GROUP_CONCAT> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, teq::RankT axis)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, teq::RankT axis)
 	{
 		if (nodes.size() == 1)
 		{
@@ -910,12 +831,12 @@ struct FuncPacker<T,egen::GROUP_CONCAT> final : private EmptyPacker<T>
 			logs::fatal("cannot group concat less than 2 arguments");
 		}
 		if (std::any_of(nodes.begin(), nodes.end(),
-			[](NodeptrT<T> arg) { return nullptr == arg; }))
+			[](LinkptrT<T> arg) { return nullptr == arg; }))
 		{
 			logs::fatal("cannot group concat with null argument");
 		}
 		if (std::any_of(nodes.begin(), nodes.end(),
-			[axis](NodeptrT<T> arg) { return arg->shape().at(axis) > 1; }))
+			[axis](LinkptrT<T> arg) { return arg->shape().at(axis) > 1; }))
 		{
 			logs::fatal("cannot group concat nodes with dimension at axis greater than 1");
 		}
@@ -938,7 +859,7 @@ struct FuncPacker<T,egen::RESHAPE> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const NodesT<T>& nodes, teq::Shape shape)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, teq::Shape shape)
 	{
 		std::vector<double> slist(shape.begin(), shape.end());
 		attrs.contents_.emplace(eigen::shaper_key,
@@ -952,7 +873,7 @@ struct FuncPacker<T,egen::RESHAPE> final : private EmptyPacker<T>
 
 /// Return functor node given opcode and node arguments
 template <typename T, typename ...ARGS>
-NodeptrT<T> make_functor (egen::_GENERATED_OPCODE opcode, NodesT<T> nodes, ARGS... vargs)
+LinkptrT<T> make_functor (egen::_GENERATED_OPCODE opcode, LinksT<T> nodes, ARGS... vargs)
 {
 	if (nodes.empty())
 	{
@@ -960,9 +881,8 @@ NodeptrT<T> make_functor (egen::_GENERATED_OPCODE opcode, NodesT<T> nodes, ARGS.
 	}
 	marsh::Maps attrs;
 	OPCODE_LOOKUP(CHOOSE_PACK, opcode)
-	return std::make_shared<FunctorNode<T>>(
-		std::shared_ptr<Functor<T>>(Functor<T>::get(opcode,
-			ArgsT<T>(nodes.begin(), nodes.end()), std::move(attrs))));
+	return func_link<T>(teq::TensptrT(Functor<T>::get(opcode,
+			nodes, std::move(attrs))));
 }
 
 #undef CHOOSE_PACK

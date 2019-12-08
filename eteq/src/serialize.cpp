@@ -50,12 +50,12 @@ template <typename T>
 static inline teq::TensptrT convert_func (std::string opname,
 	const teq::TensptrsT& args, marsh::Maps&& attrs)
 {
-	ArgsT<T> edges;
+	LinksT<T> edges;
 	edges.reserve(args.size());
 	std::transform(args.begin(), args.end(), std::back_inserter(edges),
 		[](teq::TensptrT tens)
 		{
-			return Edge<T>(to_node<T>(tens));
+			return to_node<T>(tens);
 		});
 	return teq::TensptrT(Functor<T>::get(
 		egen::get_op(opname), edges, std::move(attrs)));
@@ -244,7 +244,7 @@ template <typename T>
 static inline teq::TensptrT pbm_convert_func (std::string opname,
 	const pbm::EdgesT& edges, marsh::Maps&& attrs)
 {
-	ArgsT<T> tmp_edges;
+	LinksT<T> tmp_edges;
 	tmp_edges.reserve(edges.size());
 	for (auto& edge : edges)
 	{
@@ -255,8 +255,7 @@ static inline teq::TensptrT pbm_convert_func (std::string opname,
 			shape = teq::Shape(std::vector<teq::DimT>(
 				shape_vals.begin(), shape_vals.end()));
 		}
-		tmp_edges.push_back(
-			Edge<T>(to_node<T>(edge.first)));
+		tmp_edges.push_back(to_node<T>(edge.first));
 	}
 	return std::shared_ptr<Functor<T>>(Functor<T>::get(
 		egen::get_op(opname), tmp_edges, std::move(attrs)));

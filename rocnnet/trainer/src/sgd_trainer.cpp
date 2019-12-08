@@ -6,7 +6,7 @@ namespace trainer
 {
 
 TrainErrF sgd_train (layr::iLayer& model, teq::iSession& sess,
-	NodeptrT train_in, NodeptrT expected_out, layr::ApproxF update,
+	LinkptrT train_in, LinkptrT expected_out, layr::ApproxF update,
 	layr::ErrorF errfunc, NodeUnarF gradprocess)
 {
 	auto train_out = model.connect(train_in);
@@ -19,11 +19,8 @@ TrainErrF sgd_train (layr::iLayer& model, teq::iSession& sess,
 		if (auto var = std::dynamic_pointer_cast<
 			eteq::Variable<PybindT>>(tens))
 		{
-			auto varnode = std::make_shared<eteq::VariableNode<PybindT>>(var);
-			vars.push_back({
-				varnode,
-				gradprocess(eteq::derive(error, eteq::convert_to_node(varnode)))
-			});
+			vars.push_back({var, gradprocess(
+				eteq::derive(error, eteq::to_node<PybindT>(var)))});
 		}
 	}
 	auto updates = update(vars);

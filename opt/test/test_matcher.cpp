@@ -20,8 +20,8 @@ TEST(MATCHER, OrdrAny)
 {
 	std::vector<teq::DimT> slist = {3, 2};
 	teq::Shape shape(slist);
-	eteq::NodeptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
-	eteq::NodeptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
+	eteq::LinkptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::LinkptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto f1 = tenncor::pow(a, b);
 	auto f2 = tenncor::pow(a, a);
@@ -79,8 +79,8 @@ TEST(MATCHER, CommAny)
 {
 	std::vector<teq::DimT> slist = {3, 2};
 	teq::Shape shape(slist);
-	eteq::NodeptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
-	eteq::NodeptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
+	eteq::LinkptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::LinkptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto f1 = a * b;
 	auto f2 = a * a;
@@ -178,8 +178,8 @@ TEST(MATCHER, Ambiguous_CommAny)
 {
 	std::vector<teq::DimT> slist = {3, 2};
 	teq::Shape shape(slist);
-	eteq::NodeptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
-	eteq::NodeptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
+	eteq::LinkptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::LinkptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto same = a * b;
 	auto sub_l = same * a; // match against similar and similar2

@@ -11,6 +11,8 @@
 #include "eigen/generated/dtype.hpp"
 #include "eigen/eigen.hpp"
 
+#include "eteq/link.hpp"
+
 #ifndef ETEQ_ILEAF_HPP
 #define ETEQ_ILEAF_HPP
 
@@ -22,6 +24,17 @@ template <typename T>
 struct iLeaf : public teq::iLeaf
 {
 	virtual ~iLeaf (void) = default;
+
+	iLeaf<T>* clone (void) const
+	{
+		return static_cast<iLeaf<T>*>(this->clone_impl());
+	}
+
+	/// Implementation of iTensor
+	void accept (teq::iTraveler& visiter) override
+	{
+		visiter.visit(this);
+	}
 
 	/// Implementation of iTensor
 	teq::Shape shape (void) const override
@@ -70,6 +83,73 @@ protected:
 	/// Shape utility to avoid excessive conversion between data_.dimensions()
 	teq::Shape shape_;
 };
+
+/// Leaf tensor wrapper
+template <typename T>
+struct LeafLink final : public iLink<T>
+{
+	LeafLink (std::shared_ptr<iLeaf<T>> leaf) : leaf_(leaf)
+	{
+		if (leaf == nullptr)
+		{
+			logs::fatal("cannot link a null leaf");
+		}
+	}
+
+	/// Return deep copy of this instance (with a copied constant)
+	LeafLink<T>* clone (void) const
+	{
+		return static_cast<LeafLink<T>*>(clone_impl());
+	}
+
+	/// Implementation of iLink<T>
+	T* data (void) const override
+	{
+		return (T*) leaf_->data();
+	}
+
+	/// Implementation of iLink<T>
+	void update (void) override {}
+
+	/// Implementation of iLink<T>
+	teq::TensptrT get_tensor (void) const override
+	{
+		return leaf_;
+	}
+
+	/// Implementation of iLink<T>
+	bool has_data (void) const override
+	{
+		return true;
+	}
+
+private:
+	iLink<T>* clone_impl (void) const override
+	{
+		return new LeafLink(std::shared_ptr<iLeaf<T>>(leaf_->clone()));
+	}
+
+	/// Implementation of iLink<T>
+	void subscribe (Functor<T>* parent) override {}
+
+	/// Implementation of iLink<T>
+	void unsubscribe (Functor<T>* parent) override {}
+
+	std::shared_ptr<iLeaf<T>> leaf_;
+};
+
+template <typename T>
+LinkptrT<T> leaf_link (teq::TensptrT tens)
+{
+	return std::make_shared<LeafLink<T>>(
+		std::static_pointer_cast<iLeaf<T>>(tens));
+}
+
+template <typename T>
+void LinkConverter<T>::visit (teq::iLeaf* leaf)
+{
+	builders_.emplace(leaf, leaf_link<T>);
+}
 
 }
 

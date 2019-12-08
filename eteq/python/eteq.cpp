@@ -25,12 +25,12 @@ namespace pyead
 {
 
 template <typename T>
-py::array typedata_to_array (eteq::iNode<PybindT>* tnode, py::dtype dtype)
+py::array typedata_to_array (eteq::iLink<PybindT>* link, py::dtype dtype)
 {
-	auto pshape = pyutils::c2pshape(tnode->shape());
+	auto pshape = pyutils::c2pshape(link->shape());
 	return py::array(dtype,
 		py::array::ShapeContainer(pshape.begin(), pshape.end()),
-		tnode->data());
+		link->data());
 }
 
 }
@@ -71,21 +71,21 @@ PYBIND11_MODULE(eteq, m)
 				return pyutils::shapedarr2arr<PybindT>(*self);
 			});
 
-	// ==== node ====
-	auto node = (py::class_<eteq::iNode<PybindT>,NodeptrT>)
-		py::module::import("eteq.tenncor").attr("NodeptrT<PybindT>");
+	// ==== link ====
+	auto link = (py::class_<eteq::iLink<PybindT>,LinkptrT>)
+		py::module::import("eteq.tenncor").attr("LinkptrT<PybindT>");
 
-	node
+	link
 		.def("__str__",
-			[](eteq::iNode<PybindT>* self)
+			[](eteq::iLink<PybindT>* self)
 			{ return self->to_string(); },
 			"Return string representation of internal tensor")
 		.def("as_tens",
-			[](eteq::iNode<PybindT>* self)
+			[](eteq::iLink<PybindT>* self)
 			{ return self->get_tensor(); },
-			"Return internal tensor of this node instance")
+			"Return internal tensor of this link instance")
 		.def("shape",
-			[](eteq::iNode<PybindT>* self)
+			[](eteq::iLink<PybindT>* self)
 			{
 				teq::Shape shape = self->shape();
 				auto pshape = pyutils::c2pshape(shape);
@@ -93,25 +93,8 @@ PYBIND11_MODULE(eteq, m)
 				return py::array(ipshape.size(), ipshape.data());
 			},
 			"Return this instance's shape")
-		.def("children",
-			[](eteq::iNode<PybindT>* self)
-			{
-				std::vector<teq::TensptrT> tens;
-				if (auto f = dynamic_cast<teq::iFunctor*>(
-					self->get_tensor().get()))
-				{
-					auto args = f->get_children();
-					std::transform(args.begin(), args.end(),
-						std::back_inserter(tens),
-						[](const teq::iEdge& mten)
-						{
-							return mten.get_tensor();
-						});
-				}
-				return tens;
-			})
 		.def("get",
-			[](eteq::iNode<PybindT>* self)
+			[](eteq::iLink<PybindT>* self)
 			{
 				return pyead::typedata_to_array<PybindT>(
 					self, py::dtype::of<PybindT>());
@@ -123,64 +106,60 @@ PYBIND11_MODULE(eteq, m)
 
 	isess
 		.def("track",
-			[](teq::iSession* self, eteq::NodesT<PybindT> roots)
+			[](teq::iSession* self, eteq::LinksT<PybindT> roots)
 			{
 				teq::TensptrsT troots;
 				troots.reserve(roots.size());
 				std::transform(roots.begin(), roots.end(),
 					std::back_inserter(troots),
-					[](NodeptrT& node)
+					[](LinkptrT& link)
 					{
-						return node->get_tensor();
+						return link->get_tensor();
 					});
 				self->track(troots);
 			})
 		.def("update",
 			[](teq::iSession* self,
-				std::vector<NodeptrT> ignored)
+				std::vector<LinkptrT> ignored)
 			{
 				teq::TensSetT ignored_set;
-				for (NodeptrT& node : ignored)
+				for (LinkptrT& link : ignored)
 				{
-					ignored_set.emplace(node->get_tensor().get());
+					ignored_set.emplace(link->get_tensor().get());
 				}
 				self->update(ignored_set);
 			},
-			"Calculate every node in the graph given list of nodes to ignore",
-			py::arg("ignored") = std::vector<NodeptrT>{})
+			"Calculate every link in the graph given list of nodes to ignore",
+			py::arg("ignored") = std::vector<LinkptrT>{})
 		.def("update_target",
 			[](teq::iSession* self,
-				std::vector<NodeptrT> targeted,
-				std::vector<NodeptrT> ignored)
+				std::vector<LinkptrT> targeted,
+				std::vector<LinkptrT> ignored)
 			{
 				teq::TensSetT targeted_set;
 				teq::TensSetT ignored_set;
-				for (NodeptrT& node : targeted)
+				for (LinkptrT& link : targeted)
 				{
-					targeted_set.emplace(node->get_tensor().get());
+					targeted_set.emplace(link->get_tensor().get());
 				}
-				for (NodeptrT& node : ignored)
+				for (LinkptrT& link : ignored)
 				{
-					ignored_set.emplace(node->get_tensor().get());
+					ignored_set.emplace(link->get_tensor().get());
 				}
 				self->update_target(targeted_set, ignored_set);
 			},
-			"Calculate node relevant to targets in the graph given list of nodes to ignore",
+			"Calculate link relevant to targets in the graph given list of nodes to ignore",
 			py::arg("targeted"),
-			py::arg("ignored") = std::vector<NodeptrT>{})
+			py::arg("ignored") = std::vector<LinkptrT>{})
 		.def("get_tracked", &teq::iSession::get_tracked);
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
 		.def(py::init());
 
-	// ==== constant ====
-	py::class_<eteq::ConstantNode<PybindT>,std::shared_ptr<eteq::ConstantNode<PybindT>>,
-		eteq::iNode<PybindT>> constant(m, "Constant");
-
 	// ==== variable ====
-	py::class_<eteq::VariableNode<PybindT>,eteq::VarptrT<PybindT>,
-		eteq::iNode<PybindT>> variable(m, "Variable");
+	py::class_<eteq::Variable<PybindT>,eteq::VarptrT<PybindT>,
+		teq::iTensor> variable(m, "Variable");
 
 	variable
 		.def(py::init(
@@ -192,7 +171,7 @@ PYBIND11_MODULE(eteq, m)
 			py::arg("scalar") = 0,
 			py::arg("label") = "")
 		.def("assign",
-			[](eteq::VariableNode<PybindT>* self, py::array data)
+			[](eteq::Variable<PybindT>* self, py::array data)
 			{
 				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
@@ -201,8 +180,8 @@ PYBIND11_MODULE(eteq, m)
 			"Assign numpy data array to variable");
 
 	// ==== placeholder ====
-	py::class_<eteq::PlaceholderNode<PybindT>,eteq::PlaceptrT<PybindT>,
-		eteq::iNode<PybindT>> placeholder(m, "Placeholder");
+	py::class_<eteq::Placeholder<PybindT>,eteq::PlaceptrT<PybindT>,
+		teq::iTensor> placeholder(m, "Placeholder");
 
 	placeholder
 		.def(py::init(
@@ -214,7 +193,7 @@ PYBIND11_MODULE(eteq, m)
 			py::arg("shape"),
 			py::arg("label") = "")
 		.def("assign",
-			[](eteq::PlaceholderNode<PybindT>* self, py::array data)
+			[](eteq::Placeholder<PybindT>* self, py::array data)
 			{
 				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
@@ -222,14 +201,20 @@ PYBIND11_MODULE(eteq, m)
 			},
 			"Assign numpy data array to placeholder")
 		.def("assign",
-			[](eteq::PlaceholderNode<PybindT>* self, NodeptrT node)
+			[](eteq::Placeholder<PybindT>* self, LinkptrT link)
 			{
-				self->assign(node);
+				self->assign(link);
 			},
 			"Assign numpy data array to placeholder");
 
 	// ==== inline functions ====
 	m
+		.def("link",
+			[](teq::TensptrT tens)
+			{
+				return eteq::to_node<PybindT>(tens);
+			})
+
 		// constant creation
 		.def("scalar_constant",
 			[](PybindT scalar, std::vector<py::ssize_t> slist)
@@ -237,14 +222,14 @@ PYBIND11_MODULE(eteq, m)
 				return eteq::make_constant_scalar<PybindT>(scalar,
 					pyutils::p2cshape(slist));
 			},
-			"Return scalar constant node")
+			"Return scalar constant link")
 		.def("constant",
 			[](py::array data)
 			{
 				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
 				return eteq::make_constant(arr.data_.data(), arr.shape_);
-			}, "Return constant node with data")
+			}, "Return constant link with data")
 
 		// variable creation
 		.def("scalar_variable",

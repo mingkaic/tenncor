@@ -36,12 +36,12 @@ struct DenseBuilder final : public iLayerBuilder
 	{
 		if (target == dense_weight_key)
 		{
-			weight_ = eteq::to_node<PybindT>(tens);
+			weight_ = tens;
 			return;
 		}
 		else if (target == dense_bias_key)
 		{
-			bias_ = eteq::to_node<PybindT>(tens);
+			bias_ = tens;
 			return;
 		}
 		else if (target == dense_param_key)
@@ -61,11 +61,11 @@ struct DenseBuilder final : public iLayerBuilder
 	LayerptrT build (void) const override;
 
 private:
-	NodeptrT weight_ = nullptr;
+	teq::TensptrT weight_ = nullptr;
 
-	NodeptrT bias_ = nullptr;
+	teq::TensptrT bias_ = nullptr;
 
-	NodeptrT params_ = nullptr;
+	LinkptrT params_ = nullptr;
 
 	std::string label_;
 };
@@ -84,7 +84,7 @@ struct Dense final : public iLayer
 	Dense (teq::DimT nunits, const teq::Shape& inshape,
 		layr::InitF<PybindT> weight_init,
 		layr::InitF<PybindT> bias_init,
-		NodeptrT params,
+		LinkptrT params,
 		const std::string& label) :
 		label_(label),
 		params_(params)
@@ -92,31 +92,31 @@ struct Dense final : public iLayer
 		teq::Shape wshape({nunits});
 		std::copy(inshape.begin(), inshape.begin() + teq::rank_cap - 1, wshape.begin() + 1);
 		weight_ = weight_init(wshape, dense_weight_key);
-		tag(weight_->get_tensor(), LayerId(dense_weight_key));
+		tag(weight_, LayerId(dense_weight_key));
 		if (bias_init)
 		{
 			bias_ = bias_init(teq::Shape({nunits}), dense_bias_key);
-			tag(bias_->get_tensor(), LayerId(dense_bias_key));
+			tag(bias_, LayerId(dense_bias_key));
 		}
-		if (nullptr != params_)
+		if (params_)
 		{
 			tag(params_->get_tensor(), LayerId(dense_param_key));
 		}
 	}
 
-	Dense (NodeptrT weight, NodeptrT bias,
-		NodeptrT params, const std::string& label) :
+	Dense (teq::TensptrT weight, teq::TensptrT bias,
+		LinkptrT params, const std::string& label) :
 		label_(label),
 		weight_(weight),
 		bias_(bias),
 		params_(params)
 	{
-		tag(weight_->get_tensor(), LayerId(dense_weight_key));
+		tag(weight_, LayerId(dense_weight_key));
 		if (bias)
 		{
-			tag(bias_->get_tensor(), LayerId(dense_bias_key));
+			tag(bias_, LayerId(dense_bias_key));
 		}
-		if (nullptr != params_)
+		if (params_)
 		{
 			tag(params_->get_tensor(), LayerId(dense_param_key));
 		}
@@ -173,18 +173,15 @@ struct Dense final : public iLayer
 	/// Implementation of iLayer
 	teq::TensptrsT get_contents (void) const override
 	{
-		return {
-			weight_->get_tensor(),
-			nullptr == bias_ ? nullptr : bias_->get_tensor(),
-			nullptr == params_ ? nullptr : params_->get_tensor(),
-		};
+		return {weight_, bias_,
+			nullptr == params_ ? nullptr : params_->get_tensor()};
 	}
 
 	/// Implementation of iLayer
-	NodeptrT connect (NodeptrT input) const override
+	LinkptrT connect (LinkptrT input) const override
 	{
 		eigen::PairVecT<teq::RankT> dims = {{0, 1}};
-		if (nullptr != params_)
+		if (params_)
 		{
 			teq::Shape shape = params_->shape();
 			teq::NElemT n = shape.n_elems();
@@ -204,14 +201,13 @@ struct Dense final : public iLayer
 			}
 		}
 		// expect input to be <input dimensions...,nbatch dimensions...>
-		auto out = tenncor::nn::fully_connect({input}, {weight_}, bias_, dims);
-		teq::TensSetT leaves = {
-			input->get_tensor().get(),
-			weight_->get_tensor().get(),
-		};
+		auto out = tenncor::nn::fully_connect({input},
+			{eteq::to_node<PybindT>(weight_)},
+			eteq::to_node<PybindT>(bias_), dims);
+		teq::TensSetT leaves = {input->get_tensor().get(), weight_.get()};
 		if (bias_)
 		{
-			leaves.emplace(bias_->get_tensor().get());
+			leaves.emplace(bias_.get());
 		}
 		recursive_tag(out->get_tensor(), leaves, LayerId());
 		return out;
@@ -226,27 +222,27 @@ private:
 	void copy_helper (const Dense& other, std::string label_prefix = "")
 	{
 		label_ = label_prefix + other.label_;
-		weight_ = NodeptrT(other.weight_->clone());
-		tag(weight_->get_tensor(), LayerId(dense_weight_key));
+		weight_ = teq::TensptrT(other.weight_->clone());
+		tag(weight_, LayerId(dense_weight_key));
 		if (other.bias_)
 		{
-			bias_ = NodeptrT(other.bias_->clone());
-			tag(bias_->get_tensor(), LayerId(dense_bias_key));
+			bias_ = teq::TensptrT(other.bias_->clone());
+			tag(bias_, LayerId(dense_bias_key));
 		}
-		if (nullptr != other.params_)
+		if (other.params_)
 		{
-			params_ = NodeptrT(other.params_->clone());
+			params_ = LinkptrT(other.params_->clone());
 			tag(params_->get_tensor(), LayerId(dense_param_key));
 		}
 	}
 
 	std::string label_;
 
-	NodeptrT weight_;
+	teq::TensptrT weight_;
 
-	NodeptrT bias_;
+	teq::TensptrT bias_;
 
-	NodeptrT params_;
+	LinkptrT params_;
 };
 
 /// Smart pointer of fully connected layer

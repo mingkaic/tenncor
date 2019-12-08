@@ -37,6 +37,11 @@ struct iTensor
 {
 	virtual ~iTensor (void) = default;
 
+	iTensor* clone (void) const
+	{
+		return this->clone_impl();
+	}
+
 	/// Obtain concrete information on either leaf or functor implementations
 	virtual void accept (iTraveler& visiter) = 0;
 
@@ -45,6 +50,9 @@ struct iTensor
 
 	/// Return the string representation of the tensor
 	virtual std::string to_string (void) const = 0;
+
+protected:
+	virtual iTensor* clone_impl (void) const = 0;
 };
 
 /// Tensor smart pointer

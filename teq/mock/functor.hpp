@@ -18,46 +18,49 @@ struct MockFunctor final : public teq::iFunctor
 		shape_(args[0].shape()),
 		args_(args) {}
 
-	/// Implementation of iTensor
+	void accept (teq::iTraveler& visiter) override
+	{
+		visiter.visit(this);
+	}
+
 	teq::Shape shape (void) const override
 	{
 		return shape_;
 	}
 
-	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
 		return opcode_.name_;
 	}
 
-	/// Implementation of iFunctor
 	teq::Opcode get_opcode (void) const override
 	{
 		return opcode_;
 	}
 
-	/// Implementation of iFunctor
-	teq::CEdgesT get_children (void) const override
+	teq::EdgeRefsT get_children (void) const override
 	{
-		return teq::CEdgesT(args_.begin(), args_.end());
+		return teq::EdgeRefsT(args_.begin(), args_.end());
 	}
 
-	/// Implementation of iFunctor
 	marsh::iObject* get_attr (std::string attr_name) const override
 	{
 		return nullptr;
 	}
 
-	/// Implementation of iFunctor
 	std::vector<std::string> ls_attrs (void) const override
 	{
 		return {};
 	}
 
-	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
 		args_[index] = MockEdge(arg);
+	}
+
+	teq::iTensor* clone_impl (void) const override
+	{
+		return new MockFunctor(*this);
 	}
 
 	teq::Opcode opcode_;

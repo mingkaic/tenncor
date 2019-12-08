@@ -10,7 +10,6 @@
 #include "teq/shaped_arr.hpp"
 
 #include "eteq/ileaf.hpp"
-#include "eteq/inode.hpp"
 
 #ifndef ETEQ_VARIABLE_HPP
 #define ETEQ_VARIABLE_HPP
@@ -23,7 +22,10 @@ template <typename T>
 struct Variable final : public iLeaf<T>
 {
 	/// Return Variable given raw pointer array whose size is denoted by shape
-	static Variable<T>* get (T* ptr, teq::Shape shape, std::string label = "");
+	static Variable<T>* get (T* ptr, teq::Shape shape, std::string label = "")
+	{
+		return new Variable<T>(ptr, shape, label);
+	}
 
 	/// Return zero-initialized Variable of specified shape
 	static Variable<T>* get (teq::Shape shape, std::string label = "")
@@ -55,21 +57,21 @@ struct Variable final : public iLeaf<T>
 		return Variable<T>::get(data.data(), shape, label);
 	}
 
-	/// Return deep copy of other Variable
-	static Variable<T>* get (const Variable<T>& other)
+	/// Return deep copy of this Variable
+	Variable<T>* clone (void) const
 	{
-		return new Variable<T>(other);
+		return static_cast<Variable<T>*>(clone_impl());
 	}
 
-	/// Return move of other Variable
-	static Variable<T>* get (Variable<T>&& other)
+	/// Return move of this Variable
+	Variable<T>* move (void)
 	{
-		return new Variable<T>(std::move(other));
+		return new Variable<T>(std::move(*this));
 	}
 
-	Variable<T>& operator = (const Variable<T>& other) = default;
+	Variable<T>& operator = (const Variable<T>& other) = delete;
 
-	Variable<T>& operator = (Variable<T>&& other) = default;
+	Variable<T>& operator = (Variable<T>&& other) = delete;
 
 	/// Assign vectorized data to data source
 	Variable<T>& operator = (std::vector<T> input)
@@ -106,6 +108,11 @@ struct Variable final : public iLeaf<T>
 		this->data_ = eigen::make_tensmap<T>(data.data(), shape);
 	}
 
+	void assign (const T* input, teq::Shape shape)
+	{
+		assign(input, egen::get_type<T>(), shape);
+	}
+
 	void assign (const teq::ShapedArr<T>& arr)
 	{
 		assign(arr.data_.data(), egen::get_type<T>(), arr.shape_);
@@ -133,138 +140,37 @@ private:
 	Variable (const Variable<T>& other) = default;
 
 	Variable (Variable<T>&& other) = default;
+
+	teq::iTensor* clone_impl (void) const override
+	{
+		return new Variable<T>(*this);
+	}
 };
-
-/// Variable's node wrapper
-template <typename T>
-struct VariableNode final : public iNode<T>
-{
-	VariableNode (std::shared_ptr<Variable<T>> var) : var_(var) {}
-
-	/// Return deep copy of this instance (with a copied variable)
-	VariableNode<T>* clone (void) const
-	{
-		return static_cast<VariableNode<T>*>(clone_impl());
-	}
-
-	/// Implementation of iNode<T>
-	T* data (void) override
-	{
-		return (T*) var_->data();
-	}
-
-	/// Implementation of iNode<T>
-	void update (void) override {}
-
-	/// Implementation of iNode<T>
-	teq::TensptrT get_tensor (void) const override
-	{
-		return var_;
-	}
-
-	/// Assign Eigen tensor map to variable's internal data
-	void assign (const eigen::TensorT<T>& tensor)
-	{
-		*var_ = tensor;
-	}
-
-	/// Wrapper around variable assign of the same signature
-	void assign (const T* input, teq::Shape shape)
-	{
-		var_->assign(input, egen::get_type<T>(), shape);
-	}
-
-	/// Assign Eigen tensor map to variable's internal data
-	void assign (const eigen::TensMapT<T>& tensmap)
-	{
-		var_->assign(tensmap.data(), egen::get_type<T>(), get_shape(tensmap));
-	}
-
-	/// Assign ShapedArr representation to variable's internal data
-	void assign (const teq::ShapedArr<T>& arr)
-	{
-		var_->assign(arr.data_.data(), egen::get_type<T>(), arr.shape_);
-	}
-
-	/// Implementation of iNode<T>
-	bool has_data (void) const override
-	{
-		return true;
-	}
-
-protected:
-	iNode<T>* clone_impl (void) const override
-	{
-		return new VariableNode(
-			std::shared_ptr<Variable<T>>(Variable<T>::get(*var_)));
-	}
-
-private:
-	/// Implementation of iNode<T>
-	void add_parent (Functor<T>* parent) override
-	{
-		// todo: add some trigger
-	}
-
-	/// Implementation of iNode<T>
-	void remove_parent (Functor<T>* parent) override
-	{
-		// todo: add some trigger
-	}
-
-	std::shared_ptr<Variable<T>> var_;
-};
-
-template <typename T>
-Variable<T>* Variable<T>::get (T* ptr, teq::Shape shape, std::string label)
-{
-	static bool registered = register_builder<Variable<T>,T>(
-		[](teq::TensptrT tens)
-		{
-			return std::make_shared<VariableNode<T>>(
-				std::static_pointer_cast<Variable<T>>(tens));
-		});
-	assert(registered);
-
-	return new Variable<T>(ptr, shape, label);
-}
 
 /// Smart pointer of variable nodes to preserve assign functions
 template <typename T>
-using VarptrT = std::shared_ptr<VariableNode<T>>;
-
-/// Return Node smart pointer of Variable smart pointer
-template <typename T>
-NodeptrT<T> convert_to_node (VarptrT<T> var)
-{
-	return std::static_pointer_cast<iNode<T>>(var);
-}
+using VarptrT = std::shared_ptr<Variable<T>>;
 
 /// Return variable node given scalar and shape
 template <typename T>
-VarptrT<T> make_variable_scalar (T scalar, teq::Shape shape, std::string label = "")
+VarptrT<T> make_variable_scalar (T scalar,
+	teq::Shape shape, std::string label = "")
 {
-	return std::make_shared<VariableNode<T>>(
-		std::shared_ptr<Variable<T>>(Variable<T>::get(scalar, shape, label))
-	);
+	return VarptrT<T>(Variable<T>::get(scalar, shape, label));
 }
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>
 VarptrT<T> make_variable (teq::Shape shape, std::string label = "")
 {
-	return std::make_shared<VariableNode<T>>(
-		std::shared_ptr<Variable<T>>(Variable<T>::get(shape, label))
-	);
+	return VarptrT<T>(Variable<T>::get(shape, label));
 }
 
 /// Return variable node given raw array and shape
 template <typename T>
 VarptrT<T> make_variable (T* data, teq::Shape shape, std::string label = "")
 {
-	return std::make_shared<VariableNode<T>>(
-		std::shared_ptr<Variable<T>>(Variable<T>::get(data, shape, label))
-	);
+	return VarptrT<T>(Variable<T>::get(data, shape, label));
 }
 
 }

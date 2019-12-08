@@ -17,6 +17,11 @@ struct MockTensor : public teq::iLeaf
 
 	virtual ~MockTensor (void) = default;
 
+	void accept (teq::iTraveler& visiter) override
+	{
+		visiter.visit(this);
+	}
+
 	teq::Shape shape (void) const override
 	{
 		return shape_;
@@ -55,6 +60,11 @@ struct MockTensor : public teq::iLeaf
 	bool is_const (void) const override
 	{
 		return cst_;
+	}
+
+	teq::iTensor* clone_impl (void) const override
+	{
+		return new MockTensor(*this);
 	}
 
 	teq::Shape shape_;

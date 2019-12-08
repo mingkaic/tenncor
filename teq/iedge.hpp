@@ -33,7 +33,7 @@ struct iEdge
 	virtual void get_attrs (marsh::Maps& out) const = 0;
 };
 
-using CEdgesT = std::vector<std::reference_wrapper<const iEdge>>;
+using EdgeRefsT = std::vector<std::reference_wrapper<const iEdge>>;
 
 }
 

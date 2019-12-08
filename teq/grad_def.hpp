@@ -117,7 +117,7 @@ struct iGradientBuilder
 			}
 
 			auto& grad_indices = pathmap[parent];
-			CEdgesT children = parent->get_children();
+			EdgeRefsT children = parent->get_children();
 			size_t nchildren = children.size();
 			// assert: all nnary-children use identity mapping,
 			// so no children-arg is direct mapping

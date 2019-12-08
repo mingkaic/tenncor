@@ -1,8 +1,7 @@
 #include "teq/shaped_arr.hpp"
 #include "teq/iopfunc.hpp"
 
-#include "eigen/generated/opcode.hpp"
-
+#include "eteq/ifunctor.hpp"
 #include "eteq/variable.hpp"
 
 #ifndef ETEQ_PLACEHOLDER_HPP
@@ -17,28 +16,31 @@ namespace eteq
 /// then wrap it in variable and assign as child
 /// Otherwise take node as its child
 template <typename T>
-struct Placeholder final : public teq::iOperableFunc, public Observable<Functor<T>*>
+struct Placeholder final : public iFunctor<T>
 {
 	static Placeholder<T>* get (
-		teq::ShapeSignature shape, std::string label = "");
-
-	/// Return deep copy of other Placeholder
-	static Placeholder<T>* get (const Placeholder<T>& other)
+		teq::ShapeSignature shape, std::string label = "")
 	{
-		return new Placeholder<T>(other);
+		return new Placeholder<T>(shape, label);
 	}
 
-	/// Return move of other Placeholder
-	static Placeholder<T>* get (Placeholder<T>&& other)
+	/// Return deep copy of this Functor
+	Placeholder<T>* clone (void) const
 	{
-		return new Placeholder<T>(std::move(other));
+		return static_cast<Placeholder<T>*>(clone_impl());
 	}
 
-	Placeholder<T>& operator = (const Placeholder<T>& other) = default;
+	/// Return move of this Placeholder
+	Placeholder<T>* move (void)
+	{
+		return new Placeholder<T>(std::move(*this));
+	}
 
-	Placeholder<T>& operator = (Placeholder<T>&& other) = default;
+	Placeholder<T>& operator = (const Placeholder<T>& other) = delete;
 
-	void assign (const NodeptrT<T>& input)
+	Placeholder<T>& operator = (Placeholder<T>&& other) = delete;
+
+	void assign (const LinkptrT<T>& input)
 	{
 		teq::Shape shape = input->shape();
 		if (false == shape.compatible_after(shape_, 0))
@@ -46,18 +48,32 @@ struct Placeholder final : public teq::iOperableFunc, public Observable<Functor<
 			logs::fatalf("assigning data shaped %s to tensor %s",
 				shape.to_string().c_str(), shape_.to_string().c_str());
 		}
-		if (nullptr == content_)
-		{
-			content_ = std::make_shared<Edge<T>>(input);
-		}
-		else
+		if (nullptr != content_)
 		{
 			for (auto& parent : this->subs_)
 			{
 				parent->uninitialize();
 			}
-			content_->set_node(input);
 		}
+		content_ = input;
+	}
+
+	void assign (const teq::TensptrT& input)
+	{
+		teq::Shape shape = input->shape();
+		if (false == shape.compatible_after(shape_, 0))
+		{
+			logs::fatalf("assigning data shaped %s to tensor %s",
+				shape.to_string().c_str(), shape_.to_string().c_str());
+		}
+		if (nullptr != content_)
+		{
+			for (auto& parent : this->subs_)
+			{
+				parent->uninitialize();
+			}
+		}
+		content_ = to_node<T>(input);
 	}
 
 	void assign (eigen::TensMapT<T>& input)
@@ -104,6 +120,12 @@ struct Placeholder final : public teq::iOperableFunc, public Observable<Functor<
 	}
 
 	/// Implementation of iTensor
+	void accept (teq::iTraveler& visiter) override
+	{
+		visiter.visit(this);
+	}
+
+	/// Implementation of iTensor
 	teq::Shape shape (void) const override
 	{
 		// if (nullptr == content_)
@@ -141,18 +163,6 @@ struct Placeholder final : public teq::iOperableFunc, public Observable<Functor<
 	}
 
 	/// Implementation of iData
-	size_t type_code (void) const override
-	{
-		return egen::get_type<T>();
-	}
-
-	/// Implementation of iData
-	std::string type_label (void) const override
-	{
-		return egen::name_type(egen::get_type<T>());
-	}
-
-	/// Implementation of iData
 	size_t nbytes (void) const override
 	{
 		if (nullptr == content_)
@@ -169,7 +179,7 @@ struct Placeholder final : public teq::iOperableFunc, public Observable<Functor<
 	}
 
 	/// Implementation of iFunctor
-	teq::CEdgesT get_children (void) const override
+	teq::EdgeRefsT get_children (void) const override
 	{
 		if (nullptr == content_)
 		{
@@ -207,10 +217,10 @@ struct Placeholder final : public teq::iOperableFunc, public Observable<Functor<
 		{
 			logs::fatal("cannot update unassigned placeholder");
 		}
-		content_->get_node()->update();
+		content_->update();
 	}
 
-	bool is_uninit (void) const
+	bool is_uninit (void) const override
 	{
 		return nullptr == content_;
 	}
@@ -219,131 +229,34 @@ struct Placeholder final : public teq::iOperableFunc, public Observable<Functor<
 
 private:
 	Placeholder (teq::ShapeSignature shape, std::string label) :
-		shape_(std::vector<teq::DimT>(shape.begin(), shape.end())), label_(label) {}
+		label_(label),
+		shape_(std::vector<teq::DimT>(shape.begin(), shape.end())) {}
 
 	Placeholder (const Placeholder<T>& other) = default;
 
 	Placeholder (Placeholder<T>&& other) = default;
 
+	teq::iTensor* clone_impl (void) const override
+	{
+		return new Placeholder<T>(*this);
+	}
+
 	// teq::ShapeSignature shape_;
 	teq::Shape shape_;
 	// todo: replace shape with signature when functors also support incomplete shapes
 
-	std::shared_ptr<Edge<T>> content_ = nullptr;
+	std::shared_ptr<iLink<T>> content_ = nullptr;
 };
-
-/// Placeholder's node wrapper
-template <typename T>
-struct PlaceholderNode final : public iNode<T>
-{
-	PlaceholderNode (std::shared_ptr<Placeholder<T>> phr) : phr_(phr) {}
-
-	/// Return deep copy of this instance (with a copied variable)
-	PlaceholderNode<T>* clone (void) const
-	{
-		return static_cast<PlaceholderNode<T>*>(clone_impl());
-	}
-
-	/// Implementation of iNode<T>
-	T* data (void) override
-	{
-		return (T*) phr_->data();
-	}
-
-	/// Implementation of iNode<T>
-	void update (void) override {}
-
-	/// Implementation of iNode<T>
-	teq::TensptrT get_tensor (void) const override
-	{
-		return phr_;
-	}
-
-	void assign (const NodeptrT<T>& input)
-	{
-		phr_->assign(input);
-	}
-
-	/// Assign Eigen tensor map to variable's internal data
-	void assign (eigen::TensMapT<T>& tensmap)
-	{
-		phr_->assign(tensmap);
-	}
-
-	void assign (eigen::TensorT<T>& tensor)
-	{
-		phr_->assign(tensor);
-	}
-
-	/// Assign ShapedArr representation to variable's internal data
-	void assign (teq::ShapedArr<T>& arr)
-	{
-		phr_->assign(arr);
-	}
-
-	/// Implementation of iNode<T>
-	bool has_data (void) const override
-	{
-		return false == phr_->is_uninit();
-	}
-
-protected:
-	iNode<T>* clone_impl (void) const override
-	{
-		return new PlaceholderNode(
-			std::shared_ptr<Placeholder<T>>(Placeholder<T>::get(*phr_)));
-	}
-
-private:
-	/// Implementation of iNode<T>
-	void add_parent (Functor<T>* parent) override
-	{
-		phr_->subscribe(parent);
-	}
-
-	/// Implementation of iNode<T>
-	void remove_parent (Functor<T>* parent) override
-	{
-		phr_->unsubscribe(parent);
-	}
-
-	std::shared_ptr<Placeholder<T>> phr_;
-};
-
-template <typename T>
-Placeholder<T>* Placeholder<T>::get (
-	teq::ShapeSignature shape, std::string label)
-{
-	static bool registered = register_builder<Placeholder<T>,T>(
-		[](teq::TensptrT tens)
-		{
-			return std::make_shared<PlaceholderNode<T>>(
-				std::static_pointer_cast<Placeholder<T>>(tens));
-		});
-	assert(registered);
-
-	return Placeholder<T>::get(shape, label);
-}
 
 /// Smart pointer of placeholder nodes to preserve assign functions
 template <typename T>
-using PlaceptrT = std::shared_ptr<PlaceholderNode<T>>;
-
-/// Return Node smart pointer of Placeholder smart pointer
-template <typename T>
-NodeptrT<T> convert_to_node (PlaceptrT<T> phr)
-{
-	return std::static_pointer_cast<iNode<T>>(phr);
-}
+using PlaceptrT = std::shared_ptr<Placeholder<T>>;
 
 template <typename T>
 PlaceptrT<T> make_placeholder (teq::ShapeSignature shape,
 	std::string label = "")
 {
-	return std::make_shared<PlaceholderNode<T>>(
-		std::shared_ptr<Placeholder<T>>(
-			Placeholder<T>::get(shape, label))
-	);
+	return PlaceptrT<T>(Placeholder<T>::get(shape, label));
 }
 
 }

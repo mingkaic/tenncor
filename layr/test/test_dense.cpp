@@ -226,8 +226,8 @@ TEST(DENSE, Connection)
 		0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape({7, 2}), "x2");
-	auto biasedy = rdense.connect(x);
-	auto y = nobias.connect(x2);
+	auto biasedy = rdense.connect(eteq::to_node<PybindT>(x));
+	auto y = nobias.connect(eteq::to_node<PybindT>(x2));
 
 	EXPECT_GRAPHEQ(
 		"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -290,7 +290,7 @@ TEST(DENSE, ConnectionTagging)
 
 	auto x = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape({6, 2}), "x");
-	auto y = dense.connect(x);
+	auto y = dense.connect(eteq::to_node<PybindT>(x));
 
 	auto contents = dense.get_contents();
 
@@ -391,7 +391,7 @@ TEST(DENSE, Building)
 
 		auto x = eteq::make_variable_scalar<PybindT>(
 			0, teq::Shape({6, 2}), "x");
-		auto y = dense.connect(x);
+		auto y = dense.connect(eteq::to_node<PybindT>(x));
 
 		layr::save_layer(ss, dense, {y->get_tensor()});
 	}

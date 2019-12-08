@@ -20,7 +20,7 @@ namespace layr
 struct ULayer;
 
 /// Function that takes corresponding unary layer and node
-using UnaryF = std::function<NodeptrT(NodeptrT,NodeptrT)>;
+using UnaryF = std::function<LinkptrT(LinkptrT,LinkptrT)>;
 
 /// ULayer parameter label
 const std::string uparam_key = "uparam";
@@ -53,7 +53,7 @@ struct ULayerBuilder final : public iLayerBuilder
 private:
 	std::string utype_;
 
-	NodeptrT params_ = nullptr;
+	LinkptrT params_ = nullptr;
 
 	std::string label_;
 };
@@ -108,23 +108,23 @@ get_layer_reg().register_tagr(layers_key_prefix + "meanpool",
 
 /// Softmax layer connection function that extracts
 /// transformation parameter from layer and apply to input
-NodeptrT softmax_from_param (NodeptrT input, NodeptrT params);
+LinkptrT softmax_from_param (LinkptrT input, LinkptrT params);
 
-NodeptrT maxpool_from_param (NodeptrT input, NodeptrT params);
+LinkptrT maxpool_from_param (LinkptrT input, LinkptrT params);
 
-NodeptrT meanpool_from_param (NodeptrT input, NodeptrT params);
+LinkptrT meanpool_from_param (LinkptrT input, LinkptrT params);
 
 /// Map unary layer identifier to connection function
 const std::unordered_map<std::string,UnaryF> unaries =
 {
 	{sigmoid_layer_key,
-		[](NodeptrT input, NodeptrT params)
+		[](LinkptrT input, LinkptrT params)
 		{ return tenncor::sigmoid<PybindT>(input); }},
 	{tanh_layer_key,
-		[](NodeptrT input, NodeptrT params)
+		[](LinkptrT input, LinkptrT params)
 		{ return tenncor::tanh<PybindT>(input); }},
 	{relu_layer_key,
-		[](NodeptrT input, NodeptrT params)
+		[](LinkptrT input, LinkptrT params)
 		{ return tenncor::relu<PybindT>(input); }},
 	{softmax_layer_key, softmax_from_param},
 	{maxpool2d_layer_key, maxpool_from_param},
@@ -134,7 +134,7 @@ const std::unordered_map<std::string,UnaryF> unaries =
 /// Layer implementation to apply activation and pooling functions
 struct ULayer final : public iLayer
 {
-	ULayer (const std::string& ulayer_type, NodeptrT params,
+	ULayer (const std::string& ulayer_type, LinkptrT params,
 		const std::string& label = "") :
 		label_(label),
 		utype_(ulayer_type),
@@ -205,7 +205,7 @@ struct ULayer final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	NodeptrT connect (NodeptrT input) const override
+	LinkptrT connect (LinkptrT input) const override
 	{
 		auto output = unary_(input, params_);
 		recursive_tag(output->get_tensor(), {
@@ -225,7 +225,7 @@ private:
 		label_ = label_prefix + other.get_label();
 		utype_ = other.utype_;
 		unary_ = other.unary_;
-		params_ = NodeptrT(other.params_->clone());
+		params_ = LinkptrT(other.params_->clone());
 		tag(params_->get_tensor(), LayerId(uparam_key));
 	}
 
@@ -235,7 +235,7 @@ private:
 
 	UnaryF unary_;
 
-	NodeptrT params_;
+	LinkptrT params_;
 };
 
 /// Smart pointer of unary layer

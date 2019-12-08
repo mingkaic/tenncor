@@ -9,14 +9,14 @@
 namespace trainer
 {
 
-using NodeUnarF = std::function<eteq::NodeptrT<PybindT>(eteq::NodeptrT<PybindT>)>;
+using NodeUnarF = std::function<eteq::LinkptrT<PybindT>(eteq::LinkptrT<PybindT>)>;
 
 using TrainErrF = std::function<teq::ShapedArr<PybindT>(void)>;
 
 TrainErrF sgd_train (layr::iLayer& model, teq::iSession& sess,
-	NodeptrT train_in, NodeptrT expected_out, layr::ApproxF update,
+	LinkptrT train_in, LinkptrT expected_out, layr::ApproxF update,
 	layr::ErrorF errfunc = layr::sqr_diff,
-	NodeUnarF gradprocess = [](eteq::NodeptrT<PybindT> in){ return in; });
+	NodeUnarF gradprocess = [](eteq::LinkptrT<PybindT> in){ return in; });
 
 }
 

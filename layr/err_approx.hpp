@@ -21,7 +21,7 @@ namespace layr
 {
 
 /// Ordered association between variable and error
-using VarErrsT = std::vector<std::pair<eteq::VarptrT<PybindT>,NodeptrT>>;
+using VarErrsT = std::vector<std::pair<eteq::VarptrT<PybindT>,LinkptrT>>;
 
 /// Variable and error approximation assignment encapsulation
 struct VarAssign
@@ -33,7 +33,7 @@ struct VarAssign
 	eteq::VarptrT<PybindT> target_;
 
 	/// Variable update as to minimize the error in future iterations
-	NodeptrT source_;
+	LinkptrT source_;
 };
 
 /// One batch of assignments
@@ -44,7 +44,7 @@ using AssignGroupsT = std::vector<AssignsT>;
 
 /// Function that returns the error between two nodes,
 /// left node contains expected values, right contains resulting values
-using ErrorF = std::function<NodeptrT(NodeptrT,NodeptrT)>;
+using ErrorF = std::function<LinkptrT(LinkptrT,LinkptrT)>;
 
 /// Function that approximate error of sources
 /// given a vector of variables and its corresponding errors
@@ -55,7 +55,7 @@ using ApproxF = std::function<AssignGroupsT(const VarErrsT&)>;
 using UpdateStepF = std::function<void(teq::TensSetT&)>;
 
 /// Return square(expect - got)
-NodeptrT sqr_diff (NodeptrT expect, NodeptrT got);
+LinkptrT sqr_diff (LinkptrT expect, LinkptrT got);
 
 /// Return all batches of variable assignments of
 /// stochastic gradient descent error approximation applied to
