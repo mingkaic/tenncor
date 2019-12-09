@@ -36,7 +36,7 @@ struct ULayerBuilder final : public iLayerBuilder
 	{
 		if (target == uparam_key)
 		{
-			params_ = eteq::to_node<PybindT>(tens);
+			params_ = eteq::to_link<PybindT>(tens);
 			return;
 		}
 		logs::warnf("attempt to create ulayer "

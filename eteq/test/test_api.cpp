@@ -142,7 +142,11 @@ static void unary_generic (UnaryOpF<double> op,
 	eteq::LinkptrT<double> src = eteq::make_constant<double>(data.data(), shape);
 	eteq::LinkptrT<double> dest = op(src);
 
-	dest->update();
+	if (auto dtens = std::dynamic_pointer_cast<eteq::Functor<double>>(
+		dest->get_tensor()))
+	{
+		dtens->update();
+	}
 	verify(dest, shape, data);
 
 	teq::Session session;
@@ -169,7 +173,9 @@ static void unar_elem (std::vector<double> data,
 	eteq::LinkptrT<double> src = eteq::make_constant<double>(data.data(), shape);
 	eteq::LinkptrT<double> dest = op(src);
 
-	dest->update();
+	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
+		dest->get_tensor());
+	dtens->update();
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -236,7 +242,9 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	eteq::LinkptrT<double> clhs = lhs_op(src, cst);
 	eteq::LinkptrT<double> crhs = rhs_op(cst, src2);
 
-	dest->update();
+	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
+		dest->get_tensor());
+	dtens->update();
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -247,8 +255,12 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(fwd(data[i], data2[i]), optr[i]);
 	}
 
-	clhs->update();
-	crhs->update();
+	auto clhstens = std::static_pointer_cast<eteq::Functor<double>>(
+		clhs->get_tensor());
+	auto crhstens = std::static_pointer_cast<eteq::Functor<double>>(
+		crhs->get_tensor());
+	clhstens->update();
+	crhstens->update();
 	{
 		auto gotshape = clhs->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -364,7 +376,9 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	eteq::LinkptrT<int32_t> clhs = lhs_op(src, cst);
 	eteq::LinkptrT<int32_t> crhs = rhs_op(cst, src2);
 
-	dest->update();
+	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
+		dest->get_tensor());
+	dtens->update();
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -375,8 +389,12 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(fwd(data[i], data2[i]), optr[i]);
 	}
 
-	clhs->update();
-	crhs->update();
+	auto clhstens = std::static_pointer_cast<eteq::Functor<double>>(
+		clhs->get_tensor());
+	auto crhstens = std::static_pointer_cast<eteq::Functor<double>>(
+		crhs->get_tensor());
+	clhstens->update();
+	crhstens->update();
 	{
 		auto gotshape = clhs->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -838,7 +856,9 @@ TEST(API, Select)
 		eteq::LinkptrT<double> dest =
 			tenncor::if_then_else(cond_src, src, src2);
 
-		dest->update();
+		auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
+			dest->get_tensor());
+		dtens->update();
 		{
 			auto gotshape = dest->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -1102,7 +1122,9 @@ TEST(API, Rprod)
 	eteq::LinkptrT<int32_t> dest = tenncor::reduce_prod(src);
 	eteq::LinkptrT<int32_t> dest2 = tenncor::reduce_prod(src, 1, 1);
 
-	dest->update();
+	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
+		dest->get_tensor());
+	dtens->update();
 	{
 		size_t n = dest->shape().n_elems();
 		{
@@ -1114,7 +1136,9 @@ TEST(API, Rprod)
 		EXPECT_EQ(expect, got);
 	}
 
-	dest2->update();
+	auto dtens2 = std::static_pointer_cast<eteq::Functor<double>>(
+		dest2->get_tensor());
+	dtens2->update();
 	{
 		std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 		expect_list[1] = 1;
@@ -1366,7 +1390,9 @@ TEST(API, Permute)
 	eteq::LinkptrT<double> src = eteq::make_constant<double>(data.data(), shape);
 	eteq::LinkptrT<double> dest = tenncor::permute(src, pidx);
 
-	dest->update();
+	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
+		dest->get_tensor());
+	dtens->update();
 	size_t n = dest->shape().n_elems();
 	ASSERT_EQ(nelem, n);
 	double* got = (double*) dest->data();
@@ -1412,7 +1438,9 @@ TEST(API, Extend)
 	eteq::LinkptrT<double> src = eteq::make_constant<double>(data.data(), shape);
 	eteq::LinkptrT<double> dest = tenncor::extend(src, slist.size(), ext);
 
-	dest->update();
+	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
+		dest->get_tensor());
+	dtens->update();
 	size_t ext_nelem = teq::Shape(ext).n_elems();
 	size_t n = dest->shape().n_elems();
 	ASSERT_EQ(nelem * ext_nelem, n);
@@ -1479,7 +1507,9 @@ TEST(API, Matmul)
 	eteq::LinkptrT<int32_t> b = eteq::make_constant<int32_t>(data2.data(), bshape);
 	eteq::LinkptrT<int32_t> dest = tenncor::matmul(a, b);
 
-	dest->update();
+	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
+		dest->get_tensor());
+	dtens->update();
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(2, gotshape.at(1));
@@ -1563,7 +1593,9 @@ TEST(API, Contract)
 	eteq::LinkptrT<int32_t> b = eteq::make_constant<int32_t>(data2.data(), bshape);
 	eteq::LinkptrT<int32_t> dest = tenncor::contract(a, b, {{0, 2}});
 
-	dest->update();
+	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
+		dest->get_tensor());
+	dtens->update();
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(1, gotshape.at(1));
@@ -1623,7 +1655,9 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	eteq::LinkptrT<double> src2 = eteq::make_constant_scalar<double>(hi, shape);
 	eteq::LinkptrT<double> dest = tenncor::random::rand_unif(src, src2);
 
-	dest->update();
+	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
+		dest->get_tensor());
+	dtens->update();
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -1733,7 +1767,9 @@ TEST(API, Convolution)
 	std::iota(dims.begin(), dims.end(), 0);
 	eteq::LinkptrT<double> dest = tenncor::convolution(img, kernel, dims);
 
-	dest->update();
+	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
+		dest->get_tensor());
+	dtens->update();
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(expectslist, gotshape);

@@ -181,13 +181,13 @@ PYBIND11_MODULE(eteq, m)
 
 	// ==== placeholder ====
 	py::class_<eteq::Placeholder<PybindT>,eteq::PlaceptrT<PybindT>,
-		teq::iTensor> placeholder(m, "Placeholder");
+		eteq::iLink<PybindT>> placeholder(m, "Placeholder");
 
 	placeholder
 		.def(py::init(
 			[](std::vector<py::ssize_t> slist, std::string label)
 			{
-				return eteq::make_placeholder<PybindT>(
+				return std::make_shared<eteq::Placeholder<PybindT>>(
 					pyutils::p2cshapesign(slist), label);
 			}),
 			py::arg("shape"),
@@ -212,7 +212,7 @@ PYBIND11_MODULE(eteq, m)
 		.def("link",
 			[](teq::TensptrT tens)
 			{
-				return eteq::to_node<PybindT>(tens);
+				return eteq::to_link<PybindT>(tens);
 			})
 
 		// constant creation

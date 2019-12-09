@@ -101,25 +101,25 @@ struct DQNTrainer final
 			params_.mini_batch_size_}), "action_mask");
 
 		// forward action score computation
-		output_ = source_model_.connect(eteq::to_node<PybindT>(input_));
+		output_ = source_model_.connect(eteq::to_link<PybindT>(input_));
 
 		train_out_ = source_model_.connect(
-			eteq::to_node<PybindT>(train_input_));
+			eteq::to_link<PybindT>(train_input_));
 
 		// predicting target future rewards
 		ctx_.next_output_ = ctx_.target_model_->connect(
-			eteq::to_node<PybindT>(next_input_));
+			eteq::to_link<PybindT>(next_input_));
 
 		auto target_values =
 			tenncor::reduce_max_1d(ctx_.next_output_, 0) *
-			eteq::to_node<PybindT>(next_output_mask_);
+			eteq::to_link<PybindT>(next_output_mask_);
 		// reward for each instance in batch
-		future_reward_ = eteq::to_node<PybindT>(reward_) +
+		future_reward_ = eteq::to_link<PybindT>(reward_) +
 			params_.discount_rate_ * target_values;
 
 		// prediction error
 		auto masked_output_score = tenncor::reduce_sum_1d(
-			train_out_ * eteq::to_node<PybindT>(output_mask_), 0);
+			train_out_ * eteq::to_link<PybindT>(output_mask_), 0);
 		prediction_error_ = tenncor::reduce_mean(tenncor::square(
 			masked_output_score - future_reward_));
 
@@ -132,7 +132,7 @@ struct DQNTrainer final
 				eteq::Variable<PybindT>>(tens))
 			{
 				source_vars.push_back({var,gradprocess(eteq::derive(
-					prediction_error_, eteq::to_node<PybindT>(var)))});
+					prediction_error_, eteq::to_link<PybindT>(var)))});
 			}
 		}
 		updates_ = update(source_vars);
@@ -155,8 +155,8 @@ struct DQNTrainer final
 		for (size_t i = 0; i < nvars; i++)
 		{
 			// this is equivalent to target = (1-alpha) * target + alpha * source
-			auto target = eteq::to_node<PybindT>(target_vars[i]);
-			auto source = eteq::to_node<PybindT>(source_vars[i].first);
+			auto target = eteq::to_link<PybindT>(target_vars[i]);
+			auto source = eteq::to_link<PybindT>(source_vars[i].first);
 			auto diff = target - source;
 
 			auto target_next = target - params_.target_update_rate_ * diff;

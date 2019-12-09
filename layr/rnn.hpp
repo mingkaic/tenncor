@@ -31,12 +31,12 @@ struct RNNBuilder final : public iLayerBuilder
 	{
 		if (target == init_state_key)
 		{
-			init_state_ = eteq::to_node<PybindT>(tens);
+			init_state_ = eteq::to_link<PybindT>(tens);
 			return;
 		}
 		else if (target == rnn_param_key)
 		{
-			params_ = eteq::to_node<PybindT>(tens);
+			params_ = eteq::to_link<PybindT>(tens);
 			return;
 		}
 		logs::warnf("attempt to create rnn layer "
@@ -81,7 +81,7 @@ struct RNN final : public iLayer
 		cell_(std::make_shared<Dense>(nunits,
 			teq::Shape({(teq::DimT) (nunits + ninput)}),
 			weight_init, bias_init, nullptr, "cell")),
-		init_state_(eteq::to_node<PybindT>(
+		init_state_(eteq::to_link<PybindT>(
 			eteq::make_variable<PybindT>(
 				teq::Shape({nunits}), "init_state"))),
 		activation_(activation),

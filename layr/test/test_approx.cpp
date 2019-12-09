@@ -23,7 +23,7 @@ TEST(APPROX, StochasticGD)
 		0, teq::Shape(slist), "root");
 
 	auto groups = layr::sgd(layr::VarErrsT{{leaf,
-		eteq::to_node<PybindT>(root)}}, 0.67, "stuff");
+		eteq::to_link<PybindT>(root)}}, 0.67, "stuff");
 	ASSERT_EQ(1, groups.size());
 
 	auto ass = groups.at(0);
@@ -52,7 +52,7 @@ TEST(APPROX, RmsMomentum)
 		0, teq::Shape(slist), "root");
 
 	auto groups = layr::rms_momentum(layr::VarErrsT{{leaf,
-		eteq::to_node<PybindT>(root)}}, 0.67, 0.78,
+		eteq::to_link<PybindT>(root)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon(), "stuff");
 	ASSERT_EQ(2, groups.size());
 
@@ -104,7 +104,7 @@ TEST(APPROX, GroupAssign)
 	auto err = eteq::make_variable_scalar<PybindT>(1, shape, "err");
 
 	auto groups = layr::rms_momentum(layr::VarErrsT{{leaf,
-		eteq::to_node<PybindT>(err)}}, 0.67, 0.78,
+		eteq::to_link<PybindT>(err)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon(), "stuff");
 
 	teq::Session sess;
@@ -171,7 +171,7 @@ TEST(APPROX, PreUpdateGroupAssign)
 	auto err = eteq::make_variable_scalar<PybindT>(1, shape, "err");
 
 	auto groups = layr::rms_momentum(layr::VarErrsT{{leaf,
-		eteq::to_node<PybindT>(err)}}, 0.67, 0.78,
+		eteq::to_link<PybindT>(err)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon(), "stuff");
 
 	teq::Session sess;

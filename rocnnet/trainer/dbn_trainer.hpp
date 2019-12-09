@@ -77,7 +77,7 @@ struct DBNTrainer final
 
 		// setups:
 		// general rbm sampling
-		sample_pipes_.push_back(eteq::to_node<PybindT>(trainx_));
+		sample_pipes_.push_back(eteq::to_link<PybindT>(trainx_));
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			sample_pipes_.push_back(sample_v2h(
@@ -105,7 +105,7 @@ struct DBNTrainer final
 				// if var is a weight or bias add assign with learning rate
 				// otherwise assign directly
 				auto next_var = estd::has(to_learn, varerr.first.get()) ?
-					eteq::to_node<PybindT>(varerr.first) +
+					eteq::to_link<PybindT>(varerr.first) +
 					pretrain_lr * varerr.second : varerr.second;
 				assigns.push_back(layr::VarAssign{
 					fmts::sprintf("rbm_d%s_%d",
@@ -132,23 +132,23 @@ struct DBNTrainer final
 		auto& w = contents[0];
 		auto& b = contents[1];
 		auto final_out = softmax_layer->connect(dense_layer->connect(sample_pipes_.back()));
-		auto diff = eteq::to_node<PybindT>(trainy_) - final_out;
+		auto diff = eteq::to_link<PybindT>(trainy_) - final_out;
 		auto l2_regularized = tenncor::matmul(tenncor::transpose(
-			sample_pipes_.back()), diff) - l2_reg * eteq::to_node<PybindT>(w);
+			sample_pipes_.back()), diff) - l2_reg * eteq::to_link<PybindT>(w);
 
 		auto wshape = w->shape();
 		auto bshape = b->shape();
 		auto tlr_placeholder = eteq::make_variable_scalar<PybindT>(
 			train_lr, teq::Shape(), "learning_rate");
-		auto dw = eteq::to_node<PybindT>(w) +
-			tenncor::extend(eteq::to_node<PybindT>(tlr_placeholder), 0,
+		auto dw = eteq::to_link<PybindT>(w) +
+			tenncor::extend(eteq::to_link<PybindT>(tlr_placeholder), 0,
 				std::vector<teq::DimT>(wshape.begin(), wshape.end())) *
 			l2_regularized;
-		auto db = eteq::to_node<PybindT>(b) +
-			tenncor::extend(eteq::to_node<PybindT>(tlr_placeholder), 0,
+		auto db = eteq::to_link<PybindT>(b) +
+			tenncor::extend(eteq::to_link<PybindT>(tlr_placeholder), 0,
 				std::vector<teq::DimT>(bshape.begin(), bshape.end())) *
 			tenncor::reduce_mean_1d(diff, 1);
-		auto dtrain_lr = eteq::to_node<PybindT>(tlr_placeholder) * lr_scaling;
+		auto dtrain_lr = eteq::to_link<PybindT>(tlr_placeholder) * lr_scaling;
 
 		tupdates_ = {
 			layr::AssignsT{
@@ -159,8 +159,8 @@ struct DBNTrainer final
 			layr::AssignsT{layr::VarAssign{"loglr_grad", tlr_placeholder, dtrain_lr}},
 		};
 		tcost_ = -tenncor::reduce_mean(tenncor::reduce_sum_1d(
-			eteq::to_node<PybindT>(trainy_) * tenncor::log(final_out) +
-			((PybindT) 1 - eteq::to_node<PybindT>(trainy_)) * tenncor::log((PybindT) 1 - final_out), 0));
+			eteq::to_link<PybindT>(trainy_) * tenncor::log(final_out) +
+			((PybindT) 1 - eteq::to_link<PybindT>(trainy_)) * tenncor::log((PybindT) 1 - final_out), 0));
 
 		train_sess_.track({
 			sample_pipes_.back()->get_tensor(),
@@ -219,7 +219,7 @@ struct DBNTrainer final
 		// assert len(self.sample_pipes) > 1, since self.n_layers > 0
 		auto to_ignore = sample_pipes_.back()->get_tensor().get();
 		auto prev_ignore = sample_pipes_[nlayers_ - 1]->get_tensor().get();
-		assert(false == static_cast<eteq::Functor<PybindT>*>(prev_ignore)->is_uninit());
+		assert(static_cast<eteq::Functor<PybindT>*>(prev_ignore)->has_data());
 		train_sess_.update_target({to_ignore}, {prev_ignore});
 
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)

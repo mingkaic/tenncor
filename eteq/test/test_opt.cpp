@@ -28,8 +28,8 @@ TEST(OPTIMIZE, EqualityCheck)
 	auto cst2 = eteq::make_constant<double>(data.data(), shape);
 	auto notcst = eteq::make_constant<double>(data2.data(), shape);
 	auto notcst2 = eteq::make_constant<double>(data.data(), teq::Shape({4, 3, 2}));
-	auto var = eteq::to_node<double>(eteq::make_variable<double>(shape));
-	auto var2 = eteq::to_node<double>(eteq::make_variable<double>(shape));
+	auto var = eteq::to_link<double>(eteq::make_variable<double>(shape));
+	auto var2 = eteq::to_link<double>(eteq::make_variable<double>(shape));
 
 	auto p1 = tenncor::permute(notcst2, {2, 1, 0});
 	auto p2 = tenncor::permute(notcst2, {1, 2, 0});

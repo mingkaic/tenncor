@@ -108,6 +108,16 @@ struct Variable final : public iLeaf<T>
 		this->data_ = eigen::make_tensmap<T>(data.data(), shape);
 	}
 
+	void assign (eigen::TensMapT<T>& input)
+	{
+		this->data_ = input;
+	}
+
+	void assign (eigen::TensorT<T>& input)
+	{
+		this->data_ = input;
+	}
+
 	void assign (const T* input, teq::Shape shape)
 	{
 		assign(input, egen::get_type<T>(), shape);

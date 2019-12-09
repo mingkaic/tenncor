@@ -102,23 +102,40 @@ struct LeafLink final : public iLink<T>
 		return static_cast<LeafLink<T>*>(clone_impl());
 	}
 
-	/// Implementation of iLink<T>
+	/// Implementation of iEdge
+	teq::TensptrT get_tensor (void) const override
+	{
+		return leaf_;
+	}
+
+	/// Implementation of iEigenEdge<T>
 	T* data (void) const override
 	{
 		return (T*) leaf_->data();
 	}
 
 	/// Implementation of iLink<T>
-	void update (void) override {}
-
-	/// Implementation of iLink<T>
-	teq::TensptrT get_tensor (void) const override
+	bool has_data (void) const override
 	{
-		return leaf_;
+		return true;
 	}
 
-	/// Implementation of iLink<T>
-	bool has_data (void) const override
+	/// Implementation of iSignature<T>
+	std::string to_string (void) const override
+	{
+		return leaf_->to_string();
+	}
+
+	/// Implementation of iSignature<T>
+	teq::ShapeSignature shape_sign (void) const override
+	{
+		teq::Shape shape = leaf_->shape();
+		return teq::ShapeSignature(
+			std::vector<teq::DimT>(shape.begin(), shape.end()));
+	}
+
+	/// Implementation of iSignature<T>
+	bool is_real (void) const override
 	{
 		return true;
 	}

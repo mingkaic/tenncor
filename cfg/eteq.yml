@@ -1257,8 +1257,8 @@ api:
               //
                   const teq::Shape& shape = arg->get_tensor()->shape();
                   auto trial = ::tenncor::random::rand_unif(
-                      eteq::to_node<T>(eteq::make_variable_scalar<T>((T) 0, shape)),
-                      eteq::to_node<T>(eteq::make_variable_scalar<T>((T) 1, shape)));
+                      eteq::to_link<T>(eteq::make_variable_scalar<T>((T) 0, shape)),
+                      eteq::to_link<T>(eteq::make_variable_scalar<T>((T) 1, shape)));
                   return ::tenncor::lt(trial, arg);
     tenncor::nn:
       - template: typename T

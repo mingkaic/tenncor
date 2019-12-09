@@ -55,7 +55,7 @@ static inline teq::TensptrT convert_func (std::string opname,
 	std::transform(args.begin(), args.end(), std::back_inserter(edges),
 		[](teq::TensptrT tens)
 		{
-			return to_node<T>(tens);
+			return to_link<T>(tens);
 		});
 	return teq::TensptrT(Functor<T>::get(
 		egen::get_op(opname), edges, std::move(attrs)));
@@ -255,7 +255,7 @@ static inline teq::TensptrT pbm_convert_func (std::string opname,
 			shape = teq::Shape(std::vector<teq::DimT>(
 				shape_vals.begin(), shape_vals.end()));
 		}
-		tmp_edges.push_back(to_node<T>(edge.first));
+		tmp_edges.push_back(to_link<T>(edge.first));
 	}
 	return std::shared_ptr<Functor<T>>(Functor<T>::get(
 		egen::get_op(opname), tmp_edges, std::move(attrs)));

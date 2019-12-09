@@ -51,7 +51,7 @@ struct ConvBuilder final : public iLayerBuilder
 		}
 		else if (target == conv_arg_key)
 		{
-			arg_ = eteq::to_node<DArgT>(tens);
+			arg_ = eteq::to_link<DArgT>(tens);
 		}
 		logs::warnf("attempt to create convolution layer "
 			"with unknown tensor `%s` of label `%s`",
@@ -198,13 +198,13 @@ struct Conv final : public iLayer
 	LinkptrT connect (LinkptrT input) const override
 	{
 		auto output = tenncor::nn::conv2d(input,
-			eteq::to_node<PybindT>(weight_), get_padding());
+			eteq::to_link<PybindT>(weight_), get_padding());
 		teq::TensSetT leaves = {input->get_tensor().get(), weight_.get()};
 		if (bias_)
 		{
 			teq::Shape outshape = output->shape();
 			output = output + tenncor::extend(
-				eteq::to_node<PybindT>(bias_), 1, {
+				eteq::to_link<PybindT>(bias_), 1, {
 				outshape.at(1), outshape.at(2), outshape.at(3)});
 			leaves.emplace(bias_.get());
 		}

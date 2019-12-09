@@ -76,7 +76,7 @@ struct RBM final : public iLayer
 			vbias = bias_init(teq::Shape({nvisible}), dense_bias_key);
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
-			eteq::to_node<PybindT>(weight))->get_tensor(), 
+			eteq::to_link<PybindT>(weight))->get_tensor(), 
 			vbias, nullptr, visible_key);
 		tag_sublayers();
 	}
@@ -219,8 +219,8 @@ private:
 			vbias_cpy = teq::TensptrT(vbias->clone());
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
-			eteq::to_node<PybindT>(hidden_contents[0]))->get_tensor(),
-			vbias_cpy, eteq::to_node<PybindT>(
+			eteq::to_link<PybindT>(hidden_contents[0]))->get_tensor(),
+			vbias_cpy, eteq::to_link<PybindT>(
 				other_vis_contents[2] == nullptr ?
 				nullptr : teq::TensptrT(other_vis_contents[2]->clone())),
 			label_prefix + visible_key);

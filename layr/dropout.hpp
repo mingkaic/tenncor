@@ -22,7 +22,7 @@ struct DropoutBuilder final : public iLayerBuilder
 	{
 		if (target == dropout_mask_key)
 		{
-			mask_ = eteq::to_node<PybindT>(tens);
+			mask_ = eteq::to_link<PybindT>(tens);
 			return;
 		}
 		logs::warnf("attempt to create dropout layer "

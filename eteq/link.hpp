@@ -14,6 +14,8 @@
 #include "eigen/eigen.hpp"
 #include "eigen/edge.hpp"
 
+#include "eteq/signature.hpp"
+
 #ifndef ETEQ_LINK_HPP
 #define ETEQ_LINK_HPP
 
@@ -25,18 +27,13 @@ struct Functor;
 
 /// Implementation of iEigenEdge using node as tensor wrapper
 template <typename T>
-struct iLink : public eigen::iEigenEdge<T>
+struct iLink : public eigen::iEigenEdge<T>, public iSignature<T>
 {
 	virtual ~iLink (void) = default;
 
 	iLink<T>* clone (void) const
 	{
 		return this->clone_impl();
-	}
-
-	std::string to_string (void) const
-	{
-		return this->get_tensor()->to_string();
 	}
 
 	/// Implementation of iEdge
@@ -47,9 +44,6 @@ struct iLink : public eigen::iEigenEdge<T>
 
 	/// Implementation of iEdge
 	void get_attrs (marsh::Maps& out) const override {}
-
-	/// Trigger internal typed tensor update
-	virtual void update (void) = 0;
 
 	virtual bool has_data (void) const = 0;
 
@@ -94,7 +88,7 @@ struct LinkConverter final : public teq::iTraveler
 
 /// Return link of tens according to builders in specified converter
 template <typename T>
-LinkptrT<T> to_node (teq::TensptrT tens)
+LinkptrT<T> to_link (teq::TensptrT tens)
 {
 	if (nullptr == tens)
 	{

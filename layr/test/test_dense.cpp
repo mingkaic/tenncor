@@ -226,8 +226,8 @@ TEST(DENSE, Connection)
 		0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape({7, 2}), "x2");
-	auto biasedy = rdense.connect(eteq::to_node<PybindT>(x));
-	auto y = nobias.connect(eteq::to_node<PybindT>(x2));
+	auto biasedy = rdense.connect(eteq::to_link<PybindT>(x));
+	auto y = nobias.connect(eteq::to_link<PybindT>(x2));
 
 	EXPECT_GRAPHEQ(
 		"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -290,7 +290,7 @@ TEST(DENSE, ConnectionTagging)
 
 	auto x = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape({6, 2}), "x");
-	auto y = dense.connect(eteq::to_node<PybindT>(x));
+	auto y = dense.connect(eteq::to_link<PybindT>(x));
 
 	auto contents = dense.get_contents();
 
@@ -384,14 +384,14 @@ TEST(DENSE, Building)
 		auto bias = contents[1];
 		auto params = contents[2];
 		ASSERT_EQ(nullptr, params);
-		PybindT* w = eteq::to_node<PybindT>(weight)->data();
-		PybindT* b = eteq::to_node<PybindT>(bias)->data();
+		PybindT* w = eteq::to_link<PybindT>(weight)->data();
+		PybindT* b = eteq::to_link<PybindT>(bias)->data();
 		weight_data = std::vector<PybindT>(w, w + weight->shape().n_elems());
 		bias_data = std::vector<PybindT>(b, b + bias->shape().n_elems());
 
 		auto x = eteq::make_variable_scalar<PybindT>(
 			0, teq::Shape({6, 2}), "x");
-		auto y = dense.connect(eteq::to_node<PybindT>(x));
+		auto y = dense.connect(eteq::to_link<PybindT>(x));
 
 		layr::save_layer(ss, dense, {y->get_tensor()});
 	}
@@ -414,8 +414,8 @@ TEST(DENSE, Building)
 		auto bshape = bias->shape();
 		ASSERT_ARREQ(exwshape, wshape);
 		ASSERT_ARREQ(exbshape, bshape);
-		PybindT* w = eteq::to_node<PybindT>(weight)->data();
-		PybindT* b = eteq::to_node<PybindT>(bias)->data();
+		PybindT* w = eteq::to_link<PybindT>(weight)->data();
+		PybindT* b = eteq::to_link<PybindT>(bias)->data();
 		std::vector<PybindT> gotw(w, w + weight->shape().n_elems());
 		std::vector<PybindT> gotb(b, b + bias->shape().n_elems());
 		EXPECT_VECEQ(weight_data, gotw);

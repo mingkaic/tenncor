@@ -35,27 +35,27 @@ TEST(SERIALIZE, SaveGraph)
 	teq::Shape bias1_shape({5});
 	teq::Shape out_shape({5,3});
 
-	eteq::LinkptrT<double> in = eteq::to_node<double>(
+	eteq::LinkptrT<double> in = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(in_shape.n_elems()).data(),
 		in_shape, "in"));
-	eteq::LinkptrT<double> weight0 = eteq::to_node<double>(
+	eteq::LinkptrT<double> weight0 = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(weight0_shape.n_elems()).data(),
 		weight0_shape, "weight0"));
-	eteq::LinkptrT<double> bias0 = eteq::to_node<double>(
+	eteq::LinkptrT<double> bias0 = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(bias0_shape.n_elems()).data(),
 		bias0_shape, "bias0"));
-	eteq::LinkptrT<double> weight1 = eteq::to_node<double>(
+	eteq::LinkptrT<double> weight1 = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(weight1_shape.n_elems()).data(),
 		weight1_shape, "weight1"));
-	eteq::LinkptrT<double> bias1 = eteq::to_node<double>(
+	eteq::LinkptrT<double> bias1 = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(bias1_shape.n_elems()).data(),
 		bias1_shape, "bias1"));
-	eteq::LinkptrT<double> out = eteq::to_node<double>(
+	eteq::LinkptrT<double> out = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(out_shape.n_elems()).data(),
 		out_shape, "out"));
@@ -168,27 +168,27 @@ TEST(SERIALIZE, PbmSaveGraph)
 	teq::Shape bias1_shape({5});
 	teq::Shape out_shape({5,3});
 
-	eteq::LinkptrT<double> in = eteq::to_node<double>(
+	eteq::LinkptrT<double> in = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(in_shape.n_elems()).data(),
 		in_shape, "in"));
-	eteq::LinkptrT<double> weight0 = eteq::to_node<double>(
+	eteq::LinkptrT<double> weight0 = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(weight0_shape.n_elems()).data(),
 		weight0_shape, "weight0"));
-	eteq::LinkptrT<double> bias0 = eteq::to_node<double>(
+	eteq::LinkptrT<double> bias0 = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(bias0_shape.n_elems()).data(),
 		bias0_shape, "bias0"));
-	eteq::LinkptrT<double> weight1 = eteq::to_node<double>(
+	eteq::LinkptrT<double> weight1 = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(weight1_shape.n_elems()).data(),
 		weight1_shape, "weight1"));
-	eteq::LinkptrT<double> bias1 = eteq::to_node<double>(
+	eteq::LinkptrT<double> bias1 = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(bias1_shape.n_elems()).data(),
 		bias1_shape, "bias1"));
-	eteq::LinkptrT<double> out = eteq::to_node<double>(
+	eteq::LinkptrT<double> out = eteq::to_link<double>(
 		eteq::make_variable<double>(
 		std::vector<double>(out_shape.n_elems()).data(),
 		out_shape, "out"));

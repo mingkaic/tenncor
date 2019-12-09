@@ -20,7 +20,7 @@ TrainErrF sgd_train (layr::iLayer& model, teq::iSession& sess,
 			eteq::Variable<PybindT>>(tens))
 		{
 			vars.push_back({var, gradprocess(
-				eteq::derive(error, eteq::to_node<PybindT>(var)))});
+				eteq::derive(error, eteq::to_link<PybindT>(var)))});
 		}
 	}
 	auto updates = update(vars);

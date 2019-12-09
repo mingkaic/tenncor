@@ -27,7 +27,7 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 	layr::AssignsT assigns;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
-		auto leaf_node = eteq::to_node<PybindT>(leaves[i].first);
+		auto leaf_node = eteq::to_link<PybindT>(leaves[i].first);
 		auto err = leaves[i].second;
 
 		auto shape = err->shape();
@@ -40,7 +40,7 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 		teq::DimT shape_factor = it == et ? 1 : *it;
 		auto momentum = eteq::make_variable_scalar<PybindT>(0,
 			err->shape(), leaves[i].first->to_string() + "_momentum");
-		auto momentum_next = discount_factor * eteq::to_node<PybindT>(momentum) +
+		auto momentum_next = discount_factor * eteq::to_link<PybindT>(momentum) +
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
 		auto leaf_next = leaf_node + momentum_next;
 
@@ -68,7 +68,7 @@ layr::VarErrsT cd_grad_approx (CDChainIO& io, const layr::RBM& model,
 		io.hidden_ = sample_v2h(model, io.visible_);
 	}
 	auto chain_it = nullptr == persistent ?
-		io.hidden_ : eteq::to_node<PybindT>(persistent);
+		io.hidden_ : eteq::to_link<PybindT>(persistent);
 	for (size_t i = 0; i < cdk - 1; ++i)
 	{
 		chain_it = gibbs_hvh(model, chain_it);

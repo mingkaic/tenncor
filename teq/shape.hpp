@@ -39,6 +39,9 @@ struct Shape final : public ShapeSignature
 		vector_assign(dims);
 	}
 
+	Shape (const ShapeSignature& sign) :
+		ShapeSignature(sign) {}
+
 	Shape (const Shape& other) = default;
 
 	Shape& operator = (const Shape& other) = default;

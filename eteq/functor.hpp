@@ -6,9 +6,16 @@
 /// Eigen functor implementation of operable func
 ///
 
+#include "teq/iopfunc.hpp"
+
 #include "tag/locator.hpp"
 
-#include "eteq/ifunctor.hpp"
+#include "eigen/generated/opcode.hpp"
+
+#include "eteq/link.hpp"
+#include "eteq/observable.hpp"
+
+#include "eteq/funcsign.hpp"
 
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP
@@ -18,7 +25,7 @@ namespace eteq
 
 /// Functor implementation of operable functor of Eigen operators
 template <typename T>
-struct Functor final : public iFunctor<T>
+struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 {
 	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
 	static Functor<T>* get (egen::_GENERATED_OPCODE opcode,
@@ -46,6 +53,12 @@ struct Functor final : public iFunctor<T>
 	Functor<T>& operator = (const Functor<T>& other) = delete;
 
 	Functor<T>& operator = (Functor<T>&& other) = delete;
+
+	/// Implementation of iTensor
+	void accept (teq::iTraveler& visiter) override
+	{
+		visiter.visit(this);
+	}
 
 	/// Implementation of iTensor
 	teq::Shape shape (void) const override
@@ -114,7 +127,7 @@ struct Functor final : public iFunctor<T>
 					index, nexshape.to_string().c_str(),
 					curshape.to_string().c_str());
 			}
-			args_[index] = to_node<T>(arg);
+			args_[index] = to_link<T>(arg);
 			link->subscribe(this);
 		}
 	}
@@ -122,7 +135,7 @@ struct Functor final : public iFunctor<T>
 	/// Implementation of iOperableFunc
 	void update (void) override
 	{
-		if (is_uninit())
+		if (false == has_data())
 		{
 			initialize();
 		}
@@ -132,7 +145,7 @@ struct Functor final : public iFunctor<T>
 	/// Implementation of iData
 	void* data (void) override
 	{
-		if (is_uninit())
+		if (false == has_data())
 		{
 			initialize();
 		}
@@ -142,31 +155,47 @@ struct Functor final : public iFunctor<T>
 	/// Implementation of iData
 	const void* data (void) const override
 	{
-		if (is_uninit())
+		if (false == has_data())
 		{
 			logs::fatal("cannot get data of uninitialized functor");
 		}
 		return out_->get_ptr();
 	}
 
-	/// Implementation of iFunctor<T>
-	bool is_uninit (void) const override
+	/// Implementation of iData
+	size_t type_code (void) const override
 	{
-		return nullptr == out_;
+		return egen::get_type<T>();
+	}
+
+	/// Implementation of iData
+	std::string type_label (void) const override
+	{
+		return egen::name_type(egen::get_type<T>());
+	}
+
+	/// Implementation of iData
+	size_t nbytes (void) const override
+	{
+		return sizeof(T) * shape().n_elems();
+	}
+
+	bool has_data (void) const
+	{
+		return nullptr != out_;
 	}
 
 	/// Removes internal Eigen data object
 	void uninitialize (void)
 	{
-		if (is_uninit())
+		if (has_data())
 		{
-			return;
+			for (auto& parent : this->subs_)
+			{
+				parent->uninitialize();
+			}
+			out_ = nullptr;
 		}
-		for (auto& parent : this->subs_)
-		{
-			parent->uninitialize();
-		}
-		out_ = nullptr;
 	}
 
 	/// Populate internal Eigen data object
@@ -187,8 +216,7 @@ private:
 	Functor (egen::_GENERATED_OPCODE opcode,
 		LinksT<T> args, marsh::Maps&& attrs) :
 		opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
-		args_(args.begin(), args.end()),
-		attrs_(std::move(attrs))
+		args_(args), attrs_(std::move(attrs))
 	{
 		if (args.empty())
 		{
@@ -258,6 +286,96 @@ private:
 	marsh::Maps attrs_;
 };
 
+/// Functor's node wrapper
+template <typename T>
+struct FuncLink final : public iLink<T>
+{
+	FuncLink (std::shared_ptr<Functor<T>> func) : func_(func)
+	{
+		if (func == nullptr)
+		{
+			logs::fatal("cannot link a null func");
+		}
+	}
+
+	/// Return deep copy of this instance (with a copied functor)
+	FuncLink<T>* clone (void) const
+	{
+		return static_cast<FuncLink<T>*>(clone_impl());
+	}
+
+	/// Implementation of iEdge
+	teq::TensptrT get_tensor (void) const override
+	{
+		return func_;
+	}
+
+	/// Implementation of iEigenEdge<T>
+	T* data (void) const override
+	{
+		return (T*) func_->data();
+	}
+
+	/// Implementation of iLink<T>
+	bool has_data (void) const override
+	{
+		return func_->has_data();
+	}
+
+	/// Implementation of iSignature<T>
+	std::string to_string (void) const override
+	{
+		return func_->to_string();
+	}
+
+	/// Implementation of iSignature<T>
+	teq::ShapeSignature shape_sign (void) const override
+	{
+		teq::Shape shape = func_->shape();
+		return teq::ShapeSignature(
+			std::vector<teq::DimT>(shape.begin(), shape.end()));
+	}
+
+	/// Implementation of iSignature<T>
+	bool is_real (void) const override
+	{
+		return true;
+	}
+
+private:
+	iLink<T>* clone_impl (void) const override
+	{
+		return new FuncLink(std::shared_ptr<Functor<T>>(func_->clone()));
+	}
+
+	/// Implementation of iLink<T>
+	void subscribe (Functor<T>* parent) override
+	{
+		func_->subscribe(parent);
+	}
+
+	/// Implementation of iLink<T>
+	void unsubscribe (Functor<T>* parent) override
+	{
+		func_->unsubscribe(parent);
+	}
+
+	std::shared_ptr<Functor<T>> func_;
+};
+
+template <typename T>
+LinkptrT<T> func_link (teq::TensptrT tens)
+{
+	return std::make_shared<FuncLink<T>>(
+		std::static_pointer_cast<Functor<T>>(tens));
+}
+
+template <typename T>
+void LinkConverter<T>::visit (teq::iFunctor* leaf)
+{
+	builders_.emplace(leaf, func_link<T>);
+}
+
 // todo: move these to eigen and auto-generate
 template <typename T,egen::_GENERATED_OPCODE OPCODE>
 struct FuncPacker final
@@ -307,7 +425,7 @@ struct ReducePacker : private EmptyPacker<T>
 				"cannot reduce dimensions beyond rank cap %d", teq::rank_cap);
 		}
 		LinkptrT<T> node = nodes.front();
-		teq::Shape shape = node->shape();
+		teq::Shape shape = node->shape(); // shape encoding doesn't work on shape signature (todo: fix)
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		std::set<teq::RankT> sig_dims = dims;
 		for (auto it = sig_dims.begin(), et = sig_dims.end(); it != et;)
@@ -562,10 +680,10 @@ struct FuncPacker<T,egen::MATMUL> final : private EmptyPacker<T>
 {
 	using EmptyPacker<T>::pack;
 
-	bool pack (marsh::Maps& attrs, const LinksT<T>& nodes, const eigen::PairVecT<teq::RankT>& dims)
+	bool pack (marsh::Maps& attrs, const LinksT<T>& links, const eigen::PairVecT<teq::RankT>& dims)
 	{
-		LinkptrT<T> a = nodes[0];
-		LinkptrT<T> b = nodes[1];
+		LinkptrT<T> a = links[0];
+		LinkptrT<T> b = links[1];
 		teq::Shape ashape = a->shape();
 		teq::Shape bshape = b->shape();
 		// check common dimensions
@@ -869,20 +987,25 @@ struct FuncPacker<T,egen::RESHAPE> final : private EmptyPacker<T>
 };
 
 #define CHOOSE_PACK(OPCODE)if (false == FuncPacker<T,OPCODE>().pack(\
-	attrs, nodes, vargs...)) { return nodes.front(); }
+	attrs, links, vargs...)) { return links.front(); }
 
 /// Return functor node given opcode and node arguments
 template <typename T, typename ...ARGS>
-LinkptrT<T> make_functor (egen::_GENERATED_OPCODE opcode, LinksT<T> nodes, ARGS... vargs)
+LinkptrT<T> make_functor (egen::_GENERATED_OPCODE opcode, LinksT<T> links, ARGS... vargs)
 {
-	if (nodes.empty())
+	if (links.empty())
 	{
 		logs::fatalf("cannot %s without arguments", egen::name_op(opcode).c_str());
 	}
 	marsh::Maps attrs;
 	OPCODE_LOOKUP(CHOOSE_PACK, opcode)
-	return func_link<T>(teq::TensptrT(Functor<T>::get(opcode,
-			nodes, std::move(attrs))));
+	if (std::all_of(links.begin(), links.end(),
+		[](LinkptrT<T> link) { return link->is_real(); }))
+	{
+		return func_link<T>(teq::TensptrT(Functor<T>::get(opcode,
+			links, std::move(attrs))));
+	}
+	return std::make_shared<FuncSignature<T>>(opcode, links, std::move(attrs));
 }
 
 #undef CHOOSE_PACK

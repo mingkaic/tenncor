@@ -116,7 +116,7 @@ PYBIND11_MODULE(rocnnet, m)
 			})
 		.def("connect", [](layr::iLayer* self, teq::TensptrT tens)
 			{
-				return self->connect(eteq::to_node<PybindT>(tens));
+				return self->connect(eteq::to_link<PybindT>(tens));
 			})
 		.def("get_contents",
 			[](layr::iLayer* self) -> eteq::LinksT<PybindT>
@@ -127,7 +127,7 @@ PYBIND11_MODULE(rocnnet, m)
 				std::transform(contents.begin(), contents.end(),
 					std::back_inserter(nodes),
 					[](teq::TensptrT tens)
-					{ return eteq::to_node<PybindT>(tens); });
+					{ return eteq::to_link<PybindT>(tens); });
 				return nodes;
 			})
 		.def("save_file",

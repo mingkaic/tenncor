@@ -18,7 +18,7 @@ AssignGroupsT sgd (const VarErrsT& leaves,
 	AssignsT assignments;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
-		auto leaf_node = eteq::to_node<PybindT>(leaves[i].first);
+		auto leaf_node = eteq::to_link<PybindT>(leaves[i].first);
 		auto err = leaves[i].second;
 		auto next = leaf_node - err * learning_rate;
 		assignments.push_back(VarAssign{
@@ -37,12 +37,12 @@ AssignGroupsT adagrad (const VarErrsT& leaves, PybindT learning_rate,
 	AssignsT leaf_assigns;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
-		auto leaf_node = eteq::to_node<PybindT>(leaves[i].first);
+		auto leaf_node = eteq::to_link<PybindT>(leaves[i].first);
 		auto err = leaves[i].second;
 		teq::Shape eshape = err->shape();
 		eteq::VarptrT<PybindT> momentum =
 			eteq::make_variable_scalar<PybindT>(1, eshape, "momentum");
-		auto momentum_node = eteq::to_node<PybindT>(momentum);
+		auto momentum_node = eteq::to_link<PybindT>(momentum);
 
 		auto momentum_next = momentum_node + tenncor::square(err);
 		auto leaf_next = leaf_node - err * learning_rate /
@@ -67,12 +67,12 @@ AssignGroupsT rms_momentum (const VarErrsT& leaves, PybindT learning_rate,
 	AssignsT leaf_assigns;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
-		auto leaf_node = eteq::to_node<PybindT>(leaves[i].first);
+		auto leaf_node = eteq::to_link<PybindT>(leaves[i].first);
 		auto err = leaves[i].second;
 		teq::Shape eshape = err->shape();
 		eteq::VarptrT<PybindT> momentum =
 			eteq::make_variable_scalar<PybindT>(1, eshape, "momentum");
-		auto momentum_node = eteq::to_node<PybindT>(momentum);
+		auto momentum_node = eteq::to_link<PybindT>(momentum);
 
 		auto momentum_next = discount_factor * momentum_node +
 			PybindT(1. - discount_factor) * tenncor::square(err);

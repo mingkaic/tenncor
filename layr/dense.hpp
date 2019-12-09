@@ -46,7 +46,7 @@ struct DenseBuilder final : public iLayerBuilder
 		}
 		else if (target == dense_param_key)
 		{
-			params_ = eteq::to_node<PybindT>(tens);
+			params_ = eteq::to_link<PybindT>(tens);
 			return;
 		}
 		logs::warnf("attempt to create dense layer "
@@ -202,8 +202,8 @@ struct Dense final : public iLayer
 		}
 		// expect input to be <input dimensions...,nbatch dimensions...>
 		auto out = tenncor::nn::fully_connect({input},
-			{eteq::to_node<PybindT>(weight_)},
-			eteq::to_node<PybindT>(bias_), dims);
+			{eteq::to_link<PybindT>(weight_)},
+			eteq::to_link<PybindT>(bias_), dims);
 		teq::TensSetT leaves = {input->get_tensor().get(), weight_.get()};
 		if (bias_)
 		{

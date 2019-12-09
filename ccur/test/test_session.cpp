@@ -100,17 +100,17 @@ TEST(SESSION, Update)
 		0.4350741570, 0.3949956178, 0.2341486792, 0.1348473539, 0.8681677362,
 	};
 
-	eteq::LinkptrT<double> in = eteq::to_node<double>(
+	eteq::LinkptrT<double> in = eteq::to_link<double>(
 		eteq::make_variable<double>(in_data.data(), in_shape));
-	eteq::LinkptrT<double> weight0 = eteq::to_node<double>(
+	eteq::LinkptrT<double> weight0 = eteq::to_link<double>(
 		eteq::make_variable<double>(w0_data.data(), weight0_shape));
-	eteq::LinkptrT<double> bias0 = eteq::to_node<double>(
+	eteq::LinkptrT<double> bias0 = eteq::to_link<double>(
 		eteq::make_variable<double>(b0_data.data(), bias0_shape));
-	eteq::LinkptrT<double> weight1 = eteq::to_node<double>(
+	eteq::LinkptrT<double> weight1 = eteq::to_link<double>(
 		eteq::make_variable<double>(w1_data.data(), weight1_shape));
-	eteq::LinkptrT<double> bias1 = eteq::to_node<double>(
+	eteq::LinkptrT<double> bias1 = eteq::to_link<double>(
 		eteq::make_variable<double>(b1_data.data(), bias1_shape));
-	eteq::LinkptrT<double> out = eteq::to_node<double>(
+	eteq::LinkptrT<double> out = eteq::to_link<double>(
 		eteq::make_variable<double>(out_data.data(), out_shape));
 
 	auto layer0 = tenncor::matmul(in, weight0) + tenncor::extend(bias0, 1, {3});

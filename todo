@@ -8,8 +8,9 @@ P5 = "get to it eventually"
 >>>>>>> inprogress >>>>>>>
 P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
     shape values denoted in python by None)
+   - refactor iLink such that child classes data state methods (data, has_data, is_real) conform with LSP
 P2 - implement onnx support for layer
-   - serialize edge attrs in onnx,
+   - serialize edge attrs in onnx
    - investigate control edges
 P3 - implement control nodes/edges for assignments
    - mark pbm as deprecated in favor of onnx

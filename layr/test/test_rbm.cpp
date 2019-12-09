@@ -230,8 +230,8 @@ TEST(RBM, Connection)
 		0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape({7, 2}), "x2");
-	auto biasedy = rrbm.connect(eteq::to_node<PybindT>(x));
-	auto y = nobias.connect(eteq::to_node<PybindT>(x2));
+	auto biasedy = rrbm.connect(eteq::to_link<PybindT>(x));
+	auto y = nobias.connect(eteq::to_link<PybindT>(x2));
 
 	EXPECT_GRAPHEQ(
 		"(SIGMOID[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -271,8 +271,8 @@ TEST(RBM, BackwardConnection)
 		0, teq::Shape({5, 2}), "y");
 	auto y2 = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape({6, 2}), "y2");
-	auto biasedx = rrbm.backward_connect(eteq::to_node<PybindT>(y));
-	auto x = nobias.backward_connect(eteq::to_node<PybindT>(y2));
+	auto biasedx = rrbm.backward_connect(eteq::to_link<PybindT>(y));
+	auto x = nobias.backward_connect(eteq::to_link<PybindT>(y2));
 
 	EXPECT_GRAPHEQ(
 		"(SIGMOID[6\\2\\1\\1\\1\\1\\1\\1])\n"
