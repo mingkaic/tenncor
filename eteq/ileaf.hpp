@@ -102,6 +102,18 @@ struct LeafLink final : public iLink<T>
 		return static_cast<LeafLink<T>*>(clone_impl());
 	}
 
+	/// Implementation of iAttributed
+	const marsh::iObject* get_attr (std::string attr_name) const override
+	{
+		return nullptr;
+	}
+
+	/// Implementation of iAttributed
+	std::vector<std::string> ls_attrs (void) const override
+	{
+		return {};
+	}
+
 	/// Implementation of iEdge
 	teq::TensptrT get_tensor (void) const override
 	{
@@ -141,6 +153,8 @@ struct LeafLink final : public iLink<T>
 	}
 
 private:
+	LeafLink (const LeafLink<T>& other) = default;
+
 	iLink<T>* clone_impl (void) const override
 	{
 		return new LeafLink(std::shared_ptr<iLeaf<T>>(leaf_->clone()));

@@ -43,7 +43,7 @@ struct MockFunctor final : public teq::iFunctor
 		return teq::EdgeRefsT(args_.begin(), args_.end());
 	}
 
-	marsh::iObject* get_attr (std::string attr_name) const override
+	const marsh::iObject* get_attr (std::string attr_name) const override
 	{
 		return nullptr;
 	}

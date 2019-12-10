@@ -270,8 +270,10 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::ARGMAX:
 		{
+			teq::RankT return_dim;
+			Packer<teq::RankT>().unpack(return_dim, *func);
+
 			const teq::iEdge& arg = func->get_children()[0];
-			teq::RankT return_dim = get_coorder(func)[0];
 			teq::Shape shape = arg.shape();
 			teq::NElemT maxn = teq::rank_cap == return_dim ?
 				shape.n_elems() : shape.at(return_dim);
@@ -446,20 +448,16 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::REDUCE_SUM:
 		{
+			std::set<teq::RankT> ranks;
+			Packer<std::set<teq::RankT>>().unpack(ranks, *func);
+			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
+
 			const teq::iEdge& arg = func->get_children()[0];
 			teq::Shape shape = arg.shape();
 			teq::NElemT nreds = 1;
-			bool reduced = false;
-			auto c = get_coorder(func);
-			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-				i < n && c[i] < teq::rank_cap; ++i)
+			for (teq::RankT rank : ranks)
 			{
-				reduced = true;
-				nreds *= shape.at(c[i]);
-			}
-			if (false == reduced)
-			{
-				nreds = shape.n_elems();
+				nreds *= shape.at(rank);
 			}
 			outrange = estd::NumRange<T>(
 				ranges[0].lower_ * nreds,
@@ -468,20 +466,16 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::REDUCE_PROD:
 		{
+			std::set<teq::RankT> ranks;
+			Packer<std::set<teq::RankT>>().unpack(ranks, *func);
+			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
+
 			const teq::iEdge& arg = func->get_children()[0];
 			teq::Shape shape = arg.shape();
 			teq::NElemT nreds = 1;
-			bool reduced = false;
-			auto c = get_coorder(func);
-			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-				i < n && c[i] < teq::rank_cap; ++i)
+			for (teq::RankT rank : ranks)
 			{
-				reduced = true;
-				nreds *= shape.at(c[i]);
-			}
-			if (false == reduced)
-			{
-				nreds = shape.n_elems();
+				nreds *= shape.at(rank);
 			}
 			T lower = std::pow(ranges[0].lower_, nreds);
 			T upper = std::pow(ranges[0].upper_, nreds);
@@ -496,19 +490,17 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::MATMUL:
 		{
+			eigen::PairVecT<teq::RankT> dims;
+			Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, *func);
+
 			// matmul = <left> * <right> then reduce sum by common dimensions
 			// so apply range rule for product, then for reduce sum
-			const teq::iEdge& arg = func->get_children()[0];
+			const teq::iEdge& arg = func->get_children().front();
 			teq::Shape shape = arg.shape();
 			teq::NElemT ncommons = 1;
-			auto c = get_coorder(func);
-			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-				i < n && c[i] < teq::rank_cap; ++i)
+			for (auto dim : dims)
 			{
-				if (c[i] < teq::rank_cap)
-				{
-					ncommons *= shape.at(c[i]);
-				}
+				ncommons *= shape.at(dim.first);
 			}
 			T llower = ranges[0].lower_;
 			T lupper = ranges[0].upper_;
@@ -531,13 +523,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			// apply range rule similar to matmul
 			const teq::iEdge& arg = func->get_children()[1];
 			teq::Shape shape = arg.shape();
-			teq::NElemT nkern = 1;
-			auto c = get_coorder(func);
-			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-				i < n && c[i] < teq::rank_cap; ++i)
-			{
-				nkern *= shape.at(i);
-			}
+			teq::NElemT nkern = shape.n_elems();
 			T llower = ranges[0].lower_;
 			T lupper = ranges[0].upper_;
 			T rlower = ranges[1].lower_;

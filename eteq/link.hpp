@@ -42,9 +42,6 @@ struct iLink : public eigen::iEigenEdge<T>, public iSignature<T>
 		return this->get_tensor()->shape();
 	}
 
-	/// Implementation of iEdge
-	void get_attrs (marsh::Maps& out) const override {}
-
 	virtual bool has_data (void) const = 0;
 
 protected:

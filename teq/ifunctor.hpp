@@ -25,7 +25,7 @@ struct Opcode final
 };
 
 /// Interface of iOperation-defined operation node
-struct iFunctor : public iTensor
+struct iFunctor : public iTensor, public marsh::iAttributed
 {
 	virtual ~iFunctor (void) = default;
 
@@ -34,10 +34,6 @@ struct iFunctor : public iTensor
 
 	/// Return vector of functor arguments
 	virtual EdgeRefsT get_children (void) const = 0;
-
-	virtual marsh::iObject* get_attr (std::string attr_name) const = 0;
-
-	virtual std::vector<std::string> ls_attrs (void) const = 0;
 
 	/// Update child at specified index
 	virtual void update_child (TensptrT arg, size_t index) = 0;

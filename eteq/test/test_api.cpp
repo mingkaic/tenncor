@@ -1442,7 +1442,10 @@ TEST(API, Extend)
 		dest->get_tensor());
 	dtens->update();
 	size_t ext_nelem = teq::Shape(ext).n_elems();
-	size_t n = dest->shape().n_elems();
+	auto extshape = dest->shape();
+	teq::Shape expect_shape({2, 5, 1, 3});
+	EXPECT_ARREQ(expect_shape, extshape);
+	size_t n = extshape.n_elems();
 	ASSERT_EQ(nelem * ext_nelem, n);
 	double* got = (double*) dest->data();
 	for (size_t i = 0; i < nelem; ++i)

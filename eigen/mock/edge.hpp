@@ -7,7 +7,8 @@ struct MockEdge final : public eigen::iEigenEdge<T>
 		std::vector<T> data,
 		teq::Shape outshape,
 		std::vector<double> coorder = {}) :
-		tensor_(tensor), data_(data), shape_(outshape), coorder_(coorder)
+		tensor_(tensor), data_(data), shape_(outshape),
+		coorder_(coorder)
 	{
 		if (tensor_ == nullptr)
 		{
@@ -27,19 +28,17 @@ struct MockEdge final : public eigen::iEigenEdge<T>
 		return tensor_;
 	}
 
-	/// Implementation of iEdge
-	void get_attrs (marsh::Maps& out) const override
+	const marsh::iObject* get_attr (std::string attr_name) const override
 	{
-		if (coorder_.size() > 0)
+		if ("coorder" == attr_name)
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			auto& contents = arr->contents_;
-			for (double c : coorder_)
-			{
-				contents.push_back(c);
-			}
-			out.contents_.emplace("coorder", std::move(arr));
+			return &coorder_;
 		}
+	}
+
+	std::vector<std::string> ls_attrs (void) const override
+	{
+		return {"coorder"};
 	}
 
 	T* data (void) const override
@@ -54,5 +53,5 @@ private:
 
 	teq::Shape shape_;
 
-	std::vector<double> coorder_;
+	marsh::NumArray<double> coorder_;
 };

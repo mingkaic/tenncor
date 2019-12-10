@@ -30,7 +30,7 @@ struct JsonMarshaler final : public iMarshaler
 	void marshal (const Maps& mm) override
 	{
 		auto& json_map = jreps_[&mm];
-		auto keys = mm.keys();
+		auto keys = mm.ls_attrs();
 		for (auto& key : keys)
 		{
 			auto& val = mm.contents_.at(key);

@@ -9,22 +9,26 @@ struct MockOpfunc final : public teq::iOperableFunc
 	// todo: make constructor similar to MockFunctor
 	MockOpfunc (teq::TensptrT a,
 		teq::Opcode opcode = teq::Opcode{},
-		std::vector<double> coord = {}) :
-		MockOpfunc(teq::TensptrsT{a}, opcode, coord) {}
+		std::unordered_map<std::string,std::vector<double>> attrs = {}) :
+		MockOpfunc(teq::TensptrsT{a}, opcode, attrs) {}
 
 	MockOpfunc (teq::TensptrsT args,
 		teq::Opcode opcode = teq::Opcode{},
-		std::vector<double> coord = {}) :
+		std::unordered_map<std::string,std::vector<double>> attrs = {}) :
 		opcode_(opcode),
 		shape_(args[0]->shape())
 	{
 		args_.reserve(args.size());
 		std::transform(args.begin(), args.end(), std::back_inserter(args_),
 			[](teq::TensptrT tens) { return MockEdge(tens); });
-		if (coord.size() > 0)
+		for (auto apair : attrs)
 		{
-			coord_ = std::make_unique<marsh::NumArray<double>>();
-			coord_->contents_ = coord;
+			auto aval = apair.second;
+			if (aval.size() > 0)
+			{
+				attrs_.contents_.emplace(apair.first,
+					std::make_unique<marsh::NumArray<double>>(aval));
+			}
 		}
 	}
 
@@ -32,8 +36,11 @@ struct MockOpfunc final : public teq::iOperableFunc
 		updated_(other.updated_),
 		opcode_(other.opcode_),
 		shape_(other.shape_),
-		args_(other.args_),
-		coord_(other.coord_->clone()) {}
+		args_(other.args_)
+	{
+		std::unique_ptr<marsh::Maps> oattr(other.attrs_.clone());
+		attrs_ = std::move(*oattr);
+	}
 
 	void accept (teq::iTraveler& visiter) override
 	{
@@ -60,18 +67,14 @@ struct MockOpfunc final : public teq::iOperableFunc
 		return teq::EdgeRefsT(args_.begin(), args_.end());
 	}
 
-	marsh::iObject* get_attr (std::string attr_name) const override
+	const marsh::iObject* get_attr (std::string attr_name) const override
 	{
-		if (attr_name == "coorder")
-		{
-			return coord_.get();
-		}
-		return nullptr;
+		return attrs_.get_attr(attr_name);
 	}
 
 	std::vector<std::string> ls_attrs (void) const override
 	{
-		return {"coorder"};
+		return attrs_.ls_attrs();
 	}
 
 	void update_child (teq::TensptrT arg, size_t index) override
@@ -122,7 +125,7 @@ struct MockOpfunc final : public teq::iOperableFunc
 
 	MockEdgesT args_;
 
-	std::unique_ptr<marsh::NumArray<double>> coord_;
+	marsh::Maps attrs_;
 };
 
 #endif // TEQ_MOCK_OPFUNC_HPP

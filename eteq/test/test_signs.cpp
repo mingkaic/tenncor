@@ -53,7 +53,7 @@ TEST(PLACEHOLDER, AssignTens)
 }
 
 
-TEST(PLACEHOLDER, DISABLED_AssignDataSigned)
+TEST(PLACEHOLDER, AssignDataSigned)
 {
 	teq::ShapeSignature sign({3, 0});
 	eteq::Placeholder<double> ph(sign, "ph");
@@ -74,7 +74,7 @@ TEST(PLACEHOLDER, DISABLED_AssignDataSigned)
 }
 
 
-TEST(PLACEHOLDER, DISABLED_AssignTensSigned)
+TEST(PLACEHOLDER, AssignTensSigned)
 {
 	teq::ShapeSignature sign({3, 0});
 	eteq::Placeholder<double> ph(sign, "ph");
@@ -94,7 +94,7 @@ TEST(PLACEHOLDER, DISABLED_AssignTensSigned)
 }
 
 
-TEST(FUNCSIGN, DISABLED_UseSignature)
+TEST(FUNCSIGN, UseSignature)
 {
 	teq::ShapeSignature sign({3, 2});
 	auto ph = std::make_shared<eteq::Placeholder<double>>(sign, "left");
@@ -123,7 +123,7 @@ TEST(FUNCSIGN, DISABLED_UseSignature)
 }
 
 
-TEST(FUNCSIGN, DISABLED_UseSignatureSigned)
+TEST(FUNCSIGN, UseSignatureSigned)
 {
 	teq::ShapeSignature sign({3, 0});
 	auto ph = std::make_shared<eteq::Placeholder<double>>(sign, "left");

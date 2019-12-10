@@ -25,8 +25,11 @@ LinkptrT<T> reduce_grad (teq::Shape shape,
 	LinkptrT<T> bwd, teq::FuncptrT fwd)
 {
 	std::vector<teq::DimT> bcast(teq::rank_cap, 1);
-	auto c = eigen::get_coorder(fwd.get());
-	for (teq::RankT d : c)
+
+	std::set<teq::RankT> ranks;
+	eigen::Packer<std::set<teq::RankT>>().unpack(ranks, *fwd);
+
+	for (teq::RankT d : ranks)
 	{
 		if (d < teq::rank_cap)
 		{
@@ -169,8 +172,10 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			{
 				LinkptrT<T> lhs = to_link<T>(args[0].get().get_tensor());
 				LinkptrT<T> rhs = to_link<T>(args[1].get().get_tensor());
-				auto c = eigen::get_coorder(op.get());
-				eigen::PairVecT<teq::RankT> dims = eigen::decode_pair<teq::RankT>(c);
+
+				eigen::PairVecT<teq::RankT> dims;
+				eigen::Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, *op);
+
 				std::vector<teq::DimT> llist = teq::narrow_shape(lhs->shape());
 				std::vector<teq::DimT> rlist = teq::narrow_shape(rhs->shape());
 				std::array<bool,teq::rank_cap> avisit;
@@ -314,15 +319,17 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::EXTEND:
 			{
-				auto c = eigen::get_coorder(op.get());
+				std::vector<teq::DimT> bcast;
+				eigen::Packer<std::vector<teq::DimT>>().unpack(bcast, *op);
+
 				std::set<teq::RankT> dims;
 				// technically, reduce_sum is not grad of broadcast,
 				// (since broadcast works on dimension > 1) (todo: account for this)
 				// but assuming broadcast is applied on dimensions of 1, reduce_sum is sufficient
-				for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
+				for (size_t i = 0, n = std::min((size_t) teq::rank_cap, bcast.size());
 					i < n; ++i)
 				{
-					teq::RankT d = c[i];
+					teq::DimT d = bcast[i];
 					if (d > 1)
 					{
 						dims.emplace(i);
@@ -333,15 +340,30 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::PERMUTE:
 			{
-				auto c = eigen::get_coorder(op.get());
-				assert(teq::rank_cap == c.size());
-				std::vector<teq::RankT> order(teq::rank_cap);
+				std::vector<teq::RankT> order;
+				eigen::Packer<std::vector<teq::RankT>>().unpack(order, *op);
+
+				bool visited[teq::rank_cap];
+				std::fill(visited, visited + teq::rank_cap, false);
+				for (teq::RankT i = 0, n = order.size(); i < n; ++i)
+				{
+					visited[order[i]] = true;
+				}
+				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+				{
+					if (false == visited[i])
+					{
+						order.push_back(i);
+					}
+				}
+
+				std::vector<teq::RankT> reorder(teq::rank_cap);
 				for (size_t i = 0; i < teq::rank_cap; ++i)
 				{
-					order[c[i]] = i;
+					reorder[order[i]] = i;
 				}
 				out = to_link<T>(local_der) * tenncor::permute(
-					to_link<T>(supcomp_grad), order);
+					to_link<T>(supcomp_grad), reorder);
 			}
 				break;
 			case egen::RESHAPE:
@@ -354,8 +376,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::MATMUL:
 			{
 				auto args = op->get_children();
-				auto c = eigen::get_coorder(op.get());
-				eigen::PairVecT<teq::RankT> dims = eigen::decode_pair<teq::RankT>(c);
+				eigen::PairVecT<teq::RankT> dims;
+				eigen::Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, *op);
 
 				std::vector<teq::DimT> llist = teq::narrow_shape(args[0].get().shape());
 				std::vector<teq::DimT> rlist = teq::narrow_shape(args[1].get().shape());
@@ -459,12 +481,14 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				// for convolution(X, Y) = C
 				auto args = op->get_children();
 
+				std::vector<teq::RankT> order;
+				eigen::Packer<std::vector<teq::RankT>>().unpack(order, *op);
+
 				std::vector<teq::RankT> dims;
-				auto c = eigen::get_coorder(op.get());
-				for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-					i < n && c[i] < teq::rank_cap; ++i)
+				for (size_t i = 0, n = std::min((size_t) teq::rank_cap, order.size());
+					i < n && order[i] < teq::rank_cap; ++i)
 				{
-					dims.push_back(c[i]);
+					dims.push_back(order[i]);
 				}
 				if (arg_idx == 0)
 				{
@@ -482,7 +506,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 					out = tenncor::convolution(tenncor::pad(
 						to_link<T>(supcomp_grad), paddings),
 						tenncor::reverse(
-							to_link<T>(args[1].get().get_tensor()), revdims), dims);
+							to_link<T>(args[1].get().get_tensor()),
+							std::set<teq::RankT>(revdims.begin(), revdims.end())), dims);
 				}
 				else
 				{
@@ -499,9 +524,9 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::SLICE:
 			{
-				auto c = eigen::get_coorder(op.get());
-				assert(2 * teq::rank_cap <= c.size());
-				auto extents = eigen::decode_pair<teq::DimT>(c);
+				eigen::PairVecT<teq::DimT> extents;
+				eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, *op);
+
 				teq::Shape cshape = op->get_children()[0].get().shape();
 				eigen::PairVecT<teq::DimT> paddings;
 				paddings.reserve(teq::rank_cap);
@@ -517,9 +542,9 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::PAD:
 			{
-				auto c = eigen::get_coorder(op.get());
-				assert(2 * teq::rank_cap <= c.size());
-				auto paddings = eigen::decode_pair<teq::DimT>(c);
+				eigen::PairVecT<teq::DimT> paddings;
+				eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(paddings, *op);
+
 				teq::Shape oshape = op->shape();
 				eigen::PairVecT<teq::DimT> extents;
 				extents.reserve(teq::rank_cap);
@@ -538,7 +563,8 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				auto children = op->get_children();
 				const teq::iEdge& fchild = children[0];
 				teq::Shape cshape = children[arg_idx].get().shape();
-				teq::RankT axis = eigen::get_coorder(op.get())[0];
+				teq::RankT axis;
+				eigen::Packer<teq::RankT>().unpack(axis, *op);
 				teq::DimT offset = 0;
 				teq::DimT extent = cshape.at(axis);
 				if (arg_idx)
@@ -553,25 +579,29 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::GROUP_CONCAT: // todo: combine concat and group_concat
 			{
-				teq::RankT axis = eigen::get_coorder(op.get())[0];
+				teq::RankT axis;
+				eigen::Packer<teq::RankT>().unpack(axis, *op);
 				out = to_link<T>(local_der) *
 					tenncor::slice(to_link<T>(supcomp_grad), arg_idx, 1, axis);
 			}
 				break;
 			case egen::STRIDE:
 			{
-				auto c = eigen::get_coorder(op.get());
+				std::vector<teq::DimT> incrs;
+				eigen::Packer<std::vector<teq::DimT>>().unpack(incrs, *op);
+
 				teq::Shape origshape = op->get_children()[0].get().shape();
-				std::vector<teq::DimT> incrs(c.begin(), c.end());
 				out = to_link<T>(local_der) * tenncor::scatter(
 					to_link<T>(supcomp_grad), origshape, incrs);
 			}
 				break;
 			case egen::SCATTER:
 			{
+				std::vector<teq::DimT> c;
+				eigen::Packer<std::vector<teq::DimT>>().unpack(c, *op);
+
 				std::vector<teq::DimT> strides;
 				strides.reserve(teq::rank_cap);
-				auto c = eigen::get_coorder(op.get());
 				std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 					std::back_inserter(strides));
 				out = to_link<T>(local_der) *
@@ -580,8 +610,9 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				break;
 			case egen::REVERSE:
 			{
-				auto c = eigen::get_coorder(op.get());
-				std::vector<teq::RankT> dims(c.begin(), c.end());
+				std::set<teq::RankT> dims;
+				eigen::Packer<std::set<teq::RankT>>().unpack(dims, *op);
+
 				out = to_link<T>(local_der) * tenncor::reverse(to_link<T>(supcomp_grad), dims);
 			}
 				break;

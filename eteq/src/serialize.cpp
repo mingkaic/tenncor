@@ -57,8 +57,7 @@ static inline teq::TensptrT convert_func (std::string opname,
 		{
 			return to_link<T>(tens);
 		});
-	return teq::TensptrT(Functor<T>::get(
-		egen::get_op(opname), edges, std::move(attrs)));
+	return Functor<T>::get(egen::get_op(opname), edges, std::move(attrs));
 }
 
 #define _OUT_GENFUNC(realtype)\
@@ -248,17 +247,9 @@ static inline teq::TensptrT pbm_convert_func (std::string opname,
 	tmp_edges.reserve(edges.size());
 	for (auto& edge : edges)
 	{
-		teq::Shape shape = edge.first->shape();
-		auto shape_vals = convert_attrs(edge.second, eigen::shaper_key);
-		if (shape_vals.size() > 0)
-		{
-			shape = teq::Shape(std::vector<teq::DimT>(
-				shape_vals.begin(), shape_vals.end()));
-		}
 		tmp_edges.push_back(to_link<T>(edge.first));
 	}
-	return std::shared_ptr<Functor<T>>(Functor<T>::get(
-		egen::get_op(opname), tmp_edges, std::move(attrs)));
+	return Functor<T>::get(egen::get_op(opname), tmp_edges, std::move(attrs));
 }
 
 static std::string marshal_leaf (teq::iLeaf* leaf)

@@ -1,4 +1,5 @@
 #include "eteq/link.hpp"
+#include "eteq/shaper.hpp"
 
 #ifndef ETEQ_FUNCSIGN_HPP
 #define ETEQ_FUNCSIGN_HPP
@@ -6,33 +7,37 @@
 namespace eteq
 {
 
+#define CHOOSE_PARSER(OPCODE)\
+outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
+
 template <typename T>
 struct FuncSignature final : public iLink<T>
 {
-	FuncSignature (egen::_GENERATED_OPCODE opcode,
-		LinksT<T> args, marsh::Maps&& attrs) :
-		opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
-		args_(args), attrs_(std::move(attrs))
+	static LinkptrT<T> get (egen::_GENERATED_OPCODE opcode,
+		LinksT<T> links, marsh::Maps&& attrs)
 	{
-		if (args.empty())
+		if (links.empty())
 		{
 			logs::fatalf("cannot perform `%s` without arguments",
 				egen::name_op(opcode).c_str());
 		}
 
-		marsh::iObject* shape_attr = estd::has(attrs_.contents_, eigen::shaper_key) ?
-			attrs_.contents_.at(eigen::shaper_key).get() : nullptr;
-		if (marsh::NumArray<double>* arr = nullptr == shape_attr ?
-			nullptr : shape_attr->template cast<marsh::NumArray<double>>())
+		ShapesT shapes;
+		shapes.reserve(links.size());
+		std::transform(links.begin(), links.end(), std::back_inserter(shapes),
+			[](LinkptrT<T> link)
+			{
+				return link->shape_sign();
+			});
+
+		ShapeOpt outshape;
+		OPCODE_LOOKUP(CHOOSE_PARSER, opcode)
+		if (false == outshape.has_value())
 		{
-			std::vector<teq::DimT> slist(
-				arr->contents_.begin(), arr->contents_.end());
-			shape_ = teq::ShapeSignature(slist);
+			return links.front();
 		}
-		else
-		{
-			shape_ = args_.front()->shape_sign();
-		}
+		return LinkptrT<T>(new FuncSignature<T>(
+			opcode, *outshape, links, std::move(attrs)));
 	}
 
 	/// Return deep copy of this FuncSignature
@@ -41,17 +46,28 @@ struct FuncSignature final : public iLink<T>
 		return static_cast<FuncSignature<T>*>(clone_impl());
 	}
 
+	/// Implementation of iAttributed
+	const marsh::iObject* get_attr (std::string attr_name) const override
+	{
+		return nullptr;
+	}
+
+	/// Implementation of iAttributed
+	std::vector<std::string> ls_attrs (void) const override
+	{
+		return {};
+	}
+
 	/// Implementation of iEdge
 	teq::TensptrT get_tensor (void) const override
 	{
 		LinksT<T> fargs;
-		fargs.reserve(args_.size());
-		std::transform(args_.begin(), args_.end(), std::back_inserter(fargs),
+		fargs.reserve(links_.size());
+		std::transform(links_.begin(), links_.end(), std::back_inserter(fargs),
 			[](LinkptrT<T> link) { return to_link<T>(link->get_tensor()); });
 		std::unique_ptr<marsh::Maps> tmp_attrs(attrs_.clone());
-		return teq::TensptrT(Functor<T>::get(
-			(egen::_GENERATED_OPCODE) opcode_.code_,
-			fargs, std::move(*tmp_attrs)));
+		return Functor<T>::get((egen::_GENERATED_OPCODE) opcode_.code_,
+			fargs, std::move(*tmp_attrs));
 	}
 
 	/// Implementation of iSignature<T>
@@ -74,10 +90,10 @@ struct FuncSignature final : public iLink<T>
 	}
 
 	/// Implementation of iLink<T>
-    bool has_data (void) const override // violates LSP
-    {
-        return false;
-    }
+	bool has_data (void) const override // violates LSP
+	{
+		return false;
+	}
 
 	/// Implementation of iSignature<T>
 	bool is_real (void) const override // violates LSP
@@ -93,8 +109,8 @@ struct FuncSignature final : public iLink<T>
 	teq::EdgeRefsT get_children (void) const
 	{
 		teq::EdgeRefsT refs;
-		refs.reserve(args_.size());
-		std::transform(args_.begin(), args_.end(), std::back_inserter(refs),
+		refs.reserve(links_.size());
+		std::transform(links_.begin(), links_.end(), std::back_inserter(refs),
 			[](LinkptrT<T> edge) -> const teq::iEdge&
 			{
 				return *edge;
@@ -104,24 +120,36 @@ struct FuncSignature final : public iLink<T>
 
 	void update_child (LinkptrT<T> arg, size_t index)
 	{
-		if (index >= args_.size())
+		if (index >= links_.size())
 		{
 			logs::fatalf("cannot modify argument %d "
 				"when there are only %d arguments",
-				index, args_.size());
+				index, links_.size());
 		}
-        static_cast<iLink<T>*>(args_[index].get())->unsubscribe(this);
-        args_[index] = arg;
-        arg->subscribe(this);
+		static_cast<iLink<T>*>(links_[index].get())->unsubscribe(this);
+		links_[index] = arg;
+		arg->subscribe(this);
 	}
 
 private:
-    iLink<T>* clone_impl (void) const override
-    {
-		std::unique_ptr<marsh::Maps> tmp_attrs(attrs_.clone());
-        return new FuncSignature((egen::_GENERATED_OPCODE) opcode_.code_,
-            args_, std::move(*tmp_attrs));
-    }
+	FuncSignature (egen::_GENERATED_OPCODE opcode,
+		teq::ShapeSignature shape, LinksT<T> links, marsh::Maps&& attrs) :
+		opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
+		shape_(shape), links_(links), attrs_(std::move(attrs)) {}
+
+	FuncSignature (const FuncSignature<T>& other) :
+		opcode_(other.opcode_),
+		shape_(other.shape_),
+		links_(other.links_)
+	{
+		std::unique_ptr<marsh::Maps> mattr(other.attrs_.clone());
+		attrs_ = std::move(*mattr);
+	}
+
+	iLink<T>* clone_impl (void) const override
+	{
+		return new FuncSignature(*this);
+	}
 
 	void subscribe (Functor<T>* parent) override {}
 
@@ -134,10 +162,12 @@ private:
 	teq::ShapeSignature shape_;
 
 	/// Tensor arguments (and children)
-	LinksT<T> args_;
+	LinksT<T> links_;
 
 	marsh::Maps attrs_;
 };
+
+#undef CHOOSE_PARSER
 
 }
 

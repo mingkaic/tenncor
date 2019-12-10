@@ -1,5 +1,7 @@
 #include <unordered_map>
 
+#include "marsh/objs.hpp"
+
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
 
@@ -80,17 +82,14 @@ struct iEdgeMatcher
 	{
 		if (attrs_.size() > 0)
 		{
-			marsh::Maps mvalues;
-			edge.get_attrs(mvalues);
-
 			for (auto& apairs : attrs_)
 			{
-				if (false == estd::has(mvalues.contents_, apairs.first))
+				auto mval = edge.get_attr(apairs.first);
+				if (nullptr == mval)
 				{
 					return CandsT{};
 				}
-				if (false == mvalues.contents_.at(
-					apairs.first)->equals(*apairs.second))
+				if (false == mval->equals(*apairs.second))
 				{
 					return CandsT{};
 				}

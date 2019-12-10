@@ -82,7 +82,7 @@ The attribute's `<key>` is a symbol, and `<value>` can be a number or array of n
 
 ### Note on Attribute
 
-Specifying attribute adds a matcher constraint whereby the `marsh::Maps` returned from `iEdge::get_attrs` must contains a key-value pair equal to specified key-value pair.
+Specifying attribute adds a matcher constraint whereby the `marsh::Maps` returned from edge attributes must contains a key-value pair equal to specified key-value pair.
 
 ### Note on Variadic Arguments and Commutative functions
 

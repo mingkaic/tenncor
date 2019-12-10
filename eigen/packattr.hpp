@@ -1,0 +1,358 @@
+#include "marsh/objs.hpp"
+
+#include "teq/teq.hpp"
+
+#ifndef EIGEN_PACKATTR_HPP
+#define EIGEN_PACKATTR_HPP
+
+namespace eigen
+{
+
+template <typename T>
+using PairVecT = std::vector<std::pair<T,T>>;
+
+template <typename T>
+std::string to_string (const PairVecT<T>& pairs)
+{
+	PairVecT<int> readable_pairs(pairs.begin(), pairs.end());
+	return fmts::to_string(readable_pairs.begin(), readable_pairs.end());
+}
+
+template <typename T>
+std::vector<double> encode_pair (const PairVecT<T>& pairs)
+{
+	size_t npairs = pairs.size();
+	std::vector<double> out;
+	out.reserve(npairs * 2);
+	for (auto& p : pairs)
+	{
+		out.push_back(p.first);
+		out.push_back(p.second);
+	}
+	return out;
+}
+
+template <typename T>
+const PairVecT<T> decode_pair (const std::vector<double>& encoding)
+{
+	PairVecT<T> out;
+	size_t n = encoding.size();
+	if (1 == n % 2)
+	{
+		logs::fatalf("cannot decode odd vector %s into vec of pairs",
+			fmts::to_string(encoding.begin(), encoding.end()).c_str());
+	}
+	out.reserve(n / 2);
+	for (size_t i = 0; i < n; i += 2)
+	{
+		out.push_back({encoding[i], encoding[i + 1]});
+	}
+	return out;
+}
+
+template <typename T>
+struct Packer final
+{
+	std::string get_key (void) const
+	{
+		return "";
+	}
+
+	void pack (marsh::Maps& attrs, T pack)
+	{
+		logs::fatal("unknown attribute");
+	}
+
+	void unpack (T& out, const marsh::iAttributed& attrib)
+	{
+		logs::fatal("unknown attribute");
+	}
+};
+
+template <>
+struct Packer<PairVecT<teq::DimT>>
+{
+	static std::string key_;
+
+	std::string get_key (void) const
+	{
+		return key_;
+	}
+
+	void pack (marsh::Maps& attrs, PairVecT<teq::DimT> dims)
+	{
+		size_t n = dims.size();
+		if (n > teq::rank_cap)
+		{
+			logs::fatalf("cannot specify %d dimensions when %d (rank_cap) "
+				"are available", n, teq::rank_cap);
+		}
+		if (n == 0)
+		{
+			logs::fatal("cannot find dimensions");
+		}
+		attrs.contents_.emplace(key_,
+			std::make_unique<marsh::NumArray<double>>(
+				encode_pair(dims)));
+	}
+
+	void unpack (PairVecT<teq::DimT>& out, const marsh::iAttributed& attrib)
+	{
+		auto attr = attrib.get_attr(key_);
+		if (nullptr == attr)
+		{
+			logs::fatalf("cannot find %s attribute", key_.c_str());
+		}
+		auto& encoding = attr->cast<marsh::NumArray<double>>()->contents_;
+		out = decode_pair<teq::DimT>(encoding);
+	}
+};
+
+template <>
+struct Packer<PairVecT<teq::RankT>>
+{
+	static std::string key_;
+
+	std::string get_key (void) const
+	{
+		return key_;
+	}
+
+	void pack (marsh::Maps& attrs, PairVecT<teq::RankT> ranks)
+	{
+		size_t n = ranks.size();
+		if (n > teq::rank_cap)
+		{
+			logs::fatalf("cannot specify %d ranks when %d (rank_cap) "
+				"are available", n, teq::rank_cap);
+		}
+		if (n == 0)
+		{
+			logs::fatal("cannot find ranks");
+		}
+		if (std::any_of(ranks.begin(), ranks.end(),
+			[](std::pair<teq::RankT,teq::RankT> rpair)
+			{
+				return rpair.first >= teq::rank_cap ||
+					rpair.second >= teq::rank_cap;
+			}))
+		{
+			logs::fatalf("cannot reference ranks beyond rank_cap %d: %s",
+				teq::rank_cap, to_string(ranks).c_str());
+		}
+		attrs.contents_.emplace(key_,
+			std::make_unique<marsh::NumArray<double>>(
+				encode_pair(ranks)));
+	}
+
+	void unpack (PairVecT<teq::RankT>& out, const marsh::iAttributed& attrib)
+	{
+		auto attr = attrib.get_attr(key_);
+		if (nullptr == attr)
+		{
+			logs::fatalf("cannot find %s attribute", key_.c_str());
+		}
+		auto& encoding = attr->cast<marsh::NumArray<double>>()->contents_;
+		out = decode_pair<teq::RankT>(encoding);
+	}
+};
+
+template <>
+struct Packer<std::vector<teq::DimT>>
+{
+	static std::string key_;
+
+	std::string get_key (void) const
+	{
+		return key_;
+	}
+
+	void pack (marsh::Maps& attrs, std::vector<teq::DimT> dims)
+	{
+		size_t n = dims.size();
+		if (n > teq::rank_cap)
+		{
+			logs::fatalf("cannot specify %d dimensions when %d (rank_cap) "
+				"are available", n, teq::rank_cap);
+		}
+		if (n == 0)
+		{
+			logs::fatal("cannot find dimensions");
+		}
+		std::vector<double> ddims(dims.begin(), dims.end());
+		attrs.contents_.emplace(key_,
+			std::make_unique<marsh::NumArray<double>>(ddims));
+	}
+
+	void unpack (std::vector<teq::DimT>& out, const marsh::iAttributed& attrib)
+	{
+		auto attr = attrib.get_attr(key_);
+		if (nullptr == attr)
+		{
+			logs::fatalf("cannot find %s attribute", key_.c_str());
+		}
+		auto& encoding = attr->cast<marsh::NumArray<double>>()->contents_;
+		out = std::vector<teq::DimT>(encoding.begin(), encoding.end());
+	}
+};
+
+template <>
+struct Packer<std::vector<teq::RankT>>
+{
+	static std::string key_;
+
+	std::string get_key (void) const
+	{
+		return key_;
+	}
+
+	void pack (marsh::Maps& attrs, std::vector<teq::RankT> ranks)
+	{
+		size_t n = ranks.size();
+		if (n > teq::rank_cap)
+		{
+			logs::fatalf("cannot specify %d ranks when %d (rank_cap) "
+				"are available", n, teq::rank_cap);
+		}
+		if (n == 0)
+		{
+			logs::fatal("cannot find ranks");
+		}
+		if (std::any_of(ranks.begin(), ranks.end(),
+			[](teq::RankT rank)
+			{
+				return rank >= teq::rank_cap;
+			}))
+		{
+			logs::fatalf("cannot reference ranks beyond rank_cap %d: %s",
+				teq::rank_cap, fmts::to_string(
+					ranks.begin(), ranks.end()).c_str());
+		}
+		std::vector<double> dranks(ranks.begin(), ranks.end());
+		attrs.contents_.emplace(key_,
+			std::make_unique<marsh::NumArray<double>>(dranks));
+	}
+
+	void unpack (std::vector<teq::RankT>& out, const marsh::iAttributed& attrib)
+	{
+		auto attr = attrib.get_attr(key_);
+		if (nullptr == attr)
+		{
+			logs::fatalf("cannot find %s attribute", key_.c_str());
+		}
+		auto encoding = attr->cast<marsh::NumArray<double>>()->contents_;
+		out = std::vector<teq::RankT>(encoding.begin(), encoding.end());
+	}
+};
+
+template <>
+struct Packer<std::set<teq::RankT>>
+{
+	static std::string key_;
+
+	std::string get_key (void) const
+	{
+		return key_;
+	}
+
+	void pack (marsh::Maps& attrs, std::set<teq::RankT> ranks)
+	{
+		size_t n = ranks.size();
+		if (n > teq::rank_cap)
+		{
+			logs::fatalf("cannot specify %d ranks when %d (rank_cap) "
+				"are available", n, teq::rank_cap);
+		}
+		if (n == 0)
+		{
+			logs::fatal("cannot find ranks");
+		}
+		std::vector<double> dranks(ranks.begin(), ranks.end());
+		std::sort(dranks.begin(), dranks.end());
+		attrs.contents_.emplace(key_,
+			std::make_unique<marsh::NumArray<double>>(dranks));
+	}
+
+	void unpack (std::set<teq::RankT>& out, const marsh::iAttributed& attrib)
+	{
+		auto attr = attrib.get_attr(key_);
+		if (nullptr == attr)
+		{
+			logs::fatalf("cannot find %s attribute", key_.c_str());
+		}
+		auto encoding = attr->cast<marsh::NumArray<double>>()->contents_;
+		out = std::set<teq::RankT>(encoding.begin(), encoding.end());
+	}
+};
+
+template <>
+struct Packer<teq::RankT>
+{
+	static std::string key_;
+
+	std::string get_key (void) const
+	{
+		return key_;
+	}
+
+	void pack (marsh::Maps& attrs, teq::RankT rank)
+	{
+		attrs.contents_.emplace(key_,
+			std::make_unique<marsh::NumArray<double>>(
+				std::vector<double>{(double) rank}));
+	}
+
+	void unpack (teq::RankT& out, const marsh::iAttributed& attrib)
+	{
+		auto attr = attrib.get_attr(key_);
+		if (nullptr == attr)
+		{
+			logs::fatalf("cannot find %s attribute", key_.c_str());
+		}
+		auto encoding = attr->cast<marsh::NumArray<double>>()->contents_;
+		out = encoding.front();
+	}
+};
+
+template <>
+struct Packer<teq::Shape>
+{
+	static std::string key_;
+
+	std::string get_key (void) const
+	{
+		return key_;
+	}
+
+	void pack (marsh::Maps& attrs, teq::Shape shape)
+	{
+		std::vector<double> dslist(shape.begin(), shape.end());
+		attrs.contents_.emplace(key_,
+			std::make_unique<marsh::NumArray<double>>(dslist));
+	}
+
+	void unpack (teq::Shape& out, const marsh::iAttributed& attrib)
+	{
+		auto attr = attrib.get_attr(key_);
+		if (nullptr == attr)
+		{
+			logs::fatalf("cannot find %s attribute", key_.c_str());
+		}
+		auto encoding = attr->cast<marsh::NumArray<double>>()->contents_;
+		std::vector<teq::DimT> slist(encoding.begin(), encoding.end());
+		out = teq::Shape(slist);
+	}
+};
+
+void pack_attr (marsh::Maps& attrs);
+
+template <typename T, typename ...ARGS>
+void pack_attr (marsh::Maps& attrs, T attr_val, ARGS... args)
+{
+	Packer<T>().pack(attrs, attr_val);
+	pack_attr(attrs, args...);
+}
+
+}
+
+#endif // EIGEN_PACKATTR_HPP

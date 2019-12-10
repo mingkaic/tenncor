@@ -453,7 +453,9 @@ TEST(STABILIZER, Argmax)
 	teq::TensptrT a(new MockTensor(shape));
 
 	auto f1 = std::make_shared<MockOpfunc>(a, teq::Opcode{"", egen::ARGMAX},
-		std::vector<double>{1});
+		std::unordered_map<std::string,std::vector<double>>{
+			{eigen::Packer<teq::RankT>().get_key(), std::vector<double>{1}}
+		});
 
 	auto r1 = eigen::generate_range<double>(f1.get(), {
 		estd::NumRange<double>(-3, 4),
@@ -463,7 +465,9 @@ TEST(STABILIZER, Argmax)
 	EXPECT_DOUBLE_EQ(2, r1.upper_);
 
 	auto f2 = std::make_shared<MockOpfunc>(a, teq::Opcode{"", egen::ARGMAX},
-		std::vector<double>{8});
+		std::unordered_map<std::string,std::vector<double>>{
+			{eigen::Packer<teq::RankT>().get_key(), std::vector<double>{8}}
+		});
 
 	auto r2 = eigen::generate_range<double>(f2.get(), {
 		estd::NumRange<double>(-3, 4),
@@ -1120,7 +1124,10 @@ TEST(STABILIZER, ReduceSum)
 
 	auto f1 = std::make_shared<MockOpfunc>(a,
 		teq::Opcode{"", egen::REDUCE_SUM},
-		std::vector<double>{1, 2, 8, 8, 8, 8, 8, 8});
+		std::unordered_map<std::string,std::vector<double>>{
+			{eigen::Packer<std::set<teq::RankT>>().get_key(),
+			std::vector<double>{1, 2}}
+		});
 
 	auto r1 = eigen::generate_range<double>(f1.get(), {
 		estd::NumRange<double>(-2, 4),
@@ -1131,7 +1138,10 @@ TEST(STABILIZER, ReduceSum)
 
 	auto f2 = std::make_shared<MockOpfunc>(a,
 		teq::Opcode{"", egen::REDUCE_SUM},
-		std::vector<double>{8, 8, 8, 8, 8, 8, 8, 8});
+		std::unordered_map<std::string,std::vector<double>>{
+			{eigen::Packer<std::set<teq::RankT>>().get_key(),
+			std::vector<double>{0, 1, 2}}
+		});
 
 	auto r2 = eigen::generate_range<double>(f2.get(), {
 		estd::NumRange<double>(-2, 4),
@@ -1149,7 +1159,10 @@ TEST(STABILIZER, ReduceProd)
 
 	auto f1 = std::make_shared<MockOpfunc>(a,
 		teq::Opcode{"", egen::REDUCE_PROD},
-		std::vector<double>{0, 2, 8, 8, 8, 8, 8, 8});
+		std::unordered_map<std::string,std::vector<double>>{
+			{eigen::Packer<std::set<teq::RankT>>().get_key(),
+			std::vector<double>{0, 2}}
+		});
 
 	auto r1 = eigen::generate_range<double>(f1.get(), {
 		estd::NumRange<double>(-2, 4),
@@ -1167,7 +1180,10 @@ TEST(STABILIZER, ReduceProd)
 
 	auto f2 = std::make_shared<MockOpfunc>(a,
 		teq::Opcode{"", egen::REDUCE_PROD},
-		std::vector<double>{8, 8, 8, 8, 8, 8, 8, 8});
+		std::unordered_map<std::string,std::vector<double>>{
+			{eigen::Packer<std::set<teq::RankT>>().get_key(),
+			std::vector<double>{0, 1, 2}}
+		});
 
 	auto r3 = eigen::generate_range<double>(f2.get(), {
 		estd::NumRange<double>(-2, 4),
@@ -1185,7 +1201,10 @@ TEST(STABILIZER, ReduceProd)
 
 	auto f3 = std::make_shared<MockOpfunc>(a,
 		teq::Opcode{"", egen::REDUCE_PROD},
-		std::vector<double>{1, 8, 8, 8, 8, 8, 8, 8});
+		std::unordered_map<std::string,std::vector<double>>{
+			{eigen::Packer<std::set<teq::RankT>>().get_key(),
+			std::vector<double>{1}}
+		});
 
 	auto r5 = eigen::generate_range<double>(f3.get(), {
 		estd::NumRange<double>(-2, 4),
@@ -1198,47 +1217,57 @@ TEST(STABILIZER, ReduceProd)
 
 TEST(STABILIZER, Matmul)
 {
-	teq::Shape shape({2, 3, 4});
+	teq::Shape shape({4, 3, 2});
+	teq::Shape shape2({2, 3, 4});
 	teq::TensptrT a(new MockTensor(shape));
+	teq::TensptrT b(new MockTensor(shape2));
 
-	auto f = std::make_shared<MockOpfunc>(teq::TensptrsT{a, a},
+	auto f = std::make_shared<MockOpfunc>(teq::TensptrsT{a, b},
 		teq::Opcode{"", egen::MATMUL},
-		std::vector<double>{0, 2, 8, 8, 8, 8, 8, 8});
+		std::unordered_map<std::string,std::vector<double>>{
+			{eigen::Packer<eigen::PairVecT<teq::RankT>>().get_key(),
+			std::vector<double>{0, 2}}
+		});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {
 		estd::NumRange<double>(-4, 2),
 		estd::NumRange<double>(-3, 3),
 	});
 
-	EXPECT_DOUBLE_EQ(-12 * 8, r1.lower_);
-	EXPECT_DOUBLE_EQ(12 * 8, r1.upper_);
+	EXPECT_DOUBLE_EQ(-12 * 4, r1.lower_);
+	EXPECT_DOUBLE_EQ(12 * 4, r1.upper_);
 
 	auto r2 = eigen::generate_range<double>(f.get(), {
 		estd::NumRange<double>(1, 3),
 		estd::NumRange<double>(-3, 2),
 	});
 
-	EXPECT_DOUBLE_EQ(-9 * 8, r2.lower_);
-	EXPECT_DOUBLE_EQ(6 * 8, r2.upper_);
+	EXPECT_DOUBLE_EQ(-9 * 4, r2.lower_);
+	EXPECT_DOUBLE_EQ(6 * 4, r2.upper_);
 
 	auto r3 = eigen::generate_range<double>(f.get(), {
 		estd::NumRange<double>(1, 3),
 		estd::NumRange<double>(0.5, 2),
 	});
 
-	EXPECT_DOUBLE_EQ(0.5 * 8, r3.lower_);
-	EXPECT_DOUBLE_EQ(6 * 8, r3.upper_);
+	EXPECT_DOUBLE_EQ(0.5 * 4, r3.lower_);
+	EXPECT_DOUBLE_EQ(6 * 4, r3.upper_);
 }
 
 
 TEST(STABILIZER, Conv)
 {
 	teq::Shape shape({2, 3, 4});
+	teq::Shape kshape({3, 2});
 	teq::TensptrT a(new MockTensor(shape));
+	teq::TensptrT k(new MockTensor(kshape));
 
-	auto f = std::make_shared<MockOpfunc>(teq::TensptrsT{a, a},
+	auto f = std::make_shared<MockOpfunc>(teq::TensptrsT{a, k},
 		teq::Opcode{"", egen::CONV},
-		std::vector<double>{0, 2, 8, 8, 8, 8, 8, 8});
+		std::unordered_map<std::string,std::vector<double>>{
+			{eigen::Packer<std::vector<teq::RankT>>().get_key(),
+			std::vector<double>{0, 2}}
+		});
 
 	auto r1 = eigen::generate_range<double>(f.get(), {
 		estd::NumRange<double>(-4, 2),

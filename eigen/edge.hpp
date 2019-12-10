@@ -23,14 +23,6 @@ using EEdgesT = std::vector<EEdgeptrT<T>>;
 template <typename T>
 using EEdgeRefsT = std::vector<std::reference_wrapper<const iEigenEdge<T>>>;
 
-const std::string shaper_key = "shape";
-
-const std::string coorder_key = "coorder";
-
-std::vector<teq::CDimT> get_coorder (const marsh::Maps& attrs);
-
-std::vector<teq::CDimT> get_coorder (const teq::iFunctor* func);
-
 }
 
 #endif // EIGEN_EDGE_HPP

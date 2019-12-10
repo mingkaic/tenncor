@@ -128,7 +128,7 @@ TensMapIndicesT save_graph (
 
 			// serialize edge attributes
 			marsh::Maps mvalues;
-			child.get_attrs(mvalues);
+			marsh::get_attrs(mvalues, child);
 
 			auto pb_attrs = pb_arg->mutable_attrs();
 			marshal_attrs(*pb_attrs, mvalues);

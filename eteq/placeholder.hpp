@@ -16,8 +16,7 @@ template <typename T>
 struct Placeholder final : public iLink<T>
 {
 	Placeholder (teq::ShapeSignature shape, std::string label = "") :
-		label_(label),
-		shape_(std::vector<teq::DimT>(shape.begin(), shape.end())) {}
+		label_(label), shape_(shape) {}
 
 	/// Return deep copy of this Functor
 	Placeholder<T>* clone (void) const
@@ -85,6 +84,18 @@ struct Placeholder final : public iLink<T>
 		}
 	}
 
+	/// Implementation of iAttributed
+	const marsh::iObject* get_attr (std::string attr_name) const override
+	{
+		return nullptr;
+	}
+
+	/// Implementation of iAttributed
+	std::vector<std::string> ls_attrs (void) const override
+	{
+		return {};
+	}
+
 	/// Implementation of iEdge
 	teq::TensptrT get_tensor (void) const override
 	{
@@ -124,13 +135,7 @@ struct Placeholder final : public iLink<T>
 	/// Implementation of iSignature<T>
 	teq::ShapeSignature shape_sign (void) const override
 	{
-		// if (nullptr == content_)
-		// {
-		// 	logs::fatal("cannot get shape of unassigned placeholder");
-		// }
-		// return content_->shape();
-		return teq::ShapeSignature(std::vector<teq::DimT>(
-			shape_.begin(), shape_.end()));
+		return shape_;
 	}
 
 	/// Implementation of iSignature<T>
@@ -151,6 +156,8 @@ struct Placeholder final : public iLink<T>
 	std::string label_;
 
 private:
+	Placeholder (const Placeholder<T>& other) = default;
+
 	iLink<T>* clone_impl (void) const override
 	{
 		return new Placeholder<T>(*this);
@@ -160,9 +167,7 @@ private:
 
 	void unsubscribe (Functor<T>* parent) override {}
 
-	// teq::ShapeSignature shape_;
-	teq::Shape shape_;
-	// todo: replace shape with signature when functors also support incomplete shapes
+	teq::ShapeSignature shape_;
 
 	LinkptrT<T> content_ = nullptr;
 };

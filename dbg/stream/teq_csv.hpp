@@ -10,6 +10,8 @@
 #include <unordered_set>
 #include <utility>
 
+#include "marsh/objs.hpp"
+
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
 
@@ -109,7 +111,7 @@ struct CSVEquation final : public teq::iTraveler
 			const teq::iEdge& child = children[i];
 			auto tens = child.get_tensor().get();
 			marsh::Maps mvalues;
-			child.get_attrs(mvalues);
+			marsh::get_attrs(mvalues, child);
 			edges_.push_back(Edge{
 				func,
 				tens,

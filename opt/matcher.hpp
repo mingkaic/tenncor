@@ -13,7 +13,7 @@
 namespace opt
 {
 
-using AttrMapT = std::unordered_map<std::string,marsh::iObject*>;
+using AttrMapT = std::unordered_map<std::string,const marsh::iObject*>;
 
 void merge_cands (CandsT& out, const CandsT& a, const CandsT& b);
 

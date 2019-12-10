@@ -3,47 +3,13 @@
 #include "estd/estd.hpp"
 #include "fmts/fmts.hpp"
 
-#include "marsh/imarshal.hpp"
+#include "marsh/attrs.hpp"
 
 #ifndef MARSH_OBJS_HPP
 #define MARSH_OBJS_HPP
 
 namespace marsh
 {
-
-struct iObject
-{
-	virtual ~iObject (void) = default;
-
-	iObject* clone (void) const
-	{
-		return clone_impl();
-	}
-
-	virtual size_t class_code (void) const = 0;
-
-	virtual std::string to_string (void) const = 0;
-
-	virtual bool equals (const iObject& other) const = 0;
-
-	virtual void accept (iMarshaler& marshaler) const = 0;
-
-	template <typename SUB, typename std::enable_if<
-		std::is_base_of<iObject,SUB>::value>::type* = nullptr>
-	SUB* cast (void)
-	{
-		if (typeid(SUB).hash_code() == this->class_code())
-		{
-			return static_cast<SUB*>(this);
-		}
-		return nullptr;
-	}
-
-protected:
-	virtual iObject* clone_impl (void) const = 0;
-};
-
-using ObjptrT = std::unique_ptr<iObject>;
 
 struct iNumber : public iObject
 {
@@ -216,7 +182,7 @@ struct NumArray final : public iArray
 	NumArray (void) = default;
 
 	NumArray (const std::vector<T>& contents) :
-		contents_(contents.begin(), contents.end()) {}
+		contents_(contents) {}
 
 	NumArray<T>* clone (void) const
 	{
@@ -276,7 +242,7 @@ private:
 	}
 };
 
-struct Maps final : public iObject
+struct Maps final : public iObject, public iAttributed
 {
 	Maps* clone (void) const
 	{
@@ -291,7 +257,7 @@ struct Maps final : public iObject
 
 	std::string to_string (void) const override
 	{
-		auto ks = keys();
+		auto ks = ls_attrs();
 		std::sort(ks.begin(), ks.end());
 		std::vector<std::pair<std::string,std::string>> pairs;
 		for (std::string key : ks)
@@ -328,7 +294,13 @@ struct Maps final : public iObject
 		marshaler.marshal(*this);
 	}
 
-	std::vector<std::string> keys (void) const
+	const marsh::iObject* get_attr (std::string attr_name) const override
+	{
+		return estd::has(contents_, attr_name) ?
+			contents_.at(attr_name).get() : nullptr;
+	}
+
+	std::vector<std::string> ls_attrs (void) const override
 	{
 		std::vector<std::string> out;
 		out.reserve(contents_.size());
@@ -354,6 +326,8 @@ private:
 		return cpy;
 	}
 };
+
+void get_attrs (marsh::Maps& mvalues, const iAttributed& attributed);
 
 }
 

@@ -113,36 +113,4 @@ TEST(INTERNAL, MakeEigenmap)
 }
 
 
-template <typename T>
-struct JunkEdge final : public eigen::iEigenEdge<T>
-{
-	JunkEdge (void) = default;
-
-	/// Implementation of iEdge
-	teq::Shape shape (void) const override
-	{
-		return teq::Shape();
-	}
-
-	/// Implementation of iEdge
-	teq::TensptrT get_tensor (void) const override
-	{
-		return nullptr;
-	}
-
-	/// Implementation of iEdge
-	void get_attrs (marsh::Maps& out) const override
-	{
-		auto arr = std::make_unique<marsh::NumArray<size_t>>();
-		arr->contents_ = {1, 2, 3};
-		out.contents_.emplace("coorder", std::move(arr));
-	}
-
-	T* data (void) const override
-	{
-		return nullptr;
-	}
-};
-
-
 #endif // DISABLE_INTERNAL_TEST

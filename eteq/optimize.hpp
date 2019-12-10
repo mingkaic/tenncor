@@ -64,16 +64,10 @@ struct FTargEdge final
 			{
 				values.push_back(jt->val_);
 			}
-			if (key == eigen::shaper_key)
-			{
-				shape_ = teq::Shape(std::vector<teq::DimT>(values.begin(), values.end()));
-			}
 		}
 	}
 
 	opt::TargptrT target_;
-
-	std::optional<teq::Shape> shape_;
 };
 
 template <typename T>
@@ -97,10 +91,7 @@ struct FuncTarget final : public opt::iTarget
 			{
 				values.push_back(jt->val_);
 			}
-			if (key == eigen::coorder_key)
-			{
-				coords_ = values;
-			}
+			attrs_.contents_.emplace(key, std::make_unique<marsh::NumArray<double>>(values));
 		}
 	}
 
@@ -122,14 +113,8 @@ struct FuncTarget final : public opt::iTarget
 					static_cast<const iLink<T>*>(&link)->clone()));
 			}
 		}
-		marsh::Maps attrs;
-		if (coords_.size() > 0)
-		{
-			auto arr = new marsh::NumArray<double>();
-			arr->contents_ = coords_;
-			attrs.contents_.emplace(eigen::coorder_key, marsh::ObjptrT(arr));
-		}
-		return teq::TensptrT(Functor<T>::get(opcode_, args, std::move(attrs)));
+		std::unique_ptr<marsh::Maps> attrs(attrs_.clone());
+		return Functor<T>::get(opcode_, args, std::move(*attrs));
 	}
 
 	egen::_GENERATED_OPCODE opcode_;
@@ -138,7 +123,7 @@ struct FuncTarget final : public opt::iTarget
 
 	std::string variadic_;
 
-	std::vector<double> coords_;
+	marsh::Maps attrs_;
 };
 
 template <typename T>
@@ -220,7 +205,7 @@ struct Hasher final : public teq::OnceTraveler
 			auto ctens = child.get_tensor();
 			ctens->accept(*this);
 			marsh::Maps mvalues;
-			child.get_attrs(mvalues);
+			marsh::get_attrs(mvalues, child);
 			hshs.push_back(boost::uuids::to_string(hashes_.at(ctens.get())) +
 				":" + mvalues.to_string());
 		}

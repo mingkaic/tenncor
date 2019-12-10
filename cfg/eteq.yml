@@ -556,7 +556,7 @@ api:
         args:
         - dtype: eteq::LinkptrT<T>
           name: arg
-        - dtype: const std::vector<teq::RankT>&
+        - dtype: const std::set<teq::RankT>&
           name: dims
         out:
           type: eteq::LinkptrT<T>
@@ -592,7 +592,11 @@ api:
           name: xlist
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_functor<T>(::egen::EXTEND,{arg},offset,xlist);
+          val: |
+              //
+                  std::vector<teq::DimT> bcast(offset, 1);
+                  bcast.insert(bcast.end(), xlist.begin(), xlist.end());
+                  return eteq::make_functor<T>(::egen::EXTEND,{arg},bcast);
       - template: typename T
         name: concat
         args:
@@ -733,7 +737,18 @@ api:
           default: teq::rank_cap
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_SUM,{tens},offset,ndims);
+          val: |
+              //
+                  if (offset >= teq::rank_cap)
+                  {
+                    logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                      offset, teq::rank_cap);
+                  }
+                  std::vector<teq::RankT> dims(std::min(ndims,
+                      (teq::RankT) (teq::rank_cap - offset)));
+                  std::iota(dims.begin(), dims.end(), offset);
+                  return eteq::make_functor<T>(::egen::REDUCE_SUM,{tens},
+                      std::set<teq::RankT>(dims.begin(), dims.end()));
       - description: multiply values for ndims dimensions after offset
         template: typename T
         name: reduce_prod
@@ -748,7 +763,18 @@ api:
           default: teq::rank_cap
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_PROD,{tens},offset,ndims);
+          val: |
+              //
+                  if (offset >= teq::rank_cap)
+                  {
+                    logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                      offset, teq::rank_cap);
+                  }
+                  std::vector<teq::RankT> dims(std::min(ndims,
+                      (teq::RankT) (teq::rank_cap - offset)));
+                  std::iota(dims.begin(), dims.end(), offset);
+                  return eteq::make_functor<T>(::egen::REDUCE_PROD,{tens},
+                      std::set<teq::RankT>(dims.begin(), dims.end()));
       - description: min values for ndims dimensions after offset
         template: typename T
         name: reduce_min
@@ -763,7 +789,18 @@ api:
           default: teq::rank_cap
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_MIN,{tens},offset,ndims);
+          val: |
+              //
+                  if (offset >= teq::rank_cap)
+                  {
+                    logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                      offset, teq::rank_cap);
+                  }
+                  std::vector<teq::RankT> dims(std::min(ndims,
+                      (teq::RankT) (teq::rank_cap - offset)));
+                  std::iota(dims.begin(), dims.end(), offset);
+                  return eteq::make_functor<T>(::egen::REDUCE_MIN,{tens},
+                      std::set<teq::RankT>(dims.begin(), dims.end()));
       - description: max values for ndims dimensions after offset
         template: typename T
         name: reduce_max
@@ -778,7 +815,18 @@ api:
           default: teq::rank_cap
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_MAX,{tens},offset,ndims);
+          val: |
+              //
+                  if (offset >= teq::rank_cap)
+                  {
+                    logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                      offset, teq::rank_cap);
+                  }
+                  std::vector<teq::RankT> dims(std::min(ndims,
+                      (teq::RankT) (teq::rank_cap - offset)));
+                  std::iota(dims.begin(), dims.end(), offset);
+                  return eteq::make_functor<T>(::egen::REDUCE_MAX,{tens},
+                      std::set<teq::RankT>(dims.begin(), dims.end()));
       - template: typename T
         name: argmax
         args:

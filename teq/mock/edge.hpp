@@ -1,3 +1,5 @@
+#include "marsh/objs.hpp"
+
 #include "teq/iedge.hpp"
 
 #ifndef TEQ_MOCK_EDGE_HPP
@@ -9,8 +11,8 @@ struct MockEdge final : public teq::iEdge
 		std::vector<double> shape = {},
 		std::vector<double> coorder = {},
 		std::vector<double> junk = {}) :
-		tensor_(tensor), shape_(shape),
-		coorder_(coorder), junk_coords_(junk)
+		tensor_(tensor),
+		shape_(shape), coorder_(coorder), junk_coords_(junk)
 	{
 		if (tensor_ == nullptr)
 		{
@@ -28,48 +30,36 @@ struct MockEdge final : public teq::iEdge
 		return tensor_;
 	}
 
-	void get_attrs (marsh::Maps& out) const override
+	const marsh::iObject* get_attr (std::string attr_name) const override
 	{
-		if (shape_.size() > 0)
+		if ("shape" == attr_name && shape_.contents_.size() > 0)
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			auto& contents = arr->contents_;
-			for (double s : shape_)
-			{
-				contents.push_back(s);
-			}
-			out.contents_.emplace("shape", std::move(arr));
+			return &shape_;
 		}
-		if (coorder_.size() > 0)
+		else if ("coorder" == attr_name && coorder_.contents_.size() > 0)
 		{
-			auto arr = std::make_unique<marsh::NumArray<double>>();
-			auto& contents = arr->contents_;
-			for (double c : coorder_)
-			{
-				contents.push_back(c);
-			}
-			out.contents_.emplace("coorder", std::move(arr));
+			return &coorder_;
 		}
-		if (junk_coords_.size() > 0)
+		else if ("junkcoorder" == attr_name && junk_coords_.contents_.size() > 0)
 		{
-			auto arr = std::make_unique<marsh::NumArray<size_t>>();
-			auto& contents = arr->contents_;
-			for (double c : junk_coords_)
-			{
-				contents.push_back(c);
-			}
-			out.contents_.emplace("junkcoorder", std::move(arr));
+			return &junk_coords_;
 		}
+		return nullptr;
+	}
+
+	std::vector<std::string> ls_attrs (void) const override
+	{
+		return {"shape", "coorder", "junkcoorder"};
 	}
 
 private:
 	teq::TensptrT tensor_;
 
-	std::vector<double> shape_;
+	marsh::NumArray<double> shape_;
 
-	std::vector<double> coorder_;
+	marsh::NumArray<double> coorder_;
 
-	std::vector<double> junk_coords_;
+	marsh::NumArray<double> junk_coords_;
 };
 
 using MockEdgesT = std::vector<MockEdge>;

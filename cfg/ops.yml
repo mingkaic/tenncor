@@ -1,6 +1,6 @@
 opcode:
   operator_path: eigen/operator.hpp
-  params: eigen::EigenptrT<T>& out, teq::Shape outshape, const eigen::EEdgeRefsT<T>& in, const marsh::Maps& attrs
+  params: eigen::EigenptrT<T>& out, teq::Shape outshape, const eigen::EEdgeRefsT<T>& in, const marsh::iAttributed& attrib
   opcalls:
     ABS: out = eigen::abs(outshape, in[0].get());
     NEG: out = eigen::neg(outshape, in[0].get());
@@ -27,23 +27,23 @@ opcode:
     LT: out = eigen::lt(outshape, in[0].get(), in[1].get());
     GT: out = eigen::gt(outshape, in[0].get(), in[1].get());
     RAND_UNIF: out = eigen::rand_uniform(outshape, in[0].get(), in[1].get());
-    REVERSE: out = eigen::reverse(outshape, in[0].get(), attrs);
-    REDUCE_SUM: out = eigen::reduce_sum(outshape, in[0].get(), attrs);
-    REDUCE_PROD: out = eigen::reduce_prod(outshape, in[0].get(), attrs);
-    REDUCE_MIN: out = eigen::reduce_min(outshape, in[0].get(), attrs);
-    REDUCE_MAX: out = eigen::reduce_max(outshape, in[0].get(), attrs);
-    ARGMAX: out = eigen::argmax(outshape, in[0].get(), attrs);
-    PERMUTE: out = eigen::permute(outshape, in[0].get(), attrs);
-    EXTEND: out = eigen::extend(outshape, in[0].get(), attrs);
+    REVERSE: out = eigen::reverse(outshape, in[0].get(), attrib);
+    REDUCE_SUM: out = eigen::reduce_sum(outshape, in[0].get(), attrib);
+    REDUCE_PROD: out = eigen::reduce_prod(outshape, in[0].get(), attrib);
+    REDUCE_MIN: out = eigen::reduce_min(outshape, in[0].get(), attrib);
+    REDUCE_MAX: out = eigen::reduce_max(outshape, in[0].get(), attrib);
+    ARGMAX: out = eigen::argmax(outshape, in[0].get(), attrib);
+    PERMUTE: out = eigen::permute(outshape, in[0].get(), attrib);
+    EXTEND: out = eigen::extend(outshape, in[0].get(), attrib);
     RESHAPE: out = eigen::reshape(outshape, in[0].get());
-    MATMUL: out = eigen::matmul(outshape, in[0].get(), in[1].get(), attrs);
-    CONV: out = eigen::convolution(outshape, in[0].get(), in[1].get(), attrs);
-    SLICE: out = eigen::slice(outshape, in[0].get(), attrs);
-    PAD: out = eigen::pad(outshape, in[0].get(), attrs);
-    STRIDE: out = eigen::stride(outshape, in[0].get(), attrs);
-    SCATTER: out = eigen::scatter(outshape, in[0].get(), attrs);
+    MATMUL: out = eigen::matmul(outshape, in[0].get(), in[1].get(), attrib);
+    CONV: out = eigen::convolution(outshape, in[0].get(), in[1].get(), attrib);
+    SLICE: out = eigen::slice(outshape, in[0].get(), attrib);
+    PAD: out = eigen::pad(outshape, in[0].get(), attrib);
+    STRIDE: out = eigen::stride(outshape, in[0].get(), attrib);
+    SCATTER: out = eigen::scatter(outshape, in[0].get(), attrib);
     SELECT: out = eigen::select(outshape, in[0].get(), in[1].get(), in[2].get());
-    CONCAT: out = eigen::concat(outshape, in[0].get(), in[1].get(), attrs);
-    GROUP_CONCAT: out = eigen::group_concat(outshape, in, attrs);
+    CONCAT: out = eigen::concat(outshape, in[0].get(), in[1].get(), attrib);
+    GROUP_CONCAT: out = eigen::group_concat(outshape, in, attrib);
     GROUP_SUM: out = eigen::group_sum(outshape, in);
     GROUP_PROD: out = eigen::group_prod(outshape, in);
