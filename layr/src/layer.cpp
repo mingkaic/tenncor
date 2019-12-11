@@ -45,29 +45,10 @@ void iLayer::tag (teq::TensptrT tensor, LayerId subs) const
 		subs.to_string(get_label()));
 }
 
-void iLayer::recursive_tag (teq::TensptrT root,
-	teq::TensSetT ignores, LayerId subs) const
-{
-	// todo: allow pass layer registry through parameter
-	recursive_layer_tag(root, get_ltype(),
-		subs.to_string(get_label()), ignores);
-}
-
 LayerRegistry& get_layer_reg (void)
 {
 	static LayerRegistry registry;
 	return registry;
-}
-
-void recursive_layer_tag (teq::TensptrT tens, std::string layer_type,
-	std::string name, teq::TensSetT stops,
-	LayerRegistry& registry)
-{
-	tag::recursive_tag(tens, stops,
-		[&](teq::TensrefT ref)
-		{
-			registry.layer_tag(ref, layer_type, name);
-		});
 }
 
 struct LayerNode;

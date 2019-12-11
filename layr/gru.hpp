@@ -73,6 +73,8 @@ struct GRU final : public iLayer
 			weight_init, bias_init, nullptr, hgate_key))
 	{
 		tag_sublayers();
+
+		placeholder_connect();
 	}
 
 	GRU (DenseptrT ugate, DenseptrT rgate,
@@ -123,6 +125,29 @@ struct GRU final : public iLayer
 	}
 
 	/// Implementation of iLayer
+	teq::ShapeSignature get_input_sign (void) const override
+	{
+		teq::ShapeSignature insign = ugate_->get_input_sign();
+		teq::ShapeSignature outsign = ugate_->get_output_sign();
+		std::vector<teq::DimT> slist(insign.begin(), insign.end());
+		if (slist.at(1) > 0 && outsign.at(1) > 0)
+		{
+			slist[1] -= outsign.at(1);
+		}
+		else
+		{
+			slist[1] = 0;
+		}
+		return teq::ShapeSignature(slist);
+	}
+
+	/// Implementation of iLayer
+	teq::ShapeSignature get_output_sign (void) const override
+	{
+		return ugate_->get_output_sign();
+	}
+
+	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return gru_layer_key;
@@ -150,21 +175,17 @@ struct GRU final : public iLayer
 	{
 		// expecting input of shape <nunits, sequence length, ANY>
 		// sequence is dimension 1
-		teq::Shape inshape = input->shape();
+		teq::DimT nseq = input->shape_sign().at(1);
 		auto state = eteq::make_constant_scalar<PybindT>(0,
 			teq::Shape({(teq::DimT) this->get_noutput()}));
 		eteq::LinksT<PybindT> states;
-		for (teq::DimT i = 0, nseq = inshape.at(1); i < nseq; ++i)
+		for (teq::DimT i = 0; i < nseq; ++i)
 		{
 			auto inslice = tenncor::slice(input, i, 1, 1);
 			state = cell_connect(inslice, state);
 			states.push_back(state);
 		}
-		auto output = tenncor::concat(states, 1);
-		recursive_tag(output->get_tensor(), {
-			input->get_tensor().get(),
-		}, LayerId());
-		return output;
+		return tenncor::concat(states, 1);
 	}
 
 private:
@@ -208,6 +229,9 @@ private:
 		rgate_ = DenseptrT(other.rgate_->clone(label_prefix));
 		hgate_ = DenseptrT(other.hgate_->clone(label_prefix));
 		tag_sublayers();
+
+		this->input_ = nullptr;
+		this->placeholder_connect();
 	}
 
 	LinkptrT cell_connect (LinkptrT x, LinkptrT state) const

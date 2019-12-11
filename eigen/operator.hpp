@@ -267,8 +267,9 @@ EigenptrT<T> slice (teq::Shape outshape, const iEigenEdge<T>& in, const marsh::i
 	size_t n = std::min(encoding.size(), (size_t) teq::rank_cap);
 	for (size_t i = 0; i < n; ++i)
 	{
-		offsets[i] = encoding[i].first;
-		extents[i] = encoding[i].second;
+		teq::DimT offset = std::min(encoding[i].first, (teq::DimT) (shape.at(i) - 1));
+		offsets[i] = offset;
+		extents[i] = std::min(encoding[i].second, (teq::DimT) (shape.at(i) - offset));
 	}
 	auto slist = teq::narrow_shape(shape);
 	if (slist.size() > 0 && outshape.compatible_before(

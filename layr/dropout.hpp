@@ -58,6 +58,8 @@ struct Dropout final : public iLayer
 		auto p = eteq::make_constant_scalar<PybindT>(prob);
 		mask_ = tenncor::rand_binom_one(p) / p;
 		tag(mask_->get_tensor(), LayerId(dropout_mask_key));
+
+		placeholder_connect();
 	}
 
 	Dropout (LinkptrT mask, const std::string& label) : label_(label), mask_(mask)
@@ -102,6 +104,18 @@ struct Dropout final : public iLayer
 	}
 
 	/// Implementation of iLayer
+	teq::ShapeSignature get_input_sign (void) const override
+	{
+		return mask_->shape_sign();
+	}
+
+	/// Implementation of iLayer
+	teq::ShapeSignature get_output_sign (void) const override
+	{
+		return mask_->shape_sign();
+	}
+
+	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return dropout_layer_key;
@@ -122,11 +136,7 @@ struct Dropout final : public iLayer
 	/// Implementation of iLayer
 	LinkptrT connect (LinkptrT input) const override
 	{
-		auto output = input * mask_; // todo: deactivate dropout layer when predicting
-		recursive_tag(output->get_tensor(), {
-			input->get_tensor().get(),
-		}, LayerId());
-		return output;
+		return input * mask_; // todo: deactivate dropout layer when predicting
 	}
 
 private:
@@ -140,6 +150,9 @@ private:
 		label_ = label_prefix + other.label_;
 		mask_ = LinkptrT(other.mask_->clone()); // todo: recurse copy
 		tag(mask_->get_tensor(), LayerId(dropout_weight_key));
+
+		this->input_ = nullptr;
+		this->placeholder_connect();
 	}
 
 	std::string label_;

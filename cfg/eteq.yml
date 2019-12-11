@@ -4,8 +4,6 @@ api:
   - '"eteq/constant.hpp"'
   - '"eteq/variable.hpp"'
   - '"eteq/functor.hpp"'
-  - '"tag/group.hpp"'
-  - '"tag/prop.hpp"'
   namespaces:
     tenncor:
       - template: typename T
@@ -132,7 +130,7 @@ api:
           name: scalar
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::pow(arg1, eteq::make_constant_scalar<T>(scalar,arg1->shape()));
+          val: return ::tenncor::pow(arg1, eteq::make_constant_like<T>(scalar,arg1));
       - template: typename T
         name: pow
         args:
@@ -142,7 +140,7 @@ api:
           name: arg1
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::pow(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+          val: return ::tenncor::pow(eteq::make_constant_like<T>(scalar,arg1),arg1);
       - template: typename T
         name: add
         operator: +
@@ -153,12 +151,7 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(::egen::ADD, {a, b});
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  tag::get_group_reg().group_tag(out->get_tensor(), "sum");
-                  return out;
+          val: return eteq::make_functor<T>(::egen::ADD, {a, b});
       - template: typename T
         name: add
         operator: +
@@ -169,7 +162,7 @@ api:
           name: scalar
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::add(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
+          val: return ::tenncor::add(arg1,eteq::make_constant_like<T>(scalar,arg1));
       - template: typename T
         name: add
         operator: +
@@ -180,7 +173,7 @@ api:
           name: arg1
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::add(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+          val: return ::tenncor::add(eteq::make_constant_like<T>(scalar,arg1),arg1);
       - template: typename T
         name: sub
         operator: "-"
@@ -202,7 +195,7 @@ api:
           name: scalar
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::sub(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
+          val: return ::tenncor::sub(arg1,eteq::make_constant_like<T>(scalar,arg1));
       - template: typename T
         name: sub
         operator: "-"
@@ -213,7 +206,7 @@ api:
           name: arg1
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::sub(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+          val: return ::tenncor::sub(eteq::make_constant_like<T>(scalar,arg1),arg1);
       - template: typename T
         name: mul
         operator: "*"
@@ -224,12 +217,7 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(::egen::MUL, {a, b});
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  tag::get_group_reg().group_tag(out->get_tensor(), "prod");
-                  return out;
+          val: return eteq::make_functor<T>(::egen::MUL, {a, b});
       - template: typename T
         name: mul
         operator: "*"
@@ -240,7 +228,7 @@ api:
           name: scalar
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::mul(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
+          val: return ::tenncor::mul(arg1,eteq::make_constant_like<T>(scalar,arg1));
       - template: typename T
         name: mul
         operator: "*"
@@ -251,7 +239,7 @@ api:
           name: arg1
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::mul(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+          val: return ::tenncor::mul(eteq::make_constant_like<T>(scalar,arg1),arg1);
       - template: typename T
         name: div
         operator: /
@@ -273,7 +261,7 @@ api:
           name: scalar
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::div(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
+          val: return ::tenncor::div(arg1,eteq::make_constant_like<T>(scalar,arg1));
       - template: typename T
         name: div
         operator: /
@@ -284,7 +272,7 @@ api:
           name: arg1
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::div(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+          val: return ::tenncor::div(eteq::make_constant_like<T>(scalar,arg1),arg1);
       - template: typename T
         name: eq
         operator: ==
@@ -295,11 +283,7 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(::egen::EQ, {a, b});
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  return out;
+          val: return eteq::make_functor<T>(::egen::EQ, {a, b});
       - template: typename T
         name: eq
         operator: ==
@@ -310,7 +294,7 @@ api:
           name: scalar
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::eq(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
+          val: return ::tenncor::eq(arg1,eteq::make_constant_like<T>(scalar,arg1));
       - template: typename T
         name: eq
         operator: ==
@@ -321,7 +305,7 @@ api:
           name: arg1
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::eq(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+          val: return ::tenncor::eq(eteq::make_constant_like<T>(scalar,arg1),arg1);
       - template: typename T
         name: neq
         operator: "!="
@@ -332,11 +316,7 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(::egen::NEQ, {a, b});
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  return out;
+          val: return eteq::make_functor<T>(::egen::NEQ, {a, b});
       - template: typename T
         name: neq
         operator: "!="
@@ -347,7 +327,7 @@ api:
           name: scalar
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::neq(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
+          val: return ::tenncor::neq(arg1,eteq::make_constant_like<T>(scalar,arg1));
       - template: typename T
         name: neq
         operator: "!="
@@ -358,7 +338,7 @@ api:
           name: arg1
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::neq(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+          val: return ::tenncor::neq(eteq::make_constant_like<T>(scalar,arg1),arg1);
       - template: typename T
         name: lt
         operator: <
@@ -380,7 +360,7 @@ api:
           name: scalar
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::lt(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
+          val: return ::tenncor::lt(arg1,eteq::make_constant_like<T>(scalar,arg1));
       - template: typename T
         name: lt
         operator: <
@@ -391,7 +371,7 @@ api:
           name: arg1
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::lt(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+          val: return ::tenncor::lt(eteq::make_constant_like<T>(scalar,arg1),arg1);
       - template: typename T
         name: gt
         operator: ">"
@@ -413,7 +393,7 @@ api:
           name: scalar
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::gt(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
+          val: return ::tenncor::gt(arg1,eteq::make_constant_like<T>(scalar,arg1));
       - template: typename T
         name: gt
         operator: ">"
@@ -424,7 +404,7 @@ api:
           name: arg1
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::gt(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+          val: return ::tenncor::gt(eteq::make_constant_like<T>(scalar,arg1),arg1);
       - template: typename T
         name: min
         args:
@@ -434,12 +414,7 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(::egen::MIN, {a, b});
-                  // todo: tag min with a group?
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  return out;
+          val: return eteq::make_functor<T>(::egen::MIN, {a, b});
       - template: typename T
         name: min
         args:
@@ -449,7 +424,7 @@ api:
           name: scalar
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::min(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
+          val: return ::tenncor::min(arg1,eteq::make_constant_like<T>(scalar,arg1));
       - template: typename T
         name: min
         args:
@@ -459,7 +434,7 @@ api:
           name: arg1
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::min(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+          val: return ::tenncor::min(eteq::make_constant_like<T>(scalar,arg1),arg1);
       - template: typename T
         name: min
         args:
@@ -488,12 +463,7 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(::egen::MAX, {a, b});
-                  // todo: tag max with a group?
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  return out;
+          val: return eteq::make_functor<T>(::egen::MAX, {a, b});
       - template: typename T
         name: max
         args:
@@ -503,7 +473,7 @@ api:
           name: scalar
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::max(arg1,eteq::make_constant_scalar<T>(scalar,arg1->shape()));
+          val: return ::tenncor::max(arg1,eteq::make_constant_like<T>(scalar,arg1));
       - template: typename T
         name: max
         args:
@@ -513,7 +483,7 @@ api:
           name: arg1
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::max(eteq::make_constant_scalar<T>(scalar,arg1->shape()),arg1);
+          val: return ::tenncor::max(eteq::make_constant_like<T>(scalar,arg1),arg1);
       - template: typename T
         name: max
         args:
@@ -546,7 +516,9 @@ api:
           type: eteq::LinkptrT<T>
           val: |
               //
-                  if (then->get_tensor().get() == otherwise->get_tensor().get())
+                  if (then.get() == otherwise.get() || (
+                      then->is_real() && otherwise->is_real() &&
+                      then->get_tensor().get() == otherwise->get_tensor().get()))
                   {
                       return then;
                   }
@@ -632,21 +604,26 @@ api:
           val: |
               //
                   teq::RankT n = std::min(teq::rank_cap, (teq::RankT) slist.size());
-                  teq::Shape source = arg->shape();
+                  teq::ShapeSignature source = arg->shape_sign();
                   teq::RankT offset = 0;
-                  while (offset < n && source.at(offset) == slist.at(offset)) {
+                  while (offset < n && source.at(offset) == slist.at(offset))
+                  {
                       ++offset;
                   }
-                  if (offset == n) {
+                  if (offset == n)
+                  {
                       return arg;
                   }
                   std::vector<teq::DimT> exts;
                   exts.reserve(n - offset);
-                  for (teq::RankT i = offset; i < n; ++i) {
+                  for (teq::RankT i = offset; i < n; ++i)
+                  {
                       teq::DimT sdim = source.at(i);
                       teq::DimT tdim = slist.at(i);
-                      if (sdim != tdim) {
-                          if (sdim != 1) {
+                      if (sdim > 0 && sdim != tdim)
+                      {
+                          if (sdim > 1)
+                          {
                               logs::fatalf(
                                   "cannot extend shapes %s and %s at dimension %d to match",
                                   source.to_string().c_str(),
@@ -664,7 +641,7 @@ api:
         args:
         - dtype: eteq::LinkptrT<T>
           name: arg
-        - dtype: const teq::Shape&
+        - dtype: const teq::ShapeSignature&
           name: shape
         out:
           type: eteq::LinkptrT<T>
@@ -741,8 +718,8 @@ api:
               //
                   if (offset >= teq::rank_cap)
                   {
-                    logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
-                      offset, teq::rank_cap);
+                      logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                          offset, teq::rank_cap);
                   }
                   std::vector<teq::RankT> dims(std::min(ndims,
                       (teq::RankT) (teq::rank_cap - offset)));
@@ -767,8 +744,8 @@ api:
               //
                   if (offset >= teq::rank_cap)
                   {
-                    logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
-                      offset, teq::rank_cap);
+                      logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                          offset, teq::rank_cap);
                   }
                   std::vector<teq::RankT> dims(std::min(ndims,
                       (teq::RankT) (teq::rank_cap - offset)));
@@ -793,8 +770,8 @@ api:
               //
                   if (offset >= teq::rank_cap)
                   {
-                    logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
-                      offset, teq::rank_cap);
+                      logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                          offset, teq::rank_cap);
                   }
                   std::vector<teq::RankT> dims(std::min(ndims,
                       (teq::RankT) (teq::rank_cap - offset)));
@@ -819,8 +796,8 @@ api:
               //
                   if (offset >= teq::rank_cap)
                   {
-                    logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
-                      offset, teq::rank_cap);
+                      logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                          offset, teq::rank_cap);
                   }
                   std::vector<teq::RankT> dims(std::min(ndims,
                       (teq::RankT) (teq::rank_cap - offset)));
@@ -845,7 +822,15 @@ api:
           name: arg
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_constant_scalar<T>(arg->get_tensor()->shape().n_elems(), teq::Shape());
+          val: |
+              //
+                  auto sign = arg->shape_sign();
+                  if (teq::is_ambiguous(sign))
+                  {
+                      logs::fatalf("cannot n_elems on ambiguous shaped argument (sign=%s)",
+                          sign.to_string().c_str());
+                  }
+                  return eteq::make_constant_scalar<T>(teq::Shape(sign).n_elems(), teq::Shape());
       - template: typename T
         name: n_dims
         args:
@@ -855,7 +840,15 @@ api:
           name: rank
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_constant_scalar<T>(arg->get_tensor()->shape().at(rank), teq::Shape());
+          val: |
+              //
+                  auto sign = arg->shape_sign();
+                  if (sign.at(rank) == 0)
+                  {
+                      logs::fatalf("cannot n_dims with ambiguous dimension %d argument (sign=%s)",
+                          (int) rank, sign.to_string().c_str());
+                  }
+                  return eteq::make_constant_scalar<T>(sign.at(rank), teq::Shape());
       - description: extents vector consists of pairs offset and extent for each dimension
         template: typename T
         name: slice
@@ -1080,8 +1073,14 @@ api:
           type: eteq::LinkptrT<T>
           val: |
               //
+                  auto sign = arg->shape_sign();
+                  if (sign.at(dimension) == 0)
+                  {
+                      logs::fatalf("cannot reduce_mean_1d with ambiguous dimension %d argument (sign=%s)",
+                          (int) dimension, sign.to_string().c_str());
+                  }
                   auto red = ::tenncor::reduce_sum_1d(arg, dimension);
-                  auto dim = eteq::make_constant_scalar<T>(arg->shape().at(dimension), red->shape());
+                  auto dim = eteq::make_constant_like<T>(sign.at(dimension), red);
                   return ::tenncor::div(red, dim);
       - template: typename T
         name: reduce_l2norm
@@ -1124,16 +1123,9 @@ api:
                   {
                       logs::fatal("min value is below max");
                   }
-                  teq::Shape shape = arg->shape();
-                  auto lo = eteq::make_constant_scalar<T>(minval, shape);
-                  auto hi = eteq::make_constant_scalar<T>(maxval, shape);
-                  auto out = ::tenncor::max(::tenncor::min(arg, hi), lo);
-                  tag::recursive_group_tag(out->get_tensor(), "clip_by_range", {
-                      arg->get_tensor().get(),
-                      lo->get_tensor().get(),
-                      hi->get_tensor().get(),
-                  });
-                  return out;
+                  auto lo = eteq::make_constant_like<T>(minval, arg);
+                  auto hi = eteq::make_constant_like<T>(maxval, arg);
+                  return ::tenncor::max(::tenncor::min(arg, hi), lo);
       - description: clip by l2norm
         template: typename T
         name: clip_by_l2norm
@@ -1151,17 +1143,11 @@ api:
                   {
                       logs::fatal("cannot clip_by_norm with a upper limit of 0");
                   }
-                  teq::Shape shape = arg->shape();
-                  auto limit = eteq::make_constant_scalar<T>(upper, shape);
-                  auto norm = ::tenncor::extend(::tenncor::reduce_l2norm(arg), 0,
-                      std::vector<teq::DimT>(shape.begin(), shape.end()));
-                  auto out = ::tenncor::if_then_else(::tenncor::lt(norm, limit),
+                  auto norm = ::tenncor::best_extend(
+                      ::tenncor::reduce_l2norm(arg), arg->shape_sign());
+                  auto limit = eteq::make_constant_like<T>(upper, arg);
+                  return ::tenncor::if_then_else(::tenncor::lt(norm, limit),
                       arg, ::tenncor::div(::tenncor::mul(arg, limit), norm));
-                  tag::recursive_group_tag(out->get_tensor(), "clip_by_l2norm", {
-                      arg->get_tensor().get(),
-                      limit->get_tensor().get(),
-                  });
-                  return out;
       - template: typename T
         name: sum
         args:
@@ -1183,10 +1169,7 @@ api:
                       default:
                           break;
                   }
-                  auto out = eteq::make_functor<T>(::egen::GROUP_SUM, args);
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  tag::get_group_reg().group_tag(out->get_tensor(), "sum");
-                  return out;
+                  return eteq::make_functor<T>(::egen::GROUP_SUM, args);
       - template: typename T
         name: prod
         args:
@@ -1208,10 +1191,7 @@ api:
                       default:
                           break;
                   }
-                  auto out = eteq::make_functor<T>(::egen::GROUP_PROD, args);
-                  tag::get_property_reg().property_tag(out->get_tensor(), tag::commutative_tag);
-                  tag::get_group_reg().group_tag(out->get_tensor(), "prod");
-                  return out;
+                  return eteq::make_functor<T>(::egen::GROUP_PROD, args);
       - template: typename T
         name: softmax
         args:
@@ -1232,21 +1212,17 @@ api:
                       logs::fatalf("cannot perform softmax on dimensions beyond %d",
                           teq::rank_cap);
                   }
-                  teq::Shape shape = arg->shape();
-                  auto overflow_preventer = ::tenncor::extend(
-                      ::tenncor::reduce_max(arg), 0,
-                          std::vector<teq::DimT>(shape.begin(), shape.end()));
+                  teq::ShapeSignature shape = arg->shape_sign();
+                  auto overflow_preventer = ::tenncor::best_extend(
+                      ::tenncor::reduce_max(arg), shape);
                   auto exarg = ::tenncor::exp(::tenncor::sub(arg, overflow_preventer));
                   auto it = shape.begin() + offset;
                   std::vector<teq::DimT> xlist(it, it + ndims);
-                  auto out = ::tenncor::div(exarg,
+                  return ::tenncor::div(exarg,
                       ::tenncor::extend(::tenncor::add(
                           ::tenncor::reduce_sum(exarg, offset, ndims),
                           std::numeric_limits<T>::epsilon()),
                           offset, xlist));
-                  tag::recursive_group_tag(out->get_tensor(), "softmax", {
-                      arg->get_tensor().get()});
-                  return out;
       - template: typename T
         name: relu
         args:
@@ -1254,12 +1230,7 @@ api:
           name: arg
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  auto out = ::tenncor::max(arg, (T) 0);
-                  tag::recursive_group_tag(out->get_tensor(), "relu", {
-                      arg->get_tensor().get()});
-                  return out;
+          val: return ::tenncor::max(arg, (T) 0);
       - template: typename T
         name: softplus
         args:
@@ -1267,12 +1238,7 @@ api:
           name: arg
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  auto out = ::tenncor::log(::tenncor::add((T) 1, ::tenncor::exp(arg)));
-                  tag::recursive_group_tag(out->get_tensor(), "softplus", {
-                      arg->get_tensor().get()});
-                  return out;
+          val: return ::tenncor::log(::tenncor::add((T) 1, ::tenncor::exp(arg)));
       - template: typename T
         name: sign
         args:
@@ -1291,9 +1257,7 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  return eteq::make_functor<T>(::egen::RAND_UNIF, {a, b});
+          val: return eteq::make_functor<T>(::egen::RAND_UNIF, {a, b});
       - template: typename T
         name: rand_binom_one
         args:
@@ -1303,10 +1267,9 @@ api:
           type: eteq::LinkptrT<T>
           val: |
               //
-                  const teq::Shape& shape = arg->get_tensor()->shape();
                   auto trial = ::tenncor::random::rand_unif(
-                      eteq::to_link<T>(eteq::make_variable_scalar<T>((T) 0, shape)),
-                      eteq::to_link<T>(eteq::make_variable_scalar<T>((T) 1, shape)));
+                      eteq::to_link<T>(eteq::make_variable_like<T>((T) 0, arg)),
+                      eteq::to_link<T>(eteq::make_variable_like<T>((T) 1, arg)));
                   return ::tenncor::lt(trial, arg);
     tenncor::nn:
       - template: typename T
@@ -1337,23 +1300,15 @@ api:
                           "number of inputs (%d) must equal the number of weights (%d)",
                           ninputs, weights.size());
                   }
-                  teq::TensSetT ignores = {
-                      inputs[0]->get_tensor().get(),
-                      weights[0]->get_tensor().get()
-                  };
                   auto out = ::tenncor::contract(inputs[0], weights[0], dims);
                   for (size_t i = 1; i < ninputs; ++i)
                   {
-                      ignores.emplace(inputs[i]->get_tensor().get());
-                      ignores.emplace(weights[i]->get_tensor().get());
                       out = ::tenncor::add(out, ::tenncor::contract(inputs[i], weights[i], dims));
                   }
                   if (nullptr != bias)
                   {
-                      out = ::tenncor::add(out, ::tenncor::best_extend(bias, out->shape()));
-                      ignores.emplace(bias->get_tensor().get());
+                      out = ::tenncor::add(out, ::tenncor::best_extend(bias, out->shape_sign()));
                   }
-                  tag::recursive_group_tag(out->get_tensor(), "fully_connect", ignores);
                   return out;
       - template: typename T
         name: conv2d
@@ -1369,8 +1324,8 @@ api:
           type: eteq::LinkptrT<T>
           val: |
               //
-                  // image must be in form [in, width, height, batch]
-                  // kernel must be in form [out, in, width, height]
+                  // image must be in form [in, iwidth, iheight, batch]
+                  // kernel must be in form [out, in, kwidth, kheight]
                   // expect output shape of [
                   //    out,
                   //    image.width-kernel.width+1+2*zero_padding.first,
@@ -1385,20 +1340,20 @@ api:
                           {zero_padding.first, zero_padding.first},
                           {zero_padding.second, zero_padding.second}});
                   }
+                  teq::DimT outdim = kernel->shape_sign().at(0);
+                  if (outdim == 0)
+                  {
+                      logs::fatalf("cannot conv2d with ambiguous out dimension %d", (int) outdim);
+                  }
 
-                  teq::DimT img_pad = kernel->shape().at(0) - 1; // out
+                  teq::DimT img_pad = outdim - 1; // out
                   image = ::tenncor::pad(image,
                       std::pair<teq::DimT,teq::DimT>{img_pad, img_pad}, 4);
                   kernel = ::tenncor::reverse(kernel, {0});
 
-                  auto out = ::tenncor::permute(
+                 return ::tenncor::permute(
                       ::tenncor::convolution(image, kernel,
                           {4, 0, 1, 2}), {4, 1, 2, 3});
-                  tag::recursive_group_tag(out->get_tensor(), "conv2d", {
-                      image->get_tensor().get(),
-                      kernel->get_tensor().get()
-                  });
-                  return out;
       - template: typename T
         name: mean_pool2d
         args:
@@ -1411,8 +1366,16 @@ api:
           type: eteq::LinkptrT<T>
           val: |
               //
-                  teq::DimT xextent = arg->shape().at(dims.first) - 1;
-                  teq::DimT yextent = arg->shape().at(dims.second) - 1;
+                  teq::ShapeSignature sign = arg->shape_sign();
+                  teq::DimT xextent = sign.at(dims.first);
+                  teq::DimT yextent = sign.at(dims.second);
+                  if (xextent == 0 || yextent == 0)
+                  {
+                      logs::fatalf("cannot pool on ambiguous dimensions %d and %d (sign=%s)",
+                          (int) dims.first, (int) dims.second, sign.to_string().c_str());
+                  }
+                  --xextent;
+                  --yextent;
                   std::vector<teq::DimT> strider(teq::rank_cap, 1);
                   strider[dims.first] = strider[dims.second] = 2;
                   auto top_left = ::tenncor::stride(arg, strider);
@@ -1442,8 +1405,16 @@ api:
           type: eteq::LinkptrT<T>
           val: |
               //
-                  teq::DimT xextent = arg->shape().at(dims.first) - 1;
-                  teq::DimT yextent = arg->shape().at(dims.second) - 1;
+                  teq::ShapeSignature sign = arg->shape_sign();
+                  teq::DimT xextent = sign.at(dims.first);
+                  teq::DimT yextent = sign.at(dims.second);
+                  if (xextent == 0 || yextent == 0)
+                  {
+                      logs::fatalf("cannot pool on ambiguous dimensions %d and %d (sign=%s)",
+                          (int) dims.first, (int) dims.second, sign.to_string().c_str());
+                  }
+                  --xextent;
+                  --yextent;
                   std::vector<teq::DimT> strider(teq::rank_cap, 1);
                   strider[dims.first] = strider[dims.second] = 2;
                   auto top_left = ::tenncor::stride(arg, strider);

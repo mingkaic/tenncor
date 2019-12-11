@@ -101,6 +101,26 @@ struct SequentialModel final : public iLayer
 	}
 
 	/// Implementation of iLayer
+	teq::ShapeSignature get_input_sign (void) const override
+	{
+		if (layers_.empty())
+		{
+			return teq::ShapeSignature();
+		}
+		return layers_.front()->get_input_sign();
+	}
+
+	/// Implementation of iLayer
+	teq::ShapeSignature get_output_sign (void) const override
+	{
+		if (layers_.empty())
+		{
+			return teq::ShapeSignature();
+		}
+		return layers_.back()->get_output_sign();
+	}
+
+	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return seq_model_key;
@@ -133,9 +153,6 @@ struct SequentialModel final : public iLayer
 		{
 			auto& layer = layers_[i];
 			output = layer->connect(input);
-			recursive_tag(output->get_tensor(), {
-				input->get_tensor().get()
-			}, LayerId(layer->get_ltype(), layer->get_label(), i));
 			input = output;
 		}
 		return output;
@@ -162,6 +179,8 @@ struct SequentialModel final : public iLayer
 		}
 
 		layers_.push_back(layer);
+
+		placeholder_connect();
 	}
 
 private:
@@ -179,6 +198,9 @@ private:
 		{
 			push_back(LayerptrT(olayer->clone(label_prefix)));
 		}
+
+		this->input_ = nullptr;
+		this->placeholder_connect();
 	}
 
 	std::string label_;

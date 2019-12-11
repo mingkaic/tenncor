@@ -88,6 +88,8 @@ struct RNN final : public iLayer
 		params_(eteq::make_constant_scalar<PybindT>(seq_dim, teq::Shape()))
 	{
 		tag_sublayers();
+
+		placeholder_connect();
 	}
 
 	RNN (DenseptrT cell, UnaryptrT activation, LinkptrT init_state,
@@ -136,6 +138,42 @@ struct RNN final : public iLayer
 	}
 
 	/// Implementation of iLayer
+	teq::ShapeSignature get_input_sign (void) const override
+	{
+		if (nullptr != params_)
+		{
+			teq::NElemT n = params_->shape().n_elems();
+			if (1 > n)
+			{
+				logs::warnf("multiple sequence dimensions (%d) "
+					"specified in rnn parameter", (int) n);
+			}
+			auto rawdims = (PybindT*) params_->data();
+			teq::RankT seq_dim = rawdims[0];
+			teq::ShapeSignature insign = cell_->get_input_sign();
+			teq::ShapeSignature outsign = cell_->get_output_sign();
+			std::vector<teq::DimT> slist(insign.begin(), insign.end());
+			if (slist.at(seq_dim) > 0 && outsign.at(seq_dim) > 0)
+			{
+				slist[seq_dim] -= outsign.at(seq_dim);
+			}
+			else
+			{
+				slist[seq_dim] = 0;
+			}
+			return teq::ShapeSignature(slist);
+		}
+		// sequence dimension can be any
+		return teq::ShapeSignature();
+	}
+
+	/// Implementation of iLayer
+	teq::ShapeSignature get_output_sign (void) const override
+	{
+		return cell_->get_output_sign();
+	}
+
+	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return rnn_layer_key;
@@ -168,7 +206,7 @@ struct RNN final : public iLayer
 	/// Implementation of iLayer
 	LinkptrT connect (LinkptrT input) const override
 	{
-		teq::Shape inshape = input->shape();
+		teq::ShapeSignature inshape = input->shape_sign();
 		teq::RankT seq_dim;
 		if (nullptr != params_)
 		{
@@ -195,7 +233,7 @@ struct RNN final : public iLayer
 		std::vector<teq::DimT> slice_shape(inshape.begin(), inshape.end());
 		slice_shape[seq_dim] = 1;
 		LinkptrT state = tenncor::best_extend(
-			init_state_, teq::Shape(slice_shape));
+			init_state_, teq::ShapeSignature(slice_shape));
 		eteq::LinksT<PybindT> states;
 		for (teq::DimT i = 0, nseq = inshape.at(seq_dim); i < nseq; ++i)
 		{
@@ -204,11 +242,7 @@ struct RNN final : public iLayer
 				cell_->connect(tenncor::concat(inslice, state, 0)));
 			states.push_back(state);
 		}
-		auto output = tenncor::concat(states, seq_dim);
-		recursive_tag(output->get_tensor(), {
-			input->get_tensor().get(),
-		}, LayerId());
-		return output;
+		return tenncor::concat(states, seq_dim);
 	}
 
 private:
@@ -252,6 +286,9 @@ private:
 			params_ = LinkptrT(other.params_->clone());
 		}
 		tag_sublayers();
+
+		this->input_ = nullptr;
+		this->placeholder_connect();
 	}
 
 	std::string label_;

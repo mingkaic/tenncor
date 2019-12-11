@@ -76,9 +76,11 @@ struct RBM final : public iLayer
 			vbias = bias_init(teq::Shape({nvisible}), dense_bias_key);
 		}
 		visible_ = std::make_shared<Dense>(tenncor::transpose(
-			eteq::to_link<PybindT>(weight))->get_tensor(), 
+			eteq::to_link<PybindT>(weight))->get_tensor(),
 			vbias, nullptr, visible_key);
 		tag_sublayers();
+
+		placeholder_connect();
 	}
 
 	RBM (DenseptrT hidden, DenseptrT visible,
@@ -129,6 +131,18 @@ struct RBM final : public iLayer
 	}
 
 	/// Implementation of iLayer
+	teq::ShapeSignature get_input_sign (void) const override
+	{
+		return hidden_->get_input_sign();
+	}
+
+	/// Implementation of iLayer
+	teq::ShapeSignature get_output_sign (void) const override
+	{
+		return hidden_->get_output_sign();
+	}
+
+	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return rbm_layer_key;
@@ -154,21 +168,13 @@ struct RBM final : public iLayer
 	/// Implementation of iLayer
 	LinkptrT connect (LinkptrT visible) const override
 	{
-		auto output = activation_->connect(hidden_->connect(visible));
-		recursive_tag(output->get_tensor(), {
-			visible->get_tensor().get(),
-		}, LayerId());
-		return output;
+		return activation_->connect(hidden_->connect(visible));
 	}
 
 	/// Return visible reconstruction from hidden
 	LinkptrT backward_connect (LinkptrT hidden) const
 	{
-		auto output = activation_->connect(visible_->connect(hidden));
-		recursive_tag(output->get_tensor(), {
-			hidden->get_tensor().get(),
-		}, LayerId());
-		return output;
+		return activation_->connect(visible_->connect(hidden));
 	}
 
 private:
@@ -227,6 +233,9 @@ private:
 
 		activation_ = UnaryptrT(other.activation_->clone(label_prefix));
 		tag_sublayers();
+
+		this->input_ = nullptr;
+		this->placeholder_connect();
 	}
 
 	std::string label_;

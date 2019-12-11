@@ -79,6 +79,8 @@ struct LSTM final : public iLayer
 			weight_init, bias_init, nullptr, outgate_key))
 	{
 		tag_sublayers();
+
+		placeholder_connect();
 	}
 
 	LSTM (DenseptrT gate, DenseptrT forget,
@@ -131,6 +133,29 @@ struct LSTM final : public iLayer
 	}
 
 	/// Implementation of iLayer
+	teq::ShapeSignature get_input_sign (void) const override
+	{
+		teq::ShapeSignature insign = gate_->get_input_sign();
+		teq::ShapeSignature outsign = gate_->get_output_sign();
+		std::vector<teq::DimT> slist(insign.begin(), insign.end());
+		if (slist.at(1) > 0 && outsign.at(1) > 0)
+		{
+			slist[1] -= outsign.at(1);
+		}
+		else
+		{
+			slist[1] = 0;
+		}
+		return teq::ShapeSignature(slist);
+	}
+
+	/// Implementation of iLayer
+	teq::ShapeSignature get_output_sign (void) const override
+	{
+		return gate_->get_output_sign();
+	}
+
+	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return lstm_layer_key;
@@ -160,12 +185,12 @@ struct LSTM final : public iLayer
 	{
 		// expecting input of shape <nunits, sequence length, ANY>
 		// sequence is dimension 1
-		teq::Shape inshape = input->shape();
+		teq::DimT nseq = input->shape_sign().at(1);
 		teq::Shape stateshape({(teq::DimT) this->get_noutput()});
 		auto prevstate = eteq::make_constant_scalar<PybindT>(0, stateshape);
 		auto prevhidden = eteq::make_constant_scalar<PybindT>(0, stateshape);
 		eteq::LinksT<PybindT> states;
-		for (teq::DimT i = 0, nseq = inshape.at(1); i < nseq; ++i)
+		for (teq::DimT i = 0; i < nseq; ++i)
 		{
 			auto inslice = tenncor::slice(input, i, 1, 1);
 			auto nexts = cell_connect(inslice, prevstate, prevhidden);
@@ -173,11 +198,7 @@ struct LSTM final : public iLayer
 			prevhidden = nexts.second;
 			states.push_back(prevhidden);
 		}
-		auto output = tenncor::concat(states, 1);
-		recursive_tag(output->get_tensor(), {
-			input->get_tensor().get(),
-		}, LayerId());
-		return output;
+		return tenncor::concat(states, 1);
 	}
 
 private:
@@ -230,6 +251,9 @@ private:
 		ingate_ = DenseptrT(other.ingate_->clone(label_prefix));
 		outgate_ = DenseptrT(other.outgate_->clone(label_prefix));
 		tag_sublayers();
+
+		this->input_ = nullptr;
+		this->placeholder_connect();
 	}
 
 	std::pair<LinkptrT,LinkptrT> cell_connect (LinkptrT x,

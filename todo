@@ -6,16 +6,13 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-P2 - replace marsh with google::protobuf containers
-P2 - allow users to create ambiguous nodes holding shapes with ambiguous dimensions (
-    shape values denoted in python by None)
-   - refactor iLink such that child classes data state methods (data, has_data, is_real) conform with LSP
-P2 - implement onnx support for layer
+   - replace marsh with google::protobuf containers
+   - move tags to string attributes
+   - serialize tags in onnx
    - serialize edge attrs in onnx
-   - investigate control edges
-P3 - implement control nodes/edges for assignments
+   - implement onnx support for layer
    - mark pbm as deprecated in favor of onnx
-   - move constantness check/tag attributes to leaf-based "attributes"
+   - mark tags as deprecated
 
 === transparency/code readability ===
 P2 - generate value-range graph to detect erroneous operators
@@ -38,9 +35,10 @@ P5 - refactor, and rename variables to improve readability
 P5 - formalize codestyle
 
 === feature ===
-   - function with multiple typed inputs (e.g.: if_then_else)
 P2 - make shape dimension size configurable (instead of fixed rank_cap)
+P3 - function with multiple typed inputs (e.g.: if_then_else)
 P4 - implement reduce_prod gradient using Eigen cumprod
+   - implement control edges
 
 === usage ===
 P2 - demo A3C

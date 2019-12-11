@@ -95,8 +95,10 @@ NElemT index (const Shape& shape, CoordT coord);
 /// For example [0, 0, ..., 0] <-> 0
 CoordT coordinate (const Shape& shape, NElemT idx);
 
-/// Return list of shape dimensions with trailing ones trimmed
-std::vector<DimT> narrow_shape (const Shape& shape);
+/// Return list of shape dimensions with trailing ones/zeros trimmed
+std::vector<DimT> narrow_shape (const ShapeSignature& sign);
+
+bool is_ambiguous (const ShapeSignature& sign);
 
 }
 

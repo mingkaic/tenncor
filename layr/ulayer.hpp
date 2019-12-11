@@ -147,6 +147,8 @@ struct ULayer final : public iLayer
 			params_ = eteq::make_constant_scalar<PybindT>(0, {});
 		}
 		tag(params_->get_tensor(), LayerId(uparam_key));
+
+		placeholder_connect();
 	}
 
 	ULayer (const ULayer& other,
@@ -187,6 +189,18 @@ struct ULayer final : public iLayer
 	}
 
 	/// Implementation of iLayer
+	teq::ShapeSignature get_input_sign (void) const override
+	{
+		return teq::ShapeSignature();
+	}
+
+	/// Implementation of iLayer
+	teq::ShapeSignature get_output_sign (void) const override
+	{
+		return teq::ShapeSignature();
+	}
+
+	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return utype_;
@@ -207,11 +221,7 @@ struct ULayer final : public iLayer
 	/// Implementation of iLayer
 	LinkptrT connect (LinkptrT input) const override
 	{
-		auto output = unary_(input, params_);
-		recursive_tag(output->get_tensor(), {
-			input->get_tensor().get(),
-		}, LayerId());
-		return output;
+		return unary_(input, params_);
 	}
 
 private:
@@ -227,6 +237,9 @@ private:
 		unary_ = other.unary_;
 		params_ = LinkptrT(other.params_->clone());
 		tag(params_->get_tensor(), LayerId(uparam_key));
+
+		this->input_ = nullptr;
+		this->placeholder_connect();
 	}
 
 	std::string label_;

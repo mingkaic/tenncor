@@ -8,12 +8,13 @@
 
 #include "estd/estd.hpp"
 
-#include "tag/tag.hpp"
+#include "tag/group.hpp"
+
+#include "eteq/generated/pyapi.hpp"
 
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
-
-#include "eteq/generated/pyapi.hpp"
+#include "eteq/placeholder.hpp"
 
 #ifndef LAYR_LAYER_HPP
 #define LAYR_LAYER_HPP
@@ -129,12 +130,19 @@ struct iLayer
 		return this->clone_impl(label_prefix);
 	}
 
-	// todo: replace this to return with shaped information
+	// todo: remove this in favor of get_input_sign
 	/// Return input value of the expected input (first dimension)
 	virtual size_t get_ninput (void) const = 0;
 
+	// todo: remove this in favor of get_output_sign
 	/// Return output value of the expected output (first dimension)
 	virtual size_t get_noutput (void) const = 0;
+
+	/// Return input value of the expected input (first dimension)
+	virtual teq::ShapeSignature get_input_sign (void) const = 0;
+
+	/// Return output value of the expected output (first dimension)
+	virtual teq::ShapeSignature get_output_sign (void) const = 0;
 
 	/// Return the layer type which is also the tag key of tagged contents
 	virtual std::string get_ltype (void) const = 0;
@@ -149,12 +157,24 @@ struct iLayer
 	virtual LinkptrT connect (LinkptrT input) const = 0;
 
 protected:
+	void placeholder_connect (void)
+	{
+		if (nullptr == input_)
+		{
+			teq::ShapeSignature insign = this->get_input_sign();
+			input_ = std::make_shared<eteq::Placeholder<PybindT>>(
+				insign, this->get_label() + "_input");
+		}
+		output_ = this->connect(input_);
+	}
+
 	virtual iLayer* clone_impl (const std::string& label_prefix) const = 0;
 
 	void tag (teq::TensptrT tensor, LayerId subs) const;
 
-	void recursive_tag (teq::TensptrT root,
-		teq::TensSetT ignores, LayerId subs) const;
+	eteq::PlaceptrT<PybindT> input_ = nullptr;
+
+	LinkptrT output_ = nullptr;
 };
 
 /// Smart pointer of layer

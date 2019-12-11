@@ -28,6 +28,12 @@ struct iEdge : public marsh::iAttributed
 	virtual TensptrT get_tensor (void) const = 0;
 };
 
+using EdgeSetT = std::unordered_set<iEdge*>;
+
+using EdgeptrT = std::shared_ptr<iEdge>;
+
+using EdgeptrsT = std::vector<EdgeptrT>;
+
 using EdgeRefsT = std::vector<std::reference_wrapper<const iEdge>>;
 
 }

@@ -169,6 +169,20 @@ VarptrT<T> make_variable_scalar (T scalar,
 	return VarptrT<T>(Variable<T>::get(scalar, shape, label));
 }
 
+/// Return variable node filled with scalar matching link shape
+template <typename T>
+VarptrT<T> make_variable_like (T scalar,
+	LinkptrT<T> link, std::string label = "")
+{
+	auto sign = link->shape_sign();
+	if (teq::is_ambiguous(sign))
+	{
+		logs::fatalf("cannot create constant with ambiguous shaped %s",
+			sign.to_string().c_str());
+	}
+	return VarptrT<T>(Variable<T>::get(scalar, teq::Shape(sign), label));
+}
+
 /// Return zero-initialized variable node of specified shape
 template <typename T>
 VarptrT<T> make_variable (teq::Shape shape, std::string label = "")

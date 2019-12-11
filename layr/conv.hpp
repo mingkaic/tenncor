@@ -119,6 +119,8 @@ struct Conv final : public iLayer
 				buffer.data(), teq::Shape({2}));
 			tag(arg_->get_tensor(), LayerId(conv_arg_key));
 		}
+
+		placeholder_connect();
 	}
 
 	Conv (teq::TensptrT weight, teq::TensptrT bias,
@@ -177,6 +179,26 @@ struct Conv final : public iLayer
 	}
 
 	/// Implementation of iLayer
+	teq::ShapeSignature get_input_sign (void) const override
+	{
+		// weight has shape [out, in, wwidth, wheight]
+		// so input must have shape [in, *, *, *]
+		teq::Shape wshape = weight_->shape();
+		return teq::ShapeSignature(
+			std::vector<teq::DimT>{wshape.at(1)});
+	}
+
+	/// Implementation of iLayer
+	teq::ShapeSignature get_output_sign (void) const override
+	{
+		// weight has shape [out, in, width, height]
+		// so output must have shape [out, *, *, *]
+		teq::Shape wshape = weight_->shape();
+		return teq::ShapeSignature(
+			std::vector<teq::DimT>{wshape.at(0)});
+	}
+
+	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return conv_layer_key;
@@ -199,16 +221,11 @@ struct Conv final : public iLayer
 	{
 		auto output = tenncor::nn::conv2d(input,
 			eteq::to_link<PybindT>(weight_), get_padding());
-		teq::TensSetT leaves = {input->get_tensor().get(), weight_.get()};
 		if (bias_)
 		{
-			teq::Shape outshape = output->shape();
-			output = output + tenncor::extend(
-				eteq::to_link<PybindT>(bias_), 1, {
-				outshape.at(1), outshape.at(2), outshape.at(3)});
-			leaves.emplace(bias_.get());
+			output = output + tenncor::best_extend(
+				eteq::to_link<PybindT>(bias_), output->shape_sign());
 		}
-		recursive_tag(output->get_tensor(), leaves, LayerId());
 		return output;
 	}
 
@@ -243,6 +260,9 @@ private:
 			arg_ = eteq::LinkptrT<DArgT>(other.arg_->clone());
 			tag(arg_->get_tensor(), LayerId(conv_arg_key));
 		}
+
+		this->input_ = nullptr;
+		this->placeholder_connect();
 	}
 
 	std::string label_;

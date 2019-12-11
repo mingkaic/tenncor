@@ -17,7 +17,8 @@ struct Tagger final : public teq::iTraveler
 {
 	Tagger (teq::TensSetT stops,
 		std::function<void(teq::TensrefT)> tag_op) :
-		stops_(stops), tag_op_(tag_op) {}
+		stops_(stops),
+		tag_op_(tag_op) {}
 
 	/// Implementation of iTraveler
 	void visit (teq::iLeaf* leaf) override
