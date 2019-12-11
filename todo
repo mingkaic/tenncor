@@ -6,9 +6,7 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - replace marsh with google::protobuf containers
-   - move tags to string attributes
-   - serialize tags in onnx
+   - serialize multi-typed attributes in onnx
    - serialize edge attrs in onnx
    - implement onnx support for layer
    - mark pbm as deprecated in favor of onnx

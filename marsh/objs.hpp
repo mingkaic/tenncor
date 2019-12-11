@@ -11,6 +11,51 @@
 namespace marsh
 {
 
+struct String final : public iObject
+{
+	String (void) = default;
+
+	String (std::string val) : val_(val) {}
+
+	String* clone (void) const
+	{
+		return static_cast<String*>(clone_impl());
+	}
+
+	size_t class_code (void) const override
+	{
+		static const std::type_info& tp = typeid(String);
+		return tp.hash_code();
+	}
+
+	std::string to_string (void) const override
+	{
+		return val_;
+	}
+
+	bool equals (const iObject& other) const override
+	{
+		if (other.class_code() != this->class_code())
+		{
+			return false;
+		}
+		return val_ == static_cast<const String*>(&other)->val_;
+	}
+
+	void accept (iMarshaler& marshaler) const override
+	{
+		marshaler.marshal(*this);
+	}
+
+private:
+	iObject* clone_impl (void) const override
+	{
+		return new String(*this);
+	}
+
+	std::string val_;
+};
+
 struct iNumber : public iObject
 {
 	virtual ~iNumber (void) = default;
@@ -294,10 +339,10 @@ struct Maps final : public iObject, public iAttributed
 		marshaler.marshal(*this);
 	}
 
-	const marsh::iObject* get_attr (std::string attr_name) const override
+	const marsh::iObject* get_attr (std::string attr_key) const override
 	{
-		return estd::has(contents_, attr_name) ?
-			contents_.at(attr_name).get() : nullptr;
+		return estd::has(contents_, attr_key) ?
+			contents_.at(attr_key).get() : nullptr;
 	}
 
 	std::vector<std::string> ls_attrs (void) const override
@@ -312,7 +357,15 @@ struct Maps final : public iObject, public iAttributed
 		return out;
 	}
 
-	std::unordered_map<std::string,ObjptrT> contents_;
+	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
+	{
+		contents_.emplace(attr_key, std::move(attr_val));
+	}
+
+	void rm_attr (std::string attr_key) override
+	{
+		contents_.erase(attr_key);
+	}
 
 private:
 	iObject* clone_impl (void) const override
@@ -320,11 +373,13 @@ private:
 		auto cpy = new Maps();
 		for (auto& cpair : contents_)
 		{
-			cpy->contents_.emplace(cpair.first,
+			cpy->add_attr(cpair.first,
 				ObjptrT(cpair.second->clone()));
 		}
 		return cpy;
 	}
+
+	std::unordered_map<std::string,ObjptrT> contents_;
 };
 
 void get_attrs (marsh::Maps& mvalues, const iAttributed& attributed);

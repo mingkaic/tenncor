@@ -47,15 +47,27 @@ struct FuncSignature final : public iLink<T>
 	}
 
 	/// Implementation of iAttributed
-	const marsh::iObject* get_attr (std::string attr_name) const override
+	std::vector<std::string> ls_attrs (void) const override
 	{
-		return nullptr;
+		return attrs_.ls_attrs();
 	}
 
 	/// Implementation of iAttributed
-	std::vector<std::string> ls_attrs (void) const override
+	const marsh::iObject* get_attr (std::string attr_name) const override
 	{
-		return {};
+		return attrs_.get_attr(attr_name);
+	}
+
+	/// Implementation of iAttributed
+	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
+	{
+		attrs_.add_attr(attr_key, std::move(attr_val));
+	}
+
+	/// Implementation of iAttributed
+	void rm_attr (std::string attr_key) override
+	{
+		attrs_.rm_attr(attr_key);
 	}
 
 	/// Implementation of iEdge

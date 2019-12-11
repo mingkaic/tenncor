@@ -91,7 +91,7 @@ struct FuncTarget final : public opt::iTarget
 			{
 				values.push_back(jt->val_);
 			}
-			attrs_.contents_.emplace(key, std::make_unique<marsh::NumArray<double>>(values));
+			attrs_.add_attr(key, std::make_unique<marsh::NumArray<double>>(values));
 		}
 	}
 
@@ -175,9 +175,6 @@ opt::CversionCtx parse_file (std::string filename)
 template <typename T>
 struct Hasher final : public teq::OnceTraveler
 {
-	Hasher (tag::PropertyRegistry& prop_reg = tag::get_property_reg()) :
-		prop_reg_(prop_reg) {}
-
 	/// Implementation of OnceTraveler
 	void visit_leaf (teq::iLeaf* leaf) override
 	{
@@ -209,7 +206,7 @@ struct Hasher final : public teq::OnceTraveler
 			hshs.push_back(boost::uuids::to_string(hashes_.at(ctens.get())) +
 				":" + mvalues.to_string());
 		}
-		if (prop_reg_.has_property(func, tag::immutable_tag))
+		if (nullptr != func->get_attr(eigen::commutative_attr))
 		{
 			std::sort(hshs.begin(), hshs.end());
 		}
@@ -240,8 +237,6 @@ struct Hasher final : public teq::OnceTraveler
 	}
 
 	std::unordered_map<teq::iTensor*,boost::uuids::uuid> hashes_;
-
-	tag::PropertyRegistry& prop_reg_;
 
 private:
 	std::unordered_map<std::string,boost::uuids::uuid> uuids_;

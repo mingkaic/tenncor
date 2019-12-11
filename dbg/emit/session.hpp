@@ -66,9 +66,7 @@ struct InteractiveSession final : public teq::iSession
 	static boost::uuids::random_generator uuid_gen_;
 
 	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel,
-		ClientConfig client_cfg = ClientConfig(),
-		tag::TagRegistry& registry = tag::get_reg()) :
-		registry_(registry),
+		ClientConfig client_cfg = ClientConfig()) :
 		client_(channel, client_cfg)
 	{
 		logs::infof("created session: %s", sess_id_.c_str());
@@ -348,9 +346,6 @@ struct InteractiveSession final : public teq::iSession
 
 	/// Session underneath
 	teq::Session sess_;
-
-	/// Tag registry
-	tag::TagRegistry& registry_;
 
 private:
 	std::string sess_id_ = boost::uuids::to_string(

@@ -8,6 +8,8 @@
 namespace eigen
 {
 
+const std::string commutative_attr = "commutative";
+
 template <typename T>
 using PairVecT = std::vector<std::pair<T,T>>;
 
@@ -91,7 +93,7 @@ struct Packer<PairVecT<teq::DimT>>
 		{
 			logs::fatal("cannot find dimensions");
 		}
-		attrs.contents_.emplace(key_,
+		attrs.add_attr(key_,
 			std::make_unique<marsh::NumArray<double>>(
 				encode_pair(dims)));
 	}
@@ -140,7 +142,7 @@ struct Packer<PairVecT<teq::RankT>>
 			logs::fatalf("cannot reference ranks beyond rank_cap %d: %s",
 				teq::rank_cap, to_string(ranks).c_str());
 		}
-		attrs.contents_.emplace(key_,
+		attrs.add_attr(key_,
 			std::make_unique<marsh::NumArray<double>>(
 				encode_pair(ranks)));
 	}
@@ -180,7 +182,7 @@ struct Packer<std::vector<teq::DimT>>
 			logs::fatal("cannot find dimensions");
 		}
 		std::vector<double> ddims(dims.begin(), dims.end());
-		attrs.contents_.emplace(key_,
+		attrs.add_attr(key_,
 			std::make_unique<marsh::NumArray<double>>(ddims));
 	}
 
@@ -229,7 +231,7 @@ struct Packer<std::vector<teq::RankT>>
 					ranks.begin(), ranks.end()).c_str());
 		}
 		std::vector<double> dranks(ranks.begin(), ranks.end());
-		attrs.contents_.emplace(key_,
+		attrs.add_attr(key_,
 			std::make_unique<marsh::NumArray<double>>(dranks));
 	}
 
@@ -269,7 +271,7 @@ struct Packer<std::set<teq::RankT>>
 		}
 		std::vector<double> dranks(ranks.begin(), ranks.end());
 		std::sort(dranks.begin(), dranks.end());
-		attrs.contents_.emplace(key_,
+		attrs.add_attr(key_,
 			std::make_unique<marsh::NumArray<double>>(dranks));
 	}
 
@@ -297,7 +299,7 @@ struct Packer<teq::RankT>
 
 	void pack (marsh::Maps& attrs, teq::RankT rank)
 	{
-		attrs.contents_.emplace(key_,
+		attrs.add_attr(key_,
 			std::make_unique<marsh::NumArray<double>>(
 				std::vector<double>{(double) rank}));
 	}
@@ -327,7 +329,7 @@ struct Packer<teq::Shape>
 	void pack (marsh::Maps& attrs, teq::Shape shape)
 	{
 		std::vector<double> dslist(shape.begin(), shape.end());
-		attrs.contents_.emplace(key_,
+		attrs.add_attr(key_,
 			std::make_unique<marsh::NumArray<double>>(dslist));
 	}
 

@@ -98,15 +98,27 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 	}
 
 	/// Implementation of iAttributed
+	std::vector<std::string> ls_attrs (void) const override
+	{
+		return attrs_.ls_attrs();
+	}
+
+	/// Implementation of iAttributed
 	const marsh::iObject* get_attr (std::string attr_name) const override
 	{
 		return attrs_.get_attr(attr_name);
 	}
 
 	/// Implementation of iAttributed
-	std::vector<std::string> ls_attrs (void) const override
+	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
 	{
-		return attrs_.ls_attrs();
+		attrs_.add_attr(attr_key, std::move(attr_val));
+	}
+
+	/// Implementation of iAttributed
+	void rm_attr (std::string attr_key) override
+	{
+		attrs_.rm_attr(attr_key);
 	}
 
 	/// Implementation of iFunctor
@@ -313,15 +325,27 @@ struct FuncLink final : public iLink<T>
 	}
 
 	/// Implementation of iAttributed
-	const marsh::iObject* get_attr (std::string attr_name) const override
+	std::vector<std::string> ls_attrs (void) const override
 	{
-		return nullptr;
+		return func_->ls_attrs();
 	}
 
 	/// Implementation of iAttributed
-	std::vector<std::string> ls_attrs (void) const override
+	const marsh::iObject* get_attr (std::string attr_key) const override
 	{
-		return {};
+		return func_->get_attr(attr_key);
+	}
+
+	/// Implementation of iAttributed
+	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
+	{
+		func_->add_attr(attr_key, std::move(attr_val));
+	}
+
+	/// Implementation of iAttributed
+	void rm_attr (std::string attr_key) override
+	{
+		func_->rm_attr(attr_key);
 	}
 
 	/// Implementation of iEdge

@@ -182,9 +182,9 @@ TEST(OBJS, NumArray)
 TEST(OBJS, Maps)
 {
 	marsh::Maps root;
-	root.contents_.emplace("obj1",
+	root.add_attr("obj1",
 		std::make_unique<marsh::NumArray<size_t>>());
-	root.contents_.emplace("obj2",
+	root.add_attr("obj2",
 		std::make_unique<marsh::Number<float>>(2.3));
 	EXPECT_STREQ("[obj1:[]\\obj2:2.3]", root.to_string().c_str());
 
@@ -194,9 +194,9 @@ TEST(OBJS, Maps)
 
 	marsh::Maps root_clone;
 	{
-		root_clone.contents_.emplace("obj1",
+		root_clone.add_attr("obj1",
 			std::make_unique<marsh::NumArray<size_t>>());
-		root_clone.contents_.emplace("obj2",
+		root_clone.add_attr("obj2",
 			std::make_unique<marsh::Number<float>>(2.3));
 	}
 	EXPECT_TRUE(root.equals(root_clone));
@@ -204,11 +204,11 @@ TEST(OBJS, Maps)
 
 	marsh::Maps big_root;
 	{
-		big_root.contents_.emplace("obj1",
+		big_root.add_attr("obj1",
 			std::make_unique<marsh::NumArray<size_t>>());
-		big_root.contents_.emplace("obj2",
+		big_root.add_attr("obj2",
 			std::make_unique<marsh::Number<float>>(2.3));
-		big_root.contents_.emplace("obj3",
+		big_root.add_attr("obj3",
 			std::make_unique<marsh::ObjArray>());
 	}
 	EXPECT_FALSE(root.equals(big_root));
@@ -216,9 +216,9 @@ TEST(OBJS, Maps)
 
 	marsh::Maps imperfect_clone;
 	{
-		imperfect_clone.contents_.emplace("obj1",
+		imperfect_clone.add_attr("obj1",
 			std::make_unique<marsh::Number<float>>(2.3));
-		imperfect_clone.contents_.emplace("obj2",
+		imperfect_clone.add_attr("obj2",
 			std::make_unique<marsh::NumArray<size_t>>());
 	}
 	EXPECT_FALSE(root.equals(imperfect_clone));

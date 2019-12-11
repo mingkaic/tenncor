@@ -92,6 +92,19 @@ TEST(OPTIMIZE, EqualityCheck)
 	EXPECT_EQ(eid, hash.hashes_[f->get_tensor().get()]);
 	EXPECT_NE(eid, hash.hashes_[g->get_tensor().get()]);
 
+	auto h = cst * cst2;
+	auto i = cst2 * cst;
+	auto j = notcst * cst;
+	h->get_tensor()->accept(hash);
+	i->get_tensor()->accept(hash);
+	j->get_tensor()->accept(hash);
+	ASSERT_HAS(hash.hashes_, h->get_tensor().get());
+	ASSERT_HAS(hash.hashes_, i->get_tensor().get());
+	ASSERT_HAS(hash.hashes_, j->get_tensor().get());
+	auto hid = hash.hashes_[h->get_tensor().get()];
+	EXPECT_EQ(hid, hash.hashes_[i->get_tensor().get()]);
+	EXPECT_NE(hid, hash.hashes_[j->get_tensor().get()]);
+
 	ASSERT_HAS(hash.hashes_, cst->get_tensor().get());
 	ASSERT_HAS(hash.hashes_, cst2->get_tensor().get());
 	ASSERT_HAS(hash.hashes_, notcst->get_tensor().get());

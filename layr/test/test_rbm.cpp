@@ -324,7 +324,7 @@ TEST(RBM, Tagging)
 	EXPECT_EQ(2, hbias_tags.size());
 	EXPECT_EQ(2, perm_tags.size());
 	EXPECT_EQ(2, vbias_tags.size());
-	EXPECT_EQ(3, sig_tags.size());
+	EXPECT_EQ(2, sig_tags.size());
 
 	ASSERT_HAS(weight_tags, layr::rbm_layer_key);
 	ASSERT_HAS(hbias_tags, layr::rbm_layer_key);
@@ -336,7 +336,6 @@ TEST(RBM, Tagging)
 	ASSERT_HAS(perm_tags, layr::dense_layer_key);
 	ASSERT_HAS(vbias_tags, layr::dense_layer_key);
 	ASSERT_HAS(sig_tags, layr::sigmoid_layer_key);
-	ASSERT_HAS(sig_tags, tag::props_key);
 
 	auto rbm_weight_labels = weight_tags[layr::rbm_layer_key];
 	auto rbm_hbias_labels = hbias_tags[layr::rbm_layer_key];

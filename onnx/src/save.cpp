@@ -134,6 +134,11 @@ void save_graph (GraphProto& pb_graph,
 	}
 }
 
+void save_graph (GraphProto& pb_graph, teq::EdgeptrsT roots, LeafMarshF marshal_leaf)
+{
+	//
+}
+
 }
 
 #endif

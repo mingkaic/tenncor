@@ -103,16 +103,22 @@ struct LeafLink final : public iLink<T>
 	}
 
 	/// Implementation of iAttributed
+	std::vector<std::string> ls_attrs (void) const override
+	{
+		return {};
+	}
+
+	/// Implementation of iAttributed
 	const marsh::iObject* get_attr (std::string attr_name) const override
 	{
 		return nullptr;
 	}
 
 	/// Implementation of iAttributed
-	std::vector<std::string> ls_attrs (void) const override
-	{
-		return {};
-	}
+	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override {}
+
+	/// Implementation of iAttributed
+	void rm_attr (std::string attr_key) override {}
 
 	/// Implementation of iEdge
 	teq::TensptrT get_tensor (void) const override

@@ -41,6 +41,10 @@ struct MockEdge final : public eigen::iEigenEdge<T>
 		return {"coorder"};
 	}
 
+	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override {}
+
+	void rm_attr (std::string attr_key) override {}
+
 	T* data (void) const override
 	{
 		return const_cast<T*>(data_.data());

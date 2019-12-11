@@ -52,6 +52,10 @@ struct MockEdge final : public teq::iEdge
 		return {"shape", "coorder", "junkcoorder"};
 	}
 
+	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override {}
+
+	void rm_attr (std::string attr_key) override {}
+
 private:
 	teq::TensptrT tensor_;
 

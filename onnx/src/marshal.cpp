@@ -67,7 +67,7 @@ void unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs)
 			{
 				out_arr->contents_.push_back(e);
 			}
-			out.contents_.emplace(pb_attr.name(), marsh::ObjptrT(out_arr));
+			out.add_attr(pb_attr.name(), marsh::ObjptrT(out_arr));
 		}
 	}
 }

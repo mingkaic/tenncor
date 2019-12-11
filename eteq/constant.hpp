@@ -84,9 +84,8 @@ private:
 template <typename T>
 LinkptrT<T> make_constant_scalar (T scalar, teq::Shape shape)
 {
-	teq::TensptrT out(Constant<T>::get_scalar(scalar, shape));
-	tag::get_property_reg().property_tag(out, tag::immutable_tag);
-	return leaf_link<T>(out);
+	return leaf_link<T>(teq::TensptrT(
+		Constant<T>::get_scalar(scalar, shape)));
 }
 
 /// Return constant node filled with scalar matching link shape
@@ -99,18 +98,16 @@ LinkptrT<T> make_constant_like (T scalar, LinkptrT<T> link)
 		logs::fatalf("cannot create constant with ambiguous shaped %s",
 			sign.to_string().c_str());
 	}
-	teq::TensptrT out(Constant<T>::get_scalar(scalar, teq::Shape(sign)));
-	tag::get_property_reg().property_tag(out, tag::immutable_tag);
-	return leaf_link<T>(out);
+	return leaf_link<T>(teq::TensptrT(
+		Constant<T>::get_scalar(scalar, teq::Shape(sign))));
 }
 
 /// Return constant node given raw array and shape
 template <typename T>
 LinkptrT<T> make_constant (T* data, teq::Shape shape)
 {
-	teq::TensptrT out(Constant<T>::get(data, shape));
-	tag::get_property_reg().property_tag(out, tag::immutable_tag);
-	return leaf_link<T>(out);
+	return leaf_link<T>(teq::TensptrT(
+		Constant<T>::get(data, shape)));
 }
 
 }

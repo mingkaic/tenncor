@@ -12,8 +12,7 @@ void get_attrs (marsh::Maps& mvalues, const iAttributed& attributed)
 	{
 		if (auto obj = attributed.get_attr(key))
 		{
-			mvalues.contents_.emplace(
-				key, ObjptrT(obj->clone()));
+			mvalues.add_attr(key, ObjptrT(obj->clone()));
 		}
 	}
 }

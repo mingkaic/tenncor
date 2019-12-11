@@ -7,21 +7,23 @@ namespace pbm
 
 void marshal_attrs (PbAttrMapT& out, const marsh::Maps& attrs)
 {
-	for (auto& apair : attrs.contents_)
+	auto keys = attrs.ls_attrs();
+	for (std::string key : keys)
 	{
+		auto val = attrs.get_attr(key);
 		if (typeid(marsh::NumArray<double>).
-			hash_code() != apair.second->class_code())
+			hash_code() != val->class_code())
 		{
 			continue;
 		}
 		auto& contents = static_cast<
-			const marsh::NumArray<double>*>(apair.second.get())->contents_;
+			const marsh::NumArray<double>*>(val)->contents_;
 		tenncor::ArrayAttrs pb_attrs;
 		for (double e : contents)
 		{
 			pb_attrs.add_values(e);
 		}
-		out.insert({apair.first, pb_attrs});
+		out.insert({key, pb_attrs});
 	}
 }
 
@@ -35,7 +37,7 @@ void unmarshal_attrs (marsh::Maps& out, const PbAttrMapT& pb_map)
 		{
 			out_arr->contents_.push_back(e);
 		}
-		out.contents_.emplace(pbpair.first, marsh::ObjptrT(out_arr));
+		out.add_attr(pbpair.first, marsh::ObjptrT(out_arr));
 	}
 }
 

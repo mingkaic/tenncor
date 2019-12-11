@@ -34,13 +34,11 @@ static inline std::vector<double> convert_attrs (
 	const marsh::Maps& attrs, std::string key)
 {
 	std::vector<double> out;
-	if (estd::has(attrs.contents_, key))
+	if (auto obj = attrs.get_attr(key))
 	{
-		const auto& objs = attrs.contents_.at(key);
-		if (typeid(marsh::NumArray<double>).hash_code() == objs->class_code())
+		if (typeid(marsh::NumArray<double>).hash_code() == obj->class_code())
 		{
-			out = static_cast<const marsh::NumArray<double>*>(
-				objs.get())->contents_;
+			out = static_cast<const marsh::NumArray<double>*>(obj)->contents_;
 		}
 	}
 	return out;

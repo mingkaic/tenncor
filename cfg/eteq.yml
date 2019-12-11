@@ -151,7 +151,11 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_functor<T>(::egen::ADD, {a, b});
+          val: |
+              //
+                  auto out = eteq::make_functor<T>(::egen::ADD, {a, b});
+                  out->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
+                  return out;
       - template: typename T
         name: add
         operator: +
@@ -217,7 +221,11 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_functor<T>(::egen::MUL, {a, b});
+          val: |
+              //
+                  auto out = eteq::make_functor<T>(::egen::MUL, {a, b});
+                  out->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
+                  return out;
       - template: typename T
         name: mul
         operator: "*"
@@ -283,7 +291,11 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_functor<T>(::egen::EQ, {a, b});
+          val: |
+              //
+                  auto out = eteq::make_functor<T>(::egen::EQ, {a, b});
+                  out->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
+                  return out;
       - template: typename T
         name: eq
         operator: ==
@@ -316,7 +328,11 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_functor<T>(::egen::NEQ, {a, b});
+          val: |
+              //
+                  auto out = eteq::make_functor<T>(::egen::NEQ, {a, b});
+                  out->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
+                  return out;
       - template: typename T
         name: neq
         operator: "!="
@@ -414,7 +430,11 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_functor<T>(::egen::MIN, {a, b});
+          val: |
+              //
+                  auto out = eteq::make_functor<T>(::egen::MIN, {a, b});
+                  out->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
+                  return out;
       - template: typename T
         name: min
         args:
@@ -463,7 +483,11 @@ api:
           name: b
         out:
           type: eteq::LinkptrT<T>
-          val: return eteq::make_functor<T>(::egen::MAX, {a, b});
+          val: |
+              //
+                auto out = eteq::make_functor<T>(::egen::MAX, {a, b});
+                out->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
+                return out;
       - template: typename T
         name: max
         args:
@@ -1169,7 +1193,9 @@ api:
                       default:
                           break;
                   }
-                  return eteq::make_functor<T>(::egen::GROUP_SUM, args);
+                  auto out = eteq::make_functor<T>(::egen::GROUP_SUM, args);
+                  out->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
+                  return out;
       - template: typename T
         name: prod
         args:
@@ -1191,7 +1217,9 @@ api:
                       default:
                           break;
                   }
-                  return eteq::make_functor<T>(::egen::GROUP_PROD, args);
+                  auto out = eteq::make_functor<T>(::egen::GROUP_PROD, args);
+                  out->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
+                  return out;
       - template: typename T
         name: softmax
         args:

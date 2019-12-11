@@ -26,7 +26,7 @@ struct MockOpfunc final : public teq::iOperableFunc
 			auto aval = apair.second;
 			if (aval.size() > 0)
 			{
-				attrs_.contents_.emplace(apair.first,
+				attrs_.add_attr(apair.first,
 					std::make_unique<marsh::NumArray<double>>(aval));
 			}
 		}
@@ -76,6 +76,10 @@ struct MockOpfunc final : public teq::iOperableFunc
 	{
 		return attrs_.ls_attrs();
 	}
+
+	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override {}
+
+	void rm_attr (std::string attr_key) override {}
 
 	void update_child (teq::TensptrT arg, size_t index) override
 	{

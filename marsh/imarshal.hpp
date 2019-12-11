@@ -4,6 +4,8 @@
 namespace marsh
 {
 
+struct String;
+
 struct iNumber;
 
 struct iArray;
@@ -13,6 +15,8 @@ struct Maps;
 struct iMarshaler
 {
 	virtual ~iMarshaler (void) = default;
+
+	virtual void marshal (const String& num) = 0;
 
 	virtual void marshal (const iNumber& num) = 0;
 

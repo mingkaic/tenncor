@@ -115,7 +115,7 @@ struct CSVEquation final : public teq::iTraveler
 			edges_.push_back(Edge{
 				func,
 				tens,
-				std::move(mvalues.contents_),
+				std::move(mvalues),
 				fmts::to_string(i),
 			});
 			tens->accept(*this);
@@ -129,10 +129,8 @@ struct CSVEquation final : public teq::iTraveler
 		std::unordered_set<std::string> attr_keys;
 		for (size_t i = 0; i < nedges; ++i)
 		{
-			for (auto& apairs : edges_[i].attrs_)
-			{
-				attr_keys.emplace(apairs.first);
-			}
+			auto keys = edges_[i].attrs_.ls_attrs();
+			attr_keys.insert(keys.begin(), keys.end());
 		}
 		std::vector<std::string> akeys(attr_keys.begin(), attr_keys.end());
 		std::sort(akeys.begin(), akeys.end());
@@ -152,9 +150,9 @@ struct CSVEquation final : public teq::iTraveler
 			for (std::string akey : akeys)
 			{
 				out << ',';
-				if (estd::has(edge.attrs_, akey))
+				if (auto val = edge.attrs_.get_attr(akey))
 				{
-					out << edge.attrs_.at(akey)->to_string();
+					out << val->to_string();
 				}
 			}
 			out << '\n';
@@ -176,7 +174,7 @@ private:
 
 		teq::iTensor* child_;
 
-		std::unordered_map<std::string,marsh::ObjptrT> attrs_;
+		marsh::Maps attrs_;
 
 		std::string edge_label_;
 	};

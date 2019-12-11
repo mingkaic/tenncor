@@ -199,7 +199,7 @@ TEST(SEQMODEL, Tagging)
 	EXPECT_EQ(3, rbm_hbias_tags.size());
 	EXPECT_EQ(3, rbm_perm_tags.size());
 	EXPECT_EQ(3, rbm_vbias_tags.size());
-	EXPECT_EQ(4, rbm_sig_tags.size());
+	EXPECT_EQ(3, rbm_sig_tags.size());
 	EXPECT_EQ(2, conv_weight_tags.size());
 	EXPECT_EQ(2, conv_bias_tags.size());
 
@@ -262,7 +262,6 @@ TEST(SEQMODEL, Tagging)
 	ASSERT_HAS(rbm_perm_tags, layr::dense_layer_key);
 	ASSERT_HAS(rbm_vbias_tags, layr::dense_layer_key);
 	ASSERT_HAS(rbm_sig_tags, layr::sigmoid_layer_key);
-	ASSERT_HAS(rbm_sig_tags, tag::props_key);
 
 	auto rbm_weight_labels = rbm_weight_tags[layr::rbm_layer_key];
 	auto rbm_hbias_labels = rbm_hbias_tags[layr::rbm_layer_key];
