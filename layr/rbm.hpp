@@ -80,7 +80,7 @@ struct RBM final : public iLayer
 			vbias, nullptr, visible_key);
 		tag_sublayers();
 
-		placeholder_connect();
+		placeholder_connect(hidden_->get_input_sign());
 	}
 
 	RBM (DenseptrT hidden, DenseptrT visible,
@@ -128,18 +128,6 @@ struct RBM final : public iLayer
 	size_t get_noutput (void) const override
 	{
 		return hidden_->get_noutput();
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_input_sign (void) const override
-	{
-		return hidden_->get_input_sign();
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_output_sign (void) const override
-	{
-		return hidden_->get_output_sign();
 	}
 
 	/// Implementation of iLayer
@@ -235,7 +223,7 @@ private:
 		tag_sublayers();
 
 		this->input_ = nullptr;
-		this->placeholder_connect();
+		this->placeholder_connect(hidden_->get_input_sign());
 	}
 
 	std::string label_;

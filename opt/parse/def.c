@@ -15,18 +15,6 @@ void kv_recursive_free (void* kv)
 	free(k);
 }
 
-void arg_recursive_free (void* arg)
-{
-	if (NULL == arg)
-	{
-		return;
-	}
-	struct Arg* a = (struct Arg*) arg;
-	node_recursive_free(a->node_);
-	objs_clear(&a->attrs_);
-	free(a);
-}
-
 void func_recursive_free (void* func)
 {
 	if (NULL == func)
@@ -86,7 +74,7 @@ void objs_free (struct PtrList* objs)
 			recursive_free = conversion_recursive_free;
 			break;
 		case ARGUMENT:
-			recursive_free = arg_recursive_free;
+			recursive_free = node_recursive_free;
 			break;
 		case KV_PAIR:
 			recursive_free = kv_recursive_free;
@@ -106,7 +94,7 @@ void objs_clear (struct PtrList* objs)
 			recursive_free = &conversion_recursive_free;
 			break;
 		case ARGUMENT:
-			recursive_free = &arg_recursive_free;
+			recursive_free = &node_recursive_free;
 			break;
 		case KV_PAIR:
 			recursive_free = &kv_recursive_free;

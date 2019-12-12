@@ -1,4 +1,4 @@
-#include "teq/iedge.hpp"
+#include "teq/itensor.hpp"
 
 #ifndef EIGEN_EDGE_HPP
 #define EIGEN_EDGE_HPP
@@ -7,9 +7,12 @@ namespace eigen
 {
 
 template <typename T>
-struct iEigenEdge : public teq::iEdge
+struct iEigenEdge
 {
 	virtual ~iEigenEdge (void) = default;
+
+	/// Return argument tensor shape
+	virtual teq::Shape shape (void) const = 0;
 
 	virtual T* data (void) const = 0;
 };

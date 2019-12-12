@@ -51,9 +51,9 @@ void adjacencies (AdjMapT& out, teq::TensptrsT roots,
 				teq::TensSetT uchildren;
 				std::transform(children.begin(), children.end(),
 					std::inserter(uchildren, uchildren.end()),
-					[](const teq::iEdge& arg)
+					[](teq::TensptrT arg)
 					{
-						return arg.get_tensor().get();
+						return arg.get();
 					});
 
 				auto& mygroups = out[func];

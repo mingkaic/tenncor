@@ -21,12 +21,12 @@ static std::vector<::Conversion*> to_conversions (::PtrList& arr)
 }
 
 
-static std::vector<::Arg*> to_arguments (::PtrList& arr)
+static std::vector<::TreeNode*> to_arguments (::PtrList& arr)
 {
-	std::vector<::Arg*> outs;
+	std::vector<::TreeNode*> outs;
 	for (auto it = arr.head_; nullptr != it; it = it->next_)
 	{
-		outs.push_back((::Arg*) it->val_);
+		outs.push_back((::TreeNode*) it->val_);
 	}
 	return outs;
 }
@@ -70,17 +70,15 @@ static void test_edge (std::vector<::KeyVal*>& out,
 	EXPECT_STREQ("F", matcher->name_);
 	EXPECT_STREQ("", matcher->variadic_);
 	EXPECT_EQ(FALSE, matcher->commutative_);
+	out = to_attrs(matcher->attrs_);
 
 	ASSERT_EQ(::ARGUMENT, matcher->args_.type_);
 	auto args = to_arguments(matcher->args_);
 	ASSERT_EQ(1, args.size());
 	auto arg = args[0];
 
-	ASSERT_EQ(::TreeNode::ANY, arg->node_->type_);
-	EXPECT_STREQ("X", arg->node_->val_.any_);
-
-	ASSERT_EQ(::KV_PAIR, arg->attrs_.type_);
-	out = to_attrs(arg->attrs_);
+	ASSERT_EQ(::TreeNode::ANY, arg->type_);
+	EXPECT_STREQ("X", arg->val_.any_);
 }
 
 
@@ -190,9 +188,9 @@ TEST(PARSE, Variadic)
 TEST(PARSE, EdgeAttrs)
 {
 	const char* rules =
-		"F(X={a:[4,5,6,7,8,9,10,11]})=>0;\n"
-		"F(X={b:2})=>1;\n"
-		"F(X={c:[8],d:12})=>2;";
+		"F{a:[4,5,6,7,8,9,10,11]}(X)=>0;\n"
+		"F{b:2}(X)=>1;\n"
+		"F{c:[8],d:12}(X)=>2;";
 
 	::PtrList* arr = nullptr;
 	ASSERT_EQ(0, ::parse_str(&arr, rules));

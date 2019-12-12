@@ -122,9 +122,8 @@ teq::TensptrT constant_func (teq::FuncptrT& func,
 {
 	auto children = func->get_children();
 	if (std::all_of(children.begin(), children.end(),
-		[&](const teq::iEdge& child)
+		[&](teq::TensptrT ctens)
 		{
-			auto ctens = child.get_tensor();
 			auto leaf = dynamic_cast<teq::iLeaf*>(ctens.get());
 			return nullptr != leaf && leaf->is_const();
 		}))
@@ -180,17 +179,16 @@ void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_func)
 	{
 		auto children = func->get_children();
 		if (std::all_of(children.begin(), children.end(),
-			[&](const teq::iEdge& child)
+			[&](teq::TensptrT ctens)
 			{
-				auto ctens = child.get_tensor();
 				return estd::has(constants, ctens.get()) ||
 					estd::has(constant_roots, ctens);
 			}))
 		{
 			// maintain functor constant roots
-			for (const teq::iEdge& child : children)
+			for (teq::TensptrT child : children)
 			{
-				constant_roots.erase(child.get_tensor());
+				constant_roots.erase(child);
 			}
 			constants.emplace(func.get());
 			constant_roots.emplace(func);

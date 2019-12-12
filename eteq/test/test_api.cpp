@@ -9,8 +9,7 @@
 #include "teq/session.hpp"
 
 #include "eteq/generated/api.hpp"
-#include "eteq/constant.hpp"
-#include "eteq/variable.hpp"
+#include "eteq/make.hpp"
 #include "eteq/grader.hpp"
 
 

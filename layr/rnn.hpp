@@ -89,7 +89,7 @@ struct RNN final : public iLayer
 	{
 		tag_sublayers();
 
-		placeholder_connect();
+		placeholder_connect(calc_insign());
 	}
 
 	RNN (DenseptrT cell, UnaryptrT activation, LinkptrT init_state,
@@ -135,42 +135,6 @@ struct RNN final : public iLayer
 	size_t get_noutput (void) const override
 	{
 		return cell_->get_noutput();
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_input_sign (void) const override
-	{
-		if (nullptr != params_)
-		{
-			teq::NElemT n = params_->shape().n_elems();
-			if (1 > n)
-			{
-				logs::warnf("multiple sequence dimensions (%d) "
-					"specified in rnn parameter", (int) n);
-			}
-			auto rawdims = (PybindT*) params_->data();
-			teq::RankT seq_dim = rawdims[0];
-			teq::ShapeSignature insign = cell_->get_input_sign();
-			teq::ShapeSignature outsign = cell_->get_output_sign();
-			std::vector<teq::DimT> slist(insign.begin(), insign.end());
-			if (slist.at(seq_dim) > 0 && outsign.at(seq_dim) > 0)
-			{
-				slist[seq_dim] -= outsign.at(seq_dim);
-			}
-			else
-			{
-				slist[seq_dim] = 0;
-			}
-			return teq::ShapeSignature(slist);
-		}
-		// sequence dimension can be any
-		return teq::ShapeSignature();
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_output_sign (void) const override
-	{
-		return cell_->get_output_sign();
 	}
 
 	/// Implementation of iLayer
@@ -288,7 +252,36 @@ private:
 		tag_sublayers();
 
 		this->input_ = nullptr;
-		this->placeholder_connect();
+		this->placeholder_connect(calc_insign());
+	}
+
+	teq::ShapeSignature calc_insign (void) const
+	{
+		if (nullptr != params_)
+		{
+			teq::NElemT n = params_->shape().n_elems();
+			if (1 > n)
+			{
+				logs::warnf("multiple sequence dimensions (%d) "
+					"specified in rnn parameter", (int) n);
+			}
+			auto rawdims = (PybindT*) params_->data();
+			teq::RankT seq_dim = rawdims[0];
+			teq::ShapeSignature insign = cell_->get_input_sign();
+			teq::ShapeSignature outsign = cell_->get_output_sign();
+			std::vector<teq::DimT> slist(insign.begin(), insign.end());
+			if (slist.at(seq_dim) > 0 && outsign.at(seq_dim) > 0)
+			{
+				slist[seq_dim] -= outsign.at(seq_dim);
+			}
+			else
+			{
+				slist[seq_dim] = 0;
+			}
+			return teq::ShapeSignature(slist);
+		}
+		// sequence dimension can be any
+		return teq::ShapeSignature();
 	}
 
 	std::string label_;

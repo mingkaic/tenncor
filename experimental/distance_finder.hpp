@@ -25,9 +25,8 @@ struct DistanceFinder final : public teq::iTraveler
 		{
 			DistanceMapT distmap = {{func, 0}};
 			auto children = func->get_children();
-			for (const teq::iEdge& child : children)
+			for (teq::TensptrT tens : children)
 			{
-				auto tens = child.get_tensor();
 				tens->accept(*this);
 				DistanceMapT& subdistance = distances_[tens.get()];
 				for (auto distpair : subdistance)

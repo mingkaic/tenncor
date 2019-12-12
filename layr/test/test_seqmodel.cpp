@@ -284,19 +284,16 @@ TEST(SEQMODEL, Tagging)
 	auto rbm_dense_perm_labels = rbm_perm_tags[layr::dense_layer_key];
 	auto rbm_dense_vbias_labels = rbm_vbias_tags[layr::dense_layer_key];
 	auto rbm_dense_sig_labels = rbm_sig_tags[layr::sigmoid_layer_key];
-	auto sig_properties = rbm_sig_tags[tag::props_key];
 	ASSERT_EQ(1, rbm_dense_weight_labels.size());
 	ASSERT_EQ(1, rbm_dense_hbias_labels.size());
 	ASSERT_EQ(1, rbm_dense_perm_labels.size());
 	ASSERT_EQ(1, rbm_dense_vbias_labels.size());
 	ASSERT_EQ(1, rbm_dense_sig_labels.size());
-	ASSERT_EQ(1, sig_properties.size());
 	EXPECT_STREQ("hidden::weight:0", rbm_dense_weight_labels[0].c_str());
 	EXPECT_STREQ("hidden::bias:0", rbm_dense_hbias_labels[0].c_str());
 	EXPECT_STREQ("visible::weight:0", rbm_dense_perm_labels[0].c_str());
 	EXPECT_STREQ("visible::bias:0", rbm_dense_vbias_labels[0].c_str());
 	EXPECT_STREQ("::uparam:0", rbm_dense_sig_labels[0].c_str());
-	EXPECT_STREQ(tag::immutable_tag.c_str(), sig_properties[0].c_str());
 
 	ASSERT_HAS(conv_weight_tags, layr::conv_layer_key);
 	ASSERT_HAS(conv_bias_tags, layr::conv_layer_key);

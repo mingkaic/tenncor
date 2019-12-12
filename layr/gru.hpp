@@ -74,7 +74,7 @@ struct GRU final : public iLayer
 	{
 		tag_sublayers();
 
-		placeholder_connect();
+		placeholder_connect(calc_insign());
 	}
 
 	GRU (DenseptrT ugate, DenseptrT rgate,
@@ -122,29 +122,6 @@ struct GRU final : public iLayer
 	size_t get_noutput (void) const override
 	{
 		return ugate_->get_noutput();
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_input_sign (void) const override
-	{
-		teq::ShapeSignature insign = ugate_->get_input_sign();
-		teq::ShapeSignature outsign = ugate_->get_output_sign();
-		std::vector<teq::DimT> slist(insign.begin(), insign.end());
-		if (slist.at(1) > 0 && outsign.at(1) > 0)
-		{
-			slist[1] -= outsign.at(1);
-		}
-		else
-		{
-			slist[1] = 0;
-		}
-		return teq::ShapeSignature(slist);
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_output_sign (void) const override
-	{
-		return ugate_->get_output_sign();
 	}
 
 	/// Implementation of iLayer
@@ -231,7 +208,7 @@ private:
 		tag_sublayers();
 
 		this->input_ = nullptr;
-		this->placeholder_connect();
+		this->placeholder_connect(calc_insign());
 	}
 
 	LinkptrT cell_connect (LinkptrT x, LinkptrT state) const
@@ -242,6 +219,22 @@ private:
 		auto hidden = tenncor::tanh(hgate_->connect(
 			tenncor::concat(x, reset * state, 0)));
 		return update * state + ((PybindT) 1 - update) * hidden;
+	}
+
+	teq::ShapeSignature calc_insign (void) const
+	{
+		teq::ShapeSignature insign = ugate_->get_input_sign();
+		teq::ShapeSignature outsign = ugate_->get_output_sign();
+		std::vector<teq::DimT> slist(insign.begin(), insign.end());
+		if (slist.at(1) > 0 && outsign.at(1) > 0)
+		{
+			slist[1] -= outsign.at(1);
+		}
+		else
+		{
+			slist[1] = 0;
+		}
+		return teq::ShapeSignature(slist);
 	}
 
 	std::string label_;

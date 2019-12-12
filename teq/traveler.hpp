@@ -78,13 +78,12 @@ struct GraphStat final : public iTraveler
 			std::vector<size_t> min_heights;
 			max_heights.reserve(nchildren);
 			min_heights.reserve(nchildren);
-			for (const iEdge& child : children)
+			for (TensptrT child : children)
 			{
-				iTensor* tens = child.get_tensor().get();
-				tens->accept(*this);
-				estd::NumRange<size_t> range = estd::must_getf(graphsize_, tens,
+				child->accept(*this);
+				estd::NumRange<size_t> range = estd::must_getf(graphsize_, child.get(),
 					"GraphStat failed to visit child `%s` of functor `%s`",
-						tens->to_string().c_str(), func->to_string().c_str());
+						child->to_string().c_str(), func->to_string().c_str());
 				max_heights.push_back(range.upper_);
 				min_heights.push_back(range.lower_);
 			}
@@ -133,7 +132,7 @@ struct PathFinder final : public OnceTraveler
 		std::unordered_set<size_t> path;
 		for (size_t i = 0; i < n; ++i)
 		{
-			TensptrT tens = children[i].get().get_tensor();
+			TensptrT tens = children[i];
 			if (tens.get() == target_)
 			{
 				path.emplace(i);
@@ -183,7 +182,7 @@ struct ParentFinder final : public iTraveler
 			auto children = func->get_children();
 			for (size_t i = 0, n = children.size(); i < n; ++i)
 			{
-				auto tens = children[i].get().get_tensor();
+				auto tens = children[i];
 				tens->accept(*this);
 				parents_[tens.get()][func].push_back(i);
 			}

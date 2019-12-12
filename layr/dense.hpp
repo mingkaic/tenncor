@@ -103,7 +103,7 @@ struct Dense final : public iLayer
 			tag(params_->get_tensor(), LayerId(dense_param_key));
 		}
 
-		placeholder_connect();
+		placeholder_connect(calc_insign());
 	}
 
 	Dense (teq::TensptrT weight, teq::TensptrT bias,
@@ -158,83 +158,6 @@ struct Dense final : public iLayer
 	size_t get_noutput (void) const override
 	{
 		return weight_->shape().at(0);
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_input_sign (void) const override
-	{
-		eigen::PairVecT<teq::RankT> dims = {{0, 1}};
-		if (params_)
-		{
-			teq::Shape shape = params_->shape();
-			teq::NElemT n = shape.n_elems();
-			if (0 != n % 2)
-			{
-				logs::fatalf(
-					"cannot connect dense layer with parameter of shape %s",
-					shape.to_string().c_str());
-			}
-			auto rawdims = (PybindT*) params_->data();
-			dims.clear();
-			for (teq::NElemT i = 0; i < n; i += 2)
-			{
-				dims.push_back({
-					(teq::RankT) rawdims[i],
-					(teq::RankT) rawdims[i + 1]});
-			}
-		}
-		// dims.second refer to common weight shape
-		// dims.first must be identical to referenced dims.second
-		teq::Shape wshape = weight_->shape();
-		std::vector<teq::DimT> slist(teq::rank_cap, 0);
-		for (auto dpair : dims)
-		{
-			slist[dpair.first] = wshape.at(dpair.second);
-		}
-		return teq::ShapeSignature(slist);
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_output_sign (void) const override
-	{
-		eigen::PairVecT<teq::RankT> dims = {{0, 1}};
-		if (params_)
-		{
-			teq::Shape shape = params_->shape();
-			teq::NElemT n = shape.n_elems();
-			if (0 != n % 2)
-			{
-				logs::fatalf(
-					"cannot connect dense layer with parameter of shape %s",
-					shape.to_string().c_str());
-			}
-			auto rawdims = (PybindT*) params_->data();
-			dims.clear();
-			for (teq::NElemT i = 0; i < n; i += 2)
-			{
-				dims.push_back({
-					(teq::RankT) rawdims[i],
-					(teq::RankT) rawdims[i + 1]});
-			}
-		}
-		// dims.second refer to common weight shape
-		// dims.first must be identical to referenced dims.second
-		teq::Shape wshape = weight_->shape();
-		std::vector<teq::DimT> slist;
-		std::vector<teq::RankT> wranks;
-		slist.reserve(dims.size());
-		wranks.reserve(dims.size());
-		std::transform(dims.begin(), dims.end(), std::back_inserter(wranks),
-			[](std::pair<teq::RankT,teq::RankT> rpair)
-			{
-				return rpair.second;
-			});
-		std::transform(wranks.begin(), wranks.end(), std::back_inserter(slist),
-			[&wshape](teq::RankT rank)
-			{
-				return wshape.at(rank);
-			});
-		return teq::ShapeSignature(slist);
 	}
 
 	/// Implementation of iLayer
@@ -308,7 +231,40 @@ private:
 		}
 
 		this->input_ = nullptr;
-		this->placeholder_connect();
+		this->placeholder_connect(calc_insign());
+	}
+
+	teq::ShapeSignature calc_insign (void) const
+	{
+		eigen::PairVecT<teq::RankT> dims = {{0, 1}};
+		if (params_)
+		{
+			teq::Shape shape = params_->shape();
+			teq::NElemT n = shape.n_elems();
+			if (0 != n % 2)
+			{
+				logs::fatalf(
+					"cannot connect dense layer with parameter of shape %s",
+					shape.to_string().c_str());
+			}
+			auto rawdims = (PybindT*) params_->data();
+			dims.clear();
+			for (teq::NElemT i = 0; i < n; i += 2)
+			{
+				dims.push_back({
+					(teq::RankT) rawdims[i],
+					(teq::RankT) rawdims[i + 1]});
+			}
+		}
+		// dims.second refer to common weight shape
+		// dims.first must be identical to referenced dims.second
+		teq::Shape wshape = weight_->shape();
+		std::vector<teq::DimT> slist(teq::rank_cap, 0);
+		for (auto dpair : dims)
+		{
+			slist[dpair.first] = wshape.at(dpair.second);
+		}
+		return teq::ShapeSignature(slist);
 	}
 
 	std::string label_;

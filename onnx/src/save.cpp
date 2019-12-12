@@ -17,9 +17,9 @@ struct OrderedVisitor final : public teq::OnceTraveler
 	void visit_func (teq::iFunctor* func) override
 	{
 		auto children = func->get_children();
-		for (const teq::iEdge& child : children)
+		for (teq::TensptrT child : children)
 		{
-			child.get_tensor()->accept(*this);
+			child->accept(*this);
 		}
 		ordered_.push_back(func);
 	}
@@ -106,11 +106,10 @@ void save_graph (GraphProto& pb_graph,
 		pb_node->add_output(id);
 		pb_node->set_op_type(func->get_opcode().name_);
 		auto children = func->get_children();
-		for (const teq::iEdge& child : children)
+		for (teq::TensptrT ctens : children)
 		{
-			auto ctens = child.get_tensor().get();
-			pb_node->add_input(fmts::to_string(tens[ctens]));
-			root_tens.erase(ctens);
+			pb_node->add_input(fmts::to_string(tens[ctens.get()]));
+			root_tens.erase(ctens.get());
 		}
 		auto pb_attrs = pb_node->mutable_attribute();
 		marshal_attrs(*pb_attrs, func);
@@ -132,11 +131,6 @@ void save_graph (GraphProto& pb_graph,
 		pb_output->set_name(fmts::to_string(tens.at(root)));
 		marshal_io(*pb_output, 0, root->shape());
 	}
-}
-
-void save_graph (GraphProto& pb_graph, teq::EdgeptrsT roots, LeafMarshF marshal_leaf)
-{
-	//
 }
 
 }

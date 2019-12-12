@@ -26,10 +26,10 @@ struct iTraveler
 	virtual ~iTraveler (void) = default;
 
 	/// Visit leaf node
-	virtual void visit (iLeaf* leaf) = 0;
+	virtual void visit (iLeaf* leaf) = 0; // todo: pass by reference instead of pointer
 
 	/// Visit functor node
-	virtual void visit (iFunctor* func) = 0;
+	virtual void visit (iFunctor* func) = 0; // todo: pass by reference instead of pointer
 };
 
 /// Interface of traversible and differentiable nodes with shape information

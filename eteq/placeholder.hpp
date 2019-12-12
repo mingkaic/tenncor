@@ -102,16 +102,6 @@ struct Placeholder final : public iLink<T>
 	/// Implementation of iAttributed
 	void rm_attr (std::string attr_key) override {}
 
-	/// Implementation of iEdge
-	teq::TensptrT get_tensor (void) const override
-	{
-		if (nullptr == content_)
-		{
-			logs::fatal("cannot get tensor of unassigned placeholder");
-		}
-		return content_->get_tensor();
-	}
-
 	/// Implementation of iLink<T>
 	T* data (void) const override
 	{
@@ -132,22 +122,32 @@ struct Placeholder final : public iLink<T>
 		return content_->has_data();
 	}
 
-	/// Implementation of iSignature<T>
-	std::string to_string (void) const override
+	/// Implementation of iLink<T>
+	teq::TensptrT get_tensor (void) const override
 	{
-		return label_;
+		if (nullptr == content_)
+		{
+			logs::debug("getting tensor from placeholder without assigned link");
+			return nullptr;
+		}
+		return content_->get_tensor();
 	}
 
-	/// Implementation of iSignature<T>
+	/// Implementation of iSignature
+	teq::TensptrT build_tensor (void) const override
+	{
+		if (nullptr == content_)
+		{
+			logs::debug("building tensor from placeholder without assigned link");
+			return nullptr;
+		}
+		return content_->get_tensor();
+	}
+
+	/// Implementation of iSignature
 	teq::ShapeSignature shape_sign (void) const override
 	{
 		return shape_;
-	}
-
-	/// Implementation of iSignature<T>
-	bool is_real (void) const override
-	{
-		return false;
 	}
 
 	LinkptrT<T> get_child (void) const

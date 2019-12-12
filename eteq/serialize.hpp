@@ -6,9 +6,7 @@
 /// Define functions for marshal and unmarshal data sources
 ///
 
-#include "eteq/constant.hpp"
-#include "eteq/variable.hpp"
-#include "eteq/functor.hpp"
+#include "eteq/make.hpp"
 
 #include "pbm/save.hpp"
 #include "pbm/load.hpp"

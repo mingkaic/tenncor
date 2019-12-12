@@ -101,26 +101,6 @@ struct SequentialModel final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	teq::ShapeSignature get_input_sign (void) const override
-	{
-		if (layers_.empty())
-		{
-			return teq::ShapeSignature();
-		}
-		return layers_.front()->get_input_sign();
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_output_sign (void) const override
-	{
-		if (layers_.empty())
-		{
-			return teq::ShapeSignature();
-		}
-		return layers_.back()->get_output_sign();
-	}
-
-	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return seq_model_key;
@@ -180,7 +160,7 @@ struct SequentialModel final : public iLayer
 
 		layers_.push_back(layer);
 
-		placeholder_connect();
+		placeholder_connect(layers_.front()->get_input_sign());
 	}
 
 private:
@@ -200,7 +180,7 @@ private:
 		}
 
 		this->input_ = nullptr;
-		this->placeholder_connect();
+		this->placeholder_connect(layers_.empty() ? teq::ShapeSignature() : layers_.front()->get_input_sign());
 	}
 
 	std::string label_;

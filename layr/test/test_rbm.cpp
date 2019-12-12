@@ -370,10 +370,6 @@ TEST(RBM, Tagging)
 	EXPECT_STREQ("visible::weight:0", perm_labels[0].c_str());
 	EXPECT_STREQ("visible::bias:0", vbias_labels[0].c_str());
 	EXPECT_STREQ("::uparam:0", sig_labels[0].c_str());
-
-	auto sig_properties = sig_tags[tag::props_key];
-	ASSERT_EQ(1, sig_properties.size());
-	EXPECT_STREQ(tag::immutable_tag.c_str(), sig_properties[0].c_str());
 }
 
 

@@ -128,14 +128,14 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 	}
 
 	/// Implementation of iFunctor
-	teq::EdgeRefsT get_children (void) const override
+	teq::TensptrsT get_children (void) const override
 	{
-		teq::EdgeRefsT refs;
+		teq::TensptrsT refs;
 		refs.reserve(links_.size());
 		std::transform(links_.begin(), links_.end(), std::back_inserter(refs),
-			[](LinkptrT<T> edge) -> const teq::iEdge&
+			[](LinkptrT<T> edge)
 			{
-				return *edge;
+				return edge->get_tensor();
 			});
 		return refs;
 	}
@@ -348,12 +348,6 @@ struct FuncLink final : public iLink<T>
 		func_->rm_attr(attr_key);
 	}
 
-	/// Implementation of iEdge
-	teq::TensptrT get_tensor (void) const override
-	{
-		return func_;
-	}
-
 	/// Implementation of iEigenEdge<T>
 	T* data (void) const override
 	{
@@ -366,24 +360,24 @@ struct FuncLink final : public iLink<T>
 		return func_->has_data();
 	}
 
-	/// Implementation of iSignature<T>
-	std::string to_string (void) const override
+	/// Implementation of iLink<T>
+	teq::TensptrT get_tensor (void) const override
 	{
-		return func_->to_string();
+		return func_;
 	}
 
-	/// Implementation of iSignature<T>
+	/// Implementation of iSignature
+	teq::TensptrT build_tensor (void) const override
+	{
+		return func_;
+	}
+
+	/// Implementation of iSignature
 	teq::ShapeSignature shape_sign (void) const override
 	{
 		teq::Shape shape = func_->shape();
 		return teq::ShapeSignature(
 			std::vector<teq::DimT>(shape.begin(), shape.end()));
-	}
-
-	/// Implementation of iSignature<T>
-	bool is_real (void) const override
-	{
-		return true;
 	}
 
 private:
@@ -408,37 +402,6 @@ private:
 
 	std::shared_ptr<Functor<T>> func_;
 };
-
-template <typename T>
-LinkptrT<T> func_link (teq::TensptrT tens)
-{
-	return std::make_shared<FuncLink<T>>(
-		std::static_pointer_cast<Functor<T>>(tens));
-}
-
-template <typename T>
-void LinkConverter<T>::visit (teq::iFunctor* leaf)
-{
-	builders_.emplace(leaf, func_link<T>);
-}
-
-/// Return functor node given opcode and node arguments
-template <typename T, typename ...ARGS>
-LinkptrT<T> make_functor (egen::_GENERATED_OPCODE opcode, LinksT<T> links, ARGS... vargs)
-{
-	if (links.empty())
-	{
-		logs::fatalf("cannot %s without arguments", egen::name_op(opcode).c_str());
-	}
-	marsh::Maps attrs;
-	eigen::pack_attr(attrs, vargs...);
-	if (std::all_of(links.begin(), links.end(),
-		[](LinkptrT<T> link) { return link->is_real(); }))
-	{
-		return to_link<T>(Functor<T>::get(opcode, links, std::move(attrs)));
-	}
-	return FuncSignature<T>::get(opcode, links, std::move(attrs));
-}
 
 }
 

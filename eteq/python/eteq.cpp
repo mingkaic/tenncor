@@ -6,7 +6,7 @@
 
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/grader.hpp"
-#include "eteq/variable.hpp"
+#include "eteq/make.hpp"
 #include "eteq/placeholder.hpp"
 #include "eteq/optimize.hpp"
 
@@ -76,10 +76,6 @@ PYBIND11_MODULE(eteq, m)
 		py::module::import("eteq.tenncor").attr("LinkptrT<PybindT>");
 
 	link
-		.def("__str__",
-			[](eteq::iLink<PybindT>* self)
-			{ return self->to_string(); },
-			"Return string representation of internal tensor")
 		.def("as_tens",
 			[](eteq::iLink<PybindT>* self)
 			{ return self->get_tensor(); },

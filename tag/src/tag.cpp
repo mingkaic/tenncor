@@ -37,9 +37,8 @@ struct Tagger final : public teq::iTraveler
 		if (false == estd::has(stops_, func))
 		{
 			auto children = func->get_children();
-			for (const teq::iEdge& child : children)
+			for (teq::TensptrT tens : children)
 			{
-				teq::TensptrT tens = child.get_tensor();
 				owners_.emplace(tens.get(), tens);
 				tens->accept(*this);
 			}

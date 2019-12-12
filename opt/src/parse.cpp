@@ -23,22 +23,6 @@ static std::string to_string (::KeyVal* kv)
 
 static std::string to_string (::TreeNode* node);
 
-static std::string to_string (::Arg* arg)
-{
-	std::string out = to_string(arg->node_);
-	auto it = arg->attrs_.head_;
-	if (nullptr != it)
-	{
-		out += "={" + to_string((::KeyVal*) it->val_);
-		for (it = it->next_; it != nullptr; it = it->next_)
-		{
-			out += "," + to_string((::KeyVal*) it->val_);
-		}
-		out += "}";
-	}
-	return out;
-}
-
 static std::string to_string (::Functor* functor)
 {
 	std::string comm_prefix;
@@ -62,10 +46,10 @@ static std::string to_string (::Functor* functor)
 	auto it = functor->args_.head_;
 	if (nullptr != it)
 	{
-		out += to_string((::Arg*) it->val_);
+		out += to_string((::TreeNode*) it->val_);
 		for (it = it->next_; nullptr != it; it = it->next_)
 		{
-			out += "," + to_string((::Arg*) it->val_);
+			out += "," + to_string((::TreeNode*) it->val_);
 		}
 	}
 
@@ -107,8 +91,7 @@ static bool validate_matcher_helper (const ::Functor* matcher, bool& used_comm)
 	size_t nargs = 0;
 	for (auto it = matcher->args_.head_; nullptr != it; it = it->next_, ++nargs)
 	{
-		auto arg = (::Arg*) it->val_;
-		auto child = arg->node_;
+		auto child = (::TreeNode*) it->val_;
 		if (child->type_ == ::TreeNode::FUNCTOR)
 		{
 			auto nextfunc = child->val_.functor_;
@@ -183,22 +166,19 @@ static std::string parse_matcher (
 
 	for (auto it = matcher->args_.head_; nullptr != it; it = it->next_)
 	{
-		auto arg = (::Arg*) it->val_;
-		auto child = arg->node_;
+		auto child = (::TreeNode*) it->val_;
 		switch (child->type_)
 		{
 			case ::TreeNode::SCALAR:
-				outmatcher->add_edge(new ScalarEMatcher(
-					child->val_.scalar_, arg->attrs_));
+				outmatcher->add_edge(new ScalarEMatcher(child->val_.scalar_));
 				break;
 			case ::TreeNode::ANY:
 				outmatcher->add_edge(new AnyEMatcher(
-					std::string(child->val_.any_), arg->attrs_));
+					std::string(child->val_.any_)));
 				break;
 			case ::TreeNode::FUNCTOR:
 				outmatcher->add_edge(new FuncEMatcher(
-					parse_matcher(out, child->val_.functor_),
-						arg->attrs_));
+					parse_matcher(out, child->val_.functor_)));
 				break;
 			default:
 				logs::fatalf("unknown matcher argument of type %d", child->type_);

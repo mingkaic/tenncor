@@ -11,6 +11,7 @@ P5 = "get to it eventually"
    - implement onnx support for layer
    - mark pbm as deprecated in favor of onnx
    - mark tags as deprecated
+   - test ALL funcsign + placeholder combinations
 
 === transparency/code readability ===
 P2 - generate value-range graph to detect erroneous operators

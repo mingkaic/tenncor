@@ -120,12 +120,6 @@ struct LeafLink final : public iLink<T>
 	/// Implementation of iAttributed
 	void rm_attr (std::string attr_key) override {}
 
-	/// Implementation of iEdge
-	teq::TensptrT get_tensor (void) const override
-	{
-		return leaf_;
-	}
-
 	/// Implementation of iEigenEdge<T>
 	T* data (void) const override
 	{
@@ -138,24 +132,24 @@ struct LeafLink final : public iLink<T>
 		return true;
 	}
 
-	/// Implementation of iSignature<T>
-	std::string to_string (void) const override
+	/// Implementation of iLink<T>
+	teq::TensptrT get_tensor (void) const override
 	{
-		return leaf_->to_string();
+		return leaf_;
 	}
 
-	/// Implementation of iSignature<T>
+	/// Implementation of iSignature
+	teq::TensptrT build_tensor (void) const override
+	{
+		return leaf_;
+	}
+
+	/// Implementation of iSignature
 	teq::ShapeSignature shape_sign (void) const override
 	{
 		teq::Shape shape = leaf_->shape();
 		return teq::ShapeSignature(
 			std::vector<teq::DimT>(shape.begin(), shape.end()));
-	}
-
-	/// Implementation of iSignature<T>
-	bool is_real (void) const override
-	{
-		return true;
 	}
 
 private:
@@ -174,19 +168,6 @@ private:
 
 	std::shared_ptr<iLeaf<T>> leaf_;
 };
-
-template <typename T>
-LinkptrT<T> leaf_link (teq::TensptrT tens)
-{
-	return std::make_shared<LeafLink<T>>(
-		std::static_pointer_cast<iLeaf<T>>(tens));
-}
-
-template <typename T>
-void LinkConverter<T>::visit (teq::iLeaf* leaf)
-{
-	builders_.emplace(leaf, leaf_link<T>);
-}
 
 }
 

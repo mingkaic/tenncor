@@ -51,9 +51,9 @@ struct MockFTarget final : public opt::iTarget
 		if (variadic_.size() > 0)
 		{
 			auto& edges = candidate.variadic_.at(variadic_);
-			for (const teq::iEdge& edge : edges)
+			for (teq::TensptrT edge : edges)
 			{
-				args.push_back(edge.get_tensor());
+				args.push_back(edge);
 			}
 		}
 		return std::make_shared<MockFunctor>(args, teq::Opcode{opname_, 0});

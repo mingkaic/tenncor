@@ -124,9 +124,9 @@ struct InteractiveSession final : public teq::iSession
 			{
 				reqs.push_front(op);
 				auto children = op->get_children();
-				for (const teq::iEdge& child : children)
+				for (teq::TensptrT child : children)
 				{
-					acceptable.emplace(child.get_tensor().get());
+					acceptable.emplace(child.get());
 				}
 			}
 		}
@@ -217,9 +217,9 @@ struct InteractiveSession final : public teq::iSession
 			{
 				reqs.push_front(op);
 				auto children = op->get_children();
-				for (const teq::iEdge& child : children)
+				for (teq::TensptrT child : children)
 				{
-					acceptable.emplace(child.get_tensor().get());
+					acceptable.emplace(child.get());
 				}
 			}
 		}

@@ -273,8 +273,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			teq::RankT return_dim;
 			Packer<teq::RankT>().unpack(return_dim, *func);
 
-			const teq::iEdge& arg = func->get_children()[0];
-			teq::Shape shape = arg.shape();
+			teq::TensptrT arg = func->get_children()[0];
+			teq::Shape shape = arg->shape();
 			teq::NElemT maxn = teq::rank_cap == return_dim ?
 				shape.n_elems() : shape.at(return_dim);
 			outrange = estd::NumRange<T>(0, maxn - 1);
@@ -452,8 +452,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			Packer<std::set<teq::RankT>>().unpack(ranks, *func);
 			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
 
-			const teq::iEdge& arg = func->get_children()[0];
-			teq::Shape shape = arg.shape();
+			teq::TensptrT arg = func->get_children()[0];
+			teq::Shape shape = arg->shape();
 			teq::NElemT nreds = 1;
 			for (teq::RankT rank : ranks)
 			{
@@ -470,8 +470,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			Packer<std::set<teq::RankT>>().unpack(ranks, *func);
 			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
 
-			const teq::iEdge& arg = func->get_children()[0];
-			teq::Shape shape = arg.shape();
+			teq::TensptrT arg = func->get_children()[0];
+			teq::Shape shape = arg->shape();
 			teq::NElemT nreds = 1;
 			for (teq::RankT rank : ranks)
 			{
@@ -495,8 +495,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 
 			// matmul = <left> * <right> then reduce sum by common dimensions
 			// so apply range rule for product, then for reduce sum
-			const teq::iEdge& arg = func->get_children().front();
-			teq::Shape shape = arg.shape();
+			teq::TensptrT arg = func->get_children().front();
+			teq::Shape shape = arg->shape();
 			teq::NElemT ncommons = 1;
 			for (auto dim : dims)
 			{
@@ -521,8 +521,8 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		{
 			// conv = <image> * <kernel> then reduce by kernel dimensions that convolves
 			// apply range rule similar to matmul
-			const teq::iEdge& arg = func->get_children()[1];
-			teq::Shape shape = arg.shape();
+			teq::TensptrT arg = func->get_children()[1];
+			teq::Shape shape = arg->shape();
 			teq::NElemT nkern = shape.n_elems();
 			T llower = ranges[0].lower_;
 			T lupper = ranges[0].upper_;
@@ -579,11 +579,10 @@ struct Stabilizer final : public teq::iTraveler
 			auto args = func->get_children();
 			NumRangesT<T> ranges;
 			ranges.reserve(args.size());
-			for (const teq::iEdge& arg : args)
+			for (teq::TensptrT arg : args)
 			{
-				teq::iTensor* argtens = arg.get_tensor().get();
-				argtens->accept(*this);
-				ranges.push_back(ranges_[argtens]);
+				arg->accept(*this);
+				ranges.push_back(ranges_[arg.get()]);
 			}
 
 			// func range

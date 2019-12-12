@@ -24,7 +24,6 @@ extern YY_FLUSH_BUFFER;
 	struct Conversion* 	conv;
 	struct TreeNode*	node;
 	struct Functor*		functor;
-	struct Arg*			argument;
 	struct KeyVal*		kvpair;
 
 	// lists
@@ -38,7 +37,6 @@ extern YY_FLUSH_BUFFER;
 %type <conv> 		conversion
 %type <node>		matcher_el target
 %type <functor>		matcher function mfunction tfunction
-%type <argument> 	marg targ
 %type <kvpair>		key_val
 
 %type <objs>		margs targs attr
@@ -137,36 +135,16 @@ mfunction:	function LPAREN margs RPAREN
 				free($3);
 			}
 
-margs:		margs COMMA marg
+margs:		margs COMMA matcher_el
 			{
 				struct PtrList* list = $$ = $1;
 				ptrlist_pushback(list, $3);
 			}
 			|
-			marg
+			matcher_el
 			{
 				struct PtrList* list = $$ = new_ptrlist(ARGUMENT);
 				ptrlist_pushback(list, $1);
-			}
-
-marg:		matcher_el
-			{
-				size_t nbytes = sizeof(struct Arg);
-				struct Arg* a = $$ = malloc(nbytes);
-				memset(a, 0, nbytes);
-				a->node_ = $1;
-				a->attrs_.type_ = KV_PAIR;
-			}
-			|
-			matcher_el ASSIGN LCB attr RCB
-			{
-				size_t nbytes = sizeof(struct Arg);
-				struct Arg* a = $$ = malloc(nbytes);
-				memset(a, 0, nbytes);
-				a->node_ = $1;
-
-				ptrlist_move(&a->attrs_, $4);
-				free($4);
 			}
 
 target:		NUMBER
@@ -216,36 +194,16 @@ tfunction:	function LPAREN targs RPAREN
 				f->args_.type_ = ARGUMENT;
 			}
 
-targs:		targs COMMA targ
+targs:		targs COMMA target
 			{
 				struct PtrList* list = $$ = $1;
 				ptrlist_pushback(list, $3);
 			}
 			|
-			targ
+			target
 			{
 				struct PtrList* list = $$ = new_ptrlist(ARGUMENT);
 				ptrlist_pushback(list, $1);
-			}
-
-targ:		target
-			{
-				size_t nbytes = sizeof(struct Arg);
-				struct Arg* a = $$ = malloc(nbytes);
-				memset(a, 0, nbytes);
-				a->node_ = $1;
-				a->attrs_.type_ = KV_PAIR;
-			}
-			|
-			target ASSIGN LCB attr RCB
-			{
-				size_t nbytes = sizeof(struct Arg);
-				struct Arg* a = $$ = malloc(nbytes);
-				memset(a, 0, nbytes);
-				a->node_ = $1;
-
-				ptrlist_move(&a->attrs_, $4);
-				free($4);
 			}
 
 attr:		attr COMMA key_val

@@ -10,8 +10,6 @@
 
 #include "eteq/generated/api.hpp"
 #include "eteq/grader.hpp"
-#include "eteq/constant.hpp"
-#include "eteq/variable.hpp"
 
 #include "eteq/optimize.hpp"
 

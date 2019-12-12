@@ -15,9 +15,9 @@ struct OrderedVisitor final : public teq::OnceTraveler
 	void visit_func (teq::iFunctor* func) override
 	{
 		auto children = func->get_children();
-		for (const teq::iEdge& child : children)
+		for (teq::TensptrT child : children)
 		{
-			child.get_tensor()->accept(*this);
+			child->accept(*this);
 		}
 		ordered_.push_back(func);
 	}
@@ -119,19 +119,12 @@ TensMapIndicesT save_graph (
 		teq::Opcode opcode = func->get_opcode();
 		pb_func->set_opname(opcode.name_);
 		auto children = func->get_children();
-		for (const teq::iEdge& child : children)
+		for (teq::TensptrT child : children)
 		{
 			tenncor::NodeArg* pb_arg = pb_func->add_args();
 
 			// serialize edge index
-			pb_arg->set_idx(ordermap[child.get_tensor().get()]);
-
-			// serialize edge attributes
-			marsh::Maps mvalues;
-			marsh::get_attrs(mvalues, child);
-
-			auto pb_attrs = pb_arg->mutable_attrs();
-			marshal_attrs(*pb_attrs, mvalues);
+			pb_arg->set_idx(ordermap[child.get()]);
 		}
 		auto pb_fatters = pb_func->mutable_attrs();
 		std::vector<std::string> attr_keys = func->ls_attrs();

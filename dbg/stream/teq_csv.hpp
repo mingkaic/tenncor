@@ -108,14 +108,10 @@ struct CSVEquation final : public teq::iTraveler
 		auto children = func->get_children();
 		for (size_t i = 0, nchildren = children.size(); i < nchildren; ++i)
 		{
-			const teq::iEdge& child = children[i];
-			auto tens = child.get_tensor().get();
-			marsh::Maps mvalues;
-			marsh::get_attrs(mvalues, child);
+			auto tens = children[i].get();
 			edges_.push_back(Edge{
 				func,
 				tens,
-				std::move(mvalues),
 				fmts::to_string(i),
 			});
 			tens->accept(*this);
@@ -126,15 +122,6 @@ struct CSVEquation final : public teq::iTraveler
 	void to_stream (std::ostream& out)
 	{
 		size_t nedges = edges_.size();
-		std::unordered_set<std::string> attr_keys;
-		for (size_t i = 0; i < nedges; ++i)
-		{
-			auto keys = edges_[i].attrs_.ls_attrs();
-			attr_keys.insert(keys.begin(), keys.end());
-		}
-		std::vector<std::string> akeys(attr_keys.begin(), attr_keys.end());
-		std::sort(akeys.begin(), akeys.end());
-
 		for (size_t i = 0; i < nedges; ++i)
 		{
 			const Edge& edge = edges_[i];
@@ -146,16 +133,7 @@ struct CSVEquation final : public teq::iTraveler
 			out << parent_node.id_ << label_delim << parent_node.label_ << ','
 				<< child_node.id_ << label_delim << child_node.label_ << ','
 				<< edge.edge_label_ << ','
-				<< color;
-			for (std::string akey : akeys)
-			{
-				out << ',';
-				if (auto val = edge.attrs_.get_attr(akey))
-				{
-					out << val->to_string();
-				}
-			}
-			out << '\n';
+				<< color << '\n';
 		}
 	}
 
@@ -173,8 +151,6 @@ private:
 		teq::iFunctor* func_;
 
 		teq::iTensor* child_;
-
-		marsh::Maps attrs_;
 
 		std::string edge_label_;
 	};

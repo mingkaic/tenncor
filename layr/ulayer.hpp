@@ -148,7 +148,7 @@ struct ULayer final : public iLayer
 		}
 		tag(params_->get_tensor(), LayerId(uparam_key));
 
-		placeholder_connect();
+		placeholder_connect(teq::ShapeSignature());
 	}
 
 	ULayer (const ULayer& other,
@@ -186,18 +186,6 @@ struct ULayer final : public iLayer
 	size_t get_noutput (void) const override
 	{
 		return 0;
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_input_sign (void) const override
-	{
-		return teq::ShapeSignature();
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_output_sign (void) const override
-	{
-		return teq::ShapeSignature();
 	}
 
 	/// Implementation of iLayer
@@ -239,7 +227,7 @@ private:
 		tag(params_->get_tensor(), LayerId(uparam_key));
 
 		this->input_ = nullptr;
-		this->placeholder_connect();
+		this->placeholder_connect(teq::ShapeSignature());
 	}
 
 	std::string label_;

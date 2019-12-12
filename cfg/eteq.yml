@@ -1,9 +1,7 @@
 api:
   pybind_type: float
   includes:
-  - '"eteq/constant.hpp"'
-  - '"eteq/variable.hpp"'
-  - '"eteq/functor.hpp"'
+  - '"eteq/make.hpp"'
   namespaces:
     tenncor:
       - template: typename T
@@ -540,9 +538,9 @@ api:
           type: eteq::LinkptrT<T>
           val: |
               //
-                  if (then.get() == otherwise.get() || (
-                      then->is_real() && otherwise->is_real() &&
-                      then->get_tensor().get() == otherwise->get_tensor().get()))
+                  // if then == otherwise and neither are ambiguous, then treat as identity
+                  auto then_tens = then->get_tensor();
+                  if (nullptr != then_tens && then_tens == otherwise->get_tensor())
                   {
                       return then;
                   }
@@ -625,40 +623,7 @@ api:
           name: slist
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  teq::RankT n = std::min(teq::rank_cap, (teq::RankT) slist.size());
-                  teq::ShapeSignature source = arg->shape_sign();
-                  teq::RankT offset = 0;
-                  while (offset < n && source.at(offset) == slist.at(offset))
-                  {
-                      ++offset;
-                  }
-                  if (offset == n)
-                  {
-                      return arg;
-                  }
-                  std::vector<teq::DimT> exts;
-                  exts.reserve(n - offset);
-                  for (teq::RankT i = offset; i < n; ++i)
-                  {
-                      teq::DimT sdim = source.at(i);
-                      teq::DimT tdim = slist.at(i);
-                      if (sdim > 0 && sdim != tdim)
-                      {
-                          if (sdim > 1)
-                          {
-                              logs::fatalf(
-                                  "cannot extend shapes %s and %s at dimension %d to match",
-                                  source.to_string().c_str(),
-                                  fmts::to_string(slist.begin(), slist.end()).c_str(), i);
-                          }
-                          exts.push_back(tdim);
-                      } else {
-                          exts.push_back(1);
-                      }
-                  }
-                  return ::tenncor::extend(arg, offset, exts);
+          val: return ::tenncor::best_extend(arg, teq::ShapeSignature(slist));
       - description: Return extended arg so that output shape matches shape exactly
         template: typename T
         name: best_extend
@@ -666,10 +631,43 @@ api:
         - dtype: eteq::LinkptrT<T>
           name: arg
         - dtype: const teq::ShapeSignature&
-          name: shape
+          name: target
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::best_extend(arg, std::vector<teq::DimT>(shape.begin(), shape.end()));
+          val: |
+              //
+                  teq::ShapeSignature source = arg->shape_sign();
+                  teq::RankT offset = 0;
+                  while (offset < teq::rank_cap && source.at(offset) > 0 &&
+                      source.at(offset) == target.at(offset))
+                  {
+                      ++offset;
+                  }
+                  if (offset == teq::rank_cap)
+                  {
+                      // everything is equivalent or ambiguous
+                      return arg;
+                  }
+                  std::vector<teq::DimT> exts;
+                  exts.reserve(teq::rank_cap - offset);
+                  for (teq::RankT i = offset; i < teq::rank_cap; ++i)
+                  {
+                      teq::DimT sdim = source.at(i);
+                      teq::DimT tdim = target.at(i);
+                      if (sdim > 0 && tdim > 0 && sdim != tdim)
+                      {
+                          if (sdim > 1)
+                          {
+                              logs::fatalf(
+                                  "cannot extend shapes %s and %s at dimension %d to match",
+                                  source.to_string().c_str(), target.to_string().c_str(), i);
+                          }
+                          exts.push_back(tdim);
+                      } else {
+                          exts.push_back(1);
+                      }
+                  }
+                  return ::tenncor::extend(arg, offset, exts);
       - template: typename T
         name: reshape
         args:

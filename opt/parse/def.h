@@ -30,18 +30,6 @@ struct KeyVal
 /// Recursively free the key-value pair and all it's contents
 void kv_recursive_free (void* kv);
 
-/// Argument for a branching node
-struct Arg
-{
-	/// TreeNode node
-	struct TreeNode* node_;
-	/// Argument attributes
-	struct PtrList attrs_;
-};
-
-/// Recursively free the argument and all it's contents
-void arg_recursive_free (void* arg);
-
 /// Branching (TreeNode or Group) node
 struct Functor
 {

@@ -57,8 +57,7 @@ struct iMatcher
 	virtual ~iMatcher (void) = default;
 
 	/// Return matched candidates, empty candidates indicate no matches
-	CandsT match (const MatchCtxT& ctx,
-		const teq::EdgeRefsT& args, AttrMapT attrs) const
+	CandsT match (const MatchCtxT& ctx, teq::TensptrsT args, AttrMapT attrs) const
 	{
 		if (attrs_.size() > 0)
 		{
@@ -87,8 +86,7 @@ struct iMatcher
 	virtual void add_edge (FuncEMatcher* matcher) = 0;
 
 protected:
-	virtual CandsT children_match (const MatchCtxT& ctx,
-		const teq::EdgeRefsT& args) const = 0;
+	virtual CandsT children_match (const MatchCtxT& ctx, teq::TensptrsT args) const = 0;
 
 private:
 	std::unordered_map<std::string,marsh::ObjptrT> attrs_;
@@ -120,7 +118,7 @@ struct OrderedMatcher final : public iMatcher
 	}
 
 private:
-	CandsT children_match (const MatchCtxT& ctx, const teq::EdgeRefsT& args) const override
+	CandsT children_match (const MatchCtxT& ctx, teq::TensptrsT args) const override
 	{
 		size_t nematchers = edges_.size();
 		size_t nargs = args.size();
@@ -151,7 +149,7 @@ private:
 		}
 		if (variadic_.size() > 0)
 		{
-			teq::EdgeRefsT varis(args.begin() + nematchers, args.end());
+			teq::TensptrsT varis(args.begin() + nematchers, args.end());
 			for (auto& cand : cands)
 			{
 				cand.variadic_[variadic_] = varis;
@@ -168,7 +166,7 @@ private:
 };
 
 static void match_cands (CandsT& cands,
-	std::list<std::reference_wrapper<const teq::iEdge>>& unmatched,
+	std::list<teq::TensptrT>& unmatched, 
 	const MatchCtxT& ctx, const EMatchptrsT& matchers)
 {
 	size_t i = 0, n = matchers.size();
@@ -238,7 +236,7 @@ struct CommutativeMatcher final : public iMatcher
 	}
 
 private:
-	CandsT children_match (const MatchCtxT& ctx, const teq::EdgeRefsT& args) const override
+	CandsT children_match (const MatchCtxT& ctx, teq::TensptrsT args) const override
 	{
 		size_t nscalars = scalars_.size();
 		size_t nfuncs = funcs_.size();
@@ -255,7 +253,7 @@ private:
 		// assert nematchers <= nargs
 
 		CandsT cands;
-		std::list<std::reference_wrapper<const teq::iEdge>> unmatched(
+		std::list<teq::TensptrT> unmatched(
 			args.begin(), args.end());
 
 		// match scalars first
@@ -277,7 +275,7 @@ private:
 		//	variadic -> anys_.size() <= unmatched.size()
 
 		// match remaining anys
-		teq::EdgeRefsT remaining(unmatched.begin(), unmatched.end());
+		teq::TensptrsT remaining(unmatched.begin(), unmatched.end());
 		size_t nremaining = remaining.size();
 		std::vector<size_t> indices(nremaining);
 		std::iota(indices.begin(), indices.end(), 0);
@@ -306,7 +304,7 @@ private:
 			if (variadic_.size() > 0 && nanys < nremaining)
 			{
 				// dump remaining[indices[nanys]:] as variadic
-				teq::EdgeRefsT varis;
+				teq::TensptrsT varis;
 				for (size_t i = nanys; i < nremaining; ++i)
 				{
 					varis.push_back(remaining[indices[i]]);

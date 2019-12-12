@@ -9,8 +9,7 @@
 #include "opt/filter.hpp"
 
 #include "eteq/generated/api.hpp"
-#include "eteq/constant.hpp"
-#include "eteq/functor.hpp"
+#include "eteq/make.hpp"
 
 #ifndef ETEQ_OPT_HPP
 #define ETEQ_OPT_HPP
@@ -47,33 +46,10 @@ struct ScalarTarget final : public opt::iTarget
 	T scalar_;
 };
 
-struct FTargEdge final
-{
-	FTargEdge (opt::TargptrT target, const ::PtrList& attrs) : target_(target)
-	{
-		if (::KV_PAIR != attrs.type_)
-		{
-			logs::fatalf("passing attributes by %d typed list", attrs.type_);
-		}
-		for (auto it = attrs.head_; nullptr != it; it = it->next_)
-		{
-			auto kv = (::KeyVal*) it->val_;
-			std::string key(kv->key_);
-			std::vector<double> values;
-			for (auto jt = kv->val_.head_; nullptr != jt; jt = jt->next_)
-			{
-				values.push_back(jt->val_);
-			}
-		}
-	}
-
-	opt::TargptrT target_;
-};
-
 template <typename T>
 struct FuncTarget final : public opt::iTarget
 {
-	FuncTarget (std::string opname, std::vector<FTargEdge> args,
+	FuncTarget (std::string opname, std::vector<opt::TargptrT> args,
 		std::string variadic, const ::PtrList& attrs) :
 		opcode_(egen::get_op(opname)),
 		args_(args), variadic_(variadic)
@@ -99,18 +75,17 @@ struct FuncTarget final : public opt::iTarget
 		teq::Shape outshape, const opt::Candidate& candidate) const override
 	{
 		LinksT<T> args;
-		for (auto& targ : args_)
+		for (opt::TargptrT targ : args_)
 		{
-			auto arg = to_link<T>(targ.target_->convert(outshape, candidate));
+			auto arg = to_link<T>(targ->convert(outshape, candidate));
 			args.push_back(arg);
 		}
 		if (variadic_.size() > 0)
 		{
 			auto& links = candidate.variadic_.at(variadic_);
-			for (const teq::iEdge& link : links)
+			for (teq::TensptrT arg : links)
 			{
-				args.push_back(LinkptrT<T>(
-					static_cast<const iLink<T>*>(&link)->clone()));
+				args.push_back(to_link<T>(arg));
 			}
 		}
 		std::unique_ptr<marsh::Maps> attrs(attrs_.clone());
@@ -119,7 +94,7 @@ struct FuncTarget final : public opt::iTarget
 
 	egen::_GENERATED_OPCODE opcode_;
 
-	std::vector<FTargEdge> args_;
+	std::vector<opt::TargptrT> args_;
 
 	std::string variadic_;
 
@@ -141,12 +116,10 @@ opt::TargptrT build_target (::TreeNode* target)
 		case ::TreeNode::FUNCTOR:
 		{
 			::Functor* func = target->val_.functor_;
-			std::vector<FTargEdge> args;
+			std::vector<opt::TargptrT> args;
 			for (auto it = func->args_.head_; it != nullptr; it = it->next_)
 			{
-				auto arg = (::Arg*) it->val_;
-				args.push_back(FTargEdge(
-					build_target<T>(arg->node_), arg->attrs_));
+				args.push_back(build_target<T>((::TreeNode*) it->val_));
 			}
 			out = std::make_shared<FuncTarget<T>>(std::string(func->name_),
 				args, std::string(func->variadic_), func->attrs_);
@@ -197,14 +170,10 @@ struct Hasher final : public teq::OnceTraveler
 		auto children = func->get_children();
 		std::vector<std::string> hshs;
 		hshs.reserve(children.size());
-		for (const teq::iEdge& child : children)
+		for (teq::TensptrT child : children)
 		{
-			auto ctens = child.get_tensor();
-			ctens->accept(*this);
-			marsh::Maps mvalues;
-			marsh::get_attrs(mvalues, child);
-			hshs.push_back(boost::uuids::to_string(hashes_.at(ctens.get())) +
-				":" + mvalues.to_string());
+			child->accept(*this);
+			hshs.push_back(boost::uuids::to_string(hashes_.at(child.get())));
 		}
 		if (nullptr != func->get_attr(eigen::commutative_attr))
 		{

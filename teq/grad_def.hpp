@@ -117,18 +117,7 @@ struct iGradientBuilder
 			}
 
 			auto& grad_indices = pathmap[parent];
-			EdgeRefsT children = parent->get_children();
-			size_t nchildren = children.size();
-			// assert: all nnary-children use identity mapping,
-			// so no children-arg is direct mapping
-			TensptrsT args;
-			args.reserve(nchildren);
-			std::transform(children.begin(), children.end(),
-				std::back_inserter(args),
-				[](const iEdge& arg)
-				{
-					return arg.get_tensor();
-				});
+			TensptrsT children = parent->get_children();
 			// for each painted child, calculate dThis/dChild
 			// go through grads in order
 			std::list<size_t> ordered(grad_indices.begin(), grad_indices.end());
@@ -139,7 +128,7 @@ struct iGradientBuilder
 					owners[parent].lock());
 				auto local = local_derivative(parent_ptr, i);
 				auto grad_step = chain_rule(parent_ptr, local, bwd, i);
-				grads[args[i].get()].push_back(grad_step);
+				grads[children[i].get()].push_back(grad_step);
 			}
 		}
 		TensptrsT& outargs = grads[target.get()];

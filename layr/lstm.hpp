@@ -80,7 +80,7 @@ struct LSTM final : public iLayer
 	{
 		tag_sublayers();
 
-		placeholder_connect();
+		placeholder_connect(calc_insign());
 	}
 
 	LSTM (DenseptrT gate, DenseptrT forget,
@@ -130,29 +130,6 @@ struct LSTM final : public iLayer
 	size_t get_noutput (void) const override
 	{
 		return gate_->get_noutput();
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_input_sign (void) const override
-	{
-		teq::ShapeSignature insign = gate_->get_input_sign();
-		teq::ShapeSignature outsign = gate_->get_output_sign();
-		std::vector<teq::DimT> slist(insign.begin(), insign.end());
-		if (slist.at(1) > 0 && outsign.at(1) > 0)
-		{
-			slist[1] -= outsign.at(1);
-		}
-		else
-		{
-			slist[1] = 0;
-		}
-		return teq::ShapeSignature(slist);
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_output_sign (void) const override
-	{
-		return gate_->get_output_sign();
 	}
 
 	/// Implementation of iLayer
@@ -253,7 +230,7 @@ private:
 		tag_sublayers();
 
 		this->input_ = nullptr;
-		this->placeholder_connect();
+		this->placeholder_connect(calc_insign());
 	}
 
 	std::pair<LinkptrT,LinkptrT> cell_connect (LinkptrT x,
@@ -267,6 +244,22 @@ private:
 		auto output = tenncor::sigmoid(outgate_->connect(xc));
 		auto state = gate * input + prev_state * forget;
 		return {state, state * output};
+	}
+
+	teq::ShapeSignature calc_insign (void) const
+	{
+		teq::ShapeSignature insign = gate_->get_input_sign();
+		teq::ShapeSignature outsign = gate_->get_output_sign();
+		std::vector<teq::DimT> slist(insign.begin(), insign.end());
+		if (slist.at(1) > 0 && outsign.at(1) > 0)
+		{
+			slist[1] -= outsign.at(1);
+		}
+		else
+		{
+			slist[1] = 0;
+		}
+		return teq::ShapeSignature(slist);
 	}
 
 	std::string label_;

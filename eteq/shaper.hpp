@@ -275,6 +275,12 @@ struct ShapeParser<egen::MATMUL> final
 				outlist.push_back(alist.at(i));
 			}
 		}
+		size_t nout = outlist.size();
+		if ((teq::is_ambiguous(ashape) || teq::is_ambiguous(bshape)) &&
+			nout < teq::rank_cap)
+		{
+			outlist.insert(outlist.end(), teq::rank_cap - nout, 0);
+		}
 		return teq::ShapeSignature(outlist);
 	}
 };
@@ -300,7 +306,24 @@ struct ShapeParser<egen::CONV> final
 		std::vector<teq::DimT> slist(imgshape.begin(), imgshape.end());
 		for (size_t i = 0; i < n; ++i)
 		{
-			slist[ranks[i]] -= kernelshape.at(i) - 1;
+			teq::DimT& sdim = slist[ranks[i]];
+			teq::DimT kdim = kernelshape.at(i);
+			// treat as ambiguous if either dimension is ambiguous
+			if (0 == sdim || 0 == kdim)
+			{
+				sdim = 0;
+			}
+			else
+			{
+				if (kdim > sdim)
+				{
+					logs::fatalf("cannot convolve a kernel of shape %s against "
+						"smaller image of shape %s",
+						kernelshape.to_string().c_str(),
+						imgshape.to_string().c_str());
+				}
+				sdim -= kdim - 1;
+			}
 		}
 		return teq::ShapeSignature(slist);
 	}

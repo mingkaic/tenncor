@@ -4,11 +4,8 @@ template <typename T>
 struct MockEdge final : public eigen::iEigenEdge<T>
 {
 	MockEdge (teq::TensptrT tensor,
-		std::vector<T> data,
-		teq::Shape outshape,
-		std::vector<double> coorder = {}) :
-		tensor_(tensor), data_(data), shape_(outshape),
-		coorder_(coorder)
+		std::vector<T> data) :
+		tensor_(tensor), data_(data)
 	{
 		if (tensor_ == nullptr)
 		{
@@ -16,34 +13,10 @@ struct MockEdge final : public eigen::iEigenEdge<T>
 		}
 	}
 
-	/// Implementation of iEdge
 	teq::Shape shape (void) const override
 	{
 		return tensor_->shape();
 	}
-
-	/// Implementation of iEdge
-	teq::TensptrT get_tensor (void) const override
-	{
-		return tensor_;
-	}
-
-	const marsh::iObject* get_attr (std::string attr_name) const override
-	{
-		if ("coorder" == attr_name)
-		{
-			return &coorder_;
-		}
-	}
-
-	std::vector<std::string> ls_attrs (void) const override
-	{
-		return {"coorder"};
-	}
-
-	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override {}
-
-	void rm_attr (std::string attr_key) override {}
 
 	T* data (void) const override
 	{
@@ -54,8 +27,4 @@ private:
 	teq::TensptrT tensor_;
 
 	std::vector<T> data_;
-
-	teq::Shape shape_;
-
-	marsh::NumArray<double> coorder_;
 };

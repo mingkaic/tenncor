@@ -8,7 +8,7 @@
 
 #include "eigen/random.hpp"
 
-#include "eteq/variable.hpp"
+#include "eteq/make.hpp"
 
 #ifndef LAYR_INIT_HPP
 #define LAYR_INIT_HPP

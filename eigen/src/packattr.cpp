@@ -19,7 +19,7 @@ std::string Packer<teq::RankT>::key_ = "rank";
 
 std::string Packer<teq::Shape>::key_ = "shape";
 
-void pack_attr (marsh::Maps& attrs) {}
+void pack_attr (marsh::iAttributed& attrs) {}
 
 }
 

@@ -98,9 +98,9 @@ struct Session final : public iSession
 			{
 				reqs.push_front(op);
 				auto children = op->get_children();
-				for (const iEdge& child : children)
+				for (TensptrT child : children)
 				{
-					acceptable.emplace(child.get_tensor().get());
+					acceptable.emplace(child.get());
 				}
 			}
 		}
@@ -130,9 +130,9 @@ struct Session final : public iSession
 			{
 				reqs.push_front(op);
 				auto children = op->get_children();
-				for (const iEdge& child : children)
+				for (TensptrT child : children)
 				{
-					acceptable.emplace(child.get_tensor().get());
+					acceptable.emplace(child.get());
 				}
 			}
 		}

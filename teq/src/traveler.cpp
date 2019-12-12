@@ -17,9 +17,8 @@ private:
 	void visit_func (iFunctor* func) override
 	{
 		auto children = func->get_children();
-		for (const teq::iEdge& child : children)
+		for (const teq::TensptrT& tens : children)
 		{
-			TensptrT tens = child.get_tensor();
 			tens->accept(*this);
 			owners_.emplace(tens.get(), tens);
 		}

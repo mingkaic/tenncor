@@ -32,9 +32,9 @@ struct PrettyEquation final
 				tens.reserve(children.size());
 				std::transform(children.begin(), children.end(),
 					std::back_inserter(tens),
-					[](const teq::iEdge& child)
+					[](teq::TensptrT child)
 					{
-						return child.get_tensor().get();
+						return child.get();
 					});
 				return tens;
 			}

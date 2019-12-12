@@ -12,8 +12,7 @@
 
 #include "eteq/generated/pyapi.hpp"
 
-#include "eteq/constant.hpp"
-#include "eteq/variable.hpp"
+#include "eteq/make.hpp"
 #include "eteq/placeholder.hpp"
 
 #ifndef LAYR_LAYER_HPP
@@ -139,10 +138,16 @@ struct iLayer
 	virtual size_t get_noutput (void) const = 0;
 
 	/// Return input value of the expected input (first dimension)
-	virtual teq::ShapeSignature get_input_sign (void) const = 0;
+	teq::ShapeSignature get_input_sign (void) const
+	{
+		return input_->shape_sign();
+	}
 
 	/// Return output value of the expected output (first dimension)
-	virtual teq::ShapeSignature get_output_sign (void) const = 0;
+	teq::ShapeSignature get_output_sign (void) const
+	{
+		return output_->shape_sign();
+	}
 
 	/// Return the layer type which is also the tag key of tagged contents
 	virtual std::string get_ltype (void) const = 0;
@@ -157,13 +162,16 @@ struct iLayer
 	virtual LinkptrT connect (LinkptrT input) const = 0;
 
 protected:
-	void placeholder_connect (void)
+	void placeholder_connect (const teq::ShapeSignature& insign)
 	{
 		if (nullptr == input_)
 		{
-			teq::ShapeSignature insign = this->get_input_sign();
 			input_ = std::make_shared<eteq::Placeholder<PybindT>>(
 				insign, this->get_label() + "_input");
+		}
+		else
+		{
+			assert(input_->shape_sign().compatible_after(insign, 0));
 		}
 		output_ = this->connect(input_);
 	}

@@ -11,8 +11,7 @@
 #include "teq/session.hpp"
 
 #include "eteq/generated/pyapi.hpp"
-#include "eteq/constant.hpp"
-#include "eteq/variable.hpp"
+#include "eteq/make.hpp"
 
 #ifndef LAYR_ERR_APPROX_HPP
 #define LAYR_ERR_APPROX_HPP

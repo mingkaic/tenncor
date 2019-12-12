@@ -33,13 +33,13 @@ struct MockGradientBuilder final : public teq::iGradientBuilder
 		std::string label = op->to_string();
 		if (label == "FUNC")
 		{
-			return op->get_children()[arg_idx].get().get_tensor();
+			return op->get_children()[arg_idx];
 		}
 		else if (label == "FUNC2")
 		{
-			auto ochild = static_cast<const MockEdge*>(&op->get_children()[arg_idx].get());
 			return std::make_shared<MockFunctor>(
-				MockEdgesT{MockEdge(*ochild)}, teq::Opcode{"FUNC4", 3});
+				teq::TensptrsT{op->get_children()[arg_idx]},
+				teq::Opcode{"FUNC4", 3});
 		}
 		return teq::TensptrT(new MockTensor(op->shape(), "other"));
 	}

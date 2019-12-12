@@ -68,12 +68,11 @@ std::string display_location (teq::iTensor* tens,
 	if (teq::iFunctor* f = dynamic_cast<teq::iFunctor*>(tens))
 	{
 		auto args = f->get_children();
-		for (const teq::iEdge& arg : args)
+		for (teq::TensptrT arg : args)
 		{
-			auto argtens = arg.get_tensor();
 			out << "\n" << branchfmt << "("
-				<< argtens->to_string() << "):"
-				<< argtens->shape().to_string();
+				<< arg->to_string() << "):"
+				<< arg->shape().to_string();
 		}
 	}
 	return out.str();

@@ -15,7 +15,7 @@ LinkptrT softmax_from_param (LinkptrT input, LinkptrT params)
 	if (false == params->shape().compatible_after(teq::Shape{}, 0))
 	{
 		logs::fatalf("Unknown softmax layer parameter %s of shape %s",
-			params->to_string().c_str(),
+			params->get_tensor()->to_string().c_str(),
 			params->shape().to_string().c_str());
 	}
 	teq::RankT dim = *((PybindT*) params->data());
@@ -27,7 +27,7 @@ LinkptrT maxpool_from_param (LinkptrT input, LinkptrT params)
 	if (false == params->shape().compatible_after(teq::Shape({2}), 0))
 	{
 		logs::fatalf("Unknown maxpool layer parameter %s of shape %s",
-			params->to_string().c_str(),
+			params->get_tensor()->to_string().c_str(),
 			params->shape().to_string().c_str());
 	}
 	auto raw_params = (PybindT*) params->data();
@@ -40,7 +40,7 @@ LinkptrT meanpool_from_param (LinkptrT input, LinkptrT params)
 	if (false == params->shape().compatible_after(teq::Shape({2}), 0))
 	{
 		logs::fatalf("Unknown meanpool layer parameter %s of shape %s",
-			params->to_string().c_str(),
+			params->get_tensor()->to_string().c_str(),
 			params->shape().to_string().c_str());
 	}
 	auto raw_params = (PybindT*) params->data();

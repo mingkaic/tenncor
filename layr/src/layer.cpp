@@ -137,9 +137,9 @@ struct LayerDeserializer final : public teq::OnceTraveler
 	void visit_func (teq::iFunctor* func) override
 	{
 		auto children = func->get_children();
-		for (const teq::iEdge& child : children)
+		for (teq::TensptrT child : children)
 		{
-			child.get_tensor()->accept(*this);
+			child->accept(*this);
 		}
 
 		tag::TagRepsT reps =
@@ -148,9 +148,9 @@ struct LayerDeserializer final : public teq::OnceTraveler
 		if (false == matches.empty())
 		{
 			sublayers_.emplace(func, matches);
-			for (const teq::iEdge& child : children)
+			for (teq::TensptrT child : children)
 			{
-				roots_.erase(child.get_tensor().get());
+				roots_.erase(child.get());
 			}
 			roots_.emplace(func);
 		}

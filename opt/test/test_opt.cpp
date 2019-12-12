@@ -34,12 +34,12 @@ static const std::string cst_rules =
 
 
 static const std::string edge_rules =
-"REDUCE_SUM(X={coorder:[8,8,8,8,8,8,8,8]}) => X;"
-"REDUCE_PROD(X={coorder:[8,8,8,8,8,8,8,8]}) => X;"
-"REDUCE_MIN(X={coorder:[8,8,8,8,8,8,8,8]}) => X;"
-"REDUCE_MAX(X={coorder:[8,8,8,8,8,8,8,8]}) => X;"
-"PERMUTE(X={coorder:[0,1,2,3,4,5,6,7]}) => X;"
-"EXTEND(X={coorder:[1,1,1,1,1,1,1,1]}) => X;";
+"REDUCE_SUM{special:[1,2]}(X) => X;"
+"REDUCE_PROD{special2:[2,3]}(X) => X;"
+"REDUCE_MIN{special3:[4,2]}(X) => X;"
+"REDUCE_MAX{special4:[1,3]}(X) => X;"
+"PERMUTE{spec:[0,1]}(X) => X;"
+"EXTEND{spec:[1,0]}(X) => X;";
 
 
 TEST(OPTIMIZE, PruneZeroSingles)
@@ -383,13 +383,13 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 	opt::CversionCtx rules = opt::parse(edge_rules, build_mock_target);
 	opt::CustomFilters empty;
 
-	// remove redundent reduced argument for empty shape
 	{
-		auto redundant_reduce = std::make_shared<MockFunctor>(MockEdgesT{
-			MockEdge(var, std::vector<double>{},
-				std::vector<double>{8, 8, 8, 8, 8, 8, 8, 8}),
-		}, teq::Opcode{"REDUCE_SUM", 0});
-		auto opteds = opt::optimize({redundant_reduce}, rules, empty);
+		auto rule1 = std::make_shared<MockFunctor>(teq::TensptrsT{var},
+			teq::Opcode{"REDUCE_SUM", 0},
+			std::unordered_map<std::string,std::vector<double>>{
+				{"special", {1,2}},
+			});
+		auto opteds = opt::optimize({rule1}, rules, empty);
 		ASSERT_EQ(1, opteds.size());
 		EXPECT_GRAPHEQ("(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
 			opteds[0]);
@@ -397,12 +397,12 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 
 	// remove redundent reduced argument for non-empty shape
 	{
-		auto redundant_reduce = std::make_shared<MockFunctor>(MockEdgesT{
-			MockEdge(var,
-				std::vector<double>{2, 3, 4, 5, 1, 12, 3, 2},
-				std::vector<double>{8, 8, 8, 8, 8, 8, 8, 8}),
-		}, teq::Opcode{"REDUCE_SUM", 0});
-		auto opteds = opt::optimize({redundant_reduce}, rules, empty);
+		auto rule2 = std::make_shared<MockFunctor>(teq::TensptrsT{var},
+			teq::Opcode{"REDUCE_PROD", 0},
+			std::unordered_map<std::string,std::vector<double>>{
+				{"special2", {2,3}},
+			});
+		auto opteds = opt::optimize({rule2}, rules, empty);
 		ASSERT_EQ(1, opteds.size());
 		EXPECT_GRAPHEQ("(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
 			opteds[0]);
@@ -410,14 +410,15 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 
 	// don't reduce non-redundent reduced argument
 	{
-		auto redundant_reduce = std::make_shared<MockFunctor>(MockEdgesT{
-			MockEdge(var, std::vector<double>{},
-				std::vector<double>{2, 3, 4, 8, 8, 8, 8, 8}),
-		}, teq::Opcode{"REDUCE_SUM", 0});
-		auto opteds = opt::optimize({redundant_reduce}, rules, empty);
+		auto not_rule2 = std::make_shared<MockFunctor>(teq::TensptrsT{var},
+			teq::Opcode{"REDUCE_PROD", 0},
+			std::unordered_map<std::string,std::vector<double>>{
+				{"special2", {2,1}},
+			});
+		auto opteds = opt::optimize({not_rule2}, rules, empty);
 		ASSERT_EQ(1, opteds.size());
 		EXPECT_GRAPHEQ(
-			"(REDUCE_SUM[2\\3\\4\\1\\1\\1\\1\\1])\n"
+			"(REDUCE_PROD[2\\3\\4\\1\\1\\1\\1\\1])\n"
 			" `--(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
 			opteds[0]);
 	}
@@ -442,12 +443,8 @@ TEST(OPTIMIZE, PruneOpGraph)
 	auto got2 = std::make_shared<MockFunctor>(teq::TensptrsT{two, three}, teq::Opcode{"SUB", 0});
 	auto got22 = std::make_shared<MockFunctor>(teq::TensptrsT{two, three}, teq::Opcode{"MIN", 0});
 
-	auto too0 = std::make_shared<MockFunctor>(MockEdgesT{
-		MockEdge(zero, std::vector<double>{}, std::vector<double>{0, 8, 8, 8, 8, 8, 8, 8}),
-	}, teq::Opcode{"REDUCE_PROD", 0});
-	auto too1 = std::make_shared<MockFunctor>(MockEdgesT{
-		MockEdge(too0, std::vector<double>{}, std::vector<double>{1, 8, 8, 8, 8, 8, 8, 8}),
-	 }, teq::Opcode{"REDUCE_PROD", 0});
+	auto too0 = std::make_shared<MockFunctor>(teq::TensptrsT{zero}, teq::Opcode{"REDUCE_PROD", 0});
+	auto too1 = std::make_shared<MockFunctor>(teq::TensptrsT{too0}, teq::Opcode{"REDUCE_PROD", 0});
 	auto too2 = std::make_shared<MockFunctor>(teq::TensptrsT{got1, got22}, teq::Opcode{"MUL", 0});
 	auto too3 = std::make_shared<MockFunctor>(teq::TensptrsT{too2}, teq::Opcode{"REDUCE_PROD", 0});
 	auto too = std::make_shared<MockFunctor>(teq::TensptrsT{too2, too3}, teq::Opcode{"MUL", 0});

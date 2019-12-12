@@ -59,7 +59,7 @@ struct Dropout final : public iLayer
 		mask_ = tenncor::rand_binom_one(p) / p;
 		tag(mask_->get_tensor(), LayerId(dropout_mask_key));
 
-		placeholder_connect();
+		placeholder_connect(mask_->shape_sign());
 	}
 
 	Dropout (LinkptrT mask, const std::string& label) : label_(label), mask_(mask)
@@ -104,18 +104,6 @@ struct Dropout final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	teq::ShapeSignature get_input_sign (void) const override
-	{
-		return mask_->shape_sign();
-	}
-
-	/// Implementation of iLayer
-	teq::ShapeSignature get_output_sign (void) const override
-	{
-		return mask_->shape_sign();
-	}
-
-	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
 		return dropout_layer_key;
@@ -152,7 +140,7 @@ private:
 		tag(mask_->get_tensor(), LayerId(dropout_weight_key));
 
 		this->input_ = nullptr;
-		this->placeholder_connect();
+		this->placeholder_connect(mask_->shape_sign());
 	}
 
 	std::string label_;

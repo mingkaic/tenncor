@@ -8,7 +8,7 @@
 #include "eigen/generated/opcode.hpp"
 
 #include "eteq/generated/api.hpp"
-#include "eteq/functor.hpp"
+#include "eteq/make.hpp"
 
 #include "ccur/weights.pb.h"
 

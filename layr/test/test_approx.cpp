@@ -8,7 +8,7 @@
 
 #include "testutil/tutil.hpp"
 
-#include "eteq/variable.hpp"
+#include "eteq/make.hpp"
 
 #include "layr/err_approx.hpp"
 

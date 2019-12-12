@@ -60,7 +60,7 @@ struct Packer final
 		return "";
 	}
 
-	void pack (marsh::Maps& attrs, T pack)
+	void pack (marsh::iAttributed& attrib, T pack)
 	{
 		logs::fatal("unknown attribute");
 	}
@@ -81,7 +81,7 @@ struct Packer<PairVecT<teq::DimT>>
 		return key_;
 	}
 
-	void pack (marsh::Maps& attrs, PairVecT<teq::DimT> dims)
+	void pack (marsh::iAttributed& attrib, PairVecT<teq::DimT> dims)
 	{
 		size_t n = dims.size();
 		if (n > teq::rank_cap)
@@ -93,9 +93,8 @@ struct Packer<PairVecT<teq::DimT>>
 		{
 			logs::fatal("cannot find dimensions");
 		}
-		attrs.add_attr(key_,
-			std::make_unique<marsh::NumArray<double>>(
-				encode_pair(dims)));
+		attrib.add_attr(key_, std::make_unique<marsh::NumArray<double>>(
+			encode_pair(dims)));
 	}
 
 	void unpack (PairVecT<teq::DimT>& out, const marsh::iAttributed& attrib)
@@ -120,7 +119,7 @@ struct Packer<PairVecT<teq::RankT>>
 		return key_;
 	}
 
-	void pack (marsh::Maps& attrs, PairVecT<teq::RankT> ranks)
+	void pack (marsh::iAttributed& attrib, PairVecT<teq::RankT> ranks)
 	{
 		size_t n = ranks.size();
 		if (n > teq::rank_cap)
@@ -142,9 +141,8 @@ struct Packer<PairVecT<teq::RankT>>
 			logs::fatalf("cannot reference ranks beyond rank_cap %d: %s",
 				teq::rank_cap, to_string(ranks).c_str());
 		}
-		attrs.add_attr(key_,
-			std::make_unique<marsh::NumArray<double>>(
-				encode_pair(ranks)));
+		attrib.add_attr(key_, std::make_unique<marsh::NumArray<double>>(
+			encode_pair(ranks)));
 	}
 
 	void unpack (PairVecT<teq::RankT>& out, const marsh::iAttributed& attrib)
@@ -169,7 +167,7 @@ struct Packer<std::vector<teq::DimT>>
 		return key_;
 	}
 
-	void pack (marsh::Maps& attrs, std::vector<teq::DimT> dims)
+	void pack (marsh::iAttributed& attrib, std::vector<teq::DimT> dims)
 	{
 		size_t n = dims.size();
 		if (n > teq::rank_cap)
@@ -182,7 +180,7 @@ struct Packer<std::vector<teq::DimT>>
 			logs::fatal("cannot find dimensions");
 		}
 		std::vector<double> ddims(dims.begin(), dims.end());
-		attrs.add_attr(key_,
+		attrib.add_attr(key_,
 			std::make_unique<marsh::NumArray<double>>(ddims));
 	}
 
@@ -208,7 +206,7 @@ struct Packer<std::vector<teq::RankT>>
 		return key_;
 	}
 
-	void pack (marsh::Maps& attrs, std::vector<teq::RankT> ranks)
+	void pack (marsh::iAttributed& attrib, std::vector<teq::RankT> ranks)
 	{
 		size_t n = ranks.size();
 		if (n > teq::rank_cap)
@@ -231,7 +229,7 @@ struct Packer<std::vector<teq::RankT>>
 					ranks.begin(), ranks.end()).c_str());
 		}
 		std::vector<double> dranks(ranks.begin(), ranks.end());
-		attrs.add_attr(key_,
+		attrib.add_attr(key_,
 			std::make_unique<marsh::NumArray<double>>(dranks));
 	}
 
@@ -257,7 +255,7 @@ struct Packer<std::set<teq::RankT>>
 		return key_;
 	}
 
-	void pack (marsh::Maps& attrs, std::set<teq::RankT> ranks)
+	void pack (marsh::iAttributed& attrib, std::set<teq::RankT> ranks)
 	{
 		size_t n = ranks.size();
 		if (n > teq::rank_cap)
@@ -271,7 +269,7 @@ struct Packer<std::set<teq::RankT>>
 		}
 		std::vector<double> dranks(ranks.begin(), ranks.end());
 		std::sort(dranks.begin(), dranks.end());
-		attrs.add_attr(key_,
+		attrib.add_attr(key_,
 			std::make_unique<marsh::NumArray<double>>(dranks));
 	}
 
@@ -297,11 +295,10 @@ struct Packer<teq::RankT>
 		return key_;
 	}
 
-	void pack (marsh::Maps& attrs, teq::RankT rank)
+	void pack (marsh::iAttributed& attrib, teq::RankT rank)
 	{
-		attrs.add_attr(key_,
-			std::make_unique<marsh::NumArray<double>>(
-				std::vector<double>{(double) rank}));
+		attrib.add_attr(key_, std::make_unique<marsh::NumArray<double>>(
+			std::vector<double>{(double) rank}));
 	}
 
 	void unpack (teq::RankT& out, const marsh::iAttributed& attrib)
@@ -326,10 +323,10 @@ struct Packer<teq::Shape>
 		return key_;
 	}
 
-	void pack (marsh::Maps& attrs, teq::Shape shape)
+	void pack (marsh::iAttributed& attrib, teq::Shape shape)
 	{
 		std::vector<double> dslist(shape.begin(), shape.end());
-		attrs.add_attr(key_,
+		attrib.add_attr(key_,
 			std::make_unique<marsh::NumArray<double>>(dslist));
 	}
 
@@ -346,13 +343,13 @@ struct Packer<teq::Shape>
 	}
 };
 
-void pack_attr (marsh::Maps& attrs);
+void pack_attr (marsh::iAttributed& attrib);
 
 template <typename T, typename ...ARGS>
-void pack_attr (marsh::Maps& attrs, T attr_val, ARGS... args)
+void pack_attr (marsh::iAttributed& attrib, T attr_val, ARGS... args)
 {
-	Packer<T>().pack(attrs, attr_val);
-	pack_attr(attrs, args...);
+	Packer<T>().pack(attrib, attr_val);
+	pack_attr(attrib, args...);
 }
 
 }

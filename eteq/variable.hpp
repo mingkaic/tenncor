@@ -161,42 +161,6 @@ private:
 template <typename T>
 using VarptrT = std::shared_ptr<Variable<T>>;
 
-/// Return variable node given scalar and shape
-template <typename T>
-VarptrT<T> make_variable_scalar (T scalar,
-	teq::Shape shape, std::string label = "")
-{
-	return VarptrT<T>(Variable<T>::get(scalar, shape, label));
-}
-
-/// Return variable node filled with scalar matching link shape
-template <typename T>
-VarptrT<T> make_variable_like (T scalar,
-	LinkptrT<T> link, std::string label = "")
-{
-	auto sign = link->shape_sign();
-	if (teq::is_ambiguous(sign))
-	{
-		logs::fatalf("cannot create constant with ambiguous shaped %s",
-			sign.to_string().c_str());
-	}
-	return VarptrT<T>(Variable<T>::get(scalar, teq::Shape(sign), label));
-}
-
-/// Return zero-initialized variable node of specified shape
-template <typename T>
-VarptrT<T> make_variable (teq::Shape shape, std::string label = "")
-{
-	return VarptrT<T>(Variable<T>::get(shape, label));
-}
-
-/// Return variable node given raw array and shape
-template <typename T>
-VarptrT<T> make_variable (T* data, teq::Shape shape, std::string label = "")
-{
-	return VarptrT<T>(Variable<T>::get(data, shape, label));
-}
-
 }
 
 #endif // ETEQ_VARIABLE_HPP

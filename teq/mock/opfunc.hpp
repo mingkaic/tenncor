@@ -1,5 +1,6 @@
+#include "marsh/objs.hpp"
+
 #include "teq/iopfunc.hpp"
-#include "teq/mock/edge.hpp"
 
 #ifndef TEQ_MOCK_OPFUNC_HPP
 #define TEQ_MOCK_OPFUNC_HPP
@@ -16,11 +17,9 @@ struct MockOpfunc final : public teq::iOperableFunc
 		teq::Opcode opcode = teq::Opcode{},
 		std::unordered_map<std::string,std::vector<double>> attrs = {}) :
 		opcode_(opcode),
-		shape_(args[0]->shape())
+		shape_(args[0]->shape()),
+		args_(args)
 	{
-		args_.reserve(args.size());
-		std::transform(args.begin(), args.end(), std::back_inserter(args_),
-			[](teq::TensptrT tens) { return MockEdge(tens); });
 		for (auto apair : attrs)
 		{
 			auto aval = apair.second;
@@ -62,9 +61,9 @@ struct MockOpfunc final : public teq::iOperableFunc
 		return opcode_;
 	}
 
-	teq::EdgeRefsT get_children (void) const override
+	teq::TensptrsT get_children (void) const override
 	{
-		return teq::EdgeRefsT(args_.begin(), args_.end());
+		return args_;
 	}
 
 	const marsh::iObject* get_attr (std::string attr_name) const override
@@ -77,13 +76,19 @@ struct MockOpfunc final : public teq::iOperableFunc
 		return attrs_.ls_attrs();
 	}
 
-	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override {}
+	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
+	{
+		attrs_.add_attr(attr_key, std::move(attr_val));
+	}
 
-	void rm_attr (std::string attr_key) override {}
+	void rm_attr (std::string attr_key) override
+	{
+		attrs_.rm_attr(attr_key);
+	}
 
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		args_[index] = MockEdge(arg);
+		args_[index] = arg;
 	}
 
 	void update (void) override
@@ -127,7 +132,7 @@ struct MockOpfunc final : public teq::iOperableFunc
 
 	teq::Shape shape_;
 
-	MockEdgesT args_;
+	teq::TensptrsT args_;
 
 	marsh::Maps attrs_;
 };
