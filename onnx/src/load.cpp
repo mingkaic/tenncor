@@ -9,10 +9,31 @@ void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
 	LeafUnmarshF unmarshal_leaf, FuncUnmarshF unmarshal_func)
 {
 	const auto& pb_annotations = pb_graph.quantization_annotation();
-
 	auto annotations = unmarshal_annotation(pb_annotations);
 
 	std::unordered_map<std::string,teq::TensptrT> generated_tens;
+
+	const auto& pb_inputs = pb_graph.inputs();
+	for (const ValueInfoProto& pb_input : pb_inputs)
+	{
+		std::string id = pb_input.name();
+		std::string name;
+		if (estd::has(annotations, id))
+		{
+			AnnotationsT& ans = annotations[id];
+			name = estd::try_get(ans, leafname_key, "");
+		}
+
+		const TypeProto& type = pb_input.type();
+		const TypeProto::Tensor& tens_type = type.tensor_type();
+		const auto& slist = tens_type.shape();
+		teq::ShapeSignature shape(
+			std::vector<teq::DimT>(slist.begin(), slist.end()));
+
+		auto tens = std::make_shared<teq::Placeholder>(shape, name);
+		generated_tens.emplace(id, tens);
+	}
+
 	const auto& pb_tens = pb_graph.initializer();
 	for (const TensorProto& pb_ten : pb_tens)
 	{

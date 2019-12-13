@@ -87,9 +87,17 @@ void save_graph (GraphProto& pb_graph,
 	{
 		std::string id = fmts::to_string(i);
 
+		TensorAnnotation* pb_annotation =
+			pb_graph.add_quantization_annotation();
+		pb_annotation->set_tensor_name(id);
+
+		StringStringEntryProto* namer = pb_annotation->add_quant_parameter_tensor_names();
+		namer->set_key(leafname_key);
+		namer->set_value(place->to_string());
+
 		ValueInfoProto* pb_input = pb_graph.add_input();
 		pb_input->set_name(id);
-		marshal_io(*pb_input, 0, place->shape_sign());
+		marshal_io(*pb_input, place->shape_sign());
 		root_tens.emplace(place);
 		tens.emplace(place, i);
 		++i;
@@ -147,7 +155,7 @@ void save_graph (GraphProto& pb_graph,
 	{
 		ValueInfoProto* pb_output = pb_graph.add_output();
 		pb_output->set_name(fmts::to_string(tens.at(root)));
-		marshal_io(*pb_output, 0, root->shape());
+		marshal_io(*pb_output, root->shape());
 	}
 }
 

@@ -35,8 +35,7 @@ void marshal_tensorshape (TensorShapeProto& out,
 	}
 }
 
-void marshal_io (ValueInfoProto& out, int32_t data_type,
-	const teq::ShapeSignature& shape)
+void marshal_io (ValueInfoProto& out, const teq::ShapeSignature& shape)
 {
 	TypeProto* type = out.mutable_type();
 	TypeProto::Tensor* tens_type = type->mutable_tensor_type();
