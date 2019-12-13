@@ -11,6 +11,7 @@
 
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
+#include "teq/placeholder.hpp"
 
 #ifndef TEQ_TRAVELER_HPP
 #define TEQ_TRAVELER_HPP
@@ -24,30 +25,43 @@ struct OnceTraveler : public iTraveler
 	virtual ~OnceTraveler (void) = default;
 
 	/// Implementation of iTraveler
-	void visit (iLeaf* leaf) override
+	void visit (iLeaf& leaf) override
 	{
-		if (false == estd::has(visited_, leaf))
+		if (false == estd::has(visited_, &leaf))
 		{
-			visited_.emplace(leaf);
+			visited_.emplace(&leaf);
 			visit_leaf(leaf);
 		}
 	}
 
 	/// Implementation of iTraveler
-	void visit (iFunctor* func) override
+	void visit (iFunctor& func) override
 	{
-		if (false == estd::has(visited_, func))
+		if (false == estd::has(visited_, &func))
 		{
-			visited_.emplace(func);
+			visited_.emplace(&func);
 			visit_func(func);
 		}
 	}
 
+	/// Implementation of iTraveler
+	void visit (Placeholder& placeholder) override
+	{
+		if (false == estd::has(visited_, &placeholder))
+		{
+			visited_.emplace(&placeholder);
+			visit_place(placeholder);
+		}
+	}
+
 	/// Do something during unique visit to leaf
-	virtual void visit_leaf (iLeaf* leaf) = 0;
+	virtual void visit_leaf (iLeaf& leaf) = 0;
 
 	/// Do something during unique visit to functor
-	virtual void visit_func (iFunctor* func) = 0;
+	virtual void visit_func (iFunctor& func) = 0;
+
+	/// Do something during unique visit to placeholder
+	virtual void visit_place (Placeholder& placeholder) = 0;
 
 	virtual void clear (void)
 	{
@@ -62,17 +76,17 @@ struct OnceTraveler : public iTraveler
 struct GraphStat final : public iTraveler
 {
 	/// Implementation of iTraveler
-	void visit (iLeaf* leaf) override
+	void visit (iLeaf& leaf) override
 	{
-		graphsize_.emplace(leaf, estd::NumRange<size_t>());
+		graphsize_.emplace(&leaf, estd::NumRange<size_t>());
 	}
 
 	/// Implementation of iTraveler
-	void visit (iFunctor* func) override
+	void visit (iFunctor& func) override
 	{
-		if (false == estd::has(graphsize_, func))
+		if (false == estd::has(graphsize_, &func))
 		{
-			auto children = func->get_children();
+			auto children = func.get_children();
 			size_t nchildren = children.size();
 			std::vector<size_t> max_heights;
 			std::vector<size_t> min_heights;
@@ -83,7 +97,7 @@ struct GraphStat final : public iTraveler
 				child->accept(*this);
 				estd::NumRange<size_t> range = estd::must_getf(graphsize_, child.get(),
 					"GraphStat failed to visit child `%s` of functor `%s`",
-						child->to_string().c_str(), func->to_string().c_str());
+						child->to_string().c_str(), func.to_string().c_str());
 				max_heights.push_back(range.upper_);
 				min_heights.push_back(range.lower_);
 			}
@@ -101,8 +115,15 @@ struct GraphStat final : public iTraveler
 			{
 				min_height += *min_it;
 			}
-			graphsize_.emplace(func, estd::NumRange<size_t>(min_height, max_height));
+			graphsize_.emplace(&func,
+				estd::NumRange<size_t>(min_height, max_height));
 		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (Placeholder& placeholder) override
+	{
+		graphsize_.emplace(&placeholder, estd::NumRange<size_t>());
 	}
 
 	// Maximum depth of the subtree of mapped tensors
@@ -122,12 +143,12 @@ struct PathFinder final : public OnceTraveler
 	PathFinder (const iTensor* target) : target_(target) {}
 
 	/// Implementation of OnceTraveler
-	void visit_leaf (iLeaf* leaf) override {}
+	void visit_leaf (iLeaf& leaf) override {}
 
 	/// Implementation of OnceTraveler
-	void visit_func (iFunctor* func) override
+	void visit_func (iFunctor& func) override
 	{
-		auto children = func->get_children();
+		auto children = func.get_children();
 		size_t n = children.size();
 		std::unordered_set<size_t> path;
 		for (size_t i = 0; i < n; ++i)
@@ -148,8 +169,14 @@ struct PathFinder final : public OnceTraveler
 		}
 		if (false == path.empty())
 		{
-			parents_[func] = std::vector<size_t>(path.begin(), path.end());
+			parents_[&func] = std::vector<size_t>(path.begin(), path.end());
 		}
+	}
+
+	/// Implementation of OnceTraveler
+	void visit_place (Placeholder& placeholder) override
+	{
+		//
 	}
 
 	void clear (void) override
@@ -169,25 +196,31 @@ struct PathFinder final : public OnceTraveler
 struct ParentFinder final : public iTraveler
 {
 	/// Implementation of iTraveler
-	void visit (iLeaf* leaf) override
+	void visit (iLeaf& leaf) override
 	{
-		parents_.emplace(leaf, ParentMapT());
+		parents_.emplace(&leaf, ParentMapT());
 	}
 
 	/// Implementation of iTraveler
-	void visit (iFunctor* func) override
+	void visit (iFunctor& func) override
 	{
-		if (false == estd::has(parents_, func))
+		if (false == estd::has(parents_, &func))
 		{
-			auto children = func->get_children();
+			auto children = func.get_children();
 			for (size_t i = 0, n = children.size(); i < n; ++i)
 			{
 				auto tens = children[i];
 				tens->accept(*this);
-				parents_[tens.get()][func].push_back(i);
+				parents_[tens.get()][&func].push_back(i);
 			}
-			parents_.emplace(func, ParentMapT());
+			parents_.emplace(&func, ParentMapT());
 		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (Placeholder& placeholder) override
+	{
+		parents_.emplace(&placeholder, ParentMapT());
 	}
 
 	/// Tracks child to parents relationship
@@ -201,52 +234,6 @@ using OwnerMapT = std::unordered_map<iTensor*,TensrefT>;
 /// Travelers will lose smart pointer references,
 /// This utility function will grab reference maps of root's subtree
 OwnerMapT track_owners (TensptrsT roots);
-
-/// Leaves set and sets of functors ordered by height (by ascending order)
-struct HeightMatrix
-{
-	HeightMatrix (const TensptrsT& roots) // todo: make this a function
-	{
-		GraphStat stat;
-		for (TensptrT root : roots)
-		{
-			root->accept(stat);
-		}
-
-		std::vector<size_t> root_heights;
-		root_heights.reserve(roots.size());
-		std::transform(roots.begin(), roots.end(),
-			std::back_inserter(root_heights),
-			[&stat](const TensptrT& root)
-			{
-				return stat.graphsize_[root.get()].upper_;
-			});
-		// max of the maxheight of roots should be the maxheight of the whole graph
-		size_t maxheight = *std::max_element(
-			root_heights.begin(), root_heights.end());
-		funcs_ = std::vector<std::unordered_set<iFunctor*>>(maxheight);
-
-		for (auto& gpair : stat.graphsize_)
-		{
-			auto tens = gpair.first;
-			size_t height = gpair.second.upper_;
-			if (0 == height)
-			{
-				leaves_.emplace(static_cast<iLeaf*>(tens));
-			}
-			else
-			{
-				funcs_[height - 1].emplace(static_cast<iFunctor*>(tens));
-			}
-		}
-	}
-
-	/// Leaves of specified subroot
-	std::unordered_set<iLeaf*> leaves_;
-
-	/// Functors of subgraph ordered by ascending maximum height
-	std::vector<std::unordered_set<iFunctor*>> funcs_;
-};
 
 }
 

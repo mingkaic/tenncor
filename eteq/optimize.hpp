@@ -149,25 +149,25 @@ template <typename T>
 struct Hasher final : public teq::OnceTraveler
 {
 	/// Implementation of OnceTraveler
-	void visit_leaf (teq::iLeaf* leaf) override
+	void visit_leaf (teq::iLeaf& leaf) override
 	{
-		if (leaf->is_const())
+		if (leaf.is_const())
 		{
-			std::string label = leaf->shape().to_string() + "|";
-			T* data = (T*) leaf->data();
-			label += fmts::to_string(data, data + leaf->shape().n_elems());
-			encode_label(leaf, label);
+			std::string label = leaf.shape().to_string() + "|";
+			T* data = (T*) leaf.data();
+			label += fmts::to_string(data, data + leaf.shape().n_elems());
+			encode_label(&leaf, label);
 		}
 		else
 		{
-			hashes_.emplace(leaf, uuid_gen_());
+			hashes_.emplace(&leaf, uuid_gen_());
 		}
 	}
 
 	/// Implementation of OnceTraveler
-	void visit_func (teq::iFunctor* func) override
+	void visit_func (teq::iFunctor& func) override
 	{
-		auto children = func->get_children();
+		auto children = func.get_children();
 		std::vector<std::string> hshs;
 		hshs.reserve(children.size());
 		for (teq::TensptrT child : children)
@@ -175,23 +175,29 @@ struct Hasher final : public teq::OnceTraveler
 			child->accept(*this);
 			hshs.push_back(boost::uuids::to_string(hashes_.at(child.get())));
 		}
-		if (nullptr != func->get_attr(eigen::commutative_attr))
+		if (nullptr != func.get_attr(eigen::commutative_attr))
 		{
 			std::sort(hshs.begin(), hshs.end());
 		}
 		std::unordered_map<std::string,std::string> attrs;
-		auto keys = func->ls_attrs();
+		auto keys = func.ls_attrs();
 		for (auto key : keys)
 		{
-			if (auto value = func->get_attr(key))
+			if (auto value = func.get_attr(key))
 			{
 				attrs.emplace(key, value->to_string());
 			}
 		}
-		encode_label(func, func->shape().to_string() + "|" +
-			func->get_opcode().name_ + "\\" +
+		encode_label(&func, func.shape().to_string() + "|" +
+			func.get_opcode().name_ + "\\" +
 			fmts::to_string(attrs.begin(), attrs.end()) + "\\" +
 			fmts::to_string(hshs.begin(), hshs.end()));
+	}
+
+	/// Implementation of OnceTraveler
+	void visit_place (teq::Placeholder& place) override
+	{
+		hashes_.emplace(&place, uuid_gen_());
 	}
 
 	void encode_label (teq::iTensor* tens, const std::string& label)

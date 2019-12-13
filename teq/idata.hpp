@@ -9,6 +9,8 @@
 #include <cstdlib>
 #include <string>
 
+#include "teq/shape.hpp"
+
 #ifndef TEQ_IDATA_HPP
 #define TEQ_IDATA_HPP
 
@@ -26,6 +28,9 @@ struct iData
 	/// Return const pointer to internal data
 	virtual const void* data (void) const = 0;
 
+	/// Return the shape of the data
+	virtual Shape data_shape (void) const = 0;
+
 	/// Return data type encoding
 	virtual size_t type_code (void) const = 0;
 
@@ -35,6 +40,10 @@ struct iData
 	/// Return number of bytes in the data
 	virtual size_t nbytes (void) const = 0;
 };
+
+using DataptrT = std::shared_ptr<iData>;
+
+using DatasT = std::vector<DataptrT>;
 
 }
 

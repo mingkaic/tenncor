@@ -20,16 +20,21 @@ struct iLeaf;
 
 struct iFunctor;
 
+struct Placeholder;
+
 /// Interface to travel through graph, treating iLeaf and iFunctor differently
 struct iTraveler
 {
 	virtual ~iTraveler (void) = default;
 
 	/// Visit leaf node
-	virtual void visit (iLeaf* leaf) = 0; // todo: pass by reference instead of pointer
+	virtual void visit (iLeaf& leaf) = 0;
 
 	/// Visit functor node
-	virtual void visit (iFunctor* func) = 0; // todo: pass by reference instead of pointer
+	virtual void visit (iFunctor& func) = 0;
+
+	/// Visit placeholder node
+	virtual void visit (Placeholder& placeholder) = 0;
 };
 
 /// Interface of traversible and differentiable nodes with shape information

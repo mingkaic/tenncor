@@ -6,8 +6,7 @@ namespace opt
 {
 
 void replace_parents (const teq::ParentFinder& pfinder,
-	teq::TensptrT target, teq::iTensor* source,
-	tag::TagRegistry& registry)
+	teq::TensptrT target, teq::iTensor* source)
 {
 	teq::ParentMapT pmap;
 	if (estd::get(pmap, pfinder.parents_, source))
@@ -21,7 +20,6 @@ void replace_parents (const teq::ParentFinder& pfinder,
 			}
 		}
 	}
-	// registry.move_tags(target, source);
 }
 
 teq::TensptrsT optimize (teq::TensptrsT roots,

@@ -44,6 +44,18 @@ cc_library(
         "@boost//:uuid",
     ],
 )
+######### TOOLS #########
+
+cc_binary(
+    name = "inspector",
+    srcs = glob(["inspector.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//onnx:onnx_cc_proto",
+        "@com_github_mingkaic_cppkg//estd:estd",
+        "@com_github_mingkaic_cppkg//flag:flag",
+    ],
+)
 
 ######### TEST #########
 

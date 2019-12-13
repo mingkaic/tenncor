@@ -6,26 +6,21 @@
 
 #include "exam/exam.hpp"
 
-#include "teq/mock/leaf.hpp"
+#include "teq/mock/data.hpp"
 
 #include "eigen/operator.hpp"
-
-#include "eigen/mock/edge.hpp"
 
 
 static void test_reduce (
 	std::function<eigen::EigenptrT<double>(teq::Shape,
-		const eigen::iEigenEdge<double>&,const marsh::Maps& attr)> red,
+		const teq::iData&,const marsh::Maps& attr)> red,
 	std::function<double(double,double)> agg)
 {
 	std::set<teq::RankT> rranks = {1};
 	marsh::Maps mvalues;
 	eigen::Packer<std::set<teq::RankT>>().pack(mvalues, rranks);
 
-	MockEdge<double> edge(
-		teq::TensptrT(new MockTensor(teq::Shape({3, 2}))),
-		std::vector<double>{2, 3, 4, 5, 6, 7});
-
+	MockData edge(teq::Shape({3, 2}), std::vector<double>{2, 3, 4, 5, 6, 7});
 	auto r = red(teq::Shape({3}), edge, mvalues);
 
 	double* raw = r->get_ptr();
@@ -65,11 +60,8 @@ TEST(OPERATOR, ArgMax)
 	marsh::Maps mvalues;
 	eigen::Packer<teq::RankT>().pack(mvalues, 1);
 
-	MockEdge<double> edge(
-		teq::TensptrT(new MockTensor(teq::Shape({3, 2}))),
-		std::vector<double>{2, 8, 4, 5, 6, 7});
-
-	auto r = eigen::argmax(teq::Shape({3}), edge, mvalues);
+	MockData edge(teq::Shape({3, 2}), std::vector<double>{2, 8, 4, 5, 6, 7});
+	auto r = eigen::argmax<double>(teq::Shape({3}), edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -80,11 +72,8 @@ TEST(OPERATOR, ArgMax)
 	marsh::Maps mvalues2;
 	eigen::Packer<teq::RankT>().pack(mvalues2, 8);
 
-	MockEdge<double> edge2(
-		teq::TensptrT(new MockTensor(teq::Shape({3, 2}))),
-		std::vector<double>{2, 8, 4, 5, 9, 7});
-
-	auto r2 = eigen::argmax(teq::Shape({1}), edge2, mvalues2);
+	MockData edge2(teq::Shape({3, 2}), std::vector<double>{2, 8, 4, 5, 9, 7});
+	auto r2 = eigen::argmax<double>(teq::Shape({1}), edge2, mvalues2);
 
 	double* raw2 = r2->get_ptr();
 	r2->assign();
@@ -98,11 +87,8 @@ TEST(OPERATOR, Extend)
 	eigen::Packer<std::vector<teq::DimT>>().pack(mvalues, {1, 4});
 
 	teq::Shape outshape({3, 4, 2});
-	MockEdge<double> edge(
-		teq::TensptrT(new MockTensor(teq::Shape({3, 1, 2}))),
-		std::vector<double>{2, 8, 4, 5, 6, 7});
-
-	auto r = eigen::extend(outshape, edge, mvalues);
+	MockData edge(teq::Shape({3, 1, 2}), std::vector<double>{2, 8, 4, 5, 6, 7});
+	auto r = eigen::extend<double>(outshape, edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -124,11 +110,8 @@ TEST(OPERATOR, Permute)
 			{2, 0, 1, 3, 4, 5, 6, 7});
 
 		teq::Shape outshape({3, 2, 2});
-		MockEdge<double> edge(
-			teq::TensptrT(new MockTensor(teq::Shape({2, 2, 3}))),
-			std::vector<double>{2, 8, 4, 5, 6, 7, 1, 0, 9, 11, 10, 12});
-
-		auto r = eigen::permute(outshape, edge, mvalues);
+		MockData edge(teq::Shape({2, 2, 3}), std::vector<double>{2, 8, 4, 5, 6, 7, 1, 0, 9, 11, 10, 12});
+		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
 		double* raw = r->get_ptr();
 		r->assign();
@@ -146,11 +129,8 @@ TEST(OPERATOR, Permute)
 			{1, 0, 2, 3, 4, 5, 6, 7});
 
 		teq::Shape outshape({3, 2});
-		MockEdge<double> edge(
-			teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
-			std::vector<double>{2, 8, 4, 5, 6, 7});
-
-		auto r = eigen::permute(outshape, edge, mvalues);
+		MockData edge(teq::Shape({2, 3}), std::vector<double>{2, 8, 4, 5, 6, 7});
+		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
 		double* raw = r->get_ptr();
 		r->assign();
@@ -165,10 +145,8 @@ TEST(OPERATOR, Permute)
 TEST(OPERATOR, Reshape)
 {
 	teq::Shape outshape({1, 3, 2});
-	MockEdge<double> edge(
-		teq::TensptrT(new MockTensor(teq::Shape({2, 1, 3}))),
-		std::vector<double>{2, 8, 4, 5, 6, 7});
-	auto r = eigen::reshape(outshape, edge);
+	MockData edge(teq::Shape({2, 1, 3}), std::vector<double>{2, 8, 4, 5, 6, 7});
+	auto r = eigen::reshape<double>(outshape, edge);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -183,8 +161,7 @@ TEST(OPERATOR, Reshape)
 
 TEST(OPERATOR, Slice)
 {
-	teq::TensptrT inarg(new MockTensor(teq::Shape({3, 2})));
-	std::vector<double> indata = {2, 8, 4, 5, 6, 7};
+	MockData edge(teq::Shape({3, 2}), std::vector<double>{2, 8, 4, 5, 6, 7});
 	// slice both dimensions 0 and 1
 	{
 		marsh::Maps mvalues;
@@ -192,9 +169,7 @@ TEST(OPERATOR, Slice)
 			{{1, 2}, {1, 1}});
 
 		teq::Shape outshape({2, 1});
-		MockEdge<double> edge(inarg, indata);
-
-		auto r = eigen::slice(outshape, edge, mvalues);
+		auto r = eigen::slice<double>(outshape, edge, mvalues);
 
 		double* raw = r->get_ptr();
 		r->assign();
@@ -210,9 +185,7 @@ TEST(OPERATOR, Slice)
 			{{0, 3}, {1, 1}});
 
 		teq::Shape outshape({3, 1});
-		MockEdge<double> edge(inarg, indata);
-
-		auto r = eigen::slice(outshape, edge, mvalues);
+		auto r = eigen::slice<double>(outshape, edge, mvalues);
 
 		double* raw = r->get_ptr();
 		r->assign();
@@ -230,14 +203,11 @@ TEST(OPERATOR, GroupConcat)
 	eigen::Packer<teq::RankT>().pack(mvalues, 0);
 
 	teq::Shape outshape({2, 4});
-	MockEdge<double> edgea(
-		teq::TensptrT(new MockTensor(teq::Shape({1, 4}))),
-		std::vector<double>{2, 8, 4, 5});
-	MockEdge<double> edgeb(
-		teq::TensptrT(new MockTensor(teq::Shape({1, 4}))),
-		std::vector<double>{1, 0, 3, 9});
-
-	auto r = eigen::group_concat<double>(outshape, {edgea, edgeb}, mvalues);
+	auto edgea = std::make_shared<MockData>(
+		teq::Shape({1, 4}), std::vector<double>{2, 8, 4, 5});
+	auto edgeb = std::make_shared<MockData>(
+		teq::Shape({1, 4}), std::vector<double>{1, 0, 3, 9});
+	auto r = eigen::group_concat<double>(outshape, teq::DatasT{edgea, edgeb}, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -251,16 +221,13 @@ TEST(OPERATOR, GroupConcat)
 TEST(OPERATOR, GroupSum)
 {
 	teq::Shape outshape({2, 3});
-	MockEdge<double> edgea(
-		teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
-		std::vector<double>{2, 8, 4, 5, 6, 7});
-	MockEdge<double> edgeb(
-		teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
-		std::vector<double>{1, 0, 3, 9, 10, 11});
-	MockEdge<double> edgec(
-		teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
-		std::vector<double>{4.2, 1, 7.1, 1, 2, 1.1});
-	auto r = eigen::group_sum<double>(outshape, {edgea, edgeb, edgec});
+	auto edgea = std::make_shared<MockData>(
+		teq::Shape({2, 3}), std::vector<double>{2, 8, 4, 5, 6, 7});
+	auto edgeb = std::make_shared<MockData>(
+		teq::Shape({2, 3}), std::vector<double>{1, 0, 3, 9, 10, 11});
+	auto edgec = std::make_shared<MockData>(
+		teq::Shape({2, 3}), std::vector<double>{4.2, 1, 7.1, 1, 2, 1.1});
+	auto r = eigen::group_sum<double>(outshape, teq::DatasT{edgea, edgeb, edgec});
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -274,16 +241,13 @@ TEST(OPERATOR, GroupSum)
 TEST(OPERATOR, GroupProd)
 {
 	teq::Shape outshape({2, 3});
-	MockEdge<double> edgea(
-		teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
-		std::vector<double>{2, 8, 4, 5, 6, 7});
-	MockEdge<double> edgeb(
-		teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
-		std::vector<double>{1, 0, 3, 9, 10, 11});
-	MockEdge<double> edgec(
-		teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
-		std::vector<double>{4, 1, 7, 1, 2, 1});
-	auto r = eigen::group_prod<double>(outshape, {edgea, edgeb, edgec});
+	auto edgea = std::make_shared<MockData>(
+		teq::Shape({2, 3}), std::vector<double>{2, 8, 4, 5, 6, 7});
+	auto edgeb = std::make_shared<MockData>(
+		teq::Shape({2, 3}), std::vector<double>{1, 0, 3, 9, 10, 11});
+	auto edgec = std::make_shared<MockData>(
+		teq::Shape({2, 3}), std::vector<double>{4, 1, 7, 1, 2, 1});
+	auto r = eigen::group_prod<double>(outshape, teq::DatasT{edgea, edgeb, edgec});
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -301,11 +265,8 @@ TEST(OPERATOR, Pad)
 		{{1, 1}});
 
 	teq::Shape outshape({4, 3});
-	MockEdge<double> edge(
-		teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
-		std::vector<double>{2, 8, 4, 5, 6, 7});
-
-	auto r = eigen::pad(outshape, edge, mvalues);
+	MockData edge(teq::Shape({2, 3}), std::vector<double>{2, 8, 4, 5, 6, 7});
+	auto r = eigen::pad<double>(outshape, edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -326,11 +287,8 @@ TEST(OPERATOR, Stride)
 	eigen::Packer<std::vector<teq::DimT>>().pack(mvalues, {1, 2});
 
 	teq::Shape outshape({2, 2});
-	MockEdge<double> edge(
-		teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
-		std::vector<double>{2, 8, 4, 5, 6, 7});
-
-	auto r = eigen::stride(outshape, edge, mvalues);
+	MockData edge(teq::Shape({2, 3}), std::vector<double>{2, 8, 4, 5, 6, 7});
+	auto r = eigen::stride<double>(outshape, edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -349,11 +307,8 @@ TEST(OPERATOR, Scatter)
 	eigen::Packer<std::vector<teq::DimT>>().pack(mvalues, {2, 2});
 
 	teq::Shape outshape({3, 3});
-	MockEdge<double> edge(
-		teq::TensptrT(new MockTensor(teq::Shape({2, 2}))),
-		std::vector<double>{2, 8, 4, 5});
-
-	auto r = eigen::scatter(outshape, edge, mvalues);
+	MockData edge(teq::Shape({2, 2}), std::vector<double>{2, 8, 4, 5});
+	auto r = eigen::scatter<double>(outshape, edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -374,11 +329,8 @@ TEST(OPERATOR, Reverse)
 	eigen::Packer<std::set<teq::RankT>>().pack(mvalues, {1});
 
 	teq::Shape outshape({2, 3});
-	MockEdge<double> edge(
-		teq::TensptrT(new MockTensor(outshape)),
-		std::vector<double>{2, 8, 4, 5, 6, 7});
-
-	auto r = eigen::reverse(outshape, edge, mvalues);
+	MockData edge(outshape, std::vector<double>{2, 8, 4, 5, 6, 7});
+	auto r = eigen::reverse<double>(outshape, edge, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -397,14 +349,9 @@ TEST(OPERATOR, Concat)
 	eigen::Packer<teq::RankT>().pack(mvalues, 0);
 
 	teq::Shape outshape({3, 3});
-	MockEdge<double> edgea(
-		teq::TensptrT(new MockTensor(teq::Shape({2, 3}))),
-		std::vector<double>{2, 8, 4, 5, 7, 6});
-	MockEdge<double> edgeb(
-		teq::TensptrT(new MockTensor(teq::Shape({1, 3}))),
-		std::vector<double>{1, 0, 3});
-
-	auto r = eigen::concat(outshape, edgea, edgeb, mvalues);
+	MockData edgea(teq::Shape({2, 3}), std::vector<double>{2, 8, 4, 5, 7, 6});
+	MockData edgeb(teq::Shape({1, 3}), std::vector<double>{1, 0, 3});
+	auto r = eigen::concat<double>(outshape, edgea, edgeb, mvalues);
 
 	double* raw = r->get_ptr();
 	r->assign();
@@ -436,8 +383,7 @@ TEST(OPERATOR, Concat)
 
 
 static void elementary_unary (
-	std::function<eigen::EigenptrT<double>(teq::Shape,
-		const eigen::iEigenEdge<double>&)> f,
+	std::function<eigen::EigenptrT<double>(teq::Shape,const teq::iData&)> f,
 	std::function<double(double)> unary,
 	std::vector<double> invec = {-2, 8, -4, -5, 7, 6})
 {
@@ -446,8 +392,7 @@ static void elementary_unary (
 		[&](double e) { return unary(e); });
 	{
 		teq::Shape shape({2, 3});
-		MockEdge<double> edge(
-			teq::TensptrT(new MockTensor(shape)), invec);
+		MockData edge(shape, invec);
 		auto r = f(shape, edge);
 
 		double* raw = r->get_ptr();
@@ -458,8 +403,7 @@ static void elementary_unary (
 	}
 	{
 		teq::Shape shape({2, 1, 3});
-		MockEdge<double> edge(
-			teq::TensptrT(new MockTensor(shape)), invec);
+		MockData edge(shape, invec);
 		auto r = f(shape, edge);
 
 		double* raw = r->get_ptr();
@@ -562,18 +506,15 @@ TEST(OPERATOR, Convolution)
 	eigen::Packer<std::vector<teq::RankT>>().pack(mvalues, {1});
 
 	teq::Shape outshape({3, 2});
-	MockEdge<double> image(
-		teq::TensptrT(new MockTensor(teq::Shape({3, 3}))),
-		std::vector<double>{
+	MockData image(teq::Shape({3, 3}), std::vector<double>{
 			2, 8, 4,
 			5, 7, 6,
 			9, 1, 0,
 		});
-	MockEdge<double> kernel(
-		teq::TensptrT(new MockTensor(teq::Shape({2}))),
+	MockData kernel(teq::Shape({2}),
 		std::vector<double>{0.3, 0.6});
 
-	auto r = eigen::convolution(outshape, image, kernel, mvalues);
+	auto r = eigen::convolution<double>(outshape, image, kernel, mvalues);
 	double* raw = r->get_ptr();
 	r->assign();
 

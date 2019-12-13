@@ -10,8 +10,6 @@
 
 #include "eigen/operator.hpp"
 
-#include "eigen/mock/edge.hpp"
-
 
 TEST(INTERNAL, PairEncodeDecode)
 {

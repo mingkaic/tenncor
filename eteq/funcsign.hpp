@@ -7,11 +7,38 @@
 namespace eteq
 {
 
+#define CHOOSE_PARSER(OPCODE)\
+outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
+
 template <typename T>
-struct FuncSignature final : public teq::iFunctor, public iSignature
+struct FuncSignature final : public teq::iFunctor, public teq::iSignature
 {
-	static LinkptrT<T> get (egen::_GENERATED_OPCODE opcode,
-		LinksT<T> links, marsh::Maps&& attrs);
+	static teq::TensptrT get (egen::_GENERATED_OPCODE opcode,
+		LinksT<T> links, marsh::Maps&& attrs)
+	{
+		if (links.empty())
+		{
+			logs::fatalf("cannot perform `%s` without arguments",
+				egen::name_op(opcode).c_str());
+		}
+
+		ShapesT shapes;
+		shapes.reserve(links.size());
+		std::transform(links.begin(), links.end(), std::back_inserter(shapes),
+			[](LinkptrT<T> link)
+			{
+				return link->shape_sign();
+			});
+
+		ShapeOpt outshape;
+		OPCODE_LOOKUP(CHOOSE_PARSER, opcode)
+		if (false == outshape.has_value())
+		{
+			return links.front()->get_tensor();
+		}
+		return teq::TensptrT(new FuncSignature<T>(opcode,
+			*outshape, links, std::move(attrs)));
+	}
 
 	/// Return deep copy of this FuncSignature
 	FuncSignature<T>* clone (void) const
@@ -28,13 +55,13 @@ struct FuncSignature final : public teq::iFunctor, public iSignature
 	/// Implementation of iTensor
 	void accept (teq::iTraveler& visiter) override
 	{
-		visiter.visit(this);
+		visiter.visit(*this);
 	}
 
 	/// Implementation of iTensor
 	teq::Shape shape (void) const override
 	{
-		return build_tensor()->shape();
+		return build_data()->data_shape();
 	}
 
 	/// Implementation of iTensor
@@ -99,25 +126,28 @@ struct FuncSignature final : public teq::iFunctor, public iSignature
 	}
 
 	/// Implementation of iSignature
-	teq::TensptrT build_tensor (void) const override
+	bool can_build (void) const override
 	{
-		teq::TensptrsT args;
-		args.reserve(links_.size());
-		std::transform(links_.begin(), links_.end(), std::back_inserter(args),
-			[](LinkptrT<T> link) { return link->build_tensor(); });
-		if (std::any_of(args.begin(), args.end(),
-			[](teq::TensptrT arg) { return nullptr == arg; }))
-		{
-			return nullptr;
-		}
+		return std::all_of(links_.begin(), links_.end(),
+			[](LinkptrT<T> link) { return link->can_build(); });
+	}
 
-		LinksT<T> flinks;
-		flinks.reserve(args.size());
-		std::transform(args.begin(), args.end(), std::back_inserter(flinks),
-			[](teq::TensptrT arg) { return to_link<T>(arg); });
+	/// Implementation of iSignature
+	teq::DataptrT build_data (void) const override
+	{
+		if (false == can_build())
+		{
+			logs::fatalf("cannot get data from unbuildable signature %s",
+				to_string().c_str());
+		}
+		LinksT<T> links;
+		links.reserve(links_.size());
+		std::transform(links_.begin(), links_.end(), std::back_inserter(links),
+			[](LinkptrT<T> link) { return data_link<T>(link->build_data()); });
 		std::unique_ptr<marsh::Maps> tmp_attrs(attrs_.clone());
-		return Functor<T>::get((egen::_GENERATED_OPCODE) opcode_.code_,
-			flinks, std::move(*tmp_attrs));
+		auto out = Functor<T>::get((egen::_GENERATED_OPCODE) opcode_.code_,
+			links, std::move(*tmp_attrs));
+		return to_link<T>(out)->build_data(); // can simplify if Functor<T>::get returns Functor<T>*
 	}
 
 	/// Implementation of iSignature
@@ -158,6 +188,8 @@ private:
 
 	marsh::Maps attrs_;
 };
+
+#undef CHOOSE_PARSER
 
 /// FuncSignLink is a builder of Functor<T> given opcode, link, and attrs,
 /// Since it's a builder, it maintains no ownership of the functors it builds
@@ -202,19 +234,6 @@ struct FuncSignLink final : public iLink<T>
 		func_->rm_attr(attr_key);
 	}
 
-	/// Implementation of iEigenEdge<T>
-	T* data (void) const override // violates LSP
-	{
-		logs::fatal("invalid call");
-		return nullptr;
-	}
-
-	/// Implementation of iLink<T>
-	bool has_data (void) const override // violates LSP
-	{
-		return false;
-	}
-
 	/// Implementation of iLink<T>
 	teq::TensptrT get_tensor (void) const override
 	{
@@ -222,9 +241,15 @@ struct FuncSignLink final : public iLink<T>
 	}
 
 	/// Implementation of iSignature
-	teq::TensptrT build_tensor (void) const override
+	bool can_build (void) const override
 	{
-		return func_->build_tensor();
+		return func_->can_build();
+	}
+
+	/// Implementation of iSignature
+	teq::DataptrT build_data (void) const override
+	{
+		return func_->build_data();
 	}
 
 	/// Implementation of iSignature
@@ -245,40 +270,6 @@ private:
 
 	std::shared_ptr<FuncSignature<T>> func_;
 };
-
-#define CHOOSE_PARSER(OPCODE)\
-outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
-
-template <typename T>
-LinkptrT<T> FuncSignature<T>::get (egen::_GENERATED_OPCODE opcode,
-	LinksT<T> links, marsh::Maps&& attrs)
-{
-	if (links.empty())
-	{
-		logs::fatalf("cannot perform `%s` without arguments",
-			egen::name_op(opcode).c_str());
-	}
-
-	ShapesT shapes;
-	shapes.reserve(links.size());
-	std::transform(links.begin(), links.end(), std::back_inserter(shapes),
-		[](LinkptrT<T> link)
-		{
-			return link->shape_sign();
-		});
-
-	ShapeOpt outshape;
-	OPCODE_LOOKUP(CHOOSE_PARSER, opcode)
-	if (false == outshape.has_value())
-	{
-		return links.front();
-	}
-	return std::make_shared<FuncSignLink<T>>(
-		std::shared_ptr<FuncSignature<T>>(new FuncSignature<T>(opcode,
-			*outshape, links, std::move(attrs))));
-}
-
-#undef CHOOSE_PARSER
 
 }
 

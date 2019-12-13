@@ -17,10 +17,10 @@
 // TEST(FILTER, RemoveDuplicates)
 // {
 // 	teq::Shape shape({2, 3, 4});
-// 	teq::TensptrT var(new MockTensor(shape, "special_var", false));
-// 	teq::TensptrT zero(new MockTensor(shape, "0"));
-// 	teq::TensptrT one(new MockTensor(shape, "1"));
-// 	teq::TensptrT two(new MockTensor(shape, "2"));
+// 	teq::TensptrT var(new MockLeaf(shape, "special_var", false));
+// 	teq::TensptrT zero(new MockLeaf(shape, "0"));
+// 	teq::TensptrT one(new MockLeaf(shape, "1"));
+// 	teq::TensptrT two(new MockLeaf(shape, "2"));
 
 // 	teq::TensptrsT roots;
 // 	{
@@ -159,15 +159,15 @@ static teq::TensptrT mock_constants (teq::FuncptrT f)
 	std::string opname = f->get_opcode().name_;
 	if (opname == "COS")
 	{
-		return std::make_shared<MockTensor>(f->shape(), "5");
+		return std::make_shared<MockLeaf>(f->shape(), "5");
 	}
 	else if (opname == "POW")
 	{
-		return std::make_shared<MockTensor>(f->shape(), "6");
+		return std::make_shared<MockLeaf>(f->shape(), "6");
 	}
 	else if (opname == "SUB")
 	{
-		return std::make_shared<MockTensor>(f->shape(), "7");
+		return std::make_shared<MockLeaf>(f->shape(), "7");
 	}
 	[]()
 	{
@@ -180,10 +180,10 @@ static teq::TensptrT mock_constants (teq::FuncptrT f)
 TEST(FILTER, ConstantFuncs)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT var(new MockTensor(shape, "special_var", false));
-	teq::TensptrT two(new MockTensor(shape, "2"));
-	teq::TensptrT three(new MockTensor(shape, "3"));
-	teq::TensptrT four(new MockTensor(shape, "4"));
+	teq::TensptrT var(new MockLeaf(shape, "special_var", false));
+	teq::TensptrT two(new MockLeaf(shape, "2"));
+	teq::TensptrT three(new MockLeaf(shape, "3"));
+	teq::TensptrT four(new MockLeaf(shape, "4"));
 
 	teq::TensptrsT roots;
 	roots.reserve(3);

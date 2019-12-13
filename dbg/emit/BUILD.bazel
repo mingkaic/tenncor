@@ -23,7 +23,7 @@ filegroup(
 proto_library(
     name = "gemitter_proto",
     srcs = ["gemitter.proto"],
-    deps = ["//pbm:pbm_proto"],
+    deps = ["@com_github_onnx_onnx//:onnx_proto"],
 )
 
 cpp_grpc_library(

@@ -7,70 +7,93 @@
 namespace onnx
 {
 
-struct OrderedVisitor final : public teq::OnceTraveler
+// FuncPosT is the position of a functor tensor identified by height,
+// breadth-wise of visit (in which left children have lower index than
+// right children which have lower index than parent)
+using FuncPosT = std::pair<size_t,size_t>;
+
+struct OrderedLocator final : public teq::OnceTraveler
 {
-	void visit_leaf (teq::iLeaf* leaf) override
+	void visit_leaf (teq::iLeaf& leaf) override
 	{
-		ordered_.push_back(leaf);
+		leaves_.push_back(&leaf);
 	}
 
-	void visit_func (teq::iFunctor* func) override
+	void visit_func (teq::iFunctor& func) override
 	{
-		auto children = func->get_children();
+		size_t height = 0;
+		auto children = func.get_children();
 		for (teq::TensptrT child : children)
 		{
 			child->accept(*this);
+			if (auto f = dynamic_cast<teq::iFunctor*>(child.get()))
+			{
+				height = std::max(height, funcs_[f].first);
+			}
 		}
-		ordered_.push_back(func);
+		funcs_.emplace(&func, FuncPosT{height, funcs_.size()});
 	}
 
-	std::vector<teq::iTensor*> ordered_;
+	void visit_place (teq::Placeholder& place) override
+	{
+		places_.push_back(&place);
+	}
+
+	std::vector<teq::iLeaf*> leaves_;
+
+	std::unordered_map<teq::iFunctor*,FuncPosT> funcs_;
+
+	std::vector<teq::Placeholder*> places_;
 };
 
 void save_graph (GraphProto& pb_graph,
 	teq::TensptrsT roots, LeafMarshF marshal_leaf)
 {
-	teq::GraphStat stat;
-	OrderedVisitor orderer;
+	OrderedLocator ord;
 	for (teq::TensptrT root : roots)
 	{
 		if (nullptr != root)
 		{
-			root->accept(stat);
-			root->accept(orderer);
+			root->accept(ord);
 		}
 	}
-	std::vector<teq::iLeaf*> leaves;
+
+	std::vector<teq::Placeholder*>& places = ord.places_;
+	std::vector<teq::iLeaf*>& leaves = ord.leaves_;
 	std::vector<teq::iFunctor*> funcs;
 	{
-		std::unordered_map<teq::iFunctor*,size_t> forder;
-		for (auto tens : orderer.ordered_)
+		funcs.reserve(ord.funcs_.size());
+		for (auto fpair : ord.funcs_)
 		{
-			if (stat.graphsize_[tens].upper_ == 0)
-			{
-				leaves.push_back(static_cast<teq::iLeaf*>(tens));
-			}
-			else
-			{
-				auto f = static_cast<teq::iFunctor*>(tens);
-				forder[f] = funcs.size();
-				funcs.push_back(f);
-			}
+			funcs.push_back(fpair.first);
 		}
 		std::sort(funcs.begin(), funcs.end(),
 			[&](teq::iFunctor* a, teq::iFunctor* b)
 			{
-				if (stat.graphsize_[a].upper_ == stat.graphsize_[b].upper_)
+				auto& apos = ord.funcs_[a];
+				auto& bpos = ord.funcs_[b];
+				if (apos.first == bpos.first)
 				{
-					return forder[a] < forder[b];
+					return apos.second < bpos.second;
 				}
-				return stat.graphsize_[a].upper_ < stat.graphsize_[b].upper_;
+				return apos.first < bpos.first;
 			});
 	}
 
 	size_t i = 0;
 	std::unordered_set<const teq::iTensor*> root_tens;
 	std::unordered_map<const teq::iTensor*,size_t> tens;
+	for (const teq::Placeholder* place : places)
+	{
+		std::string id = fmts::to_string(i);
+
+		ValueInfoProto* pb_input = pb_graph.add_input();
+		pb_input->set_name(id);
+		marshal_io(*pb_input, 0, place->shape_sign());
+		root_tens.emplace(place);
+		tens.emplace(place, i);
+		++i;
+	}
 	for (const teq::iLeaf* leaf : leaves)
 	{
 		std::string id = fmts::to_string(i);
@@ -87,11 +110,6 @@ void save_graph (GraphProto& pb_graph,
 			shape.begin(), shape.end());
 		pb_tens->mutable_dims()->Swap(&slist);
 		marshal_leaf(*pb_tens, *leaf);
-
-		// // todo: distinguish weight and placeholders
-		// ValueInfoProto* pb_input = pb_graph.add_input();
-		// pb_input->set_name(id);
-		// marshal_io(*pb_input, pb_tens->data_type(), leaf->shape());
 
 		root_tens.emplace(leaf);
 		tens.emplace(leaf, i);

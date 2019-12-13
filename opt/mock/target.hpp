@@ -27,7 +27,7 @@ struct MockCst final : public opt::iTarget
 	teq::TensptrT convert (
 		teq::Shape outshape, const opt::Candidate& candidate) const override
 	{
-		return std::make_shared<MockTensor>(
+		return std::make_shared<MockLeaf>(
 			outshape, fmts::to_string(scalar_));
 	}
 

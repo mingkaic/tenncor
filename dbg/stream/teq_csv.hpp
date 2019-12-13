@@ -34,34 +34,34 @@ enum NODE_TYPE
 };
 
 /// Function that identify functors by NODE_TYPE
-using GetTypeF = std::function<NODE_TYPE(teq::iFunctor*)>;
+using GetTypeF = std::function<NODE_TYPE(teq::iFunctor&)>;
 
 /// Use CSVEquation to render teq::TensptrT graph to output csv edges
 struct CSVEquation final : public teq::iTraveler
 {
 	CSVEquation (GetTypeF get_ftype =
-		[](teq::iFunctor* func) { return FUNCTOR; }) :
+		[](teq::iFunctor& func) { return FUNCTOR; }) :
 		get_ftype_(get_ftype) {}
 
 	/// Implementation of iTraveler
-	void visit (teq::iLeaf* leaf) override
+	void visit (teq::iLeaf& leaf) override
 	{
-		if (estd::has(nodes_, leaf))
+		if (estd::has(nodes_, &leaf))
 		{
 			return;
 		}
 		std::string label;
-		auto it = labels_.find(leaf);
+		auto it = labels_.find(&leaf);
 		if (labels_.end() != it)
 		{
 			label = it->second + "=";
 		}
-		label += leaf->to_string();
+		label += leaf.to_string();
 		if (showshape_)
 		{
-			label += leaf->shape().to_string();
+			label += leaf.shape().to_string();
 		}
-		nodes_.emplace(leaf, Node{
+		nodes_.emplace(&leaf, Node{
 			label,
 			VARIABLE,
 			nodes_.size(),
@@ -69,20 +69,20 @@ struct CSVEquation final : public teq::iTraveler
 	}
 
 	/// Implementation of iTraveler
-	void visit (teq::iFunctor* func) override
+	void visit (teq::iFunctor& func) override
 	{
-		if (estd::has(nodes_, func))
+		if (estd::has(nodes_, &func))
 		{
 			return;
 		}
 		std::string abbrev;
-		if (estd::get(abbrev, abbreviate_, func))
+		if (estd::get(abbrev, abbreviate_, &func))
 		{
 			if (showshape_)
 			{
-				abbrev += func->shape().to_string();
+				abbrev += func.shape().to_string();
 			}
-			nodes_.emplace(func, Node{
+			nodes_.emplace(&func, Node{
 				abbrev,
 				VARIABLE,
 				nodes_.size(),
@@ -90,32 +90,37 @@ struct CSVEquation final : public teq::iTraveler
 			return;
 		}
 		std::string funcstr;
-		auto it = labels_.find(func);
-		if (labels_.end() != it)
+		if (estd::get(funcstr, labels_, &func))
 		{
-			funcstr = it->second + "=";
+			funcstr += "=";
 		}
-		funcstr += func->to_string();
+		funcstr += func.to_string();
 		if (showshape_)
 		{
-			funcstr += func->shape().to_string();
+			funcstr += func.shape().to_string();
 		}
-		nodes_.emplace(func, Node{
+		nodes_.emplace(&func, Node{
 			funcstr,
 			get_ftype_(func),
 			nodes_.size(),
 		});
-		auto children = func->get_children();
+		auto children = func.get_children();
 		for (size_t i = 0, nchildren = children.size(); i < nchildren; ++i)
 		{
 			auto tens = children[i].get();
 			edges_.push_back(Edge{
-				func,
+				&func,
 				tens,
 				fmts::to_string(i),
 			});
 			tens->accept(*this);
 		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (teq::Placeholder& placeholder) override
+	{
+		//
 	}
 
 	/// Stream visited graphs to out

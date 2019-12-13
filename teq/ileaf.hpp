@@ -20,6 +20,12 @@ struct iLeaf : public iTensor, public iData
 {
 	virtual ~iLeaf (void) = default;
 
+	/// Implementation of iData
+	Shape data_shape (void) const override
+	{
+		return this->shape();
+	}
+
 	/// Return true if leaf is immutable, otherwise false
 	virtual bool is_const (void) const = 0;
 };

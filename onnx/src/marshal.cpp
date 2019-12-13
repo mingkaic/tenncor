@@ -26,7 +26,8 @@ void marshal_attrs (PbAttrsT& out, const teq::iFunctor* func)
 	}
 }
 
-void marshal_tensorshape (TensorShapeProto& out, const teq::Shape& shape)
+void marshal_tensorshape (TensorShapeProto& out,
+	const teq::ShapeSignature& shape)
 {
 	for (teq::DimT dim : shape)
 	{
@@ -34,7 +35,8 @@ void marshal_tensorshape (TensorShapeProto& out, const teq::Shape& shape)
 	}
 }
 
-void marshal_io (ValueInfoProto& out, int32_t data_type, teq::Shape shape)
+void marshal_io (ValueInfoProto& out, int32_t data_type,
+	const teq::ShapeSignature& shape)
 {
 	TypeProto* type = out.mutable_type();
 	TypeProto::Tensor* tens_type = type->mutable_tensor_type();

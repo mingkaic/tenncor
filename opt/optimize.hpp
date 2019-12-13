@@ -6,7 +6,7 @@
 /// Implement algorithm that applies conversion rules to graph roots
 ///
 
-#include "tag/prop.hpp"
+#include "teq/traveler.hpp"
 
 #include "opt/matcher.hpp"
 
@@ -103,8 +103,7 @@ using CversionsT = std::vector<std::pair<teq::FuncptrT,teq::TensptrT>>;
 /// in the sense that all parents of source (found in pfinder)
 /// take on target as the new child in place of source's
 void replace_parents (const teq::ParentFinder& pfinder,
-	teq::TensptrT target, teq::iTensor* source,
-	tag::TagRegistry& registry = tag::get_reg());
+	teq::TensptrT target, teq::iTensor* source);
 
 /// Return optimized roots where optimization rules are applied to subgraphs
 /// Optimized graph roots are moved back to their corresponding root tensors

@@ -21,6 +21,12 @@ struct iOperableFunc : public iFunctor, public iData
 {
 	virtual ~iOperableFunc (void) = default;
 
+	/// Implementation of iData
+	Shape data_shape (void) const override
+	{
+		return this->shape();
+	}
+
 	/// Update local data-cache using this functor's operation
 	virtual void update (void) = 0;
 };

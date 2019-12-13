@@ -43,7 +43,7 @@ struct MockOpfunc final : public teq::iOperableFunc
 
 	void accept (teq::iTraveler& visiter) override
 	{
-		visiter.visit(this);
+		visiter.visit(*this);
 	}
 
 	teq::Shape shape (void) const override

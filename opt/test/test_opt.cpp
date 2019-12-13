@@ -45,8 +45,8 @@ static const std::string edge_rules =
 TEST(OPTIMIZE, PruneZeroSingles)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT var(new MockTensor(shape, "special_var"));
-	teq::TensptrT zero(new MockTensor(shape, "0"));
+	teq::TensptrT var(new MockLeaf(shape, "special_var"));
+	teq::TensptrT zero(new MockLeaf(shape, "0"));
 
 	opt::CversionCtx rules = opt::parse(cst_rules, build_mock_target);
 	opt::CustomFilters empty;
@@ -130,9 +130,9 @@ TEST(OPTIMIZE, PruneZeroSingles)
 TEST(OPTIMIZE, PruneZeroGraph)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT var(new MockTensor(shape, "var"));
-	teq::TensptrT var2(new MockTensor(shape, "var2"));
-	teq::TensptrT zero(new MockTensor(shape, "0"));
+	teq::TensptrT var(new MockLeaf(shape, "var"));
+	teq::TensptrT var2(new MockLeaf(shape, "var2"));
+	teq::TensptrT zero(new MockLeaf(shape, "0"));
 
 	opt::CversionCtx rules = opt::parse(cst_rules, build_mock_target);
 	opt::CustomFilters empty;
@@ -183,10 +183,10 @@ TEST(OPTIMIZE, PruneZeroGraph)
 TEST(OPTIMIZE, PropagateZeroGraph)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT var(new MockTensor(shape, "var"));
-	teq::TensptrT var2(new MockTensor(shape, "var2"));
-	teq::TensptrT zero(new MockTensor(shape, "0"));
-	teq::TensptrT neg(new MockTensor(shape, "-1"));
+	teq::TensptrT var(new MockLeaf(shape, "var"));
+	teq::TensptrT var2(new MockLeaf(shape, "var2"));
+	teq::TensptrT zero(new MockLeaf(shape, "0"));
+	teq::TensptrT neg(new MockLeaf(shape, "-1"));
 
 	opt::CversionCtx rules = opt::parse(cst_rules, build_mock_target);
 	opt::CustomFilters preconst;
@@ -198,7 +198,7 @@ TEST(OPTIMIZE, PropagateZeroGraph)
 				{
 					if (f->get_opcode().name_ == "MAX")
 					{
-						return teq::TensptrT(new MockTensor(shape, "0"));
+						return teq::TensptrT(new MockLeaf(shape, "0"));
 					}
 					return f;
 				});
@@ -225,8 +225,8 @@ TEST(OPTIMIZE, PropagateZeroGraph)
 TEST(OPTIMIZE, PruneOneSingles)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT var(new MockTensor(shape, "special_var"));
-	teq::TensptrT one(new MockTensor(shape, "1"));
+	teq::TensptrT var(new MockLeaf(shape, "special_var"));
+	teq::TensptrT one(new MockLeaf(shape, "1"));
 
 	opt::CversionCtx rules = opt::parse(cst_rules, build_mock_target);
 	opt::CustomFilters empty;
@@ -293,8 +293,8 @@ TEST(OPTIMIZE, PruneOneSingles)
 TEST(OPTIMIZE, PruneOneGraph)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT var(new MockTensor(shape, "var"));
-	teq::TensptrT one(new MockTensor(shape, "1"));
+	teq::TensptrT var(new MockLeaf(shape, "var"));
+	teq::TensptrT one(new MockLeaf(shape, "1"));
 
 	opt::CversionCtx rules = opt::parse(cst_rules, build_mock_target);
 	opt::CustomFilters empty;
@@ -336,9 +336,9 @@ TEST(OPTIMIZE, PruneOneGraph)
 TEST(OPTIMIZE, PropagateOneGraph)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT var(new MockTensor(shape, "var"));
-	teq::TensptrT var2(new MockTensor(shape, "var2"));
-	teq::TensptrT one(new MockTensor(shape, "-1"));
+	teq::TensptrT var(new MockLeaf(shape, "var"));
+	teq::TensptrT var2(new MockLeaf(shape, "var2"));
+	teq::TensptrT one(new MockLeaf(shape, "-1"));
 
 	opt::CversionCtx rules = opt::parse(cst_rules, build_mock_target);
 	opt::CustomFilters preconst;
@@ -350,7 +350,7 @@ TEST(OPTIMIZE, PropagateOneGraph)
 				{
 					if (f->get_opcode().name_ == "SUB")
 					{
-						return teq::TensptrT(new MockTensor(shape, "0"));
+						return teq::TensptrT(new MockLeaf(shape, "0"));
 					}
 					return f;
 				});
@@ -377,8 +377,8 @@ TEST(OPTIMIZE, PropagateOneGraph)
 TEST(OPTIMIZE, PruneEdgeSingles)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT var(new MockTensor(shape, "special_var"));
-	teq::TensptrT var2(new MockTensor(shape, "special_var2"));
+	teq::TensptrT var(new MockLeaf(shape, "special_var"));
+	teq::TensptrT var2(new MockLeaf(shape, "special_var2"));
 
 	opt::CversionCtx rules = opt::parse(edge_rules, build_mock_target);
 	opt::CustomFilters empty;
@@ -428,10 +428,10 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 TEST(OPTIMIZE, PruneOpGraph)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT zero(new MockTensor(shape, "special_var0"));
-	teq::TensptrT one(new MockTensor(shape, "special_var"));
-	teq::TensptrT two(new MockTensor(shape, "special_var2"));
-	teq::TensptrT three(new MockTensor(shape, "special_var3"));
+	teq::TensptrT zero(new MockLeaf(shape, "special_var0"));
+	teq::TensptrT one(new MockLeaf(shape, "special_var"));
+	teq::TensptrT two(new MockLeaf(shape, "special_var2"));
+	teq::TensptrT three(new MockLeaf(shape, "special_var3"));
 
 	opt::CversionCtx rules = opt::parse(edge_rules, build_mock_target);
 	opt::CustomFilters empty;
@@ -511,8 +511,8 @@ TEST(OPTIMIZE, PruneOpGraph)
 TEST(OPTIMIZE, NearMatch)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT var(new MockTensor(shape, "var"));
-	teq::TensptrT one(new MockTensor(shape, "1"));
+	teq::TensptrT var(new MockLeaf(shape, "var"));
+	teq::TensptrT one(new MockLeaf(shape, "1"));
 
 	opt::CversionCtx rules = opt::parse(
 		"DIV(1,comm ADD(1,NEG(EXP(NEG(X))))) => SIGMOID(X);", build_mock_target);

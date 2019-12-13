@@ -32,13 +32,13 @@ TEST(SAVE, SaveGraph)
 		// subtree one
 		teq::Shape shape({3, 7});
 		teq::Shape shape2({7, 3});
-		teq::TensptrT osrc = std::make_shared<MockTensor>(shape, "osrc");
-		teq::TensptrT osrc2 = std::make_shared<MockTensor>(shape2, "osrc2");
+		teq::TensptrT osrc = std::make_shared<MockLeaf>(shape, "osrc");
+		teq::TensptrT osrc2 = std::make_shared<MockLeaf>(shape2, "osrc2");
 
 		{
 			teq::Shape shape3({3, 1, 7});
-			teq::TensptrT src = std::make_shared<MockTensor>(shape, "src");
-			teq::TensptrT src2 = std::make_shared<MockTensor>(shape3, "src2");
+			teq::TensptrT src = std::make_shared<MockLeaf>(shape, "src");
+			teq::TensptrT src2 = std::make_shared<MockLeaf>(shape3, "src2");
 
 			teq::TensptrT dest = std::make_shared<MockFunctor>(teq::TensptrsT{
 				src2,
@@ -63,9 +63,9 @@ TEST(SAVE, SaveGraph)
 		// subtree two
 		{
 			teq::Shape mshape({3, 3});
-			teq::TensptrT src = std::make_shared<MockTensor>(mshape, "s2src");
-			teq::TensptrT src2 = std::make_shared<MockTensor>(mshape, "s2src2");
-			teq::TensptrT src3 = std::make_shared<MockTensor>(mshape, "s2src3");
+			teq::TensptrT src = std::make_shared<MockLeaf>(mshape, "s2src");
+			teq::TensptrT src2 = std::make_shared<MockLeaf>(mshape, "s2src2");
+			teq::TensptrT src3 = std::make_shared<MockLeaf>(mshape, "s2src3");
 
 			teq::TensptrT dest = std::make_shared<MockFunctor>(teq::TensptrsT{
 				src,

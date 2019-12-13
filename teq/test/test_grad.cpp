@@ -12,10 +12,10 @@
 #include "teq/grad_def.hpp"
 
 
-struct LabelledMockTensor final : public MockTensor
+struct LabelledMockTensor final : public MockLeaf
 {
 	LabelledMockTensor (std::string label, teq::Shape shape) :
-		MockTensor(shape), label_(label) {}
+		MockLeaf(shape), label_(label) {}
 
 	std::string to_string (void) const override
 	{
@@ -41,7 +41,7 @@ struct MockGradientBuilder final : public teq::iGradientBuilder
 				teq::TensptrsT{op->get_children()[arg_idx]},
 				teq::Opcode{"FUNC4", 3});
 		}
-		return teq::TensptrT(new MockTensor(op->shape(), "other"));
+		return teq::TensptrT(new MockLeaf(op->shape(), "other"));
 	}
 
 	teq::TensptrT chain_rule (teq::FuncptrT op, const teq::TensptrT& local_der,
@@ -56,12 +56,12 @@ struct MockGradientBuilder final : public teq::iGradientBuilder
 
 	teq::TensptrT get_const_one (teq::Shape shape) const override
 	{
-		return teq::TensptrT(new MockTensor(shape, "1"));
+		return teq::TensptrT(new MockLeaf(shape, "1"));
 	}
 
 	teq::TensptrT get_const_zero (teq::Shape shape) const override
 	{
-		return teq::TensptrT(new MockTensor(shape, "0"));
+		return teq::TensptrT(new MockLeaf(shape, "0"));
 	}
 
 	teq::TensptrT add (teq::TensptrT& lhs, teq::TensptrT& rhs) const override
@@ -85,9 +85,9 @@ TEST(GRAD, OneZero)
 	 *   \    /
 	 *   FUNC
 	 */
-	teq::TensptrT leaf(new MockTensor(shape, "leaf"));
-	teq::TensptrT leaf1(new MockTensor(shape, "leaf2"));
-	teq::TensptrT leaf2(new MockTensor(shape, "leaf3"));
+	teq::TensptrT leaf(new MockLeaf(shape, "leaf"));
+	teq::TensptrT leaf1(new MockLeaf(shape, "leaf2"));
+	teq::TensptrT leaf2(new MockLeaf(shape, "leaf3"));
 	teq::TensptrT f(new MockFunctor(
 		teq::TensptrsT{leaf, leaf1}, teq::Opcode{"FUNC", 0}));
 

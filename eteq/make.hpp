@@ -35,6 +35,24 @@ LinkptrT<T> to_link (teq::TensptrT tens)
 	return nullptr;
 }
 
+template <typename T>
+LinkptrT<T> data_link (teq::DataptrT data)
+{
+	if (nullptr == data)
+	{
+		return nullptr;
+	}
+	if (auto leaf = std::dynamic_pointer_cast<iLeaf<T>>(data))
+	{
+		return std::make_shared<LeafLink<T>>(leaf);
+	}
+	else if (auto func = std::dynamic_pointer_cast<Functor<T>>(data))
+	{
+		return std::make_shared<FuncLink<T>>(func);
+	}
+	return nullptr;
+}
+
 /// Return variable node given scalar and shape
 template <typename T>
 VarptrT<T> make_variable_scalar (T scalar,
@@ -111,12 +129,11 @@ LinkptrT<T> make_functor (egen::_GENERATED_OPCODE opcode, LinksT<T> links, ARGS.
 	}
 	marsh::Maps attrs;
 	eigen::pack_attr(attrs, vargs...);
-	if (std::any_of(links.begin(), links.end(),
-		[](LinkptrT<T> link) { return nullptr == link->get_tensor(); }))
-	{
-		return FuncSignature<T>::get(opcode, links, std::move(attrs));
-	}
-	return to_link<T>(Functor<T>::get(opcode, links, std::move(attrs)));
+	teq::TensptrT out = std::all_of(links.begin(), links.end(),
+		[](LinkptrT<T> link) { return link->can_build(); }) ?
+		Functor<T>::get(opcode, links, std::move(attrs)) :
+		FuncSignature<T>::get(opcode, links, std::move(attrs));
+	return to_link<T>(out);
 }
 
 }

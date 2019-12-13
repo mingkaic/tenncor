@@ -22,7 +22,7 @@ const std::string testdir = "models/test";
 static teq::TensptrT generate_leaf (const onnx::TensorProto& tens,
 	bool is_const, std::string name)
 {
-	return std::make_shared<MockTensor>(onnx::unmarshal_shape(tens), name);
+	return std::make_shared<MockLeaf>(onnx::unmarshal_shape(tens), name);
 }
 
 

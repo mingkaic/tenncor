@@ -8,8 +8,6 @@
 
 #include "estd/estd.hpp"
 
-#include "tag/group.hpp"
-
 #include "eteq/generated/pyapi.hpp"
 
 #include "eteq/make.hpp"
@@ -166,7 +164,7 @@ protected:
 	{
 		if (nullptr == input_)
 		{
-			input_ = std::make_shared<eteq::Placeholder<PybindT>>(
+			input_ = std::make_shared<eteq::PlaceLink<PybindT>>(
 				insign, this->get_label() + "_input");
 		}
 		else
@@ -180,7 +178,7 @@ protected:
 
 	void tag (teq::TensptrT tensor, LayerId subs) const;
 
-	eteq::PlaceptrT<PybindT> input_ = nullptr;
+	eteq::PlaceLinkptrT<PybindT> input_ = nullptr;
 
 	LinkptrT output_ = nullptr;
 };

@@ -19,6 +19,8 @@
 namespace onnx
 {
 
+const std::string model_attr = "model_structure";
+
 using LeafMarshF = std::function<void(TensorProto&,const teq::iLeaf&)>;
 
 void save_graph (GraphProto& pb_graph,

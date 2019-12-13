@@ -14,9 +14,9 @@
 
 TEST(TRAVELER, GraphStat)
 {
-	teq::TensptrT a(new MockTensor());
-	teq::TensptrT b(new MockTensor());
-	teq::TensptrT c(new MockTensor());
+	teq::TensptrT a(new MockLeaf());
+	teq::TensptrT b(new MockLeaf());
+	teq::TensptrT c(new MockLeaf());
 
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
@@ -34,9 +34,9 @@ TEST(TRAVELER, GraphStat)
 
 TEST(TRAVELER, PathFinder)
 {
-	teq::TensptrT a(new MockTensor());
-	teq::TensptrT b(new MockTensor());
-	teq::TensptrT c(new MockTensor());
+	teq::TensptrT a(new MockLeaf());
+	teq::TensptrT b(new MockLeaf());
+	teq::TensptrT c(new MockLeaf());
 
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
@@ -81,9 +81,9 @@ TEST(TRAVELER, PathFinder)
 
 TEST(TRAVELER, ReverseParentGraph)
 {
-	teq::TensptrT a(new MockTensor());
-	teq::TensptrT b(new MockTensor());
-	teq::TensptrT c(new MockTensor());
+	teq::TensptrT a(new MockLeaf());
+	teq::TensptrT b(new MockLeaf());
+	teq::TensptrT c(new MockLeaf());
 
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"f", 1}));
 
@@ -123,9 +123,9 @@ TEST(TRAVELER, ReverseParentGraph)
 TEST(TRAVELER, Owners)
 {
 	teq::OwnerMapT owners;
-	teq::TensptrT a(new MockTensor());
-	teq::TensptrT b(new MockTensor());
-	teq::TensptrT c(new MockTensor());
+	teq::TensptrT a(new MockLeaf());
+	teq::TensptrT b(new MockLeaf());
+	teq::TensptrT c(new MockLeaf());
 	teq::iTensor* fref;
 	teq::iTensor* gref;
 	{

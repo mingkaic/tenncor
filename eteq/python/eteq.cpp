@@ -12,15 +12,6 @@
 
 namespace py = pybind11;
 
-static const std::unordered_map<std::string,logs::LOG_LEVEL> name2loglevel = {
-	{"FATAL", logs::FATAL},
-	{"ERROR", logs::ERROR},
-	{"WARN", logs::WARN},
-	{"INFO", logs::INFO},
-	{"DEBUG", logs::DEBUG},
-	{"TRACE", logs::TRACE},
-};
-
 namespace pyead
 {
 
@@ -176,20 +167,20 @@ PYBIND11_MODULE(eteq, m)
 			"Assign numpy data array to variable");
 
 	// ==== placeholder ====
-	py::class_<eteq::Placeholder<PybindT>,eteq::PlaceptrT<PybindT>,
-		eteq::iLink<PybindT>> placeholder(m, "Placeholder");
+	py::class_<eteq::PlaceLink<PybindT>,eteq::PlaceLinkptrT<PybindT>,
+		eteq::iLink<PybindT>> placeholder(m, "PlaceLink");
 
 	placeholder
 		.def(py::init(
 			[](std::vector<py::ssize_t> slist, std::string label)
 			{
-				return std::make_shared<eteq::Placeholder<PybindT>>(
+				return std::make_shared<eteq::PlaceLink<PybindT>>(
 					pyutils::p2cshapesign(slist), label);
 			}),
 			py::arg("shape"),
 			py::arg("label") = "")
 		.def("assign",
-			[](eteq::Placeholder<PybindT>* self, py::array data)
+			[](eteq::PlaceLink<PybindT>* self, py::array data)
 			{
 				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
@@ -197,7 +188,7 @@ PYBIND11_MODULE(eteq, m)
 			},
 			"Assign numpy data array to placeholder")
 		.def("assign",
-			[](eteq::Placeholder<PybindT>* self, LinkptrT link)
+			[](eteq::PlaceLink<PybindT>* self, LinkptrT link)
 			{
 				self->assign(link);
 			},

@@ -2,7 +2,6 @@
 
 #include "eigen/generated/opcode.hpp"
 #include "eigen/generated/dtype.hpp"
-#include "eigen/edge.hpp"
 
 #ifndef EIGEN_STABILIZER_HPP
 #define EIGEN_STABILIZER_HPP
@@ -116,9 +115,9 @@ static estd::NumRange<T> pow_range (const NumRangesT<T>& ranges)
 }
 
 template <typename T>
-estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& ranges)
+estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& ranges)
 {
-	teq::Opcode opcode = func->get_opcode();
+	teq::Opcode opcode = func.get_opcode();
 	estd::NumRange<T> outrange;
 	switch (opcode.code_)
 	{
@@ -271,9 +270,9 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		case egen::ARGMAX:
 		{
 			teq::RankT return_dim;
-			Packer<teq::RankT>().unpack(return_dim, *func);
+			Packer<teq::RankT>().unpack(return_dim, func);
 
-			teq::TensptrT arg = func->get_children()[0];
+			teq::TensptrT arg = func.get_children()[0];
 			teq::Shape shape = arg->shape();
 			teq::NElemT maxn = teq::rank_cap == return_dim ?
 				shape.n_elems() : shape.at(return_dim);
@@ -449,10 +448,10 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		case egen::REDUCE_SUM:
 		{
 			std::set<teq::RankT> ranks;
-			Packer<std::set<teq::RankT>>().unpack(ranks, *func);
+			Packer<std::set<teq::RankT>>().unpack(ranks, func);
 			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
 
-			teq::TensptrT arg = func->get_children()[0];
+			teq::TensptrT arg = func.get_children()[0];
 			teq::Shape shape = arg->shape();
 			teq::NElemT nreds = 1;
 			for (teq::RankT rank : ranks)
@@ -467,10 +466,10 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		case egen::REDUCE_PROD:
 		{
 			std::set<teq::RankT> ranks;
-			Packer<std::set<teq::RankT>>().unpack(ranks, *func);
+			Packer<std::set<teq::RankT>>().unpack(ranks, func);
 			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
 
-			teq::TensptrT arg = func->get_children()[0];
+			teq::TensptrT arg = func.get_children()[0];
 			teq::Shape shape = arg->shape();
 			teq::NElemT nreds = 1;
 			for (teq::RankT rank : ranks)
@@ -491,11 +490,11 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		case egen::MATMUL:
 		{
 			eigen::PairVecT<teq::RankT> dims;
-			Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, *func);
+			Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, func);
 
 			// matmul = <left> * <right> then reduce sum by common dimensions
 			// so apply range rule for product, then for reduce sum
-			teq::TensptrT arg = func->get_children().front();
+			teq::TensptrT arg = func.get_children().front();
 			teq::Shape shape = arg->shape();
 			teq::NElemT ncommons = 1;
 			for (auto dim : dims)
@@ -521,7 +520,7 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		{
 			// conv = <image> * <kernel> then reduce by kernel dimensions that convolves
 			// apply range rule similar to matmul
-			teq::TensptrT arg = func->get_children()[1];
+			teq::TensptrT arg = func.get_children()[1];
 			teq::Shape shape = arg->shape();
 			teq::NElemT nkern = shape.n_elems();
 			T llower = ranges[0].lower_;
@@ -550,14 +549,14 @@ template <typename T>
 struct Stabilizer final : public teq::iTraveler
 {
 	/// Implementation of iTraveler
-	void visit (teq::iLeaf* leaf) override
+	void visit (teq::iLeaf& leaf) override
 	{
-		if (false == estd::has(ranges_, leaf))
+		if (false == estd::has(ranges_, &leaf))
 		{
-			if (egen::get_type<T>() == leaf->type_code() && leaf->is_const())
+			if (egen::get_type<T>() == leaf.type_code() && leaf.is_const())
 			{
-				auto data = (T*) leaf->data();
-				teq::NElemT n = leaf->shape().n_elems();
+				auto data = (T*) leaf.data();
+				teq::NElemT n = leaf.shape().n_elems();
 				ranges_.emplace(leaf, estd::NumRange<T>(
 					*std::min_element(data, data + n),
 					*std::max_element(data, data + n)));
@@ -572,11 +571,11 @@ struct Stabilizer final : public teq::iTraveler
 	}
 
 	/// Implementation of iTraveler
-	void visit (teq::iFunctor* func) override
+	void visit (teq::iFunctor& func) override
 	{
-		if (false == estd::has(ranges_, func))
+		if (false == estd::has(ranges_, &func))
 		{
-			auto args = func->get_children();
+			auto args = func.get_children();
 			NumRangesT<T> ranges;
 			ranges.reserve(args.size());
 			for (teq::TensptrT arg : args)
@@ -586,8 +585,14 @@ struct Stabilizer final : public teq::iTraveler
 			}
 
 			// func range
-			ranges_.emplace(func, generate_range(func, ranges));
+			ranges_.emplace(&func, generate_range(func, ranges));
 		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (teq::Placeholder& placeholder) override
+	{
+		//
 	}
 
 	std::unordered_map<teq::iTensor*,estd::NumRange<T>> ranges_;

@@ -33,7 +33,7 @@ struct iLeaf : public teq::iLeaf
 	/// Implementation of iTensor
 	void accept (teq::iTraveler& visiter) override
 	{
-		visiter.visit(this);
+		visiter.visit(*this);
 	}
 
 	/// Implementation of iTensor
@@ -120,18 +120,6 @@ struct LeafLink final : public iLink<T>
 	/// Implementation of iAttributed
 	void rm_attr (std::string attr_key) override {}
 
-	/// Implementation of iEigenEdge<T>
-	T* data (void) const override
-	{
-		return (T*) leaf_->data();
-	}
-
-	/// Implementation of iLink<T>
-	bool has_data (void) const override
-	{
-		return true;
-	}
-
 	/// Implementation of iLink<T>
 	teq::TensptrT get_tensor (void) const override
 	{
@@ -139,7 +127,13 @@ struct LeafLink final : public iLink<T>
 	}
 
 	/// Implementation of iSignature
-	teq::TensptrT build_tensor (void) const override
+	bool can_build (void) const override
+	{
+		return true;
+	}
+
+	/// Implementation of iSignature
+	teq::DataptrT build_data (void) const override
 	{
 		return leaf_;
 	}

@@ -18,7 +18,7 @@ OPT_TEST := //opt/...
 
 PBM_TEST := //pbm:test
 
-TAG_TEST := //tag:test
+TAG_TEST := //onnx:test
 
 TEQ_TEST := //teq:test
 
@@ -145,19 +145,19 @@ coverage:
 
 cover_ccur:
 	$(CCOVER) $(CCUR_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'tag/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
 
 cover_eigen:
 	$(CCOVER) $(EIGEN_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'tag/*' 'opt/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'opt/*' -o coverage.info
 
 cover_eteq:
 	$(CCOVER) $(ETEQ_CTEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'tag/*' 'opt/*' 'eigen/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'opt/*' 'eigen/*' -o coverage.info
 
 cover_layr:
 	$(CCOVER) $(LAYR_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'tag/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
 
 cover_marsh:
 	$(CCOVER) $(MARSH_TEST)
@@ -165,7 +165,7 @@ cover_marsh:
 
 cover_opt:
 	$(CCOVER) $(OPT_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'tag/*' 'eigen/*' 'eteq/*' -o coverage.info
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'eigen/*' 'eteq/*' -o coverage.info
 
 cover_pbm:
 	$(CCOVER) $(PBM_TEST)

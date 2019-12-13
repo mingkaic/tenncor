@@ -16,7 +16,7 @@ struct GraphEmitterImpl final : public gemitter::GraphEmitter::Service
 		gemitter::CreateGraphResponse* response) override
 	{
 		const gemitter::GraphPayload& info = request->payload();
-		const tenncor::Graph& graph = info.graph();
+		const onnx::ModelProto& graph = info.graph();
 		gid_ = info.graph_id();
 
 		google::protobuf::util::JsonPrintOptions options;
@@ -47,7 +47,7 @@ struct GraphEmitterImpl final : public gemitter::GraphEmitter::Service
 			{
 				std::cout << "recording node meant for graph " << gid << std::endl;
 			}
-			std::cout << "Updating node " << node_data.node_idx() << std::endl;
+			std::cout << "Updating node " << node_data.node_id() << std::endl;
 		}
 
 		response->set_status(gemitter::OK);

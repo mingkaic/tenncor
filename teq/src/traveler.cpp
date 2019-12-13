@@ -11,18 +11,21 @@ struct OwnerTracker final : public OnceTraveler
 
 private:
 	/// Implementation of OnceTraveler
-	void visit_leaf (iLeaf* leaf) override {}
+	void visit_leaf (iLeaf& leaf) override {}
 
 	/// Implementation of OnceTraveler
-	void visit_func (iFunctor* func) override
+	void visit_func (iFunctor& func) override
 	{
-		auto children = func->get_children();
+		auto children = func.get_children();
 		for (const teq::TensptrT& tens : children)
 		{
 			tens->accept(*this);
 			owners_.emplace(tens.get(), tens);
 		}
 	}
+
+	/// Implementation of OnceTraveler
+	void visit_place (Placeholder& place) override {}
 };
 
 OwnerMapT track_owners (TensptrsT roots)

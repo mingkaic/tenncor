@@ -1,6 +1,3 @@
-#include "pbm/save.hpp"
-#include "pbm/load.hpp"
-
 #include "eteq/serialize.hpp"
 
 #include "layr/layer.hpp"
@@ -121,38 +118,38 @@ struct LayerDeserializer final : public teq::OnceTraveler
 		base_(std::make_shared<LayerNode>(key, val)) {}
 
 	/// Implementation of OnceTraveler
-	void visit_leaf (teq::iLeaf* leaf) override
+	void visit_leaf (teq::iLeaf& leaf) override
 	{
 		tag::TagRepsT reps =
-			tag::get_reg().get_tags(leaf);
+			tag::get_reg().get_tags(&leaf);
 		LMatchesT matches = base_->match_layer(reps);
 		if (false == matches.empty())
 		{
-			sublayers_.emplace(leaf, matches);
-			roots_.emplace(leaf);
+			sublayers_.emplace(&leaf, matches);
+			roots_.emplace(&leaf);
 		}
 	}
 
 	/// Implementation of OnceTraveler
-	void visit_func (teq::iFunctor* func) override
+	void visit_func (teq::iFunctor& func) override
 	{
-		auto children = func->get_children();
+		auto children = func.get_children();
 		for (teq::TensptrT child : children)
 		{
 			child->accept(*this);
 		}
 
 		tag::TagRepsT reps =
-			tag::get_reg().get_tags(func);
+			tag::get_reg().get_tags(&func);
 		LMatchesT matches = base_->match_layer(reps);
 		if (false == matches.empty())
 		{
-			sublayers_.emplace(func, matches);
+			sublayers_.emplace(&func, matches);
 			for (teq::TensptrT child : children)
 			{
 				roots_.erase(child.get());
 			}
-			roots_.emplace(func);
+			roots_.emplace(&func);
 		}
 	}
 

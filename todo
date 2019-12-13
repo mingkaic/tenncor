@@ -7,11 +7,10 @@ P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
    - serialize multi-typed attributes in onnx
-   - serialize edge attrs in onnx
    - implement onnx support for layer
-   - mark pbm as deprecated in favor of onnx
-   - mark tags as deprecated
    - test ALL funcsign + placeholder combinations
+   - address memory leaks
+   - refactor eteq funcsign and functor so that get returns own type instead of TensptrT
 
 === transparency/code readability ===
 P2 - generate value-range graph to detect erroneous operators
@@ -19,7 +18,7 @@ P2 - generate value-range graph to detect erroneous operators
       - this graph can help developers quickly identifies unstable nodes
 P3 - implement custom logger that displays location of nearest node on fatal errors
 P2 - centralize global context structures
-P2 - implement debug option that locates nodes by some tag/parent-child relationship/etc.
+P2 - implement debug option that locates nodes by some attr/parent-child relationship/etc.
 P2 - create global context for setting local logger
 P2 - layr get_contents needs to return context for output tensors
    - upgrade pygen to support multiline comments in API

@@ -10,21 +10,21 @@ using EdgeDistanceMapT = std::unordered_map<teq::iTensor*,teq::DistanceMapT>;
 struct DistanceFinder final : public teq::iTraveler
 {
 	/// Implementation of iTraveler
-	void visit (teq::iLeaf* leaf) override
+	void visit (teq::iLeaf& leaf) override
 	{
-		if (false == estd::has(distances_, leaf))
+		if (false == estd::has(distances_, &leaf))
 		{
-			distances_.emplace(leaf, DistanceMapT{{leaf, 0}});
+			distances_.emplace(&leaf, DistanceMapT{{&leaf, 0}});
 		}
 	}
 
 	/// Implementation of iTraveler
-	void visit (teq::iFunctor* func) override
+	void visit (teq::iFunctor& func) override
 	{
-		if (false == estd::has(distances_, func))
+		if (false == estd::has(distances_, &func))
 		{
-			DistanceMapT distmap = {{func, 0}};
-			auto children = func->get_children();
+			DistanceMapT distmap = {{&func, 0}};
+			auto children = func.get_children();
 			for (teq::TensptrT tens : children)
 			{
 				tens->accept(*this);
@@ -40,8 +40,14 @@ struct DistanceFinder final : public teq::iTraveler
 					distmap[distpair.first] = mindist;
 				}
 			}
-			distances_.emplace(func, distmap);
+			distances_.emplace(&func, distmap);
 		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (teq::Placeholder& placeholder) override
+	{
+		//
 	}
 
 	EdgeDistanceMapT distances_;

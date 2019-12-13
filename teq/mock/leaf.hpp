@@ -3,23 +3,23 @@
 #ifndef TEQ_MOCK_LEAF_HPP
 #define TEQ_MOCK_LEAF_HPP
 
-struct MockTensor : public teq::iLeaf
+struct MockLeaf : public teq::iLeaf
 {
-	MockTensor (std::string label = "") : label_(label) {}
+	MockLeaf (std::string label = "") : label_(label) {}
 
-	MockTensor (teq::Shape shape,
+	MockLeaf (teq::Shape shape,
 		std::string label = "") :
 		shape_(shape), label_(label) {}
 
-	MockTensor (teq::Shape shape,
+	MockLeaf (teq::Shape shape,
 		std::string label, bool cst) :
 		shape_(shape), label_(label), cst_(cst) {}
 
-	virtual ~MockTensor (void) = default;
+	virtual ~MockLeaf (void) = default;
 
 	void accept (teq::iTraveler& visiter) override
 	{
-		visiter.visit(this);
+		visiter.visit(*this);
 	}
 
 	teq::Shape shape (void) const override
@@ -64,7 +64,7 @@ struct MockTensor : public teq::iLeaf
 
 	teq::iTensor* clone_impl (void) const override
 	{
-		return new MockTensor(*this);
+		return new MockLeaf(*this);
 	}
 
 	teq::Shape shape_;

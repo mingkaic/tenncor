@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "pbm/graph.proto";
+import "onnx/onnx.proto";
 
 package gemitter;
 
@@ -9,13 +9,13 @@ package gemitter;
 message GraphPayload {
     string graph_id = 1;
 
-    tenncor.Graph graph = 2;
+    onnx.ModelProto graph = 2;
 }
 
 message NodePayload {
     string graph_id = 1;
 
-    int32 node_idx = 2;
+    string node_id = 2;
 
     repeated float data = 3;
 }

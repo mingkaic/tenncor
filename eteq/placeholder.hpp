@@ -1,5 +1,6 @@
-#include "eteq/signature.hpp"
-#include "eteq/variable.hpp"
+#include "teq/placeholder.hpp"
+
+#include "eteq/functor.hpp"
 
 #ifndef ETEQ_PLACEHOLDER_HPP
 #define ETEQ_PLACEHOLDER_HPP
@@ -13,49 +14,48 @@ namespace eteq
 /// then wrap it in variable and assign as child
 /// Otherwise take node as its child
 template <typename T>
-struct Placeholder final : public iLink<T>
+struct PlaceLink final : public iLink<T>
 {
-	Placeholder (teq::ShapeSignature shape, std::string label = "") :
-		label_(label), shape_(shape) {}
+	PlaceLink (teq::ShapeSignature shape, std::string label = "") :
+		place_(std::make_shared<teq::Placeholder>(shape, label)) {}
 
 	/// Return deep copy of this Functor
-	Placeholder<T>* clone (void) const
+	PlaceLink<T>* clone (void) const
 	{
-		return static_cast<Placeholder<T>*>(clone_impl());
+		return static_cast<PlaceLink<T>*>(clone_impl());
+	}
+
+	void assign (const teq::LeafptrT& inleaf)
+	{
+		place_->assign(inleaf);
+	}
+
+	void assign (const OpFuncptrT<T>& infunc)
+	{
+		place_->assign(infunc);
 	}
 
 	void assign (const LinkptrT<T>& input)
 	{
-		teq::Shape shape = input->shape();
-		if (false == shape.compatible_after(shape_, 0))
-		{
-			logs::fatalf("assigning data shaped %s to tensor %s",
-				shape.to_string().c_str(), shape_.to_string().c_str());
-		}
-		content_ = input;
-	}
-
-	void assign (const teq::TensptrT& input)
-	{
-		assign(to_link<T>(input));
+		place_->assign(input->build_data());
 	}
 
 	void assign (eigen::TensMapT<T>& input)
 	{
 		teq::Shape shape = eigen::get_shape(input);
-		if (auto var = nullptr == content_ ? nullptr :
-			dynamic_cast<Variable<T>*>(content_->get_tensor().get()))
+		if (auto var = place_->can_build() ?
+			dynamic_cast<Variable<T>*>(place_->build_data().get()) : nullptr)
 		{
-			if (false == shape.compatible_after(shape_, 0))
+			if (false == shape.compatible_after(shape, 0))
 			{
 				logs::fatalf("assigning data shaped %s to tensor %s",
-					shape.to_string().c_str(), shape_.to_string().c_str());
+					shape.to_string().c_str(), shape.to_string().c_str());
 			}
 			var->assign(input);
 		}
 		else
 		{
-			assign(make_variable<T>(input.data(), shape, label_));
+			assign(make_variable<T>(input.data(), shape, place_->to_string()));
 		}
 	}
 
@@ -67,20 +67,21 @@ struct Placeholder final : public iLink<T>
 
 	void assign (teq::ShapedArr<T>& sarr)
 	{
-		if (auto var = nullptr == content_ ? nullptr :
-			dynamic_cast<Variable<T>*>(content_->get_tensor().get()))
+		if (auto var = place_->can_build() ?
+			dynamic_cast<Variable<T>*>(place_->build_data().get()) : nullptr)
 		{
-			if (false == sarr.shape_.compatible_after(shape_, 0))
+			auto shape = var->shape();
+			if (false == sarr.shape_.compatible_after(shape, 0))
 			{
 				logs::fatalf("assigning data shaped %s to tensor %s",
-					sarr.shape_.to_string().c_str(), shape_.to_string().c_str());
+					sarr.shape_.to_string().c_str(), shape.to_string().c_str());
 			}
 			var->assign(sarr);
 		}
 		else
 		{
 			assign(make_variable<T>(
-				sarr.data_.data(), sarr.shape_, label_));
+				sarr.data_.data(), sarr.shape_, place_->to_string()));
 		}
 	}
 
@@ -103,84 +104,47 @@ struct Placeholder final : public iLink<T>
 	void rm_attr (std::string attr_key) override {}
 
 	/// Implementation of iLink<T>
-	T* data (void) const override
-	{
-		if (nullptr == content_)
-		{
-			logs::fatal("cannot get data of unassigned placeholder");
-		}
-		return content_->data();
-	}
-
-	/// Implementation of iLink<T>
-	bool has_data (void) const override
-	{
-		if (nullptr == content_)
-		{
-			return false;
-		}
-		return content_->has_data();
-	}
-
-	/// Implementation of iLink<T>
 	teq::TensptrT get_tensor (void) const override
 	{
-		if (nullptr == content_)
-		{
-			logs::debug("getting tensor from placeholder without assigned link");
-			return nullptr;
-		}
-		return content_->get_tensor();
+		return place_;
 	}
 
 	/// Implementation of iSignature
-	teq::TensptrT build_tensor (void) const override
+	bool can_build (void) const override
 	{
-		if (nullptr == content_)
-		{
-			logs::debug("building tensor from placeholder without assigned link");
-			return nullptr;
-		}
-		return content_->get_tensor();
+		return place_->can_build();
+	}
+
+	/// Implementation of iSignature
+	teq::DataptrT build_data (void) const override
+	{
+		return place_->build_data();
 	}
 
 	/// Implementation of iSignature
 	teq::ShapeSignature shape_sign (void) const override
 	{
-		return shape_;
+		return place_->shape_sign();
 	}
-
-	LinkptrT<T> get_child (void) const
-	{
-		if (nullptr == content_)
-		{
-			logs::fatal("cannot get child of unassigned placeholder");
-		}
-		return content_;
-	}
-
-	std::string label_;
 
 private:
-	Placeholder (const Placeholder<T>& other) = default;
+	PlaceLink (const PlaceLink<T>& other) = default;
 
 	iLink<T>* clone_impl (void) const override
 	{
-		return new Placeholder<T>(*this);
+		return new PlaceLink<T>(*this);
 	}
 
 	void subscribe (Functor<T>* parent) override {}
 
 	void unsubscribe (Functor<T>* parent) override {}
 
-	teq::ShapeSignature shape_;
-
-	LinkptrT<T> content_ = nullptr;
+	teq::PlaceptrT place_;
 };
 
 /// Smart pointer of placeholder nodes to preserve assign functions
 template <typename T>
-using PlaceptrT = std::shared_ptr<Placeholder<T>>;
+using PlaceLinkptrT = std::shared_ptr<PlaceLink<T>>;
 
 }
 

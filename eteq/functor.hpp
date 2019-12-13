@@ -8,8 +8,6 @@
 
 #include "teq/iopfunc.hpp"
 
-#include "tag/locator.hpp"
-
 #include "eigen/generated/opcode.hpp"
 #include "eigen/packattr.hpp"
 
@@ -82,7 +80,7 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 	/// Implementation of iTensor
 	void accept (teq::iTraveler& visiter) override
 	{
-		visiter.visit(this);
+		visiter.visit(*this);
 	}
 
 	/// Implementation of iTensor
@@ -237,15 +235,15 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 	/// Populate internal Eigen data object
 	void initialize (void)
 	{
-		eigen::EEdgeRefsT<T> refs;
-		refs.reserve(links_.size());
-		std::transform(links_.begin(), links_.end(), std::back_inserter(refs),
-			[](LinkptrT<T> edge) -> const eigen::iEigenEdge<T>&
+		teq::DatasT data;
+		data.reserve(links_.size());
+		std::transform(links_.begin(), links_.end(), std::back_inserter(data),
+			[](LinkptrT<T> edge)
 			{
-				return *edge;
+				return edge->build_data();
 			});
 		egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-			out_, shape_, refs, *this);
+			out_, shape_, data, *this);
 	}
 
 private:
@@ -279,14 +277,7 @@ private:
 			arg->subscribe(this);
 		}
 #ifndef SKIP_INIT
-		if (std::all_of(links_.begin(), links_.end(),
-			[](LinkptrT<T>& link)
-			{
-				return link->has_data();
-			}))
-		{
-			initialize();
-		}
+		initialize();
 #endif // SKIP_INIT
 	}
 
@@ -306,11 +297,14 @@ private:
 
 #undef CHOOSE_PARSER
 
+template <typename T>
+using OpFuncptrT = std::shared_ptr<Functor<T>>;
+
 /// Functor's node wrapper
 template <typename T>
 struct FuncLink final : public iLink<T>
 {
-	FuncLink (std::shared_ptr<Functor<T>> func) : func_(func)
+	FuncLink (OpFuncptrT<T> func) : func_(func)
 	{
 		if (func == nullptr)
 		{
@@ -348,18 +342,6 @@ struct FuncLink final : public iLink<T>
 		func_->rm_attr(attr_key);
 	}
 
-	/// Implementation of iEigenEdge<T>
-	T* data (void) const override
-	{
-		return (T*) func_->data();
-	}
-
-	/// Implementation of iLink<T>
-	bool has_data (void) const override
-	{
-		return func_->has_data();
-	}
-
 	/// Implementation of iLink<T>
 	teq::TensptrT get_tensor (void) const override
 	{
@@ -367,8 +349,18 @@ struct FuncLink final : public iLink<T>
 	}
 
 	/// Implementation of iSignature
-	teq::TensptrT build_tensor (void) const override
+	bool can_build (void) const override
 	{
+		return true;
+	}
+
+	/// Implementation of iSignature
+	teq::DataptrT build_data (void) const override
+	{
+		if (false == func_->has_data())
+		{
+			func_->initialize();
+		}
 		return func_;
 	}
 
@@ -385,7 +377,7 @@ private:
 
 	iLink<T>* clone_impl (void) const override
 	{
-		return new FuncLink(std::shared_ptr<Functor<T>>(func_->clone()));
+		return new FuncLink(OpFuncptrT<T>(func_->clone()));
 	}
 
 	/// Implementation of iLink<T>
@@ -400,7 +392,7 @@ private:
 		func_->unsubscribe(parent);
 	}
 
-	std::shared_ptr<Functor<T>> func_;
+	OpFuncptrT<T> func_;
 };
 
 }

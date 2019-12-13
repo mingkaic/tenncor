@@ -36,7 +36,7 @@ struct MockFunctor final : public teq::iFunctor
 
 	void accept (teq::iTraveler& visiter) override
 	{
-		visiter.visit(this);
+		visiter.visit(*this);
 	}
 
 	teq::Shape shape (void) const override
