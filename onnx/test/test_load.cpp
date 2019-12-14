@@ -37,7 +37,7 @@ TEST(LOAD, LoadGraph)
 {
 	onnx::GraphProto graph;
 	{
-		std::fstream inputstr(testdir + "/onnx_graph.onnx",
+		std::fstream inputstr(testdir + "/onnx.onnx",
 			std::ios::in | std::ios::binary);
 		ASSERT_TRUE(inputstr.is_open());
 		ASSERT_TRUE(graph.ParseFromIstream(&inputstr));
@@ -51,7 +51,7 @@ TEST(LOAD, LoadGraph)
 	std::string expect;
 	std::string got;
 	std::string line;
-	std::ifstream expectstr(testdir + "/onnx_graph.txt");
+	std::ifstream expectstr(testdir + "/onnx.txt");
 	ASSERT_TRUE(expectstr.is_open());
 	while (std::getline(expectstr, line))
 	{

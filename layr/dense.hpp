@@ -6,10 +6,11 @@
 /// Implement fully connected layer
 ///
 
+#include "teq/ilayer.hpp"
+
 #include "eteq/generated/api.hpp"
 
 #include "layr/init.hpp"
-#include "layr/layer.hpp"
 
 #ifndef LAYR_DENSE_HPP
 #define LAYR_DENSE_HPP
@@ -23,108 +24,46 @@ const std::string dense_weight_key = "weight";
 /// Fully connected bias label
 const std::string dense_bias_key = "bias";
 
-/// Fully connected parameter label
-const std::string dense_param_key = "cparam";
-
-/// Builder implementation for fully connected layer
-struct DenseBuilder final : public iLayerBuilder
+teq::ShapeSignature matmul_leftsign (teq::Shape right,
+	eigen::PairVecT<teq::RankT> dims) const
 {
-	DenseBuilder (std::string label) : label_(label) {}
-
-	/// Implementation of iLayerBuilder
-	void set_tensor (teq::TensptrT tens, std::string target) override
+	std::vector<teq::DimT> slist(teq::rank_cap, 0);
+	for (auto dpair : dims)
 	{
-		if (target == dense_weight_key)
-		{
-			weight_ = tens;
-			return;
-		}
-		else if (target == dense_bias_key)
-		{
-			bias_ = tens;
-			return;
-		}
-		else if (target == dense_param_key)
-		{
-			params_ = eteq::to_link<PybindT>(tens);
-			return;
-		}
-		logs::warnf("attempt to create dense layer "
-			"with unknown tensor `%s` of label `%s`",
-			tens->to_string().c_str(), target.c_str());
+		slist[dpair.first] = right.at(dpair.second);
 	}
+	return teq::ShapeSignature(slist);
+}
 
-	/// Implementation of iLayerBuilder
-	void set_sublayer (LayerptrT layer) override {} // dense has no sublayer
-
-	/// Implementation of iLayerBuilder
-	LayerptrT build (void) const override;
-
-private:
-	teq::TensptrT weight_ = nullptr;
-
-	teq::TensptrT bias_ = nullptr;
-
-	LinkptrT params_ = nullptr;
-
-	std::string label_;
-};
-
-/// Identifier for fully connected layer
-const std::string dense_layer_key =
-get_layer_reg().register_tagr(layers_key_prefix + "dense",
-[](std::string label) -> LBuilderptrT
+teq::Shape prefix_shape (teq::DimT prefix, teq::Shape right)
 {
-	return std::make_shared<DenseBuilder>(label);
-});
+	teq::Shape outshape({prefix});
+	std::copy(right.begin(),
+		right.begin() + teq::rank_cap - 1, outshape.begin() + 1);
+	return outshape;
+}
 
 /// Layer implementation to apply fully_connect functions to weight and optional bias
-struct Dense final : public iLayer
+template <typename T=PybindT>
+struct Dense final : public teq::iLayer
 {
 	Dense (teq::DimT nunits, const teq::Shape& inshape,
-		layr::InitF<PybindT> weight_init,
-		layr::InitF<PybindT> bias_init,
-		LinkptrT params,
-		const std::string& label) :
+		layr::InitF<T> weight_init, layr::InitF<T> bias_init,
+		const std::string& label,
+		eigen::PairVecT<teq::RankT> dims = {{0, 1}}) :
+		iLayer(matmul_leftsign(prefix_shape(nunits, inshape), dims)),
 		label_(label),
-		params_(params)
+		weight_(weight_init(prefix_shape(nunits, inshape), dense_weight_key)),
+		dims_(dims)
 	{
-		teq::Shape wshape({nunits});
-		std::copy(inshape.begin(), inshape.begin() + teq::rank_cap - 1, wshape.begin() + 1);
-		weight_ = weight_init(wshape, dense_weight_key);
-		tag(weight_, LayerId(dense_weight_key));
 		if (bias_init)
 		{
 			bias_ = bias_init(teq::Shape({nunits}), dense_bias_key);
-			tag(bias_, LayerId(dense_bias_key));
 		}
-		if (params_)
-		{
-			tag(params_->get_tensor(), LayerId(dense_param_key));
-		}
-
-		placeholder_connect(calc_insign());
+		output_ = connect(this->input_);
 	}
 
-	Dense (teq::TensptrT weight, teq::TensptrT bias,
-		LinkptrT params, const std::string& label) :
-		label_(label),
-		weight_(weight),
-		bias_(bias),
-		params_(params)
-	{
-		tag(weight_, LayerId(dense_weight_key));
-		if (bias)
-		{
-			tag(bias_, LayerId(dense_bias_key));
-		}
-		if (params_)
-		{
-			tag(params_->get_tensor(), LayerId(dense_param_key));
-		}
-	}
-
-	Dense (const Dense& other, std::string label_prefix = "")
+	Dense (const Dense& other, std::string label_prefix = "") : iLayer(other)
 	{
 		copy_helper(other, label_prefix);
 	}
@@ -149,21 +88,21 @@ struct Dense final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	size_t get_ninput (void) const override
+	teq::ShapeSignature get_output_sign (void) const override
 	{
-		return weight_->shape().at(1);
+		return output_->shape_sign();
 	}
 
 	/// Implementation of iLayer
-	size_t get_noutput (void) const override
+	teq::TensptrT get_output (void) const override
 	{
-		return weight_->shape().at(0);
+		return output_->get_tensor();
 	}
 
 	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
-		return dense_layer_key;
+		return "dense";
 	}
 
 	/// Implementation of iLayer
@@ -173,39 +112,17 @@ struct Dense final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	teq::TensptrsT get_contents (void) const override
+	teq::TensptrsT get_storage (void) const override
 	{
-		return {weight_, bias_,
-			nullptr == params_ ? nullptr : params_->get_tensor()};
+		return {weight_, bias_};
 	}
 
 	/// Implementation of iLayer
-	LinkptrT connect (LinkptrT input) const override
+	teq::TensptrT connect (teq::TensptrT input) const override
 	{
-		eigen::PairVecT<teq::RankT> dims = {{0, 1}};
-		if (params_)
-		{
-			teq::Shape shape = params_->shape();
-			teq::NElemT n = shape.n_elems();
-			if (0 != n % 2)
-			{
-				logs::fatalf(
-					"cannot connect dense layer with parameter of shape %s",
-					shape.to_string().c_str());
-			}
-			auto rawdims = (PybindT*) params_->data();
-			dims.clear();
-			for (teq::NElemT i = 0; i < n; i += 2)
-			{
-				dims.push_back({
-					(teq::RankT) rawdims[i],
-					(teq::RankT) rawdims[i + 1]});
-			}
-		}
 		// expect input to be <input dimensions...,nbatch dimensions...>
-		return tenncor::nn::fully_connect({input},
-			{eteq::to_link<PybindT>(weight_)},
-			eteq::to_link<PybindT>(bias_), dims);
+		return tenncor::nn::fully_connect({eteq::to_link<T>(input)},
+			{eteq::to_link<T>(weight_)}, eteq::to_link<T>(bias_), dims_);
 	}
 
 private:
@@ -218,62 +135,23 @@ private:
 	{
 		label_ = label_prefix + other.label_;
 		weight_ = teq::TensptrT(other.weight_->clone());
-		tag(weight_, LayerId(dense_weight_key));
 		if (other.bias_)
 		{
 			bias_ = teq::TensptrT(other.bias_->clone());
-			tag(bias_, LayerId(dense_bias_key));
 		}
-		if (other.params_)
-		{
-			params_ = LinkptrT(other.params_->clone());
-			tag(params_->get_tensor(), LayerId(dense_param_key));
-		}
-
-		this->input_ = nullptr;
-		this->placeholder_connect(calc_insign());
-	}
-
-	teq::ShapeSignature calc_insign (void) const
-	{
-		eigen::PairVecT<teq::RankT> dims = {{0, 1}};
-		if (params_)
-		{
-			teq::Shape shape = params_->shape();
-			teq::NElemT n = shape.n_elems();
-			if (0 != n % 2)
-			{
-				logs::fatalf(
-					"cannot connect dense layer with parameter of shape %s",
-					shape.to_string().c_str());
-			}
-			auto rawdims = (PybindT*) params_->data();
-			dims.clear();
-			for (teq::NElemT i = 0; i < n; i += 2)
-			{
-				dims.push_back({
-					(teq::RankT) rawdims[i],
-					(teq::RankT) rawdims[i + 1]});
-			}
-		}
-		// dims.second refer to common weight shape
-		// dims.first must be identical to referenced dims.second
-		teq::Shape wshape = weight_->shape();
-		std::vector<teq::DimT> slist(teq::rank_cap, 0);
-		for (auto dpair : dims)
-		{
-			slist[dpair.first] = wshape.at(dpair.second);
-		}
-		return teq::ShapeSignature(slist);
+		dims_ = other.dims_;
+		output_ = connect(this->input_);
 	}
 
 	std::string label_;
 
 	teq::TensptrT weight_;
 
-	teq::TensptrT bias_;
+	teq::TensptrT bias_ = nullptr;
 
-	LinkptrT params_;
+	eigen::PairVecT<teq::RankT> dims_;
+
+	eteq::LinkptrT<T> output_;
 };
 
 /// Smart pointer of fully connected layer

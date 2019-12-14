@@ -61,13 +61,13 @@ TEST(OBJS, ObjArray)
 	EXPECT_STREQ("[[2\\1.11]\\3.3]", root.to_string().c_str());
 
 	std::vector<marsh::iObject*> root_refs;
-	root.foreach([&root_refs](marsh::ObjptrT& obj) { root_refs.push_back(obj.get()); });
+	root.foreach([&root_refs](size_t i, marsh::ObjptrT& obj) { root_refs.push_back(obj.get()); });
 	ASSERT_EQ(2, root_refs.size());
 	EXPECT_EQ(sub, root_refs[0]);
 	EXPECT_TRUE(root_refs[1]->equals(marsh::Number<double>(3.3)));
 
 	std::vector<marsh::iObject*> sub_refs;
-	sub->foreach([&sub_refs](marsh::ObjptrT& obj) { sub_refs.push_back(obj.get()); });
+	sub->foreach([&sub_refs](size_t i, marsh::ObjptrT& obj) { sub_refs.push_back(obj.get()); });
 	ASSERT_EQ(2, sub_refs.size());
 	EXPECT_TRUE(sub_refs[0]->equals(marsh::Number<size_t>(2)));
 	EXPECT_TRUE(sub_refs[1]->equals(marsh::Number<float>(1.11)));
@@ -160,7 +160,7 @@ TEST(OBJS, NumArray)
 
 	std::vector<double> values;
 	root.foreach(
-		[&values](marsh::ObjptrT& obj)
+		[&values](size_t i, marsh::ObjptrT& obj)
 		{
 			ASSERT_EQ(typeid(marsh::Number<double>).hash_code(),
 				obj->class_code());

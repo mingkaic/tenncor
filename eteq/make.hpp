@@ -5,6 +5,7 @@
 #include "eteq/variable.hpp"
 #include "eteq/functor.hpp"
 #include "eteq/funcsign.hpp"
+#include "eteq/placeholder.hpp"
 
 #ifndef ETEQ_CONVERT_HPP
 #define ETEQ_CONVERT_HPP
@@ -20,7 +21,11 @@ LinkptrT<T> to_link (teq::TensptrT tens)
 	{
 		return nullptr;
 	}
-	if (auto leaf = std::dynamic_pointer_cast<iLeaf<T>>(tens))
+	if (auto place = std::dynamic_pointer_cast<teq::Placeholder>(tens))
+	{
+		return std::make_shared<PlaceLink<T>>(place);
+	}
+	else if (auto leaf = std::dynamic_pointer_cast<iLeaf<T>>(tens))
 	{
 		return std::make_shared<LeafLink<T>>(leaf);
 	}
@@ -56,7 +61,7 @@ LinkptrT<T> data_link (teq::DataptrT data)
 /// Return variable node given scalar and shape
 template <typename T>
 VarptrT<T> make_variable_scalar (T scalar,
-	teq::Shape shape, std::string label = "")
+	teq::Shape shape, std::string label)
 {
 	return VarptrT<T>(Variable<T>::get(scalar, shape, label));
 }
@@ -64,7 +69,7 @@ VarptrT<T> make_variable_scalar (T scalar,
 /// Return variable node filled with scalar matching link shape
 template <typename T>
 VarptrT<T> make_variable_like (T scalar,
-	LinkptrT<T> link, std::string label = "")
+	LinkptrT<T> link, std::string label)
 {
 	auto sign = link->shape_sign();
 	if (teq::is_ambiguous(sign))
@@ -77,14 +82,14 @@ VarptrT<T> make_variable_like (T scalar,
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>
-VarptrT<T> make_variable (teq::Shape shape, std::string label = "")
+VarptrT<T> make_variable (teq::Shape shape, std::string label)
 {
 	return VarptrT<T>(Variable<T>::get(shape, label));
 }
 
 /// Return variable node given raw array and shape
 template <typename T>
-VarptrT<T> make_variable (T* data, teq::Shape shape, std::string label = "")
+VarptrT<T> make_variable (T* data, teq::Shape shape, std::string label)
 {
 	return VarptrT<T>(Variable<T>::get(data, shape, label));
 }

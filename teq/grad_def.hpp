@@ -55,7 +55,7 @@ struct iGradientBuilder
 	{
 		if (target == nullptr)
 		{
-			return get_const_zero(teq::Shape());
+			return get_const_zero(Shape());
 		}
 
 		if (root == nullptr)

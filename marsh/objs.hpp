@@ -64,6 +64,8 @@ struct iNumber : public iObject
 
 	virtual int64_t to_int64 (void) const = 0;
 
+	virtual bool is_integral (void) const = 0;
+
 	void accept (iMarshaler& marshaler) const override
 	{
 		marshaler.marshal(*this);
@@ -113,6 +115,11 @@ struct Number final : public iNumber
 		return val_;
 	}
 
+	bool is_integral (void) const override
+	{
+		return std::is_integral<T>::value;
+	}
+
 	T val_;
 
 private:
@@ -126,9 +133,9 @@ struct iArray : public iObject
 {
 	virtual ~iArray (void) = default;
 
-	virtual void foreach (std::function<void(ObjptrT&)> consume) = 0;
+	virtual void foreach (std::function<void(size_t,ObjptrT&)> consume) = 0;
 
-	virtual void foreach (std::function<void(const ObjptrT&)> consume) const = 0;
+	virtual void foreach (std::function<void(size_t,const ObjptrT&)> consume) const = 0;
 
 	virtual size_t size (void) const = 0;
 
@@ -189,19 +196,19 @@ struct ObjArray final : public iArray
 		return contents_.size();
 	}
 
-	void foreach (std::function<void(ObjptrT&)> consume) override
+	void foreach (std::function<void(size_t,ObjptrT&)> consume) override
 	{
-		for (ObjptrT& obj : contents_)
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
-			consume(obj);
+			consume(i, contents_.at(i));
 		}
 	}
 
-	void foreach (std::function<void(const ObjptrT&)> consume) const override
+	void foreach (std::function<void(size_t,const ObjptrT&)> consume) const override
 	{
-		for (const ObjptrT& obj : contents_)
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
-			consume(obj);
+			consume(i, contents_.at(i));
 		}
 	}
 
@@ -261,20 +268,20 @@ struct NumArray final : public iArray
 		return contents_.size();
 	}
 
-	void foreach (std::function<void(ObjptrT&)> consume) override
+	void foreach (std::function<void(size_t,ObjptrT&)> consume) override
 	{
-		for (T val : contents_)
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
-			ObjptrT obj = std::make_unique<Number<T>>(val);
-			consume(obj);
+			ObjptrT obj = std::make_unique<Number<T>>(contents_[i]);
+			consume(i, obj);
 		}
 	}
 
-	void foreach (std::function<void(const ObjptrT&)> consume) const override
+	void foreach (std::function<void(size_t,const ObjptrT&)> consume) const override
 	{
-		for (T val : contents_)
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
-			consume(std::make_unique<Number<T>>(val));
+			consume(i, std::make_unique<Number<T>>(contents_[i]));
 		}
 	}
 

@@ -16,8 +16,7 @@ namespace eteq
 template <typename T>
 struct PlaceLink final : public iLink<T>
 {
-	PlaceLink (teq::ShapeSignature shape, std::string label = "") :
-		place_(std::make_shared<teq::Placeholder>(shape, label)) {}
+	PlaceLink (teq::PlaceptrT place) : place_(place) {}
 
 	/// Return deep copy of this Functor
 	PlaceLink<T>* clone (void) const

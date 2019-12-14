@@ -5,34 +5,21 @@
 #ifndef TEQ_MOCK_FUNCTOR_HPP
 #define TEQ_MOCK_FUNCTOR_HPP
 
-struct MockFunctor final : public teq::iFunctor
+struct MockFunctor : public teq::iFunctor
 {
-	MockFunctor (teq::TensptrsT tens,
-		teq::Opcode opcode = teq::Opcode{},
-		std::unordered_map<std::string,std::vector<double>> attrs = {}) :
-		opcode_(opcode),
-		shape_(tens.front()->shape()),
-		args_(tens)
-	{
-		for (auto apair : attrs)
-		{
-			auto aval = apair.second;
-			if (aval.size() > 0)
-			{
-				attrs_.add_attr(apair.first,
-					std::make_unique<marsh::NumArray<double>>(aval));
-			}
-		}
-	}
+	MockFunctor (teq::TensptrsT tens, teq::Opcode opcode = teq::Opcode{}) :
+		opcode_(opcode), shape_(tens.front()->shape()), tens_(tens) {}
 
 	MockFunctor (const MockFunctor& other) :
 		opcode_(other.opcode_),
 		shape_(other.shape_),
-		args_(other.args_)
+		tens_(other.tens_)
 	{
 		std::unique_ptr<marsh::Maps> oattr(other.attrs_.clone());
 		attrs_ = std::move(*oattr);
 	}
+
+	virtual ~MockFunctor (void) = default;
 
 	void accept (teq::iTraveler& visiter) override
 	{
@@ -56,7 +43,7 @@ struct MockFunctor final : public teq::iFunctor
 
 	teq::TensptrsT get_children (void) const override
 	{
-		return args_;
+		return tens_;
 	}
 
 	const marsh::iObject* get_attr (std::string attr_name) const override
@@ -81,7 +68,7 @@ struct MockFunctor final : public teq::iFunctor
 
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		args_[index] = arg;
+		tens_[index] = arg;
 	}
 
 	teq::iTensor* clone_impl (void) const override
@@ -93,7 +80,7 @@ struct MockFunctor final : public teq::iFunctor
 
 	teq::Shape shape_;
 
-	teq::TensptrsT args_;
+	teq::TensptrsT tens_;
 
 	marsh::Maps attrs_;
 };

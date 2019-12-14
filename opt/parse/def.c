@@ -22,6 +22,7 @@ void func_recursive_free (void* func)
 		return;
 	}
 	struct Functor* f = (struct Functor*) func;
+	objs_clear(&f->attrs_);
 	objs_clear(&f->args_);
 	free(f);
 }

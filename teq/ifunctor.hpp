@@ -31,6 +31,11 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 {
 	virtual ~iFunctor (void) = default;
 
+	iFunctor* clone (void) const
+	{
+		return static_cast<iFunctor*>(this->clone_impl());
+	}
+
 	/// Return operation encoding
 	virtual Opcode get_opcode (void) const = 0;
 

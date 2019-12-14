@@ -175,7 +175,8 @@ PYBIND11_MODULE(eteq, m)
 			[](std::vector<py::ssize_t> slist, std::string label)
 			{
 				return std::make_shared<eteq::PlaceLink<PybindT>>(
-					pyutils::p2cshapesign(slist), label);
+					std::make_shared<teq::Placeholder>(
+						pyutils::p2cshapesign(slist), label));
 			}),
 			py::arg("shape"),
 			py::arg("label") = "")

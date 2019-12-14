@@ -1,7 +1,9 @@
 
+#include "teq/ilayer.hpp"
+
 #include "eteq/generated/api.hpp"
 
-#include "layr/layer.hpp"
+#include "layr/init.hpp"
 
 #ifndef LAYR_DROPOUT_HPP
 #define LAYR_DROPOUT_HPP
@@ -12,62 +14,21 @@ namespace layr
 /// Mask subgraph label
 const std::string dropout_mask_key = "mask";
 
-/// Builder implementation for fully connected layer
-struct DropoutBuilder final : public iLayerBuilder
-{
-	DropoutBuilder (std::string label) : label_(label) {}
-
-	/// Implementation of iLayerBuilder
-	void set_tensor (teq::TensptrT tens, std::string target) override
-	{
-		if (target == dropout_mask_key)
-		{
-			mask_ = eteq::to_link<PybindT>(tens);
-			return;
-		}
-		logs::warnf("attempt to create dropout layer "
-			"with unknown tensor `%s` of label `%s`",
-			tens->to_string().c_str(), target.c_str());
-	}
-
-	/// Implementation of iLayerBuilder
-	void set_sublayer (LayerptrT layer) override {} // dense has no sublayer
-
-	/// Implementation of iLayerBuilder
-	LayerptrT build (void) const override;
-
-private:
-	LinkptrT mask_ = nullptr;
-
-	std::string label_;
-};
-
-/// Identifier for fully connected layer
-const std::string dropout_layer_key =
-get_layer_reg().register_tagr(layers_key_prefix + "dropout",
-[](std::string label) -> LBuilderptrT
-{
-	return std::make_shared<DropoutBuilder>(label);
-});
-
 /// Layer implementation to apply dropout masks when training
+template <typename T=PybindT>
 struct Dropout final : public iLayer
 {
-	Dropout (PybindT prob, const std::string& label) : label_(label)
+	Dropout (T prob, teq::Shape shape, const std::string& label) :
+		iLayer(teq::ShapeSignature(shape)),
+		label_(label)
 	{
-		auto p = eteq::make_constant_scalar<PybindT>(prob);
+		auto p = eteq::make_constant_scalar<T>(prob, shape);
 		mask_ = tenncor::rand_binom_one(p) / p;
-		tag(mask_->get_tensor(), LayerId(dropout_mask_key));
-
-		placeholder_connect(mask_->shape_sign());
+		output_ = connect(this->input_);
 	}
 
-	Dropout (LinkptrT mask, const std::string& label) : label_(label), mask_(mask)
-	{
-		tag(mask_->get_tensor(), LayerId(dropout_mask_key));
-	}
-
-	Dropout (const Dropout& other, std::string label_prefix = "")
+	Dropout (const Dropout& other, std::string label_prefix = "") :
+		iLayer(other)
 	{
 		copy_helper(other, label_prefix);
 	}
@@ -92,21 +53,21 @@ struct Dropout final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	size_t get_ninput (void) const override
+	teq::ShapeSignature get_output_sign (void) const override
 	{
-		return mask_->shape().at(1);
+		return output_->shape_sign();
 	}
 
 	/// Implementation of iLayer
-	size_t get_noutput (void) const override
+	teq::TensptrT get_output (void) const override
 	{
-		return mask_->shape().at(0);
+		return output_->get_tensor();
 	}
 
 	/// Implementation of iLayer
 	std::string get_ltype (void) const override
 	{
-		return dropout_layer_key;
+		return "dropout";
 	}
 
 	/// Implementation of iLayer
@@ -116,15 +77,15 @@ struct Dropout final : public iLayer
 	}
 
 	/// Implementation of iLayer
-	teq::TensptrsT get_contents (void) const override
+	teq::TensptrsT get_storage (void) const override
 	{
 		return {mask_->get_tensor()};
 	}
 
 	/// Implementation of iLayer
-	LinkptrT connect (LinkptrT input) const override
+	teq::TensptrT connect (teq::TensptrT input) const override
 	{
-		return input * mask_; // todo: deactivate dropout layer when predicting
+		return eteq::to_link<T>(input) * mask_; // todo: deactivate dropout layer when predicting
 	}
 
 private:
@@ -136,16 +97,15 @@ private:
 	void copy_helper (const Dropout& other, std::string label_prefix = "")
 	{
 		label_ = label_prefix + other.label_;
-		mask_ = LinkptrT(other.mask_->clone()); // todo: recurse copy
-		tag(mask_->get_tensor(), LayerId(dropout_weight_key));
-
-		this->input_ = nullptr;
-		this->placeholder_connect(mask_->shape_sign());
+		mask_ = other.mask_->clone(); // todo: recurse copy
+		output_ = connect(this->input_);
 	}
 
 	std::string label_;
 
-	LinkptrT mask_;
+	eteq::LinkptrT<T> mask_;
+
+	eteq::LinkptrT<T> output_;
 };
 
 }

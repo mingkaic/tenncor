@@ -395,6 +395,10 @@ private:
 	OpFuncptrT<T> func_;
 };
 
+/// Return functor node given opcode and node arguments
+template <typename T, typename ...ARGS>
+LinkptrT<T> make_functor (egen::_GENERATED_OPCODE opcode, LinksT<T> links, ARGS... vargs);
+
 }
 
 #endif // ETEQ_FUNCTOR_HPP

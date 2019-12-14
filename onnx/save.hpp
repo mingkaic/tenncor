@@ -26,7 +26,8 @@ using LeafMarshF = std::function<void(TensorProto&,const teq::iLeaf&)>;
 void save_graph (GraphProto& pb_graph,
 	teq::TensptrsT roots, LeafMarshF marshal_leaf);
 
-// void save_model (ModelProto& pb_model, layr::iLayer layer);
+// void save_model (ModelProto& pb_model, teq::LayerptrT layer,
+// 	LeafMarshF marshal_leaf);
 
 }
 

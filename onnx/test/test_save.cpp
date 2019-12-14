@@ -22,8 +22,8 @@ static void save_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf) {}
 
 TEST(SAVE, SaveGraph)
 {
-	std::string expect_pbfile = testdir + "/onnx_graph.onnx";
-	std::string got_pbfile = "got_onnx_graph.onnx";
+	std::string expect_pbfile = testdir + "/onnx.onnx";
+	std::string got_pbfile = "got_onnx.onnx";
 
 	{
 		onnx::GraphProto graph;

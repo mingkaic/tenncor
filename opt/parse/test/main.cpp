@@ -255,8 +255,7 @@ TEST(PARSE, OptimizationRules)
 	ASSERT_NE(nullptr, file);
 
 	::PtrList* arr = nullptr;
-	int status = ::parse_file(&arr, file);
-	EXPECT_EQ(0, status);
+	ASSERT_EQ(0, ::parse_file(&arr, file));
 
 	ASSERT_NE(nullptr, arr);
 	EXPECT_EQ(::CONVERSION, arr->type_);

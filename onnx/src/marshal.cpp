@@ -11,18 +11,11 @@ void marshal_attrs (PbAttrsT& out, const teq::iFunctor* func)
 	for (std::string attr_key : attr_keys)
 	{
 		auto attr = func->get_attr(attr_key);
-		if (typeid(marsh::NumArray<double>).
-			hash_code() != attr->class_code())
-		{
-			continue;
-		}
-		auto& contents = static_cast<
-			const marsh::NumArray<double>*>(attr)->contents_;
 		AttributeProto* pb_attrs = out.Add();
 		pb_attrs->set_name(attr_key);
-		pb_attrs->set_type(AttributeProto::FLOATS);
-		google::protobuf::RepeatedField<float> tmp(contents.begin(), contents.end());
-		pb_attrs->mutable_floats()->Swap(&tmp);
+
+		OnnxMarshaler marsh(pb_attrs);
+		attr->accept(marsh);
 	}
 }
 
@@ -39,7 +32,6 @@ void marshal_io (ValueInfoProto& out, const teq::ShapeSignature& shape)
 {
 	TypeProto* type = out.mutable_type();
 	TypeProto::Tensor* tens_type = type->mutable_tensor_type();
-	tens_type->set_elem_type(data_type);
 	marshal_tensorshape(*tens_type->mutable_shape(), shape);
 }
 
@@ -60,16 +52,57 @@ void unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs)
 {
 	for (const auto& pb_attr : pb_attrs)
 	{
-		if (pb_attr.type() == AttributeProto::FLOATS)
+		marsh::iObject* val = nullptr;
+		switch (pb_attr.type())
 		{
-			auto& pb_values = pb_attr.floats();
-			auto out_arr = new marsh::NumArray<double>();
-			for (float e : pb_values)
+			case AttributeProto::STRING:
+				val = new marsh::String(pb_attr.s());
+				break;
+			case AttributeProto::INT:
+				val = new marsh::Number<int64_t>(pb_attr.i());
+				break;
+			case AttributeProto::FLOAT:
+				val = new marsh::Number<double>(pb_attr.f());
+				break;
+			case AttributeProto::STRINGS:
 			{
-				out_arr->contents_.push_back(e);
+				auto& pb_values = pb_attr.strings();
+				auto strs = new marsh::ObjArray();
+				val = strs;
+				auto& content = strs->contents_;
+				for (std::string e : pb_values)
+				{
+					content.emplace(content.end(),
+						std::make_unique<marsh::String>(e));
+				}
 			}
-			out.add_attr(pb_attr.name(), marsh::ObjptrT(out_arr));
+			break;
+			case AttributeProto::INTS:
+			{
+				auto& pb_values = pb_attr.ints();
+				auto ints = new marsh::NumArray<int64_t>();
+				val = ints;
+				for (auto e : pb_values)
+				{
+					ints->contents_.push_back(e);
+				}
+			}
+			break;
+			case AttributeProto::FLOATS:
+			{
+				auto& pb_values = pb_attr.floats();
+				auto floats = new marsh::NumArray<double>();
+				val = floats;
+				for (float e : pb_values)
+				{
+					floats->contents_.push_back(e);
+				}
+			}
+			break;
+			default:
+				logs::fatal("unknown onnx attribute type");
 		}
+		out.add_attr(pb_attr.name(), marsh::ObjptrT(val));
 	}
 }
 

@@ -73,10 +73,10 @@ using TensT = std::vector<iTensor*>;
 using TensptrsT = std::vector<TensptrT>;
 
 /// Hash set of raw tensor pointers
-using TensSetT = std::unordered_set<teq::iTensor*>;
+using TensSetT = std::unordered_set<iTensor*>;
 
 /// Hash set of tensor smart pointers
-using TensptrSetT = std::unordered_set<teq::TensptrT>;
+using TensptrSetT = std::unordered_set<TensptrT>;
 
 }
 

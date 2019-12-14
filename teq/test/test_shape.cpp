@@ -20,7 +20,7 @@ TEST(SHAPE, Init)
 	std::vector<teq::DimT> longlist = {4, 23, 44, 52, 19, 92, 12, 2, 5};
 	teq::Shape lvec(longlist);
 
-	std::vector<teq::DimT> zerolist = {43, 2, 5, 33, 0, 2, 7};
+	std::vector<teq::DimT> zerolist = {43, 2, 5, 33, 0, 2, 7, 1};
 	std::string fatalmsg = "cannot create shape with vector containing zero: " +
 		fmts::to_string(zerolist.begin(), zerolist.end());
 	EXPECT_FATAL(teq::Shape junk(zerolist), fatalmsg.c_str());
@@ -51,7 +51,7 @@ TEST(SHAPE, Init)
 
 TEST(SHAPE, VecAssign)
 {
-	std::vector<teq::DimT> zerolist = {3, 0, 11, 89};
+	std::vector<teq::DimT> zerolist = {3, 0, 11, 89, 1, 1, 1, 1};
 	std::vector<teq::DimT> slist = {52, 58, 35, 46, 77, 80};
 	std::vector<teq::DimT> junk = {7, 42};
 

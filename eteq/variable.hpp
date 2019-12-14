@@ -161,6 +161,24 @@ private:
 template <typename T>
 using VarptrT = std::shared_ptr<Variable<T>>;
 
+/// Return variable node given scalar and shape
+template <typename T>
+VarptrT<T> make_variable_scalar (T scalar,
+	teq::Shape shape, std::string label = "");
+
+/// Return variable node filled with scalar matching link shape
+template <typename T>
+VarptrT<T> make_variable_like (T scalar,
+	LinkptrT<T> link, std::string label = "");
+
+/// Return zero-initialized variable node of specified shape
+template <typename T>
+VarptrT<T> make_variable (teq::Shape shape, std::string label = "");
+
+/// Return variable node given raw array and shape
+template <typename T>
+VarptrT<T> make_variable (T* data, teq::Shape shape, std::string label = "");
+
 }
 
 #endif // ETEQ_VARIABLE_HPP

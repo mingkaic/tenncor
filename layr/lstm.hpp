@@ -27,37 +27,6 @@ const std::string ingate_key = "ingate";
 /// Output Gate fully connected layer label
 const std::string outgate_key = "outgate";
 
-/// Builder implementation for lstm layer
-struct LSTMBuilder final : public iLayerBuilder
-{
-	LSTMBuilder (std::string label) : label_(label) {}
-
-	/// Implementation of iLayerBuilder
-	void set_tensor (teq::TensptrT tens, std::string target) override {} // lstm has no tensor
-
-	/// Implementation of iLayerBuilder
-	void set_sublayer (LayerptrT layer) override
-	{
-		layers_.push_back(layer);
-	}
-
-	/// Implementation of iLayerBuilder
-	LayerptrT build (void) const override;
-
-private:
-	std::vector<LayerptrT> layers_;
-
-	std::string label_;
-};
-
-/// Identifier for long-short term memory
-const std::string lstm_layer_key =
-get_layer_reg().register_tagr(layers_key_prefix + "lstm",
-[](std::string label) -> LBuilderptrT
-{
-	return std::make_shared<LSTMBuilder>(label);
-});
-
 struct LSTM final : public iLayer
 {
 	LSTM (teq::DimT nhidden, teq::DimT ninput,
@@ -81,18 +50,6 @@ struct LSTM final : public iLayer
 		tag_sublayers();
 
 		placeholder_connect(calc_insign());
-	}
-
-	LSTM (DenseptrT gate, DenseptrT forget,
-		DenseptrT ingate, DenseptrT outgate,
-		const std::string& label) :
-		label_(label),
-		gate_(gate),
-		forget_(forget),
-		ingate_(ingate),
-		outgate_(outgate)
-	{
-		tag_sublayers();
 	}
 
 	LSTM (const LSTM& other,

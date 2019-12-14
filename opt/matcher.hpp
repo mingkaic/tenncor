@@ -166,19 +166,23 @@ private:
 };
 
 static void match_cands (CandsT& cands,
-	std::list<teq::TensptrT>& unmatched, 
+	std::list<teq::TensptrT>& unmatched,
 	const MatchCtxT& ctx, const EMatchptrsT& matchers)
 {
 	size_t i = 0, n = matchers.size();
 	if (n > 0 && cands.empty())
 	{
 		for (auto it = unmatched.begin(), et = unmatched.end();
-			it != et && cands.empty(); ++it)
+			it != et && cands.empty();)
 		{
 			cands = matchers.at(i)->match(ctx, *it);
 			if (cands.size() > 0)
 			{
-				unmatched.erase(it);
+				it = unmatched.erase(it);
+			}
+			else
+			{
+				++it;
 			}
 		}
 		++i;
@@ -192,15 +196,19 @@ static void match_cands (CandsT& cands,
 		bool unfound = true;
 		CandsT ecands;
 		for (auto it = unmatched.begin(), et = unmatched.end();
-			it != et && ecands.size() > 0; ++it)
+			it != et && ecands.size() > 0;)
 		{
 			ecands = matchers.at(i)->match(ctx, *it);
 			if (ecands.size() > 0)
 			{
 				// candidates found
-				unmatched.erase(it);
+				it = unmatched.erase(it);
 				merge_cands(cands, cands, ecands);
 				unfound = false;
+			}
+			else
+			{
+				++it;
 			}
 		}
 		if (unfound)

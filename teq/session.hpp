@@ -24,17 +24,17 @@ struct iSession
 	virtual ~iSession (void) = default;
 
 	/// Record subgraphs of roots
-	virtual void track (teq::TensptrsT roots) = 0;
+	virtual void track (TensptrsT roots) = 0;
 
 	/// Update every node under the subgraph except
 	/// for the subgraphs of ignored
 	/// this function is expected to be called repeatedly during runtime
-	virtual void update (teq::TensSetT ignored = {}) = 0;
+	virtual void update (TensSetT ignored = {}) = 0;
 
 	/// Update every node under the target roots that are expected to be
 	/// under the tracked subgraphs ignoring the subgraphs of ignored
 	/// this function is expected to be called repeatedly during runtime
-	virtual void update_target (teq::TensSetT target, teq::TensSetT ignored = {}) = 0;
+	virtual void update_target (TensSetT target, TensSetT ignored = {}) = 0;
 
 	/// Clear all tracked root and subgraph information
 	virtual void clear (void) = 0;
@@ -48,13 +48,13 @@ struct iSession
 struct Session final : public iSession
 {
 	/// Implementation of iSession
-	void track (teq::TensptrsT roots) override
+	void track (TensptrsT roots) override
 	{
 		ops_.clear();
 		tracked_.insert(roots.begin(), roots.end());
 
-		teq::GraphStat stat;
-		for (const teq::TensptrT& root : tracked_)
+		GraphStat stat;
+		for (const TensptrT& root : tracked_)
 		{
 			root->accept(stat);
 		}
@@ -65,7 +65,7 @@ struct Session final : public iSession
 			if (0 < statpair.second.upper_)
 			{
 				// ensure we only track operable functors
-				auto op = dynamic_cast<teq::iOperableFunc*>(statpair.first);
+				auto op = dynamic_cast<iOperableFunc*>(statpair.first);
 				if (nullptr == op)
 				{
 					logs::fatalf("cannot track non-operable functor %s",
@@ -75,15 +75,15 @@ struct Session final : public iSession
 			}
 		}
 		std::sort(ops_.begin(), ops_.end(),
-			[&statmap](teq::iOperableFunc* a, teq::iOperableFunc* b)
+			[&statmap](iOperableFunc* a, iOperableFunc* b)
 			{ return statmap[a].upper_ < statmap[b].upper_; });
 	}
 
 	/// Implementation of iSession
-	void update (teq::TensSetT ignored = {}) override
+	void update (TensSetT ignored = {}) override
 	{
-		std::list<teq::iOperableFunc*> reqs;
-		teq::TensSetT acceptable;
+		std::list<iOperableFunc*> reqs;
+		TensSetT acceptable;
 		for (auto& root : tracked_)
 		{
 			acceptable.emplace(root.get());
@@ -112,10 +112,10 @@ struct Session final : public iSession
 	}
 
 	/// Implementation of iSession
-	void update_target (teq::TensSetT target, teq::TensSetT ignored = {}) override
+	void update_target (TensSetT target, TensSetT ignored = {}) override
 	{
-		std::list<teq::iOperableFunc*> reqs;
-		teq::TensSetT acceptable;
+		std::list<iOperableFunc*> reqs;
+		TensSetT acceptable;
 		for (auto& root : target)
 		{
 			acceptable.emplace(root);
@@ -158,10 +158,10 @@ struct Session final : public iSession
 
 	/// Set of all tensors input through tracked function
 	/// The set of roots of all session graphs is a possible subset
-	teq::TensptrSetT tracked_;
+	TensptrSetT tracked_;
 
 	/// Operable functors ordered by height in the tracked graph
-	std::vector<teq::iOperableFunc*> ops_;
+	std::vector<iOperableFunc*> ops_;
 };
 
 }

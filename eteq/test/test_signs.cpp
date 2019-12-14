@@ -15,7 +15,8 @@ TEST(PLACEHOLDER, AssignData)
 {
 	teq::ShapeSignature sign({3, 2});
 	teq::Shape shape(sign);
-	eteq::PlaceLink<double> ph(sign, "ph");
+	eteq::PlaceLink<double> ph(
+		std::make_shared<teq::Placeholder>(sign, "ph"));
 
 	EXPECT_FALSE(ph.can_build());
 	EXPECT_FATAL(ph.build_data(),
@@ -36,7 +37,8 @@ TEST(PLACEHOLDER, AssignTens)
 {
 	teq::ShapeSignature sign({3, 2});
 	teq::Shape shape(sign);
-	eteq::PlaceLink<double> ph(sign, "ph");
+	eteq::PlaceLink<double> ph(
+		std::make_shared<teq::Placeholder>(sign, "ph"));
 
 	EXPECT_FALSE(ph.can_build());
 	EXPECT_FATAL(ph.build_data(),
@@ -54,7 +56,8 @@ TEST(PLACEHOLDER, AssignTens)
 TEST(PLACEHOLDER, AssignDataSigned)
 {
 	teq::ShapeSignature sign({3, 0});
-	eteq::PlaceLink<double> ph(sign, "ph");
+	eteq::PlaceLink<double> ph(
+		std::make_shared<teq::Placeholder>(sign, "ph"));
 
 	EXPECT_FALSE(ph.can_build());
 	EXPECT_FATAL(ph.build_data(),
@@ -74,7 +77,8 @@ TEST(PLACEHOLDER, AssignDataSigned)
 TEST(PLACEHOLDER, AssignTensSigned)
 {
 	teq::ShapeSignature sign({3, 0});
-	eteq::PlaceLink<double> ph(sign, "ph");
+	eteq::PlaceLink<double> ph(
+		std::make_shared<teq::Placeholder>(sign, "ph"));
 
 	EXPECT_FALSE(ph.can_build());
 	EXPECT_FATAL(ph.build_data(),
@@ -93,7 +97,8 @@ TEST(PLACEHOLDER, AssignTensSigned)
 TEST(FUNCSIGN, UseSignature)
 {
 	teq::ShapeSignature sign({3, 2});
-	auto ph = std::make_shared<eteq::PlaceLink<double>>(sign, "left");
+	auto ph = std::make_shared<eteq::PlaceLink<double>>(
+		std::make_shared<teq::Placeholder>(sign, "left"));
 
 	teq::Shape varshape({3, 3});
 	auto var = eteq::make_variable_scalar<double>(0., varshape, "right");
@@ -120,7 +125,8 @@ TEST(FUNCSIGN, UseSignature)
 TEST(FUNCSIGN, UseSignatureSigned)
 {
 	teq::ShapeSignature sign({3, 0});
-	auto ph = std::make_shared<eteq::PlaceLink<double>>(sign, "left");
+	auto ph = std::make_shared<eteq::PlaceLink<double>>(
+		std::make_shared<teq::Placeholder>(sign, "left"));
 
 	teq::Shape varshape({3, 3});
 	auto var = eteq::make_variable_scalar<double>(0., varshape, "right");

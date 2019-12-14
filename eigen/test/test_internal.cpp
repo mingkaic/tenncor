@@ -13,7 +13,7 @@
 
 TEST(INTERNAL, PairEncodeDecode)
 {
-	eigen::PairVecT<double> pairs = {{1, 2}, {3, 4}, {5, 6}};
+	eigen::PairVecT<int64_t> pairs = {{1, 2}, {3, 4}, {5, 6}};
 
 	auto vecs = eigen::encode_pair(pairs);
 	auto apairs = eigen::decode_pair<size_t>(vecs);
@@ -26,7 +26,7 @@ TEST(INTERNAL, PairEncodeDecode)
 		EXPECT_EQ(orig.second, apair.second);
 	}
 
-	std::vector<double> bad = {1, 2, 3, 4, 5};
+	std::vector<int64_t> bad = {1, 2, 3, 4, 5};
 	EXPECT_FATAL(eigen::decode_pair<size_t>(bad),
 		"cannot decode odd vector [1\\2\\3\\4\\5] into vec of pairs");
 }
@@ -34,7 +34,7 @@ TEST(INTERNAL, PairEncodeDecode)
 
 TEST(INTERNAL, Conversions)
 {
-	std::vector<double> values = {
+	std::vector<int64_t> values = {
 		1, 2, 4, 8, 16, 32, 64, 128, 256};
 	eigen::TensorT<double> a(3, 3, 1, 1, 1, 1, 1, 1);
 	std::copy(values.begin(), values.end(), a.data());

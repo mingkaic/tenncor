@@ -28,12 +28,68 @@
   },
   {
    "input": [
-    "4"
+    "8",
+    "2"
    ],
    "output": [
     "9"
    ],
    "name": "9",
+   "opType": "+",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "7",
+    "9"
+   ],
+   "output": [
+    "10"
+   ],
+   "name": "10",
+   "opType": "/",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "10",
+    "3"
+   ],
+   "output": [
+    "11"
+   ],
+   "name": "11",
+   "opType": "@",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "0",
+    "11"
+   ],
+   "output": [
+    "12"
+   ],
+   "name": "12",
+   "opType": "-",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "4"
+   ],
+   "output": [
+    "13"
+   ],
+   "name": "13",
    "opType": "abs",
    "domain": "",
    "attribute": [],
@@ -44,9 +100,9 @@
     "5"
    ],
    "output": [
-    "10"
+    "14"
    ],
-   "name": "10",
+   "name": "14",
    "opType": "exp",
    "domain": "",
    "attribute": [],
@@ -57,9 +113,9 @@
     "6"
    ],
    "output": [
-    "11"
+    "15"
    ],
-   "name": "11",
+   "name": "15",
    "opType": "neg",
    "domain": "",
    "attribute": [],
@@ -67,28 +123,14 @@
   },
   {
    "input": [
-    "8",
-    "2"
+    "13",
+    "14",
+    "15"
    ],
    "output": [
-    "12"
+    "16"
    ],
-   "name": "12",
-   "opType": "+",
-   "domain": "",
-   "attribute": [],
-   "docString": ""
-  },
-  {
-   "input": [
-    "9",
-    "10",
-    "11"
-   ],
-   "output": [
-    "13"
-   ],
-   "name": "13",
+   "name": "16",
    "opType": "*",
    "domain": "",
    "attribute": [],
@@ -96,49 +138,7 @@
   },
   {
    "input": [
-    "7",
-    "12"
-   ],
-   "output": [
-    "14"
-   ],
-   "name": "14",
-   "opType": "/",
-   "domain": "",
-   "attribute": [],
-   "docString": ""
-  },
-  {
-   "input": [
     "4",
-    "13"
-   ],
-   "output": [
-    "15"
-   ],
-   "name": "15",
-   "opType": "-",
-   "domain": "",
-   "attribute": [],
-   "docString": ""
-  },
-  {
-   "input": [
-    "14",
-    "3"
-   ],
-   "output": [
-    "16"
-   ],
-   "name": "16",
-   "opType": "@",
-   "domain": "",
-   "attribute": [],
-   "docString": ""
-  },
-  {
-   "input": [
-    "0",
     "16"
    ],
    "output": [
@@ -327,7 +327,7 @@
  "input": [],
  "output": [
   {
-   "name": "15",
+   "name": "12",
    "type": {
     "tensorType": {
      "elemType": 0,
@@ -339,11 +339,11 @@
        },
        {
         "denotation": "",
-        "dimValue": "3"
+        "dimValue": "1"
        },
        {
         "denotation": "",
-        "dimValue": "1"
+        "dimValue": "7"
        },
        {
         "denotation": "",
@@ -385,11 +385,11 @@
        },
        {
         "denotation": "",
-        "dimValue": "1"
+        "dimValue": "3"
        },
        {
         "denotation": "",
-        "dimValue": "7"
+        "dimValue": "1"
        },
        {
         "denotation": "",

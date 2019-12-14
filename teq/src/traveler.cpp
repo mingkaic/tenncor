@@ -17,7 +17,7 @@ private:
 	void visit_func (iFunctor& func) override
 	{
 		auto children = func.get_children();
-		for (const teq::TensptrT& tens : children)
+		for (const TensptrT& tens : children)
 		{
 			tens->accept(*this);
 			owners_.emplace(tens.get(), tens);

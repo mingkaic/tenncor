@@ -42,6 +42,11 @@ extern YY_FLUSH_BUFFER;
 %type <objs>		margs targs attr
 %type <nums> 		num_arr
 
+%destructor { conversion_recursive_free($$); } <conv>
+%destructor { node_recursive_free($$); } <node>
+%destructor { func_recursive_free($$); } <functor>
+%destructor { kv_recursive_free($$); } <kvpair>
+
 %token
 STMT_TERM ARROW LPAREN RPAREN COMMA ASSIGN LSB RSB LCB RCB
 COLON VARIADIC COMMUTATIVE SYMBOL NUMBER ERROR
@@ -118,6 +123,7 @@ function:	SYMBOL
 				memset(f, 0, nbytes);
 				strncpy(f->name_, $1, NSYMBOL);
 				ptrlist_move(&f->attrs_, $3);
+				free($3);
 			}
 
 mfunction:	function LPAREN margs RPAREN
@@ -285,6 +291,7 @@ int parse_file (struct PtrList** cversions, FILE* file)
 		YY_FLUSH_BUFFER;
 		yyrestart(yyin);
 		exit_status = yyparse(cversions);
+		yylex_destroy(yyin);
 		fclose(file);
 	}
 	return exit_status;

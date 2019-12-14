@@ -24,37 +24,6 @@ const std::string reset_key = "reset_gate";
 /// Hidden gate fully connected layer label
 const std::string hgate_key = "hidden_gate";
 
-/// Builder implementation for gru layer
-struct GRUBuilder final : public iLayerBuilder
-{
-	GRUBuilder (std::string label) : label_(label) {}
-
-	/// Implementation of iLayerBuilder
-	void set_tensor (teq::TensptrT tens, std::string target) override {} // gru has no tensor
-
-	/// Implementation of iLayerBuilder
-	void set_sublayer (LayerptrT layer) override
-	{
-		layers_.push_back(layer);
-	}
-
-	/// Implementation of iLayerBuilder
-	LayerptrT build (void) const override;
-
-private:
-	std::vector<LayerptrT> layers_;
-
-	std::string label_;
-};
-
-/// Identifier for gated recurrent unit
-const std::string gru_layer_key =
-get_layer_reg().register_tagr(layers_key_prefix + "gru",
-[](std::string label) -> LBuilderptrT
-{
-	return std::make_shared<GRUBuilder>(label);
-});
-
 struct GRU final : public iLayer
 {
 	GRU (teq::DimT nhidden, teq::DimT ninput,
@@ -75,16 +44,6 @@ struct GRU final : public iLayer
 		tag_sublayers();
 
 		placeholder_connect(calc_insign());
-	}
-
-	GRU (DenseptrT ugate, DenseptrT rgate,
-		DenseptrT hgate, const std::string& label) :
-		label_(label),
-		ugate_(ugate),
-		rgate_(rgate),
-		hgate_(hgate)
-	{
-		tag_sublayers();
 	}
 
 	GRU (const GRU& other,

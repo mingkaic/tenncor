@@ -34,25 +34,48 @@ struct Shape final : public ShapeSignature
 		std::fill(begin(), end(), 1);
 	}
 
-	Shape (std::vector<DimT> dims)
+	Shape (std::vector<DimT> dims) :
+		ShapeSignature(dims)
 	{
-		vector_assign(dims);
+		validate_shape();
 	}
 
 	Shape (const ShapeSignature& sign) :
-		ShapeSignature(sign) {}
+		ShapeSignature(sign)
+	{
+		validate_shape();
+	}
 
-	Shape (const Shape& other) = default;
+	Shape& operator = (const ShapeSignature& other)
+	{
+		if (&other != this)
+		{
+			ShapeSignature::operator = (other);
+			validate_shape();
+		}
+		return *this;
+	}
 
-	Shape& operator = (const Shape& other) = default;
+	Shape (ShapeSignature&& other) :
+		ShapeSignature(std::move(other))
+	{
+		validate_shape();
+	}
 
-	Shape (Shape&& other) = default;
-
-	Shape& operator = (Shape&& other) = default;
+	Shape& operator = (ShapeSignature&& other)
+	{
+		if (&other != this)
+		{
+			ShapeSignature::operator = (std::move(other));
+			validate_shape();
+		}
+		return *this;
+	}
 
 	Shape& operator = (const std::vector<DimT>& dims)
 	{
-		vector_assign(dims);
+		this->vector_assign(dims);
+		validate_shape();
 		return *this;
 	}
 
@@ -67,18 +90,17 @@ struct Shape final : public ShapeSignature
 	}
 
 private:
-	void vector_assign (const std::vector<DimT>& dims)
+	void validate_shape (void) const
 	{
-		if (std::any_of(dims.begin(), dims.end(),
+		if (std::any_of(begin(), end(),
 			[](DimT d)
 			{
 				return d == 0;
 			}))
 		{
 			logs::fatalf("cannot create shape with vector containing zero: %s",
-				fmts::to_string(dims.begin(), dims.end()).c_str());
+				fmts::to_string(begin(), end()).c_str());
 		}
-		ShapeSignature::vector_assign(dims);
 	}
 };
 

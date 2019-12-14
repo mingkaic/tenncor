@@ -77,6 +77,11 @@ struct Placeholder final : public iTensor, public iSignature
 		return data_;
 	}
 
+	void clear (void)
+	{
+		data_ = nullptr;
+	}
+
 private:
 	Placeholder (const Placeholder& other) = default;
 

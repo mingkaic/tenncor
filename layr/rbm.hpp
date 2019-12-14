@@ -21,37 +21,6 @@ const std::string hidden_key = "hidden";
 /// Visible fully connected layer label
 const std::string visible_key = "visible";
 
-/// Builder implementation for restricted boltzmann layer
-struct RBMBuilder final : public iLayerBuilder
-{
-	RBMBuilder (std::string label) : label_(label) {}
-
-	/// Implementation of iLayerBuilder
-	void set_tensor (teq::TensptrT tens, std::string target) override {} // rbm has no tensor
-
-	/// Implementation of iLayerBuilder
-	void set_sublayer (LayerptrT layer) override
-	{
-		layers_.push_back(layer);
-	}
-
-	/// Implementation of iLayerBuilder
-	LayerptrT build (void) const override;
-
-private:
-	std::vector<LayerptrT> layers_;
-
-	std::string label_;
-};
-
-/// Identifier for restricted boltzmann machine
-const std::string rbm_layer_key =
-get_layer_reg().register_tagr(layers_key_prefix + "rbm",
-[](std::string label) -> LBuilderptrT
-{
-	return std::make_shared<RBMBuilder>(label);
-});
-
 /// Layer implemnetation that connects forward and backward
 /// through 2 Dense layers sharing a weight
 struct RBM final : public iLayer
@@ -81,16 +50,6 @@ struct RBM final : public iLayer
 		tag_sublayers();
 
 		placeholder_connect(hidden_->get_input_sign());
-	}
-
-	RBM (DenseptrT hidden, DenseptrT visible,
-		UnaryptrT activation, const std::string& label) :
-		label_(label),
-		hidden_(hidden),
-		visible_(visible),
-		activation_(activation)
-	{
-		tag_sublayers();
 	}
 
 	RBM (const RBM& other,

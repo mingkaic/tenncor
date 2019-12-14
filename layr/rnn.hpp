@@ -21,56 +21,6 @@ const std::string init_state_key = "init_state";
 /// RNN parameter label
 const std::string rnn_param_key = "rnn_param";
 
-/// Builder implementation for recurrent layer
-struct RNNBuilder final : public iLayerBuilder
-{
-	RNNBuilder (std::string label) : label_(label) {}
-
-	/// Implementation of iLayerBuilder
-	void set_tensor (teq::TensptrT tens, std::string target) override
-	{
-		if (target == init_state_key)
-		{
-			init_state_ = eteq::to_link<PybindT>(tens);
-			return;
-		}
-		else if (target == rnn_param_key)
-		{
-			params_ = eteq::to_link<PybindT>(tens);
-			return;
-		}
-		logs::warnf("attempt to create rnn layer "
-			"with unknown tensor `%s` of label `%s`",
-			tens->to_string().c_str(), target.c_str());
-	}
-
-	/// Implementation of iLayerBuilder
-	void set_sublayer (LayerptrT layer) override
-	{
-		layers_.push_back(layer);
-	}
-
-	/// Implementation of iLayerBuilder
-	LayerptrT build (void) const override;
-
-private:
-	std::string label_;
-
-	LinkptrT init_state_;
-
-	LinkptrT params_ = nullptr;
-
-	std::vector<LayerptrT> layers_;
-};
-
-/// Identifier for recurrent layer
-const std::string rnn_layer_key =
-get_layer_reg().register_tagr(layers_key_prefix + "rnn", // todo: rename
-[](std::string label) -> LBuilderptrT
-{
-	return std::make_shared<RNNBuilder>(label);
-});
-
 /// Layer implementation that applies recurrent cells (cells applied at each step of input)
 struct RNN final : public iLayer
 {
@@ -90,14 +40,6 @@ struct RNN final : public iLayer
 		tag_sublayers();
 
 		placeholder_connect(calc_insign());
-	}
-
-	RNN (DenseptrT cell, UnaryptrT activation, LinkptrT init_state,
-		LinkptrT params, const std::string& label) :
-		label_(label), cell_(cell), init_state_(init_state),
-		activation_(activation), params_(params)
-	{
-		tag_sublayers();
 	}
 
 	RNN (const RNN& other,

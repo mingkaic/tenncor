@@ -5,7 +5,7 @@
 namespace opt
 {
 
-static std::string to_string (::KeyVal* kv)
+static std::string to_string (const ::KeyVal* kv)
 {
 	std::string out = std::string(kv->key_) + ":[";
 	auto it = kv->val_.head_;
@@ -21,9 +21,9 @@ static std::string to_string (::KeyVal* kv)
 	return out;
 }
 
-static std::string to_string (::TreeNode* node);
+static std::string to_string (const ::TreeNode* node);
 
-static std::string to_string (::Functor* functor)
+static std::string to_string (const ::Functor* functor)
 {
 	std::string comm_prefix;
 	if (functor->commutative_)
@@ -62,7 +62,7 @@ static std::string to_string (::Functor* functor)
 	return out;
 }
 
-static std::string to_string (::TreeNode* node)
+static std::string to_string (const ::TreeNode* node)
 {
 	std::string out;
 	switch (node->type_)
@@ -80,7 +80,7 @@ static std::string to_string (::TreeNode* node)
 	return out;
 }
 
-static std::string to_string (::Conversion* cversion)
+static std::string to_string (const ::Conversion* cversion)
 {
 	return to_string(cversion->matcher_) + "=>" + to_string(cversion->target_);
 }

@@ -6,10 +6,8 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - serialize multi-typed attributes in onnx
    - implement onnx support for layer
    - test ALL funcsign + placeholder combinations
-   - address memory leaks
    - refactor eteq funcsign and functor so that get returns own type instead of TensptrT
 
 === transparency/code readability ===

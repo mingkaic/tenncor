@@ -14,37 +14,6 @@
 namespace layr
 {
 
-/// Builder implementation for sequentially connected models
-struct SeqModelBuilder final : public iLayerBuilder
-{
-	SeqModelBuilder (std::string label) : label_(label) {}
-
-	/// Implementation of iLayerBuilder
-	void set_tensor (teq::TensptrT tens, std::string target) override {} // seqmodel has no tensor
-
-	/// Implementation of iLayerBuilder
-	void set_sublayer (LayerptrT layer) override
-	{
-		layers_.push_back(layer);
-	}
-
-	/// Implementation of iLayerBuilder
-	LayerptrT build (void) const override;
-
-private:
-	std::string label_;
-
-	std::vector<LayerptrT> layers_;
-};
-
-/// Identifier for sequentially connected models
-const std::string seq_model_key =
-get_layer_reg().register_tagr(layers_key_prefix + "seqmodel",
-[](std::string label) -> LBuilderptrT
-{
-	return std::make_shared<SeqModelBuilder>(label);
-});
-
 /// Layer implementation that sequentially applies sublayers
 struct SequentialModel final : public iLayer
 {

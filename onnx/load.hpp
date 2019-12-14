@@ -26,6 +26,9 @@ using FuncUnmarshF = std::function<teq::TensptrT(
 void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
 	LeafUnmarshF unmarshal_leaf, FuncUnmarshF unmarshal_func);
 
+// void load_model (teq::LayerptrT layer, const ModelProto& pb_model,
+// 	LeafUnmarshF unmarshal_leaf, FuncUnmarshF unmarshal_func);
+
 }
 
 #endif // ONNX_LOAD_HPP

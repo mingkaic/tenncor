@@ -13,7 +13,7 @@ void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
 
 	std::unordered_map<std::string,teq::TensptrT> generated_tens;
 
-	const auto& pb_inputs = pb_graph.inputs();
+	const auto& pb_inputs = pb_graph.input();
 	for (const ValueInfoProto& pb_input : pb_inputs)
 	{
 		std::string id = pb_input.name();
@@ -26,11 +26,16 @@ void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
 
 		const TypeProto& type = pb_input.type();
 		const TypeProto::Tensor& tens_type = type.tensor_type();
-		const auto& slist = tens_type.shape();
-		teq::ShapeSignature shape(
-			std::vector<teq::DimT>(slist.begin(), slist.end()));
+		const auto& dims = tens_type.shape().dim();
+		std::vector<teq::DimT> slist;
+		slist.reserve(dims.size());
+		for (const auto& dim : dims)
+		{
+			slist.push_back(dim.dim_value());
+		}
 
-		auto tens = std::make_shared<teq::Placeholder>(shape, name);
+		auto tens = std::make_shared<teq::Placeholder>(
+			teq::ShapeSignature(slist), name);
 		generated_tens.emplace(id, tens);
 	}
 

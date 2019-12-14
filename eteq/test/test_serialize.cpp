@@ -22,8 +22,8 @@ const std::string testdir = "models/test";
 
 TEST(SERIALIZE, SaveGraph)
 {
-	std::string expect_pbfile = testdir + "/eteq_graph.onnx";
-	std::string got_pbfile = "got_eteq_graph.onnx";
+	std::string expect_pbfile = testdir + "/eteq.onnx";
+	std::string got_pbfile = "got_eteq.onnx";
 	onnx::GraphProto graph;
 
 	teq::Shape in_shape({10, 3});
@@ -107,7 +107,7 @@ TEST(SERIALIZE, LoadGraph)
 {
 	onnx::GraphProto in;
 	{
-		std::fstream inputstr(testdir + "/eteq_graph.onnx",
+		std::fstream inputstr(testdir + "/eteq.onnx",
 			std::ios::in | std::ios::binary);
 		ASSERT_TRUE(inputstr.is_open());
 		ASSERT_TRUE(in.ParseFromIstream(&inputstr));
@@ -121,7 +121,7 @@ TEST(SERIALIZE, LoadGraph)
 	std::string got;
 	std::string line;
 	{
-		std::ifstream expectstr(testdir + "/eteq_graph.txt");
+		std::ifstream expectstr(testdir + "/eteq.txt");
 		ASSERT_TRUE(expectstr.is_open());
 		while (std::getline(expectstr, line))
 		{

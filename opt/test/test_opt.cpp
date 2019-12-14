@@ -385,10 +385,9 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 
 	{
 		auto rule1 = std::make_shared<MockFunctor>(teq::TensptrsT{var},
-			teq::Opcode{"REDUCE_SUM", 0},
-			std::unordered_map<std::string,std::vector<double>>{
-				{"special", {1,2}},
-			});
+			teq::Opcode{"REDUCE_SUM", 0});
+		rule1->add_attr("special", std::make_unique<marsh::NumArray<double>>(
+			std::vector<double>{1, 2}));
 		auto opteds = opt::optimize({rule1}, rules, empty);
 		ASSERT_EQ(1, opteds.size());
 		EXPECT_GRAPHEQ("(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
@@ -398,10 +397,9 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 	// remove redundent reduced argument for non-empty shape
 	{
 		auto rule2 = std::make_shared<MockFunctor>(teq::TensptrsT{var},
-			teq::Opcode{"REDUCE_PROD", 0},
-			std::unordered_map<std::string,std::vector<double>>{
-				{"special2", {2,3}},
-			});
+			teq::Opcode{"REDUCE_PROD", 0});
+		rule2->add_attr("special2", std::make_unique<marsh::NumArray<double>>(
+			std::vector<double>{2, 3}));
 		auto opteds = opt::optimize({rule2}, rules, empty);
 		ASSERT_EQ(1, opteds.size());
 		EXPECT_GRAPHEQ("(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
@@ -411,10 +409,9 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 	// don't reduce non-redundent reduced argument
 	{
 		auto not_rule2 = std::make_shared<MockFunctor>(teq::TensptrsT{var},
-			teq::Opcode{"REDUCE_PROD", 0},
-			std::unordered_map<std::string,std::vector<double>>{
-				{"special2", {2,1}},
-			});
+			teq::Opcode{"REDUCE_PROD", 0});
+		not_rule2->add_attr("special2", std::make_unique<marsh::NumArray<double>>(
+			std::vector<double>{2, 1}));
 		auto opteds = opt::optimize({not_rule2}, rules, empty);
 		ASSERT_EQ(1, opteds.size());
 		EXPECT_GRAPHEQ(

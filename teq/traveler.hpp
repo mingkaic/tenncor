@@ -235,6 +235,57 @@ using OwnerMapT = std::unordered_map<iTensor*,TensrefT>;
 /// This utility function will grab reference maps of root's subtree
 OwnerMapT track_owners (TensptrsT roots);
 
+struct Copier final : public OnceTraveler
+{
+	Copier (TensSetT ignores = {}) : ignores_(ignores) {}
+
+	std::unordered_map<teq::iTensor*,teq::TensptrT> clones_;
+
+	TensSetT ignores_;
+
+private:
+	/// Implementation of OnceTraveler
+	void visit_leaf (iLeaf& leaf) override
+	{
+		if (estd::has(ignores_, &leaf))
+		{
+			return;
+		}
+		clones_.emplace(&leaf, leaf.clone());
+	}
+
+	/// Implementation of OnceTraveler
+	void visit_func (iFunctor& func) override
+	{
+		if (estd::has(ignores_, &func))
+		{
+			return;
+		}
+		auto children = func.get_children();
+		auto fcpy = func.clone();
+		for (size_t i = 0, n = children.size(); i < n; ++i)
+		{
+			TensptrT tens = children[i];
+			tens->accept(*this);
+			if (estd::get(tens, clones_, tens.get()))
+			{
+				fcpy->update_child(tens, i);
+			}
+		}
+		clones_.emplace(&func, fcpy);
+	}
+
+	/// Implementation of OnceTraveler
+	void visit_place (Placeholder& place) override
+	{
+		if (estd::has(ignores_, &place))
+		{
+			return;
+		}
+		clones_.emplace(&place, place.clone());
+	}
+};
+
 }
 
 #endif // TEQ_TRAVELER_HPP

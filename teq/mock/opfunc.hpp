@@ -1,45 +1,23 @@
-#include "marsh/objs.hpp"
-
 #include "teq/iopfunc.hpp"
+
+#include "teq/mock/data.hpp"
+#include "teq/mock/functor.hpp"
 
 #ifndef TEQ_MOCK_OPFUNC_HPP
 #define TEQ_MOCK_OPFUNC_HPP
 
-struct MockOpfunc final : public teq::iOperableFunc
+struct MockOpfunc : public teq::iOperableFunc
 {
-	// todo: make constructor similar to MockFunctor
-	MockOpfunc (teq::TensptrT a,
-		teq::Opcode opcode = teq::Opcode{},
-		std::unordered_map<std::string,std::vector<double>> attrs = {}) :
-		MockOpfunc(teq::TensptrsT{a}, opcode, attrs) {}
-
-	MockOpfunc (teq::TensptrsT args,
-		teq::Opcode opcode = teq::Opcode{},
-		std::unordered_map<std::string,std::vector<double>> attrs = {}) :
-		opcode_(opcode),
-		shape_(args[0]->shape()),
-		args_(args)
-	{
-		for (auto apair : attrs)
-		{
-			auto aval = apair.second;
-			if (aval.size() > 0)
-			{
-				attrs_.add_attr(apair.first,
-					std::make_unique<marsh::NumArray<double>>(aval));
-			}
-		}
-	}
+	MockOpfunc (teq::TensptrsT tens,
+		std::vector<double> data,
+		teq::Opcode opcode = teq::Opcode{}) :
+		func_(tens, opcode),
+		data_(tens.front()->shape(), data) {}
 
 	MockOpfunc (const MockOpfunc& other) :
-		updated_(other.updated_),
-		opcode_(other.opcode_),
-		shape_(other.shape_),
-		args_(other.args_)
-	{
-		std::unique_ptr<marsh::Maps> oattr(other.attrs_.clone());
-		attrs_ = std::move(*oattr);
-	}
+		updated_(other.updated_), func_(other.func_), data_(other.data_) {}
+
+	virtual ~MockOpfunc (void) = default;
 
 	void accept (teq::iTraveler& visiter) override
 	{
@@ -48,47 +26,47 @@ struct MockOpfunc final : public teq::iOperableFunc
 
 	teq::Shape shape (void) const override
 	{
-		return shape_;
+		return func_.shape();
 	}
 
 	std::string to_string (void) const override
 	{
-		return opcode_.name_;
+		return func_.to_string();
 	}
 
 	teq::Opcode get_opcode (void) const override
 	{
-		return opcode_;
+		return func_.get_opcode();
 	}
 
 	teq::TensptrsT get_children (void) const override
 	{
-		return args_;
+		return func_.get_children();
 	}
 
 	const marsh::iObject* get_attr (std::string attr_name) const override
 	{
-		return attrs_.get_attr(attr_name);
+		return func_.get_attr(attr_name);
 	}
 
 	std::vector<std::string> ls_attrs (void) const override
 	{
-		return attrs_.ls_attrs();
+		return func_.ls_attrs();
 	}
 
 	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
 	{
-		attrs_.add_attr(attr_key, std::move(attr_val));
+		func_.add_attr(attr_key, std::move(attr_val));
 	}
 
 	void rm_attr (std::string attr_key) override
 	{
-		attrs_.rm_attr(attr_key);
+		func_.rm_attr(attr_key);
 	}
 
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		args_[index] = arg;
+		func_.update_child(arg, index);
 	}
 
 	void update (void) override
@@ -98,27 +76,27 @@ struct MockOpfunc final : public teq::iOperableFunc
 
 	void* data (void) override
 	{
-		return nullptr;
+		return data_.data();
 	}
 
 	const void* data (void) const override
 	{
-		return nullptr;
+		return data_.data();
 	}
 
 	size_t type_code (void) const override
 	{
-		return 0;
+		return data_.type_code();
 	}
 
 	std::string type_label (void) const override
 	{
-		return "";
+		return data_.type_label();
 	}
 
 	size_t nbytes (void) const override
 	{
-		return 0;
+		return data_.nbytes();
 	}
 
 	teq::iTensor* clone_impl (void) const override
@@ -128,13 +106,9 @@ struct MockOpfunc final : public teq::iOperableFunc
 
 	bool updated_ = false;
 
-	teq::Opcode opcode_;
+	MockFunctor func_;
 
-	teq::Shape shape_;
-
-	teq::TensptrsT args_;
-
-	marsh::Maps attrs_;
+	MockData data_;
 };
 
 #endif // TEQ_MOCK_OPFUNC_HPP
