@@ -68,7 +68,6 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// layers
 	py::class_<layr::iLayer,layr::LayerptrT> layer(m, "Layer");
-	py::class_<layr::ULayer,layr::UnaryptrT,layr::iLayer> ulayer(m, "ULayer");
 	py::class_<layr::Dense,layr::DenseptrT,layr::iLayer> dense(m, "Dense");
 	py::class_<layr::RBM,layr::RBMptrT,layr::iLayer> rbm(m, "RBM");
 	py::class_<layr::Conv,layr::ConvptrT,layr::iLayer> conv(m, "Conv");
@@ -189,7 +188,7 @@ PYBIND11_MODULE(rocnnet, m)
 	m.def("create_rbm",
 		[](layr::DenseptrT hidden,
 			layr::DenseptrT visible,
-			layr::UnaryptrT activation,
+			layr::UnaryF activation,
 			std::string label)
 		{
 			return std::make_shared<layr::RBM>(
@@ -201,7 +200,7 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("label") = "");
 	rbm
 		.def(py::init<teq::DimT,teq::DimT,
-			layr::UnaryptrT,
+			layr::UnaryF,
 			layr::InitF<PybindT>,
 			layr::InitF<PybindT>,
 			const std::string&>(),
@@ -241,7 +240,7 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// rnn
 	m.def("create_recur",
-		[](layr::DenseptrT cell, layr::UnaryptrT activation,
+		[](layr::DenseptrT cell, layr::UnaryF activation,
 			LinkptrT init_state, LinkptrT param, std::string label)
 		{
 			return std::make_shared<layr::RNN>(
@@ -253,7 +252,7 @@ PYBIND11_MODULE(rocnnet, m)
 		py::arg("param"),
 		py::arg("label") = "");
 	rnn
-		.def(py::init<teq::DimT,teq::DimT,layr::UnaryptrT,
+		.def(py::init<teq::DimT,teq::DimT,layr::UnaryF,
 			layr::InitF<PybindT>,layr::InitF<PybindT>,
 			teq::RankT,const std::string&>(),
 			py::arg("nunits"), py::arg("ninput"), py::arg("activation"),

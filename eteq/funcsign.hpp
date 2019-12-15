@@ -61,7 +61,11 @@ struct FuncSignature final : public teq::iFunctor, public teq::iSignature
 	/// Implementation of iTensor
 	teq::Shape shape (void) const override
 	{
-		return build_data()->data_shape();
+		if (nullptr == last_built_)
+		{
+			last_built_ = build_data();
+		}
+		return last_built_->data_shape();
 	}
 
 	/// Implementation of iTensor
@@ -145,9 +149,9 @@ struct FuncSignature final : public teq::iFunctor, public teq::iSignature
 		std::transform(links_.begin(), links_.end(), std::back_inserter(links),
 			[](LinkptrT<T> link) { return data_link<T>(link->build_data()); });
 		std::unique_ptr<marsh::Maps> tmp_attrs(attrs_.clone());
-		auto out = Functor<T>::get((egen::_GENERATED_OPCODE) opcode_.code_,
-			links, std::move(*tmp_attrs));
-		return to_link<T>(out)->build_data(); // can simplify if Functor<T>::get returns Functor<T>*
+		last_built_ = to_link<T>(Functor<T>::get((egen::_GENERATED_OPCODE) opcode_.code_,
+			links, std::move(*tmp_attrs)))->build_data(); // can simplify if Functor<T>::get returns Functor<T>*
+		return last_built_;
 	}
 
 	/// Implementation of iSignature
@@ -187,6 +191,9 @@ private:
 	LinksT<T> links_;
 
 	marsh::Maps attrs_;
+
+	// Cached last built data object (todo: consider better solutions: make all tensors signatured, then remove shape method)
+	mutable teq::DataptrT last_built_ = nullptr;
 };
 
 #undef CHOOSE_PARSER

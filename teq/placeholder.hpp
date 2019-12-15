@@ -44,11 +44,11 @@ struct Placeholder final : public iTensor, public iSignature
 		return data_->data_shape();
 	}
 
-    /// Implementation of iTensor
-    std::string to_string (void) const override
-    {
-        return label_;
-    }
+	/// Implementation of iTensor
+	std::string to_string (void) const override
+	{
+		return label_;
+	}
 
 	/// Implementation of iSignature
 	bool can_build (void) const override

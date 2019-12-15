@@ -6,6 +6,7 @@
 #include "eteq/functor.hpp"
 #include "eteq/funcsign.hpp"
 #include "eteq/placeholder.hpp"
+#include "eteq/layer.hpp"
 
 #ifndef ETEQ_CONVERT_HPP
 #define ETEQ_CONVERT_HPP
@@ -36,6 +37,10 @@ LinkptrT<T> to_link (teq::TensptrT tens)
 	else if (auto funcsign = std::dynamic_pointer_cast<FuncSignature<T>>(tens))
 	{
 		return std::make_shared<FuncSignLink<T>>(funcsign);
+	}
+	else if (auto layer = std::dynamic_pointer_cast<Layer<T>>(tens))
+	{
+		return std::make_shared<LayerLink<T>>(layer);
 	}
 	return nullptr;
 }

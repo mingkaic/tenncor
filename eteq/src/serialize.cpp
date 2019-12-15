@@ -30,20 +30,6 @@ static inline teq::TensptrT unpack (bool is_const, teq::Shape shape,
 	return teq::TensptrT(Variable<CAST>::get(ptr, shape, label));
 }
 
-static inline std::vector<double> convert_attrs (
-	const marsh::Maps& attrs, std::string key)
-{
-	std::vector<double> out;
-	if (auto obj = attrs.get_attr(key))
-	{
-		if (typeid(marsh::NumArray<double>).hash_code() == obj->class_code())
-		{
-			out = static_cast<const marsh::NumArray<double>*>(obj)->contents_;
-		}
-	}
-	return out;
-}
-
 template <typename T>
 static inline teq::TensptrT convert_func (std::string opname,
 	const teq::TensptrsT& args, marsh::Maps&& attrs)

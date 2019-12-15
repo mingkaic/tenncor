@@ -11,9 +11,19 @@ struct iLayer : public iFunctor, public iSignature
 {
 	virtual ~iLayer (void) = default;
 
-    virtual TensptrT get_input (void) const = 0;
+	/// Implementation of iTensor
+	void accept (iTraveler& visiter) override
+	{
+		get_root()->accept(visiter);
+	}
 
-    virtual TensptrT get_output (void) const = 0;
+	/// Implementation of iTensor
+	Shape shape (void) const override
+	{
+		return get_root()->shape();
+	}
+
+	virtual TensptrT get_root (void) const = 0;
 
 	/// Return all leaves representing the layer
 	virtual TensptrsT get_storage (void) const = 0;

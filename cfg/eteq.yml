@@ -1302,9 +1302,9 @@ api:
         name: fully_connect
         args:
         - dtype: eteq::LinksT<T>
-          name: inputs
+          name: lefts
         - dtype: eteq::LinksT<T>
-          name: weights
+          name: rights
         - dtype: eteq::LinkptrT<T>
           name: bias
           check_null: false
@@ -1315,21 +1315,17 @@ api:
           type: eteq::LinkptrT<T>
           val: |
               //
-                  if (weights.empty())
-                  {
-                      logs::fatal("cannot create a fully connected layer without weights");
-                  }
-                  size_t ninputs = inputs.size();
-                  if (ninputs != weights.size())
+                  size_t nlefts = lefts.size();
+                  if (nlefts != rights.size())
                   {
                       logs::fatalf(
-                          "number of inputs (%d) must equal the number of weights (%d)",
-                          ninputs, weights.size());
+                          "number of lefts (%d) must equal the number of rights (%d)",
+                          nlefts, rights.size());
                   }
-                  auto out = ::tenncor::contract(inputs[0], weights[0], dims);
-                  for (size_t i = 1; i < ninputs; ++i)
+                  auto out = ::tenncor::contract(lefts[0], rights[0], dims);
+                  for (size_t i = 1; i < nlefts; ++i)
                   {
-                      out = ::tenncor::add(out, ::tenncor::contract(inputs[i], weights[i], dims));
+                      out = ::tenncor::add(out, ::tenncor::contract(lefts[i], rights[i], dims));
                   }
                   if (nullptr != bias)
                   {
@@ -1343,6 +1339,10 @@ api:
           name: image
         - dtype: eteq::LinkptrT<T>
           name: kernel
+        - dtype: eteq::LinkptrT<T>
+          name: bias
+          default: nullptr
+          check_null: false
         - dtype: std::pair<teq::DimT,teq::DimT>
           name: zero_padding
           default: "std::pair<teq::DimT,teq::DimT>{0,0}"
@@ -1377,9 +1377,13 @@ api:
                       std::pair<teq::DimT,teq::DimT>{img_pad, img_pad}, 4);
                   kernel = ::tenncor::reverse(kernel, {0});
 
-                 return ::tenncor::permute(
-                      ::tenncor::convolution(image, kernel,
-                          {4, 0, 1, 2}), {4, 1, 2, 3});
+                  auto out =  ::tenncor::permute(::tenncor::convolution(image, kernel,
+                      {4, 0, 1, 2}), {4, 1, 2, 3});
+                  if (nullptr != bias)
+                  {
+                      out = ::tenncor::add(out, ::tenncor::best_extend(bias, out->shape_sign()));
+                  }
+                  return out;
       - template: typename T
         name: mean_pool2d
         args:
