@@ -23,9 +23,6 @@ private:
 			owners_.emplace(tens.get(), tens);
 		}
 	}
-
-	/// Implementation of OnceTraveler
-	void visit_place (Placeholder& place) override {}
 };
 
 OwnerMapT track_owners (TensptrsT roots)

@@ -10,8 +10,8 @@
 
 #include "teq/shape.hpp"
 
-#ifndef TEQ_INTERFACE_HPP
-#define TEQ_INTERFACE_HPP
+#ifndef TEQ_ITENSOR_HPP
+#define TEQ_ITENSOR_HPP
 
 namespace teq
 {
@@ -19,8 +19,6 @@ namespace teq
 struct iLeaf;
 
 struct iFunctor;
-
-struct Placeholder;
 
 /// Interface to travel through graph, treating iLeaf and iFunctor differently
 struct iTraveler
@@ -32,9 +30,16 @@ struct iTraveler
 
 	/// Visit functor node
 	virtual void visit (iFunctor& func) = 0;
+};
 
-	/// Visit placeholder node
-	virtual void visit (Placeholder& placeholder) = 0;
+/// Encoding of operation
+struct Opcode final
+{
+	/// String representation of operation
+	std::string name_;
+
+	/// Numerical encoding of operation
+	size_t code_;
 };
 
 /// Interface of traversible and differentiable nodes with shape information
@@ -50,8 +55,23 @@ struct iTensor
 	/// Obtain concrete information on either leaf or functor implementations
 	virtual void accept (iTraveler& visiter) = 0;
 
-	/// Return the shape held by this tensor
+	/// Return pointer to internal data
+	virtual void* data (void) = 0;
+
+	/// Return const pointer to internal data
+	virtual const void* data (void) const = 0;
+
+	/// Return the shape of the data
 	virtual Shape shape (void) const = 0;
+
+	/// Return data type encoding
+	virtual size_t type_code (void) const = 0;
+
+	/// Return data type label (for better readability)
+	virtual std::string type_label (void) const = 0;
+
+	/// Return number of bytes in the data
+	virtual size_t nbytes (void) const = 0;
 
 	/// Return the string representation of the tensor
 	virtual std::string to_string (void) const = 0;
@@ -80,4 +100,4 @@ using TensptrSetT = std::unordered_set<TensptrT>;
 
 }
 
-#endif // TEQ_INTERFACE_HPP
+#endif // TEQ_ITENSOR_HPP

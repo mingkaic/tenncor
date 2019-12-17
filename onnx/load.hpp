@@ -17,7 +17,8 @@
 namespace onnx
 {
 
-using LeafUnmarshF = std::function<teq::TensptrT(const TensorProto&,bool,std::string)>;
+using LeafUnmarshF = std::function<teq::TensptrT(
+	const TensorProto&,teq::Usage,std::string)>;
 
 using FuncUnmarshF = std::function<teq::TensptrT(
 	std::string,const teq::TensptrsT&,marsh::Maps&&)>;

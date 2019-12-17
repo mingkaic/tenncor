@@ -25,15 +25,6 @@ struct Constant final : public iLeaf<T>
 		return new Constant(data, shape);
 	}
 
-	/// Return Constant tensor containing scalar expanded to fill shape
-	static Constant<T>* get_scalar (T scalar, teq::Shape shape)
-	{
-		size_t n = shape.n_elems();
-		T buffer[n];
-		std::fill(buffer, buffer + n, scalar);
-		return Constant<T>::get(buffer, shape);
-	}
-
 	Constant<T>* clone (void) const
 	{
 		return static_cast<Constant<T>*>(clone_impl());
@@ -52,9 +43,9 @@ struct Constant final : public iLeaf<T>
 	}
 
 	/// Implementation of iLeaf
-	bool is_const (void) const override
+	teq::Usage get_usage (void) const override
 	{
-		return true;
+		return teq::Immutable;
 	}
 
 	/// Return true if constant data values are all the same, otherwise false

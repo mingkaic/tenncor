@@ -195,7 +195,7 @@ struct DQNTrainer final
 		sess_->update();
 		PybindT* dptr = output_->data();
 		uint8_t max_i = 0;
-		for (uint8_t i = 1, n = output_->shape().n_elems(); i < n; ++i)
+		for (uint8_t i = 1, n = output_->link_shape().n_elems(); i < n; ++i)
 		{
 			if (dptr[max_i] < dptr[i])
 			{

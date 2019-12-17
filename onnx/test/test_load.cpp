@@ -20,16 +20,17 @@ const std::string testdir = "models/test";
 
 
 static teq::TensptrT generate_leaf (const onnx::TensorProto& tens,
-	bool is_const, std::string name)
+	teq::Usage usage, std::string name)
 {
-	return std::make_shared<MockLeaf>(onnx::unmarshal_shape(tens), name);
+	return std::make_shared<MockLeaf>(
+		std::vector<double>{}, onnx::unmarshal_shape(tens), name);
 }
 
 
 static teq::TensptrT generate_func (std::string opname,
 	const teq::TensptrsT& edges, marsh::Maps&& attrs)
 {
-	return std::make_shared<MockFunctor>(edges, teq::Opcode{opname, 0});
+	return std::make_shared<MockFunctor>(edges, std::vector<double>{}, teq::Opcode{opname, 0});
 }
 
 

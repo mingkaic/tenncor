@@ -1,6 +1,6 @@
 #include <queue>
 
-#include "teq/iopfunc.hpp"
+#include "teq/ifunctor.hpp"
 
 #include "ccur/partition.hpp"
 
@@ -53,14 +53,10 @@ PartGroupsT k_partition (teq::TensptrsT roots, size_t k, OpWeightT weights)
 			auto tens = q.front();
 			if (false == estd::has(weight_map, tens))
 			{
-				double weight = 1;
-				if (auto op = dynamic_cast<teq::iOperableFunc*>(tens))
-				{
-					weight = estd::try_get(weights, op->type_code(), 1);
-				}
-				weight_map.emplace(tens, weight);
+				weight_map.emplace(tens,
+					estd::try_get(weights, tens->type_code(), 1));
 			}
-			teq::ParentMapT parents;
+			teq::TensCIdxT parents;
 			if (estd::get(parents, pfinder.parents_, tens))
 			{
 				for (auto& ppair : parents)

@@ -10,7 +10,7 @@
 #include <list>
 
 #include "teq/traveler.hpp"
-#include "teq/iopfunc.hpp"
+#include "teq/ifunctor.hpp"
 
 #ifndef TEQ_SESSION_HPP
 #define TEQ_SESSION_HPP
@@ -64,25 +64,18 @@ struct Session final : public iSession
 		{
 			if (0 < statpair.second.upper_)
 			{
-				// ensure we only track operable functors
-				auto op = dynamic_cast<iOperableFunc*>(statpair.first);
-				if (nullptr == op)
-				{
-					logs::fatalf("cannot track non-operable functor %s",
-						statpair.first->to_string().c_str());
-				}
-				ops_.push_back(op);
+				ops_.push_back(static_cast<iFunctor*>(statpair.first));
 			}
 		}
 		std::sort(ops_.begin(), ops_.end(),
-			[&statmap](iOperableFunc* a, iOperableFunc* b)
+			[&statmap](iFunctor* a, iFunctor* b)
 			{ return statmap[a].upper_ < statmap[b].upper_; });
 	}
 
 	/// Implementation of iSession
 	void update (TensSetT ignored = {}) override
 	{
-		std::list<iOperableFunc*> reqs;
+		std::list<iFunctor*> reqs;
 		TensSetT acceptable;
 		for (auto& root : tracked_)
 		{
@@ -107,14 +100,14 @@ struct Session final : public iSession
 
 		for (auto& op : reqs)
 		{
-			op->update();
+			op->calc();
 		}
 	}
 
 	/// Implementation of iSession
 	void update_target (TensSetT target, TensSetT ignored = {}) override
 	{
-		std::list<iOperableFunc*> reqs;
+		std::list<iFunctor*> reqs;
 		TensSetT acceptable;
 		for (auto& root : target)
 		{
@@ -139,7 +132,7 @@ struct Session final : public iSession
 
 		for (auto& op : reqs)
 		{
-			op->update();
+			op->calc();
 		}
 	}
 
@@ -161,7 +154,7 @@ struct Session final : public iSession
 	TensptrSetT tracked_;
 
 	/// Operable functors ordered by height in the tracked graph
-	std::vector<iOperableFunc*> ops_;
+	std::vector<iFunctor*> ops_;
 };
 
 }

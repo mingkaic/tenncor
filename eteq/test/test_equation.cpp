@@ -80,7 +80,7 @@ TEST(EQUATION, MatmulComplex)
 	session.update();
 
 	{
-		auto gotshape = da->shape();
+		auto gotshape = da->link_shape();
 		ASSERT_ARREQ(ashape, gotshape);
 	}
 	float* gaptr = (float*) da->data();
@@ -90,7 +90,7 @@ TEST(EQUATION, MatmulComplex)
 	}
 
 	{
-		auto gotshape = db->shape();
+		auto gotshape = db->link_shape();
 		ASSERT_ARREQ(bshape, gotshape);
 	}
 	float* gbptr = (float*) db->data();
@@ -100,7 +100,7 @@ TEST(EQUATION, MatmulComplex)
 	}
 
 	{
-		auto gotshape = dc->shape();
+		auto gotshape = dc->link_shape();
 		ASSERT_ARREQ(cshape, gotshape);
 	}
 	float* gcptr = (float*) dc->data();
@@ -295,7 +295,7 @@ TEST(EQUATION, SigmoidMLP_Slow)
 	};
 
 	{
-		auto gotshape = dw0->shape();
+		auto gotshape = dw0->link_shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
 	double* gw0ptr = (double*) dw0->data();
@@ -304,7 +304,7 @@ TEST(EQUATION, SigmoidMLP_Slow)
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
 	}
 	{
-		auto gotshape = db0->shape();
+		auto gotshape = db0->link_shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
 	double* gb0ptr = (double*) db0->data();
@@ -313,7 +313,7 @@ TEST(EQUATION, SigmoidMLP_Slow)
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
 	}
 	{
-		auto gotshape = dw1->shape();
+		auto gotshape = dw1->link_shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
 
@@ -323,7 +323,7 @@ TEST(EQUATION, SigmoidMLP_Slow)
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
 	}
 	{
-		auto gotshape = db1->shape();
+		auto gotshape = db1->link_shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
 	double* gb1ptr = (double*) db1->data();
@@ -515,7 +515,7 @@ TEST(EQUATION, SigmoidMLP_Fast)
 	};
 
 	{
-		auto gotshape = dw0->shape();
+		auto gotshape = dw0->link_shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
 	double* gw0ptr = (double*) dw0->data();
@@ -524,7 +524,7 @@ TEST(EQUATION, SigmoidMLP_Fast)
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
 	}
 	{
-		auto gotshape = db0->shape();
+		auto gotshape = db0->link_shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
 	double* gb0ptr = (double*) db0->data();
@@ -533,7 +533,7 @@ TEST(EQUATION, SigmoidMLP_Fast)
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
 	}
 	{
-		auto gotshape = dw1->shape();
+		auto gotshape = dw1->link_shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
 
@@ -543,7 +543,7 @@ TEST(EQUATION, SigmoidMLP_Fast)
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
 	}
 	{
-		auto gotshape = db1->shape();
+		auto gotshape = db1->link_shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
 	double* gb1ptr = (double*) db1->data();
@@ -748,7 +748,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 	};
 
 	{
-		auto gotshape = dw0->shape();
+		auto gotshape = dw0->link_shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
 	double* gw0ptr = (double*) dw0->data();
@@ -757,7 +757,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
 	}
 	{
-		auto gotshape = db0->shape();
+		auto gotshape = db0->link_shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
 	double* gb0ptr = (double*) db0->data();
@@ -766,7 +766,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
 	}
 	{
-		auto gotshape = dw1->shape();
+		auto gotshape = dw1->link_shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
 
@@ -776,7 +776,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
 	}
 	{
-		auto gotshape = db1->shape();
+		auto gotshape = db1->link_shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
 	double* gb1ptr = (double*) db1->data();
@@ -978,7 +978,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 	};
 
 	{
-		auto gotshape = dw0->shape();
+		auto gotshape = dw0->link_shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
 	double* gw0ptr = (double*) dw0->data();
@@ -987,7 +987,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
 	}
 	{
-		auto gotshape = db0->shape();
+		auto gotshape = db0->link_shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
 	double* gb0ptr = (double*) db0->data();
@@ -996,7 +996,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
 	}
 	{
-		auto gotshape = dw1->shape();
+		auto gotshape = dw1->link_shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
 
@@ -1006,7 +1006,7 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
 	}
 	{
-		auto gotshape = db1->shape();
+		auto gotshape = db1->link_shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
 	double* gb1ptr = (double*) db1->data();

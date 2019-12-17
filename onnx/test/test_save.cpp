@@ -32,13 +32,17 @@ TEST(SAVE, SaveGraph)
 		// subtree one
 		teq::Shape shape({3, 7});
 		teq::Shape shape2({7, 3});
-		teq::TensptrT osrc = std::make_shared<MockLeaf>(shape, "osrc");
-		teq::TensptrT osrc2 = std::make_shared<MockLeaf>(shape2, "osrc2");
+		teq::TensptrT osrc = std::make_shared<MockLeaf>(
+			std::vector<double>{}, shape, "osrc");
+		teq::TensptrT osrc2 = std::make_shared<MockLeaf>(
+			std::vector<double>{}, shape2, "osrc2");
 
 		{
 			teq::Shape shape3({3, 1, 7});
-			teq::TensptrT src = std::make_shared<MockLeaf>(shape, "src");
-			teq::TensptrT src2 = std::make_shared<MockLeaf>(shape3, "src2");
+			teq::TensptrT src = std::make_shared<MockLeaf>(
+				std::vector<double>{}, shape, "src");
+			teq::TensptrT src2 = std::make_shared<MockLeaf>(
+				std::vector<double>{}, shape3, "src2");
 
 			teq::TensptrT dest = std::make_shared<MockFunctor>(teq::TensptrsT{
 				src2,
@@ -46,41 +50,44 @@ TEST(SAVE, SaveGraph)
 					std::make_shared<MockFunctor>(teq::TensptrsT{
 						std::make_shared<MockFunctor>(teq::TensptrsT{
 							osrc,
-						}, teq::Opcode{"neg", 3}),
+						}, std::vector<double>{}, teq::Opcode{"neg", 3}),
 						std::make_shared<MockFunctor>(teq::TensptrsT{
 							std::make_shared<MockFunctor>(teq::TensptrsT{
 								src,
-							}, teq::Opcode{"sin", 5}),
+							}, std::vector<double>{}, teq::Opcode{"sin", 5}),
 							src,
-						}, teq::Opcode{"+", 4}),
-					}, teq::Opcode{"/", 2}),
+						}, std::vector<double>{}, teq::Opcode{"+", 4}),
+					}, std::vector<double>{}, teq::Opcode{"/", 2}),
 					osrc2,
-				}, teq::Opcode{"@", 1}),
-			}, teq::Opcode{"-", 0});
+				}, std::vector<double>{}, teq::Opcode{"@", 1}),
+			}, std::vector<double>{}, teq::Opcode{"-", 0});
 			roots.push_back(dest);
 		}
 
 		// subtree two
 		{
 			teq::Shape mshape({3, 3});
-			teq::TensptrT src = std::make_shared<MockLeaf>(mshape, "s2src");
-			teq::TensptrT src2 = std::make_shared<MockLeaf>(mshape, "s2src2");
-			teq::TensptrT src3 = std::make_shared<MockLeaf>(mshape, "s2src3");
+			teq::TensptrT src = std::make_shared<MockLeaf>(
+				std::vector<double>{}, mshape, "s2src");
+			teq::TensptrT src2 = std::make_shared<MockLeaf>(
+				std::vector<double>{}, mshape, "s2src2");
+			teq::TensptrT src3 = std::make_shared<MockLeaf>(
+				std::vector<double>{}, mshape, "s2src3");
 
 			teq::TensptrT dest = std::make_shared<MockFunctor>(teq::TensptrsT{
 				src,
 				std::make_shared<MockFunctor>(teq::TensptrsT{
 					std::make_shared<MockFunctor>(teq::TensptrsT{
 						src,
-					}, teq::Opcode{"abs", 7}),
+					}, std::vector<double>{}, teq::Opcode{"abs", 7}),
 					std::make_shared<MockFunctor>(teq::TensptrsT{
 						src2,
-					}, teq::Opcode{"exp", 8}),
+					}, std::vector<double>{}, teq::Opcode{"exp", 8}),
 					std::make_shared<MockFunctor>(teq::TensptrsT{
 						src3,
-					}, teq::Opcode{"neg", 3}),
-				}, teq::Opcode{"*", 6}),
-			}, teq::Opcode{"-", 0});
+					}, std::vector<double>{}, teq::Opcode{"neg", 3}),
+				}, std::vector<double>{}, teq::Opcode{"*", 6}),
+			}, std::vector<double>{}, teq::Opcode{"-", 0});
 			roots.push_back(dest);
 		}
 

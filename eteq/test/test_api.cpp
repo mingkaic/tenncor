@@ -42,8 +42,8 @@ static MatVecT create_2d (eteq::LinkptrT<int32_t> data,
 	std::pair<teq::RankT,teq::RankT> dims = {0, 1})
 {
 	int32_t* ptr = (int32_t*) data->data();
-	teq::DimT C = data->shape().at(dims.first);
-	teq::DimT R = data->shape().at(dims.second);
+	teq::DimT C = data->link_shape().at(dims.first);
+	teq::DimT R = data->link_shape().at(dims.second);
 	MatVecT res;
 
  	for (size_t y = 0; y < R; y++)
@@ -144,7 +144,7 @@ static void unary_generic (UnaryOpF<double> op,
 	if (auto dtens = std::dynamic_pointer_cast<eteq::Functor<double>>(
 		dest->get_tensor()))
 	{
-		dtens->update();
+		dtens->calc();
 	}
 	verify(dest, shape, data);
 
@@ -154,7 +154,7 @@ static void unary_generic (UnaryOpF<double> op,
 	session.track({gsrc->get_tensor()});
 	session.update();
 
-	auto gotshape = gsrc->shape();
+	auto gotshape = gsrc->link_shape();
 	ASSERT_ARREQ(shape, gotshape);
 	double* goptr = (double*) gsrc->data();
 	bwverify(goptr, data);
@@ -174,9 +174,9 @@ static void unar_elem (std::vector<double> data,
 
 	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
 		dest->get_tensor());
-	dtens->update();
+	dtens->calc();
 	{
-		auto gotshape = dest->shape();
+		auto gotshape = dest->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* optr = (double*) dest->data();
@@ -192,7 +192,7 @@ static void unar_elem (std::vector<double> data,
 	session.track({gsrc->get_tensor()});
 	session.update();
 	{
-		auto gotshape = gsrc->shape();
+		auto gotshape = gsrc->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsrc->data();
@@ -243,9 +243,9 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 
 	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
 		dest->get_tensor());
-	dtens->update();
+	dtens->calc();
 	{
-		auto gotshape = dest->shape();
+		auto gotshape = dest->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* optr = (double*) dest->data();
@@ -254,18 +254,18 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(fwd(data[i], data2[i]), optr[i]);
 	}
 
-	auto clhstens = std::static_pointer_cast<eteq::Functor<double>>(
-		clhs->get_tensor());
-	auto crhstens = std::static_pointer_cast<eteq::Functor<double>>(
-		crhs->get_tensor());
-	clhstens->update();
-	crhstens->update();
+	auto clhstens = std::static_pointer_cast<
+		eteq::Functor<double>>(clhs->get_tensor());
+	auto crhstens = std::static_pointer_cast<
+		eteq::Functor<double>>(crhs->get_tensor());
+	clhstens->calc();
+	crhstens->calc();
 	{
-		auto gotshape = clhs->shape();
+		auto gotshape = clhs->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	{
-		auto gotshape = crhs->shape();
+		auto gotshape = crhs->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* lptr = (double*) clhs->data();
@@ -286,7 +286,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	session.track({gsame->get_tensor()});
 	session.update();
 	{
-		auto gotshape = gsame->shape();
+		auto gotshape = gsame->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsame->data();
@@ -299,7 +299,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	session.track({gleft->get_tensor()});
 	session.update();
 	{
-		auto gotshape = gleft->shape();
+		auto gotshape = gleft->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr2 = (double*) gleft->data();
@@ -312,7 +312,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	session.track({gright->get_tensor()});
 	session.update();
 	{
-		auto gotshape = gright->shape();
+		auto gotshape = gright->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr3 = (double*) gright->data();
@@ -377,9 +377,9 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 
 	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
 		dest->get_tensor());
-	dtens->update();
+	dtens->calc();
 	{
-		auto gotshape = dest->shape();
+		auto gotshape = dest->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* optr = (int32_t*) dest->data();
@@ -392,14 +392,14 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		clhs->get_tensor());
 	auto crhstens = std::static_pointer_cast<eteq::Functor<double>>(
 		crhs->get_tensor());
-	clhstens->update();
-	crhstens->update();
+	clhstens->calc();
+	crhstens->calc();
 	{
-		auto gotshape = clhs->shape();
+		auto gotshape = clhs->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	{
-		auto gotshape = crhs->shape();
+		auto gotshape = crhs->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* lptr = (int32_t*) clhs->data();
@@ -420,7 +420,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	session.track({gsame->get_tensor()});
 	session.update();
 	{
-		auto gotshape = gsame->shape();
+		auto gotshape = gsame->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* goptr = (int32_t*) gsame->data();
@@ -433,7 +433,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	session.track({gleft->get_tensor()});
 	session.update();
 	{
-		auto gotshape = gleft->shape();
+		auto gotshape = gleft->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* goptr2 = (int32_t*) gleft->data();
@@ -446,7 +446,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	session.track({gright->get_tensor()});
 	session.update();
 	{
-		auto gotshape = gright->shape();
+		auto gotshape = gright->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* goptr3 = (int32_t*) gright->data();
@@ -857,9 +857,9 @@ TEST(API, Select)
 
 		auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
 			dest->get_tensor());
-		dtens->update();
+		dtens->calc();
 		{
-			auto gotshape = dest->shape();
+			auto gotshape = dest->link_shape();
 			ASSERT_ARREQ(shape, gotshape);
 		}
 		double* optr = (double*) dest->data();
@@ -879,7 +879,7 @@ TEST(API, Select)
 		session.track({gleft->get_tensor()});
 		session.update();
 		{
-			auto gotshape = gleft->shape();
+			auto gotshape = gleft->link_shape();
 			ASSERT_ARREQ(shape, gotshape);
 		}
 		double* goptr = (double*) gleft->data();
@@ -892,7 +892,7 @@ TEST(API, Select)
 		session.track({gright->get_tensor()});
 		session.update();
 		{
-			auto gotshape = gright->shape();
+			auto gotshape = gright->link_shape();
 			ASSERT_ARREQ(shape, gotshape);
 		}
 		double* goptr2 = (double*) gright->data();
@@ -1009,7 +1009,7 @@ TEST(API, NElems)
 		[](eteq::LinkptrT<double>& src) { return tenncor::n_elems(src); },
 		[](eteq::LinkptrT<double> out, teq::Shape& shape, std::vector<double>&)
 		{
-			ASSERT_EQ(1, out->shape().n_elems());
+			ASSERT_EQ(1, out->link_shape().n_elems());
 			double got = *((double*) out->data());
 
 			EXPECT_EQ(shape.n_elems(), got);
@@ -1031,7 +1031,7 @@ TEST(API, NDims)
 		[dim](eteq::LinkptrT<double>& src) { return tenncor::n_dims(src, dim); },
 		[dim](eteq::LinkptrT<double> out, teq::Shape& shape, std::vector<double>&)
 		{
-			ASSERT_EQ(1, out->shape().n_elems());
+			ASSERT_EQ(1, out->link_shape().n_elems());
 			double got = *((double*) out->data());
 
 			EXPECT_EQ(shape.at(dim), got);
@@ -1052,7 +1052,7 @@ TEST(API, Rsum)
 		[](eteq::LinkptrT<double>& src) { return tenncor::reduce_sum(src); },
 		[](eteq::LinkptrT<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
-			size_t n = out->shape().n_elems();
+			size_t n = out->link_shape().n_elems();
 			{
 				ASSERT_EQ(1, n);
 			}
@@ -1074,7 +1074,7 @@ TEST(API, Rsum)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
-			teq::Shape gotshape = out->shape();
+			teq::Shape gotshape = out->link_shape();
 			EXPECT_ARREQ(expect_list, gotshape);
 
 			teq::CoordT coord;
@@ -1123,9 +1123,9 @@ TEST(API, Rprod)
 
 	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
 		dest->get_tensor());
-	dtens->update();
+	dtens->calc();
 	{
-		size_t n = dest->shape().n_elems();
+		size_t n = dest->link_shape().n_elems();
 		{
 			ASSERT_EQ(1, n);
 		}
@@ -1137,11 +1137,11 @@ TEST(API, Rprod)
 
 	auto dtens2 = std::static_pointer_cast<eteq::Functor<double>>(
 		dest2->get_tensor());
-	dtens2->update();
+	dtens2->calc();
 	{
 		std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 		expect_list[1] = 1;
-		teq::Shape gotshape = dest2->shape();
+		teq::Shape gotshape = dest2->link_shape();
 		EXPECT_ARREQ(expect_list, gotshape);
 
 		teq::CoordT coord;
@@ -1170,7 +1170,7 @@ TEST(API, Rprod)
 	});
 	session.update();
 
-	auto gotshape = gsrc->shape();
+	auto gotshape = gsrc->link_shape();
 	ASSERT_ARREQ(shape, gotshape);
 	int32_t* goptr = (int32_t*) gsrc->data();
 	{
@@ -1199,7 +1199,7 @@ TEST(API, Rprod)
 		7, 2,
 		9, 7,
 	};
-	auto gotshape2 = gsrc2->shape();
+	auto gotshape2 = gsrc2->link_shape();
 	ASSERT_ARREQ(shape, gotshape2);
 	int32_t* goptr2 = (int32_t*) gsrc2->data();
 	{
@@ -1217,7 +1217,7 @@ TEST(API, Rmin)
 		[](eteq::LinkptrT<double>& src) { return tenncor::reduce_min(src); },
 		[](eteq::LinkptrT<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
-			size_t n = out->shape().n_elems();
+			size_t n = out->link_shape().n_elems();
 			ASSERT_EQ(1, n);
 			double got = *((double*) out->data());
 
@@ -1245,7 +1245,7 @@ TEST(API, Rmin)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
-			teq::Shape gotshape = out->shape();
+			teq::Shape gotshape = out->link_shape();
 			EXPECT_ARREQ(expect_list, gotshape);
 
 			teq::CoordT coord;
@@ -1299,7 +1299,7 @@ TEST(API, Rmax)
 		[](eteq::LinkptrT<double>& src) { return tenncor::reduce_max(src); },
 		[](eteq::LinkptrT<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
-			size_t n = out->shape().n_elems();
+			size_t n = out->link_shape().n_elems();
 			ASSERT_EQ(1, n);
 			double got = *((double*) out->data());
 
@@ -1327,7 +1327,7 @@ TEST(API, Rmax)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
-			teq::Shape gotshape = out->shape();
+			teq::Shape gotshape = out->link_shape();
 			EXPECT_ARREQ(expect_list, gotshape);
 
 			teq::CoordT coord;
@@ -1391,8 +1391,8 @@ TEST(API, Permute)
 
 	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
 		dest->get_tensor());
-	dtens->update();
-	size_t n = dest->shape().n_elems();
+	dtens->calc();
+	size_t n = dest->link_shape().n_elems();
 	ASSERT_EQ(nelem, n);
 	double* got = (double*) dest->data();
 	teq::CoordT coord, temp;
@@ -1404,7 +1404,7 @@ TEST(API, Permute)
 			coord[j] = temp[pidx[j]];
 		}
 
-		EXPECT_EQ(data[i], got[teq::index(dest->shape(), coord)]);
+		EXPECT_EQ(data[i], got[teq::index(dest->link_shape(), coord)]);
 	}
 
 	teq::Session session;
@@ -1413,7 +1413,7 @@ TEST(API, Permute)
 	session.track({gsrc->get_tensor()});
 	session.update();
 	{
-		auto gotshape = gsrc->shape();
+		auto gotshape = gsrc->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsrc->data();
@@ -1439,9 +1439,9 @@ TEST(API, Extend)
 
 	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
 		dest->get_tensor());
-	dtens->update();
+	dtens->calc();
 	size_t ext_nelem = teq::Shape(ext).n_elems();
-	auto extshape = dest->shape();
+	auto extshape = dest->link_shape();
 	teq::Shape expect_shape({2, 5, 1, 3});
 	EXPECT_ARREQ(expect_shape, extshape);
 	size_t n = extshape.n_elems();
@@ -1461,7 +1461,7 @@ TEST(API, Extend)
 	session.track({gsrc->get_tensor()});
 	session.update();
 	{
-		auto gotshape = gsrc->shape();
+		auto gotshape = gsrc->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsrc->data();
@@ -1511,8 +1511,8 @@ TEST(API, Matmul)
 
 	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
 		dest->get_tensor());
-	dtens->update();
-	teq::Shape gotshape = dest->shape();
+	dtens->calc();
+	teq::Shape gotshape = dest->link_shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(2, gotshape.at(1));
 	int32_t* optr = (int32_t*) dest->data();
@@ -1530,13 +1530,13 @@ TEST(API, Matmul)
 	eteq::LinkptrT<int32_t> gsame = eteq::derive(dest2, c);
 	session.track({gsame->get_tensor()});
 	session.update();
-	teq::Shape gcshape = gsame->shape();
+	teq::Shape gcshape = gsame->link_shape();
 	ASSERT_ARREQ(cshape, gcshape);
 
 	eteq::LinkptrT<int32_t> gleft = eteq::derive(dest, a);
 	session.track({gleft->get_tensor()});
 	session.update();
-	teq::Shape gashape = gleft->shape();
+	teq::Shape gashape = gleft->link_shape();
 	{
 		ASSERT_ARREQ(ashape, gashape);
 		int32_t* ga = (int32_t*) gleft->data();
@@ -1548,7 +1548,7 @@ TEST(API, Matmul)
 	eteq::LinkptrT<int32_t> gright = eteq::derive(dest, b);
 	session.track({gright->get_tensor()});
 	session.update();
-	teq::Shape gbshape = gright->shape();
+	teq::Shape gbshape = gright->link_shape();
 	{
 		ASSERT_ARREQ(bshape, gbshape);
 		int32_t* gb = (int32_t*) gright->data();
@@ -1597,8 +1597,8 @@ TEST(API, Contract)
 
 	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
 		dest->get_tensor());
-	dtens->update();
-	teq::Shape gotshape = dest->shape();
+	dtens->calc();
+	teq::Shape gotshape = dest->link_shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(1, gotshape.at(1));
 	EXPECT_EQ(1, gotshape.at(2));
@@ -1618,13 +1618,13 @@ TEST(API, Contract)
 	eteq::LinkptrT<int32_t> gsame = eteq::derive(dest2, c);
 	session.track({gsame->get_tensor()});
 	session.update();
-	teq::Shape gcshape = gsame->shape();
+	teq::Shape gcshape = gsame->link_shape();
 	ASSERT_ARREQ(cshape, gcshape);
 
 	eteq::LinkptrT<int32_t> gleft = eteq::derive(dest, a);
 	session.track({gleft->get_tensor()});
 	session.update();
-	teq::Shape gashape = gleft->shape();
+	teq::Shape gashape = gleft->link_shape();
 	{
 		ASSERT_ARREQ(ashape, gashape);
 		int32_t* ga = (int32_t*) gleft->data();
@@ -1636,7 +1636,7 @@ TEST(API, Contract)
 	eteq::LinkptrT<int32_t> gright = eteq::derive(dest, b);
 	session.track({gright->get_tensor()});
 	session.update();
-	teq::Shape gbshape = gright->shape();
+	teq::Shape gbshape = gright->link_shape();
 	{
 		ASSERT_ARREQ(bshape, gbshape);
 		int32_t* gb = (int32_t*) gright->data();
@@ -1659,13 +1659,13 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 
 	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
 		dest->get_tensor());
-	dtens->update();
+	dtens->calc();
 	{
-		auto gotshape = dest->shape();
+		auto gotshape = dest->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* optr = (double*) dest->data();
-	size_t nelems = dest->shape().n_elems();
+	size_t nelems = dest->link_shape().n_elems();
 	for (size_t i = 0; i < nelems; ++i)
 	{
 		EXPECT_LT(lo, optr[i]);
@@ -1678,7 +1678,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	session.track({gleft->get_tensor()});
 	session.update();
 	{
-		auto gotshape = gleft->shape();
+		auto gotshape = gleft->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr2 = (double*) gleft->data();
@@ -1688,7 +1688,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	session.track({gright->get_tensor()});
 	session.update();
 	{
-		auto gotshape = gright->shape();
+		auto gotshape = gright->link_shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr3 = (double*) gright->data();
@@ -1771,9 +1771,9 @@ TEST(API, Convolution)
 
 	auto dtens = std::static_pointer_cast<eteq::Functor<double>>(
 		dest->get_tensor());
-	dtens->update();
+	dtens->calc();
 	{
-		auto gotshape = dest->shape();
+		auto gotshape = dest->link_shape();
 		ASSERT_ARREQ(expectslist, gotshape);
 
 		double* optr = (double*) dest->data();
@@ -1789,7 +1789,7 @@ TEST(API, Convolution)
 	session.track({gleft->get_tensor()});
 	session.update();
 	{
-		auto gashape = gleft->shape();
+		auto gashape = gleft->link_shape();
 		ASSERT_ARREQ(shape, gashape);
 		double* ga = (double*) gleft->data();
 		std::vector<double> ga_data(ga, ga + gashape.n_elems());
@@ -1801,7 +1801,7 @@ TEST(API, Convolution)
 	session.track({gright->get_tensor()});
 	session.update();
 	{
-		auto gbshape = gright->shape();
+		auto gbshape = gright->link_shape();
 		ASSERT_ARREQ(kshape, gbshape);
 		double* gb = (double*) gright->data();
 		std::vector<double> gb_data(gb, gb + gbshape.n_elems());

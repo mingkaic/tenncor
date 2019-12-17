@@ -5,9 +5,9 @@
     "1"
    ],
    "output": [
-    "7"
+    "2"
    ],
-   "name": "7",
+   "name": "2",
    "opType": "neg",
    "domain": "",
    "attribute": [],
@@ -15,12 +15,12 @@
   },
   {
    "input": [
-    "2"
+    "3"
    ],
    "output": [
-    "8"
+    "4"
    ],
-   "name": "8",
+   "name": "4",
    "opType": "sin",
    "domain": "",
    "attribute": [],
@@ -28,13 +28,13 @@
   },
   {
    "input": [
-    "8",
-    "2"
+    "4",
+    "3"
    ],
    "output": [
-    "9"
+    "5"
    ],
-   "name": "9",
+   "name": "5",
    "opType": "+",
    "domain": "",
    "attribute": [],
@@ -42,13 +42,13 @@
   },
   {
    "input": [
-    "7",
-    "9"
+    "2",
+    "5"
    ],
    "output": [
-    "10"
+    "6"
    ],
-   "name": "10",
+   "name": "6",
    "opType": "/",
    "domain": "",
    "attribute": [],
@@ -56,13 +56,13 @@
   },
   {
    "input": [
-    "10",
-    "3"
+    "6",
+    "7"
    ],
    "output": [
-    "11"
+    "8"
    ],
-   "name": "11",
+   "name": "8",
    "opType": "@",
    "domain": "",
    "attribute": [],
@@ -71,12 +71,12 @@
   {
    "input": [
     "0",
-    "11"
+    "8"
    ],
    "output": [
-    "12"
+    "9"
    ],
-   "name": "12",
+   "name": "9",
    "opType": "-",
    "domain": "",
    "attribute": [],
@@ -84,12 +84,12 @@
   },
   {
    "input": [
-    "4"
+    "10"
    ],
    "output": [
-    "13"
+    "11"
    ],
-   "name": "13",
+   "name": "11",
    "opType": "abs",
    "domain": "",
    "attribute": [],
@@ -97,12 +97,12 @@
   },
   {
    "input": [
-    "5"
+    "12"
    ],
    "output": [
-    "14"
+    "13"
    ],
-   "name": "14",
+   "name": "13",
    "opType": "exp",
    "domain": "",
    "attribute": [],
@@ -110,7 +110,7 @@
   },
   {
    "input": [
-    "6"
+    "14"
    ],
    "output": [
     "15"
@@ -123,8 +123,8 @@
   },
   {
    "input": [
+    "11",
     "13",
-    "14",
     "15"
    ],
    "output": [
@@ -138,7 +138,7 @@
   },
   {
    "input": [
-    "4",
+    "10",
     "16"
    ],
    "output": [
@@ -217,7 +217,7 @@
    "int32Data": [],
    "stringData": [],
    "int64Data": [],
-   "name": "2",
+   "name": "3",
    "docString": "",
    "rawData": "",
    "externalData": [],
@@ -241,7 +241,7 @@
    "int32Data": [],
    "stringData": [],
    "int64Data": [],
-   "name": "3",
+   "name": "7",
    "docString": "",
    "rawData": "",
    "externalData": [],
@@ -265,7 +265,7 @@
    "int32Data": [],
    "stringData": [],
    "int64Data": [],
-   "name": "4",
+   "name": "10",
    "docString": "",
    "rawData": "",
    "externalData": [],
@@ -289,7 +289,7 @@
    "int32Data": [],
    "stringData": [],
    "int64Data": [],
-   "name": "5",
+   "name": "12",
    "docString": "",
    "rawData": "",
    "externalData": [],
@@ -313,7 +313,7 @@
    "int32Data": [],
    "stringData": [],
    "int64Data": [],
-   "name": "6",
+   "name": "14",
    "docString": "",
    "rawData": "",
    "externalData": [],
@@ -327,7 +327,7 @@
  "input": [],
  "output": [
   {
-   "name": "12",
+   "name": "9",
    "type": {
     "tensorType": {
      "elemType": 0,
@@ -429,7 +429,7 @@
      "value": "src2"
     },
     {
-     "key": "IS_IMMUTABLE",
+     "key": "constant",
      "value": ""
     }
    ]
@@ -442,20 +442,7 @@
      "value": "osrc"
     },
     {
-     "key": "IS_IMMUTABLE",
-     "value": ""
-    }
-   ]
-  },
-  {
-   "tensorName": "2",
-   "quantParameterTensorNames": [
-    {
-     "key": "TENSOR_NAME",
-     "value": "src"
-    },
-    {
-     "key": "IS_IMMUTABLE",
+     "key": "constant",
      "value": ""
     }
    ]
@@ -465,49 +452,62 @@
    "quantParameterTensorNames": [
     {
      "key": "TENSOR_NAME",
-     "value": "osrc2"
+     "value": "src"
     },
     {
-     "key": "IS_IMMUTABLE",
+     "key": "constant",
      "value": ""
     }
    ]
   },
   {
-   "tensorName": "4",
+   "tensorName": "7",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "osrc2"
+    },
+    {
+     "key": "constant",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "tensorName": "10",
    "quantParameterTensorNames": [
     {
      "key": "TENSOR_NAME",
      "value": "s2src"
     },
     {
-     "key": "IS_IMMUTABLE",
+     "key": "constant",
      "value": ""
     }
    ]
   },
   {
-   "tensorName": "5",
+   "tensorName": "12",
    "quantParameterTensorNames": [
     {
      "key": "TENSOR_NAME",
      "value": "s2src2"
     },
     {
-     "key": "IS_IMMUTABLE",
+     "key": "constant",
      "value": ""
     }
    ]
   },
   {
-   "tensorName": "6",
+   "tensorName": "14",
    "quantParameterTensorNames": [
     {
      "key": "TENSOR_NAME",
      "value": "s2src3"
     },
     {
-     "key": "IS_IMMUTABLE",
+     "key": "constant",
      "value": ""
     }
    ]

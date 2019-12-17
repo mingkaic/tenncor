@@ -71,7 +71,7 @@ int main (int argc, const char** argv)
 				auto f = eteq::make_functor<float>(opcode, {var});
 				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
 					f->get_tensor());
-				TIME(ftens->update())
+				TIME(ftens->calc())
 			}
 				break;
 
@@ -94,7 +94,7 @@ int main (int argc, const char** argv)
 				auto f = eteq::make_functor<float>(opcode, {var, var});
 				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
 					f->get_tensor());
-				TIME(ftens->update())
+				TIME(ftens->calc())
 			}
 				break;
 
@@ -109,7 +109,7 @@ int main (int argc, const char** argv)
 				auto f = eteq::make_functor<float>(opcode, {var}, 1, 1);
 				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
 					f->get_tensor());
-				TIME(ftens->update())
+				TIME(ftens->calc())
 			}
 				break;
 
@@ -121,7 +121,7 @@ int main (int argc, const char** argv)
 				auto f = tenncor::permute(var, {2, 0, 1});
 				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
 					f->get_tensor());
-				TIME(ftens->update())
+				TIME(ftens->calc())
 			}
 				break;
 
@@ -132,7 +132,7 @@ int main (int argc, const char** argv)
 				auto f = tenncor::extend(var, 2, {57});
 				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
 					f->get_tensor());
-				TIME(ftens->update())
+				TIME(ftens->calc())
 			}
 				break;
 
@@ -143,7 +143,7 @@ int main (int argc, const char** argv)
 				auto f = tenncor::slice(var, {{0, 1234}, {0, 1234}, {2, 2}});
 				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
 					f->get_tensor());
-				TIME(ftens->update())
+				TIME(ftens->calc())
 			}
 				break;
 
@@ -156,7 +156,7 @@ int main (int argc, const char** argv)
 				auto f = tenncor::matmul(a, b);
 				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
 					f->get_tensor());
-				TIME(ftens->update())
+				TIME(ftens->calc())
 			}
 				break;
 
@@ -169,7 +169,7 @@ int main (int argc, const char** argv)
 				auto f = tenncor::convolution(img, kern, {0, 1});
 				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
 					f->get_tensor());
-				TIME(ftens->update())
+				TIME(ftens->calc())
 			}
 				break;
 
@@ -180,7 +180,7 @@ int main (int argc, const char** argv)
 				auto f = tenncor::pad(var, {{0, 0}, {0, 0}, {3, 4}});
 				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
 					f->get_tensor());
-				TIME(ftens->update())
+				TIME(ftens->calc())
 			}
 				break;
 
@@ -200,7 +200,7 @@ int main (int argc, const char** argv)
 				auto f = tenncor::if_then_else(cond, a, b);
 				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
 					f->get_tensor());
-				TIME(ftens->update())
+				TIME(ftens->calc())
 			}
 				break;
 			default:

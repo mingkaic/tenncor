@@ -24,15 +24,15 @@ namespace ccur
 /// Vector of operable functors and number of unique non-leaf children
 /// Functors are ordered by dependency,
 /// such that parents of any node always appears after the node in this vector
-using SessReqsT = std::vector<std::pair<teq::iOperableFunc*,long>>;
+using SessReqsT = std::vector<std::pair<teq::iFunctor*,long>>;
 
 /// Same as SessReqsT except as a list
-using LSessReqsT = std::list<std::pair<teq::iOperableFunc*,long>>;
+using LSessReqsT = std::list<std::pair<teq::iFunctor*,long>>;
 
 /// Map operable functors to the number of children updated in
 /// any update/update_target call
 using AtomicFulfilMapT = std::unordered_map<
-	teq::iOperableFunc*,std::atomic<long>>;
+	teq::iFunctor*,std::atomic<long>>;
 
 /// Session that updates operable functors concurrently
 /// across specified a number of jobs
@@ -75,8 +75,7 @@ struct Session final : public teq::iSession
 						unique_children.emplace(tens.get());
 					}
 				}
-				reqs.push_back({
-					static_cast<teq::iOperableFunc*>(func),
+				reqs.push_back({func,
 					unique_children.size()
 				});
 			}
@@ -88,7 +87,7 @@ struct Session final : public teq::iSession
 			for (auto& parent_pair : assocs.second)
 			{
 				parents_[assocs.first].emplace(
-					static_cast<teq::iOperableFunc*>(parent_pair.first));
+					static_cast<teq::iFunctor*>(parent_pair.first));
 			}
 		}
 
@@ -97,7 +96,7 @@ struct Session final : public teq::iSession
 		{
 			if (tpair.second.upper_ > 0)
 			{
-				ops_.emplace(static_cast<teq::iOperableFunc*>(tpair.first));
+				ops_.emplace(static_cast<teq::iFunctor*>(tpair.first));
 			}
 		}
 	}
@@ -142,7 +141,7 @@ struct Session final : public teq::iSession
 
 		for (auto ig : ignored)
 		{
-			std::unordered_set<teq::iOperableFunc*> op_parents;
+			std::unordered_set<teq::iFunctor*> op_parents;
 			if (estd::get(op_parents, parents_, ig))
 			{
 				for (auto& op_parent : op_parents)
@@ -166,8 +165,8 @@ struct Session final : public teq::iSession
 					auto& ff = fulfilments.at(op.first);
 					if (ff++ == op.second)
 					{
-						op.first->update();
-						std::unordered_set<teq::iOperableFunc*> op_parents;
+						op.first->calc();
+						std::unordered_set<teq::iFunctor*> op_parents;
 						if (estd::get(op_parents,
 							this->parents_, op.first))
 						{
@@ -226,7 +225,7 @@ struct Session final : public teq::iSession
 
 		for (auto ig : ignored)
 		{
-			std::unordered_set<teq::iOperableFunc*> op_parents;
+			std::unordered_set<teq::iFunctor*> op_parents;
 			if (estd::get(op_parents, parents_, ig))
 			{
 				for (auto& op_parent : op_parents)
@@ -250,8 +249,8 @@ struct Session final : public teq::iSession
 					auto& ff = fulfilments.at(op.first);
 					if (ff++ == op.second)
 					{
-						op.first->update();
-						std::unordered_set<teq::iOperableFunc*> op_parents;
+						op.first->calc();
+						std::unordered_set<teq::iFunctor*> op_parents;
 						if (estd::get(op_parents,
 							this->parents_, op.first))
 						{
@@ -290,7 +289,7 @@ struct Session final : public teq::iSession
 
 	/// Map of tensor to the set of the tensor's parents
 	std::unordered_map<teq::iTensor*,
-		std::unordered_set<teq::iOperableFunc*>> parents_;
+		std::unordered_set<teq::iFunctor*>> parents_;
 
 	/// Vector of vectors of operable functors specific to each job
 	/// See SessReqsT
@@ -301,7 +300,7 @@ private:
 
 	OpWeightT weights_;
 
-	std::unordered_set<teq::iOperableFunc*> ops_;
+	std::unordered_set<teq::iFunctor*> ops_;
 };
 
 }

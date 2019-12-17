@@ -10,8 +10,8 @@ struct MockAny final : public opt::iTarget
 {
 	MockAny (std::string symbol) : symbol_(symbol) {}
 
-	teq::TensptrT convert (
-		teq::Shape outshape, const opt::Candidate& candidate) const override
+	teq::TensptrT convert (teq::Shape outshape,
+		const opt::Candidate& candidate) const override
 	{
 		return estd::must_getf(candidate.anys_, symbol_,
 			"cannot find any symbol %s", symbol_.c_str());
@@ -24,10 +24,10 @@ struct MockCst final : public opt::iTarget
 {
 	MockCst (double scalar) : scalar_(scalar) {}
 
-	teq::TensptrT convert (
-		teq::Shape outshape, const opt::Candidate& candidate) const override
+	teq::TensptrT convert (teq::Shape outshape,
+		const opt::Candidate& candidate) const override
 	{
-		return std::make_shared<MockLeaf>(
+		return std::make_shared<MockLeaf>(std::vector<double>{},
 			outshape, fmts::to_string(scalar_));
 	}
 
@@ -40,8 +40,8 @@ struct MockFTarget final : public opt::iTarget
 		std::string variadic) :
 		opname_(opname), args_(args), variadic_(variadic) {}
 
-	teq::TensptrT convert (
-		teq::Shape outshape, const opt::Candidate& candidate) const override
+	teq::TensptrT convert (teq::Shape outshape,
+		const opt::Candidate& candidate) const override
 	{
 		teq::TensptrsT args;
 		for (auto& targ : args_)
@@ -56,7 +56,8 @@ struct MockFTarget final : public opt::iTarget
 				args.push_back(edge);
 			}
 		}
-		return std::make_shared<MockFunctor>(args, teq::Opcode{opname_, 0});
+		return std::make_shared<MockFunctor>(args,
+			std::vector<double>{}, teq::Opcode{opname_, 0});
 	}
 
 	std::string opname_;

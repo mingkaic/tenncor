@@ -1,5 +1,4 @@
 #include "teq/ifunctor.hpp"
-#include "teq/placeholder.hpp"
 
 #ifndef TEQ_ILAYER_HPP
 #define TEQ_ILAYER_HPP
@@ -7,18 +6,12 @@
 namespace teq
 {
 
-struct iLayer : public iFunctor, public iSignature
+struct iLayer : public iFunctor
 {
 	virtual ~iLayer (void) = default;
 
 	/// Implementation of iTensor
-	void accept (iTraveler& visiter) override
-	{
-		get_root()->accept(visiter);
-	}
-
-	/// Implementation of iTensor
-	Shape shape (void) const override
+	teq::Shape shape (void) const override
 	{
 		return get_root()->shape();
 	}

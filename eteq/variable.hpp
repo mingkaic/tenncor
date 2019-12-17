@@ -22,39 +22,10 @@ template <typename T>
 struct Variable final : public iLeaf<T>
 {
 	/// Return Variable given raw pointer array whose size is denoted by shape
-	static Variable<T>* get (T* ptr, teq::Shape shape, std::string label = "")
+	static Variable<T>* get (T* ptr, teq::Shape shape,
+		std::string label = "", teq::Usage usage = teq::Variable)
 	{
-		return new Variable<T>(ptr, shape, label);
-	}
-
-	/// Return zero-initialized Variable of specified shape
-	static Variable<T>* get (teq::Shape shape, std::string label = "")
-	{
-		return Variable<T>::get(std::vector<T>(shape.n_elems(), 0),
-			shape, label);
-	}
-
-	/// Return scalar-initialized Variable of specified shape
-	static Variable<T>* get (T scalar, teq::Shape shape, std::string label = "")
-	{
-		if (label.empty())
-		{
-			label = fmts::to_string(scalar);
-		}
-		return Variable<T>::get(std::vector<T>(shape.n_elems(),scalar),
-			shape, label);
-	}
-
-	/// Return Variable whose data is initialized by vector data
-	static Variable<T>* get (std::vector<T> data, teq::Shape shape,
-		std::string label = "")
-	{
-		if (data.size() != shape.n_elems())
-		{
-			logs::fatalf("cannot create variable with data size %d "
-				"against shape %s", data.size(), shape.to_string().c_str());
-		}
-		return Variable<T>::get(data.data(), shape, label);
+		return new Variable<T>(ptr, shape, label, usage);
 	}
 
 	/// Return deep copy of this Variable
@@ -135,17 +106,14 @@ struct Variable final : public iLeaf<T>
 	}
 
 	/// Implementation of iLeaf
-	bool is_const (void) const override
+	teq::Usage get_usage (void) const override
 	{
-		return false;
+		return usage_;
 	}
 
-	/// Label for distinguishing variable nodes
-	std::string label_; // todo: make private
-
 private:
-	Variable (T* data, teq::Shape shape, std::string label) :
-		iLeaf<T>(data, shape), label_(label) {}
+	Variable (T* data, teq::Shape shape, std::string label, teq::Usage usage) :
+		iLeaf<T>(data, shape), label_(label), usage_(usage) {}
 
 	Variable (const Variable<T>& other) = default;
 
@@ -155,6 +123,11 @@ private:
 	{
 		return new Variable<T>(*this);
 	}
+
+	/// Label for distinguishing variable nodes
+	std::string label_;
+
+	teq::Usage usage_;
 };
 
 /// Smart pointer of variable nodes to preserve assign functions

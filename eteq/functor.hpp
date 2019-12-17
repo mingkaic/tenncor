@@ -6,14 +6,14 @@
 /// Eigen functor implementation of operable func
 ///
 
-#include "teq/iopfunc.hpp"
+#include "teq/ifunctor.hpp"
 
 #include "eigen/generated/opcode.hpp"
 #include "eigen/packattr.hpp"
 
 #include "eteq/link.hpp"
+#include "eteq/shaper.hpp"
 #include "eteq/observable.hpp"
-#include "eteq/funcsign.hpp"
 
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP
@@ -26,7 +26,7 @@ outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
 
 /// Functor implementation of operable functor of Eigen operators
 template <typename T>
-struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
+struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 {
 	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
 	/// Return nullptr if functor is redundant
@@ -44,7 +44,7 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 		std::transform(links.begin(), links.end(), std::back_inserter(shapes),
 			[](LinkptrT<T> link)
 			{
-				return link->shape_sign();
+				return link->shape();
 			});
 
 		ShapeOpt outshape;
@@ -53,15 +53,20 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 		{
 			return links.front()->get_tensor();
 		}
+
+		teq::TensptrsT datas;
+		datas.reserve(links.size());
+		std::transform(links.begin(), links.end(), std::back_inserter(datas),
+			[](LinkptrT<T> link) { return link->get_tensor(); });
 		return teq::TensptrT(new Functor<T>(opcode,
-			teq::Shape(*outshape), links, std::move(attrs)));
+			teq::Shape(*outshape), datas, std::move(attrs)));
 	}
 
 	~Functor (void)
 	{
-		for (LinkptrT<T> arg : links_)
+		for (teq::TensptrT child : children_)
 		{
-			arg->unsubscribe(this);
+			to_link<T>(child)->unsubscribe(this);
 		}
 	}
 
@@ -76,12 +81,6 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 	Functor<T>& operator = (const Functor<T>& other) = delete;
 
 	Functor<T>& operator = (Functor<T>&& other) = delete;
-
-	/// Implementation of iTensor
-	void accept (teq::iTraveler& visiter) override
-	{
-		visiter.visit(*this);
-	}
 
 	/// Implementation of iTensor
 	teq::Shape shape (void) const override
@@ -128,32 +127,24 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 	/// Implementation of iFunctor
 	teq::TensptrsT get_children (void) const override
 	{
-		teq::TensptrsT refs;
-		refs.reserve(links_.size());
-		std::transform(links_.begin(), links_.end(), std::back_inserter(refs),
-			[](LinkptrT<T> edge)
-			{
-				return edge->get_tensor();
-			});
-		return refs;
+		return children_;
 	}
 
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		if (index >= links_.size())
+		if (index >= children_.size())
 		{
 			logs::fatalf("cannot modify argument %d "
 				"when there are only %d arguments",
-				index, links_.size());
+				index, children_.size());
 		}
-		auto link = static_cast<iLink<T>*>(links_[index].get());
-		if (arg != link->get_tensor())
+		if (arg != children_[index])
 		{
 			uninitialize();
-			link->unsubscribe(this);
+			to_link<T>(children_[index])->unsubscribe(this);
 			teq::Shape nexshape = arg->shape();
-			teq::Shape curshape = link->shape();
+			teq::Shape curshape = children_[index]->shape();
 			if (false == nexshape.compatible_after(curshape, 0))
 			{
 				logs::fatalf("cannot update child %d to argument with "
@@ -161,13 +152,13 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 					index, nexshape.to_string().c_str(),
 					curshape.to_string().c_str());
 			}
-			links_[index] = to_link<T>(arg);
-			links_[index]->subscribe(this);
+			children_[index] = arg;
+			to_link<T>(children_[index])->subscribe(this);
 		}
 	}
 
-	/// Implementation of iOperableFunc
-	void update (void) override
+	/// Implementation of iFunctor
+	void calc (void) override
 	{
 		if (false == has_data())
 		{
@@ -211,7 +202,7 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 	/// Implementation of iData
 	size_t nbytes (void) const override
 	{
-		return sizeof(T) * shape().n_elems();
+		return sizeof(T) * shape_.n_elems();
 	}
 
 	bool has_data (void) const
@@ -235,22 +226,15 @@ struct Functor final : public teq::iOperableFunc, public Observable<Functor<T>*>
 	/// Populate internal Eigen data object
 	void initialize (void)
 	{
-		teq::DatasT data;
-		data.reserve(links_.size());
-		std::transform(links_.begin(), links_.end(), std::back_inserter(data),
-			[](LinkptrT<T> edge)
-			{
-				return edge->build_data();
-			});
 		egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-			out_, shape_, data, *this);
+			out_, shape_, children_, *this);
 	}
 
 private:
 	Functor (egen::_GENERATED_OPCODE opcode, teq::Shape shape,
-		LinksT<T> links, marsh::Maps&& attrs) :
+		teq::TensptrsT children, marsh::Maps&& attrs) :
 		opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
-		shape_(shape), links_(links), attrs_(std::move(attrs))
+		shape_(shape), children_(children), attrs_(std::move(attrs))
 	{
 		common_init();
 	}
@@ -258,7 +242,7 @@ private:
 	Functor (const Functor<T>& other) :
 		opcode_(other.opcode_),
 		shape_(other.shape_),
-		links_(other.links_)
+		children_(other.children_)
 	{
 		std::unique_ptr<marsh::Maps> mattr(other.attrs_.clone());
 		attrs_ = std::move(*mattr);
@@ -272,12 +256,23 @@ private:
 
 	void common_init (void)
 	{
-		for (LinkptrT<T> arg : links_)
+		for (teq::TensptrT child : children_)
 		{
-			arg->subscribe(this);
+			to_link<T>(child)->subscribe(this);
 		}
 #ifndef SKIP_INIT
-		initialize();
+		if (std::all_of(children_.begin(), children_.end(),
+			[](teq::TensptrT tens)
+			{
+				if (auto f = dynamic_cast<Functor<T>*>(tens.get()))
+				{
+					return f->has_data();
+				}
+				return true;
+			}))
+		{
+			initialize();
+		}
 #endif // SKIP_INIT
 	}
 
@@ -290,7 +285,7 @@ private:
 	teq::Shape shape_;
 
 	/// Tensor arguments (and children)
-	LinksT<T> links_;
+	teq::TensptrsT children_;
 
 	marsh::Maps attrs_;
 };
@@ -298,13 +293,13 @@ private:
 #undef CHOOSE_PARSER
 
 template <typename T>
-using OpFuncptrT = std::shared_ptr<Functor<T>>;
+using FuncptrT = std::shared_ptr<Functor<T>>;
 
 /// Functor's node wrapper
 template <typename T>
 struct FuncLink final : public iLink<T>
 {
-	FuncLink (OpFuncptrT<T> func) : func_(func)
+	FuncLink (FuncptrT<T> func) : func_(func)
 	{
 		if (func == nullptr)
 		{
@@ -348,36 +343,12 @@ struct FuncLink final : public iLink<T>
 		return func_;
 	}
 
-	/// Implementation of iSignature
-	bool can_build (void) const override
-	{
-		return true;
-	}
-
-	/// Implementation of iSignature
-	teq::DataptrT build_data (void) const override
-	{
-		if (false == func_->has_data())
-		{
-			func_->initialize();
-		}
-		return func_;
-	}
-
-	/// Implementation of iSignature
-	teq::ShapeSignature shape_sign (void) const override
-	{
-		teq::Shape shape = func_->shape();
-		return teq::ShapeSignature(
-			std::vector<teq::DimT>(shape.begin(), shape.end()));
-	}
-
 private:
 	FuncLink (const FuncLink<T>& other) = default;
 
 	iLink<T>* clone_impl (void) const override
 	{
-		return new FuncLink(OpFuncptrT<T>(func_->clone()));
+		return new FuncLink(FuncptrT<T>(func_->clone()));
 	}
 
 	/// Implementation of iLink<T>
@@ -392,7 +363,7 @@ private:
 		func_->unsubscribe(parent);
 	}
 
-	OpFuncptrT<T> func_;
+	FuncptrT<T> func_;
 };
 
 /// Return functor node given opcode and node arguments

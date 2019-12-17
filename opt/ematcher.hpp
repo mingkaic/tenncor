@@ -42,7 +42,7 @@ struct iEdgeMatcher
 {
 	virtual ~iEdgeMatcher (void) = default;
 
-	/// Return no candidates if matching child doesn't exist or 
+	/// Return no candidates if matching child doesn't exist or
 	/// have no candidates, otherwise return candidates
 	virtual CandsT match (const MatchCtxT& cands, const teq::TensptrT& child) = 0;
 };
@@ -59,9 +59,9 @@ struct ScalarEMatcher final : public iEdgeMatcher
 	{
 		CandsT out;
 		auto leaf = dynamic_cast<teq::iLeaf*>(child.get());
-		if (nullptr != leaf && leaf->is_const())
+		if (nullptr != leaf && teq::Immutable == leaf->get_usage())
 		{
-			teq::Shape shape = child->shape();
+			teq::Shape shape = leaf->shape();
 			std::vector<double> d(shape.n_elems(), scalar_);
 			if (leaf->to_string() == teq::const_encode(d.data(), shape))
 			{

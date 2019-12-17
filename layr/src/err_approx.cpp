@@ -39,7 +39,7 @@ AssignGroupsT adagrad (const VarErrsT& leaves, PybindT learning_rate,
 	{
 		auto leaf_node = eteq::to_link<PybindT>(leaves[i].first);
 		auto err = leaves[i].second;
-		teq::Shape eshape = err->shape();
+		teq::Shape eshape = err->link_shape();
 		eteq::VarptrT<PybindT> momentum =
 			eteq::make_variable_scalar<PybindT>(1, eshape, "momentum");
 		auto momentum_node = eteq::to_link<PybindT>(momentum);
@@ -69,7 +69,7 @@ AssignGroupsT rms_momentum (const VarErrsT& leaves, PybindT learning_rate,
 	{
 		auto leaf_node = eteq::to_link<PybindT>(leaves[i].first);
 		auto err = leaves[i].second;
-		teq::Shape eshape = err->shape();
+		teq::Shape eshape = err->link_shape();
 		eteq::VarptrT<PybindT> momentum =
 			eteq::make_variable_scalar<PybindT>(1, eshape, "momentum");
 		auto momentum_node = eteq::to_link<PybindT>(momentum);
@@ -99,7 +99,7 @@ void assign_groups (const AssignGroupsT& groups, UpdateStepF update_step)
 		{
 			updated_var.emplace(assign.target_.get());
 			assign.target_->assign(assign.source_->data(),
-				assign.source_->shape());
+				assign.source_->link_shape());
 		}
 		update_step(updated_var);
 	}
@@ -118,7 +118,7 @@ void assign_groups_preupdate (const AssignGroupsT& groups, UpdateStepF update_st
 		for (const layr::VarAssign& assign : group)
 		{
 			assign.target_->assign(assign.source_->data(),
-				assign.source_->shape());
+				assign.source_->link_shape());
 		}
 	}
 }

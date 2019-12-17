@@ -6,7 +6,7 @@
 /// Implement eteq gradient definition for supported operations
 ///
 
-#include "teq/grad_def.hpp"
+#include "teq/derive.hpp"
 
 #include "eigen/operator.hpp"
 
@@ -41,9 +41,9 @@ LinkptrT<T> reduce_grad (teq::Shape shape,
 
 /// ETEQ implementation of TEQ's Backward Propagation Builder
 template <typename T>
-struct GradientBuilder final : public teq::iGradientBuilder
+struct DerivativeFunc final : public teq::iDerivativeFuncs
 {
-	/// Implementation of iGradientBuilder
+	/// Implementation of iDerivativeFuncs
 	teq::TensptrT local_derivative (teq::FuncptrT op,
 		size_t arg_idx) const override
 	{
@@ -53,36 +53,36 @@ struct GradientBuilder final : public teq::iGradientBuilder
 		switch ((egen::_GENERATED_OPCODE) opcode.code_)
 		{
 			case egen::ABS:
-				out = to_link<T>(args[0]) / to_link<T>(op);
+				out = to_link<T>(args.front()) / to_link<T>(op);
 				break;
 			case egen::NEG:
 				out = make_constant_scalar<T>(
-					-1, args[0]->shape());
+					-1, args.front()->shape());
 				break;
 			case egen::SIN:
-				out = tenncor::cos(to_link<T>(args[0]));
+				out = tenncor::cos(to_link<T>(args.front()));
 				break;
 			case egen::COS:
-				out = -tenncor::sin(to_link<T>(args[0]));
+				out = -tenncor::sin(to_link<T>(args.front()));
 				break;
 			case egen::TAN:
 				out = (T) 1 / tenncor::pow(
-					tenncor::cos(to_link<T>(args[0])), (T) 2);
+					tenncor::cos(to_link<T>(args.front())), (T) 2);
 				break;
 			case egen::EXP:
 				out = to_link<T>(op);
 				break;
 			case egen::LOG:
-				out = (T) 1 / to_link<T>(args[0]);
+				out = (T) 1 / to_link<T>(args.front());
 				break;
 			case egen::SQRT:
 				out = (T) 1 / ((T) 2 * to_link<T>(op));
 				break;
 			case egen::SQUARE:
-				out = (T) 2 * to_link<T>(args[0]);
+				out = (T) 2 * to_link<T>(args.front());
 				break;
 			case egen::CUBE:
-				out = (T) 3 * tenncor::square(to_link<T>(args[0]));
+				out = (T) 3 * tenncor::square(to_link<T>(args.front()));
 				break;
 			case egen::SIGMOID:
 				out = to_link<T>(op) * ((T) 1 - to_link<T>(op));
@@ -155,18 +155,18 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::LT:
 			case egen::RAND_UNIF:
 			case egen::SELECT:
-				out = make_constant_scalar<T>(0, args[0]->shape());
+				out = make_constant_scalar<T>(0, args.front()->shape());
 				break;
 			case egen::REDUCE_PROD: // todo: prevent divide by zero
 				out =
-					reduce_grad(args[0]->shape(), to_link<T>(op), op) /
-					to_link<T>(args[0]);
+					reduce_grad(args.front()->shape(), to_link<T>(op), op) /
+					to_link<T>(args.front());
 				break;
 			case egen::REDUCE_MAX:
 			case egen::REDUCE_MIN:
 				out =
-					reduce_grad(args[0]->shape(), to_link<T>(op), op) ==
-					to_link<T>(args[0]);
+					reduce_grad(args.front()->shape(), to_link<T>(op), op) ==
+					to_link<T>(args.front());
 				break;
 			case egen::MATMUL:
 			{
@@ -272,7 +272,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 		return out->get_tensor();
 	}
 
-	/// Implementation of iGradientBuilder
+	/// Implementation of iDerivativeFuncs
 	teq::TensptrT chain_rule (teq::FuncptrT op, const teq::TensptrT& local_der,
 		teq::TensptrT supcomp_grad, size_t arg_idx) const override
 	{
@@ -314,7 +314,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			case egen::REDUCE_PROD:
 			case egen::REDUCE_SUM:
 				out = to_link<T>(local_der) * reduce_grad(
-					op->get_children()[0]->shape(),
+					op->get_children().front()->shape(),
 					to_link<T>(supcomp_grad), op);
 				break;
 			case egen::EXTEND:
@@ -370,7 +370,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 			{
 				out = to_link<T>(local_der) * tenncor::reshape(
 					to_link<T>(supcomp_grad),
-					op->get_children()[0]->shape());
+					op->get_children().front()->shape());
 			}
 				break;
 			case egen::MATMUL:
@@ -527,7 +527,7 @@ struct GradientBuilder final : public teq::iGradientBuilder
 				eigen::PairVecT<teq::DimT> extents;
 				eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, *op);
 
-				teq::Shape cshape = op->get_children()[0]->shape();
+				teq::Shape cshape = op->get_children().front()->shape();
 				eigen::PairVecT<teq::DimT> paddings;
 				paddings.reserve(teq::rank_cap);
 				for (size_t i = 0; i < teq::rank_cap; ++i)
@@ -642,22 +642,26 @@ struct GradientBuilder final : public teq::iGradientBuilder
 		return out->get_tensor();
 	}
 
-	/// Implementation of iGradientBuilder
+	/// Implementation of iDerivativeFuncs
 	teq::TensptrT get_const_one (teq::Shape shape) const override
 	{
 		return make_constant_scalar<T>(1, shape)->get_tensor();
 	}
 
-	/// Implementation of iGradientBuilder
+	/// Implementation of iDerivativeFuncs
 	teq::TensptrT get_const_zero (teq::Shape shape) const override
 	{
 		return make_constant_scalar<T>(0, shape)->get_tensor();
 	}
 
-	/// Implementation of iGradientBuilder
-	teq::TensptrT add (teq::TensptrT& lhs, teq::TensptrT& rhs) const override
+	/// Implementation of iDerivativeFuncs
+	teq::TensptrT add (teq::TensptrsT elems) const override
 	{
-		return (to_link<T>(lhs) + to_link<T>(rhs))->get_tensor();
+		LinksT<T> links;
+		links.reserve(elems.size());
+		std::transform(elems.begin(), elems.end(), std::back_inserter(links),
+			[](teq::TensptrT e) { return to_link<T>(e); });
+		return tenncor::sum(links)->get_tensor();
 	}
 };
 
@@ -665,9 +669,9 @@ struct GradientBuilder final : public teq::iGradientBuilder
 template <typename T>
 LinkptrT<T> derive (LinkptrT<T> root, LinkptrT<T> target)
 {
-	GradientBuilder<T> builder;
-	teq::TensptrT derivative = builder.derive(
-		root->get_tensor(), target->get_tensor());
+	DerivativeFunc<T> builder;
+	teq::TensptrT derivative = teq::derive(
+		root->get_tensor(), target->get_tensor(), builder);
 	return to_link<T>(derivative);
 }
 

@@ -30,7 +30,7 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 		auto leaf_node = eteq::to_link<PybindT>(leaves[i].first);
 		auto err = leaves[i].second;
 
-		auto shape = err->shape();
+		auto shape = err->link_shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		auto it = slist.rbegin(), et = slist.rend();
 		while (it != et && *it == 1)
@@ -39,7 +39,7 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 		}
 		teq::DimT shape_factor = it == et ? 1 : *it;
 		auto momentum = eteq::make_variable_scalar<PybindT>(0,
-			err->shape(), leaves[i].first->to_string() + "_momentum");
+			err->link_shape(), leaves[i].first->to_string() + "_momentum");
 		auto momentum_next = discount_factor * eteq::to_link<PybindT>(momentum) +
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
 		auto leaf_next = leaf_node + momentum_next;
@@ -155,7 +155,7 @@ TrainErrF rbm_train (layr::RBM& model, teq::iSession& sess,
 		}
 		sess.update_target({error->get_tensor().get()});
 		PybindT* data = error->data();
-		teq::Shape shape = error->shape();
+		teq::Shape shape = error->link_shape();
 		return teq::ShapedArr<PybindT>{shape,
 			std::vector<PybindT>(data, data + shape.n_elems()),
 		};

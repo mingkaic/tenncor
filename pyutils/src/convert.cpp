@@ -23,12 +23,6 @@ teq::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
 		pyshape.rbegin(), pyshape.rend()));
 }
 
-teq::ShapeSignature p2cshapesign (std::vector<py::ssize_t>& pyshape)
-{
-	return teq::ShapeSignature(std::vector<teq::DimT>(
-		pyshape.rbegin(), pyshape.rend()));
-}
-
 }
 
 #endif

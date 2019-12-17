@@ -51,7 +51,7 @@ struct PrettyEquation final
 				}
 				if (auto var = dynamic_cast<teq::iLeaf*>(root))
 				{
-					out << (var->is_const() ? "constant:" : "variable:");
+					out << teq::get_usage_name(var->get_usage()) << ":";
 				}
 				out << root->to_string();
 				if (showshape_)

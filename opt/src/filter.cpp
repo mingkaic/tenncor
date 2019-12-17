@@ -29,7 +29,7 @@ void remove_duplicates (teq::TensptrsT& roots, EqualF equals)
 		{
 			auto leaf = std::static_pointer_cast<teq::iLeaf>(
 				owners.at(tens).lock());
-			if (leaf->is_const())
+			if (teq::Immutable == leaf->get_usage())
 			{
 				csts.push_back(leaf);
 			}
@@ -125,7 +125,7 @@ teq::TensptrT constant_func (teq::FuncptrT& func,
 		[&](teq::TensptrT ctens)
 		{
 			auto leaf = dynamic_cast<teq::iLeaf*>(ctens.get());
-			return nullptr != leaf && leaf->is_const();
+			return nullptr != leaf && teq::Immutable == leaf->get_usage();
 		}))
 	{
 		teq::TensptrT converted = calc_func(func);
@@ -162,7 +162,8 @@ void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_func)
 			functors.push_back(std::static_pointer_cast<teq::iFunctor>(
 				owners.at(gpair.first).lock()));
 		}
-		else if (static_cast<teq::iLeaf*>(gpair.first)->is_const())
+		else if (teq::Immutable == static_cast<teq::iLeaf*>(
+			gpair.first)->get_usage())
 		{
 			constants.emplace(gpair.first);
 		}
@@ -195,14 +196,14 @@ void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_func)
 		}
 	}
 	// replace constant_roots funcs with their constant counter-part
-	for (auto& cst : constant_roots)
+	for (teq::TensptrT root : constant_roots)
 	{
-		auto func = std::static_pointer_cast<teq::iFunctor>(cst);
-		teq::TensptrT converted = calc_func(func);
-		if (func != converted)
+		teq::FuncptrT croot = std::static_pointer_cast<teq::iFunctor>(root);
+		teq::TensptrT converted = calc_func(croot);
+		if (croot != converted)
 		{
-			replace_parents(pfinder, converted, func.get());
-			auto it = rindices.find(func.get());
+			replace_parents(pfinder, converted, croot.get());
+			auto it = rindices.find(croot.get());
 			if (rindices.end() != it)
 			{
 				for (size_t ri : it->second)

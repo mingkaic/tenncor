@@ -107,7 +107,7 @@ struct InteractiveSession final : public teq::iSession
 		}
 
 		// basic copy over from session::update
-		std::list<teq::iOperableFunc*> reqs;
+		std::list<teq::iFunctor*> reqs;
 		teq::TensSetT acceptable;
 		for (auto& root : sess_.tracked_)
 		{
@@ -201,7 +201,7 @@ struct InteractiveSession final : public teq::iSession
 		}
 
 		// basic copy over from session::update_target
-		std::list<teq::iOperableFunc*> reqs;
+		std::list<teq::iFunctor*> reqs;
 		teq::TensSetT acceptable;
 		for (auto& root : targeted)
 		{

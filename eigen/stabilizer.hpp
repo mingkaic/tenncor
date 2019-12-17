@@ -272,7 +272,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 			teq::RankT return_dim;
 			Packer<teq::RankT>().unpack(return_dim, func);
 
-			teq::TensptrT arg = func.get_children()[0];
+			teq::TensptrT arg = func.get_children().front();
 			teq::Shape shape = arg->shape();
 			teq::NElemT maxn = teq::rank_cap == return_dim ?
 				shape.n_elems() : shape.at(return_dim);
@@ -546,56 +546,46 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 
 // todo: handle complex T
 template <typename T>
-struct Stabilizer final : public teq::iTraveler
+struct Stabilizer final : public teq::OnceTraveler
 {
-	/// Implementation of iTraveler
-	void visit (teq::iLeaf& leaf) override
-	{
-		if (false == estd::has(ranges_, &leaf))
-		{
-			if (egen::get_type<T>() == leaf.type_code() && leaf.is_const())
-			{
-				auto data = (T*) leaf.data();
-				teq::NElemT n = leaf.shape().n_elems();
-				ranges_.emplace(leaf, estd::NumRange<T>(
-					*std::min_element(data, data + n),
-					*std::max_element(data, data + n)));
-			}
-			else
-			{
-				ranges_.emplace(leaf, estd::NumRange<T>(
-					std::numeric_limits<T>::min(),
-					std::numeric_limits<T>::max()));
-			}
-		}
-	}
-
-	/// Implementation of iTraveler
-	void visit (teq::iFunctor& func) override
-	{
-		if (false == estd::has(ranges_, &func))
-		{
-			auto args = func.get_children();
-			NumRangesT<T> ranges;
-			ranges.reserve(args.size());
-			for (teq::TensptrT arg : args)
-			{
-				arg->accept(*this);
-				ranges.push_back(ranges_[arg.get()]);
-			}
-
-			// func range
-			ranges_.emplace(&func, generate_range(func, ranges));
-		}
-	}
-
-	/// Implementation of iTraveler
-	void visit (teq::Placeholder& placeholder) override
-	{
-		//
-	}
-
 	std::unordered_map<teq::iTensor*,estd::NumRange<T>> ranges_;
+
+private:
+	/// Implementation of iTraveler
+	void visit_leaf (teq::iLeaf& leaf) override
+	{
+		if (egen::get_type<T>() == leaf.type_code() &&
+			teq::Immutable == leaf.get_usage())
+		{
+			auto data = (T*) leaf.data();
+			teq::NElemT n = leaf.shape().n_elems();
+			ranges_.emplace(&leaf, estd::NumRange<T>(
+				*std::min_element(data, data + n),
+				*std::max_element(data, data + n)));
+		}
+		else
+		{
+			ranges_.emplace(&leaf, estd::NumRange<T>(
+				std::numeric_limits<T>::min(),
+				std::numeric_limits<T>::max()));
+		}
+	}
+
+	/// Implementation of iTraveler
+	void visit_func (teq::iFunctor& func) override
+	{
+		NumRangesT<T> ranges;
+		auto children = func.get_children();
+		ranges.reserve(children.size());
+		for (teq::TensptrT child : children)
+		{
+			child->accept(*this);
+			ranges.push_back(ranges_[child.get()]);
+		}
+
+		// func range
+		ranges_.emplace(&func, generate_range(func, ranges));
+	}
 };
 
 }

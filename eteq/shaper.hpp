@@ -12,9 +12,9 @@
 namespace eteq
 {
 
-using ShapeOpt = std::optional<teq::ShapeSignature>;
+using ShapeOpt = std::optional<teq::Shape>;
 
-using ShapesT = std::vector<teq::ShapeSignature>;
+using ShapesT = std::vector<teq::Shape>;
 
 // todo: move these to eigen and auto-generate
 template <egen::_GENERATED_OPCODE OPCODE>
@@ -39,7 +39,7 @@ struct ReducePacker
 		std::string rank_snapshot = fmts::to_string(
 			ranks.begin(), ranks.end());
 
-		teq::ShapeSignature shape = shapes.front();
+		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		for (auto it = ranks.begin(), et = ranks.end(); it != et;)
 		{
@@ -61,7 +61,7 @@ struct ReducePacker
 				shape.to_string().c_str());
 			return ShapeOpt();
 		}
-		return teq::ShapeSignature(slist);
+		return teq::Shape(slist);
 	}
 };
 
@@ -97,7 +97,7 @@ struct ShapeParser<egen::ARGMAX> final
 		teq::RankT return_dim;
 		eigen::Packer<teq::RankT>().unpack(return_dim, attrs);
 
-		teq::ShapeSignature shape = shapes.front();
+		teq::Shape shape = shapes.front();
 		if (shape.at(return_dim) == 1)
 		{
 			logs::debugf("argreducing with no significant dimensions... "
@@ -108,7 +108,7 @@ struct ShapeParser<egen::ARGMAX> final
 
 		std::vector<teq::DimT> slist = std::vector<teq::DimT>(shape.begin(), shape.end());
 		slist[return_dim] = 1;
-		return teq::ShapeSignature(slist);
+		return teq::Shape(slist);
 	}
 };
 
@@ -120,7 +120,7 @@ struct ShapeParser<egen::SLICE> final
 		eigen::PairVecT<teq::DimT> extents;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, attrs);
 
-		teq::ShapeSignature shape = shapes.front();
+		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		for (size_t i = 0, n = extents.size(); i < n; ++i)
 		{
@@ -131,7 +131,7 @@ struct ShapeParser<egen::SLICE> final
 			}
 		}
 
-		teq::ShapeSignature sign(slist);
+		teq::Shape sign(slist);
 		if (std::all_of(slist.begin(), slist.end(),
 			[](teq::DimT d) { return d > 0; }) &&
 			sign.compatible_after(shape, 0))
@@ -165,7 +165,7 @@ struct ShapeParser<egen::PAD> final
 			return ShapeOpt();
 		}
 
-		teq::ShapeSignature shape = shapes.front();
+		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		size_t n = std::min(paddings.size(), (size_t) teq::rank_cap);
 		for (size_t i = 0; i < n; ++i)
@@ -175,7 +175,7 @@ struct ShapeParser<egen::PAD> final
 				slist[i] += paddings[i].first + paddings[i].second;
 			}
 		}
-		return teq::ShapeSignature(slist);
+		return teq::Shape(slist);
 	}
 };
 
@@ -187,7 +187,7 @@ struct ShapeParser<egen::STRIDE> final
 		std::vector<teq::DimT> incrs;
 		eigen::Packer<std::vector<teq::DimT>>().unpack(incrs, attrs);
 
-		teq::ShapeSignature shape = shapes.front();
+		teq::Shape shape = shapes.front();
 		std::vector<double> coords(teq::rank_cap, 1);
 		size_t n = std::min(incrs.size(), (size_t) teq::rank_cap);
 		for (size_t i = 0; i < n; ++i)
@@ -199,7 +199,7 @@ struct ShapeParser<egen::STRIDE> final
 		{
 			slist[i] = std::round((double) slist[i] / incrs[i]);
 		}
-		return teq::ShapeSignature(slist);
+		return teq::Shape(slist);
 	}
 };
 
@@ -211,8 +211,8 @@ struct ShapeParser<egen::SCATTER> final
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
 
-		teq::ShapeSignature inshape = shapes.front();
-		teq::ShapeSignature sign(
+		teq::Shape inshape = shapes.front();
+		teq::Shape sign(
 			std::vector<teq::DimT>(outshape.begin(), outshape.end()));
 		if (std::all_of(inshape.begin(), inshape.end(),
 			[](teq::DimT d) { return d > 0; }) &&
@@ -239,8 +239,8 @@ struct ShapeParser<egen::MATMUL> final
 		std::array<bool,teq::rank_cap> bvisit;
 		std::fill(avisit.begin(), avisit.end(), false);
 		std::fill(bvisit.begin(), bvisit.end(), false);
-		teq::ShapeSignature ashape = shapes[0];
-		teq::ShapeSignature bshape = shapes[1];
+		teq::Shape ashape = shapes[0];
+		teq::Shape bshape = shapes[1];
 		for (const std::pair<teq::RankT,teq::RankT>& coms : ranks)
 		{
 			if (ashape.at(coms.first) != bshape.at(coms.second))
@@ -275,13 +275,7 @@ struct ShapeParser<egen::MATMUL> final
 				outlist.push_back(alist.at(i));
 			}
 		}
-		size_t nout = outlist.size();
-		if ((teq::is_ambiguous(ashape) || teq::is_ambiguous(bshape)) &&
-			nout < teq::rank_cap)
-		{
-			outlist.insert(outlist.end(), teq::rank_cap - nout, 0);
-		}
-		return teq::ShapeSignature(outlist);
+		return teq::Shape(outlist);
 	}
 };
 
@@ -294,7 +288,7 @@ struct ShapeParser<egen::CONV> final
 		eigen::Packer<std::vector<teq::RankT>>().unpack(ranks, attrs);
 
 		size_t n = std::min(ranks.size(), (size_t) teq::rank_cap);
-		teq::ShapeSignature kernelshape = shapes[1];
+		teq::Shape kernelshape = shapes[1];
 		if (std::any_of(kernelshape.begin() + n, kernelshape.end(),
 			[](teq::DimT d) { return d > 1; }))
 		{
@@ -302,7 +296,7 @@ struct ShapeParser<egen::CONV> final
 				"kernelshape %s (ranks=%s)", kernelshape.to_string().c_str(),
 				fmts::to_string(ranks.begin(), ranks.end()).c_str());
 		}
-		teq::ShapeSignature imgshape = shapes[0];
+		teq::Shape imgshape = shapes[0];
 		std::vector<teq::DimT> slist(imgshape.begin(), imgshape.end());
 		for (size_t i = 0; i < n; ++i)
 		{
@@ -325,7 +319,7 @@ struct ShapeParser<egen::CONV> final
 				sdim -= kdim - 1;
 			}
 		}
-		return teq::ShapeSignature(slist);
+		return teq::Shape(slist);
 	}
 };
 
@@ -382,13 +376,13 @@ struct ShapeParser<egen::PERMUTE> final
 				order.push_back(i);
 			}
 		}
-		teq::ShapeSignature shape = shapes.front();
+		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(teq::rank_cap, 0);
 		for (teq::RankT i = 0; i < teq::rank_cap; ++i)
 		{
 			slist[i] = shape.at(order[i]);
 		}
-		return teq::ShapeSignature(slist);
+		return teq::Shape(slist);
 	}
 };
 
@@ -412,7 +406,7 @@ struct ShapeParser<egen::EXTEND> final
 			logs::fatalf("cannot extend using zero dimensions %s",
 				fmts::to_string(bcast.begin(), bcast.end()).c_str());
 		}
-		teq::ShapeSignature shape = shapes.front();
+		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		for (size_t i = 0, nbcasts = bcast.size(); i < nbcasts; ++i)
 		{
@@ -424,7 +418,7 @@ struct ShapeParser<egen::EXTEND> final
 			}
 			slist[i] *= bcast[i];
 		}
-		return teq::ShapeSignature(slist);
+		return teq::Shape(slist);
 	}
 };
 
@@ -436,8 +430,8 @@ struct ShapeParser<egen::CONCAT> final
 		teq::RankT axis;
 		eigen::Packer<teq::RankT>().unpack(axis, attrs);
 
-		teq::ShapeSignature leftshape = shapes[0];
-		teq::ShapeSignature rightshape = shapes[1];
+		teq::Shape leftshape = shapes[0];
+		teq::Shape rightshape = shapes[1];
 		std::vector<teq::DimT> slist(leftshape.begin(), leftshape.end());
 		if (slist[axis] == 0 || rightshape.at(axis) == 0)
 		{
@@ -447,7 +441,7 @@ struct ShapeParser<egen::CONCAT> final
 		{
 			slist[axis] += rightshape.at(axis);
 		}
-		return teq::ShapeSignature(slist);
+		return teq::Shape(slist);
 	}
 };
 
@@ -465,16 +459,16 @@ struct ShapeParser<egen::GROUP_CONCAT> final
 		eigen::Packer<teq::RankT>().unpack(axis, attrs);
 
 		if (std::any_of(shapes.begin(), shapes.end(),
-			[axis](teq::ShapeSignature shape)
+			[axis](teq::Shape shape)
 			{ return shape.at(axis) != 1; }))
 		{
 			logs::fatal("cannot group concat shapes "
 				"with dimension that is not one");
 		}
-		teq::ShapeSignature initshape = shapes.front();
+		teq::Shape initshape = shapes.front();
 		std::vector<teq::DimT> slist(initshape.begin(), initshape.end());
 		slist[axis] = shapes.size();
-		return teq::ShapeSignature(slist);
+		return teq::Shape(slist);
 	}
 };
 
@@ -486,8 +480,8 @@ struct ShapeParser<egen::RESHAPE> final
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
 
-		teq::ShapeSignature inshape = shapes.front();
-		teq::ShapeSignature sign(
+		teq::Shape inshape = shapes.front();
+		teq::Shape sign(
 			std::vector<teq::DimT>(outshape.begin(), outshape.end()));
 		if (std::all_of(inshape.begin(), inshape.end(),
 			[](teq::DimT d) { return d > 0; }) &&

@@ -7,7 +7,6 @@
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/grader.hpp"
 #include "eteq/make.hpp"
-#include "eteq/placeholder.hpp"
 #include "eteq/optimize.hpp"
 
 namespace py = pybind11;
@@ -18,7 +17,7 @@ namespace pyead
 template <typename T>
 py::array typedata_to_array (eteq::iLink<PybindT>* link, py::dtype dtype)
 {
-	auto pshape = pyutils::c2pshape(link->shape());
+	auto pshape = pyutils::c2pshape(link->link_shape());
 	return py::array(dtype,
 		py::array::ShapeContainer(pshape.begin(), pshape.end()),
 		link->data());
@@ -74,7 +73,7 @@ PYBIND11_MODULE(eteq, m)
 		.def("shape",
 			[](eteq::iLink<PybindT>* self)
 			{
-				teq::Shape shape = self->shape();
+				teq::Shape shape = self->link_shape();
 				auto pshape = pyutils::c2pshape(shape);
 				std::vector<int> ipshape(pshape.begin(), pshape.end());
 				return py::array(ipshape.size(), ipshape.data());
@@ -165,35 +164,6 @@ PYBIND11_MODULE(eteq, m)
 				self->assign(arr);
 			},
 			"Assign numpy data array to variable");
-
-	// ==== placeholder ====
-	py::class_<eteq::PlaceLink<PybindT>,eteq::PlaceLinkptrT<PybindT>,
-		eteq::iLink<PybindT>> placeholder(m, "PlaceLink");
-
-	placeholder
-		.def(py::init(
-			[](std::vector<py::ssize_t> slist, std::string label)
-			{
-				return std::make_shared<eteq::PlaceLink<PybindT>>(
-					std::make_shared<teq::Placeholder>(
-						pyutils::p2cshapesign(slist), label));
-			}),
-			py::arg("shape"),
-			py::arg("label") = "")
-		.def("assign",
-			[](eteq::PlaceLink<PybindT>* self, py::array data)
-			{
-				teq::ShapedArr<PybindT> arr;
-				pyutils::arr2shapedarr(arr, data);
-				self->assign(arr);
-			},
-			"Assign numpy data array to placeholder")
-		.def("assign",
-			[](eteq::PlaceLink<PybindT>* self, LinkptrT link)
-			{
-				self->assign(link);
-			},
-			"Assign numpy data array to placeholder");
 
 	// ==== inline functions ====
 	m

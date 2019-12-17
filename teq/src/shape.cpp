@@ -47,7 +47,7 @@ CoordT coordinate (const Shape& shape, NElemT idx)
 	return coord;
 }
 
-std::vector<DimT> narrow_shape (const ShapeSignature& sign)
+std::vector<DimT> narrow_shape (const Shape& sign)
 {
 	auto it = sign.begin(), et = sign.end();
 	while (it != et && *(et - 1) <= 1)
@@ -55,12 +55,6 @@ std::vector<DimT> narrow_shape (const ShapeSignature& sign)
 		--et;
 	}
 	return std::vector<DimT>(it, et);
-}
-
-bool is_ambiguous (const ShapeSignature& sign)
-{
-	return std::any_of(sign.begin(), sign.end(),
-		[](DimT dim) { return dim == 0; });
 }
 
 }

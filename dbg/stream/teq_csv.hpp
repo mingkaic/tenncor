@@ -14,6 +14,7 @@
 
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
+#include "teq/traveler.hpp"
 
 #include "estd/estd.hpp"
 
@@ -37,91 +38,11 @@ enum NODE_TYPE
 using GetTypeF = std::function<NODE_TYPE(teq::iFunctor&)>;
 
 /// Use CSVEquation to render teq::TensptrT graph to output csv edges
-struct CSVEquation final : public teq::iTraveler
+struct CSVEquation final : public teq::OnceTraveler
 {
 	CSVEquation (GetTypeF get_ftype =
 		[](teq::iFunctor& func) { return FUNCTOR; }) :
 		get_ftype_(get_ftype) {}
-
-	/// Implementation of iTraveler
-	void visit (teq::iLeaf& leaf) override
-	{
-		if (estd::has(nodes_, &leaf))
-		{
-			return;
-		}
-		std::string label;
-		auto it = labels_.find(&leaf);
-		if (labels_.end() != it)
-		{
-			label = it->second + "=";
-		}
-		label += leaf.to_string();
-		if (showshape_)
-		{
-			label += leaf.shape().to_string();
-		}
-		nodes_.emplace(&leaf, Node{
-			label,
-			VARIABLE,
-			nodes_.size(),
-		});
-	}
-
-	/// Implementation of iTraveler
-	void visit (teq::iFunctor& func) override
-	{
-		if (estd::has(nodes_, &func))
-		{
-			return;
-		}
-		std::string abbrev;
-		if (estd::get(abbrev, abbreviate_, &func))
-		{
-			if (showshape_)
-			{
-				abbrev += func.shape().to_string();
-			}
-			nodes_.emplace(&func, Node{
-				abbrev,
-				VARIABLE,
-				nodes_.size(),
-			});
-			return;
-		}
-		std::string funcstr;
-		if (estd::get(funcstr, labels_, &func))
-		{
-			funcstr += "=";
-		}
-		funcstr += func.to_string();
-		if (showshape_)
-		{
-			funcstr += func.shape().to_string();
-		}
-		nodes_.emplace(&func, Node{
-			funcstr,
-			get_ftype_(func),
-			nodes_.size(),
-		});
-		auto children = func.get_children();
-		for (size_t i = 0, nchildren = children.size(); i < nchildren; ++i)
-		{
-			auto tens = children[i].get();
-			edges_.push_back(Edge{
-				&func,
-				tens,
-				fmts::to_string(i),
-			});
-			tens->accept(*this);
-		}
-	}
-
-	/// Implementation of iTraveler
-	void visit (teq::Placeholder& placeholder) override
-	{
-		//
-	}
 
 	/// Stream visited graphs to out
 	void to_stream (std::ostream& out)
@@ -151,6 +72,60 @@ struct CSVEquation final : public teq::iTraveler
 	LabelsMapT labels_;
 
 private:
+	/// Implementation of iTraveler
+	void visit_leaf (teq::iLeaf& leaf) override
+	{
+		std::string label;
+		auto it = labels_.find(&leaf);
+		if (labels_.end() != it)
+		{
+			label = it->second + "=";
+		}
+		label += leaf.to_string();
+		if (showshape_)
+		{
+			label += leaf.shape().to_string();
+		}
+		nodes_.emplace(&leaf, Node{
+			label,
+			VARIABLE,
+			nodes_.size(),
+		});
+	}
+
+	/// Implementation of iTraveler
+	void visit_func (teq::iFunctor& func) override
+	{
+		std::string abbrev;
+		if (estd::get(abbrev, abbreviate_, &func))
+		{
+			if (showshape_)
+			{
+				abbrev += func.shape().to_string();
+			}
+			nodes_.emplace(&func, Node{abbrev, VARIABLE, nodes_.size()});
+			return;
+		}
+		std::string funcstr;
+		if (estd::get(funcstr, labels_, &func))
+		{
+			funcstr += "=";
+		}
+		funcstr += func.to_string();
+		if (showshape_)
+		{
+			funcstr += func.shape().to_string();
+		}
+		nodes_.emplace(&func, Node{funcstr, get_ftype_(func), nodes_.size()});
+		auto children = func.get_children();
+		for (size_t i = 0, nchildren = children.size(); i < nchildren; ++i)
+		{
+			auto tens = children[i].get();
+			edges_.push_back(Edge{&func, tens, fmts::to_string(i)});
+			tens->accept(*this);
+		}
+	}
+
 	struct Edge
 	{
 		teq::iFunctor* func_;

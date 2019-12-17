@@ -16,16 +16,6 @@
 namespace teq
 {
 
-/// Encoding of operation
-struct Opcode final
-{
-	/// String representation of operation
-	std::string name_;
-
-	/// Numerical encoding of operation
-	size_t code_;
-};
-
 /// Interface of iOperation-defined operation node
 struct iFunctor : public iTensor, public marsh::iAttributed
 {
@@ -36,6 +26,12 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 		return static_cast<iFunctor*>(this->clone_impl());
 	}
 
+	/// Implementation of iTensor
+	void accept (iTraveler& visiter) override
+	{
+		visiter.visit(*this);
+	}
+
 	/// Return operation encoding
 	virtual Opcode get_opcode (void) const = 0;
 
@@ -44,9 +40,11 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 
 	/// Update child at specified index
 	virtual void update_child (TensptrT arg, size_t index) = 0;
+
+	/// Perform function calculations
+	virtual void calc (void) = 0;
 };
 
-/// Functor smart pointer
 using FuncptrT = std::shared_ptr<iFunctor>;
 
 }

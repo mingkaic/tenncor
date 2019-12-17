@@ -18,12 +18,12 @@ struct Layer final : public teq::iLayer
 	Layer (const Layer& other) : opcode_(other.opcode_)
 	{
 		teq::iTensor* oinput = other.input_->get_tensor().get();
-		teq::iTensor* ooutput = other.output_->get_tensor().get();
+		teq::iTensor* ooutput = other.output_.get();
 		teq::Copier kamino({oinput});
 		ooutput->accept(kamino);
 
 		input_ = to_link<T>(kamino.clones_[oinput]);
-		output_ = to_link<T>(kamino.clones_[ooutput]);
+		output_ = std::static_pointer_cast<Functor<T>>(kamino.clones_[ooutput]);
 
         for (auto storage : other.storages_)
         {
@@ -91,28 +91,46 @@ struct Layer final : public teq::iLayer
 		input_ = to_link<T>(arg);
 	}
 
-	/// Implementation of iSignature
-	bool can_build (void) const override
+	/// Implementation of iFunctor
+	void calc (void) override
 	{
-		return output_->can_build();
+		output_->calc();
 	}
 
-	/// Implementation of iSignature
-	teq::DataptrT build_data (void) const override
+	/// Implementation of iData
+	void* data (void) override
 	{
-		return output_->build_data();
+		return output_->data();
 	}
 
-	/// Implementation of iSignature
-	teq::ShapeSignature shape_sign (void) const override
+	/// Implementation of iData
+	const void* data (void) const override
 	{
-		return output_->shape_sign();
+		return output_->data();
+	}
+
+	/// Implementation of iData
+	size_t type_code (void) const override
+	{
+		return egen::get_type<T>();
+	}
+
+	/// Implementation of iData
+	std::string type_label (void) const override
+	{
+		return egen::name_type(egen::get_type<T>());
+	}
+
+	/// Implementation of iData
+	size_t nbytes (void) const override
+	{
+		return output_->nbytes();
 	}
 
 	/// Implementation of iLayer
 	teq::TensptrT get_root (void) const override
 	{
-		return output_->get_tensor();
+		return output_;
 	}
 
 	/// Implementation of iLayer
@@ -131,7 +149,7 @@ private:
 
 	LinkptrT<T> input_;
 
-	LinkptrT<T> output_;
+	FuncptrT<T> output_;
 
 	teq::TensptrsT storages_;
 };
@@ -185,26 +203,6 @@ struct LayerLink final : public iLink<T>
 	teq::TensptrT get_tensor (void) const override
 	{
 		return layer_;
-	}
-
-	/// Implementation of iSignature
-	bool can_build (void) const override
-	{
-		return layer_->can_build();
-	}
-
-	/// Implementation of iSignature
-	teq::DataptrT build_data (void) const override
-	{
-		return layer_->build_data();
-	}
-
-	/// Implementation of iSignature
-	teq::ShapeSignature shape_sign (void) const override
-	{
-		teq::Shape shape = layer_->shape();
-		return teq::ShapeSignature(
-			std::vector<teq::DimT>(shape.begin(), shape.end()));
 	}
 
 private:

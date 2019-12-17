@@ -47,7 +47,7 @@ TrainErrF sgd_train (layr::iLayer& model, teq::iSession& sess,
 			});
 		sess.update_target({error->get_tensor().get()});
 		PybindT* data = error->data();
-		teq::Shape shape = error->shape();
+		teq::Shape shape = error->link_shape();
 		return teq::ShapedArr<PybindT>{shape,
 			std::vector<PybindT>(data, data + shape.n_elems()),
 		};

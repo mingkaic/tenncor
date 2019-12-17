@@ -31,12 +31,6 @@ struct iLeaf : public teq::iLeaf
 	}
 
 	/// Implementation of iTensor
-	void accept (teq::iTraveler& visiter) override
-	{
-		visiter.visit(*this);
-	}
-
-	/// Implementation of iTensor
 	teq::Shape shape (void) const override
 	{
 		return shape_;
@@ -124,26 +118,6 @@ struct LeafLink final : public iLink<T>
 	teq::TensptrT get_tensor (void) const override
 	{
 		return leaf_;
-	}
-
-	/// Implementation of iSignature
-	bool can_build (void) const override
-	{
-		return true;
-	}
-
-	/// Implementation of iSignature
-	teq::DataptrT build_data (void) const override
-	{
-		return leaf_;
-	}
-
-	/// Implementation of iSignature
-	teq::ShapeSignature shape_sign (void) const override
-	{
-		teq::Shape shape = leaf_->shape();
-		return teq::ShapeSignature(
-			std::vector<teq::DimT>(shape.begin(), shape.end()));
 	}
 
 private:

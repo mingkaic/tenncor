@@ -8,7 +8,6 @@
 
 #include "teq/mock/leaf.hpp"
 #include "teq/mock/functor.hpp"
-#include "teq/mock/opfunc.hpp"
 
 #include "teq/session.hpp"
 
@@ -17,16 +16,16 @@ TEST(SESSION, Track)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
-	teq::TensptrT d(new MockLeaf(shape));
+	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT b(new MockLeaf({}, shape));
+	teq::TensptrT c(new MockLeaf({}, shape));
+	teq::TensptrT d(new MockLeaf({}, shape));
 
-	teq::TensptrT x(new MockOpfunc(teq::TensptrsT{a, b},
+	teq::TensptrT x(new MockFunctor(teq::TensptrsT{a, b},
 		std::vector<double>{}));
-	teq::TensptrT target(new MockOpfunc(teq::TensptrsT{x, c},
+	teq::TensptrT target(new MockFunctor(teq::TensptrsT{x, c},
 		std::vector<double>{}));
-	teq::TensptrT target2(new MockOpfunc(teq::TensptrsT{x, d},
+	teq::TensptrT target2(new MockFunctor(teq::TensptrsT{x, d},
 		std::vector<double>{}));
 
 	// this tests if session can track be called multiple times
@@ -63,13 +62,13 @@ TEST(SESSION, Update)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
+	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT b(new MockLeaf({}, shape));
+	teq::TensptrT c(new MockLeaf({}, shape));
 
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{a, b},
+	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{x, c},
+	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{x, c},
 		std::vector<double>{});
 
 	// * (target) = not updated
@@ -102,16 +101,16 @@ TEST(SESSION, UpdateIgnore)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
-	teq::TensptrT d(new MockLeaf(shape));
+	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT b(new MockLeaf({}, shape));
+	teq::TensptrT c(new MockLeaf({}, shape));
+	teq::TensptrT d(new MockLeaf({}, shape));
 
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{a, b},
+	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(teq::TensptrsT{x, c},
+	std::shared_ptr<MockFunctor> y = std::make_shared<MockFunctor>(teq::TensptrsT{x, c},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{y, d},
+	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d},
 		std::vector<double>{});
 
 	// - (target) = not updated
@@ -167,17 +166,17 @@ TEST(SESSION, UpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
+	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT b(new MockLeaf({}, shape));
+	teq::TensptrT c(new MockLeaf({}, shape));
 
-	std::shared_ptr<MockOpfunc> u = std::make_shared<MockOpfunc>(teq::TensptrsT{a},
+	std::shared_ptr<MockFunctor> u = std::make_shared<MockFunctor>(teq::TensptrsT{a},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{u, b},
+	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(teq::TensptrsT{c, u},
+	std::shared_ptr<MockFunctor> y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{y, x},
+	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{y, x},
 		std::vector<double>{});
 
 	// - (target) = not updated
@@ -222,13 +221,13 @@ TEST(SESSION, TargetedUpdate)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
+	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT b(new MockLeaf({}, shape));
+	teq::TensptrT c(new MockLeaf({}, shape));
 
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{a, b},
+	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{x, c},
+	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{x, c},
 		std::vector<double>{});
 
 	// * (target) = not updated
@@ -262,16 +261,16 @@ TEST(SESSION, TargetedUpdateIgnore)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
-	teq::TensptrT d(new MockLeaf(shape));
+	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT b(new MockLeaf({}, shape));
+	teq::TensptrT c(new MockLeaf({}, shape));
+	teq::TensptrT d(new MockLeaf({}, shape));
 
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{a, b},
+	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(teq::TensptrsT{x, c},
+	std::shared_ptr<MockFunctor> y = std::make_shared<MockFunctor>(teq::TensptrsT{x, c},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{y, d},
+	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d},
 		std::vector<double>{});
 
 	// - (targetd) = not updated
@@ -310,20 +309,20 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
-	teq::TensptrT d(new MockLeaf(shape));
+	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT b(new MockLeaf({}, shape));
+	teq::TensptrT c(new MockLeaf({}, shape));
+	teq::TensptrT d(new MockLeaf({}, shape));
 
-	std::shared_ptr<MockOpfunc> u = std::make_shared<MockOpfunc>(teq::TensptrsT{a},
+	std::shared_ptr<MockFunctor> u = std::make_shared<MockFunctor>(teq::TensptrsT{a},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{u, b},
+	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(teq::TensptrsT{c, u},
+	std::shared_ptr<MockFunctor> y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> z = std::make_shared<MockOpfunc>(teq::TensptrsT{y, x},
+	std::shared_ptr<MockFunctor> z = std::make_shared<MockFunctor>(teq::TensptrsT{y, x},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{z, d},
+	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d},
 		std::vector<double>{});
 
 	// pow (targeted) = not updated
@@ -374,20 +373,20 @@ TEST(SESSION, Clear)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
-	teq::TensptrT d(new MockLeaf(shape));
+	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT b(new MockLeaf({}, shape));
+	teq::TensptrT c(new MockLeaf({}, shape));
+	teq::TensptrT d(new MockLeaf({}, shape));
 
-	std::shared_ptr<MockOpfunc> u = std::make_shared<MockOpfunc>(teq::TensptrsT{a},
+	std::shared_ptr<MockFunctor> u = std::make_shared<MockFunctor>(teq::TensptrsT{a},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> x = std::make_shared<MockOpfunc>(teq::TensptrsT{u, b},
+	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> y = std::make_shared<MockOpfunc>(teq::TensptrsT{c, u},
+	std::shared_ptr<MockFunctor> y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> z = std::make_shared<MockOpfunc>(teq::TensptrsT{y, x},
+	std::shared_ptr<MockFunctor> z = std::make_shared<MockFunctor>(teq::TensptrsT{y, x},
 		std::vector<double>{});
-	std::shared_ptr<MockOpfunc> target = std::make_shared<MockOpfunc>(teq::TensptrsT{z, d},
+	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d},
 		std::vector<double>{});
 
 	teq::Session session;
@@ -402,19 +401,6 @@ TEST(SESSION, Clear)
 	EXPECT_FALSE(y->updated_);
 	EXPECT_FALSE(x->updated_);
 	EXPECT_FALSE(u->updated_);
-}
-
-
-TEST(SESSION, FailTrack)
-{
-	teq::Shape shape;
-	teq::TensptrT a(new MockLeaf(shape));
-	std::shared_ptr<MockFunctor> b = std::make_shared<MockFunctor>(
-		teq::TensptrsT{a}, teq::Opcode{"bad_func", 0});
-
-	teq::Session session;
-	EXPECT_FATAL(session.track({b}),
-		"cannot track non-operable functor bad_func");
 }
 
 

@@ -24,12 +24,12 @@ const std::string weight_key = "weight";
 const std::string bias_key = "bias";
 
 teq::Shape gen_rshape (std::vector<teq::DimT> runcoms,
-	teq::ShapeSignature left, eigen::PairVecT<teq::RankT> lrdims);
+	teq::Shape left, eigen::PairVecT<teq::RankT> lrdims);
 
 template <typename T>
 eteq::LinkptrT<T> drop_out (eteq::LinkptrT<T> input, T prob)
 {
-	auto p = eteq::make_constant_like<T>(prob, input->shape_sign());
+	auto p = eteq::make_constant_like<T>(prob, input->shape());
 	return input * (tenncor::random::rand_binom_one(p) / p);
 }
 
@@ -75,7 +75,7 @@ eteq::LayerptrT<T> dense (
 	eigen::PairVecT<teq::RankT> dims = {{0, 1}})
 {
 	teq::TensptrT weight = weight_init(gen_rshape(
-		hidden_dims, input->shape_sign(), dims), weight_key);
+		hidden_dims, input->shape(), dims), weight_key);
 	teq::TensptrT bias;
 	if (bias_init)
 	{
@@ -140,7 +140,7 @@ eteq::LayerptrT<T> rnn (eteq::LinkptrT<T> input, teq::DimT hidden_dim,
 	UnaryF<T> activation, layr::InitF<T> weight_init,
 	layr::InitF<T> bias_init, teq::RankT seq_dim)
 {
-	teq::ShapeSignature inshape = input->shape_sign();
+	teq::Shape inshape = input->shape();
 
 	auto cell = dense_builder(
 		teq::Shape({hidden_dim, (teq::DimT) (hidden_dim + inshape.at(0))}),
@@ -163,7 +163,7 @@ eteq::LayerptrT<T> rnn (eteq::LinkptrT<T> input, teq::DimT hidden_dim,
 	slice_shape[seq_dim] = 1;
 	eteq::LinksT<T> states;
 	eteq::LinkptrT<T> state = tenncor::best_extend(
-		eteq::to_link<T>(init_state), teq::ShapeSignature(slice_shape));
+		eteq::to_link<T>(init_state), teq::Shape(slice_shape));
 	for (teq::DimT i = 0; i < nseq; ++i)
 	{
 		auto inslice = tenncor::slice(input, i, 1, seq_dim);
@@ -180,7 +180,7 @@ eteq::LayerptrT<T> lstm (eteq::LinkptrT<T> input, teq::DimT hidden_dim,
 	UnaryF<T> activation, layr::InitF<T> weight_init,
 	layr::InitF<T> bias_init, teq::RankT seq_dim)
 {
-	teq::ShapeSignature inshape = input->shape_sign();
+	teq::Shape inshape = input->shape();
 
 	teq::Shape wshape({hidden_dim, (teq::DimT) (hidden_dim + inshape.at(0))});
 	teq::Shape bshape({hidden_dim});
@@ -227,7 +227,7 @@ eteq::LayerptrT<T> gru (eteq::LinkptrT<T> input, teq::DimT hidden_dim,
 	UnaryF<T> activation, layr::InitF<T> weight_init,
 	layr::InitF<T> bias_init, teq::RankT seq_dim)
 {
-	teq::ShapeSignature inshape = input->shape_sign();
+	teq::Shape inshape = input->shape();
 
 	teq::Shape wshape({hidden_dim, (teq::DimT) (hidden_dim + inshape.at(0))});
 	teq::Shape bshape({hidden_dim});

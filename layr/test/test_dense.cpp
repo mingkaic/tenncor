@@ -64,8 +64,8 @@ TEST(DENSE, Connection)
 // 		ASSERT_EQ(nullptr, params);
 // 		float* w = eteq::to_link<float>(weight)->data();
 // 		float* b = eteq::to_link<float>(bias)->data();
-// 		weight_data = std::vector<float>(w, w + weight->shape().n_elems());
-// 		bias_data = std::vector<float>(b, b + bias->shape().n_elems());
+// 		weight_data = std::vector<float>(w, w + weight->shape2().n_elems());
+// 		bias_data = std::vector<float>(b, b + bias->shape2().n_elems());
 
 // 		auto x = eteq::make_variable_scalar<float>(
 // 			0, teq::Shape({6, 2}), "x");
@@ -88,14 +88,14 @@ TEST(DENSE, Connection)
 // 		auto bias = contents[1];
 // 		teq::Shape exwshape({noutput, ninput});
 // 		teq::Shape exbshape({noutput});
-// 		auto wshape = weight->shape();
-// 		auto bshape = bias->shape();
+// 		auto wshape = weight->shape2();
+// 		auto bshape = bias->shape2();
 // 		ASSERT_ARREQ(exwshape, wshape);
 // 		ASSERT_ARREQ(exbshape, bshape);
 // 		float* w = eteq::to_link<float>(weight)->data();
 // 		float* b = eteq::to_link<float>(bias)->data();
-// 		std::vector<float> gotw(w, w + weight->shape().n_elems());
-// 		std::vector<float> gotb(b, b + bias->shape().n_elems());
+// 		std::vector<float> gotw(w, w + weight->shape2().n_elems());
+// 		std::vector<float> gotb(b, b + bias->shape2().n_elems());
 // 		EXPECT_VECEQ(weight_data, gotw);
 // 		EXPECT_VECEQ(bias_data, gotb);
 

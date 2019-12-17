@@ -623,29 +623,28 @@ api:
           name: slist
         out:
           type: eteq::LinkptrT<T>
-          val: return ::tenncor::best_extend(arg, teq::ShapeSignature(slist));
+          val: return ::tenncor::best_extend(arg, teq::Shape(slist));
       - description: Return extended arg so that output shape matches shape exactly
         template: typename T
         name: best_extend
         args:
         - dtype: eteq::LinkptrT<T>
           name: arg
-        - dtype: const teq::ShapeSignature&
+        - dtype: const teq::Shape&
           name: target
         out:
           type: eteq::LinkptrT<T>
           val: |
               //
-                  teq::ShapeSignature source = arg->shape_sign();
+                  teq::Shape source = arg->shape();
                   teq::RankT offset = 0;
-                  while (offset < teq::rank_cap && source.at(offset) > 0 &&
-                      source.at(offset) == target.at(offset))
+                  while (offset < teq::rank_cap && source.at(offset) == target.at(offset))
                   {
                       ++offset;
                   }
                   if (offset == teq::rank_cap)
                   {
-                      // everything is equivalent or ambiguous
+                      // everything is equivalent
                       return arg;
                   }
                   std::vector<teq::DimT> exts;
@@ -654,7 +653,7 @@ api:
                   {
                       teq::DimT sdim = source.at(i);
                       teq::DimT tdim = target.at(i);
-                      if (sdim > 0 && tdim > 0 && sdim != tdim)
+                      if (sdim != tdim)
                       {
                           if (sdim > 1)
                           {
@@ -844,15 +843,7 @@ api:
           name: arg
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  auto sign = arg->shape_sign();
-                  if (teq::is_ambiguous(sign))
-                  {
-                      logs::fatalf("cannot n_elems on ambiguous shaped argument (sign=%s)",
-                          sign.to_string().c_str());
-                  }
-                  return eteq::make_constant_scalar<T>(teq::Shape(sign).n_elems(), teq::Shape());
+          val: return eteq::make_constant_scalar<T>(arg->shape().n_elems(), teq::Shape());
       - template: typename T
         name: n_dims
         args:
@@ -862,15 +853,7 @@ api:
           name: rank
         out:
           type: eteq::LinkptrT<T>
-          val: |
-              //
-                  auto sign = arg->shape_sign();
-                  if (sign.at(rank) == 0)
-                  {
-                      logs::fatalf("cannot n_dims with ambiguous dimension %d argument (sign=%s)",
-                          (int) rank, sign.to_string().c_str());
-                  }
-                  return eteq::make_constant_scalar<T>(sign.at(rank), teq::Shape());
+          val: return eteq::make_constant_scalar<T>(arg->shape().at(rank), teq::Shape());
       - description: extents vector consists of pairs offset and extent for each dimension
         template: typename T
         name: slice
@@ -1095,14 +1078,8 @@ api:
           type: eteq::LinkptrT<T>
           val: |
               //
-                  auto sign = arg->shape_sign();
-                  if (sign.at(dimension) == 0)
-                  {
-                      logs::fatalf("cannot reduce_mean_1d with ambiguous dimension %d argument (sign=%s)",
-                          (int) dimension, sign.to_string().c_str());
-                  }
                   auto red = ::tenncor::reduce_sum_1d(arg, dimension);
-                  auto dim = eteq::make_constant_like<T>(sign.at(dimension), red);
+                  auto dim = eteq::make_constant_like<T>(arg->shape().at(dimension), red);
                   return ::tenncor::div(red, dim);
       - template: typename T
         name: reduce_l2norm
@@ -1166,7 +1143,7 @@ api:
                       logs::fatal("cannot clip_by_norm with a upper limit of 0");
                   }
                   auto norm = ::tenncor::best_extend(
-                      ::tenncor::reduce_l2norm(arg), arg->shape_sign());
+                      ::tenncor::reduce_l2norm(arg), arg->shape());
                   auto limit = eteq::make_constant_like<T>(upper, arg);
                   return ::tenncor::if_then_else(::tenncor::lt(norm, limit),
                       arg, ::tenncor::div(::tenncor::mul(arg, limit), norm));
@@ -1238,7 +1215,7 @@ api:
                       logs::fatalf("cannot perform softmax on dimensions beyond %d",
                           teq::rank_cap);
                   }
-                  teq::ShapeSignature shape = arg->shape_sign();
+                  teq::Shape shape = arg->shape();
                   auto overflow_preventer = ::tenncor::best_extend(
                       ::tenncor::reduce_max(arg), shape);
                   auto exarg = ::tenncor::exp(::tenncor::sub(arg, overflow_preventer));
@@ -1329,7 +1306,7 @@ api:
                   }
                   if (nullptr != bias)
                   {
-                      out = ::tenncor::add(out, ::tenncor::best_extend(bias, out->shape_sign()));
+                      out = ::tenncor::add(out, ::tenncor::best_extend(bias, out->shape()));
                   }
                   return out;
       - template: typename T
@@ -1366,13 +1343,7 @@ api:
                           {zero_padding.first, zero_padding.first},
                           {zero_padding.second, zero_padding.second}});
                   }
-                  teq::DimT outdim = kernel->shape_sign().at(0);
-                  if (outdim == 0)
-                  {
-                      logs::fatalf("cannot conv2d with ambiguous out dimension %d", (int) outdim);
-                  }
-
-                  teq::DimT img_pad = outdim - 1; // out
+                  teq::DimT img_pad = kernel->shape().at(0) - 1; // out
                   image = ::tenncor::pad(image,
                       std::pair<teq::DimT,teq::DimT>{img_pad, img_pad}, 4);
                   kernel = ::tenncor::reverse(kernel, {0});
@@ -1381,7 +1352,7 @@ api:
                       {4, 0, 1, 2}), {4, 1, 2, 3});
                   if (nullptr != bias)
                   {
-                      out = ::tenncor::add(out, ::tenncor::best_extend(bias, out->shape_sign()));
+                      out = ::tenncor::add(out, ::tenncor::best_extend(bias, out->shape()));
                   }
                   return out;
       - template: typename T
@@ -1396,16 +1367,9 @@ api:
           type: eteq::LinkptrT<T>
           val: |
               //
-                  teq::ShapeSignature sign = arg->shape_sign();
-                  teq::DimT xextent = sign.at(dims.first);
-                  teq::DimT yextent = sign.at(dims.second);
-                  if (xextent == 0 || yextent == 0)
-                  {
-                      logs::fatalf("cannot pool on ambiguous dimensions %d and %d (sign=%s)",
-                          (int) dims.first, (int) dims.second, sign.to_string().c_str());
-                  }
-                  --xextent;
-                  --yextent;
+                  teq::Shape shape = arg->shape();
+                  teq::DimT xextent = shape.at(dims.first) - 1;
+                  teq::DimT yextent = shape.at(dims.second) - 1;
                   std::vector<teq::DimT> strider(teq::rank_cap, 1);
                   strider[dims.first] = strider[dims.second] = 2;
                   auto top_left = ::tenncor::stride(arg, strider);
@@ -1435,16 +1399,9 @@ api:
           type: eteq::LinkptrT<T>
           val: |
               //
-                  teq::ShapeSignature sign = arg->shape_sign();
-                  teq::DimT xextent = sign.at(dims.first);
-                  teq::DimT yextent = sign.at(dims.second);
-                  if (xextent == 0 || yextent == 0)
-                  {
-                      logs::fatalf("cannot pool on ambiguous dimensions %d and %d (sign=%s)",
-                          (int) dims.first, (int) dims.second, sign.to_string().c_str());
-                  }
-                  --xextent;
-                  --yextent;
+                  teq::Shape shape = arg->shape();
+                  teq::DimT xextent = shape.at(dims.first) - 1;
+                  teq::DimT yextent = shape.at(dims.second) - 1;
                   std::vector<teq::DimT> strider(teq::rank_cap, 1);
                   strider[dims.first] = strider[dims.second] = 2;
                   auto top_left = ::tenncor::stride(arg, strider);

@@ -5,7 +5,7 @@
 #include "dbg/stream/teq.hpp"
 
 #include "teq/ileaf.hpp"
-#include "teq/iopfunc.hpp"
+#include "teq/ifunctor.hpp"
 
 #ifndef TEST_TUTIL_HPP
 #define TEST_TUTIL_HPP
@@ -32,8 +32,8 @@ void check_tensordata (teq::iTensor* xpc, teq::iTensor* got, const char* fname, 
 		<< ", got " << fmts::to_string(gshape.begin(), gshape.end()) << " instead";
 	auto exvar = dynamic_cast<teq::iLeaf*>(xpc);
 	auto govar = dynamic_cast<teq::iLeaf*>(got);
-	auto exfnc = dynamic_cast<teq::iOperableFunc*>(xpc);
-	auto gofnc = dynamic_cast<teq::iOperableFunc*>(got);
+	auto exfnc = dynamic_cast<teq::iFunctor*>(xpc);
+	auto gofnc = dynamic_cast<teq::iFunctor*>(got);
 	if (nullptr != exvar && nullptr != govar)
 	{
 		T* expect = (T*) exvar->data();
@@ -78,8 +78,8 @@ void check_tensordata_real (teq::iTensor* xpc, teq::iTensor* got, const char* fn
 		<< ", got " << fmts::to_string(gshape.begin(), gshape.end()) << " instead";
 	auto exvar = dynamic_cast<teq::iLeaf*>(xpc);
 	auto govar = dynamic_cast<teq::iLeaf*>(got);
-	auto exfnc = dynamic_cast<teq::iOperableFunc*>(xpc);
-	auto gofnc = dynamic_cast<teq::iOperableFunc*>(got);
+	auto exfnc = dynamic_cast<teq::iFunctor*>(xpc);
+	auto gofnc = dynamic_cast<teq::iFunctor*>(got);
 	if (nullptr != exvar && nullptr != govar)
 	{
 		T* expect = (T*) exvar->data();

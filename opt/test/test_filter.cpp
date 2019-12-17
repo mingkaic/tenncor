@@ -17,10 +17,10 @@
 // TEST(FILTER, RemoveDuplicates)
 // {
 // 	teq::Shape shape({2, 3, 4});
-// 	teq::TensptrT var(new MockLeaf(shape, "special_var", false));
-// 	teq::TensptrT zero(new MockLeaf(shape, "0"));
-// 	teq::TensptrT one(new MockLeaf(shape, "1"));
-// 	teq::TensptrT two(new MockLeaf(shape, "2"));
+// 	teq::TensptrT var(new MockLeaf(std::vector<double>{}, shape, "special_var", false));
+// 	teq::TensptrT zero(new MockLeaf(std::vector<double>{}, shape, "0"));
+// 	teq::TensptrT one(new MockLeaf(std::vector<double>{}, shape, "1"));
+// 	teq::TensptrT two(new MockLeaf(std::vector<double>{}, shape, "2"));
 
 // 	teq::TensptrsT roots;
 // 	{
@@ -154,20 +154,20 @@
 // }
 
 
-static teq::TensptrT mock_constants (teq::FuncptrT f)
+static teq::TensptrT mock_constants (teq::TensptrT f)
 {
-	std::string opname = f->get_opcode().name_;
+	std::string opname = f->to_string();
 	if (opname == "COS")
 	{
-		return std::make_shared<MockLeaf>(f->shape(), "5");
+		return std::make_shared<MockLeaf>(std::vector<double>{}, f->shape(), "5");
 	}
 	else if (opname == "POW")
 	{
-		return std::make_shared<MockLeaf>(f->shape(), "6");
+		return std::make_shared<MockLeaf>(std::vector<double>{}, f->shape(), "6");
 	}
 	else if (opname == "SUB")
 	{
-		return std::make_shared<MockLeaf>(f->shape(), "7");
+		return std::make_shared<MockLeaf>(std::vector<double>{}, f->shape(), "7");
 	}
 	[]()
 	{
@@ -180,28 +180,28 @@ static teq::TensptrT mock_constants (teq::FuncptrT f)
 TEST(FILTER, ConstantFuncs)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT var(new MockLeaf(shape, "special_var", false));
-	teq::TensptrT two(new MockLeaf(shape, "2"));
-	teq::TensptrT three(new MockLeaf(shape, "3"));
-	teq::TensptrT four(new MockLeaf(shape, "4"));
+	teq::TensptrT var(new MockLeaf(std::vector<double>{}, shape, "special_var", false));
+	teq::TensptrT two(new MockLeaf(std::vector<double>{}, shape, "2"));
+	teq::TensptrT three(new MockLeaf(std::vector<double>{}, shape, "3"));
+	teq::TensptrT four(new MockLeaf(std::vector<double>{}, shape, "4"));
 
 	teq::TensptrsT roots;
 	roots.reserve(3);
 
-	auto vfunc = std::make_shared<MockFunctor>(teq::TensptrsT{var}, teq::Opcode{"SIN", 0});
+	auto vfunc = std::make_shared<MockFunctor>(teq::TensptrsT{var}, std::vector<double>{}, teq::Opcode{"SIN", 0});
 	roots.push_back(vfunc);
-	auto cfunc = std::make_shared<MockFunctor>(teq::TensptrsT{two}, teq::Opcode{"COS", 0});
+	auto cfunc = std::make_shared<MockFunctor>(teq::TensptrsT{two}, std::vector<double>{}, teq::Opcode{"COS", 0});
 	roots.push_back(cfunc);
 	auto adv_func = std::make_shared<MockFunctor>(teq::TensptrsT{
 		std::make_shared<MockFunctor>(teq::TensptrsT{
-			std::make_shared<MockFunctor>(teq::TensptrsT{var}, teq::Opcode{"SIN", 0}),
-			std::make_shared<MockFunctor>(teq::TensptrsT{three, four}, teq::Opcode{"POW", 0}),
-		}, teq::Opcode{"ADD", 0}),
+			std::make_shared<MockFunctor>(teq::TensptrsT{var}, std::vector<double>{}, teq::Opcode{"SIN", 0}),
+			std::make_shared<MockFunctor>(teq::TensptrsT{three, four}, std::vector<double>{}, teq::Opcode{"POW", 0}),
+		}, std::vector<double>{}, teq::Opcode{"ADD", 0}),
 		std::make_shared<MockFunctor>(teq::TensptrsT{
-			std::make_shared<MockFunctor>(teq::TensptrsT{two}, teq::Opcode{"COS", 0}),
+			std::make_shared<MockFunctor>(teq::TensptrsT{two}, std::vector<double>{}, teq::Opcode{"COS", 0}),
 			two
-		}, teq::Opcode{"SUB", 0})
-	}, teq::Opcode{"MUL", 0});
+		}, std::vector<double>{}, teq::Opcode{"SUB", 0})
+	}, std::vector<double>{}, teq::Opcode{"MUL", 0});
 	roots.push_back(adv_func);
 	opt::constant_funcs(roots, mock_constants);
 	ASSERT_EQ(3, roots.size());

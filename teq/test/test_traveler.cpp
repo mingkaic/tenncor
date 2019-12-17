@@ -14,13 +14,15 @@
 
 TEST(TRAVELER, GraphStat)
 {
-	teq::TensptrT a(new MockLeaf());
-	teq::TensptrT b(new MockLeaf());
-	teq::TensptrT c(new MockLeaf());
+	teq::TensptrT a(new MockLeaf({}, teq::Shape()));
+	teq::TensptrT b(new MockLeaf({}, teq::Shape()));
+	teq::TensptrT c(new MockLeaf({}, teq::Shape()));
 
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b},
+		std::vector<double>{}, teq::Opcode{"MOCK1", 1}));
 
-	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f}, teq::Opcode{"MOCK0", 0}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f},
+		std::vector<double>{}, teq::Opcode{"MOCK0", 0}));
 
 	teq::GraphStat stat;
 	g->accept(stat);
@@ -34,62 +36,67 @@ TEST(TRAVELER, GraphStat)
 
 TEST(TRAVELER, PathFinder)
 {
-	teq::TensptrT a(new MockLeaf());
-	teq::TensptrT b(new MockLeaf());
-	teq::TensptrT c(new MockLeaf());
+	teq::TensptrT a(new MockLeaf({}, teq::Shape()));
+	teq::TensptrT b(new MockLeaf({}, teq::Shape()));
+	teq::TensptrT c(new MockLeaf({}, teq::Shape()));
 
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b},
+		std::vector<double>{}, teq::Opcode{"MOCK1", 1}));
 
-	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f}, teq::Opcode{"MOCK1", 1}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f},
+		std::vector<double>{}, teq::Opcode{"MOCK1", 1}));
 
 	teq::PathFinder finder(a.get());
 	g->accept(finder);
 
 	{
-		ASSERT_HAS(finder.parents_, g.get());
-		EXPECT_ARRHAS(finder.parents_[g.get()], 1);
+		ASSERT_HAS(finder.roadmap_, g.get());
+		EXPECT_ARRHAS(finder.roadmap_[g.get()], 1);
 
-		ASSERT_HAS(finder.parents_, f.get());
-		EXPECT_ARRHAS(finder.parents_[f.get()], 0);
+		ASSERT_HAS(finder.roadmap_, f.get());
+		EXPECT_ARRHAS(finder.roadmap_[f.get()], 0);
 	}
 
 	finder.clear();
 	f->accept(finder);
 
 	{
-		ASSERT_HASNOT(finder.parents_, g.get());
+		ASSERT_HASNOT(finder.roadmap_, g.get());
 
-		ASSERT_HAS(finder.parents_, f.get());
-		EXPECT_ARRHAS(finder.parents_[f.get()], 0);
+		ASSERT_HAS(finder.roadmap_, f.get());
+		EXPECT_ARRHAS(finder.roadmap_[f.get()], 0);
 	}
 
 	teq::PathFinder finder2(c.get());
 	g->accept(finder2);
 
 	{
-		ASSERT_HAS(finder2.parents_, g.get());
-		EXPECT_ARRHAS(finder2.parents_[g.get()], 0);
+		ASSERT_HAS(finder2.roadmap_, g.get());
+		EXPECT_ARRHAS(finder2.roadmap_[g.get()], 0);
 	}
 
 	finder2.clear();
 	f->accept(finder2);
 
-	EXPECT_HASNOT(finder2.parents_, f.get());
-	EXPECT_EQ(0, finder2.parents_.size());
+	EXPECT_HASNOT(finder2.roadmap_, f.get());
+	EXPECT_EQ(0, finder2.roadmap_.size());
 }
 
 
 TEST(TRAVELER, ReverseParentGraph)
 {
-	teq::TensptrT a(new MockLeaf());
-	teq::TensptrT b(new MockLeaf());
-	teq::TensptrT c(new MockLeaf());
+	teq::TensptrT a(new MockLeaf({}, teq::Shape()));
+	teq::TensptrT b(new MockLeaf({}, teq::Shape()));
+	teq::TensptrT c(new MockLeaf({}, teq::Shape()));
 
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"f", 1}));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b},
+		std::vector<double>{}, teq::Opcode{"f", 1}));
 
-	teq::TensptrT g(new MockFunctor(teq::TensptrsT{f, b}, teq::Opcode{"g", 2}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{f, b},
+		std::vector<double>{}, teq::Opcode{"g", 2}));
 
-	teq::TensptrT h(new MockFunctor(teq::TensptrsT{c, f, g}, teq::Opcode{"h", 3}));
+	teq::TensptrT h(new MockFunctor(teq::TensptrsT{c, f, g},
+		std::vector<double>{}, teq::Opcode{"h", 3}));
 
 	teq::ParentFinder finder;
 	h->accept(finder);
@@ -123,15 +130,17 @@ TEST(TRAVELER, ReverseParentGraph)
 TEST(TRAVELER, Owners)
 {
 	teq::OwnerMapT owners;
-	teq::TensptrT a(new MockLeaf());
-	teq::TensptrT b(new MockLeaf());
-	teq::TensptrT c(new MockLeaf());
+	teq::TensptrT a(new MockLeaf({}, teq::Shape()));
+	teq::TensptrT b(new MockLeaf({}, teq::Shape()));
+	teq::TensptrT c(new MockLeaf({}, teq::Shape()));
 	teq::iTensor* fref;
 	teq::iTensor* gref;
 	{
-		teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"f", 1}));
+		teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b},
+			std::vector<double>{}, teq::Opcode{"f", 1}));
 
-		teq::TensptrT g(new MockFunctor(teq::TensptrsT{f, c}, teq::Opcode{"g", 2}));
+		teq::TensptrT g(new MockFunctor(teq::TensptrsT{f, c},
+			std::vector<double>{}, teq::Opcode{"g", 2}));
 		fref = f.get();
 		gref = g.get();
 

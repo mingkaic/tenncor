@@ -22,8 +22,8 @@ struct AnyTarget final : public opt::iTarget
 {
 	AnyTarget (std::string symbol) : symbol_(symbol) {}
 
-	teq::TensptrT convert (
-		teq::Shape outshape, const opt::Candidate& candidate) const override
+	teq::TensptrT convert (teq::Shape outshape,
+		const opt::Candidate& candidate) const override
 	{
 		return estd::must_getf(candidate.anys_, symbol_,
 			"cannot find any symbol %s", symbol_.c_str());
@@ -37,8 +37,8 @@ struct ScalarTarget final : public opt::iTarget
 {
 	ScalarTarget (double scalar) : scalar_(scalar) {}
 
-	teq::TensptrT convert (
-		teq::Shape outshape, const opt::Candidate& candidate) const override
+	teq::TensptrT convert (teq::Shape outshape,
+		const opt::Candidate& candidate) const override
 	{
 		return make_constant_scalar(scalar_, outshape)->get_tensor();
 	}
@@ -72,13 +72,15 @@ struct FuncTarget final : public opt::iTarget
 	}
 
 	teq::TensptrT convert (
-		teq::Shape outshape, const opt::Candidate& candidate) const override
+		teq::Shape outshape,
+		const opt::Candidate& candidate) const override
 	{
 		LinksT<T> args;
 		for (opt::TargptrT targ : args_)
 		{
-			auto arg = to_link<T>(targ->convert(outshape, candidate));
-			args.push_back(arg);
+			// todo: reverse outshape
+			args.push_back(to_link<T>(
+				targ->convert(outshape, candidate)));
 		}
 		if (variadic_.size() > 0)
 		{
@@ -148,10 +150,13 @@ opt::CversionCtx parse_file (std::string filename)
 template <typename T>
 struct Hasher final : public teq::OnceTraveler
 {
+	std::unordered_map<teq::iTensor*,boost::uuids::uuid> hashes_;
+
+private:
 	/// Implementation of OnceTraveler
 	void visit_leaf (teq::iLeaf& leaf) override
 	{
-		if (leaf.is_const())
+		if (teq::Immutable == leaf.get_usage())
 		{
 			std::string label = leaf.shape().to_string() + "|";
 			T* data = (T*) leaf.data();
@@ -189,15 +194,9 @@ struct Hasher final : public teq::OnceTraveler
 			}
 		}
 		encode_label(&func, func.shape().to_string() + "|" +
-			func.get_opcode().name_ + "\\" +
+			func.to_string() + "\\" +
 			fmts::to_string(attrs.begin(), attrs.end()) + "\\" +
 			fmts::to_string(hshs.begin(), hshs.end()));
-	}
-
-	/// Implementation of OnceTraveler
-	void visit_place (teq::Placeholder& place) override
-	{
-		hashes_.emplace(&place, uuid_gen_());
 	}
 
 	void encode_label (teq::iTensor* tens, const std::string& label)
@@ -211,9 +210,6 @@ struct Hasher final : public teq::OnceTraveler
 		hashes_.emplace(tens, uuid);
 	}
 
-	std::unordered_map<teq::iTensor*,boost::uuids::uuid> hashes_;
-
-private:
 	std::unordered_map<std::string,boost::uuids::uuid> uuids_;
 
 	boost::uuids::random_generator uuid_gen_;
@@ -238,12 +234,12 @@ template <typename T>
 teq::TensptrT constant_func (teq::FuncptrT& func, opt::ParentReplF replacer)
 {
 	return opt::constant_func(func, replacer,
-		[](teq::FuncptrT func) -> teq::TensptrT
+		[](teq::FuncptrT func)
 		{
 			teq::Session sess;
 			sess.track({func});
 			sess.update_target({func.get()});
-			T* data = (T*) static_cast<Functor<T>*>(func.get())->data();
+			T* data = (T*) func->data();
 			return make_constant(data, func->shape())->get_tensor();
 		});
 }
@@ -254,10 +250,10 @@ void constant_funcs (teq::TensptrsT& roots)
 	teq::Session sess;
 	sess.track(roots);
 	opt::constant_funcs(roots,
-		[&sess](teq::FuncptrT func) -> teq::TensptrT
+		[&sess](teq::FuncptrT func)
 		{
 			sess.update_target({func.get()});
-			T* data = (T*) static_cast<Functor<T>*>(func.get())->data();
+			T* data = (T*) func->data();
 			return make_constant(data, func->shape())->get_tensor();
 		});
 }

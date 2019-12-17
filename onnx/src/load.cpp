@@ -27,16 +27,13 @@ void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
 		const TypeProto& type = pb_input.type();
 		const TypeProto::Tensor& tens_type = type.tensor_type();
 		const auto& dims = tens_type.shape().dim();
-		std::vector<teq::DimT> slist;
-		slist.reserve(dims.size());
+		TensorProto pb_ten;
 		for (const auto& dim : dims)
 		{
-			slist.push_back(dim.dim_value());
+			pb_ten.add_dims(dim.dim_value());
 		}
-
-		auto tens = std::make_shared<teq::Placeholder>(
-			teq::ShapeSignature(slist), name);
-		generated_tens.emplace(id, tens);
+		generated_tens.emplace(id,
+			unmarshal_leaf(pb_ten, teq::Placeholder, name));
 	}
 
 	const auto& pb_tens = pb_graph.initializer();
@@ -44,19 +41,17 @@ void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
 	{
 		std::string id = pb_ten.name();
 		std::string name;
-		bool is_const = false;
+		teq::Usage usage = teq::Unknown;
 		if (estd::has(annotations, id))
 		{
 			AnnotationsT& ans = annotations[id];
 			name = estd::try_get(ans, leafname_key, "");
-			is_const = estd::has(ans, leafconst_key);
+			usage = teq::get_named_usage(
+				estd::try_get(ans, leafusage_key, ""));
 		}
-		auto tens = unmarshal_leaf(pb_ten, is_const, name);
-		generated_tens.emplace(id, tens);
+		generated_tens.emplace(id,
+			unmarshal_leaf(pb_ten, usage, name));
 	}
-
-	// const auto& pb_inputs = pb_graph.input();
-	// todo: distinguish weight ahd placeholders and set ph as inputs
 
 	const auto& pb_nodes = pb_graph.node();
 	for (const NodeProto& pb_node : pb_nodes)
@@ -74,7 +69,8 @@ void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
 		std::transform(inputs.begin(), inputs.end(), std::back_inserter(args),
 			[&generated_tens](std::string input)
 			{
-				return generated_tens.at(input);
+				return estd::must_getf(generated_tens, input,
+					"failed to find %s", input.c_str());
 			});
 		teq::TensptrT tens = unmarshal_func(
 			opname, args, std::move(attrs));

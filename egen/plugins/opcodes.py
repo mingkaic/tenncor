@@ -70,13 +70,13 @@ struct EnumHash
     }}
 }};
 
-static std::unordered_map<_GENERATED_OPCODE,std::string,EnumHash> code2name =
+static const std::unordered_map<_GENERATED_OPCODE,std::string,EnumHash> code2name =
 {{
     //>>> code2names
     {code2names}
 }};
 
-static std::unordered_map<std::string,_GENERATED_OPCODE> name2code =
+static const std::unordered_map<std::string,_GENERATED_OPCODE> name2code =
 {{
     //>>> name2codes
     {name2codes}

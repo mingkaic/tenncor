@@ -2,34 +2,19 @@
 
 #include "teq/ifunctor.hpp"
 
-#ifndef TEQ_MOCK_FUNCTOR_HPP
-#define TEQ_MOCK_FUNCTOR_HPP
+#ifndef TEQ_MOCK_OPFUNC_HPP
+#define TEQ_MOCK_OPFUNC_HPP
 
 struct MockFunctor : public teq::iFunctor
 {
-	MockFunctor (teq::TensptrsT tens, teq::Opcode opcode = teq::Opcode{}) :
-		opcode_(opcode), shape_(tens.front()->shape()), tens_(tens) {}
+	MockFunctor (teq::TensptrsT datas, std::vector<double> data,
+		teq::Opcode opcode = teq::Opcode{}) : datas_(datas),
+		opcode_(opcode), data_(data, datas.front()->shape()) {}
 
-	MockFunctor (const MockFunctor& other) :
-		opcode_(other.opcode_),
-		shape_(other.shape_),
-		tens_(other.tens_)
-	{
-		std::unique_ptr<marsh::Maps> oattr(other.attrs_.clone());
-		attrs_ = std::move(*oattr);
-	}
+	MockFunctor (const MockFunctor& other) : updated_(other.updated_),
+		datas_(other.datas_), opcode_(other.opcode_), data_(other.data_) {}
 
 	virtual ~MockFunctor (void) = default;
-
-	void accept (teq::iTraveler& visiter) override
-	{
-		visiter.visit(*this);
-	}
-
-	teq::Shape shape (void) const override
-	{
-		return shape_;
-	}
 
 	std::string to_string (void) const override
 	{
@@ -43,7 +28,7 @@ struct MockFunctor : public teq::iFunctor
 
 	teq::TensptrsT get_children (void) const override
 	{
-		return tens_;
+		return datas_;
 	}
 
 	const marsh::iObject* get_attr (std::string attr_name) const override
@@ -68,7 +53,42 @@ struct MockFunctor : public teq::iFunctor
 
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		tens_[index] = arg;
+		datas_[index] = arg;
+	}
+
+	void calc(void) override
+	{
+		updated_ = true;
+	}
+
+	void* data (void) override
+	{
+		return data_.data();
+	}
+
+	const void* data (void) const override
+	{
+		return data_.data();
+	}
+
+	teq::Shape shape (void) const override
+	{
+		return data_.shape();
+	}
+
+	size_t type_code (void) const override
+	{
+		return data_.type_code();
+	}
+
+	std::string type_label (void) const override
+	{
+		return data_.type_label();
+	}
+
+	size_t nbytes (void) const override
+	{
+		return data_.nbytes();
 	}
 
 	teq::iTensor* clone_impl (void) const override
@@ -76,13 +96,15 @@ struct MockFunctor : public teq::iFunctor
 		return new MockFunctor(*this);
 	}
 
+	bool updated_ = false;
+
+	teq::TensptrsT datas_;
+
 	teq::Opcode opcode_;
 
-	teq::Shape shape_;
-
-	teq::TensptrsT tens_;
-
 	marsh::Maps attrs_;
+
+	MockLeaf data_;
 };
 
-#endif // TEQ_MOCK_FUNCTOR_HPP
+#endif // TEQ_MOCK_OPFUNC_HPP

@@ -15,8 +15,6 @@
 #include "eigen/generated/dtype.hpp"
 #include "eigen/eigen.hpp"
 
-#include "teq/signature.hpp"
-
 #ifndef ETEQ_LINK_HPP
 #define ETEQ_LINK_HPP
 
@@ -28,7 +26,7 @@ struct Functor;
 
 /// Implementation of iEigenEdge using node as tensor wrapper
 template <typename T>
-struct iLink : public teq::iSignature, public marsh::iAttributed
+struct iLink : public marsh::iAttributed
 {
 	virtual ~iLink (void) = default;
 
@@ -37,15 +35,19 @@ struct iLink : public teq::iSignature, public marsh::iAttributed
 		return this->clone_impl();
 	}
 
-	// utility function for testing... (todo: consider removing)
 	T* data (void) const
 	{
-		return (T*) build_data()->data();
+		return (T*) get_tensor()->data();
+	}
+
+	teq::Shape link_shape (void) const // todo: abstract this
+	{
+		return get_tensor()->shape();
 	}
 
 	teq::Shape shape (void) const
 	{
-		return this->get_tensor()->shape();
+		return get_tensor()->shape();
 	}
 
 	virtual teq::TensptrT get_tensor (void) const = 0;
@@ -71,7 +73,7 @@ template <typename T>
 LinkptrT<T> to_link (teq::TensptrT tens);
 
 template <typename T>
-LinkptrT<T> data_link (teq::DataptrT data);
+LinkptrT<T> data_link (teq::TensptrT data);
 
 }
 

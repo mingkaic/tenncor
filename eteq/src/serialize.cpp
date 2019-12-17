@@ -18,16 +18,16 @@ static inline void pack (char* data, size_t n,
 }
 
 template <typename CAST, typename T>
-static inline teq::TensptrT unpack (bool is_const, teq::Shape shape,
+static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 	std::string label, const google::protobuf::RepeatedField<T>& data)
 {
 	std::vector<CAST> cdata(data.begin(), data.end());
 	CAST* ptr = cdata.data();
-	if (is_const)
+	if (teq::Immutable == usage)
 	{
 		return teq::TensptrT(Constant<CAST>::get(ptr, shape));
 	}
-	return teq::TensptrT(Variable<CAST>::get(ptr, shape, label));
+	return teq::TensptrT(Variable<CAST>::get(ptr, shape, label, usage));
 }
 
 template <typename T>
@@ -118,7 +118,7 @@ static void save_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf)
 }
 
 teq::TensptrT load_leaf (const onnx::TensorProto& pb_tens,
-	bool is_const, std::string label)
+	teq::Usage usage, std::string label)
 {
 	teq::TensptrT out;
 	teq::Shape shape = onnx::unmarshal_shape(pb_tens);
@@ -126,44 +126,44 @@ teq::TensptrT load_leaf (const onnx::TensorProto& pb_tens,
 	switch (onnx_type)
 	{
 		case onnx::TensorProto::DOUBLE:
-			out = unpack<double>(is_const, shape, label,
+			out = unpack<double>(usage, shape, label,
 				pb_tens.double_data());
 			break;
 		case onnx::TensorProto::FLOAT:
-			out = unpack<float>(is_const, shape, label,
+			out = unpack<float>(usage, shape, label,
 				pb_tens.float_data());
 			break;
 		case onnx::TensorProto::INT32:
-			out = unpack<int32_t>(is_const, shape, label,
+			out = unpack<int32_t>(usage, shape, label,
 				pb_tens.int32_data());
 			break;
 // #if(ETEQ_CFG==FULL)
 // 		case onnx::TensorProto::UINT8:
-// 			out = unpack<uint8_t>(is_const, shape, label,
+// 			out = unpack<uint8_t>(usage, shape, label,
 // 				pb_tens.int32_data());
 // 			break;
 // 		case onnx::TensorProto::INT8:
-// 			out = unpack<int8_t>(is_const, shape, label,
+// 			out = unpack<int8_t>(usage, shape, label,
 // 				pb_tens.int32_data());
 // 			break;
 // 		case onnx::TensorProto::UINT16:
-// 			out = unpack<uint16_t>(is_const, shape, label,
+// 			out = unpack<uint16_t>(usage, shape, label,
 // 				pb_tens.int32_data());
 // 			break;
 // 		case onnx::TensorProto::INT16:
-// 			out = unpack<int16_t>(is_const, shape, label,
+// 			out = unpack<int16_t>(usage, shape, label,
 // 				pb_tens.int32_data());
 // 			break;
 // 		case onnx::TensorProto::UINT32:
-// 			out = unpack<uint32_t>(is_const, shape, label,
+// 			out = unpack<uint32_t>(usage, shape, label,
 // 				pb_tens.uint64_data());
 // 			break;
 // 		case onnx::TensorProto::UINT64:
-// 			out = unpack<uint64_t>(is_const, shape, label,
+// 			out = unpack<uint64_t>(usage, shape, label,
 // 				pb_tens.uint64_data());
 // 			break;
 // 		case onnx::TensorProto::INT64:
-// 			out = unpack<int64_t>(is_const, shape, label,
+// 			out = unpack<int64_t>(usage, shape, label,
 // 				pb_tens.int64_data());
 // 			break;
 // #endif
@@ -186,7 +186,7 @@ teq::TensptrT load_func (std::string opname,
 	{
 		gencode = leaf->type_code();
 	}
-	else if (auto func = dynamic_cast<teq::iOperableFunc*>(ctens))
+	else if (auto func = dynamic_cast<teq::iFunctor*>(ctens))
 	{
 		gencode = func->type_code();
 	}

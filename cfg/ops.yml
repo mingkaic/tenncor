@@ -1,6 +1,6 @@
 opcode:
   operator_path: eigen/operator.hpp
-  params: eigen::EigenptrT<T>& out, teq::Shape outshape, const teq::DatasT& in, const marsh::iAttributed& attrib
+  params: eigen::EigenptrT<T>& out, teq::Shape outshape, const teq::TensptrsT& in, const marsh::iAttributed& attrib
   opcalls:
     ABS: out = eigen::abs<T>(outshape, *in[0]);
     NEG: out = eigen::neg<T>(outshape, *in[0]);

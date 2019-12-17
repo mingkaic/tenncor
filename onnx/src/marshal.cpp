@@ -5,22 +5,22 @@
 namespace onnx
 {
 
-void marshal_attrs (PbAttrsT& out, const teq::iFunctor* func)
+void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib)
 {
-	std::vector<std::string> attr_keys = func->ls_attrs();
+	std::vector<std::string> attr_keys = attrib.ls_attrs();
 	for (std::string attr_key : attr_keys)
 	{
-		auto attr = func->get_attr(attr_key);
+		auto attr = attrib.get_attr(attr_key);
 		AttributeProto* pb_attrs = out.Add();
 		pb_attrs->set_name(attr_key);
 
-		OnnxMarshaler marsh(pb_attrs);
+		OnnxAttrMarshaler marsh(pb_attrs);
 		attr->accept(marsh);
 	}
 }
 
 void marshal_tensorshape (TensorShapeProto& out,
-	const teq::ShapeSignature& shape)
+	const teq::Shape& shape)
 {
 	for (teq::DimT dim : shape)
 	{
@@ -28,7 +28,7 @@ void marshal_tensorshape (TensorShapeProto& out,
 	}
 }
 
-void marshal_io (ValueInfoProto& out, const teq::ShapeSignature& shape)
+void marshal_io (ValueInfoProto& out, const teq::Shape& shape)
 {
 	TypeProto* type = out.mutable_type();
 	TypeProto::Tensor* tens_type = type->mutable_tensor_type();
@@ -40,12 +40,9 @@ void marshal_annotation (TensorAnnotation& out, const teq::iLeaf& leaf)
 	StringStringEntryProto* namer = out.add_quant_parameter_tensor_names();
 	namer->set_key(leafname_key);
 	namer->set_value(leaf.to_string());
-	if (leaf.is_const())
-	{
-		StringStringEntryProto* immuter =
-			out.add_quant_parameter_tensor_names();
-		immuter->set_key(leafconst_key);
-	}
+	auto tenspair = out.add_quant_parameter_tensor_names();
+	tenspair->set_key(leafusage_key);
+	tenspair->set_value(teq::get_usage_name(leaf.get_usage()));
 }
 
 void unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs)

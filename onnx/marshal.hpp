@@ -17,9 +17,9 @@ using TensorT = std::pair<int32_t,teq::Shape>;
 
 using AnnotationsT = std::unordered_map<std::string,std::string>;
 
-struct OnnxMarshaler final : public marsh::iMarshaler
+struct OnnxAttrMarshaler final : public marsh::iMarshaler
 {
-	OnnxMarshaler (AttributeProto* out) : out_(out) {}
+	OnnxAttrMarshaler (AttributeProto* out) : out_(out) {}
 
 	void marshal (const marsh::String& str) override
 	{
@@ -106,14 +106,14 @@ struct OnnxMarshaler final : public marsh::iMarshaler
 
 const std::string leafname_key = "TENSOR_NAME";
 
-const std::string leafconst_key = "IS_IMMUTABLE";
+const std::string leafusage_key = "LEAF_USAGE";
 
-void marshal_attrs (PbAttrsT& out, const teq::iFunctor* func);
+void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib);
 
 void marshal_tensorshape (TensorShapeProto& out,
-	const teq::ShapeSignature& shape);
+	const teq::Shape& shape);
 
-void marshal_io (ValueInfoProto& out, const teq::ShapeSignature& shape);
+void marshal_io (ValueInfoProto& out, const teq::Shape& shape);
 
 void marshal_annotation (TensorAnnotation& out, const teq::iLeaf& leaf);
 
