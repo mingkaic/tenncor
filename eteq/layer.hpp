@@ -11,25 +11,33 @@ namespace eteq
 template <typename T>
 struct Layer final : public teq::iLayer
 {
-	Layer (teq::Opcode opcode, teq::TensptrT input,
-		teq::FuncptrT output, teq::TensptrsT storages) :
-        opcode_(opcode), input_(input), output_(output), storages_(storages) {}
-
-	Layer (const Layer& other) : opcode_(other.opcode_)
+	static Layer<T>* get (teq::Opcode opcode,
+		teq::TensptrsT inputs, teq::FuncptrT output)
 	{
-		teq::iTensor* oinput = other.input_.get();
-		teq::iTensor* ooutput = other.output_.get();
-		teq::Copier kamino({oinput});
-		ooutput->accept(kamino);
+		if (inputs.empty())
+		{
+			logs::fatalf("cannot perform `%s` without arguments",
+				opcode.name_.c_str());
+		}
 
-		input_ = kamino.clones_[oinput];
-		output_ = std::static_pointer_cast<teq::iFunctor>(kamino.clones_[ooutput]);
+		egen::_GENERATED_DTYPE tcode = egen::get_type<T>();
+		for (teq::TensptrT child : inputs)
+		{
+			if (tcode != child->type_code())
+			{
+				logs::fatalf("incompatible tensor types %s and %s: "
+					"cross-type functors not supported yet",
+					egen::name_type(tcode).c_str(),
+					child->type_label().c_str());
+			}
+		}
+		return new Layer<T>(opcode, inputs, output);
+	}
 
-        for (auto storage : other.storages_)
-        {
-            storages_.push_back(estd::try_get(
-                kamino.clones_, storage.get(), nullptr));
-        }
+	/// Return deep copy of this FuncSignature
+	Layer<T>* clone (void) const
+	{
+		return static_cast<Layer<T>*>(clone_impl());
 	}
 
 	Layer& operator = (const Layer& other) = delete;
@@ -37,12 +45,6 @@ struct Layer final : public teq::iLayer
 	Layer (Layer&& other) = delete;
 
 	Layer& operator = (Layer&& other) = delete;
-
-	/// Return deep copy of this FuncSignature
-	Layer<T>* clone (void) const
-	{
-		return static_cast<Layer<T>*>(clone_impl());
-	}
 
 	std::string to_string (void) const override
 	{
@@ -82,13 +84,22 @@ struct Layer final : public teq::iLayer
 	/// Implementation of iFunctor
 	teq::TensptrsT get_children (void) const override
 	{
-		return {input_};
+		return children_;
 	}
 
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		input_ = ETensor<T>(arg);
+		if (index >= children_.size())
+		{
+			logs::fatalf("cannot modify argument %d "
+				"when there are only %d arguments",
+				index, children_.size());
+		}
+		if (arg != children_[index])
+		{
+			children_[index] = arg;
+		}
 	}
 
 	/// Implementation of iFunctor
@@ -136,22 +147,81 @@ struct Layer final : public teq::iLayer
 	/// Implementation of iLayer
 	teq::TensptrsT get_storage (void) const override
 	{
-		return storages_;
+		return teq::TensptrsT(storages_.begin(), storages_.end());
 	}
 
 private:
+	Layer (teq::Opcode opcode, teq::TensptrsT inputs, teq::FuncptrT output) :
+        opcode_(opcode), children_(inputs), output_(output)
+	{
+		populate_storage();
+	}
+
+	Layer (const Layer& other) : opcode_(other.opcode_)
+	{
+		teq::iTensor* ooutput = other.output_.get();
+		std::vector<teq::iTensor*> oinputs;
+		auto& ochildren = other.children_;
+		oinputs.reserve(ochildren.size());
+		std::transform(ochildren.begin(), ochildren.end(),
+			std::back_inserter(oinputs),
+			[](teq::TensptrT ochild)
+			{
+				return ochild.get();
+			});
+		teq::Copier kamino(teq::TensSetT(oinputs.begin(), oinputs.end()));
+		ooutput->accept(kamino);
+
+		output_ = std::static_pointer_cast<teq::iFunctor>(kamino.clones_[ooutput]);
+		children_.clear();
+		for (auto oinput : oinputs)
+		{
+			children_.push_back(kamino.clones_[oinput]);
+		}
+		populate_storage();
+	}
+
 	iTensor* clone_impl (void) const override
 	{
 		return new Layer(*this);
 	}
 
+	void populate_storage (void)
+	{
+		// find all variables between children output_ and children_
+		teq::GraphStat stats;
+		for (auto child : children_)
+		{
+			stats.graphsize_.emplace(child.get(), estd::NumRange<size_t>());
+		}
+		output_->accept(stats);
+		teq::OwnerMapT owner = teq::track_owners({output_});
+
+		teq::TensSetT inputs;
+		std::transform(children_.begin(), children_.end(),
+			std::inserter(inputs, inputs.end()),
+			[](teq::TensptrT child)
+			{
+				return child.get();
+			});
+		for (auto gpair : stats.graphsize_)
+		{
+			if (0 == gpair.second.upper_ &&
+				false == estd::has(inputs, gpair.first))
+			{
+				storages_.push_back(std::static_pointer_cast<
+					Variable<T>>(owner.at(gpair.first).lock()));
+			}
+		}
+	}
+
     teq::Opcode opcode_;
 
-	teq::TensptrT input_;
+	teq::TensptrsT children_;
 
 	teq::FuncptrT output_;
 
-	teq::TensptrsT storages_;
+	VarptrsT<T> storages_;
 };
 
 /// Smart pointer of layer

@@ -18,21 +18,30 @@
 
 const std::string testdir = "models/test";
 
-
-static teq::TensptrT generate_leaf (const onnx::TensorProto& tens,
-	teq::Usage usage, std::string name)
+struct MockUnmarshFuncs final : public onnx::iUnmarshFuncs
 {
-	return std::make_shared<MockLeaf>(
-		std::vector<double>{}, onnx::unmarshal_shape(tens), name);
-}
+	teq::TensptrT unmarsh_leaf (const onnx::TensorProto& tens,
+		teq::Usage usage, std::string name) override
+	{
+		return std::make_shared<MockLeaf>(
+			std::vector<double>{}, onnx::unmarshal_shape(tens), name);
+	}
 
 
-static teq::TensptrT generate_func (std::string opname,
-	const teq::TensptrsT& edges, marsh::Maps&& attrs)
-{
-	return std::make_shared<MockFunctor>(edges, std::vector<double>{}, teq::Opcode{opname, 0});
-}
+	teq::TensptrT unmarsh_func (std::string opname,
+		const teq::TensptrsT& edges, marsh::Maps&& attrs) override
+	{
+		return std::make_shared<MockFunctor>(edges, std::vector<double>{}, teq::Opcode{opname, 0});
+	}
 
+	teq::TensptrT unmarsh_layr (std::string opname,
+		const teq::TensptrsT& roots, const teq::TensptrsT& edges,
+		marsh::Maps&& attrs) override
+	{
+		// todo: implement mock layer
+		return std::make_shared<MockFunctor>(edges, std::vector<double>{}, teq::Opcode{opname, 0});
+	}
+};
 
 TEST(LOAD, LoadGraph)
 {
@@ -44,9 +53,9 @@ TEST(LOAD, LoadGraph)
 		ASSERT_TRUE(graph.ParseFromIstream(&inputstr));
 	}
 
+	MockUnmarshFuncs unmarsh;
 	teq::TensptrsT graph_roots;
-	onnx::load_graph(graph_roots, graph,
-		generate_leaf, generate_func);
+	onnx::load_graph(graph_roots, graph, unmarsh);
 	EXPECT_EQ(2, graph_roots.size());
 
 	std::string expect;

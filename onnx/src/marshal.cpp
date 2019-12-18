@@ -45,8 +45,9 @@ void marshal_annotation (TensorAnnotation& out, const teq::iLeaf& leaf)
 	tenspair->set_value(teq::get_usage_name(leaf.get_usage()));
 }
 
-void unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs)
+const GraphProto* unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs)
 {
+	const GraphProto* subgraph = nullptr;
 	for (const auto& pb_attr : pb_attrs)
 	{
 		marsh::iObject* val = nullptr;
@@ -73,7 +74,7 @@ void unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs)
 						std::make_unique<marsh::String>(e));
 				}
 			}
-			break;
+				break;
 			case AttributeProto::INTS:
 			{
 				auto& pb_values = pb_attr.ints();
@@ -84,7 +85,7 @@ void unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs)
 					ints->contents_.push_back(e);
 				}
 			}
-			break;
+				break;
 			case AttributeProto::FLOATS:
 			{
 				auto& pb_values = pb_attr.floats();
@@ -95,12 +96,16 @@ void unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs)
 					floats->contents_.push_back(e);
 				}
 			}
-			break;
+				break;
+			case AttributeProto::GRAPH:
+				subgraph = &pb_attr.g();
+				continue;
 			default:
 				logs::fatal("unknown onnx attribute type");
 		}
 		out.add_attr(pb_attr.name(), marsh::ObjptrT(val));
 	}
+	return subgraph;
 }
 
 teq::Shape unmarshal_shape (const TensorShapeProto& shape)

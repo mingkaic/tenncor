@@ -91,12 +91,11 @@ ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode, ETensorsT<T> links, ARG
 }
 
 template <typename T>
-ETensor<T> make_layer (teq::Opcode opcode, ETensor<T> input,
-	ETensor<T> output, teq::TensptrsT storages)
+ETensor<T> make_layer (teq::Opcode opcode, ETensor<T> input, ETensor<T> output)
 {
-	return ETensor<T>(std::make_shared<Layer<T>>(
-		opcode, input, std::static_pointer_cast<teq::iFunctor>(
-			(teq::TensptrT) output), storages));
+	return ETensor<T>(teq::TensptrT(Layer<T>::get(opcode,
+		teq::TensptrsT{input}, std::static_pointer_cast<
+			teq::iFunctor>((teq::TensptrT) output))));
 }
 
 }

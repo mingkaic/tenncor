@@ -17,18 +17,25 @@
 namespace onnx
 {
 
-using LeafUnmarshF = std::function<teq::TensptrT(
-	const TensorProto&,teq::Usage,std::string)>;
+struct iUnmarshFuncs
+{
+	virtual ~iUnmarshFuncs (void) = default;
 
-using FuncUnmarshF = std::function<teq::TensptrT(
-	std::string,const teq::TensptrsT&,marsh::Maps&&)>;
+	virtual teq::TensptrT unmarsh_leaf (const TensorProto& pb_tens,
+		teq::Usage usage, std::string name) = 0;
+
+	virtual teq::TensptrT unmarsh_func (std::string opname,
+		const teq::TensptrsT& children, marsh::Maps&& attrs) = 0;
+
+	virtual teq::TensptrT unmarsh_layr (std::string opname,
+		const teq::TensptrsT& roots, const teq::TensptrsT& children,
+		marsh::Maps&& attrs) = 0;
+};
 
 /// Return graph info through out available from in graph
-void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
-	LeafUnmarshF unmarshal_leaf, FuncUnmarshF unmarshal_func);
-
-// void load_model (teq::LayerptrT layer, const ModelProto& pb_model,
-// 	LeafUnmarshF unmarshal_leaf, FuncUnmarshF unmarshal_func);
+void load_graph (teq::TensptrsT& roots,
+	const GraphProto& pb_graph, iUnmarshFuncs& unmarshaler,
+	std::unordered_map<std::string,teq::TensptrT> created_tens = {});
 
 }
 

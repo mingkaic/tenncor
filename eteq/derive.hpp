@@ -41,7 +41,7 @@ ETensor<T> reduce_grad (teq::Shape shape,
 
 /// ETEQ implementation of TEQ's Backward Propagation Builder
 template <typename T>
-struct DerivativeFunc final : public teq::iDerivativeFuncs
+struct DerivativeFuncs final : public teq::iDerivativeFuncs
 {
 	/// Implementation of iDerivativeFuncs
 	teq::TensptrT local_derivative (teq::FuncptrT op,
@@ -666,7 +666,7 @@ struct DerivativeFunc final : public teq::iDerivativeFuncs
 template <typename T>
 ETensor<T> derive (ETensor<T> root, ETensor<T> target)
 {
-	DerivativeFunc<T> builder;
+	DerivativeFuncs<T> builder;
 	teq::TensptrT derivative = teq::derive(root, target, builder);
 	return ETensor<T>(derivative);
 }

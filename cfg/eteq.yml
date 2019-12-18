@@ -1477,8 +1477,7 @@ api:
           val: |
               //
                   auto output = tenncor::nn::fully_connect({input}, {weight}, bias, dims);
-                  return eteq::make_layer(teq::Opcode{"_DENSE_LAYER", 0},
-                      input, output, teq::TensptrsT{weight, bias});
+                  return eteq::make_layer(teq::Opcode{"_DENSE_LAYER", 0}, input, output);
       - template: typename T
         name: conv
         args:
@@ -1498,5 +1497,4 @@ api:
           val: |
               //
                   auto output = tenncor::nn::conv2d(input, weight, bias, zero_padding);
-                  return eteq::make_layer(teq::Opcode{"_CONV_LAYER", 0},
-                      input, output, teq::TensptrsT{weight, bias});
+                  return eteq::make_layer(teq::Opcode{"_CONV_LAYER", 0}, input, output);

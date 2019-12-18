@@ -122,6 +122,9 @@ private:
 template <typename T>
 using VarptrT = std::shared_ptr<Variable<T>>;
 
+template <typename T>
+using VarptrsT = std::vector<VarptrT<T>>;
+
 /// Return variable node given scalar and shape
 template <typename T>
 VarptrT<T> make_variable_scalar (T scalar,

@@ -38,7 +38,10 @@ static inline teq::TensptrT convert_func (std::string opname,
 }
 
 #define _OUT_GENFUNC(realtype)\
-func = convert_func<realtype>(opname, args, std::move(attrs));
+func = Functor<realtype>::get(opcode, children, std::move(attrs));
+
+#define _OUT_GENLAYR(realtype)\
+layer = teq::TensptrT(Layer<realtype>::get(opcode, children, root));
 
 // todo: move this to generated layer
 static const std::unordered_map<
@@ -110,90 +113,98 @@ static void save_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf)
 	}
 }
 
-teq::TensptrT load_leaf (const onnx::TensorProto& pb_tens,
-	teq::Usage usage, std::string label)
+struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 {
-	teq::TensptrT out;
-	teq::Shape shape = onnx::unmarshal_shape(pb_tens);
-	auto onnx_type = pb_tens.data_type();
-	switch (onnx_type)
+	teq::TensptrT unmarsh_leaf (const onnx::TensorProto& pb_tens,
+		teq::Usage usage, std::string label) override
 	{
-		case onnx::TensorProto::DOUBLE:
-			out = unpack<double>(usage, shape, label,
-				pb_tens.double_data());
-			break;
-		case onnx::TensorProto::FLOAT:
-			out = unpack<float>(usage, shape, label,
-				pb_tens.float_data());
-			break;
-		case onnx::TensorProto::INT32:
-			out = unpack<int32_t>(usage, shape, label,
-				pb_tens.int32_data());
-			break;
+		teq::TensptrT out;
+		teq::Shape shape = onnx::unmarshal_shape(pb_tens);
+		auto onnx_type = pb_tens.data_type();
+		switch (onnx_type)
+		{
+			case onnx::TensorProto::DOUBLE:
+				out = unpack<double>(usage, shape, label,
+					pb_tens.double_data());
+				break;
+			case onnx::TensorProto::FLOAT:
+				out = unpack<float>(usage, shape, label,
+					pb_tens.float_data());
+				break;
+			case onnx::TensorProto::INT32:
+				out = unpack<int32_t>(usage, shape, label,
+					pb_tens.int32_data());
+				break;
 // #if(ETEQ_CFG==FULL)
-// 		case onnx::TensorProto::UINT8:
-// 			out = unpack<uint8_t>(usage, shape, label,
-// 				pb_tens.int32_data());
-// 			break;
-// 		case onnx::TensorProto::INT8:
-// 			out = unpack<int8_t>(usage, shape, label,
-// 				pb_tens.int32_data());
-// 			break;
-// 		case onnx::TensorProto::UINT16:
-// 			out = unpack<uint16_t>(usage, shape, label,
-// 				pb_tens.int32_data());
-// 			break;
-// 		case onnx::TensorProto::INT16:
-// 			out = unpack<int16_t>(usage, shape, label,
-// 				pb_tens.int32_data());
-// 			break;
-// 		case onnx::TensorProto::UINT32:
-// 			out = unpack<uint32_t>(usage, shape, label,
-// 				pb_tens.uint64_data());
-// 			break;
-// 		case onnx::TensorProto::UINT64:
-// 			out = unpack<uint64_t>(usage, shape, label,
-// 				pb_tens.uint64_data());
-// 			break;
-// 		case onnx::TensorProto::INT64:
-// 			out = unpack<int64_t>(usage, shape, label,
-// 				pb_tens.int64_data());
-// 			break;
+// 			case onnx::TensorProto::UINT8:
+// 				out = unpack<uint8_t>(usage, shape, label,
+// 					pb_tens.int32_data());
+// 				break;
+// 			case onnx::TensorProto::INT8:
+// 				out = unpack<int8_t>(usage, shape, label,
+// 					pb_tens.int32_data());
+// 				break;
+// 			case onnx::TensorProto::UINT16:
+// 				out = unpack<uint16_t>(usage, shape, label,
+// 					pb_tens.int32_data());
+// 				break;
+// 			case onnx::TensorProto::INT16:
+// 				out = unpack<int16_t>(usage, shape, label,
+// 					pb_tens.int32_data());
+// 				break;
+// 			case onnx::TensorProto::UINT32:
+// 				out = unpack<uint32_t>(usage, shape, label,
+// 					pb_tens.uint64_data());
+// 				break;
+// 			case onnx::TensorProto::UINT64:
+// 				out = unpack<uint64_t>(usage, shape, label,
+// 					pb_tens.uint64_data());
+// 				break;
+// 			case onnx::TensorProto::INT64:
+// 				out = unpack<int64_t>(usage, shape, label,
+// 					pb_tens.int64_data());
+// 				break;
 // #endif
-		default:
-			logs::fatalf("unknown onnx type %d", onnx_type);
+			default:
+				logs::fatalf("unknown onnx type %d", onnx_type);
+		}
+		return out;
 	}
-	return out;
-}
 
-teq::TensptrT load_func (std::string opname,
-	const teq::TensptrsT& args, marsh::Maps&& attrs)
-{
-	if (args.empty())
+	teq::TensptrT unmarsh_func (std::string opname,
+		const teq::TensptrsT& children, marsh::Maps&& attrs) override
 	{
-		logs::fatalf("cannot generate func %s without args", opname.c_str());
+		if (children.empty())
+		{
+			logs::fatalf("cannot generate func %s without args", opname.c_str());
+		}
+		egen::_GENERATED_OPCODE opcode = egen::get_op(opname);
+		size_t gencode = children.front()->type_code();
+		teq::TensptrT func = nullptr;
+		TYPE_LOOKUP(_OUT_GENFUNC, (egen::_GENERATED_DTYPE) gencode);
+		return func;
 	}
-	size_t gencode = egen::BAD_TYPE;
-	auto ctens = args[0].get();
-	if (auto leaf = dynamic_cast<teq::iLeaf*>(ctens))
+
+	teq::TensptrT unmarsh_layr (std::string opname,
+		const teq::TensptrsT& roots, const teq::TensptrsT& children,
+		marsh::Maps&& attrs) override
 	{
-		gencode = leaf->type_code();
+		if (roots.empty())
+		{
+			logs::fatal("cannot unmarshal layr without any roots");
+		}
+		teq::FuncptrT root = std::static_pointer_cast<teq::iFunctor>(roots.front());
+		size_t gencode = root->type_code();
+		teq::Opcode opcode{opname, 0};
+		teq::TensptrT layer = nullptr;
+		TYPE_LOOKUP(_OUT_GENLAYR, (egen::_GENERATED_DTYPE) gencode);
+		return layer;
 	}
-	else if (auto func = dynamic_cast<teq::iFunctor*>(ctens))
-	{
-		gencode = func->type_code();
-	}
-	else
-	{
-		logs::fatalf("cannot generate func from non-eteq tensor arg %s",
-			ctens->to_string().c_str());
-	}
-	teq::TensptrT func = nullptr;
-	TYPE_LOOKUP(_OUT_GENFUNC, (egen::_GENERATED_DTYPE) gencode);
-	return func;
-}
+};
 
 #undef _OUT_GENFUNC
+
+#undef _OUT_GENLAYR
 
 void save_graph (onnx::GraphProto& pb_graph, teq::TensptrsT roots)
 {
@@ -202,7 +213,8 @@ void save_graph (onnx::GraphProto& pb_graph, teq::TensptrsT roots)
 
 void load_graph (teq::TensptrsT& roots, const onnx::GraphProto& pb_graph)
 {
-	return onnx::load_graph(roots, pb_graph, load_leaf, load_func);
+	UnmarshFuncs funcs;
+	return onnx::load_graph(roots, pb_graph, funcs);
 }
 
 }

@@ -5,13 +5,12 @@
 namespace onnx
 {
 
-void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
-	LeafUnmarshF unmarshal_leaf, FuncUnmarshF unmarshal_func)
+void load_graph (teq::TensptrsT& roots,
+	const GraphProto& pb_graph, iUnmarshFuncs& unmarshaler,
+	std::unordered_map<std::string,teq::TensptrT> created_tens)
 {
 	const auto& pb_annotations = pb_graph.quantization_annotation();
 	auto annotations = unmarshal_annotation(pb_annotations);
-
-	std::unordered_map<std::string,teq::TensptrT> generated_tens;
 
 	const auto& pb_inputs = pb_graph.input();
 	for (const ValueInfoProto& pb_input : pb_inputs)
@@ -32,8 +31,8 @@ void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
 		{
 			pb_ten.add_dims(dim.dim_value());
 		}
-		generated_tens.emplace(id,
-			unmarshal_leaf(pb_ten, teq::Placeholder, name));
+		created_tens.emplace(id,
+			unmarshaler.unmarsh_leaf(pb_ten, teq::Placeholder, name));
 	}
 
 	const auto& pb_tens = pb_graph.initializer();
@@ -49,8 +48,8 @@ void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
 			usage = teq::get_named_usage(
 				estd::try_get(ans, leafusage_key, ""));
 		}
-		generated_tens.emplace(id,
-			unmarshal_leaf(pb_ten, usage, name));
+		created_tens.emplace(id,
+			unmarshaler.unmarsh_leaf(pb_ten, usage, name));
 	}
 
 	const auto& pb_nodes = pb_graph.node();
@@ -61,26 +60,33 @@ void load_graph (teq::TensptrsT& roots, const GraphProto& pb_graph,
 		std::string opname = pb_node.op_type();
 		marsh::Maps attrs;
 		const auto& pb_attrs = pb_node.attribute();
-		unmarshal_attrs(attrs, pb_attrs);
-
 		const auto& inputs = pb_node.input();
 		teq::TensptrsT args;
 		args.reserve(inputs.size());
 		std::transform(inputs.begin(), inputs.end(), std::back_inserter(args),
-			[&generated_tens](std::string input)
+			[&created_tens](std::string input)
 			{
-				return estd::must_getf(generated_tens, input,
+				return estd::must_getf(created_tens, input,
 					"failed to find %s", input.c_str());
 			});
-		teq::TensptrT tens = unmarshal_func(
-			opname, args, std::move(attrs));
-		generated_tens.emplace(id, tens);
+		teq::TensptrT tens;
+		if (const GraphProto* sub = unmarshal_attrs(attrs, pb_attrs))
+		{
+			teq::TensptrsT roots;
+			load_graph(roots, *sub, unmarshaler, created_tens);
+			tens = unmarshaler.unmarsh_layr(opname, roots, args, std::move(attrs));
+		}
+		else
+		{
+			tens = unmarshaler.unmarsh_func(opname, args, std::move(attrs));
+		}
+		created_tens.emplace(id, tens);
 	}
 
 	const auto& pb_outputs = pb_graph.output();
 	for (const ValueInfoProto& pb_output : pb_outputs)
 	{
-		roots.push_back(generated_tens.at(pb_output.name()));
+		roots.push_back(created_tens.at(pb_output.name()));
 	}
 }
 

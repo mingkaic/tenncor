@@ -6,7 +6,8 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - implement onnx support for layer
+   - update rocnnet trainer + demos to use new layer
+   - test onnx serialization
 
 === transparency/code readability ===
 P2 - generate value-range graph to detect erroneous operators

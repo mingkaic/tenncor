@@ -108,6 +108,8 @@ const std::string leafname_key = "TENSOR_NAME";
 
 const std::string leafusage_key = "LEAF_USAGE";
 
+const std::string subgraph_key = "LAYER_SUBGRAPH";
+
 void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib);
 
 void marshal_tensorshape (TensorShapeProto& out,
@@ -117,7 +119,7 @@ void marshal_io (ValueInfoProto& out, const teq::Shape& shape);
 
 void marshal_annotation (TensorAnnotation& out, const teq::iLeaf& leaf);
 
-void unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs);
+const GraphProto* unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs);
 
 teq::Shape unmarshal_shape (const TensorShapeProto& shape);
 
