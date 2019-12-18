@@ -5,7 +5,7 @@
 #include "teq/session.hpp"
 
 #include "eteq/generated/pyapi.hpp"
-#include "eteq/grader.hpp"
+#include "eteq/derive.hpp"
 #include "eteq/make.hpp"
 #include "eteq/optimize.hpp"
 
@@ -15,12 +15,13 @@ namespace pyead
 {
 
 template <typename T>
-py::array typedata_to_array (eteq::iLink<PybindT>* link, py::dtype dtype)
+py::array typedata_to_array (teq::iTensor& tens, py::dtype dtype)
 {
-	auto pshape = pyutils::c2pshape(link->link_shape());
+	assert(egen::get_type<PybindT>() == tens.type_code());
+	auto pshape = pyutils::c2pshape(tens.shape());
 	return py::array(dtype,
 		py::array::ShapeContainer(pshape.begin(), pshape.end()),
-		link->data());
+		tens.data());
 }
 
 }
@@ -62,28 +63,28 @@ PYBIND11_MODULE(eteq, m)
 			});
 
 	// ==== link ====
-	auto link = (py::class_<eteq::iLink<PybindT>,LinkptrT>)
-		py::module::import("eteq.tenncor").attr("LinkptrT<PybindT>");
+	auto link = (py::class_<eteq::ETensor<PybindT>>)
+		py::module::import("eteq.tenncor").attr("ETensor<PybindT>");
 
 	link
 		.def("as_tens",
-			[](eteq::iLink<PybindT>* self)
-			{ return self->get_tensor(); },
+			[](eteq::ETensor<PybindT>& self)
+			{ return self; },
 			"Return internal tensor of this link instance")
 		.def("shape",
-			[](eteq::iLink<PybindT>* self)
+			[](eteq::ETensor<PybindT>& self)
 			{
-				teq::Shape shape = self->link_shape();
+				teq::Shape shape = self->shape();
 				auto pshape = pyutils::c2pshape(shape);
 				std::vector<int> ipshape(pshape.begin(), pshape.end());
 				return py::array(ipshape.size(), ipshape.data());
 			},
 			"Return this instance's shape")
 		.def("get",
-			[](eteq::iLink<PybindT>* self)
+			[](eteq::ETensor<PybindT>& self)
 			{
 				return pyead::typedata_to_array<PybindT>(
-					self, py::dtype::of<PybindT>());
+					*self, py::dtype::of<PybindT>());
 			});
 
 	// ==== session ====
@@ -92,51 +93,51 @@ PYBIND11_MODULE(eteq, m)
 
 	isess
 		.def("track",
-			[](teq::iSession* self, eteq::LinksT<PybindT> roots)
+			[](teq::iSession* self, eteq::ETensorsT<PybindT> roots)
 			{
 				teq::TensptrsT troots;
 				troots.reserve(roots.size());
 				std::transform(roots.begin(), roots.end(),
 					std::back_inserter(troots),
-					[](LinkptrT& link)
+					[](eteq::ETensor<PybindT>& link)
 					{
-						return link->get_tensor();
+						return link;
 					});
 				self->track(troots);
 			})
 		.def("update",
 			[](teq::iSession* self,
-				std::vector<LinkptrT> ignored)
+				std::vector<eteq::ETensor<PybindT>> ignored)
 			{
 				teq::TensSetT ignored_set;
-				for (LinkptrT& link : ignored)
+				for (eteq::ETensor<PybindT>& link : ignored)
 				{
-					ignored_set.emplace(link->get_tensor().get());
+					ignored_set.emplace(link.get());
 				}
 				self->update(ignored_set);
 			},
 			"Calculate every link in the graph given list of nodes to ignore",
-			py::arg("ignored") = std::vector<LinkptrT>{})
+			py::arg("ignored") = std::vector<eteq::ETensor<PybindT>>{})
 		.def("update_target",
 			[](teq::iSession* self,
-				std::vector<LinkptrT> targeted,
-				std::vector<LinkptrT> ignored)
+				std::vector<eteq::ETensor<PybindT>> targeted,
+				std::vector<eteq::ETensor<PybindT>> ignored)
 			{
 				teq::TensSetT targeted_set;
 				teq::TensSetT ignored_set;
-				for (LinkptrT& link : targeted)
+				for (eteq::ETensor<PybindT>& link : targeted)
 				{
-					targeted_set.emplace(link->get_tensor().get());
+					targeted_set.emplace(link.get());
 				}
-				for (LinkptrT& link : ignored)
+				for (eteq::ETensor<PybindT>& link : ignored)
 				{
-					ignored_set.emplace(link->get_tensor().get());
+					ignored_set.emplace(link.get());
 				}
 				self->update_target(targeted_set, ignored_set);
 			},
 			"Calculate link relevant to targets in the graph given list of nodes to ignore",
 			py::arg("targeted"),
-			py::arg("ignored") = std::vector<LinkptrT>{})
+			py::arg("ignored") = std::vector<eteq::ETensor<PybindT>>{})
 		.def("get_tracked", &teq::iSession::get_tracked);
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
@@ -170,7 +171,7 @@ PYBIND11_MODULE(eteq, m)
 		.def("link",
 			[](teq::TensptrT tens)
 			{
-				return eteq::to_link<PybindT>(tens);
+				return eteq::ETensor<PybindT>(tens);
 			})
 
 		// constant creation

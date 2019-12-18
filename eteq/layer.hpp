@@ -1,6 +1,6 @@
 #include "teq/ilayer.hpp"
 
-#include "eteq/link.hpp"
+#include "eteq/etens.hpp"
 
 #ifndef ETEQ_LAYER_HPP
 #define ETEQ_LAYER_HPP
@@ -11,19 +11,19 @@ namespace eteq
 template <typename T>
 struct Layer final : public teq::iLayer
 {
-	Layer (teq::Opcode opcode, LinkptrT<T> input,
-		LinkptrT<T> output, teq::TensptrsT storages) :
+	Layer (teq::Opcode opcode, teq::TensptrT input,
+		teq::FuncptrT output, teq::TensptrsT storages) :
         opcode_(opcode), input_(input), output_(output), storages_(storages) {}
 
 	Layer (const Layer& other) : opcode_(other.opcode_)
 	{
-		teq::iTensor* oinput = other.input_->get_tensor().get();
+		teq::iTensor* oinput = other.input_.get();
 		teq::iTensor* ooutput = other.output_.get();
 		teq::Copier kamino({oinput});
 		ooutput->accept(kamino);
 
-		input_ = to_link<T>(kamino.clones_[oinput]);
-		output_ = std::static_pointer_cast<Functor<T>>(kamino.clones_[ooutput]);
+		input_ = kamino.clones_[oinput];
+		output_ = std::static_pointer_cast<teq::iFunctor>(kamino.clones_[ooutput]);
 
         for (auto storage : other.storages_)
         {
@@ -82,13 +82,13 @@ struct Layer final : public teq::iLayer
 	/// Implementation of iFunctor
 	teq::TensptrsT get_children (void) const override
 	{
-		return {input_->get_tensor()};
+		return {input_};
 	}
 
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		input_ = to_link<T>(arg);
+		input_ = ETensor<T>(arg);
 	}
 
 	/// Implementation of iFunctor
@@ -147,9 +147,9 @@ private:
 
     teq::Opcode opcode_;
 
-	LinkptrT<T> input_;
+	teq::TensptrT input_;
 
-	FuncptrT<T> output_;
+	teq::FuncptrT output_;
 
 	teq::TensptrsT storages_;
 };
@@ -157,70 +157,6 @@ private:
 /// Smart pointer of layer
 template <typename T>
 using LayerptrT = std::shared_ptr<Layer<T>>;
-
-template <typename T>
-struct LayerLink final : public iLink<T>
-{
-	LayerLink (LayerptrT<T> layer) : layer_(layer)
-	{
-		if (layer == nullptr)
-		{
-			logs::fatal("cannot link a null layer");
-		}
-	}
-
-	/// Return deep copy of this instance (with a copied layer)
-	LayerLink<T>* clone (void) const
-	{
-		return static_cast<LayerLink<T>*>(clone_impl());
-	}
-
-	/// Implementation of iAttributed
-	std::vector<std::string> ls_attrs (void) const override
-	{
-		return layer_->ls_attrs();
-	}
-
-	/// Implementation of iAttributed
-	const marsh::iObject* get_attr (std::string attr_key) const override
-	{
-		return layer_->get_attr(attr_key);
-	}
-
-	/// Implementation of iAttributed
-	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
-	{
-		layer_->add_attr(attr_key, std::move(attr_val));
-	}
-
-	/// Implementation of iAttributed
-	void rm_attr (std::string attr_key) override
-	{
-		layer_->rm_attr(attr_key);
-	}
-
-	/// Implementation of iLink<T>
-	teq::TensptrT get_tensor (void) const override
-	{
-		return layer_;
-	}
-
-private:
-	LayerLink (const LayerLink<T>& other) = default;
-
-	iLink<T>* clone_impl (void) const override
-	{
-		return new LayerLink(LayerptrT<T>(layer_->clone()));
-	}
-
-	/// Implementation of iLink<T>
-	void subscribe (Functor<T>* parent) override {}
-
-	/// Implementation of iLink<T>
-	void unsubscribe (Functor<T>* parent) override {}
-
-	LayerptrT<T> layer_;
-};
 
 }
 

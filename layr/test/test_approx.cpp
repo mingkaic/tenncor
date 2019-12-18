@@ -23,7 +23,7 @@ TEST(APPROX, StochasticGD)
 		0, teq::Shape(slist), "root");
 
 	auto groups = layr::sgd(layr::VarErrsT{{leaf,
-		eteq::to_link<PybindT>(root)}}, 0.67, "stuff");
+		eteq::ETensor<PybindT>(root)}}, 0.67, "stuff");
 	ASSERT_EQ(1, groups.size());
 
 	auto ass = groups.at(0);
@@ -38,7 +38,7 @@ TEST(APPROX, StochasticGD)
 		" `--(MUL[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"     `--(variable:root[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"     `--(constant:0.67[18\\9\\3\\1\\1\\1\\1\\1])",
-		assign.source_->get_tensor());
+		assign.source_);
 }
 
 
@@ -52,7 +52,7 @@ TEST(APPROX, RmsMomentum)
 		0, teq::Shape(slist), "root");
 
 	auto groups = layr::rms_momentum(layr::VarErrsT{{leaf,
-		eteq::to_link<PybindT>(root)}}, 0.67, 0.78,
+		eteq::ETensor<PybindT>(root)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon(), "stuff");
 	ASSERT_EQ(2, groups.size());
 
@@ -76,7 +76,7 @@ TEST(APPROX, RmsMomentum)
 		"     `--(constant:0.22[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"     `--(SQUARE[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"         `--(variable:root[18\\9\\3\\1\\1\\1\\1\\1])",
-		mom_assign.source_->get_tensor());
+		mom_assign.source_);
 
 	auto var_assign = var_ass.at(0);
 	EXPECT_STREQ("rms_momentum::stuff_grad_leaf", var_assign.label_.c_str());
@@ -92,7 +92,7 @@ TEST(APPROX, RmsMomentum)
 		"         `--(SQRT[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"         |   `--(variable:momentum[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"         `--(constant:1.19209e-07[18\\9\\3\\1\\1\\1\\1\\1])",
-		var_assign.source_->get_tensor());
+		var_assign.source_);
 }
 
 
@@ -104,7 +104,7 @@ TEST(APPROX, GroupAssign)
 	auto err = eteq::make_variable_scalar<PybindT>(1, shape, "err");
 
 	auto groups = layr::rms_momentum(layr::VarErrsT{{leaf,
-		eteq::to_link<PybindT>(err)}}, 0.67, 0.78,
+		eteq::ETensor<PybindT>(err)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon(), "stuff");
 
 	teq::Session sess;
@@ -113,7 +113,7 @@ TEST(APPROX, GroupAssign)
 	{
 		for (layr::VarAssign& assign : assigns)
 		{
-			track_batch.push_back(assign.source_->get_tensor());
+			track_batch.push_back(assign.source_);
 		}
 	}
 	sess.track(track_batch);
@@ -171,7 +171,7 @@ TEST(APPROX, PreUpdateGroupAssign)
 	auto err = eteq::make_variable_scalar<PybindT>(1, shape, "err");
 
 	auto groups = layr::rms_momentum(layr::VarErrsT{{leaf,
-		eteq::to_link<PybindT>(err)}}, 0.67, 0.78,
+		eteq::ETensor<PybindT>(err)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon(), "stuff");
 
 	teq::Session sess;
@@ -180,7 +180,7 @@ TEST(APPROX, PreUpdateGroupAssign)
 	{
 		for (layr::VarAssign& assign : assigns)
 		{
-			track_batch.push_back(assign.source_->get_tensor());
+			track_batch.push_back(assign.source_);
 		}
 	}
 	sess.track(track_batch);

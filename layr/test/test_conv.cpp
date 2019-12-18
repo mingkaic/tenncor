@@ -15,8 +15,10 @@ TEST(CONV, Connection)
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({4, 10, 9, 2}), "x");
-	auto y = layr::conv(eteq::to_link<float>(x), {6, 5}, 4, 3);
+	auto y = layr::conv(eteq::ETensor<float>(x), {6, 5}, 4, 3);
 
+	auto ytens = dynamic_cast<eteq::Layer<float>*>(y.get());
+	ASSERT_NE(nullptr, ytens);
 	EXPECT_GRAPHEQ(
 		"(ADD[3\\6\\4\\2\\1\\1\\1\\1])\n"
 		" `--(PERMUTE[3\\6\\4\\2\\1\\1\\1\\1])\n"
@@ -27,7 +29,7 @@ TEST(CONV, Connection)
 		" |           `--(variable:weight[3\\4\\5\\6\\1\\1\\1\\1])\n"
 		" `--(EXTEND[3\\6\\4\\2\\1\\1\\1\\1])\n"
 		"     `--(variable:bias[3\\1\\1\\1\\1\\1\\1\\1])",
-		y->get_root());
+		ytens->get_root());
 }
 
 

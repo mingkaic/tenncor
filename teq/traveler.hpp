@@ -59,7 +59,8 @@ protected:
 	virtual void visit_func (iFunctor& func) = 0;
 };
 
-/// Traveler that maps each tensor to its subtree's maximum depth
+/// Traveler that maps each tensor to its positional information represented
+/// by the longest and shortest distance from leaves (NumRange)
 struct GraphStat final : public iTraveler
 {
 	/// Implementation of iTraveler

@@ -5,17 +5,17 @@
 namespace trainer
 {
 
-LinkptrT sample_v2h (const layr::RBM& model, LinkptrT x)
+Tensor sample_v2h (const layr::RBM& model, Tensor x)
 {
 	return tenncor::random::rand_binom_one(model.connect(x));
 }
 
-LinkptrT sample_h2v (const layr::RBM& model, LinkptrT x)
+Tensor sample_h2v (const layr::RBM& model, Tensor x)
 {
 	return tenncor::random::rand_binom_one(model.backward_connect(x));
 }
 
-LinkptrT gibbs_hvh (const layr::RBM& model, LinkptrT x)
+Tensor gibbs_hvh (const layr::RBM& model, Tensor x)
 {
 	return sample_v2h(model, sample_h2v(model, x));
 }
@@ -27,10 +27,10 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 	layr::AssignsT assigns;
 	for (size_t i = 0, nleaves = leaves.size(); i < nleaves; ++i)
 	{
-		auto leaf_node = eteq::to_link<PybindT>(leaves[i].first);
+		auto leaf_node = eteq::ETensor<PybindT>(leaves[i].first);
 		auto err = leaves[i].second;
 
-		auto shape = err->link_shape();
+		auto shape = err->shape();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		auto it = slist.rbegin(), et = slist.rend();
 		while (it != et && *it == 1)
@@ -39,8 +39,8 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 		}
 		teq::DimT shape_factor = it == et ? 1 : *it;
 		auto momentum = eteq::make_variable_scalar<PybindT>(0,
-			err->link_shape(), leaves[i].first->to_string() + "_momentum");
-		auto momentum_next = discount_factor * eteq::to_link<PybindT>(momentum) +
+			err->shape(), leaves[i].first->to_string() + "_momentum");
+		auto momentum_next = discount_factor * eteq::ETensor<PybindT>(momentum) +
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
 		auto leaf_next = leaf_node + momentum_next;
 
@@ -68,7 +68,7 @@ layr::VarErrsT cd_grad_approx (CDChainIO& io, const layr::RBM& model,
 		io.hidden_ = sample_v2h(model, io.visible_);
 	}
 	auto chain_it = nullptr == persistent ?
-		io.hidden_ : eteq::to_link<PybindT>(persistent);
+		io.hidden_ : eteq::ETensor<PybindT>(persistent);
 	for (size_t i = 0; i < cdk - 1; ++i)
 	{
 		chain_it = gibbs_hvh(model, chain_it);
@@ -117,7 +117,7 @@ layr::VarErrsT cd_grad_approx (CDChainIO& io, const layr::RBM& model,
 }
 
 TrainErrF rbm_train (layr::RBM& model, teq::iSession& sess,
-	LinkptrT visible, PybindT learning_rate, PybindT discount_factor,
+	Tensor visible, PybindT learning_rate, PybindT discount_factor,
 	ErrorF err_func, size_t cdk) // todo: add persistent option
 {
 	CDChainIO chain_io(visible);
@@ -126,18 +126,18 @@ TrainErrF rbm_train (layr::RBM& model, teq::iSession& sess,
 
 	teq::TensptrsT to_track;
 	to_track.reserve(updates.size() + 1);
-	LinkptrT error = nullptr;
+	Tensor error = nullptr;
 	if (err_func)
 	{
 		error = err_func(chain_io.visible_, chain_io.visible_mean_);
-		to_track.push_back(error->get_tensor());
+		to_track.push_back(error);
 	}
 
 	for (auto& assigns : updates)
 	{
 		for (auto& assign : assigns)
 		{
-			to_track.push_back(assign.source_->get_tensor());
+			to_track.push_back(assign.source_);
 		}
 	}
 	sess.track(to_track);
@@ -153,9 +153,9 @@ TrainErrF rbm_train (layr::RBM& model, teq::iSession& sess,
 		{
 			return teq::ShapedArr<PybindT>{teq::Shape(),std::vector<PybindT>{-1}};
 		}
-		sess.update_target({error->get_tensor().get()});
+		sess.update_target({error.get()});
 		PybindT* data = error->data();
-		teq::Shape shape = error->link_shape();
+		teq::Shape shape = error->shape();
 		return teq::ShapedArr<PybindT>{shape,
 			std::vector<PybindT>(data, data + shape.n_elems()),
 		};

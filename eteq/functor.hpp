@@ -11,7 +11,7 @@
 #include "eigen/generated/opcode.hpp"
 #include "eigen/packattr.hpp"
 
-#include "eteq/link.hpp"
+#include "eteq/etens.hpp"
 #include "eteq/shaper.hpp"
 #include "eteq/observable.hpp"
 
@@ -31,42 +31,47 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
 	/// Return nullptr if functor is redundant
 	static teq::TensptrT get (egen::_GENERATED_OPCODE opcode,
-		LinksT<T> links, marsh::Maps&& attrs)
+		teq::TensptrsT children, marsh::Maps&& attrs)
 	{
-		if (links.empty())
+		if (children.empty())
 		{
 			logs::fatalf("cannot perform `%s` without arguments",
 				egen::name_op(opcode).c_str());
 		}
 
 		ShapesT shapes;
-		shapes.reserve(links.size());
-		std::transform(links.begin(), links.end(), std::back_inserter(shapes),
-			[](LinkptrT<T> link)
+		shapes.reserve(children.size());
+		egen::_GENERATED_DTYPE tcode = egen::get_type<T>();
+		for (teq::TensptrT child : children)
+		{
+			if (tcode != child->type_code())
 			{
-				return link->shape();
-			});
+				logs::fatalf("incompatible tensor types %s and %s: "
+					"cross-type functors not supported yet",
+					egen::name_type(tcode).c_str(),
+					child->type_label().c_str());
+			}
+			shapes.push_back(child->shape());
+		}
 
 		ShapeOpt outshape;
 		OPCODE_LOOKUP(CHOOSE_PARSER, opcode)
 		if (false == outshape.has_value())
 		{
-			return links.front()->get_tensor();
+			return children.front();
 		}
-
-		teq::TensptrsT datas;
-		datas.reserve(links.size());
-		std::transform(links.begin(), links.end(), std::back_inserter(datas),
-			[](LinkptrT<T> link) { return link->get_tensor(); });
 		return teq::TensptrT(new Functor<T>(opcode,
-			teq::Shape(*outshape), datas, std::move(attrs)));
+			teq::Shape(*outshape), children, std::move(attrs)));
 	}
 
 	~Functor (void)
 	{
 		for (teq::TensptrT child : children_)
 		{
-			to_link<T>(child)->unsubscribe(this);
+			if (auto f = dynamic_cast<Functor<T>*>(child.get()))
+			{
+				f->unsubscribe(this);
+			}
 		}
 	}
 
@@ -142,7 +147,10 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 		if (arg != children_[index])
 		{
 			uninitialize();
-			to_link<T>(children_[index])->unsubscribe(this);
+			if (auto f = dynamic_cast<Functor<T>*>(children_[index].get()))
+			{
+				f->unsubscribe(this);
+			}
 			teq::Shape nexshape = arg->shape();
 			teq::Shape curshape = children_[index]->shape();
 			if (false == nexshape.compatible_after(curshape, 0))
@@ -153,7 +161,10 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 					curshape.to_string().c_str());
 			}
 			children_[index] = arg;
-			to_link<T>(children_[index])->subscribe(this);
+			if (auto f = dynamic_cast<Functor<T>*>(arg.get()))
+			{
+				f->subscribe(this);
+			}
 		}
 	}
 
@@ -258,13 +269,16 @@ private:
 	{
 		for (teq::TensptrT child : children_)
 		{
-			to_link<T>(child)->subscribe(this);
+			if (auto f = dynamic_cast<Functor<T>*>(child.get()))
+			{
+				f->subscribe(this);
+			}
 		}
 #ifndef SKIP_INIT
 		if (std::all_of(children_.begin(), children_.end(),
-			[](teq::TensptrT tens)
+			[](teq::TensptrT child)
 			{
-				if (auto f = dynamic_cast<Functor<T>*>(tens.get()))
+				if (auto f = dynamic_cast<Functor<T>*>(child.get()))
 				{
 					return f->has_data();
 				}
@@ -295,80 +309,9 @@ private:
 template <typename T>
 using FuncptrT = std::shared_ptr<Functor<T>>;
 
-/// Functor's node wrapper
-template <typename T>
-struct FuncLink final : public iLink<T>
-{
-	FuncLink (FuncptrT<T> func) : func_(func)
-	{
-		if (func == nullptr)
-		{
-			logs::fatal("cannot link a null func");
-		}
-	}
-
-	/// Return deep copy of this instance (with a copied functor)
-	FuncLink<T>* clone (void) const
-	{
-		return static_cast<FuncLink<T>*>(clone_impl());
-	}
-
-	/// Implementation of iAttributed
-	std::vector<std::string> ls_attrs (void) const override
-	{
-		return func_->ls_attrs();
-	}
-
-	/// Implementation of iAttributed
-	const marsh::iObject* get_attr (std::string attr_key) const override
-	{
-		return func_->get_attr(attr_key);
-	}
-
-	/// Implementation of iAttributed
-	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
-	{
-		func_->add_attr(attr_key, std::move(attr_val));
-	}
-
-	/// Implementation of iAttributed
-	void rm_attr (std::string attr_key) override
-	{
-		func_->rm_attr(attr_key);
-	}
-
-	/// Implementation of iLink<T>
-	teq::TensptrT get_tensor (void) const override
-	{
-		return func_;
-	}
-
-private:
-	FuncLink (const FuncLink<T>& other) = default;
-
-	iLink<T>* clone_impl (void) const override
-	{
-		return new FuncLink(FuncptrT<T>(func_->clone()));
-	}
-
-	/// Implementation of iLink<T>
-	void subscribe (Functor<T>* parent) override
-	{
-		func_->subscribe(parent);
-	}
-
-	/// Implementation of iLink<T>
-	void unsubscribe (Functor<T>* parent) override
-	{
-		func_->unsubscribe(parent);
-	}
-
-	FuncptrT<T> func_;
-};
-
 /// Return functor node given opcode and node arguments
 template <typename T, typename ...ARGS>
-LinkptrT<T> make_functor (egen::_GENERATED_OPCODE opcode, LinksT<T> links, ARGS... vargs);
+ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode, ETensorsT<T> links, ARGS... vargs);
 
 }
 

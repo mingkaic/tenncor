@@ -32,16 +32,9 @@ static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 
 template <typename T>
 static inline teq::TensptrT convert_func (std::string opname,
-	const teq::TensptrsT& args, marsh::Maps&& attrs)
+	const teq::TensptrsT& children, marsh::Maps&& attrs)
 {
-	LinksT<T> edges;
-	edges.reserve(args.size());
-	std::transform(args.begin(), args.end(), std::back_inserter(edges),
-		[](teq::TensptrT tens)
-		{
-			return to_link<T>(tens);
-		});
-	return Functor<T>::get(egen::get_op(opname), edges, std::move(attrs));
+	return Functor<T>::get(egen::get_op(opname), children, std::move(attrs));
 }
 
 #define _OUT_GENFUNC(realtype)\

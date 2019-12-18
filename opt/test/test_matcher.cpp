@@ -20,8 +20,8 @@ TEST(MATCHER, OrdrAny)
 {
 	std::vector<teq::DimT> slist = {3, 2};
 	teq::Shape shape(slist);
-	eteq::LinkptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
-	eteq::LinkptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
+	eteq::ETensor<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::ETensor<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto f1 = tenncor::pow(a, b);
 	auto f2 = tenncor::pow(a, a);
@@ -38,11 +38,11 @@ TEST(MATCHER, OrdrAny)
 		vpool.branches_.emplace(voter->label_, voter);
 	}
 
-	auto atens = a->get_tensor();
-	auto btens = b->get_tensor();
-	auto f1tens = f1->get_tensor();
-	auto f2tens = f2->get_tensor();
-	auto f3tens = f3->get_tensor();
+	auto atens = a;
+	auto btens = b;
+	auto f1tens = f1;
+	auto f2tens = f2;
+	auto f3tens = f3;
 
 	f2tens->accept(matcher);
 	f1tens->accept(matcher);
@@ -79,8 +79,8 @@ TEST(MATCHER, CommAny)
 {
 	std::vector<teq::DimT> slist = {3, 2};
 	teq::Shape shape(slist);
-	eteq::LinkptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
-	eteq::LinkptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
+	eteq::ETensor<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::ETensor<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto f1 = a * b;
 	auto f2 = a * a;
@@ -107,15 +107,15 @@ TEST(MATCHER, CommAny)
 		vpool.branches_.emplace(voter->label_, voter);
 	}
 
-	auto atens = a->get_tensor();
-	auto btens = b->get_tensor();
-	auto f1tens = f1->get_tensor();
-	auto f2tens = f2->get_tensor();
-	auto f3tens = f3->get_tensor();
-	auto f4_sub_ltens = f4_sub_l->get_tensor();
-	auto f4_sub_rtens = f4_sub_r->get_tensor();
-	auto f5tens = f5->get_tensor();
-	auto f6tens = f6->get_tensor();
+	auto atens = a;
+	auto btens = b;
+	auto f1tens = f1;
+	auto f2tens = f2;
+	auto f3tens = f3;
+	auto f4_sub_ltens = f4_sub_l;
+	auto f4_sub_rtens = f4_sub_r;
+	auto f5tens = f5;
+	auto f6tens = f6;
 
 	f2tens->accept(matcher);
 	f1tens->accept(matcher);
@@ -178,8 +178,8 @@ TEST(MATCHER, Ambiguous_CommAny)
 {
 	std::vector<teq::DimT> slist = {3, 2};
 	teq::Shape shape(slist);
-	eteq::LinkptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
-	eteq::LinkptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
+	eteq::ETensor<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::ETensor<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto same = a * b;
 	auto sub_l = same * a; // match against similar and similar2
@@ -202,10 +202,10 @@ TEST(MATCHER, Ambiguous_CommAny)
 		vpool.branches_.emplace(voter->label_, voter);
 	}
 
-	auto atens = a->get_tensor();
-	auto btens = b->get_tensor();
-	auto sub_ltens = sub_l->get_tensor();
-	auto sub_rtens = sub_r->get_tensor();
+	auto atens = a;
+	auto btens = b;
+	auto sub_ltens = sub_l;
+	auto sub_rtens = sub_r;
 
 	sub_ltens->accept(matcher);
 	sub_rtens->accept(matcher);

@@ -40,7 +40,7 @@ struct ScalarTarget final : public opt::iTarget
 	teq::TensptrT convert (teq::Shape outshape,
 		const opt::Candidate& candidate) const override
 	{
-		return make_constant_scalar(scalar_, outshape)->get_tensor();
+		return make_constant_scalar(scalar_, outshape);
 	}
 
 	T scalar_;
@@ -75,23 +75,20 @@ struct FuncTarget final : public opt::iTarget
 		teq::Shape outshape,
 		const opt::Candidate& candidate) const override
 	{
-		LinksT<T> args;
+		teq::TensptrsT children;
+		children.reserve(args_.size());
 		for (opt::TargptrT targ : args_)
 		{
 			// todo: reverse outshape
-			args.push_back(to_link<T>(
-				targ->convert(outshape, candidate)));
+			children.push_back(targ->convert(outshape, candidate));
 		}
 		if (variadic_.size() > 0)
 		{
-			auto& links = candidate.variadic_.at(variadic_);
-			for (teq::TensptrT arg : links)
-			{
-				args.push_back(to_link<T>(arg));
-			}
+			auto& args = candidate.variadic_.at(variadic_);
+			children.insert(children.end(), args.begin(), args.end());
 		}
 		std::unique_ptr<marsh::Maps> attrs(attrs_.clone());
-		return Functor<T>::get(opcode_, args, std::move(*attrs));
+		return Functor<T>::get(opcode_, children, std::move(*attrs));
 	}
 
 	egen::_GENERATED_OPCODE opcode_;
@@ -240,7 +237,7 @@ teq::TensptrT constant_func (teq::FuncptrT& func, opt::ParentReplF replacer)
 			sess.track({func});
 			sess.update_target({func.get()});
 			T* data = (T*) func->data();
-			return make_constant(data, func->shape())->get_tensor();
+			return make_constant(data, func->shape());
 		});
 }
 
@@ -254,7 +251,7 @@ void constant_funcs (teq::TensptrsT& roots)
 		{
 			sess.update_target({func.get()});
 			T* data = (T*) func->data();
-			return make_constant(data, func->shape())->get_tensor();
+			return make_constant(data, func->shape());
 		});
 }
 

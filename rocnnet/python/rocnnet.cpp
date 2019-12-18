@@ -57,7 +57,7 @@ layr::ApproxF get_rms_momentum (PybindT learning_rate,
 	};
 }
 
-eteq::LinkptrT<PybindT> identity (eteq::LinkptrT<PybindT> in)
+eteq::ETensor<PybindT> identity (eteq::ETensor<PybindT> in)
 { return in; }
 
 }
@@ -87,7 +87,7 @@ PYBIND11_MODULE(rocnnet, m)
 
 	assigns
 		.def(py::init(
-			[](eteq::VarptrT<PybindT> target, LinkptrT source)
+			[](eteq::VarptrT<PybindT> target, Tensor source)
 			{
 				return layr::VarAssign{"", target, source};
 			}))
@@ -109,24 +109,24 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// layer
 	layer
-		.def("connect", [](layr::iLayer* self, LinkptrT link)
+		.def("connect", [](layr::iLayer* self, Tensor link)
 			{
 				return self->connect(link);
 			})
 		.def("connect", [](layr::iLayer* self, teq::TensptrT tens)
 			{
-				return self->connect(eteq::to_link<PybindT>(tens));
+				return self->connect(eteq::ETensor<PybindT>(tens));
 			})
 		.def("get_contents",
-			[](layr::iLayer* self) -> eteq::LinksT<PybindT>
+			[](layr::iLayer* self) -> eteq::ETensorsT<PybindT>
 			{
 				teq::TensptrsT contents = self->get_contents();
-				eteq::LinksT<PybindT> nodes;
+				eteq::ETensorsT<PybindT> nodes;
 				nodes.reserve(contents.size());
 				std::transform(contents.begin(), contents.end(),
 					std::back_inserter(nodes),
 					[](teq::TensptrT tens)
-					{ return eteq::to_link<PybindT>(tens); });
+					{ return eteq::ETensor<PybindT>(tens); });
 				return nodes;
 			})
 		.def("save_file",
@@ -153,7 +153,7 @@ PYBIND11_MODULE(rocnnet, m)
 
 	// ulayer
 	ulayer
-		.def(py::init<const std::string&,LinkptrT,const std::string&>(),
+		.def(py::init<const std::string&,Tensor,const std::string&>(),
 			py::arg("ulayer_type"),
 			py::arg("params"),
 			py::arg("label"))
@@ -162,7 +162,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// dense
 	m.def("create_dense",
 		[](teq::TensptrT weight, teq::TensptrT bias,
-			LinkptrT params, std::string label)
+			Tensor params, std::string label)
 		{
 			return std::make_shared<layr::Dense>(weight, bias, params, label);
 		},
@@ -174,7 +174,7 @@ PYBIND11_MODULE(rocnnet, m)
 		.def(py::init<teq::DimT,teq::Shape,
 			layr::InitF<PybindT>,
 			layr::InitF<PybindT>,
-			LinkptrT,
+			Tensor,
 			const std::string&>(),
 			py::arg("nunits"),
 			py::arg("inshape"),
@@ -216,7 +216,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// conv
 	m.def("create_conv",
 		[](teq::TensptrT weight, teq::TensptrT bias,
-			eteq::LinkptrT<layr::DArgT> arg,
+			eteq::ETensor<layr::DArgT> arg,
 			std::string label)
 		{
 			return std::make_shared<layr::Conv>(
@@ -241,7 +241,7 @@ PYBIND11_MODULE(rocnnet, m)
 	// rnn
 	m.def("create_recur",
 		[](layr::DenseptrT cell, layr::UnaryF activation,
-			LinkptrT init_state, LinkptrT param, std::string label)
+			Tensor init_state, Tensor param, std::string label)
 		{
 			return std::make_shared<layr::RNN>(
 				cell, activation, init_state, param, label);

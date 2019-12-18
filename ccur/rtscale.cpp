@@ -69,8 +69,7 @@ int main (int argc, const char** argv)
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
 				auto f = eteq::make_functor<float>(opcode, {var});
-				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
-					f->get_tensor());
+				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
 				break;
@@ -92,8 +91,7 @@ int main (int argc, const char** argv)
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
 				auto f = eteq::make_functor<float>(opcode, {var, var});
-				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
-					f->get_tensor());
+				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
 				break;
@@ -107,8 +105,7 @@ int main (int argc, const char** argv)
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
 				auto f = eteq::make_functor<float>(opcode, {var}, 1, 1);
-				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
-					f->get_tensor());
+				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
 				break;
@@ -119,8 +116,7 @@ int main (int argc, const char** argv)
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
 				auto f = tenncor::permute(var, {2, 0, 1});
-				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
-					f->get_tensor());
+				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
 				break;
@@ -130,8 +126,7 @@ int main (int argc, const char** argv)
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 58}));
 				auto f = tenncor::extend(var, 2, {57});
-				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
-					f->get_tensor());
+				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
 				break;
@@ -141,8 +136,7 @@ int main (int argc, const char** argv)
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
 				auto f = tenncor::slice(var, {{0, 1234}, {0, 1234}, {2, 2}});
-				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
-					f->get_tensor());
+				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
 				break;
@@ -154,8 +148,7 @@ int main (int argc, const char** argv)
 				auto b = eteq::make_constant_scalar<float>(
 					0.6, teq::Shape({254, 253}));
 				auto f = tenncor::matmul(a, b);
-				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
-					f->get_tensor());
+				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
 				break;
@@ -167,8 +160,7 @@ int main (int argc, const char** argv)
 				auto kern = eteq::make_constant_scalar<float>(
 					0.6, teq::Shape({5, 7}));
 				auto f = tenncor::convolution(img, kern, {0, 1});
-				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
-					f->get_tensor());
+				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
 				break;
@@ -178,8 +170,7 @@ int main (int argc, const char** argv)
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
 				auto f = tenncor::pad(var, {{0, 0}, {0, 0}, {3, 4}});
-				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
-					f->get_tensor());
+				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
 				break;
@@ -198,8 +189,7 @@ int main (int argc, const char** argv)
 				auto a = eteq::make_constant_scalar<float>(0.3, shape);
 				auto b = eteq::make_constant_scalar<float>(0.6, shape);
 				auto f = tenncor::if_then_else(cond, a, b);
-				auto ftens = std::static_pointer_cast<eteq::Functor<float>>(
-					f->get_tensor());
+				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
 				break;

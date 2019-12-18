@@ -5,11 +5,6 @@
 namespace onnx
 {
 
-// FuncPosT is the position of a functor tensor identified by height,
-// breadth-wise of visit (in which left children have lower index than
-// right children which have lower index than parent)
-using FuncPosT = std::pair<size_t,size_t>;
-
 struct OnnxMarshaler final : public teq::OnceTraveler
 {
 	OnnxMarshaler (GraphProto& graph, LeafMarshF leaf_marsh) :

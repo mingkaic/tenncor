@@ -11,7 +11,7 @@
 #include "eigen/generated/dtype.hpp"
 #include "eigen/eigen.hpp"
 
-#include "eteq/link.hpp"
+#include "eteq/etens.hpp"
 
 #ifndef ETEQ_ILEAF_HPP
 #define ETEQ_ILEAF_HPP
@@ -76,65 +76,6 @@ protected:
 
 	/// Shape utility to avoid excessive conversion between data_.dimensions()
 	teq::Shape shape_;
-};
-
-/// Leaf tensor wrapper
-template <typename T>
-struct LeafLink final : public iLink<T>
-{
-	LeafLink (std::shared_ptr<iLeaf<T>> leaf) : leaf_(leaf)
-	{
-		if (leaf == nullptr)
-		{
-			logs::fatal("cannot link a null leaf");
-		}
-	}
-
-	/// Return deep copy of this instance (with a copied constant)
-	LeafLink<T>* clone (void) const
-	{
-		return static_cast<LeafLink<T>*>(clone_impl());
-	}
-
-	/// Implementation of iAttributed
-	std::vector<std::string> ls_attrs (void) const override
-	{
-		return {};
-	}
-
-	/// Implementation of iAttributed
-	const marsh::iObject* get_attr (std::string attr_name) const override
-	{
-		return nullptr;
-	}
-
-	/// Implementation of iAttributed
-	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override {}
-
-	/// Implementation of iAttributed
-	void rm_attr (std::string attr_key) override {}
-
-	/// Implementation of iLink<T>
-	teq::TensptrT get_tensor (void) const override
-	{
-		return leaf_;
-	}
-
-private:
-	LeafLink (const LeafLink<T>& other) = default;
-
-	iLink<T>* clone_impl (void) const override
-	{
-		return new LeafLink(std::shared_ptr<iLeaf<T>>(leaf_->clone()));
-	}
-
-	/// Implementation of iLink<T>
-	void subscribe (Functor<T>* parent) override {}
-
-	/// Implementation of iLink<T>
-	void unsubscribe (Functor<T>* parent) override {}
-
-	std::shared_ptr<iLeaf<T>> leaf_;
 };
 
 }

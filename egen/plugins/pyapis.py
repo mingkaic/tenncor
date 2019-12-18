@@ -13,8 +13,6 @@ _header_template = '''
 // type to replace template arguments in pybind
 using {pybind} = {pybind_type};
 //>>> ^ pybind, pybind_type
-
-using LinkptrT = eteq::LinkptrT<{pybind}>;
 '''
 
 _source_template = '''
@@ -170,7 +168,7 @@ def _def_op(t2labels, api):
 
     params = [arg['dtype'] + ' ' + arg['name'] for arg in api['args']]
     if len(api['args']) > 1 and\
-        api['args'][0]['dtype'] != outtype and op in __py_op_rev:
+        outtype not in api['args'][0]['dtype'] and op in __py_op_rev:
         pyop = __py_op_rev[op]
         params = params[::-1]
     else:
@@ -187,20 +185,24 @@ def _def_op(t2labels, api):
         out = _sub_pybind(out, _strip_template_prefix(typenames))
     return out
 
+# convert statement template occurrences (specified in api) to _pybindt
+def template_pyconvert(api, stmt):
+    templates = [_strip_template_prefix(typenames)
+        for typenames in api.get('template', '').split(',')]
+    for temp in templates:
+        stmt = _sub_pybind(stmt, temp)
+    return stmt
+
 def _handle_defs(pybind_type, apis, module_name, first_module):
     _mdef_tmpl = 'm_{module_name}.def("{func}", '+\
         '&pyegen::{func}_{idx}, {description}, {pyargs});'
 
-    _class_def_tmpl = 'py::class_<std::remove_reference<decltype(*{outtype}())>::type,{outtype}> {label}(m_{module_name}, "{name}");'
+    _class_def_tmpl = 'py::class_<{outtype}> {label}(m_{module_name}, "{name}");'
 
     outtypes = set()
     for api in apis:
-        templates = [_strip_template_prefix(typenames)
-            for typenames in api.get('template', '').split(',')]
         if isinstance(api['out'], dict) and 'type' in api['out']:
-            outtype = api['out']['type']
-            for temp in templates:
-                outtype = _sub_pybind(outtype, temp)
+            outtype = template_pyconvert(api, api['out']['type'])
             outtypes.add(outtype)
 
     class_defs = []
@@ -221,7 +223,8 @@ def _handle_defs(pybind_type, apis, module_name, first_module):
             module_name=module_name,
             func=api['name'], idx=i,
             description=_parse_description(api),
-            pyargs=', '.join([_parse_pyargs(arg) for arg in api['args']]))
+            pyargs=template_pyconvert(api, ', '.join([
+                _parse_pyargs(arg) for arg in api['args']])))
         for i, api in enumerate(apis)]
 
     operator_defs = [_def_op(atype_labels, api) for api in apis if 'operator' in api]
@@ -258,7 +261,7 @@ class PyAPIsPlugin:
             _header_template.format(
                 pybind=_pybindt, pybind_type=bindtype),
                 user_includes=[
-                    '"eteq/link.hpp"'
+                    '"eteq/etens.hpp"'
                 ], internal_refs=[])
 
         contents = {}

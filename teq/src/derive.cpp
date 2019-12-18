@@ -28,20 +28,20 @@ TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs)
 	PathFinder finder(target.get());
 	root->accept(finder);
 
-	auto& pathmap = finder.roadmap_;
+	auto& roadmap = finder.roadmap_;
 	// no path to wrt
-	if (pathmap.empty())
+	if (roadmap.empty())
 	{
 		return funcs.get_const_zero(target->shape());
 	}
 	// else there exists a path to wrt
 	// using pathfinder, breadth first traverse from this to wrt
+	OwnerMapT owners = track_owners({root});
 	GraphStat stat;
 	root->accept(stat);
-	auto owners = track_owners({root});
 
-	std::list<iFunctor*> parents;
-	std::transform(pathmap.begin(), pathmap.end(),
+	std::list<iFunctor*> parents; // todo: make parent order not dependent on sorting algorithm by sorting by order visited
+	std::transform(roadmap.begin(), roadmap.end(),
 		std::back_inserter(parents),
 		[](std::pair<iTensor*,std::vector<size_t>> parent)
 		{
@@ -71,23 +71,25 @@ TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs)
 			parent->to_string().c_str());
 		assert(prevs.size() > 0);
 		TensptrT bwd = prevs.size() > 1 ? funcs.add(prevs) : prevs.front();
-
-		auto& nexts = pathmap[parent];
+		auto& nexts = roadmap[parent];
+		auto parent_ptr = std::static_pointer_cast<iFunctor>(
+			owners[parent].lock());
 		TensptrsT children = parent->get_children();
-		// for each painted child, calculate dThis/dChild
-		// go through grads in order
+		size_t nchildren = children.size();
 		for (size_t i : nexts)
 		{
-			auto parent_ptr = std::static_pointer_cast<iFunctor>(
-				owners[parent].lock());
+			assert(i < nchildren);
 			auto local = funcs.local_derivative(parent_ptr, i);
 			auto grad_step = funcs.chain_rule(parent_ptr, local, bwd, i);
 			grads[children[i].get()].push_back(grad_step);
 		}
 	}
 
-	TensptrsT& outargs = grads[target.get()];
-	return outargs.size() > 1 ? funcs.add(outargs) : outargs.front();
+	TensptrsT tgrads = estd::must_getf(grads, target.get(),
+		"failed to find derivative with respect to %s",
+		target->to_string().c_str());
+	assert(tgrads.size() > 0);
+	return tgrads.size() == 1 ? tgrads.front() : funcs.add(tgrads);
 }
 
 }

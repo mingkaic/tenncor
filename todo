@@ -7,8 +7,6 @@ P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
    - implement onnx support for layer
-   - test ALL funcsign + placeholder combinations
-   - refactor eteq funcsign and functor so that get returns own type instead of TensptrT
 
 === transparency/code readability ===
 P2 - generate value-range graph to detect erroneous operators

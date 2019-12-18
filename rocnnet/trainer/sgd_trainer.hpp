@@ -1,4 +1,4 @@
-#include "eteq/grader.hpp"
+#include "eteq/derive.hpp"
 
 #include "layr/seqmodel.hpp"
 #include "layr/err_approx.hpp"
@@ -9,14 +9,14 @@
 namespace trainer
 {
 
-using NodeUnarF = std::function<eteq::LinkptrT<PybindT>(eteq::LinkptrT<PybindT>)>;
+using NodeUnarF = std::function<eteq::ETensor<PybindT>(eteq::ETensor<PybindT>)>;
 
 using TrainErrF = std::function<teq::ShapedArr<PybindT>(void)>;
 
 TrainErrF sgd_train (layr::iLayer& model, teq::iSession& sess,
-	LinkptrT train_in, LinkptrT expected_out, layr::ApproxF update,
+	Tensor train_in, Tensor expected_out, layr::ApproxF update,
 	layr::ErrorF errfunc = layr::sqr_diff,
-	NodeUnarF gradprocess = [](eteq::LinkptrT<PybindT> in){ return in; });
+	NodeUnarF gradprocess = [](eteq::ETensor<PybindT> in){ return in; });
 
 }
 

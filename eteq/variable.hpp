@@ -44,26 +44,14 @@ struct Variable final : public iLeaf<T>
 
 	Variable<T>& operator = (Variable<T>&& other) = delete;
 
-	/// Assign vectorized data to data source
-	Variable<T>& operator = (std::vector<T> input)
-	{
-		size_t ninput = input.size();
-		if (this->shape_.n_elems() != ninput)
-		{
-			logs::fatalf("cannot assign vector of %d elements to "
-				"internal data of shape %s", ninput,
-				this->shape_.to_string().c_str());
-		}
-		T* indata = input.data();
-		std::copy(indata, indata + ninput, this->data_.data());
-		return *this;
-	}
-
-	/// Assign Eigen tensor to internal data object
-	Variable<T>& operator = (const eigen::TensorT<T>& input)
+	void assign (eigen::TensMapT<T>& input)
 	{
 		this->data_ = input;
-		return *this;
+	}
+
+	void assign (eigen::TensorT<T>& input)
+	{
+		this->data_ = input;
 	}
 
 	/// Assign void pointer of specified data type enum and shape
@@ -79,14 +67,13 @@ struct Variable final : public iLeaf<T>
 		this->data_ = eigen::make_tensmap<T>(data.data(), shape);
 	}
 
-	void assign (eigen::TensMapT<T>& input)
+	void assign (const teq::iTensor& tens)
 	{
-		this->data_ = input;
-	}
-
-	void assign (eigen::TensorT<T>& input)
-	{
-		this->data_ = input;
+		const void* input = tens.data();
+		teq::Shape inshape = tens.shape();
+		egen::_GENERATED_DTYPE dtype =
+			(egen::_GENERATED_DTYPE) tens.type_code();
+		this->assign(input, dtype, inshape);
 	}
 
 	void assign (const T* input, teq::Shape shape)
@@ -96,7 +83,8 @@ struct Variable final : public iLeaf<T>
 
 	void assign (const teq::ShapedArr<T>& arr)
 	{
-		assign(arr.data_.data(), egen::get_type<T>(), arr.shape_);
+		this->assign((T*) arr.data_.data(),
+			egen::get_type<T>(), arr.shape_);
 	}
 
 	/// Implementation of iTensor
@@ -142,7 +130,7 @@ VarptrT<T> make_variable_scalar (T scalar,
 /// Return variable node filled with scalar matching link shape
 template <typename T>
 VarptrT<T> make_variable_like (T scalar,
-	LinkptrT<T> link, std::string label = "");
+	ETensor<T> link, std::string label = "");
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>

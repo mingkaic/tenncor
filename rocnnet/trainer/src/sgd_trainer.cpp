@@ -6,7 +6,7 @@ namespace trainer
 {
 
 TrainErrF sgd_train (layr::iLayer& model, teq::iSession& sess,
-	LinkptrT train_in, LinkptrT expected_out, layr::ApproxF update,
+	Tensor train_in, Tensor expected_out, layr::ApproxF update,
 	layr::ErrorF errfunc, NodeUnarF gradprocess)
 {
 	auto train_out = model.connect(train_in);
@@ -20,20 +20,20 @@ TrainErrF sgd_train (layr::iLayer& model, teq::iSession& sess,
 			eteq::Variable<PybindT>>(tens))
 		{
 			vars.push_back({var, gradprocess(
-				eteq::derive(error, eteq::to_link<PybindT>(var)))});
+				eteq::derive(error, eteq::ETensor<PybindT>(var)))});
 		}
 	}
 	auto updates = update(vars);
 
 	teq::TensptrsT track_batch = {
-		train_out->get_tensor(),
-		error->get_tensor(),
+		train_out,
+		error,
 	};
 	for (layr::AssignsT& assigns : updates)
 	{
 		for (layr::VarAssign& assign : assigns)
 		{
-			track_batch.push_back(assign.source_->get_tensor());
+			track_batch.push_back(assign.source_);
 		}
 	}
 	sess.track(track_batch);
@@ -45,9 +45,9 @@ TrainErrF sgd_train (layr::iLayer& model, teq::iSession& sess,
 			{
 				sess.update_target(sources);
 			});
-		sess.update_target({error->get_tensor().get()});
+		sess.update_target({error.get()});
 		PybindT* data = error->data();
-		teq::Shape shape = error->link_shape();
+		teq::Shape shape = error->shape();
 		return teq::ShapedArr<PybindT>{shape,
 			std::vector<PybindT>(data, data + shape.n_elems()),
 		};

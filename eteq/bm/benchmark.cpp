@@ -59,9 +59,9 @@ static void NAME(benchmark::State& state)\
 		std::vector<double> data = random_data(shape.n_elems(), -35, 35);\
 		std::vector<T> convdata(data.begin(), data.end());\
 		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::LinkptrT<T> out = FUNC(eteq::to_link<T>(var));\
+		eteq::ETensor<T> out = FUNC(eteq::ETensor<T>(var));\
 		teq::Session session;\
-		session.track({out->get_tensor()});\
+		session.track({out});\
 		state.ResumeTiming();\
 		session.update();\
 	}\
@@ -81,9 +81,9 @@ static void NAME(benchmark::State& state)\
 		std::vector<double> data = random_data(shape.n_elems(), 0, 35);\
 		std::vector<T> convdata(data.begin(), data.end());\
 		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::LinkptrT<T> out = FUNC(eteq::to_link<T>(var));\
+		eteq::ETensor<T> out = FUNC(eteq::ETensor<T>(var));\
 		teq::Session session;\
-		session.track({out->get_tensor()});\
+		session.track({out});\
 		state.ResumeTiming();\
 		session.update();\
 	}\
@@ -133,9 +133,9 @@ static void NAME(benchmark::State& state)\
 		std::vector<T> convdata2(data2.begin(), data2.end());\
 		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
 		eteq::VarptrT<T> var2 = eteq::make_variable<T>(convdata2.data(), shape, "var2");\
-		eteq::LinkptrT<T> out = FUNC(eteq::to_link<T>(var), eteq::to_link<T>(var2));\
+		eteq::ETensor<T> out = FUNC(eteq::ETensor<T>(var), eteq::ETensor<T>(var2));\
 		teq::Session session;\
-		session.track({out->get_tensor()});\
+		session.track({out});\
 		state.ResumeTiming();\
 		session.update();\
 	}\
@@ -191,10 +191,10 @@ static void BM_Matmul(benchmark::State& state)
 		std::vector<T> convdata2(data2.begin(), data2.end());
 		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), leftshape, "var");
 		eteq::VarptrT<T> var2 = eteq::make_variable<T>(convdata2.data(), rightshape, "var2");
-		eteq::LinkptrT<T> out = tenncor::matmul(
-			eteq::to_link<T>(var), eteq::to_link<T>(var2));
+		eteq::ETensor<T> out = tenncor::matmul(
+			eteq::ETensor<T>(var), eteq::ETensor<T>(var2));
 		teq::Session session;
-		session.track({out->get_tensor()});
+		session.track({out});
 		state.ResumeTiming();
 		session.update();
 	}
@@ -227,24 +227,20 @@ static void BM_MatmulComplex(benchmark::State& state)
 	eteq::VarptrT<int32_t> b = eteq::make_variable<int32_t>(bshape);
 	eteq::VarptrT<int32_t> c = eteq::make_variable<int32_t>(cshape);
 
-	eteq::LinkptrT<int32_t> atens = eteq::to_link<int32_t>(a);
-	eteq::LinkptrT<int32_t> btens = eteq::to_link<int32_t>(b);
-	eteq::LinkptrT<int32_t> ctens = eteq::to_link<int32_t>(c);
+	eteq::ETensor<int32_t> atens = eteq::ETensor<int32_t>(a);
+	eteq::ETensor<int32_t> btens = eteq::ETensor<int32_t>(b);
+	eteq::ETensor<int32_t> ctens = eteq::ETensor<int32_t>(c);
 
 	auto d = tenncor::matmul(atens, btens);
 	auto e = tenncor::matmul(ctens, d);
 	auto f = tenncor::matmul(tenncor::transpose(d), tenncor::transpose(ctens));
 	auto dest = tenncor::matmul(e, f);
 
-	eteq::LinkptrT<int32_t> da = eteq::derive(dest, atens);
-	eteq::LinkptrT<int32_t> db = eteq::derive(dest, btens);
-	eteq::LinkptrT<int32_t> dc = eteq::derive(dest, ctens);
+	eteq::ETensor<int32_t> da = eteq::derive(dest, atens);
+	eteq::ETensor<int32_t> db = eteq::derive(dest, btens);
+	eteq::ETensor<int32_t> dc = eteq::derive(dest, ctens);
 	teq::Session session;
-	session.track({
-		da->get_tensor(),
-		db->get_tensor(),
-		dc->get_tensor(),
-	});
+	session.track({da, db, dc});
 
 	for (auto _ : state)
 	{
@@ -282,12 +278,12 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	eteq::VarptrT<double> bias1 = eteq::make_variable<double>(bias1_shape);
 	eteq::VarptrT<double> out = eteq::make_variable<double>(out_shape);
 
-	eteq::LinkptrT<double> intens = eteq::to_link<double>(in);
-	eteq::LinkptrT<double> weight0tens = eteq::to_link<double>(weight0);
-	eteq::LinkptrT<double> bias0tens = eteq::to_link<double>(bias0);
-	eteq::LinkptrT<double> weight1tens = eteq::to_link<double>(weight1);
-	eteq::LinkptrT<double> bias1tens = eteq::to_link<double>(bias1);
-	eteq::LinkptrT<double> outtens = eteq::to_link<double>(out);
+	eteq::ETensor<double> intens = eteq::ETensor<double>(in);
+	eteq::ETensor<double> weight0tens = eteq::ETensor<double>(weight0);
+	eteq::ETensor<double> bias0tens = eteq::ETensor<double>(bias0);
+	eteq::ETensor<double> weight1tens = eteq::ETensor<double>(weight1);
+	eteq::ETensor<double> bias1tens = eteq::ETensor<double>(bias1);
+	eteq::ETensor<double> outtens = eteq::ETensor<double>(out);
 
 	auto layer0 =
 		tenncor::matmul(intens, weight0tens) +
@@ -306,12 +302,7 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	auto dw1 = eteq::derive(err, weight1tens);
 	auto db1 = eteq::derive(err, bias1tens);
 	teq::Session session;
-	session.track({
-		dw0->get_tensor(),
-		db0->get_tensor(),
-		dw1->get_tensor(),
-		db1->get_tensor(),
-	});
+	session.track({dw0, db0, dw1, db1});
 
 	for (auto _ : state)
 	{
@@ -355,12 +346,12 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	eteq::VarptrT<double> bias1 = eteq::make_variable<double>(bias1_shape);
 	eteq::VarptrT<double> out = eteq::make_variable<double>(out_shape);
 
-	eteq::LinkptrT<double> intens = eteq::to_link<double>(in);
-	eteq::LinkptrT<double> weight0tens = eteq::to_link<double>(weight0);
-	eteq::LinkptrT<double> bias0tens = eteq::to_link<double>(bias0);
-	eteq::LinkptrT<double> weight1tens = eteq::to_link<double>(weight1);
-	eteq::LinkptrT<double> bias1tens = eteq::to_link<double>(bias1);
-	eteq::LinkptrT<double> outtens = eteq::to_link<double>(out);
+	eteq::ETensor<double> intens = eteq::ETensor<double>(in);
+	eteq::ETensor<double> weight0tens = eteq::ETensor<double>(weight0);
+	eteq::ETensor<double> bias0tens = eteq::ETensor<double>(bias0);
+	eteq::ETensor<double> weight1tens = eteq::ETensor<double>(weight1);
+	eteq::ETensor<double> bias1tens = eteq::ETensor<double>(bias1);
+	eteq::ETensor<double> outtens = eteq::ETensor<double>(out);
 
 	auto layer0 =
 		tenncor::matmul(intens, weight0tens) +
@@ -381,21 +372,11 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 
 	// optimize
 	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
-	teq::TensptrsT roots = {
-		dw0->get_tensor(),
-		db0->get_tensor(),
-		dw1->get_tensor(),
-		db1->get_tensor(),
-	};
+	teq::TensptrsT roots = {dw0, db0, dw1, db1};
 	opt::optimize(roots, rules);
 
 	teq::Session session;
-	session.track({
-		dw0->get_tensor(),
-		db0->get_tensor(),
-		dw1->get_tensor(),
-		db1->get_tensor(),
-	});
+	session.track({dw0, db0, dw1, db1});
 
 	for (auto _ : state)
 	{

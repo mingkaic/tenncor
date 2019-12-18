@@ -39,36 +39,36 @@ PYBIND11_MODULE(grpc_dbg, m)
 			},
 			"Track node")
 		.def("update",
-			[](dbg::InteractiveSession* self, std::vector<LinkptrT> ignored)
+			[](dbg::InteractiveSession* self, std::vector<Tensor> ignored)
 			{
 				teq::TensSetT ignored_set;
-				for (LinkptrT& node : ignored)
+				for (Tensor& node : ignored)
 				{
-					ignored_set.emplace(node->get_tensor().get());
+					ignored_set.emplace(node.get());
 				}
 				self->update(ignored_set);
 			},
 			"Return calculated data",
-			py::arg("ignored") = std::vector<LinkptrT>{})
+			py::arg("ignored") = std::vector<Tensor>{})
 		.def("update_target",
-			[](dbg::InteractiveSession* self, std::vector<LinkptrT> targeted,
-				std::vector<LinkptrT> ignored)
+			[](dbg::InteractiveSession* self, std::vector<Tensor> targeted,
+				std::vector<Tensor> ignored)
 			{
 				teq::TensSetT targeted_set;
 				teq::TensSetT ignored_set;
-				for (LinkptrT& node : targeted)
+				for (Tensor& node : targeted)
 				{
-					targeted_set.emplace(node->get_tensor().get());
+					targeted_set.emplace(node.get());
 				}
-				for (LinkptrT& node : ignored)
+				for (Tensor& node : ignored)
 				{
-					ignored_set.emplace(node->get_tensor().get());
+					ignored_set.emplace(node.get());
 				}
 				self->update_target(targeted_set, ignored_set);
 			},
 			"Calculate node relevant to targets in the graph given list of updated data",
 			py::arg("targeted"),
-			py::arg("ignored") = std::vector<LinkptrT>{})
+			py::arg("ignored") = std::vector<Tensor>{})
 		.def("join",
 			[](dbg::InteractiveSession* self)
 			{

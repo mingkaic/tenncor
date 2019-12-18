@@ -17,13 +17,17 @@ TEST(DENSE, Connection)
 		0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<float>(
 		0, teq::Shape({7, 2}), "x2");
-	auto biasedy = layr::dense(eteq::to_link<float>(x),
+	auto biasedy = layr::dense(eteq::ETensor<float>(x),
 		{5}, layr::unif_xavier_init<float>(2),
 		layr::unif_xavier_init<float>(4));
-	auto y = layr::dense(eteq::to_link<float>(x2),
+	auto y = layr::dense(eteq::ETensor<float>(x2),
 		{6}, layr::unif_xavier_init<float>(3),
 		layr::InitF<float>());
 
+	auto bytens = dynamic_cast<eteq::Layer<float>*>(biasedy.get());
+	auto ytens = dynamic_cast<eteq::Layer<float>*>(y.get());
+	ASSERT_NE(nullptr, bytens);
+	ASSERT_NE(nullptr, ytens);
 	EXPECT_GRAPHEQ(
 		"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		" `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -31,13 +35,13 @@ TEST(DENSE, Connection)
 		" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
 		" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])",
-		biasedy->get_root());
+		bytens->get_root());
 
 	EXPECT_GRAPHEQ(
 		"(MATMUL[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		" `--(variable:x2[7\\2\\1\\1\\1\\1\\1\\1])\n"
 		" `--(variable:weight[6\\7\\1\\1\\1\\1\\1\\1])",
-		y->get_root());
+		ytens->get_root());
 }
 
 
@@ -62,16 +66,16 @@ TEST(DENSE, Connection)
 // 		auto bias = contents[1];
 // 		auto params = contents[2];
 // 		ASSERT_EQ(nullptr, params);
-// 		float* w = eteq::to_link<float>(weight)->data();
-// 		float* b = eteq::to_link<float>(bias)->data();
+// 		float* w = eteq::ETensor<float>(weight)->data();
+// 		float* b = eteq::ETensor<float>(bias)->data();
 // 		weight_data = std::vector<float>(w, w + weight->shape2().n_elems());
 // 		bias_data = std::vector<float>(b, b + bias->shape2().n_elems());
 
 // 		auto x = eteq::make_variable_scalar<float>(
 // 			0, teq::Shape({6, 2}), "x");
-// 		auto y = dense.connect(eteq::to_link<float>(x));
+// 		auto y = dense.connect(eteq::ETensor<float>(x));
 
-// 		layr::save_layer(ss, dense, {y->get_tensor()});
+// 		layr::save_layer(ss, dense, {y});
 // 	}
 // 	ASSERT_EQ(noutput * ninput, weight_data.size());
 // 	ASSERT_EQ(noutput, bias_data.size());
@@ -92,8 +96,8 @@ TEST(DENSE, Connection)
 // 		auto bshape = bias->shape2();
 // 		ASSERT_ARREQ(exwshape, wshape);
 // 		ASSERT_ARREQ(exbshape, bshape);
-// 		float* w = eteq::to_link<float>(weight)->data();
-// 		float* b = eteq::to_link<float>(bias)->data();
+// 		float* w = eteq::ETensor<float>(weight)->data();
+// 		float* b = eteq::ETensor<float>(bias)->data();
 // 		std::vector<float> gotw(w, w + weight->shape2().n_elems());
 // 		std::vector<float> gotb(b, b + bias->shape2().n_elems());
 // 		EXPECT_VECEQ(weight_data, gotw);

@@ -100,18 +100,12 @@ TEST(SESSION, Update)
 		0.4350741570, 0.3949956178, 0.2341486792, 0.1348473539, 0.8681677362,
 	};
 
-	eteq::LinkptrT<double> in = eteq::to_link<double>(
-		eteq::make_variable<double>(in_data.data(), in_shape));
-	eteq::LinkptrT<double> weight0 = eteq::to_link<double>(
-		eteq::make_variable<double>(w0_data.data(), weight0_shape));
-	eteq::LinkptrT<double> bias0 = eteq::to_link<double>(
-		eteq::make_variable<double>(b0_data.data(), bias0_shape));
-	eteq::LinkptrT<double> weight1 = eteq::to_link<double>(
-		eteq::make_variable<double>(w1_data.data(), weight1_shape));
-	eteq::LinkptrT<double> bias1 = eteq::to_link<double>(
-		eteq::make_variable<double>(b1_data.data(), bias1_shape));
-	eteq::LinkptrT<double> out = eteq::to_link<double>(
-		eteq::make_variable<double>(out_data.data(), out_shape));
+	eteq::ETensor<double> in(eteq::make_variable<double>(in_data.data(), in_shape));
+	eteq::ETensor<double> weight0(eteq::make_variable<double>(w0_data.data(), weight0_shape));
+	eteq::ETensor<double> bias0(eteq::make_variable<double>(b0_data.data(), bias0_shape));
+	eteq::ETensor<double> weight1(eteq::make_variable<double>(w1_data.data(), weight1_shape));
+	eteq::ETensor<double> bias1(eteq::make_variable<double>(b1_data.data(), bias1_shape));
+	eteq::ETensor<double> out(eteq::make_variable<double>(out_data.data(), out_shape));
 
 	auto layer0 = tenncor::matmul(in, weight0) + tenncor::extend(bias0, 1, {3});
 	auto sig0 = tenncor::sigmoid(layer0);
@@ -127,12 +121,7 @@ TEST(SESSION, Update)
 	auto db1 = eteq::derive(err, bias1);
 
 	ccur::Session sess(4);
-	sess.track({
-		dw0->get_tensor(),
-		db0->get_tensor(),
-		dw1->get_tensor(),
-		db1->get_tensor(),
-	});
+	sess.track({dw0, db0, dw1, db1});
 	sess.update();
 
 	std::vector<double> expect_gw0 = {
@@ -194,7 +183,7 @@ TEST(SESSION, Update)
 	};
 
 	{
-		auto gotshape = dw0->link_shape();
+		auto gotshape = dw0->shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
 	double* gw0ptr = (double*) dw0->data();
@@ -203,7 +192,7 @@ TEST(SESSION, Update)
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
 	}
 	{
-		auto gotshape = db0->link_shape();
+		auto gotshape = db0->shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
 	double* gb0ptr = (double*) db0->data();
@@ -212,7 +201,7 @@ TEST(SESSION, Update)
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
 	}
 	{
-		auto gotshape = dw1->link_shape();
+		auto gotshape = dw1->shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
 
@@ -222,7 +211,7 @@ TEST(SESSION, Update)
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
 	}
 	{
-		auto gotshape = db1->link_shape();
+		auto gotshape = db1->shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
 	double* gb1ptr = (double*) db1->data();

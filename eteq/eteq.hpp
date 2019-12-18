@@ -6,6 +6,6 @@
 /// Collectively include all eteq header files
 ///
 
-#include "eteq/grader.hpp"
+#include "eteq/derive.hpp"
 #include "eteq/serialize.hpp"
 #include "eteq/optimize.hpp"

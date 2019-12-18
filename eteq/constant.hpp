@@ -71,15 +71,15 @@ private:
 
 /// Return constant node given scalar and shape
 template <typename T>
-LinkptrT<T> make_constant_scalar (T scalar, teq::Shape shape);
+ETensor<T> make_constant_scalar (T scalar, teq::Shape shape);
 
 /// Return constant node filled with scalar matching link shape
 template <typename T>
-LinkptrT<T> make_constant_like (T scalar, LinkptrT<T> link);
+ETensor<T> make_constant_like (T scalar, ETensor<T> link);
 
 /// Return constant node given raw array and shape
 template <typename T>
-LinkptrT<T> make_constant (T* data, teq::Shape shape);
+ETensor<T> make_constant (T* data, teq::Shape shape);
 
 }
 

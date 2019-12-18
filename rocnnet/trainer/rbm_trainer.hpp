@@ -9,13 +9,13 @@
 namespace trainer
 {
 
-using ErrorF = std::function<LinkptrT(LinkptrT,LinkptrT)>;
+using ErrorF = std::function<Tensor(Tensor,Tensor)>;
 
-LinkptrT sample_v2h (const layr::RBM& model, LinkptrT v);
+Tensor sample_v2h (const layr::RBM& model, Tensor v);
 
-LinkptrT sample_h2v (const layr::RBM& model, LinkptrT h);
+Tensor sample_h2v (const layr::RBM& model, Tensor h);
 
-LinkptrT gibbs_hvh (const layr::RBM& model, LinkptrT h);
+Tensor gibbs_hvh (const layr::RBM& model, Tensor h);
 
 // source for below algorithms:
 // https://github.com/meownoid/tensorfow-rbm/blob/master/tfrbm/bbrbm.py
@@ -32,25 +32,25 @@ layr::AssignGroupsT bbernoulli_approx (const layr::VarErrsT& leaves,
 
 struct CDChainIO
 {
-	CDChainIO (LinkptrT visible) : visible_(visible) {}
+	CDChainIO (Tensor visible) : visible_(visible) {}
 
-	CDChainIO (LinkptrT visible, LinkptrT hidden) :
+	CDChainIO (Tensor visible, Tensor hidden) :
 		visible_(visible), hidden_(hidden) {}
 
-	LinkptrT visible_;
+	Tensor visible_;
 
-	LinkptrT hidden_ = nullptr;
+	Tensor hidden_ = nullptr;
 
-	LinkptrT visible_mean_ = nullptr;
+	Tensor visible_mean_ = nullptr;
 
-	LinkptrT hidden_mean_ = nullptr;
+	Tensor hidden_mean_ = nullptr;
 };
 
 layr::VarErrsT cd_grad_approx (CDChainIO& io,const layr::RBM& model,
 	size_t cdk = 1, eteq::VarptrT<PybindT> persistent = nullptr);
 
 TrainErrF rbm_train (layr::RBM& model, teq::iSession& sess,
-	LinkptrT visible, PybindT learning_rate, PybindT discount_factor,
+	Tensor visible, PybindT learning_rate, PybindT discount_factor,
 	ErrorF err_func = ErrorF(), size_t cdk = 1);
 
 }
