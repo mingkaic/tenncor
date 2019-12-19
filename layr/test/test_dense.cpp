@@ -51,7 +51,7 @@ TEST(DENSE, Connection)
 
 TEST(DENSE, Serialization)
 {
-	onnx::GraphProto graph;
+	onnx::ModelProto model;
 
 	teq::DimT ninput = 6, noutput = 5;
 	std::vector<float> weight_data;
@@ -90,14 +90,14 @@ TEST(DENSE, Serialization)
 			"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])",
 			ytens->get_root());
 
-		eteq::save_graph(graph, {y});
+		eteq::save_model(model, {y});
 	}
 	ASSERT_EQ(noutput * ninput, weight_data.size());
 	ASSERT_EQ(noutput, bias_data.size());
 	{
 		// load
 		onnx::TensptrIdT ids;
-		teq::TensptrsT roots = eteq::load_graph(ids, graph);
+		teq::TensptrsT roots = eteq::load_model(ids, model);
 		ASSERT_EQ(1, roots.size());
 
 		auto ytens = dynamic_cast<eteq::Layer<float>*>(roots.front().get());

@@ -6,14 +6,14 @@ package gemitter;
 
 // ======== GENERAL MESSAGE OBJECTS ========
 
-message GraphPayload {
-    string graph_id = 1;
+message ModelPayload {
+    string model_id = 1;
 
-    onnx.ModelProto graph = 2;
+    onnx.ModelProto model = 2;
 }
 
 message NodePayload {
-    string graph_id = 1;
+    string model_id = 1;
 
     string node_id = 2;
 
@@ -31,11 +31,11 @@ enum Status {
 
 message Empty {}
 
-message CreateGraphRequest {
-    GraphPayload payload = 1;
+message CreateModelRequest {
+    ModelPayload payload = 1;
 }
 
-message CreateGraphResponse {
+message CreateModelResponse {
     Status status = 1;
 
     string message = 2;
@@ -51,11 +51,11 @@ message UpdateNodeDataResponse {
     string message = 2;
 }
 
-message DeleteGraphRequest {
-    string graph_id = 1;
+message DeleteModelRequest {
+    string model_id = 1;
 }
 
-message DeleteGraphResponse {
+message DeleteModelResponse {
     Status status = 1;
 
     string message = 2;
@@ -66,11 +66,11 @@ service GraphEmitter {
     rpc HealthCheck (Empty) returns (Empty);
 
     // Create uniquely identified graph
-    rpc CreateGraph (CreateGraphRequest) returns (CreateGraphResponse);
+    rpc CreateModel (CreateModelRequest) returns (CreateModelResponse);
 
     // Update tensor/node data in specified graph
     rpc UpdateNodeData (stream UpdateNodeDataRequest) returns (UpdateNodeDataResponse);
 
     // Delete existing graph
-    rpc DeleteGraph (DeleteGraphRequest) returns (DeleteGraphResponse);
+    rpc DeleteModel (DeleteModelRequest) returns (DeleteModelResponse);
 }

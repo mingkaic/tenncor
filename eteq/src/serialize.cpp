@@ -230,18 +230,26 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 
 #undef _OUT_GENLAYR
 
-void save_graph (onnx::GraphProto& pb_graph, teq::TensptrsT roots,
+void save_model (onnx::ModelProto& pb_model, teq::TensptrsT roots,
 	const onnx::TensIdT& identified)
 {
+	pb_model.set_ir_version(onnx::IR_VERSION);
+	pb_model.set_producer_name(app_name);
+	pb_model.set_producer_version(app_version);
+	pb_model.set_domain(eteq_dom);
+	pb_model.set_model_version(onnx::IR_VERSION);
+	// onnx::OperatorSetIdProto* opset = pb_model.add_opset_import();
+	// opset->set_domain(eteq_dom);
+	// opset->set_version(onnx::IR_VERSION);
 	MarshFuncs funcs;
-	onnx::save_graph(pb_graph, roots, funcs, identified);
+	onnx::save_graph(*pb_model.mutable_graph(), roots, funcs, identified);
 }
 
-teq::TensptrsT load_graph (onnx::TensptrIdT& identified_tens,
-	const onnx::GraphProto& pb_graph)
+teq::TensptrsT load_model (onnx::TensptrIdT& identified_tens,
+	const onnx::ModelProto& pb_model)
 {
 	UnmarshFuncs funcs;
-	return onnx::load_graph(identified_tens, pb_graph, funcs);
+	return onnx::load_graph(identified_tens, pb_model.graph(), funcs);
 }
 
 }

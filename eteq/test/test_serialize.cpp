@@ -24,7 +24,7 @@ TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/eteq.onnx";
 	std::string got_pbfile = "got_eteq.onnx";
-	onnx::GraphProto graph;
+	onnx::ModelProto model;
 
 	teq::Shape in_shape({10, 3});
 	teq::Shape weight0_shape({9, 10});
@@ -76,12 +76,12 @@ TEST(SERIALIZE, SaveGraph)
 	ids.insert({db0.get(), "db0"});
 	ids.insert({dw1.get(), "dw1"});
 	ids.insert({db1.get(), "db1"});
-	eteq::save_graph(graph, {dw0, db0, dw1, db1}, ids);
+	eteq::save_model(model, {dw0, db0, dw1, db1}, ids);
 	{
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
 		ASSERT_TRUE(gotstr.is_open());
-		ASSERT_TRUE(graph.SerializeToOstream(&gotstr));
+		ASSERT_TRUE(model.SerializeToOstream(&gotstr));
 	}
 
 	{
@@ -90,22 +90,22 @@ TEST(SERIALIZE, SaveGraph)
 		ASSERT_TRUE(expect_ifs.is_open());
 		ASSERT_TRUE(got_ifs.is_open());
 
-		onnx::GraphProto expect_graph;
-		onnx::GraphProto got_graph;
-		ASSERT_TRUE(expect_graph.ParseFromIstream(&expect_ifs));
-		ASSERT_TRUE(got_graph.ParseFromIstream(&got_ifs));
+		onnx::ModelProto expect_model;
+		onnx::ModelProto got_model;
+		ASSERT_TRUE(expect_model.ParseFromIstream(&expect_ifs));
+		ASSERT_TRUE(got_model.ParseFromIstream(&got_ifs));
 
 		google::protobuf::util::MessageDifferencer differ;
 		std::string report;
 		differ.ReportDifferencesToString(&report);
-		EXPECT_TRUE(differ.Compare(expect_graph, got_graph)) << report;
+		EXPECT_TRUE(differ.Compare(expect_model, got_model)) << report;
 	}
 }
 
 
 TEST(SERIALIZE, LoadGraph)
 {
-	onnx::GraphProto in;
+	onnx::ModelProto in;
 	{
 		std::fstream inputstr(testdir + "/eteq.onnx",
 			std::ios::in | std::ios::binary);
@@ -114,7 +114,7 @@ TEST(SERIALIZE, LoadGraph)
 	}
 
 	onnx::TensptrIdT ids;
-	teq::TensptrsT out = eteq::load_graph(ids, in);
+	teq::TensptrsT out = eteq::load_model(ids, in);
 	EXPECT_EQ(4, out.size());
 
 	ASSERT_HAS(ids.right, "dw0");

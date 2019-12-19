@@ -8,6 +8,7 @@
 
 #include "eteq/generated/api.hpp"
 #include "eteq/layer.hpp"
+#include "eteq/serialize.hpp"
 
 #include "layr/init.hpp"
 
@@ -28,6 +29,58 @@ teq::Shape gen_rshape (std::vector<teq::DimT> runcoms,
 
 template <typename T>
 using UnaryF = std::function<eteq::ETensor<T>(eteq::ETensor<T>)>;
+
+template <typename T>
+eteq::ETensor<T> trail_helper (const eteq::ETensor<T>& root,
+	const std::pair<eteq::ETensor<T>,eteq::ETensor<T>>& input,
+	const teq::TensCIdxT& roadmap)
+{
+	if (input.first.get() == root.get())
+	{
+		return input.second;
+	}
+	std::vector<size_t> indices;
+	if (false == estd::get(indices, roadmap, root.get()))
+	{
+		return eteq::ETensor<T>();
+	}
+	std::unordered_set<size_t> paths(indices.begin(), indices.end());
+	auto f = static_cast<teq::iFunctor*>(root.get());
+	auto children = f->get_children();
+	teq::TensptrsT road_kids;
+	size_t nchildren = children.size();
+	road_kids.reserve(nchildren);
+	for (size_t i = 0; i < nchildren; ++i)
+	{
+		if (estd::has(paths, i))
+		{
+			road_kids.push_back(trail_helper(
+				eteq::ETensor<T>(children[i]), input, roadmap));
+		}
+		else
+		{
+			road_kids.push_back(children[i]);
+		}
+	}
+	marsh::Maps dup_attrs;
+	marsh::get_attrs(dup_attrs, *f);
+	return eteq::Functor<T>::get((egen::_GENERATED_OPCODE)
+		f->get_opcode().code_, road_kids, std::move(dup_attrs));
+}
+
+/// Copy everything from input.first to root, except replacing input.first with input.second
+template <typename T>
+eteq::ETensor<T> trail (const eteq::ETensor<T>& root,
+	const std::pair<eteq::ETensor<T>,eteq::ETensor<T>>& input)
+{
+	teq::PathFinder pfinder(input.first.get());
+	root->accept(pfinder);
+	if (pfinder.roadmap_.empty())
+	{
+		return eteq::ETensor<T>();
+	}
+	return trail_helper(root, input, pfinder.roadmap_);
+}
 
 template <typename T>
 UnaryF<T> dense_builder (teq::Shape inshape,
@@ -276,6 +329,56 @@ eteq::ETensor<T> gru (eteq::ETensor<T> input, teq::DimT hidden_dim,
 	return gru_builder<T>(input->shape().at(0), hidden_dim, activation,
 		weight_init, bias_init, seq_dim)(input);
 }
+
+const std::string input_key = "model_input";
+
+template <typename T>
+struct ManagedModel final
+{
+	ManagedModel (void) = default;
+
+	ManagedModel (eteq::ETensor<T> root, eteq::ETensor<T> input) :
+		root_(root), input_(input) {}
+
+	UnaryF<T> get_builder (void)
+	{
+		return [this](eteq::ETensor<T> oinput)
+		{
+			return this->retrail(oinput);
+		};
+	}
+
+	/// Trail root to input, replacing input with oinput
+	eteq::ETensor<T> retrail (eteq::ETensor<T> oinput) const
+	{
+		return trail(root_, {input_, oinput});
+	}
+
+	void save (onnx::ModelProto& model) const
+	{
+		onnx::TensIdT ids;
+		ids.insert({input_.get(), input_key});
+		eteq::save_model(model, {root_}, ids);
+	}
+
+	void load (const onnx::ModelProto& model)
+	{
+		onnx::TensptrIdT ids;
+		auto roots = eteq::load_model(ids, model);
+		if (roots.empty())
+		{
+			logs::fatal("cannot load model without roots");
+		}
+		input_ = estd::must_getf(ids.right, input_key,
+			"failed to find %s", input_key.c_str());
+		root_ = roots.front();
+	}
+
+private:
+	eteq::ETensor<T> root_;
+
+	eteq::ETensor<T> input_;
+};
 
 }
 

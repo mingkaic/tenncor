@@ -93,7 +93,7 @@ struct InteractiveSession final : public teq::iSession
 	{
 		if (false == sent_graph_)
 		{
-			create_graph();
+			create_model();
 		}
 
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
@@ -147,8 +147,8 @@ struct InteractiveSession final : public teq::iSession
 
 				gemitter::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
-				payload->set_graph_id(sess_id_);
-				payload->set_node_idx(indices_[leaf]);
+				payload->set_model_id(sess_id_);
+				payload->set_node_id(ids_.left.at(leaf));
 				google::protobuf::RepeatedField<float> field(
 					data.begin(), data.end());
 				payload->mutable_data()->Swap(&field);
@@ -159,7 +159,7 @@ struct InteractiveSession final : public teq::iSession
 		// ignored nodes and its dependers will never fulfill requirement
 		for (auto& op : reqs)
 		{
-			op->update();
+			op->calc();
 			egen::_GENERATED_DTYPE dtype =
 				(egen::_GENERATED_DTYPE) op->type_code();
 			std::vector<float> data;
@@ -169,8 +169,8 @@ struct InteractiveSession final : public teq::iSession
 			// create requests (bulk of the overhead)
 			gemitter::UpdateNodeDataRequest request;
 			auto payload = request.mutable_payload();
-			payload->set_graph_id(sess_id_);
-			payload->set_node_idx(indices_[op]);
+			payload->set_model_id(sess_id_);
+			payload->set_node_id(ids_.left.at(op));
 			google::protobuf::RepeatedField<float> field(
 				data.begin(), data.end());
 			payload->mutable_data()->Swap(&field);
@@ -187,7 +187,7 @@ struct InteractiveSession final : public teq::iSession
 	{
 		if (false == sent_graph_)
 		{
-			create_graph();
+			create_model();
 		}
 
 		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
@@ -240,8 +240,8 @@ struct InteractiveSession final : public teq::iSession
 
 				gemitter::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
-				payload->set_graph_id(sess_id_);
-				payload->set_node_idx(indices_[leaf]);
+				payload->set_model_id(sess_id_);
+				payload->set_node_id(ids_.left.at(leaf));
 				google::protobuf::RepeatedField<float> field(
 					data.begin(), data.end());
 				payload->mutable_data()->Swap(&field);
@@ -252,7 +252,7 @@ struct InteractiveSession final : public teq::iSession
 		// ignored nodes and its dependers will never fulfill requirement
 		for (auto& op : reqs)
 		{
-			op->update();
+			op->calc();
 			egen::_GENERATED_DTYPE dtype =
 				(egen::_GENERATED_DTYPE) op->type_code();
 			std::vector<float> data;
@@ -262,8 +262,8 @@ struct InteractiveSession final : public teq::iSession
 			// create requests (bulk of the overhead)
 			gemitter::UpdateNodeDataRequest request;
 			auto payload = request.mutable_payload();
-			payload->set_graph_id(sess_id_);
-			payload->set_node_idx(indices_[op]);
+			payload->set_model_id(sess_id_);
+			payload->set_node_id(ids_.left.at(op));
 			google::protobuf::RepeatedField<float> field(
 				data.begin(), data.end());
 			payload->mutable_data()->Swap(&field);
@@ -286,7 +286,7 @@ struct InteractiveSession final : public teq::iSession
 		stat_.graphsize_.clear();
 		if (sent_graph_)
 		{
-			client_.delete_graph(sess_id_);
+			client_.delete_model(sess_id_);
 			sess_id_ = boost::uuids::to_string(
 				InteractiveSession::uuid_gen_());
 		}
@@ -295,14 +295,14 @@ struct InteractiveSession final : public teq::iSession
 	}
 
 	/// Send create graph request
-	void create_graph (void)
+	void create_model (void)
 	{
-		gemitter::CreateGraphRequest request;
+		gemitter::CreateModelRequest request;
 		auto payload = request.mutable_payload();
-		payload->set_graph_id(sess_id_);
+		payload->set_model_id(sess_id_);
 		teq::TensptrsT tracked(sess_.tracked_.begin(), sess_.tracked_.end());
-		indices_ = eteq::save_graph(*payload->mutable_graph(), tracked);
-		client_.create_graph(request);
+		eteq::save_model(*payload->mutable_model(), tracked, ids_);
+		client_.create_model(request);
 	}
 
 	/// Wait until client completes its request calls
@@ -359,7 +359,7 @@ private:
 
 	teq::GraphStat stat_;
 
-	pbm::TensMapIndicesT indices_;
+	onnx::TensIdT ids_;
 };
 
 boost::uuids::random_generator InteractiveSession::uuid_gen_;

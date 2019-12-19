@@ -56,7 +56,7 @@ struct GraphEmitterClient final
 		{
 			gemitter::Empty empty;
 			grpc::ClientContext context;
-			gemitter::CreateGraphResponse response;
+			gemitter::CreateModelResponse response;
 			// set context deadline
 			std::chrono::time_point<std::chrono::system_clock> deadline =
 				std::chrono::system_clock::now() +
@@ -75,26 +75,26 @@ struct GraphEmitterClient final
 		health_checker_.join();
 	}
 
-	/// Add job that pass CreateGraphRequest
-	void create_graph (gemitter::CreateGraphRequest& request)
+	/// Add job that pass CreateModelRequest
+	void create_model (gemitter::CreateModelRequest& request)
 	{
 		sequential_jobs_.attach_job(
-		[this](size_t attempt, gemitter::CreateGraphRequest request) -> bool
+		[this](size_t attempt, gemitter::CreateModelRequest request) -> bool
 		{
 			std::string sid = fmts::to_string(std::this_thread::get_id());
 			if (attempt >= max_attempts)
 			{
-				logs::warnf("%s: CreateGraphRequest max attempt exceeded", sid.c_str());
+				logs::warnf("%s: CreateModelRequest max attempt exceeded", sid.c_str());
 				return true;
 			}
 			grpc::ClientContext context;
-			gemitter::CreateGraphResponse response;
+			gemitter::CreateModelResponse response;
 			// set context deadline
 			std::chrono::time_point<std::chrono::system_clock> deadline =
 				std::chrono::system_clock::now() + cfg_.request_duration_;
 			context.set_deadline(deadline);
 
-			grpc::Status status = this->stub_->CreateGraph(
+			grpc::Status status = this->stub_->CreateModel(
 				&context, request, &response);
 			if (status.ok())
 			{
@@ -107,13 +107,13 @@ struct GraphEmitterClient final
 				}
 				else
 				{
-					logs::infof("%s: CreateGraphRequest success: %s",
+					logs::infof("%s: CreateModelRequest success: %s",
 						sid.c_str(), response.message().c_str());
 				}
 				return true;
 			}
 			logs::errorf(
-				"%s: CreateGraphRequest attempt %d failure: %s",
+				"%s: CreateModelRequest attempt %d failure: %s",
 				sid.c_str(), attempt, status.error_message().c_str());
 			std::this_thread::sleep_for(
 				std::chrono::milliseconds(attempt * 1000));
@@ -178,27 +178,27 @@ struct GraphEmitterClient final
 		}, std::move(requests), std::move(update_it));
 	}
 
-	void delete_graph (std::string sess_id)
+	void delete_model (std::string sess_id)
 	{
-		gemitter::DeleteGraphRequest request;
-		request.set_graph_id(sess_id);
+		gemitter::DeleteModelRequest request;
+		request.set_model_id(sess_id);
 		sequential_jobs_.attach_job(
-		[this](size_t attempt, gemitter::DeleteGraphRequest request) -> bool
+		[this](size_t attempt, gemitter::DeleteModelRequest request) -> bool
 		{
 			std::string sid = fmts::to_string(std::this_thread::get_id());
 			if (attempt >= max_attempts)
 			{
-				logs::warnf("%s: DeleteGraph max attempt exceeded", sid.c_str());
+				logs::warnf("%s: DeleteModel max attempt exceeded", sid.c_str());
 				return true;
 			}
 			grpc::ClientContext context;
-			gemitter::DeleteGraphResponse response;
+			gemitter::DeleteModelResponse response;
 			// set context deadline
 			std::chrono::time_point<std::chrono::system_clock> deadline =
 				std::chrono::system_clock::now() + cfg_.request_duration_;
 			context.set_deadline(deadline);
 
-			grpc::Status status = this->stub_->DeleteGraph(
+			grpc::Status status = this->stub_->DeleteModel(
 				&context, request, &response);
 			if (status.ok())
 			{
@@ -211,13 +211,13 @@ struct GraphEmitterClient final
 				}
 				else
 				{
-					logs::infof("%s: DeleteGraph success: %s",
+					logs::infof("%s: DeleteModel success: %s",
 						sid.c_str(), response.message().c_str());
 				}
 				return true;
 			}
 			logs::errorf(
-				"%s: DeleteGraph attempt %d failure: %s",
+				"%s: DeleteModel attempt %d failure: %s",
 				sid.c_str(), attempt, status.error_message().c_str());
 			std::this_thread::sleep_for(
 				std::chrono::milliseconds(attempt * 1000));

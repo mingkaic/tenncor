@@ -57,7 +57,7 @@ TrainErrF<T> sgd_train (layr::UnaryF<T> connect, teq::iSession& sess,
 				sess.update_target(sources);
 			});
 		sess.update_target({error.get()});
-		T* data = error->data();
+		T* data = (T*) error->data();
 		teq::Shape shape = error->shape();
 		return teq::ShapedArr<T>{shape,
 			std::vector<T>(data, data + shape.n_elems()),

@@ -12,8 +12,7 @@
 
 #include "dbg/emit/session.hpp"
 
-#include "layr/seqmodel.hpp"
-#include "layr/ulayer.hpp"
+#include "layr/api.hpp"
 
 #include "rocnnet/trainer/sgd_trainer.hpp"
 
@@ -86,45 +85,53 @@ int main (int argc, const char** argv)
 	}
 
 	uint8_t n_in = 10;
+	uint8_t n_hid = 9;
 	uint8_t n_out = n_in / 2;
 	std::vector<teq::DimT> n_outs = {9, n_out};
 
-	layr::SequentialModel model("demo");
-	model.push_back(std::make_shared<layr::Dense>(9, teq::Shape({n_in}),
-		layr::unif_xavier_init<PybindT>(1),
-		layr::zero_init<PybindT>(), nullptr, "0"));
-	model.push_back(layr::sigmoid());
-	model.push_back(std::make_shared<layr::Dense>(n_out, teq::Shape({9}),
-		layr::unif_xavier_init<PybindT>(1),
-		layr::zero_init<PybindT>(), nullptr, "1"));
-	model.push_back(layr::sigmoid());
+	auto model_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in}));
+	auto interm0 = layr::dense(eteq::ETensor<PybindT>(model_input), {n_hid},
+		layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>());
+	auto interm1 = tenncor::sigmoid(interm0);
+	auto interm2 = layr::dense(interm1, {n_out},
+		layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>());
+	auto interm3 = tenncor::sigmoid(interm2);
+	layr::ManagedModel<PybindT> model(interm3, eteq::ETensor<PybindT>(model_input));
 
-	layr::SequentialModel untrained_model(model);
-	layr::SeqModelptrT trained_model = nullptr;
+	layr::ManagedModel<PybindT> untrained_model = model;
+	layr::ManagedModel<PybindT> trained_model = model;
 
 	std::ifstream loadstr(loadpath);
-	if (loadstr.is_open())
+	try
 	{
-		teq::TensptrsT trained_roots;
-		trained_model = std::static_pointer_cast<layr::SequentialModel>(
-			layr::load_layer(loadstr, trained_roots, layr::seq_model_key, "demo"));
+		if (false == loadstr.is_open())
+		{
+			throw std::exception();
+		}
+		onnx::ModelProto pb_model;
+		if (false == pb_model.ParseFromIstream(&loadstr))
+		{
+			throw std::exception();
+		}
+		trained_model.load(pb_model);
 		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
-	else
+	catch (...)
 	{
 		logs::warnf("model failed to loaded from file `%s`", loadpath.c_str());
-		trained_model = std::make_shared<layr::SequentialModel>(model);
 	}
 
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
-	layr::ApproxF approx = [](const layr::VarErrsT& leaves)
-	{
-		return layr::sgd(leaves, 0.9); // learning rate = 0.9
-	};
+	layr::ApproxF<PybindT> approx =
+		[](const layr::VarErrsT<PybindT>& leaves)
+		{
+			return layr::sgd<PybindT>(leaves, 0.9); // learning rate = 0.9
+		};
 	dbg::InteractiveSession sess("localhost:50051");
 	{
+
 	jobs::ScopeGuard defer(
 		[&sess]()
 		{
@@ -137,19 +144,15 @@ int main (int argc, const char** argv)
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
-	auto train = trainer::sgd_train(model, sess,
+	auto train = trainer::sgd_train(model.get_builder(), sess,
 		eteq::ETensor<PybindT>(train_input), eteq::ETensor<PybindT>(train_output), approx);
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");
-	auto untrained_out = untrained_model.connect(eteq::ETensor<PybindT>(testin));
-	auto out = model.connect(eteq::ETensor<PybindT>(testin));
-	auto trained_out = trained_model->connect(eteq::ETensor<PybindT>(testin));
-	sess.track({
-		untrained_out,
-		out,
-		trained_out,
-	});
+	auto untrained_out = untrained_model.retrail(eteq::ETensor<PybindT>(testin));
+	auto out = model.retrail(eteq::ETensor<PybindT>(testin));
+	auto trained_out = trained_model.retrail(eteq::ETensor<PybindT>(testin));
+	sess.track({untrained_out, out, trained_out});
 
 	auto rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
 	eteq::optimize<PybindT>(sess, rules);
@@ -180,9 +183,9 @@ int main (int argc, const char** argv)
 	float trained_err = 0;
 	float pretrained_err = 0;
 
-	float* untrained_res = untrained_out->data();
-	float* trained_res = out->data();
-	float* pretrained_res = trained_out->data();
+	float* untrained_res = (PybindT*) untrained_out->data();
+	float* trained_res = (PybindT*) out->data();
+	float* pretrained_res = (PybindT*) trained_out->data();
 	for (size_t i = 0; i < n_test; i++)
 	{
 		if (i % show_every_n == show_every_n - 1)
@@ -220,7 +223,9 @@ int main (int argc, const char** argv)
 		std::ofstream savestr(savepath);
 		if (savestr.is_open())
 		{
-			if (layr::save_layer(savestr, model, {}))
+			onnx::ModelProto pb_model;
+			model.save(pb_model);
+			if (pb_model.SerializeToOstream(&savestr))
 			{
 				logs::infof("successfully saved model to `%s`", savepath.c_str());
 			}
@@ -231,9 +236,9 @@ int main (int argc, const char** argv)
 			logs::warnf("failed to save model to `%s`", savepath.c_str());
 		}
 	}
+
 	}
 
 	google::protobuf::ShutdownProtobufLibrary();
-
 	return exit_status;
 }
