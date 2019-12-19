@@ -489,8 +489,8 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 			break;
 		case egen::MATMUL:
 		{
-			eigen::PairVecT<teq::RankT> dims;
-			Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, func);
+			PairVecT<teq::RankT> dims;
+			Packer<PairVecT<teq::RankT>>().unpack(dims, func);
 
 			// matmul = <left> * <right> then reduce sum by common dimensions
 			// so apply range rule for product, then for reduce sum

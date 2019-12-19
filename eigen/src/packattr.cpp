@@ -5,9 +5,9 @@
 namespace eigen
 {
 
-std::string Packer<eigen::PairVecT<teq::DimT>>::key_ = "dimension_pairs";
+std::string Packer<PairVecT<teq::DimT>>::key_ = "dimension_pairs";
 
-std::string Packer<eigen::PairVecT<teq::RankT>>::key_ = "rank_pairs";
+std::string Packer<PairVecT<teq::RankT>>::key_ = "rank_pairs";
 
 std::string Packer<std::vector<teq::DimT>>::key_ = "dimensions";
 

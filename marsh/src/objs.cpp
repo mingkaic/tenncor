@@ -5,7 +5,7 @@
 namespace marsh
 {
 
-void get_attrs (marsh::Maps& mvalues, const iAttributed& attributed)
+void get_attrs (Maps& mvalues, const iAttributed& attributed)
 {
 	auto keys = attributed.ls_attrs();
 	for (std::string key : keys)

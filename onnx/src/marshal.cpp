@@ -98,8 +98,17 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs)
 			}
 				break;
 			case AttributeProto::GRAPH:
-				subgraph = &pb_attr.g();
-				continue;
+				if (pb_attr.name() == subgraph_key)
+				{
+					subgraph = &pb_attr.g();
+					continue;
+				}
+				else
+				{
+					logs::warnf("unknown graph attribute %s",
+						pb_attr.name().c_str());
+				}
+				break;
 			default:
 				logs::fatal("unknown onnx attribute type");
 		}

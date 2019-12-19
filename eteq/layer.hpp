@@ -212,6 +212,15 @@ private:
 				storages_.push_back(std::static_pointer_cast<
 					Variable<T>>(owner.at(gpair.first).lock()));
 			}
+			else if (auto sublay = dynamic_cast<Layer<T>*>(gpair.first))
+			{
+				auto subvars = sublay->get_storage();
+				for (teq::TensptrT var : subvars)
+				{
+					storages_.push_back(
+						std::static_pointer_cast<Variable<T>>(var));
+				}
+			}
 		}
 	}
 

@@ -11,7 +11,7 @@ struct iLayer : public iFunctor
 	virtual ~iLayer (void) = default;
 
 	/// Implementation of iTensor
-	teq::Shape shape (void) const override
+	Shape shape (void) const override
 	{
 		return get_root()->shape();
 	}

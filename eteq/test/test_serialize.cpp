@@ -71,12 +71,12 @@ TEST(SERIALIZE, SaveGraph)
 	auto dw1 = eteq::derive(err, weight1);
 	auto db1 = eteq::derive(err, bias1);
 
-	eteq::save_graph(graph, {
-		dw0,
-		db0,
-		dw1,
-		db1,
-	});
+	onnx::TensIdT ids;
+	ids.insert({dw0.get(), "dw0"});
+	ids.insert({db0.get(), "db0"});
+	ids.insert({dw1.get(), "dw1"});
+	ids.insert({db1.get(), "db1"});
+	eteq::save_graph(graph, {dw0, db0, dw1, db1}, ids);
 	{
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
@@ -113,9 +113,22 @@ TEST(SERIALIZE, LoadGraph)
 		ASSERT_TRUE(in.ParseFromIstream(&inputstr));
 	}
 
-	teq::TensptrsT out;
-	eteq::load_graph(out, in);
+	onnx::TensptrIdT ids;
+	teq::TensptrsT out = eteq::load_graph(ids, in);
 	EXPECT_EQ(4, out.size());
+
+	ASSERT_HAS(ids.right, "dw0");
+	ASSERT_HAS(ids.right, "db0");
+	ASSERT_HAS(ids.right, "dw1");
+	ASSERT_HAS(ids.right, "db1");
+	auto dw0 = ids.right.at("dw0");
+	auto db0 = ids.right.at("db0");
+	auto dw1 = ids.right.at("dw1");
+	auto db1 = ids.right.at("db1");
+	ASSERT_NE(nullptr, dw0);
+	ASSERT_NE(nullptr, db0);
+	ASSERT_NE(nullptr, dw1);
+	ASSERT_NE(nullptr, db1);
 
 	std::string expect;
 	std::string got;
@@ -135,10 +148,10 @@ TEST(SERIALIZE, LoadGraph)
 
 	PrettyEquation artist;
 	std::stringstream gotstr;
-	for (auto t : out)
-	{
-		artist.print(gotstr, t);
-	}
+	artist.print(gotstr, dw0);
+	artist.print(gotstr, db0);
+	artist.print(gotstr, dw1);
+	artist.print(gotstr, db1);
 
 	while (std::getline(gotstr, line))
 	{

@@ -35,7 +35,7 @@ TEST(RBM, Connection)
 		" |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
 		" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
-		"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])",
+		"     `--(variable:hbias[5\\1\\1\\1\\1\\1\\1\\1])",
 		bytens->get_root());
 
 	EXPECT_GRAPHEQ(
@@ -73,7 +73,7 @@ TEST(RBM, BackwardConnection)
 		" |   `--(PERMUTE[6\\5\\1\\1\\1\\1\\1\\1])\n"
 		" |       `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
 		" `--(EXTEND[6\\2\\1\\1\\1\\1\\1\\1])\n"
-		"     `--(variable:bias[6\\1\\1\\1\\1\\1\\1\\1])",
+		"     `--(variable:vbias[6\\1\\1\\1\\1\\1\\1\\1])",
 		bxtens->get_root());
 
 	EXPECT_GRAPHEQ(

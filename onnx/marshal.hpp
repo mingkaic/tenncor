@@ -1,3 +1,5 @@
+#include <boost/bimap.hpp>
+
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
 
@@ -10,6 +12,10 @@
 
 namespace onnx
 {
+
+using TensIdT = boost::bimap<teq::iTensor*,std::string>;
+
+using TensptrIdT = boost::bimap<teq::TensptrT,std::string>;
 
 using PbAttrsT = ::google::protobuf::RepeatedPtrField<AttributeProto>;
 
@@ -103,6 +109,8 @@ struct OnnxAttrMarshaler final : public marsh::iMarshaler
 
 	AttributeProto* out_;
 };
+
+const std::string id_prelim = "::";
 
 const std::string leafname_key = "TENSOR_NAME";
 

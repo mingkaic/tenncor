@@ -8,7 +8,11 @@
 
 #include "testutil/tutil.hpp"
 
+#include "eteq/serialize.hpp"
+
 #include "layr/api.hpp"
+
+#include <google/protobuf/util/json_util.h>
 
 
 TEST(DENSE, Connection)
@@ -45,70 +49,69 @@ TEST(DENSE, Connection)
 }
 
 
-// TEST(DENSE, Serialization)
-// {
-// 	std::stringstream ss;
-// 	std::string label = "very_dense";
-// 	teq::DimT ninput = 6, noutput = 5;
-// 	std::vector<float> weight_data;
-// 	std::vector<float> bias_data;
-// 	{
-// 		// save
-// 		layr::Dense dense(noutput, teq::Shape({ninput}),
-// 			layr::unif_xavier_init<float>(2),
-// 			layr::unif_xavier_init<float>(4),
-// 			nullptr,
-// 			label);
+TEST(DENSE, Serialization)
+{
+	onnx::GraphProto graph;
 
-// 		auto contents = dense.get_contents();
-// 		ASSERT_EQ(3, contents.size());
-// 		auto weight = contents[0];
-// 		auto bias = contents[1];
-// 		auto params = contents[2];
-// 		ASSERT_EQ(nullptr, params);
-// 		float* w = eteq::ETensor<float>(weight)->data();
-// 		float* b = eteq::ETensor<float>(bias)->data();
-// 		weight_data = std::vector<float>(w, w + weight->shape2().n_elems());
-// 		bias_data = std::vector<float>(b, b + bias->shape2().n_elems());
+	teq::DimT ninput = 6, noutput = 5;
+	std::vector<float> weight_data;
+	std::vector<float> bias_data;
+	{
+		auto x = eteq::make_variable_scalar<float>(
+			0, teq::Shape({ninput, 2}), "x");
+		auto y = layr::dense(eteq::ETensor<float>(x), {noutput},
+			layr::unif_xavier_init<float>(2),
+			layr::unif_xavier_init<float>(4));
+		auto ytens = dynamic_cast<eteq::Layer<float>*>(y.get());
+		ASSERT_NE(nullptr, ytens);
+		auto contents = ytens->get_storage();
+		ASSERT_EQ(2, contents.size());
+		teq::TensptrT weight, bias;
+		if (contents[0]->to_string() == layr::weight_key)
+		{
+			weight = contents[0];
+			bias = contents[1];
+		}
+		else
+		{
+			bias = contents[0];
+			weight = contents[1];
+		}
+		float* w = (float*) weight->data();
+		float* b = (float*) bias->data();
+		weight_data = std::vector<float>(w, w + weight->shape().n_elems());
+		bias_data = std::vector<float>(b, b + bias->shape().n_elems());
+		EXPECT_GRAPHEQ(
+			"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			" `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			" |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+			" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
+			" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])",
+			ytens->get_root());
 
-// 		auto x = eteq::make_variable_scalar<float>(
-// 			0, teq::Shape({6, 2}), "x");
-// 		auto y = dense.connect(eteq::ETensor<float>(x));
+		eteq::save_graph(graph, {y});
+	}
+	ASSERT_EQ(noutput * ninput, weight_data.size());
+	ASSERT_EQ(noutput, bias_data.size());
+	{
+		// load
+		onnx::TensptrIdT ids;
+		teq::TensptrsT roots = eteq::load_graph(ids, graph);
+		ASSERT_EQ(1, roots.size());
 
-// 		layr::save_layer(ss, dense, {y});
-// 	}
-// 	ASSERT_EQ(noutput * ninput, weight_data.size());
-// 	ASSERT_EQ(noutput, bias_data.size());
-// 	{
-// 		// load
-// 		teq::TensptrsT roots;
-// 		auto dense = layr::load_layer(ss, roots,
-// 			layr::dense_layer_key, label);
-
-// 		// verify layer
-// 		auto contents = dense->get_contents();
-// 		ASSERT_EQ(3, contents.size());
-// 		auto weight = contents[0];
-// 		auto bias = contents[1];
-// 		teq::Shape exwshape({noutput, ninput});
-// 		teq::Shape exbshape({noutput});
-// 		auto wshape = weight->shape2();
-// 		auto bshape = bias->shape2();
-// 		ASSERT_ARREQ(exwshape, wshape);
-// 		ASSERT_ARREQ(exbshape, bshape);
-// 		float* w = eteq::ETensor<float>(weight)->data();
-// 		float* b = eteq::ETensor<float>(bias)->data();
-// 		std::vector<float> gotw(w, w + weight->shape2().n_elems());
-// 		std::vector<float> gotb(b, b + bias->shape2().n_elems());
-// 		EXPECT_VECEQ(weight_data, gotw);
-// 		EXPECT_VECEQ(bias_data, gotb);
-
-// 		// verify root
-// 		ASSERT_EQ(2, roots.size());
-// 		EXPECT_GRAPHEQ("(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", roots[0]);
-// 		EXPECT_GRAPHEQ("(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])", roots[1]);
-// 	}
-// }
+		auto ytens = dynamic_cast<eteq::Layer<float>*>(roots.front().get());
+		ASSERT_NE(nullptr, ytens);
+		EXPECT_GRAPHEQ(
+			"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			" `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			" |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+			" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
+			" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])",
+			ytens->get_root());
+	}
+}
 
 
 #endif // DISABLE_DENSE_TEST

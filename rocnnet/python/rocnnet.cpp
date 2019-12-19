@@ -12,19 +12,12 @@
 
 #include "layr/init.hpp"
 
-#include "layr/ulayer.hpp"
-#include "layr/dense.hpp"
-#include "layr/rbm.hpp"
-#include "layr/conv.hpp"
-#include "layr/rnn.hpp"
-#include "layr/lstm.hpp"
-#include "layr/gru.hpp"
-#include "layr/seqmodel.hpp"
+#include "layr/api.hpp"
 
 #include "rocnnet/trainer/sgd_trainer.hpp"
-#include "rocnnet/trainer/dqn_trainer.hpp"
 #include "rocnnet/trainer/rbm_trainer.hpp"
-#include "rocnnet/trainer/dbn_trainer.hpp"
+// #include "rocnnet/trainer/dqn_trainer.hpp"
+// #include "rocnnet/trainer/dbn_trainer.hpp"
 
 namespace py = pybind11;
 

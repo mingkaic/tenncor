@@ -20,12 +20,18 @@
 namespace onnx
 {
 
-const std::string model_attr = "model_structure";
+struct iMarshFuncs
+{
+	virtual ~iMarshFuncs (void) = default;
 
-using LeafMarshF = std::function<void(TensorProto&,const teq::iLeaf&)>;
+	virtual size_t get_typecode (const teq::iTensor& tens) const = 0;
 
-void save_graph (GraphProto& pb_graph,
-	teq::TensptrsT roots, LeafMarshF marshal_leaf);
+	virtual void marsh_leaf (
+		TensorProto& pb_tens, const teq::iLeaf& leaf) const = 0;
+};
+
+void save_graph (GraphProto& pb_graph, teq::TensptrsT roots,
+	const iMarshFuncs& marshaler, const TensIdT& identified = {});
 
 }
 

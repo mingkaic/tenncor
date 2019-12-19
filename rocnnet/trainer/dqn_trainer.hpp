@@ -1,7 +1,7 @@
 #include "eteq/optimize.hpp"
 #include "eteq/derive.hpp"
 
-#include "layr/seqmodel.hpp"
+#include "layr/api.hpp"
 
 #ifndef RCN_DQN_TRAINER_HPP
 #define RCN_DQN_TRAINER_HPP

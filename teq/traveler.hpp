@@ -212,7 +212,7 @@ struct Copier final : public OnceTraveler
 {
 	Copier (TensSetT ignores = {}) : ignores_(ignores) {}
 
-	std::unordered_map<teq::iTensor*,teq::TensptrT> clones_;
+	std::unordered_map<iTensor*,TensptrT> clones_;
 
 	TensSetT ignores_;
 

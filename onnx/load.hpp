@@ -22,20 +22,19 @@ struct iUnmarshFuncs
 	virtual ~iUnmarshFuncs (void) = default;
 
 	virtual teq::TensptrT unmarsh_leaf (const TensorProto& pb_tens,
-		teq::Usage usage, std::string name) = 0;
+		teq::Usage usage, std::string name) const = 0;
 
 	virtual teq::TensptrT unmarsh_func (std::string opname,
-		const teq::TensptrsT& children, marsh::Maps&& attrs) = 0;
+		const teq::TensptrsT& children, marsh::Maps&& attrs) const = 0;
 
 	virtual teq::TensptrT unmarsh_layr (std::string opname,
 		const teq::TensptrsT& roots, const teq::TensptrsT& children,
-		marsh::Maps&& attrs) = 0;
+		marsh::Maps&& attrs) const = 0;
 };
 
-/// Return graph info through out available from in graph
-void load_graph (teq::TensptrsT& roots,
-	const GraphProto& pb_graph, iUnmarshFuncs& unmarshaler,
-	std::unordered_map<std::string,teq::TensptrT> created_tens = {});
+/// Return graph roots mapped to their ids through out available from in graph
+teq::TensptrsT load_graph (TensptrIdT& identified_tens,
+	const GraphProto& pb_graph, const iUnmarshFuncs& unmarshaler);
 
 }
 

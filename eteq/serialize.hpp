@@ -17,9 +17,11 @@
 namespace eteq
 {
 
-void save_graph (onnx::GraphProto& pb_graph, teq::TensptrsT roots);
+void save_graph (onnx::GraphProto& pb_graph, teq::TensptrsT roots,
+	const onnx::TensIdT& identified = {});
 
-void load_graph (teq::TensptrsT& roots, const onnx::GraphProto& pb_graph);
+teq::TensptrsT load_graph (onnx::TensptrIdT& identified_tens,
+	const onnx::GraphProto& pb_graph);
 
 }
 

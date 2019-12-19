@@ -42,6 +42,7 @@ cc_library(
         "//teq:teq",
         "//onnx:onnx_cc_proto",
         "@boost//:uuid",
+        "@boost//:bimap",
     ],
 )
 ######### TOOLS #########

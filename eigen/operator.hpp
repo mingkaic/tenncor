@@ -255,8 +255,8 @@ EigenptrT<T> reshape (teq::Shape outshape, const teq::iTensor& in)
 template <typename T>
 EigenptrT<T> slice (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
-	eigen::PairVecT<teq::DimT> encoding;
-	Packer<eigen::PairVecT<teq::DimT>>().unpack(encoding, attrib);
+	PairVecT<teq::DimT> encoding;
+	Packer<PairVecT<teq::DimT>>().unpack(encoding, attrib);
 
 	teq::Shape shape = in.shape();
 	teq::ShapeT offsets;
@@ -281,7 +281,7 @@ EigenptrT<T> slice (teq::Shape outshape, const teq::iTensor& in, const marsh::iA
 		// SINCE tensor is column major, index of last dimension denote
 		// the number of batches before start of output slice
 		// (a batch defined as the subtensor of shape shape[:lastdim])
-		return std::make_shared<eigen::EigenRef<T>>(
+		return std::make_shared<EigenRef<T>>(
 			(T*) in.data() + index * batchsize);
 	}
 	DimensionsT outdims = shape_convert(outshape);
@@ -374,8 +374,8 @@ EigenptrT<T> group_prod (teq::Shape outshape, const teq::TensptrsT& group)
 template <typename T>
 EigenptrT<T> pad (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
-	eigen::PairVecT<teq::DimT> encoding;
-	Packer<eigen::PairVecT<teq::DimT>>().unpack(encoding, attrib);
+	PairVecT<teq::DimT> encoding;
+	Packer<PairVecT<teq::DimT>>().unpack(encoding, attrib);
 
 	std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap> paddings;
 	std::fill(paddings.begin(), paddings.end(),
@@ -1326,8 +1326,8 @@ return args[1].contract(args[0], internal::dim_copy<N>(ARR)).reshape(outdims); }
 template <typename T>
 EigenptrT<T> matmul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b, const marsh::iAttributed& attrib)
 {
-	eigen::PairVecT<teq::RankT> dims;
-	Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, attrib);
+	PairVecT<teq::RankT> dims;
+	Packer<PairVecT<teq::RankT>>().unpack(dims, attrib);
 
 	for (size_t i = 0, n = dims.size(); i < n; ++i)
 	{

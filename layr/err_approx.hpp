@@ -10,6 +10,7 @@
 
 #include "teq/session.hpp"
 
+#include "eteq/generated/api.hpp"
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/make.hpp"
 
@@ -19,42 +20,52 @@
 namespace layr
 {
 
+template <typename T>
+using VarErrT = std::pair<eteq::VarptrT<T>,eteq::ETensor<T>>;
+
 /// Ordered association between variable and error
-using VarErrsT = std::vector<std::pair<eteq::VarptrT<PybindT>,eteq::ETensor<PybindT>>>;
+template <typename T>
+using VarErrsT = std::vector<VarErrT<T>>;
 
 /// Variable and error approximation assignment encapsulation
+template <typename T>
 struct VarAssign
 {
-	/// Representation of assignment
-	std::string label_;
-
 	/// Variable to assign to
-	eteq::VarptrT<PybindT> target_;
+	eteq::VarptrT<T> target_;
 
 	/// Variable update as to minimize the error in future iterations
-	eteq::ETensor<PybindT> source_;
+	eteq::ETensor<T> source_;
 };
 
 /// One batch of assignments
-using AssignsT = std::vector<VarAssign>;
+template <typename T>
+using AssignsT = std::vector<VarAssign<T>>;
 
 /// All batches of assignments
-using AssignGroupsT = std::vector<AssignsT>;
+template <typename T>
+using AssignGroupsT = std::vector<AssignsT<T>>;
 
 /// Function that returns the error between two nodes,
 /// left node contains expected values, right contains resulting values
-using ErrorF = std::function<eteq::ETensor<PybindT>(eteq::ETensor<PybindT>,eteq::ETensor<PybindT>)>;
+template <typename T>
+using ErrorF = std::function<eteq::ETensor<T>(eteq::ETensor<T>,eteq::ETensor<T>)>;
 
 /// Function that approximate error of sources
 /// given a vector of variables and its corresponding errors
-using ApproxF = std::function<AssignGroupsT(const VarErrsT&)>;
+template <typename T>
+using ApproxF = std::function<AssignGroupsT<T>(const VarErrsT<T>&)>;
 
 /// Function that runs before or after variable assignment
 /// to calculate approximation graphs
 using UpdateStepF = std::function<void(teq::TensSetT&)>;
 
 /// Return square(expect - got)
-eteq::ETensor<PybindT> sqr_diff (eteq::ETensor<PybindT> expect, eteq::ETensor<PybindT> got);
+template <typename T>
+eteq::ETensor<T> sqr_diff (eteq::ETensor<T> expect, eteq::ETensor<T> got)
+{
+	return tenncor::square(expect - got);
+}
 
 /// Return all batches of variable assignments of
 /// stochastic gradient descent error approximation applied to
@@ -65,11 +76,49 @@ eteq::ETensor<PybindT> sqr_diff (eteq::ETensor<PybindT> expect, eteq::ETensor<Py
 /// x_next ~ x_curr - η * err,
 ///
 /// where η is the learning rate
-AssignGroupsT sgd (const VarErrsT& leaves,
-	PybindT learning_rate = 0.5, std::string root_label = "");
+template <typename T>
+AssignGroupsT<T> sgd (const VarErrsT<T>& assocs,
+	T learning_rate = 0.5)
+{
+	AssignsT<T> assignments;
+	assignments.reserve(assocs.size());
+	std::transform(assocs.begin(), assocs.end(),
+	std::back_inserter(assignments),
+	[&](VarErrT<T> verrs)
+	{
+		auto next = eteq::ETensor<T>(verrs.first) -
+			verrs.second * learning_rate;
+		return VarAssign<T>{verrs.first, next};
+	});
+	return {assignments};
+}
 
-AssignGroupsT adagrad (const VarErrsT& leaves, PybindT learning_rate,
-	PybindT epsilon, std::string root_label = "");
+template <typename T>
+AssignGroupsT<T> adagrad (const VarErrsT<T>& assocs,
+	T learning_rate = 0.5,
+	T epsilon = std::numeric_limits<T>::epsilon())
+{
+	// assign momentums before leaves
+	size_t nassocs = assocs.size();
+	AssignsT<T> momentums;
+	AssignsT<T> leaves;
+	momentums.reserve(nassocs);
+	leaves.reserve(nassocs);
+	for (size_t i = 0; i < nassocs; ++i)
+	{
+		eteq::VarptrT<T> momentum = eteq::make_variable_like<T>(
+			1, assocs[i].second, "momentum");
+
+		auto next_momentum = eteq::ETensor<T>(momentum) +
+			tenncor::square(assocs[i].second);
+		auto leaf_next = eteq::ETensor<T>(assocs[i].first) -
+			assocs[i].second * learning_rate /
+			(tenncor::sqrt(eteq::ETensor<T>(momentum)) + epsilon);
+		momentums.push_back(VarAssign<T>{momentum, next_momentum});
+		leaves.push_back(VarAssign<T>{assocs[i].first, leaf_next});
+	}
+	return {momentums, leaves};
+}
 
 /// Return all batches of variable assignments of
 /// momentum-based rms error approximation applied to
@@ -83,16 +132,70 @@ AssignGroupsT adagrad (const VarErrsT& leaves, PybindT learning_rate,
 /// where η is the learning rate, ε is epsilon,
 /// and χ is discount_factor
 /// initial momentum is 1
-AssignGroupsT rms_momentum (const VarErrsT& leaves,
-	PybindT learning_rate = 0.5, PybindT discount_factor = 0.99,
-	PybindT epsilon = std::numeric_limits<PybindT>::epsilon(),
-	std::string root_label = "");
+template <typename T>
+AssignGroupsT<T> rms_momentum (const VarErrsT<T>& assocs,
+	T learning_rate = 0.5,
+	T discount_factor = 0.99,
+	T epsilon = std::numeric_limits<T>::epsilon())
+{
+	// assign momentums before leaves
+	size_t nassocs = assocs.size();
+	AssignsT<T> momentums;
+	AssignsT<T> leaves;
+	momentums.reserve(nassocs);
+	leaves.reserve(nassocs);
+	for (size_t i = 0; i < nassocs; ++i)
+	{
+		eteq::VarptrT<T> momentum = eteq::make_variable_like<T>(
+			1, assocs[i].second, "momentum");
+
+		auto momentum_next = discount_factor * eteq::ETensor<T>(momentum) +
+			((T) 1 - discount_factor) * tenncor::square(assocs[i].second);
+		auto leaf_next = eteq::ETensor<T>(assocs[i].first) -
+			assocs[i].second * learning_rate /
+			(tenncor::sqrt(eteq::ETensor<T>(momentum)) + epsilon);
+		momentums.push_back(VarAssign<T>{momentum, momentum_next});
+		leaves.push_back(VarAssign<T>{assocs[i].first, leaf_next});
+	}
+	return {momentums, leaves};
+}
 
 /// Apply all batches of assignments with update_step applied after each batch
-void assign_groups (const AssignGroupsT& groups, UpdateStepF update_step);
+template <typename T>
+void assign_groups (
+	const AssignGroupsT<T>& groups, UpdateStepF update_step)
+{
+	for (const AssignsT<T>& group : groups)
+	{
+		teq::TensSetT updated_var;
+		for (const VarAssign<T>& assign : group)
+		{
+			updated_var.emplace(assign.target_.get());
+			assign.target_->assign(*assign.source_);
+		}
+		update_step(updated_var);
+	}
+}
 
 /// Apply all batches of assignments with update_step applied before each batch
-void assign_groups_preupdate (const AssignGroupsT& groups, UpdateStepF update_step);
+template <typename T>
+void assign_groups_preupdate (
+	const AssignGroupsT<T>& groups, UpdateStepF update_step)
+{
+	for (const AssignsT<T>& group : groups)
+	{
+		teq::TensSetT sources;
+		for (const VarAssign<T>& assign : group)
+		{
+			sources.emplace(assign.source_.get());
+		}
+		update_step(sources);
+		for (const VarAssign<T>& assign : group)
+		{
+			assign.target_->assign(*assign.source_);
+		}
+	}
+}
 
 }
 

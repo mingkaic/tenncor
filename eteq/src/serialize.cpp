@@ -23,11 +23,24 @@ static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 {
 	std::vector<CAST> cdata(data.begin(), data.end());
 	CAST* ptr = cdata.data();
-	if (teq::Immutable == usage)
+	teq::TensptrT out;
+	switch (usage) {
+	case teq::Immutable:
+		out = teq::TensptrT(Constant<CAST>::get(ptr, shape));
+		break;
+	case teq::Variable:
+		out = teq::TensptrT(Variable<CAST>::get(ptr, shape, label, usage));
+		break;
+	case teq::Placeholder:
 	{
-		return teq::TensptrT(Constant<CAST>::get(ptr, shape));
+		std::vector<CAST> z(shape.n_elems(), 0);
+		out = teq::TensptrT(Variable<CAST>::get(z.data(), shape, label, usage));
 	}
-	return teq::TensptrT(Variable<CAST>::get(ptr, shape, label, usage));
+		break;
+	default:
+		logs::fatal("cannot unpack leaf of unknown usage");
+	}
+	return out;
 }
 
 template <typename T>
@@ -58,65 +71,76 @@ static const std::unordered_map<
 	{"INT64", onnx::TensorProto::INT64},
 };
 
-static void save_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf)
+struct MarshFuncs final : public onnx::iMarshFuncs
 {
-	char* data = (char*) leaf.data();
-	size_t nelems = leaf.shape().n_elems();
-	auto type_code = (egen::_GENERATED_DTYPE) leaf.type_code();
-	auto code_name = egen::name_type(type_code);
-	auto onnx_type = name2onnxtype.at(code_name);
-	out.set_data_type(onnx_type);
-	switch (onnx_type)
+	size_t get_typecode (const teq::iTensor& tens) const override
 	{
-		case onnx::TensorProto::DOUBLE:
-			pack<double>(data, nelems, out,
-				&onnx::TensorProto::add_double_data);
-			break;
-		case onnx::TensorProto::FLOAT:
-			pack<float>(data, nelems, out,
-				&onnx::TensorProto::add_float_data);
-			break;
-		case onnx::TensorProto::UINT8:
-			pack<uint8_t>(data, nelems, out,
-				&onnx::TensorProto::add_int32_data);
-			break;
-		case onnx::TensorProto::INT8:
-			pack<int8_t>(data, nelems, out,
-				&onnx::TensorProto::add_int32_data);
-			break;
-		case onnx::TensorProto::UINT16:
-			pack<uint16_t>(data, nelems, out,
-				&onnx::TensorProto::add_int32_data);
-			break;
-		case onnx::TensorProto::INT16:
-			pack<int16_t>(data, nelems, out,
-				&onnx::TensorProto::add_int32_data);
-			break;
-		case onnx::TensorProto::UINT32:
-			pack<uint32_t>(data, nelems, out,
-				&onnx::TensorProto::add_uint64_data);
-			break;
-		case onnx::TensorProto::INT32:
-			pack<int32_t>(data, nelems, out,
-				&onnx::TensorProto::add_int32_data);
-			break;
-		case onnx::TensorProto::UINT64:
-			pack<uint64_t>(data, nelems, out,
-				&onnx::TensorProto::add_uint64_data);
-			break;
-		case onnx::TensorProto::INT64:
-			pack<int64_t>(data, nelems, out,
-				&onnx::TensorProto::add_int64_data);
-			break;
-		default:
-			logs::fatalf("unknown onnx type %d", onnx_type);
+		auto type_code = (egen::_GENERATED_DTYPE) tens.type_code();
+		auto code_name = egen::name_type(type_code);
+		return name2onnxtype.at(code_name);
 	}
-}
+
+	void marsh_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf) const override
+	{
+		char* data = (char*) leaf.data();
+		size_t nelems = leaf.shape().n_elems();
+		auto type_code = (egen::_GENERATED_DTYPE) leaf.type_code();
+		auto code_name = egen::name_type(type_code);
+		auto onnx_type = name2onnxtype.at(code_name);
+		out.set_data_type(onnx_type);
+		switch (onnx_type)
+		{
+			case onnx::TensorProto::DOUBLE:
+				pack<double>(data, nelems, out,
+					&onnx::TensorProto::add_double_data);
+				break;
+			case onnx::TensorProto::FLOAT:
+				pack<float>(data, nelems, out,
+					&onnx::TensorProto::add_float_data);
+				break;
+			case onnx::TensorProto::UINT8:
+				pack<uint8_t>(data, nelems, out,
+					&onnx::TensorProto::add_int32_data);
+				break;
+			case onnx::TensorProto::INT8:
+				pack<int8_t>(data, nelems, out,
+					&onnx::TensorProto::add_int32_data);
+				break;
+			case onnx::TensorProto::UINT16:
+				pack<uint16_t>(data, nelems, out,
+					&onnx::TensorProto::add_int32_data);
+				break;
+			case onnx::TensorProto::INT16:
+				pack<int16_t>(data, nelems, out,
+					&onnx::TensorProto::add_int32_data);
+				break;
+			case onnx::TensorProto::UINT32:
+				pack<uint32_t>(data, nelems, out,
+					&onnx::TensorProto::add_uint64_data);
+				break;
+			case onnx::TensorProto::INT32:
+				pack<int32_t>(data, nelems, out,
+					&onnx::TensorProto::add_int32_data);
+				break;
+			case onnx::TensorProto::UINT64:
+				pack<uint64_t>(data, nelems, out,
+					&onnx::TensorProto::add_uint64_data);
+				break;
+			case onnx::TensorProto::INT64:
+				pack<int64_t>(data, nelems, out,
+					&onnx::TensorProto::add_int64_data);
+				break;
+			default:
+				logs::fatalf("unknown onnx type %d (aka %s)",
+					onnx_type, code_name.c_str());
+		}
+	}
+};
 
 struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 {
 	teq::TensptrT unmarsh_leaf (const onnx::TensorProto& pb_tens,
-		teq::Usage usage, std::string label) override
+		teq::Usage usage, std::string label) const override
 	{
 		teq::TensptrT out;
 		teq::Shape shape = onnx::unmarshal_shape(pb_tens);
@@ -172,7 +196,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 	}
 
 	teq::TensptrT unmarsh_func (std::string opname,
-		const teq::TensptrsT& children, marsh::Maps&& attrs) override
+		const teq::TensptrsT& children, marsh::Maps&& attrs) const override
 	{
 		if (children.empty())
 		{
@@ -187,7 +211,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 
 	teq::TensptrT unmarsh_layr (std::string opname,
 		const teq::TensptrsT& roots, const teq::TensptrsT& children,
-		marsh::Maps&& attrs) override
+		marsh::Maps&& attrs) const override
 	{
 		if (roots.empty())
 		{
@@ -206,15 +230,18 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 
 #undef _OUT_GENLAYR
 
-void save_graph (onnx::GraphProto& pb_graph, teq::TensptrsT roots)
+void save_graph (onnx::GraphProto& pb_graph, teq::TensptrsT roots,
+	const onnx::TensIdT& identified)
 {
-	return onnx::save_graph(pb_graph, roots, save_leaf);
+	MarshFuncs funcs;
+	onnx::save_graph(pb_graph, roots, funcs, identified);
 }
 
-void load_graph (teq::TensptrsT& roots, const onnx::GraphProto& pb_graph)
+teq::TensptrsT load_graph (onnx::TensptrIdT& identified_tens,
+	const onnx::GraphProto& pb_graph)
 {
 	UnmarshFuncs funcs;
-	return onnx::load_graph(roots, pb_graph, funcs);
+	return onnx::load_graph(identified_tens, pb_graph, funcs);
 }
 
 }

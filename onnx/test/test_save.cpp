@@ -17,7 +17,12 @@
 const std::string testdir = "models/test";
 
 
-static void save_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf) {}
+struct MockMarshFuncs final : public onnx::iMarshFuncs
+{
+	size_t get_typecode (const teq::iTensor& tens) const override { return 0; }
+
+	void marsh_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf) const override {}
+};
 
 
 TEST(SAVE, SaveGraph)
@@ -28,6 +33,7 @@ TEST(SAVE, SaveGraph)
 	{
 		onnx::GraphProto graph;
 		std::vector<teq::TensptrT> roots;
+		onnx::TensIdT ids;
 
 		// subtree one
 		teq::Shape shape({3, 7});
@@ -62,6 +68,7 @@ TEST(SAVE, SaveGraph)
 				}, std::vector<double>{}, teq::Opcode{"@", 1}),
 			}, std::vector<double>{}, teq::Opcode{"-", 0});
 			roots.push_back(dest);
+			ids.insert({dest.get(), "root1"});
 		}
 
 		// subtree two
@@ -89,9 +96,11 @@ TEST(SAVE, SaveGraph)
 				}, std::vector<double>{}, teq::Opcode{"*", 6}),
 			}, std::vector<double>{}, teq::Opcode{"-", 0});
 			roots.push_back(dest);
+			ids.insert({dest.get(), "root2"});
 		}
 
-		onnx::save_graph(graph, roots, save_leaf);
+		MockMarshFuncs marsh;
+		onnx::save_graph(graph, roots, marsh, ids);
 
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);

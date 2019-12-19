@@ -346,7 +346,7 @@ struct Maps final : public iObject, public iAttributed
 		marshaler.marshal(*this);
 	}
 
-	const marsh::iObject* get_attr (std::string attr_key) const override
+	const iObject* get_attr (std::string attr_key) const override
 	{
 		return estd::has(contents_, attr_key) ?
 			contents_.at(attr_key).get() : nullptr;
@@ -364,7 +364,7 @@ struct Maps final : public iObject, public iAttributed
 		return out;
 	}
 
-	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
+	void add_attr (std::string attr_key, ObjptrT&& attr_val) override
 	{
 		contents_.emplace(attr_key, std::move(attr_val));
 	}
@@ -389,7 +389,7 @@ private:
 	std::unordered_map<std::string,ObjptrT> contents_;
 };
 
-void get_attrs (marsh::Maps& mvalues, const iAttributed& attributed);
+void get_attrs (Maps& mvalues, const iAttributed& attributed);
 
 }
 

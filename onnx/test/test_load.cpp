@@ -21,7 +21,7 @@ const std::string testdir = "models/test";
 struct MockUnmarshFuncs final : public onnx::iUnmarshFuncs
 {
 	teq::TensptrT unmarsh_leaf (const onnx::TensorProto& tens,
-		teq::Usage usage, std::string name) override
+		teq::Usage usage, std::string name) const override
 	{
 		return std::make_shared<MockLeaf>(
 			std::vector<double>{}, onnx::unmarshal_shape(tens), name);
@@ -29,14 +29,14 @@ struct MockUnmarshFuncs final : public onnx::iUnmarshFuncs
 
 
 	teq::TensptrT unmarsh_func (std::string opname,
-		const teq::TensptrsT& edges, marsh::Maps&& attrs) override
+		const teq::TensptrsT& edges, marsh::Maps&& attrs) const override
 	{
 		return std::make_shared<MockFunctor>(edges, std::vector<double>{}, teq::Opcode{opname, 0});
 	}
 
 	teq::TensptrT unmarsh_layr (std::string opname,
 		const teq::TensptrsT& roots, const teq::TensptrsT& edges,
-		marsh::Maps&& attrs) override
+		marsh::Maps&& attrs) const override
 	{
 		// todo: implement mock layer
 		return std::make_shared<MockFunctor>(edges, std::vector<double>{}, teq::Opcode{opname, 0});
@@ -54,8 +54,8 @@ TEST(LOAD, LoadGraph)
 	}
 
 	MockUnmarshFuncs unmarsh;
-	teq::TensptrsT graph_roots;
-	onnx::load_graph(graph_roots, graph, unmarsh);
+	onnx::TensptrIdT ids;
+	teq::TensptrsT graph_roots = onnx::load_graph(ids, graph, unmarsh);
 	EXPECT_EQ(2, graph_roots.size());
 
 	std::string expect;
@@ -75,11 +75,15 @@ TEST(LOAD, LoadGraph)
 	PrettyEquation artist;
 	artist.showshape_ = true;
 	std::stringstream gotstr;
-	for (auto tens : graph_roots)
-	{
-		ASSERT_NE(nullptr, tens);
-		artist.print(gotstr, tens);
-	}
+
+	ASSERT_HAS(ids.right, "root1");
+	ASSERT_HAS(ids.right, "root2");
+	auto root1 = ids.right.at("root1");
+	auto root2 = ids.right.at("root2");
+	ASSERT_NE(nullptr, root1);
+	ASSERT_NE(nullptr, root2);
+	artist.print(gotstr, root1);
+	artist.print(gotstr, root2);
 
 	while (std::getline(gotstr, line))
 	{
