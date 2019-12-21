@@ -8,6 +8,8 @@
 namespace teq
 {
 
+static const std::string target_label = "target";
+
 TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs)
 {
 	if (target == nullptr)
@@ -25,7 +27,7 @@ TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs)
 		return funcs.get_const_one(target->shape());
 	}
 
-	PathFinder finder(target.get());
+	PathFinder finder(target.get(), target_label);
 	root->accept(finder);
 
 	auto& roadmap = finder.roadmap_;
@@ -43,7 +45,7 @@ TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs)
 	std::list<iFunctor*> parents; // todo: make parent order not dependent on sorting algorithm by sorting by order visited
 	std::transform(roadmap.begin(), roadmap.end(),
 		std::back_inserter(parents),
-		[](std::pair<iTensor*,std::vector<size_t>> parent)
+		[](std::pair<iTensor*,PathNodeT> parent)
 		{
 			return static_cast<iFunctor*>(parent.first);
 		});
@@ -61,7 +63,7 @@ TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs)
 
 	// map functor to its respective super composite derivative
 	// let L = root, F = key functor, value of F in grads is dL/dF
-	std::unordered_map<const iTensor*,TensptrsT> grads = {
+	TensMapT<TensptrsT> grads = {
 		{root.get(), {funcs.get_const_one(root->shape())}}
 	};
 	for (iFunctor* parent : parents)
@@ -71,7 +73,7 @@ TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs)
 			parent->to_string().c_str());
 		assert(prevs.size() > 0);
 		TensptrT bwd = prevs.size() > 1 ? funcs.add(prevs) : prevs.front();
-		auto& nexts = roadmap[parent];
+		auto& nexts = roadmap[parent].at(target_label).children_;
 		auto parent_ptr = std::static_pointer_cast<iFunctor>(
 			owners[parent].lock());
 		TensptrsT children = parent->get_children();

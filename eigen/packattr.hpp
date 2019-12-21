@@ -348,6 +348,34 @@ struct Packer<teq::Shape>
 	}
 };
 
+template <>
+struct Packer<teq::TensptrT>
+{
+	static std::string key_;
+
+	std::string get_key (void) const
+	{
+		return key_;
+	}
+
+	void pack (marsh::iAttributed& attrib, teq::TensptrT tens)
+	{
+		attrib.add_attr(key_,
+			std::make_unique<teq::TensorObj>(tens));
+	}
+
+	void unpack (teq::TensptrT& out, const marsh::iAttributed& attrib)
+	{
+		auto attr = dynamic_cast<const teq::TensorObj*>(
+			attrib.get_attr(key_));
+		if (nullptr == attr)
+		{
+			logs::fatalf("cannot find %s attribute", key_.c_str());
+		}
+		out = attr->get_tensor();
+	}
+};
+
 void pack_attr (marsh::iAttributed& attrib);
 
 template <typename T, typename ...ARGS>
@@ -356,6 +384,9 @@ void pack_attr (marsh::iAttributed& attrib, T attr_val, ARGS... args)
 	Packer<T>().pack(attrib, attr_val);
 	pack_attr(attrib, args...);
 }
+
+std::vector<teq::DimT> unpack_extend (
+	teq::Shape inshape, const marsh::iAttributed& attrib);
 
 }
 

@@ -288,8 +288,7 @@ struct Session final : public teq::iSession
 	teq::TensptrSetT tracked_;
 
 	/// Map of tensor to the set of the tensor's parents
-	std::unordered_map<teq::iTensor*,
-		std::unordered_set<teq::iFunctor*>> parents_;
+	teq::TensMapT<std::unordered_set<teq::iFunctor*>> parents_;
 
 	/// Vector of vectors of operable functors specific to each job
 	/// See SessReqsT

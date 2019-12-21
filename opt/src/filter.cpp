@@ -10,7 +10,7 @@ void remove_duplicates (teq::TensptrsT& roots, EqualF equals)
 	teq::OwnerMapT owners = teq::track_owners(roots);
 	teq::GraphStat stat;
 	teq::ParentFinder pfinder;
-	std::unordered_map<teq::iTensor*,std::vector<size_t>> rindices;
+	teq::TensMapT<std::vector<size_t>> rindices;
 	for (size_t i = 0, n = roots.size(); i < n; ++i)
 	{
 		teq::TensptrT& root = roots[i];
@@ -143,7 +143,7 @@ void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_func)
 	teq::OwnerMapT owners = teq::track_owners(roots);
 	teq::GraphStat stat;
 	teq::ParentFinder pfinder;
-	std::unordered_map<teq::iTensor*,std::vector<size_t>> rindices;
+	teq::TensMapT<std::vector<size_t>> rindices;
 	for (size_t i = 0, n = roots.size(); i < n; ++i)
 	{
 		teq::TensptrT& root = roots[i];

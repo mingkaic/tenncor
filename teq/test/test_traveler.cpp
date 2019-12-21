@@ -51,10 +51,14 @@ TEST(TRAVELER, PathFinder)
 
 	{
 		ASSERT_HAS(finder.roadmap_, g.get());
-		EXPECT_ARRHAS(finder.roadmap_[g.get()], 1);
+		auto& gdirs = finder.roadmap_[g.get()];
+		ASSERT_HAS(gdirs, "target");
+		EXPECT_ARRHAS(gdirs["target"].children_, 1);
 
 		ASSERT_HAS(finder.roadmap_, f.get());
-		EXPECT_ARRHAS(finder.roadmap_[f.get()], 0);
+		auto& fdirs = finder.roadmap_[f.get()];
+		ASSERT_HAS(fdirs, "target")
+		EXPECT_ARRHAS(fdirs["target"].children_, 0);
 	}
 
 	finder.clear();
@@ -64,7 +68,9 @@ TEST(TRAVELER, PathFinder)
 		ASSERT_HASNOT(finder.roadmap_, g.get());
 
 		ASSERT_HAS(finder.roadmap_, f.get());
-		EXPECT_ARRHAS(finder.roadmap_[f.get()], 0);
+		auto& fdirs = finder.roadmap_[f.get()];
+		ASSERT_HAS(fdirs, "target")
+		EXPECT_ARRHAS(fdirs["target"].children_, 0);
 	}
 
 	teq::PathFinder finder2(c.get());
@@ -72,7 +78,9 @@ TEST(TRAVELER, PathFinder)
 
 	{
 		ASSERT_HAS(finder2.roadmap_, g.get());
-		EXPECT_ARRHAS(finder2.roadmap_[g.get()], 0);
+		auto& gdirs = finder2.roadmap_[g.get()];
+		ASSERT_HAS(gdirs, "target")
+		EXPECT_ARRHAS(gdirs["target"].children_, 0);
 	}
 
 	finder2.clear();

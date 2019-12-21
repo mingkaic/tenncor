@@ -83,12 +83,13 @@ teq::TensptrsT load_graph (TensptrIdT& identified_tens,
 					"failed to find input %s", input.c_str());
 			});
 		teq::TensptrT tens;
-		if (const GraphProto* sub = unmarshal_attrs(attrs, pb_attrs))
+		if (const GraphProto* sub = unmarshal_attrs(
+			attrs, pb_attrs, identified_tens))
 		{
 			teq::TensptrsT roots = load_graph(
 				identified_tens, *sub, unmarshaler);
 			tens = unmarshaler.unmarsh_layr(
-				opname, roots, args, std::move(attrs));
+				opname, roots.front(), args.front(), std::move(attrs));
 		}
 		else
 		{

@@ -548,7 +548,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 template <typename T>
 struct Stabilizer final : public teq::OnceTraveler
 {
-	std::unordered_map<teq::iTensor*,estd::NumRange<T>> ranges_;
+	teq::TensMapT<estd::NumRange<T>> ranges_;
 
 private:
 	/// Implementation of iTraveler

@@ -316,8 +316,8 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				break;
 			case egen::EXTEND:
 			{
-				std::vector<teq::DimT> bcast;
-				eigen::Packer<std::vector<teq::DimT>>().unpack(bcast, *op);
+				std::vector<teq::DimT> bcast = eigen::unpack_extend(
+					op->get_children().front()->shape(), *op);
 
 				std::set<teq::RankT> dims;
 				// technically, reduce_sum is not grad of broadcast,

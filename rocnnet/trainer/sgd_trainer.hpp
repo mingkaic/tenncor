@@ -21,8 +21,8 @@ TrainErrF<T> sgd_train (layr::UnaryF<T> connect, teq::iSession& sess,
 	eteq::ETensor<T> train_out = connect(train_in);
 	auto error = errfunc(expected_out, train_out);
 
-	auto model = static_cast<eteq::Layer<T>*>(train_out.get());
-	auto contents = model->get_storage();
+	teq::TensptrsT contents;
+	layr::get_storage(contents, train_out);
 	layr::VarErrsT<T> vars;
 	for (auto tens : contents)
 	{

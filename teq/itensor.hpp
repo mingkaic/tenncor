@@ -6,6 +6,7 @@
 /// Define interfaces and building blocks for an equation graph
 ///
 
+#include <unordered_map>
 #include <unordered_set>
 
 #include "teq/shape.hpp"
@@ -97,6 +98,12 @@ using TensSetT = std::unordered_set<iTensor*>;
 
 /// Hash set of tensor smart pointers
 using TensptrSetT = std::unordered_set<TensptrT>;
+
+template <typename V>
+using TensMapT = std::unordered_map<iTensor*,V>;
+
+template <typename V>
+using CTensMapT = std::unordered_map<const iTensor*,V>;
 
 }
 

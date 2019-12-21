@@ -36,7 +36,7 @@ using CandsT = std::vector<Candidate>;
 using MatchMapT = std::unordered_map<std::string,CandsT>;
 
 /// Mapping of all visited tensors to their matched candidates
-using MatchCtxT = std::unordered_map<teq::iTensor*,MatchMapT>;
+using MatchCtxT = teq::TensMapT<MatchMapT>;
 
 struct iEdgeMatcher
 {

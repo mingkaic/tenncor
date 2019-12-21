@@ -4,7 +4,6 @@
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
 #include "eteq/functor.hpp"
-#include "eteq/layer.hpp"
 
 #ifndef ETEQ_CONVERT_HPP
 #define ETEQ_CONVERT_HPP
@@ -93,9 +92,18 @@ ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode, ETensorsT<T> links, ARG
 template <typename T>
 ETensor<T> make_layer (teq::Opcode opcode, ETensor<T> input, ETensor<T> output)
 {
-	return ETensor<T>(teq::TensptrT(Layer<T>::get(opcode,
-		teq::TensptrsT{input}, std::static_pointer_cast<
-			teq::iFunctor>((teq::TensptrT) output))));
+	egen::_GENERATED_DTYPE tcode = egen::get_type<T>();
+	if (tcode != input->type_code())
+	{
+		logs::fatalf("incompatible tensor types %s and %s: "
+			"cross-type functors not supported yet",
+			egen::name_type(tcode).c_str(),
+			input->type_label().c_str());
+	}
+
+	static_cast<teq::iFunctor*>(output.get())->add_attr(teq::layer_key,
+		std::make_unique<teq::LayerObj>(opcode.name_, input));
+	return output;
 }
 
 }

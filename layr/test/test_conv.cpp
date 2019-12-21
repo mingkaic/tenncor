@@ -17,8 +17,6 @@ TEST(CONV, Connection)
 		0, teq::Shape({4, 10, 9, 2}), "x");
 	auto y = layr::conv(eteq::ETensor<float>(x), {6, 5}, 4, 3);
 
-	auto ytens = dynamic_cast<eteq::Layer<float>*>(y.get());
-	ASSERT_NE(nullptr, ytens);
 	EXPECT_GRAPHEQ(
 		"(ADD[3\\6\\4\\2\\1\\1\\1\\1])\n"
 		" `--(PERMUTE[3\\6\\4\\2\\1\\1\\1\\1])\n"
@@ -28,8 +26,7 @@ TEST(CONV, Connection)
 		" |       `--(REVERSE[3\\4\\5\\6\\1\\1\\1\\1])\n"
 		" |           `--(variable:weight[3\\4\\5\\6\\1\\1\\1\\1])\n"
 		" `--(EXTEND[3\\6\\4\\2\\1\\1\\1\\1])\n"
-		"     `--(variable:bias[3\\1\\1\\1\\1\\1\\1\\1])",
-		ytens->get_root());
+		"     `--(variable:bias[3\\1\\1\\1\\1\\1\\1\\1])", y);
 }
 
 

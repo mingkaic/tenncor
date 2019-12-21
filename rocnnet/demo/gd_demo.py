@@ -42,8 +42,8 @@ def main(args):
         help='Number of times to test (default: 500)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/gd.pbx',
-        help='Filename to load pretrained model (default: models/gd.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/gd.onnx',
+        help='Filename to load pretrained model (default: models/gd.onnx)')
     args = parser.parse_args(args)
 
     if args.seed:

@@ -54,7 +54,7 @@ static inline teq::TensptrT convert_func (std::string opname,
 func = Functor<realtype>::get(opcode, children, std::move(attrs));
 
 #define _OUT_GENLAYR(realtype)\
-layer = teq::TensptrT(Layer<realtype>::get(opcode, children, root));
+layer = make_layer<realtype>(opcode, child, root);
 
 // todo: move this to generated layer
 static const std::unordered_map<
@@ -210,15 +210,11 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 	}
 
 	teq::TensptrT unmarsh_layr (std::string opname,
-		const teq::TensptrsT& roots, const teq::TensptrsT& children,
+		const teq::TensptrT& root, const teq::TensptrT& child,
 		marsh::Maps&& attrs) const override
 	{
-		if (roots.empty())
-		{
-			logs::fatal("cannot unmarshal layr without any roots");
-		}
-		teq::FuncptrT root = std::static_pointer_cast<teq::iFunctor>(roots.front());
-		size_t gencode = root->type_code();
+		teq::FuncptrT f = std::static_pointer_cast<teq::iFunctor>(root);
+		size_t gencode = f->type_code();
 		teq::Opcode opcode{opname, 0};
 		teq::TensptrT layer = nullptr;
 		TYPE_LOOKUP(_OUT_GENLAYR, (egen::_GENERATED_DTYPE) gencode);

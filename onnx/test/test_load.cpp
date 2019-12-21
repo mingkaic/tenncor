@@ -31,15 +31,17 @@ struct MockUnmarshFuncs final : public onnx::iUnmarshFuncs
 	teq::TensptrT unmarsh_func (std::string opname,
 		const teq::TensptrsT& edges, marsh::Maps&& attrs) const override
 	{
-		return std::make_shared<MockFunctor>(edges, std::vector<double>{}, teq::Opcode{opname, 0});
+		return std::make_shared<MockFunctor>(edges,
+			std::vector<double>{}, teq::Opcode{opname, 0});
 	}
 
 	teq::TensptrT unmarsh_layr (std::string opname,
-		const teq::TensptrsT& roots, const teq::TensptrsT& edges,
+		const teq::TensptrT& root, const teq::TensptrT& child,
 		marsh::Maps&& attrs) const override
 	{
 		// todo: implement mock layer
-		return std::make_shared<MockFunctor>(edges, std::vector<double>{}, teq::Opcode{opname, 0});
+		return std::make_shared<MockFunctor>(teq::TensptrsT{child},
+			std::vector<double>{}, teq::Opcode{opname, 0});
 	}
 };
 

@@ -55,7 +55,7 @@ PYBIND11_MODULE(stream_dbg, m)
 			py::arg("showshape") = false)
 		.def("graph_to_csvstr",
 			[](teq::TensptrT root, bool showshape,
-				std::unordered_map<teq::iTensor*,std::string> abbrevs)
+				teq::TensMapT<std::string> abbrevs)
 			{
 				std::stringstream ss;
 				CSVEquation ceq;
@@ -68,10 +68,10 @@ PYBIND11_MODULE(stream_dbg, m)
 			"Return csv of graph edges as string",
 			py::arg("root"),
 			py::arg("showshape") = false,
-			py::arg("abbrevs") = std::unordered_map<teq::iTensor*,std::string>())
+			py::arg("abbrevs") = teq::TensMapT<std::string>())
 		.def("multigraph_to_csvstr",
 			[](teq::TensptrsT roots, bool showshape,
-				std::unordered_map<teq::iTensor*,std::string> abbrevs)
+				teq::TensMapT<std::string> abbrevs)
 			{
 				std::stringstream ss;
 				CSVEquation ceq;
@@ -87,7 +87,7 @@ PYBIND11_MODULE(stream_dbg, m)
 			"Return csv of graph edges of multiple roots as string",
 			py::arg("roots"),
 			py::arg("showshape") = false,
-			py::arg("abbrevs") = std::unordered_map<teq::iTensor*,std::string>());
+			py::arg("abbrevs") = teq::TensMapT<std::string>());
 
 	// ==== to file functions ====
 	m
@@ -113,7 +113,7 @@ PYBIND11_MODULE(stream_dbg, m)
 			py::arg("showshape") = false)
 		.def("graph_to_csvfile",
 			[](teq::TensptrT root, std::string filename, bool showshape,
-				std::unordered_map<teq::iTensor*,std::string> abbrevs)
+				teq::TensMapT<std::string> abbrevs)
 			{
 				std::ofstream outstr(filename);
 				if (outstr.is_open())
@@ -133,10 +133,10 @@ PYBIND11_MODULE(stream_dbg, m)
 			py::arg("root"),
 			py::arg("filename"),
 			py::arg("showshape") = false,
-			py::arg("abbrevs") = std::unordered_map<teq::iTensor*,std::string>())
+			py::arg("abbrevs") = teq::TensMapT<std::string>())
 		.def("multigraph_to_csvfile",
 			[](teq::TensptrsT roots, std::string filename, bool showshape,
-				std::unordered_map<teq::iTensor*,std::string> abbrevs)
+				teq::TensMapT<std::string> abbrevs)
 			{
 				std::ofstream outstr(filename);
 				if (outstr.is_open())
@@ -159,5 +159,5 @@ PYBIND11_MODULE(stream_dbg, m)
 			py::arg("roots"),
 			py::arg("filename"),
 			py::arg("showshape") = false,
-			py::arg("abbrevs") = std::unordered_map<teq::iTensor*,std::string>());
+			py::arg("abbrevs") = teq::TensMapT<std::string>());
 }

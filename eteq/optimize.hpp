@@ -147,7 +147,7 @@ opt::CversionCtx parse_file (std::string filename)
 template <typename T>
 struct Hasher final : public teq::OnceTraveler
 {
-	std::unordered_map<teq::iTensor*,boost::uuids::uuid> hashes_;
+	teq::TensMapT<boost::uuids::uuid> hashes_;
 
 private:
 	/// Implementation of OnceTraveler

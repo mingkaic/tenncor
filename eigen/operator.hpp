@@ -185,8 +185,8 @@ EigenptrT<T> argmax (teq::Shape outshape, const teq::iTensor& in, const marsh::i
 template <typename T>
 EigenptrT<T> extend (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
-	std::vector<teq::DimT> bcast;
-	Packer<std::vector<teq::DimT>>().unpack(bcast, attrib);
+	teq::Shape inshape = in.shape();
+	std::vector<teq::DimT> bcast = unpack_extend(inshape, attrib);
 
 	teq::CoordT coord;
 	std::fill(coord.begin(), coord.end(), 1);
@@ -194,7 +194,7 @@ EigenptrT<T> extend (teq::Shape outshape, const teq::iTensor& in, const marsh::i
 		std::min((size_t) teq::rank_cap, bcast.size()), coord.begin());
 	return make_eigentensor<T,Eigen::TensorBroadcastingOp<
 		const teq::CoordT,const TensMapT<T>>,TensMapT<T>>(
-		shape_convert(outshape), make_tensmap((T*) in.data(), in.shape()),
+		shape_convert(outshape), make_tensmap((T*) in.data(), inshape),
 		[coord](TensMapT<T>& in)
 		{
 			return in.broadcast(coord);

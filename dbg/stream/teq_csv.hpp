@@ -66,7 +66,7 @@ struct CSVEquation final : public teq::OnceTraveler
 	/// Print every tensor's shape if true, otherwise don't
 	bool showshape_ = false;
 
-	std::unordered_map<teq::iTensor*,std::string> abbreviate_;
+	teq::TensMapT<std::string> abbreviate_;
 
 	/// For every label associated with a tensor, show LABEL=value in the tree
 	LabelsMapT labels_;
@@ -146,7 +146,7 @@ private:
 
 	std::vector<Edge> edges_;
 
-	std::unordered_map<teq::iTensor*,Node> nodes_;
+	teq::TensMapT<Node> nodes_;
 
 	GetTypeF get_ftype_;
 };

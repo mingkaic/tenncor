@@ -110,8 +110,8 @@ def main(args):
         help='Number of times to test (default: 5)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/rnn.pbx',
-        help='Filename to load pretrained model (default: models/rnn.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/rnn.onnx',
+        help='Filename to load pretrained model (default: models/rnn.onnx)')
     args = parser.parse_args(args)
 
     if args.seed:

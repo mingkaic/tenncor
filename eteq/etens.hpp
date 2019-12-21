@@ -61,25 +61,25 @@ using ETensorsT = std::vector<ETensor<T>>;
 template <typename T>
 bool operator == (const eteq::ETensor<T>& l, const std::nullptr_t&)
 {
-    return l.get() == nullptr;
+	return l.get() == nullptr;
 }
 
 template <typename T>
 bool operator == (const std::nullptr_t&, const eteq::ETensor<T>& r)
 {
-    return nullptr == r.get();
+	return nullptr == r.get();
 }
 
 template <typename T>
 bool operator != (const eteq::ETensor<T>& l, const std::nullptr_t&)
 {
-    return l.get() != nullptr;
+	return l.get() != nullptr;
 }
 
 template <typename T>
 bool operator != (const std::nullptr_t&, const eteq::ETensor<T>& r)
 {
-    return nullptr != r.get();
+	return nullptr != r.get();
 }
 
 #endif // ETEQ_ETENS_HPP

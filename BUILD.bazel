@@ -25,7 +25,6 @@ filegroup(
 filegroup(
     name = "test_models",
     srcs = glob([
-        "models/test/*.pbx",
         "models/test/*.onnx",
         "models/test/*.txt",
         "models/test/*.json",
@@ -35,7 +34,6 @@ filegroup(
 filegroup(
     name = "models",
     srcs = glob([
-        "models/*.pbx",
         "models/*.onnx",
         "models/*.json",
         "models/data/*",

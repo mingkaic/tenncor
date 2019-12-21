@@ -11,6 +11,7 @@
 
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
+#include "teq/objs.hpp"
 
 #ifndef TEQ_TRAVELER_HPP
 #define TEQ_TRAVELER_HPP
@@ -109,11 +110,18 @@ struct GraphStat final : public iTraveler
 	}
 
 	// Maximum depth of the subtree of mapped tensors
-	std::unordered_map<iTensor*,estd::NumRange<size_t>> graphsize_;
+	TensMapT<estd::NumRange<size_t>> graphsize_;
 };
 
-/// Map tensors to indices of children
-using TensCIdxT = std::unordered_map<iTensor*,std::vector<size_t>>;
+struct PathDirection
+{
+	std::vector<size_t> children_;
+	std::vector<std::string> attrs_;
+};
+
+using PathNodeT = std::unordered_map<std::string,PathDirection>;
+
+using TensPathsT = TensMapT<PathNodeT>;
 
 /// Traveler that paints paths to a target tensor
 /// All nodes in the path are added as keys to the roadmap_ map with the values
@@ -122,7 +130,11 @@ using TensCIdxT = std::unordered_map<iTensor*,std::vector<size_t>>;
 /// x is true if the ith child leads to target
 struct PathFinder final : public OnceTraveler
 {
-	PathFinder (const iTensor* target) : target_(target) {}
+	PathFinder (iTensor* target, std::string label = "target") :
+		targets_({{target, label}}) {}
+
+	/// For multiple targets, the first target found overshadows target nodes under the first subgraph (todo: label roads)
+	PathFinder (TensMapT<std::string> targets) : targets_(targets) {}
 
 	void clear (void) override
 	{
@@ -131,7 +143,7 @@ struct PathFinder final : public OnceTraveler
 	}
 
 	/// Map of parent to child indices that lead to target tensor
-	TensCIdxT roadmap_;
+	TensPathsT roadmap_;
 
 private:
 	/// Implementation of OnceTraveler
@@ -142,33 +154,66 @@ private:
 	{
 		auto children = func.get_children();
 		size_t n = children.size();
-		std::vector<size_t> path;
-		path.reserve(n);
+		PathNodeT nexts;
 		for (size_t i = 0; i < n; ++i)
 		{
 			TensptrT tens = children[i];
-			if (tens.get() == target_)
+			std::string label;
+			if (estd::get(label, targets_, tens.get()))
 			{
-				path.push_back(i);
+				nexts[label].children_.push_back(i);
 			}
 			else
 			{
 				tens->accept(*this);
 				if (estd::has(roadmap_, tens.get()))
 				{
-					path.push_back(i);
+					auto& subnode = roadmap_.at(tens.get());
+					for (auto& spair : subnode)
+					{
+						nexts[spair.first].children_.push_back(i);
+					}
 				}
 			}
 		}
-		if (false == path.empty())
+		auto attrs = func.ls_attrs();
+		for (auto attr : attrs)
 		{
-			roadmap_.emplace(&func, path);
+			if (auto tens_attr = dynamic_cast<const TensorRef*>(
+				func.get_attr(attr)))
+			{
+				auto tens = tens_attr->get_tensor();
+				std::string label;
+				if (estd::get(label, targets_, tens.get()))
+				{
+					nexts[label].attrs_.push_back(attr);
+				}
+				else
+				{
+					tens->accept(*this);
+					if (estd::has(roadmap_, tens.get()))
+					{
+						auto& subnode = roadmap_.at(tens.get());
+						for (auto& spair : subnode)
+						{
+							nexts[spair.first].attrs_.push_back(attr);
+						}
+					}
+				}
+			}
+		}
+		if (false == nexts.empty())
+		{
+			roadmap_.emplace(&func, nexts);
 		}
 	}
 
 	/// Target of tensor all paths are travelling to
-	const iTensor* target_;
+	TensMapT<std::string> targets_;
 };
+
+/// Map tensors to indices of children
+using TensCIdxT = TensMapT<std::vector<size_t>>;
 
 /// Traveler that for each child tracks the relationship to all parents
 struct ParentFinder final : public iTraveler
@@ -198,11 +243,11 @@ struct ParentFinder final : public iTraveler
 
 	/// Tracks child to parents relationship
 	/// Maps child tensor to parent mapping to indices that point to child
-	std::unordered_map<iTensor*,TensCIdxT> parents_;
+	TensMapT<TensCIdxT> parents_;
 };
 
 /// Map between tensor and its corresponding smart pointer
-using OwnerMapT = std::unordered_map<iTensor*,TensrefT>;
+using OwnerMapT = TensMapT<TensrefT>;
 
 /// Travelers will lose smart pointer references,
 /// This utility function will grab reference maps of root's subtree
@@ -212,7 +257,7 @@ struct Copier final : public OnceTraveler
 {
 	Copier (TensSetT ignores = {}) : ignores_(ignores) {}
 
-	std::unordered_map<iTensor*,TensptrT> clones_;
+	TensMapT<TensptrT> clones_;
 
 	TensSetT ignores_;
 

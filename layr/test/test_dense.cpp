@@ -28,24 +28,18 @@ TEST(DENSE, Connection)
 		{6}, layr::unif_xavier_init<float>(3),
 		layr::InitF<float>());
 
-	auto bytens = dynamic_cast<eteq::Layer<float>*>(biasedy.get());
-	auto ytens = dynamic_cast<eteq::Layer<float>*>(y.get());
-	ASSERT_NE(nullptr, bytens);
-	ASSERT_NE(nullptr, ytens);
 	EXPECT_GRAPHEQ(
 		"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		" `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		" |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
 		" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
-		"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])",
-		bytens->get_root());
+		"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", biasedy);
 
 	EXPECT_GRAPHEQ(
 		"(MATMUL[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		" `--(variable:x2[7\\2\\1\\1\\1\\1\\1\\1])\n"
-		" `--(variable:weight[6\\7\\1\\1\\1\\1\\1\\1])",
-		ytens->get_root());
+		" `--(variable:weight[6\\7\\1\\1\\1\\1\\1\\1])", y);
 }
 
 
@@ -62,9 +56,8 @@ TEST(DENSE, Serialization)
 		auto y = layr::dense(eteq::ETensor<float>(x), {noutput},
 			layr::unif_xavier_init<float>(2),
 			layr::unif_xavier_init<float>(4));
-		auto ytens = dynamic_cast<eteq::Layer<float>*>(y.get());
-		ASSERT_NE(nullptr, ytens);
-		auto contents = ytens->get_storage();
+
+		auto contents = layr::calc_storage<double>(y, x);
 		ASSERT_EQ(2, contents.size());
 		teq::TensptrT weight, bias;
 		if (contents[0]->to_string() == layr::weight_key)
@@ -87,8 +80,7 @@ TEST(DENSE, Serialization)
 			" |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
 			" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
 			" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])",
-			ytens->get_root());
+			"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", y);
 
 		eteq::save_model(model, {y});
 	}
@@ -100,16 +92,13 @@ TEST(DENSE, Serialization)
 		teq::TensptrsT roots = eteq::load_model(ids, model);
 		ASSERT_EQ(1, roots.size());
 
-		auto ytens = dynamic_cast<eteq::Layer<float>*>(roots.front().get());
-		ASSERT_NE(nullptr, ytens);
 		EXPECT_GRAPHEQ(
 			"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			" `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			" |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
 			" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
 			" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])",
-			ytens->get_root());
+			"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", roots.front());
 	}
 }
 

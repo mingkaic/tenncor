@@ -17,7 +17,7 @@
 #define DBG_TEQ_HPP
 
 /// Map tensor to label
-using LabelsMapT = std::unordered_map<teq::iTensor*,std::string>;
+using LabelsMapT = teq::TensMapT<std::string>;
 
 /// Use PrettyTree to render teq::TensptrT graph as an ascii art
 struct PrettyEquation final

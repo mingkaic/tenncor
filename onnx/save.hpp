@@ -10,7 +10,6 @@
 
 #include "teq/traveler.hpp"
 #include "teq/ifunctor.hpp"
-#include "teq/ilayer.hpp"
 
 #include "onnx/marshal.hpp"
 

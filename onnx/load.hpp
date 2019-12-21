@@ -28,7 +28,7 @@ struct iUnmarshFuncs
 		const teq::TensptrsT& children, marsh::Maps&& attrs) const = 0;
 
 	virtual teq::TensptrT unmarsh_layr (std::string opname,
-		const teq::TensptrsT& roots, const teq::TensptrsT& children,
+		const teq::TensptrT& root, const teq::TensptrT& child,
 		marsh::Maps&& attrs) const = 0;
 };
 

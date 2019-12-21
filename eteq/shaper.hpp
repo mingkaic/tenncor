@@ -391,22 +391,23 @@ struct ShapeParser<egen::EXTEND> final
 {
 	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
 	{
-		std::vector<teq::DimT> bcast;
-		eigen::Packer<std::vector<teq::DimT>>().unpack(bcast, attrs);
-
-		if (bcast.empty() || std::all_of(bcast.begin(), bcast.end(),
-			[](teq::DimT d) { return 1 == d; }))
+		teq::Shape shape = shapes.front();
+		std::vector<teq::DimT> bcast = eigen::unpack_extend(shape, attrs);
+		if (nullptr != attrs.get_attr(
+			eigen::Packer<std::vector<teq::DimT>>().get_key()) &&
+			(bcast.empty() || std::all_of(bcast.begin(), bcast.end(),
+			[](teq::DimT d) { return 1 == d; })))
 		{
 			logs::debug("extending with nothing... treating as identity");
 			return ShapeOpt();
 		}
+
 		if (std::any_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 0 == d; }))
 		{
 			logs::fatalf("cannot extend using zero dimensions %s",
 				fmts::to_string(bcast.begin(), bcast.end()).c_str());
 		}
-		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		for (size_t i = 0, nbcasts = bcast.size(); i < nbcasts; ++i)
 		{

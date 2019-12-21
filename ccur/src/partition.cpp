@@ -41,7 +41,7 @@ PartGroupsT k_partition (teq::TensptrsT roots, size_t k, OpWeightT weights)
 	}
 
 	// partition bases by number of ancestor
-	std::unordered_map<teq::iTensor*,double> weight_map;
+	teq::TensMapT<double> weight_map;
 	std::unordered_map<teq::iFunctor*,
 		teq::TensSetT> ancestors;
 	for (auto base : bases)

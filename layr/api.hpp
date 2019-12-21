@@ -7,7 +7,6 @@
 ///
 
 #include "eteq/generated/api.hpp"
-#include "eteq/layer.hpp"
 #include "eteq/serialize.hpp"
 
 #include "layr/init.hpp"
@@ -30,56 +29,124 @@ teq::Shape gen_rshape (std::vector<teq::DimT> runcoms,
 template <typename T>
 using UnaryF = std::function<eteq::ETensor<T>(eteq::ETensor<T>)>;
 
-template <typename T>
-eteq::ETensor<T> trail_helper (const eteq::ETensor<T>& root,
-	const std::pair<eteq::ETensor<T>,eteq::ETensor<T>>& input,
-	const teq::TensCIdxT& roadmap)
+static inline teq::TensMapT<std::string> replace_targets (
+	const teq::TensMapT<teq::TensptrT>& inputs)
 {
-	if (input.first.get() == root.get())
+	teq::TensMapT<std::string> targets;
+	for (auto& inp : inputs)
 	{
-		return input.second;
+		targets.emplace(inp.first, "target");
 	}
-	std::vector<size_t> indices;
-	if (false == estd::get(indices, roadmap, root.get()))
-	{
-		return eteq::ETensor<T>();
-	}
-	std::unordered_set<size_t> paths(indices.begin(), indices.end());
-	auto f = static_cast<teq::iFunctor*>(root.get());
-	auto children = f->get_children();
-	teq::TensptrsT road_kids;
-	size_t nchildren = children.size();
-	road_kids.reserve(nchildren);
-	for (size_t i = 0; i < nchildren; ++i)
-	{
-		if (estd::has(paths, i))
-		{
-			road_kids.push_back(trail_helper(
-				eteq::ETensor<T>(children[i]), input, roadmap));
-		}
-		else
-		{
-			road_kids.push_back(children[i]);
-		}
-	}
-	marsh::Maps dup_attrs;
-	marsh::get_attrs(dup_attrs, *f);
-	return eteq::Functor<T>::get((egen::_GENERATED_OPCODE)
-		f->get_opcode().code_, road_kids, std::move(dup_attrs));
+	return targets;
 }
+
+template <typename T>
+struct Trailer final : public teq::OnceTraveler
+{
+	Trailer (const teq::TensMapT<teq::TensptrT>& inputs) :
+		trailed_(inputs), pfinder_(replace_targets(inputs)) {}
+
+	teq::TensMapT<teq::TensptrT> trailed_;
+
+private:
+	/// Implementation of OnceTraveler
+	void visit_leaf (teq::iLeaf& leaf) override {}
+
+	/// Implementation of OnceTraveler
+	void visit_func (teq::iFunctor& func) override
+	{
+		if (estd::has(trailed_, &func))
+		{
+			return;
+		}
+		func.accept(pfinder_);
+		if (false == estd::has(pfinder_.roadmap_, &func))
+		{
+			return;
+		}
+		auto& target_dir = pfinder_.roadmap_.at(&func).at("target");
+
+		marsh::Maps dup_attrs;
+		marsh::get_attrs(dup_attrs, func);
+		auto& attr_directions = target_dir.attrs_;
+		for (std::string attr : attr_directions)
+		{
+			auto ref = static_cast<const teq::TensorRef*>(func.get_attr(attr));
+			auto ctens = ref->get_tensor();
+			ctens->accept(*this);
+			dup_attrs.rm_attr(attr);
+			dup_attrs.add_attr(attr, marsh::ObjptrT(ref->copynreplace(
+				trailed_.at(ctens.get()))));
+		}
+
+		auto& child_directions = target_dir.children_;
+		teq::TensptrsT children = func.get_children();
+		for (size_t i : child_directions)
+		{
+			auto child = children[i];
+			child->accept(*this);
+			children[i] = trailed_.at(child.get());
+		}
+
+		trailed_.emplace(&func, eteq::Functor<T>::get(
+			(egen::_GENERATED_OPCODE) func.get_opcode().code_,
+			children, std::move(dup_attrs)));
+	}
+
+	teq::PathFinder pfinder_;
+};
 
 /// Copy everything from input.first to root, except replacing input.first with input.second
 template <typename T>
 eteq::ETensor<T> trail (const eteq::ETensor<T>& root,
-	const std::pair<eteq::ETensor<T>,eteq::ETensor<T>>& input)
+	const teq::TensMapT<teq::TensptrT>& inputs)
 {
-	teq::PathFinder pfinder(input.first.get());
-	root->accept(pfinder);
-	if (pfinder.roadmap_.empty())
+	Trailer<T> trailer(inputs);
+	root->accept(trailer);
+	return estd::try_get(trailer.trailed_, root.get(), nullptr);
+}
+
+template <typename T>
+eteq::VarptrsT<T> calc_storage (teq::TensptrT root, teq::TensptrT input)
+{
+	// find all variables between children output_ and children_
+	teq::GraphStat stats;
+	stats.graphsize_.emplace(input.get(), estd::NumRange<size_t>());
+	root->accept(stats);
+	teq::OwnerMapT owner = teq::track_owners({root});
+
+	eteq::VarptrsT<T> storages;
+	for (auto gpair : stats.graphsize_)
 	{
-		return eteq::ETensor<T>();
+		if (0 == gpair.second.upper_ && input.get() != gpair.first)
+		{
+			if (auto var = std::dynamic_pointer_cast<
+				eteq::Variable<T>>(owner.at(gpair.first).lock()))
+			{
+				storages.push_back(var);
+			}
+		}
 	}
-	return trail_helper(root, input, pfinder.roadmap_);
+	return storages;
+}
+
+template <typename T>
+void get_storage (teq::TensptrsT& out, const eteq::ETensor<T>& root)
+{
+	if (auto f = dynamic_cast<const teq::iFunctor*>(root.get()))
+	{
+		if (auto lattr = f->get_attr(teq::layer_key))
+		{
+			auto layer = static_cast<const teq::LayerObj*>(lattr);
+			auto storage = calc_storage<T>(root, layer->get_tensor());
+			out.insert(out.end(), storage.begin(), storage.end());
+		}
+		auto children = f->get_children();
+		for (auto child : children)
+		{
+			get_storage(out, eteq::ETensor<T>(child));
+		}
+	}
 }
 
 template <typename T>
@@ -141,14 +208,14 @@ UnaryF<T> rnn_builder (teq::DimT indim, teq::DimT hidden_dim,
 			logs::fatalf("spliting input across 0th dimension... "
 				"dense connection will not match");
 		}
-		std::vector<teq::DimT> slice_shape(inshape.begin(), inshape.end());
-		slice_shape[seq_dim] = 1;
 		eteq::ETensorsT<T> states;
-		eteq::ETensor<T> state = tenncor::best_extend(
-			eteq::ETensor<T>(init_state), teq::Shape(slice_shape));
-		for (teq::DimT i = 0; i < nseq; ++i)
+		auto inslice = tenncor::slice(input, 0, 1, seq_dim);
+		auto state = activation(cell(tenncor::concat(inslice,
+			tenncor::extend_like(eteq::ETensor<T>(init_state), inslice), 0)));
+		states.push_back(state);
+		for (teq::DimT i = 1; i < nseq; ++i)
 		{
-			auto inslice = tenncor::slice(input, i, 1, seq_dim);
+			inslice = tenncor::slice(input, i, 1, seq_dim);
 			state = activation(cell(tenncor::concat(inslice, state, 0)));
 			states.push_back(state);
 		}
@@ -340,6 +407,24 @@ struct ManagedModel final
 	ManagedModel (eteq::ETensor<T> root, eteq::ETensor<T> input) :
 		root_(root), input_(input) {}
 
+	ManagedModel (const ManagedModel& other)
+	{
+		copy_helper(other);
+	}
+
+	ManagedModel& operator = (const ManagedModel& other)
+	{
+		if (this != &other)
+		{
+			copy_helper(other);
+		}
+		return *this;
+	}
+
+	ManagedModel (ManagedModel&& other) = default;
+
+	ManagedModel& operator = (ManagedModel&& other) = default;
+
 	UnaryF<T> get_builder (void)
 	{
 		return [this](eteq::ETensor<T> oinput)
@@ -351,7 +436,7 @@ struct ManagedModel final
 	/// Trail root to input, replacing input with oinput
 	eteq::ETensor<T> retrail (eteq::ETensor<T> oinput) const
 	{
-		return trail(root_, {input_, oinput});
+		return trail(root_, teq::TensMapT<teq::TensptrT>{{input_.get(), oinput}});
 	}
 
 	void save (onnx::ModelProto& model) const
@@ -375,6 +460,15 @@ struct ManagedModel final
 	}
 
 private:
+	void copy_helper (const ManagedModel& other)
+	{
+		input_ = other.input_;
+		teq::Copier kamino({input_.get()});
+		auto oroot = other.root_;
+		oroot->accept(kamino);
+		root_ = kamino.clones_.at(oroot.get());
+	}
+
 	eteq::ETensor<T> root_;
 
 	eteq::ETensor<T> input_;

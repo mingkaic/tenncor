@@ -67,8 +67,8 @@ def main(args):
         help='Number of times of train (default: 10001)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/gru.pbx',
-        help='Filename to load pretrained model (default: models/gru.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/gru.onnx',
+        help='Filename to load pretrained model (default: models/gru.onnx)')
     args = parser.parse_args(args)
 
     if args.seed:

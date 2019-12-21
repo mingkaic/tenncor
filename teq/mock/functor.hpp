@@ -16,6 +16,11 @@ struct MockFunctor : public teq::iFunctor
 
 	virtual ~MockFunctor (void) = default;
 
+	void accept (teq::iTraveler& visiter) override
+	{
+		visiter.visit(*this);
+	}
+
 	std::string to_string (void) const override
 	{
 		return opcode_.name_;

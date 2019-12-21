@@ -67,7 +67,7 @@ int main (int argc, const char** argv)
 		("save", flag::opt::value<std::string>(&savepath)->default_value(""),
 			"filename to save model")
 		("load", flag::opt::value<std::string>(&loadpath)->default_value(
-			"models/gd.pbx"), "filename to load pretrained model");
+			"models/gd.onnx"), "filename to load pretrained model");
 
 	int exit_status = 0;
 	std::clock_t start;
@@ -168,9 +168,10 @@ int main (int argc, const char** argv)
 		auto err = train();
 		if (i % show_every_n == show_every_n - 1)
 		{
+			float ferr = std::accumulate(err.data_.begin(), err.data_.end(), 0.f);
 			std::cout << "training " << i + 1 << '\n';
-			std::cout << "trained error: " <<
-				fmts::to_string(err.data_.begin(), err.data_.end()) << '\n';
+			std::cout << "trained error: " << fmts::to_string(
+				err.data_.begin(), err.data_.end()) << "~" << ferr << '\n';
 		}
 	}
 	duration = (std::clock() - start) / (float) CLOCKS_PER_SEC;

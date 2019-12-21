@@ -5,7 +5,114 @@
 namespace onnx
 {
 
-void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib)
+struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
+{
+	OnnxAttrMarshaler (AttributeProto* out,
+		const teq::CTensMapT<std::string>& tensid) :
+		out_(out), tensid_(tensid) {}
+
+	void marshal (const marsh::String& str) override
+	{
+		out_->set_type(AttributeProto::STRING);
+		out_->set_s(str.to_string());
+	}
+
+	void marshal (const marsh::iNumber& num) override
+	{
+		if (num.is_integral())
+		{
+			out_->set_type(AttributeProto::INT);
+			out_->set_i(num.to_int64());
+		}
+		else
+		{
+			out_->set_type(AttributeProto::FLOAT);
+			out_->set_f(num.to_float64());
+		}
+	}
+
+	void marshal (const marsh::iArray& arr) override
+	{
+		std::vector<std::string> strs;
+		std::vector<int64_t> ints;
+		std::vector<double> floats;
+		arr.foreach(
+			[&](size_t i, const marsh::ObjptrT& obj)
+			{
+				if (auto str = dynamic_cast<const marsh::String*>(obj.get()))
+				{
+					strs.push_back(str->to_string());
+				}
+				else if (auto num = dynamic_cast<const marsh::iNumber*>(obj.get()))
+				{
+					if (num->is_integral())
+					{
+						ints.push_back(num->to_int64());
+					}
+					else
+					{
+						floats.push_back(num->to_float64());
+					}
+				}
+			});
+		if (strs.size() > 0 && ints.size() > 0 && floats.size() > 0)
+		{
+			logs::fatal("onnx does not support hetero-typed arrays");
+		}
+		if (strs.size() > 0)
+		{
+			out_->set_type(AttributeProto::STRINGS);
+			for (auto str : strs)
+			{
+				out_->add_strings(str);
+			}
+		}
+		else if (ints.size() > 0)
+		{
+			out_->set_type(AttributeProto::INTS);
+			for (auto num : ints)
+			{
+				out_->add_ints(num);
+			}
+		}
+		else
+		{
+			// by default, assume to be float array
+			out_->set_type(AttributeProto::FLOATS);
+			for (auto num : floats)
+			{
+				out_->add_floats(num);
+			}
+		}
+	}
+
+	void marshal (const marsh::Maps& mm) override
+	{
+		logs::fatal("onnx does not support map attributes");
+	}
+
+	void marshal (const teq::TensorObj& tens) override
+	{
+		auto mtens = tens.get_tensor().get();
+		auto id = estd::must_getf(tensid_, mtens,
+			"cannot find %s", mtens->to_string().c_str());
+		out_->set_type(AttributeProto::TENSOR);
+		auto pb_tens = out_->mutable_t();
+		pb_tens->set_name(id);
+	}
+
+	void marshal (const teq::LayerObj& layer) override
+	{
+		// ignore: since marshaler resolves graph info
+	}
+
+	AttributeProto* out_;
+
+	const teq::CTensMapT<std::string>& tensid_;
+};
+
+void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib,
+	const teq::CTensMapT<std::string>& tensid)
 {
 	std::vector<std::string> attr_keys = attrib.ls_attrs();
 	for (std::string attr_key : attr_keys)
@@ -14,7 +121,7 @@ void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib)
 		AttributeProto* pb_attrs = out.Add();
 		pb_attrs->set_name(attr_key);
 
-		OnnxAttrMarshaler marsh(pb_attrs);
+		OnnxAttrMarshaler marsh(pb_attrs, tensid);
 		attr->accept(marsh);
 	}
 }
@@ -45,7 +152,8 @@ void marshal_annotation (TensorAnnotation& out, const teq::iLeaf& leaf)
 	tenspair->set_value(teq::get_usage_name(leaf.get_usage()));
 }
 
-const GraphProto* unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs)
+const GraphProto* unmarshal_attrs (marsh::Maps& out,
+	const PbAttrsT& pb_attrs, const TensptrIdT& identified_tens)
 {
 	const GraphProto* subgraph = nullptr;
 	for (const auto& pb_attr : pb_attrs)
@@ -97,18 +205,26 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out, const PbAttrsT& pb_attrs)
 				}
 			}
 				break;
+			case AttributeProto::TENSOR:
+			{
+				auto& pb_tens = pb_attr.t();
+				std::string id = pb_tens.name();
+				val = new teq::TensorObj(estd::must_getf(
+					identified_tens.right, id,
+					"cannot find tensor id %s", id.c_str()));
+			}
+				break;
 			case AttributeProto::GRAPH:
 				if (pb_attr.name() == subgraph_key)
 				{
 					subgraph = &pb_attr.g();
-					continue;
 				}
 				else
 				{
 					logs::warnf("unknown graph attribute %s",
 						pb_attr.name().c_str());
 				}
-				break;
+				continue;
 			default:
 				logs::fatal("unknown onnx attribute type");
 		}

@@ -9,6 +9,9 @@ P5 = "get to it eventually"
    - update rocnnet trainer + demos to use new layer
    - test onnx serialization
 
+   - enhance opt to accept and use multi-typed attributes,
+      and eteq extension to change shape according to optimized attributes
+
 === transparency/code readability ===
 P2 - generate value-range graph to detect erroneous operators
       - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node

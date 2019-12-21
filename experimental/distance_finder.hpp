@@ -3,9 +3,9 @@
 namespace experimental
 {
 
-using DistanceMapT = std::unordered_map<teq::iTensor*,size_t>;
+using DistanceMapT = teq::TensMapT<size_t>;
 
-using EdgeDistanceMapT = std::unordered_map<teq::iTensor*,teq::DistanceMapT>;
+using EdgeDistanceMapT = teq::TensMapT<teq::DistanceMapT>;
 
 struct DistanceFinder final : public teq::iTraveler
 {

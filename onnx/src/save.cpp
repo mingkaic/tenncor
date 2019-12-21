@@ -19,7 +19,7 @@ struct OnnxMarshaler final : public teq::OnceTraveler
 
 	std::unordered_set<const teq::iTensor*> roots_;
 
-	std::unordered_map<const teq::iTensor*,std::string> tens_;
+	teq::CTensMapT<std::string> tens_;
 
 private:
 	void visit_leaf (teq::iLeaf& leaf) override
@@ -70,6 +70,20 @@ private:
 		{
 			return;
 		}
+
+		if (auto lattr = func.get_attr(teq::layer_key))
+		{
+			marshal_layer(func,
+				static_cast<const teq::LayerObj*>(lattr));
+		}
+		else
+		{
+			marshal_func(func);
+		}
+	}
+
+	void marshal_func (teq::iFunctor& func)
+	{
 		auto children = func.get_children();
 		for (teq::TensptrT ctens : children)
 		{
@@ -82,62 +96,68 @@ private:
 		pb_node->add_output(id);
 		pb_node->set_op_type(func.to_string());
 
+		for (teq::TensptrT ctens : children)
+		{
+			pb_node->add_input(estd::must_getf(tens_, ctens.get(),
+				"cannot find child traversed %s", ctens->to_string().c_str()));
+			roots_.erase(ctens.get());
+		}
 		auto pb_attrs = pb_node->mutable_attribute();
-		if (auto lay = dynamic_cast<teq::iLayer*>(&func))
+		marshal_attrs(*pb_attrs, func, tens_);
+
+		roots_.emplace(&func);
+		tens_.emplace(&func, id);
+	}
+
+	void marshal_layer (teq::iFunctor& func, const teq::LayerObj* layer)
+	{
+		// for layers, skip the subgraph and marshal inputs first
+		layer->get_tensor()->accept(*this);
+
+		std::string id = get_id(func);
+		NodeProto* pb_node = pb_graph_.add_node();
+		pb_node->set_name(id);
+		pb_node->add_output(id);
+		pb_node->set_op_type(layer->get_opname());
+		auto pb_attrs = pb_node->mutable_attribute();
+
+		AttributeProto* inner_workings = pb_attrs->Add();
+		inner_workings->set_name(subgraph_key);
+		inner_workings->set_type(AttributeProto::GRAPH);
+		GraphProto* subgraph = inner_workings->mutable_g();
+
+		teq::TensptrT input = layer->get_tensor();
+		std::string subid = estd::must_getf(tens_, input.get(),
+			"cannot find child traversed %s",
+			input->to_string().c_str());
+		pb_node->add_input(subid);
+
+		auto sub_input = subgraph->add_input();
+		sub_input->set_name(subid);
+
+		TypeProto* pb_type = sub_input->mutable_type();
+		TypeProto::Tensor* tens_type = pb_type->mutable_tensor_type();
+		tens_type->set_elem_type(marshaler_.get_typecode(*input));
+		auto dims = tens_type->mutable_shape()->mutable_dim();
+		auto cshape = input->shape();
+		for (teq::DimT d : cshape)
 		{
-			AttributeProto* inner_workings = pb_attrs->Add();
-			inner_workings->set_name(subgraph_key);
-			inner_workings->set_type(AttributeProto::GRAPH);
-			GraphProto* subgraph = inner_workings->mutable_g();
-			for (teq::TensptrT ctens : children)
-			{
-				std::string subid = estd::must_getf(tens_, ctens.get(),
-					"cannot find child traversed %s",
-					ctens->to_string().c_str());
-				pb_node->add_input(subid);
-
-				auto sub_input = subgraph->add_input();
-				sub_input->set_name(subid);
-
-				TypeProto* pb_type = sub_input->mutable_type();
-				TypeProto::Tensor* tens_type = pb_type->mutable_tensor_type();
-				tens_type->set_elem_type(marshaler_.get_typecode(*ctens));
-				auto dims = tens_type->mutable_shape()->mutable_dim();
-				auto cshape = ctens->shape();
-				for (teq::DimT d : cshape)
-				{
-					dims->Add()->set_dim_value(d);
-				}
-				roots_.erase(ctens.get());
-			}
-			teq::TensSetT childset;
-			std::transform(children.begin(), children.end(),
-				std::inserter(childset, childset.end()),
-				[](teq::TensptrT child) { return child.get(); });
-			OnnxMarshaler submarsh(*subgraph, identified_,
-				marshaler_,
-				childset, id);
-			submarsh.roots_ = roots_;
-			submarsh.tens_ = tens_;
-			auto subroot = lay->get_root();
-			subroot->accept(submarsh);
-
-			ValueInfoProto* pb_output = subgraph->add_output();
-			pb_output->set_name(submarsh.tens_.at(subroot.get()));
-			marshal_io(*pb_output, subroot->shape());
+			dims->Add()->set_dim_value(d);
 		}
-		else
-		{
-			for (teq::TensptrT ctens : children)
-			{
-				std::string subid = estd::must_getf(tens_, ctens.get(),
-					"cannot find child traversed %s",
-					ctens->to_string().c_str());
-				pb_node->add_input(subid);
-				roots_.erase(ctens.get());
-			}
-		}
-		marshal_attrs(*pb_attrs, func);
+		roots_.erase(input.get());
+
+		OnnxMarshaler submarsh(*subgraph, identified_,
+			marshaler_, teq::TensSetT{input.get()}, id);
+		submarsh.roots_ = roots_;
+		submarsh.tens_ = tens_;
+		submarsh.marshal_func(func);
+
+		ValueInfoProto* pb_output = subgraph->add_output();
+		pb_output->set_name(submarsh.tens_.at(&func));
+		marshal_io(*pb_output, func.shape());
+
+		marshal_attrs(*pb_attrs, func, tens_);
+
 		roots_.emplace(&func);
 		tens_.emplace(&func, id);
 	}

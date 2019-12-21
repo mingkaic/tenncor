@@ -86,9 +86,8 @@ AssignGroupsT<T> sgd (const VarErrsT<T>& assocs,
 	std::back_inserter(assignments),
 	[&](VarErrT<T> verrs)
 	{
-		auto next = eteq::ETensor<T>(verrs.first) -
-			verrs.second * learning_rate;
-		return VarAssign<T>{verrs.first, next};
+		return VarAssign<T>{verrs.first, eteq::ETensor<T>(verrs.first) -
+			verrs.second * learning_rate};
 	});
 	return {assignments};
 }
