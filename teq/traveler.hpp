@@ -213,7 +213,7 @@ private:
 };
 
 /// Map tensors to indices of children
-using TensCIdxT = TensMapT<std::vector<size_t>>;
+using ParentMapT = TensMapT<std::vector<size_t>>;
 
 /// Traveler that for each child tracks the relationship to all parents
 struct ParentFinder final : public iTraveler
@@ -221,7 +221,7 @@ struct ParentFinder final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (iLeaf& leaf) override
 	{
-		parents_.emplace(&leaf, TensCIdxT());
+		parents_.emplace(&leaf, ParentMapT());
 	}
 
 	/// Implementation of iTraveler
@@ -238,12 +238,12 @@ struct ParentFinder final : public iTraveler
 			tens->accept(*this);
 			parents_[tens.get()][&func].push_back(i);
 		}
-		parents_.emplace(&func, TensCIdxT());
+		parents_.emplace(&func, ParentMapT());
 	}
 
 	/// Tracks child to parents relationship
 	/// Maps child tensor to parent mapping to indices that point to child
-	TensMapT<TensCIdxT> parents_;
+	TensMapT<ParentMapT> parents_;
 };
 
 /// Map between tensor and its corresponding smart pointer

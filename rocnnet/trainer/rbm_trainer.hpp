@@ -176,7 +176,7 @@ TrainErrF<T> rbm_train (const layr::RBMBuilder<T>& connecter,
 	}
 	sess.track(to_track);
 
-	return [&sess, updates, error]()
+	return [&sess, updates, error]
 	{
 		assign_groups_preupdate<T>(updates,
 			[&](teq::TensSetT& sources)

@@ -56,6 +56,19 @@ private:
 template <typename T>
 using ETensorsT = std::vector<ETensor<T>>;
 
+template <typename T>
+teq::TensptrsT to_tensors (const ETensorsT<T>& etensors)
+{
+	teq::TensptrsT tensors;
+	tensors.reserve(etensors.size());
+	std::transform(etensors.begin(), etensors.end(), std::back_inserter(tensors),
+		[](ETensor<T> etens)
+		{
+			return (teq::TensptrT) etens;
+		});
+	return tensors;
+}
+
 }
 
 template <typename T>

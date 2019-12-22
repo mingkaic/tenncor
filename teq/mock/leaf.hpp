@@ -5,6 +5,12 @@
 
 struct MockLeaf : public teq::iLeaf
 {
+	MockLeaf (void) : usage_(teq::Immutable) {}
+
+	MockLeaf (teq::Shape shape, std::string label = "", bool cst = true) : 
+		shape_(shape), label_(label),
+		usage_(cst ? teq::Immutable : teq::Variable) {}
+
 	MockLeaf (std::vector<double> data, teq::Shape shape,
 		std::string label = "", bool cst = true) :
 		data_(data), shape_(shape), label_(label),

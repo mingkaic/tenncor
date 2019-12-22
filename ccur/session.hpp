@@ -75,9 +75,7 @@ struct Session final : public teq::iSession
 						unique_children.emplace(tens.get());
 					}
 				}
-				reqs.push_back({func,
-					unique_children.size()
-				});
+				reqs.push_back({func, unique_children.size()});
 			}
 			requirements_.push_back(reqs);
 		}
@@ -157,7 +155,7 @@ struct Session final : public teq::iSession
 		{
 			// add thread
 			boost::asio::post(pool,
-			[this, &reqs, &fulfilments]()
+			[this, &reqs, &fulfilments]
 			{
 				for (auto& op : reqs)
 				{
@@ -241,7 +239,7 @@ struct Session final : public teq::iSession
 		{
 			// make thread
 			boost::asio::post(pool,
-			[this, &reqs, &fulfilments]()
+			[this, &reqs, &fulfilments]
 			{
 				for (auto& op : reqs)
 				{

@@ -133,7 +133,7 @@ int main (int argc, const char** argv)
 	{
 
 	jobs::ScopeGuard defer(
-		[&sess]()
+		[&sess]
 		{
 			// 10 seconds
 			std::chrono::time_point<std::chrono::system_clock> deadline =

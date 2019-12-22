@@ -56,8 +56,7 @@ struct MockFTarget final : public opt::iTarget
 				args.push_back(edge);
 			}
 		}
-		return std::make_shared<MockFunctor>(args,
-			std::vector<double>{}, teq::Opcode{opname_, 0});
+		return std::make_shared<MockFunctor>(args, teq::Opcode{opname_, 0});
 	}
 
 	std::string opname_;

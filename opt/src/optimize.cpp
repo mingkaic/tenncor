@@ -8,7 +8,7 @@ namespace opt
 void replace_parents (const teq::ParentFinder& pfinder,
 	teq::TensptrT target, teq::iTensor* source)
 {
-	teq::TensCIdxT pmap;
+	teq::ParentMapT pmap;
 	if (estd::get(pmap, pfinder.parents_, source))
 	{
 		for (auto& ppair : pmap)

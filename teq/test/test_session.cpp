@@ -16,17 +16,14 @@ TEST(SESSION, Track)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf({}, shape));
-	teq::TensptrT b(new MockLeaf({}, shape));
-	teq::TensptrT c(new MockLeaf({}, shape));
-	teq::TensptrT d(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
+	teq::TensptrT b(new MockLeaf(shape));
+	teq::TensptrT c(new MockLeaf(shape));
+	teq::TensptrT d(new MockLeaf(shape));
 
-	teq::TensptrT x(new MockFunctor(teq::TensptrsT{a, b},
-		std::vector<double>{}));
-	teq::TensptrT target(new MockFunctor(teq::TensptrsT{x, c},
-		std::vector<double>{}));
-	teq::TensptrT target2(new MockFunctor(teq::TensptrsT{x, d},
-		std::vector<double>{}));
+	teq::TensptrT x(new MockFunctor(teq::TensptrsT{a, b}));
+	teq::TensptrT target(new MockFunctor(teq::TensptrsT{x, c}));
+	teq::TensptrT target2(new MockFunctor(teq::TensptrsT{x, d}));
 
 	// this tests if session can track be called multiple times
 	teq::Session session;
@@ -62,14 +59,12 @@ TEST(SESSION, Update)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf({}, shape));
-	teq::TensptrT b(new MockLeaf({}, shape));
-	teq::TensptrT c(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
+	teq::TensptrT b(new MockLeaf(shape));
+	teq::TensptrT c(new MockLeaf(shape));
 
-	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{x, c},
-		std::vector<double>{});
+	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b});
+	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{x, c});
 
 	// * (target) = not updated
 	// `-- + (x) = not updated
@@ -101,17 +96,14 @@ TEST(SESSION, UpdateIgnore)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf({}, shape));
-	teq::TensptrT b(new MockLeaf({}, shape));
-	teq::TensptrT c(new MockLeaf({}, shape));
-	teq::TensptrT d(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
+	teq::TensptrT b(new MockLeaf(shape));
+	teq::TensptrT c(new MockLeaf(shape));
+	teq::TensptrT d(new MockLeaf(shape));
 
-	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> y = std::make_shared<MockFunctor>(teq::TensptrsT{x, c},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d},
-		std::vector<double>{});
+	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b});
+	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{x, c});
+	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d});
 
 	// - (target) = not updated
 	// `-- * (y) = not updated
@@ -166,18 +158,14 @@ TEST(SESSION, UpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf({}, shape));
-	teq::TensptrT b(new MockLeaf({}, shape));
-	teq::TensptrT c(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
+	teq::TensptrT b(new MockLeaf(shape));
+	teq::TensptrT c(new MockLeaf(shape));
 
-	std::shared_ptr<MockFunctor> u = std::make_shared<MockFunctor>(teq::TensptrsT{a},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{y, x},
-		std::vector<double>{});
+	auto u = std::make_shared<MockFunctor>(teq::TensptrsT{a});
+	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b});
+	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u});
+	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{y, x});
 
 	// - (target) = not updated
 	// `-- / (y) = not updated
@@ -221,14 +209,12 @@ TEST(SESSION, TargetedUpdate)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf({}, shape));
-	teq::TensptrT b(new MockLeaf({}, shape));
-	teq::TensptrT c(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
+	teq::TensptrT b(new MockLeaf(shape));
+	teq::TensptrT c(new MockLeaf(shape));
 
-	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{x, c},
-		std::vector<double>{});
+	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b});
+	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{x, c});
 
 	// * (target) = not updated
 	// `-- + (x) = not updated
@@ -261,17 +247,14 @@ TEST(SESSION, TargetedUpdateIgnore)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf({}, shape));
-	teq::TensptrT b(new MockLeaf({}, shape));
-	teq::TensptrT c(new MockLeaf({}, shape));
-	teq::TensptrT d(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
+	teq::TensptrT b(new MockLeaf(shape));
+	teq::TensptrT c(new MockLeaf(shape));
+	teq::TensptrT d(new MockLeaf(shape));
 
-	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> y = std::make_shared<MockFunctor>(teq::TensptrsT{x, c},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d},
-		std::vector<double>{});
+	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b});
+	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{x, c});
+	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d});
 
 	// - (targetd) = not updated
 	// `-- * (y) = not updated
@@ -309,21 +292,16 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf({}, shape));
-	teq::TensptrT b(new MockLeaf({}, shape));
-	teq::TensptrT c(new MockLeaf({}, shape));
-	teq::TensptrT d(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
+	teq::TensptrT b(new MockLeaf(shape));
+	teq::TensptrT c(new MockLeaf(shape));
+	teq::TensptrT d(new MockLeaf(shape));
 
-	std::shared_ptr<MockFunctor> u = std::make_shared<MockFunctor>(teq::TensptrsT{a},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> z = std::make_shared<MockFunctor>(teq::TensptrsT{y, x},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d},
-		std::vector<double>{});
+	auto u = std::make_shared<MockFunctor>(teq::TensptrsT{a});
+	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b});
+	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u});
+	auto z = std::make_shared<MockFunctor>(teq::TensptrsT{y, x});
+	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d});
 
 	// pow (targeted) = not updated
 	// `-- - (z) = not updated
@@ -373,21 +351,16 @@ TEST(SESSION, Clear)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf({}, shape));
-	teq::TensptrT b(new MockLeaf({}, shape));
-	teq::TensptrT c(new MockLeaf({}, shape));
-	teq::TensptrT d(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
+	teq::TensptrT b(new MockLeaf(shape));
+	teq::TensptrT c(new MockLeaf(shape));
+	teq::TensptrT d(new MockLeaf(shape));
 
-	std::shared_ptr<MockFunctor> u = std::make_shared<MockFunctor>(teq::TensptrsT{a},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> z = std::make_shared<MockFunctor>(teq::TensptrsT{y, x},
-		std::vector<double>{});
-	std::shared_ptr<MockFunctor> target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d},
-		std::vector<double>{});
+	auto u = std::make_shared<MockFunctor>(teq::TensptrsT{a});
+	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b});
+	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u});
+	auto z = std::make_shared<MockFunctor>(teq::TensptrsT{y, x});
+	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d});
 
 	teq::Session session;
 	session.track({target});

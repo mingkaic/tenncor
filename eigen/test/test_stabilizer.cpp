@@ -15,8 +15,8 @@
 TEST(STABILIZER, Abs)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::ABS});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::ABS});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-1, 3),
@@ -44,8 +44,8 @@ TEST(STABILIZER, Abs)
 TEST(STABILIZER, Neg)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::NEG});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::NEG});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-2, 3),
@@ -73,8 +73,8 @@ TEST(STABILIZER, Neg)
 TEST(STABILIZER, Sin)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::SIN});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::SIN});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-4, 3), // > 2 pi
@@ -109,8 +109,8 @@ TEST(STABILIZER, Sin)
 TEST(STABILIZER, Cos)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::COS});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::COS});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-4, 3), // > 2 pi
@@ -145,8 +145,8 @@ TEST(STABILIZER, Cos)
 TEST(STABILIZER, Tan)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::TAN});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::TAN});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-2, 2),
@@ -175,8 +175,8 @@ TEST(STABILIZER, Tan)
 TEST(STABILIZER, Exp)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::EXP});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::EXP});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-2, 2),
@@ -206,8 +206,8 @@ TEST(STABILIZER, Exp)
 TEST(STABILIZER, Log)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::LOG});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::LOG});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-2, 2),
@@ -235,8 +235,8 @@ TEST(STABILIZER, Log)
 TEST(STABILIZER, Sqrt)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::SQRT});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::SQRT});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-2, 2),
@@ -264,8 +264,8 @@ TEST(STABILIZER, Sqrt)
 TEST(STABILIZER, Round)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::ROUND});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::ROUND});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-2.2, 2.6),
@@ -279,8 +279,8 @@ TEST(STABILIZER, Round)
 TEST(STABILIZER, Square)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::SQUARE});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::SQUARE});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-2, 3),
@@ -308,8 +308,8 @@ TEST(STABILIZER, Square)
 TEST(STABILIZER, Cube)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::CUBE});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::CUBE});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-2, 3),
@@ -337,8 +337,8 @@ TEST(STABILIZER, Cube)
 TEST(STABILIZER, Sigmoid)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::SIGMOID});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::SIGMOID});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-1000, 1000),
@@ -359,8 +359,8 @@ TEST(STABILIZER, Sigmoid)
 TEST(STABILIZER, Tanh)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::TANH});
+	teq::TensptrT a(new MockLeaf(shape));
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::TANH});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-1000, 1000),
@@ -381,7 +381,7 @@ TEST(STABILIZER, Tanh)
 TEST(STABILIZER, Same)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
 	std::vector<egen::_GENERATED_OPCODE> ops = {
 		egen::PERMUTE, egen::EXTEND,
@@ -392,7 +392,7 @@ TEST(STABILIZER, Same)
 	};
 	for (egen::_GENERATED_OPCODE op : ops)
 	{
-		auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", op});
+		auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", op});
 
 		auto r1 = eigen::generate_range<double>(*f, {
 			estd::NumRange<double>(-245, 321),
@@ -414,14 +414,14 @@ TEST(STABILIZER, Same)
 TEST(STABILIZER, WithZeros)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
 	std::vector<egen::_GENERATED_OPCODE> ops = {
 		egen::PAD, egen::SCATTER,
 	};
 	for (egen::_GENERATED_OPCODE op : ops)
 	{
-		auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", op});
+		auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", op});
 
 		auto r1 = eigen::generate_range<double>(*f, {
 			estd::NumRange<double>(-3, 4),
@@ -450,9 +450,9 @@ TEST(STABILIZER, WithZeros)
 TEST(STABILIZER, Argmax)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f1 = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::ARGMAX});
+	auto f1 = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::ARGMAX});
 	eigen::Packer<teq::RankT>().pack(*f1, 1);
 
 	auto r1 = eigen::generate_range<double>(*f1, {
@@ -462,7 +462,7 @@ TEST(STABILIZER, Argmax)
 	EXPECT_DOUBLE_EQ(0, r1.lower_);
 	EXPECT_DOUBLE_EQ(2, r1.upper_);
 
-	auto f2 = std::make_shared<MockFunctor>(teq::TensptrsT{a}, std::vector<double>{}, teq::Opcode{"", egen::ARGMAX});
+	auto f2 = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::ARGMAX});
 	eigen::Packer<teq::RankT>().pack(*f2, 8);
 
 	auto r2 = eigen::generate_range<double>(*f2, {
@@ -477,10 +477,9 @@ TEST(STABILIZER, Argmax)
 TEST(STABILIZER, Select)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::SELECT});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a, a}, teq::Opcode{"", egen::SELECT});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -496,10 +495,9 @@ TEST(STABILIZER, Select)
 TEST(STABILIZER, Concat)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::CONCAT});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a}, teq::Opcode{"", egen::CONCAT});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -514,10 +512,9 @@ TEST(STABILIZER, Concat)
 TEST(STABILIZER, GroupConcat)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::GROUP_CONCAT});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a, a}, teq::Opcode{"", egen::GROUP_CONCAT});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -533,10 +530,9 @@ TEST(STABILIZER, GroupConcat)
 TEST(STABILIZER, Pow)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::POW});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a}, teq::Opcode{"", egen::POW});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(2, 2),
@@ -562,10 +558,9 @@ TEST(STABILIZER, Pow)
 TEST(STABILIZER, Add)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::ADD});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a}, teq::Opcode{"", egen::ADD});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -596,10 +591,9 @@ TEST(STABILIZER, Add)
 TEST(STABILIZER, GroupSum)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a,a,a},
-		std::vector<double>{}, teq::Opcode{"", egen::GROUP_SUM});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a,a,a}, teq::Opcode{"", egen::GROUP_SUM});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -633,10 +627,9 @@ TEST(STABILIZER, GroupSum)
 TEST(STABILIZER, Sub)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::SUB});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a}, teq::Opcode{"", egen::SUB});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -659,10 +652,9 @@ TEST(STABILIZER, Sub)
 TEST(STABILIZER, Mul)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::MUL});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a}, teq::Opcode{"", egen::MUL});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -693,10 +685,9 @@ TEST(STABILIZER, Mul)
 TEST(STABILIZER, GroupProd)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a,a,a},
-		std::vector<double>{}, teq::Opcode{"", egen::GROUP_PROD});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a,a,a}, teq::Opcode{"", egen::GROUP_PROD});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -730,10 +721,9 @@ TEST(STABILIZER, GroupProd)
 TEST(STABILIZER, Div)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a,a},
-		std::vector<double>{}, teq::Opcode{"", egen::DIV});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a,a}, teq::Opcode{"", egen::DIV});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -764,10 +754,9 @@ TEST(STABILIZER, Div)
 TEST(STABILIZER, Min)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::MIN});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a}, teq::Opcode{"", egen::MIN});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -798,10 +787,9 @@ TEST(STABILIZER, Min)
 TEST(STABILIZER, Max)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::MAX});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a}, teq::Opcode{"", egen::MAX});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -832,10 +820,9 @@ TEST(STABILIZER, Max)
 TEST(STABILIZER, Eq)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::EQ});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a}, teq::Opcode{"", egen::EQ});
 
 	// overlaps
 	auto r1 = eigen::generate_range<double>(*f, {
@@ -894,10 +881,9 @@ TEST(STABILIZER, Eq)
 TEST(STABILIZER, Neq)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::NEQ});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a}, teq::Opcode{"", egen::NEQ});
 
 	// overlaps
 	auto r1 = eigen::generate_range<double>(*f, {
@@ -956,10 +942,9 @@ TEST(STABILIZER, Neq)
 TEST(STABILIZER, Lt)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::LT});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a}, teq::Opcode{"", egen::LT});
 
 	// overlaps
 	auto r1 = eigen::generate_range<double>(*f, {
@@ -1036,10 +1021,9 @@ TEST(STABILIZER, Lt)
 TEST(STABILIZER, Gt)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a},
-		std::vector<double>{}, teq::Opcode{"", egen::GT});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a}, teq::Opcode{"", egen::GT});
 
 	// overlaps
 	auto r1 = eigen::generate_range<double>(*f, {
@@ -1116,10 +1100,9 @@ TEST(STABILIZER, Gt)
 TEST(STABILIZER, ReduceSum)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f1 = std::make_shared<MockFunctor>(teq::TensptrsT{a},
-		std::vector<double>{}, teq::Opcode{"", egen::REDUCE_SUM});
+	auto f1 = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::REDUCE_SUM});
 	eigen::pack_attr(*f1, std::set<teq::RankT>({1, 2}));
 
 	auto r1 = eigen::generate_range<double>(*f1, {
@@ -1129,8 +1112,7 @@ TEST(STABILIZER, ReduceSum)
 	EXPECT_DOUBLE_EQ(-2 * 12, r1.lower_);
 	EXPECT_DOUBLE_EQ(4 * 12, r1.upper_);
 
-	auto f2 = std::make_shared<MockFunctor>(teq::TensptrsT{a},
-		std::vector<double>{}, teq::Opcode{"", egen::REDUCE_SUM});
+	auto f2 = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::REDUCE_SUM});
 	eigen::pack_attr(*f2, std::set<teq::RankT>({0, 1, 2}));
 
 	auto r2 = eigen::generate_range<double>(*f2, {
@@ -1145,10 +1127,9 @@ TEST(STABILIZER, ReduceSum)
 TEST(STABILIZER, ReduceProd)
 {
 	teq::Shape shape({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
+	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f1 = std::make_shared<MockFunctor>(teq::TensptrsT{a},
-		std::vector<double>{}, teq::Opcode{"", egen::REDUCE_PROD});
+	auto f1 = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::REDUCE_PROD});
 	eigen::pack_attr(*f1, std::set<teq::RankT>({0, 2}));
 
 	auto r1 = eigen::generate_range<double>(*f1, {
@@ -1165,8 +1146,7 @@ TEST(STABILIZER, ReduceProd)
 	EXPECT_DOUBLE_EQ(0, r2.lower_);
 	EXPECT_DOUBLE_EQ(std::pow(4, 8), r2.upper_);
 
-	auto f2 = std::make_shared<MockFunctor>(teq::TensptrsT{a},
-		std::vector<double>{}, teq::Opcode{"", egen::REDUCE_PROD});
+	auto f2 = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::REDUCE_PROD});
 	eigen::pack_attr(*f2, std::set<teq::RankT>({0, 1, 2}));
 
 	auto r3 = eigen::generate_range<double>(*f2, {
@@ -1183,8 +1163,7 @@ TEST(STABILIZER, ReduceProd)
 	EXPECT_DOUBLE_EQ(0, r4.lower_);
 	EXPECT_DOUBLE_EQ(std::pow(4, shape.n_elems()), r4.upper_);
 
-	auto f3 = std::make_shared<MockFunctor>(teq::TensptrsT{a},
-		std::vector<double>{}, teq::Opcode{"", egen::REDUCE_PROD});
+	auto f3 = std::make_shared<MockFunctor>(teq::TensptrsT{a}, teq::Opcode{"", egen::REDUCE_PROD});
 	eigen::pack_attr(*f3, std::set<teq::RankT>({1}));
 
 	auto r5 = eigen::generate_range<double>(*f3, {
@@ -1200,11 +1179,10 @@ TEST(STABILIZER, Matmul)
 {
 	teq::Shape shape({4, 3, 2});
 	teq::Shape shape2({2, 3, 4});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	teq::TensptrT b(new MockLeaf({}, shape2));
+	teq::TensptrT a(new MockLeaf(shape));
+	teq::TensptrT b(new MockLeaf(shape2));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, b},
-		std::vector<double>{}, teq::Opcode{"", egen::MATMUL});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, b}, teq::Opcode{"", egen::MATMUL});
 	eigen::pack_attr(*f, eigen::PairVecT<teq::RankT>{{0, 2}});
 
 	auto r1 = eigen::generate_range<double>(*f, {
@@ -1237,11 +1215,10 @@ TEST(STABILIZER, Conv)
 {
 	teq::Shape shape({2, 3, 4});
 	teq::Shape kshape({3, 2});
-	teq::TensptrT a(new MockLeaf({}, shape));
-	teq::TensptrT k(new MockLeaf({}, kshape));
+	teq::TensptrT a(new MockLeaf(shape));
+	teq::TensptrT k(new MockLeaf(kshape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, k},
-		std::vector<double>{}, teq::Opcode{"", egen::CONV});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, k}, teq::Opcode{"", egen::CONV});
 	eigen::pack_attr(*f, std::vector<teq::RankT>{0, 2});
 
 	auto r1 = eigen::generate_range<double>(*f, {

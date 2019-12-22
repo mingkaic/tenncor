@@ -88,7 +88,8 @@ struct FuncTarget final : public opt::iTarget
 			children.insert(children.end(), args.begin(), args.end());
 		}
 		std::unique_ptr<marsh::Maps> attrs(attrs_.clone());
-		return Functor<T>::get(opcode_, children, std::move(*attrs));
+		return teq::TensptrT(Functor<T>::get(
+			opcode_, children, std::move(*attrs)));
 	}
 
 	egen::_GENERATED_OPCODE opcode_;

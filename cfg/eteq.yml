@@ -11,7 +11,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ABS, {arg});
+          val: return eteq::make_functor<T>(::egen::ABS,teq::TensptrsT{arg});
       - template: typename T
         name: neg
         operator: "-"
@@ -20,7 +20,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::NEG, {arg});
+          val: return eteq::make_functor<T>(::egen::NEG,teq::TensptrsT{arg});
       - template: typename T
         name: sin
         args:
@@ -28,7 +28,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SIN, {arg});
+          val: return eteq::make_functor<T>(::egen::SIN,teq::TensptrsT{arg});
       - template: typename T
         name: cos
         args:
@@ -36,7 +36,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::COS, {arg});
+          val: return eteq::make_functor<T>(::egen::COS,teq::TensptrsT{arg});
       - template: typename T
         name: tan
         args:
@@ -44,7 +44,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::TAN, {arg});
+          val: return eteq::make_functor<T>(::egen::TAN,teq::TensptrsT{arg});
       - template: typename T
         name: exp
         args:
@@ -52,7 +52,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::EXP, {arg});
+          val: return eteq::make_functor<T>(::egen::EXP,teq::TensptrsT{arg});
       - template: typename T
         name: log
         args:
@@ -60,7 +60,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::LOG, {arg});
+          val: return eteq::make_functor<T>(::egen::LOG,teq::TensptrsT{arg});
       - template: typename T
         name: sqrt
         args:
@@ -68,7 +68,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SQRT, {arg});
+          val: return eteq::make_functor<T>(::egen::SQRT,teq::TensptrsT{arg});
       - template: typename T
         name: round
         args:
@@ -76,7 +76,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ROUND, {arg});
+          val: return eteq::make_functor<T>(::egen::ROUND,teq::TensptrsT{arg});
       - template: typename T
         name: sigmoid
         args:
@@ -84,7 +84,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SIGMOID, {arg});
+          val: return eteq::make_functor<T>(::egen::SIGMOID,teq::TensptrsT{arg});
       - template: typename T
         name: tanh
         args:
@@ -92,7 +92,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::TANH, {arg});
+          val: return eteq::make_functor<T>(::egen::TANH,teq::TensptrsT{arg});
       - template: typename T
         name: square
         args:
@@ -100,7 +100,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SQUARE, {arg});
+          val: return eteq::make_functor<T>(::egen::SQUARE,teq::TensptrsT{arg});
       - template: typename T
         name: cube
         args:
@@ -108,7 +108,7 @@ api:
           name: arg
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::CUBE, {arg});
+          val: return eteq::make_functor<T>(::egen::CUBE,teq::TensptrsT{arg});
       - template: typename T
         name: pow
         args:
@@ -118,7 +118,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::POW, {a, b});
+          val: return eteq::make_functor<T>(::egen::POW,teq::TensptrsT{a, b});
       - template: typename T
         name: pow
         args:
@@ -151,7 +151,7 @@ api:
           type: eteq::ETensor<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(::egen::ADD, {a, b});
+                  auto out = eteq::make_functor<T>(::egen::ADD,teq::TensptrsT{a, b});
                   if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
                   {
                       f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
@@ -189,7 +189,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SUB, {a, b});
+          val: return eteq::make_functor<T>(::egen::SUB,teq::TensptrsT{a, b});
       - template: typename T
         name: sub
         operator: "-"
@@ -224,7 +224,7 @@ api:
           type: eteq::ETensor<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(::egen::MUL, {a, b});
+                  auto out = eteq::make_functor<T>(::egen::MUL,teq::TensptrsT{a, b});
                   if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
                   {
                       f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
@@ -262,7 +262,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::DIV, {a, b});
+          val: return eteq::make_functor<T>(::egen::DIV,teq::TensptrsT{a, b});
       - template: typename T
         name: div
         operator: /
@@ -297,7 +297,7 @@ api:
           type: eteq::ETensor<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(::egen::EQ, {a, b});
+                  auto out = eteq::make_functor<T>(::egen::EQ,teq::TensptrsT{a, b});
                   if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
                   {
                       f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
@@ -337,7 +337,7 @@ api:
           type: eteq::ETensor<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(::egen::NEQ, {a, b});
+                  auto out = eteq::make_functor<T>(::egen::NEQ,teq::TensptrsT{a, b});
                   if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
                   {
                       f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
@@ -375,7 +375,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::LT, {a, b});
+          val: return eteq::make_functor<T>(::egen::LT,teq::TensptrsT{a, b});
       - template: typename T
         name: lt
         operator: <
@@ -408,7 +408,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::GT, {a, b});
+          val: return eteq::make_functor<T>(::egen::GT,teq::TensptrsT{a, b});
       - template: typename T
         name: gt
         operator: ">"
@@ -442,7 +442,7 @@ api:
           type: eteq::ETensor<T>
           val: |
               //
-                  auto out = eteq::make_functor<T>(::egen::MIN, {a, b});
+                  auto out = eteq::make_functor<T>(::egen::MIN,teq::TensptrsT{a, b});
                   if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
                   {
                       f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
@@ -498,7 +498,7 @@ api:
           type: eteq::ETensor<T>
           val: |
               //
-                auto out = eteq::make_functor<T>(::egen::MAX, {a, b});
+                auto out = eteq::make_functor<T>(::egen::MAX,teq::TensptrsT{a, b});
                 if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
                 {
                     f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
@@ -561,7 +561,7 @@ api:
                   {
                       return then;
                   }
-                  return eteq::make_functor<T>(::egen::SELECT, {condition,then,otherwise});
+                  return eteq::make_functor<T>(::egen::SELECT,teq::TensptrsT{condition,then,otherwise});
       - template: typename T
         name: reverse
         args:
@@ -571,7 +571,7 @@ api:
           name: dims
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::REVERSE,{arg},dims);
+          val: return eteq::make_functor<T>(::egen::REVERSE,teq::TensptrsT{arg},dims);
       - template: typename T
         name: permute
         args:
@@ -581,7 +581,7 @@ api:
           name: order
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::PERMUTE,{arg},order);
+          val: return eteq::make_functor<T>(::egen::PERMUTE,teq::TensptrsT{arg},order);
       - template: typename T
         name: extend
         args:
@@ -591,7 +591,7 @@ api:
           name: bcast
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::EXTEND,{arg},bcast);
+          val: return eteq::make_functor<T>(::egen::EXTEND,teq::TensptrsT{arg},bcast);
       - template: typename T
         name: extend
         args:
@@ -607,7 +607,7 @@ api:
               //
                   std::vector<teq::DimT> bcast(offset, 1);
                   bcast.insert(bcast.end(), xlist.begin(), xlist.end());
-                  return eteq::make_functor<T>(::egen::EXTEND,{arg},bcast);
+                  return eteq::make_functor<T>(::egen::EXTEND,teq::TensptrsT{arg},bcast);
       - template: typename T
         name: concat
         args:
@@ -619,7 +619,7 @@ api:
           name: axis
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::CONCAT,{left,right},axis);
+          val: return eteq::make_functor<T>(::egen::CONCAT,teq::TensptrsT{left,right},axis);
       - template: typename T
         name: concat
         args:
@@ -629,7 +629,7 @@ api:
           name: axis
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::GROUP_CONCAT,args,axis);
+          val: return eteq::make_functor<T>(::egen::GROUP_CONCAT,eteq::to_tensors(args),axis);
       - description: Return extended arg so that output shape matches like tensor exactly
         template: typename T
         name: extend_like
@@ -640,7 +640,7 @@ api:
           name: like
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::EXTEND,{arg},(teq::TensptrT) like);
+          val: return eteq::make_functor<T>(::egen::EXTEND,teq::TensptrsT{arg},(teq::TensptrT) like);
       - template: typename T
         name: reshape
         args:
@@ -650,7 +650,7 @@ api:
           name: shape
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::RESHAPE,{arg},shape);
+          val: return eteq::make_functor<T>(::egen::RESHAPE,teq::TensptrsT{arg},shape);
       - description: sum values for dimensions specified
         template: typename T
         name: reduce_sum
@@ -661,7 +661,7 @@ api:
           name: dims
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_SUM,{tens},dims);
+          val: return eteq::make_functor<T>(::egen::REDUCE_SUM,teq::TensptrsT{tens},dims);
       - description: multiply values for dimensions specified
         template: typename T
         name: reduce_prod
@@ -672,7 +672,7 @@ api:
           name: dims
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_PROD,{tens},dims);
+          val: return eteq::make_functor<T>(::egen::REDUCE_PROD,teq::TensptrsT{tens},dims);
       - description: get min values of dimensions specified
         template: typename T
         name: reduce_min
@@ -683,7 +683,7 @@ api:
           name: dims
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_MIN,{tens},dims);
+          val: return eteq::make_functor<T>(::egen::REDUCE_MIN,teq::TensptrsT{tens},dims);
       - description: get max values for dimensions specified
         template: typename T
         name: reduce_max
@@ -694,7 +694,7 @@ api:
           name: dims
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_MAX,{tens},dims);
+          val: return eteq::make_functor<T>(::egen::REDUCE_MAX,teq::TensptrsT{tens},dims);
       - description: sum values for ndims dimensions after offset
         template: typename T
         name: reduce_sum
@@ -719,7 +719,7 @@ api:
                   std::vector<teq::RankT> dims(std::min(ndims,
                       (teq::RankT) (teq::rank_cap - offset)));
                   std::iota(dims.begin(), dims.end(), offset);
-                  return eteq::make_functor<T>(::egen::REDUCE_SUM,{tens},
+                  return eteq::make_functor<T>(::egen::REDUCE_SUM,teq::TensptrsT{tens},
                       std::set<teq::RankT>(dims.begin(), dims.end()));
       - description: multiply values for ndims dimensions after offset
         template: typename T
@@ -745,7 +745,7 @@ api:
                   std::vector<teq::RankT> dims(std::min(ndims,
                       (teq::RankT) (teq::rank_cap - offset)));
                   std::iota(dims.begin(), dims.end(), offset);
-                  return eteq::make_functor<T>(::egen::REDUCE_PROD,{tens},
+                  return eteq::make_functor<T>(::egen::REDUCE_PROD,teq::TensptrsT{tens},
                       std::set<teq::RankT>(dims.begin(), dims.end()));
       - description: min values for ndims dimensions after offset
         template: typename T
@@ -771,7 +771,7 @@ api:
                   std::vector<teq::RankT> dims(std::min(ndims,
                       (teq::RankT) (teq::rank_cap - offset)));
                   std::iota(dims.begin(), dims.end(), offset);
-                  return eteq::make_functor<T>(::egen::REDUCE_MIN,{tens},
+                  return eteq::make_functor<T>(::egen::REDUCE_MIN,teq::TensptrsT{tens},
                       std::set<teq::RankT>(dims.begin(), dims.end()));
       - description: max values for ndims dimensions after offset
         template: typename T
@@ -797,7 +797,7 @@ api:
                   std::vector<teq::RankT> dims(std::min(ndims,
                       (teq::RankT) (teq::rank_cap - offset)));
                   std::iota(dims.begin(), dims.end(), offset);
-                  return eteq::make_functor<T>(::egen::REDUCE_MAX,{tens},
+                  return eteq::make_functor<T>(::egen::REDUCE_MAX,teq::TensptrsT{tens},
                       std::set<teq::RankT>(dims.begin(), dims.end()));
       - template: typename T
         name: argmax
@@ -809,7 +809,7 @@ api:
           default: "8"
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ARGMAX,{tens},return_dim);
+          val: return eteq::make_functor<T>(::egen::ARGMAX,teq::TensptrsT{tens},return_dim);
       - template: typename T
         name: n_elems
         args:
@@ -838,7 +838,7 @@ api:
           name: extents
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SLICE,{arg},extents);
+          val: return eteq::make_functor<T>(::egen::SLICE,teq::TensptrsT{arg},extents);
       - template: typename T
         name: slice
         args:
@@ -868,7 +868,7 @@ api:
           name: paddings
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::PAD,{arg},paddings);
+          val: return eteq::make_functor<T>(::egen::PAD,teq::TensptrsT{arg},paddings);
       - template: typename T
         name: pad
         args:
@@ -895,7 +895,7 @@ api:
           name: incrs
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::STRIDE,{arg},incrs);
+          val: return eteq::make_functor<T>(::egen::STRIDE,teq::TensptrsT{arg},incrs);
       - description: populate input values at specific increments along its dimensions to fit specified shape (opposite of stride)
         template: typename T
         name: scatter
@@ -908,7 +908,7 @@ api:
           name: incrs
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SCATTER,{arg},outshape,incrs);
+          val: return eteq::make_functor<T>(::egen::SCATTER,teq::TensptrsT{arg},outshape,incrs);
       - description: multiple values across specify dimensions pairs before summing all products (generalization of matrix product), defaults to matrix product
         template: typename T
         name: contract
@@ -922,7 +922,7 @@ api:
           default: eigen::PairVecT<teq::RankT>{{0, 1}}
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::MATMUL,{a, b}, dims);
+          val: return eteq::make_functor<T>(::egen::MATMUL,teq::TensptrsT{a, b}, dims);
       - template: typename T
         name: matmul
         args:
@@ -944,7 +944,7 @@ api:
           name: dims
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::CONV,{image,kernel},dims);
+          val: return eteq::make_functor<T>(::egen::CONV,teq::TensptrsT{image,kernel},dims);
       - template: typename T
         name: reduce_sum_1d
         args:
@@ -1142,7 +1142,7 @@ api:
                       default:
                           break;
                   }
-                  auto out = eteq::make_functor<T>(::egen::GROUP_SUM, args);
+                  auto out = eteq::make_functor<T>(::egen::GROUP_SUM, eteq::to_tensors(args));
                   if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
                   {
                       f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
@@ -1169,7 +1169,7 @@ api:
                       default:
                           break;
                   }
-                  auto out = eteq::make_functor<T>(::egen::GROUP_PROD, args);
+                  auto out = eteq::make_functor<T>(::egen::GROUP_PROD, eteq::to_tensors(args));
                   if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
                   {
                       f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
@@ -1240,7 +1240,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::RAND_UNIF, {a, b});
+          val: return eteq::make_functor<T>(::egen::RAND_UNIF,teq::TensptrsT{a, b});
       - template: typename T
         name: rand_binom_one
         args:
@@ -1434,7 +1434,8 @@ api:
           val: |
               //
                   auto output = tenncor::nn::fully_connect({input}, {weight}, bias, dims);
-                  return eteq::make_layer(teq::Opcode{"_DENSE_LAYER", 0}, input, output);
+                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
+                  return eteq::make_layer<T>("_DENSE_LAYER", input, f);
       - template: typename T
         name: conv
         args:
@@ -1454,4 +1455,5 @@ api:
           val: |
               //
                   auto output = tenncor::nn::conv2d(input, weight, bias, zero_padding);
-                  return eteq::make_layer(teq::Opcode{"_CONV_LAYER", 0}, input, output);
+                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
+                  return eteq::make_layer<T>("_CONV_LAYER", input, f);

@@ -110,6 +110,7 @@ cc_test(
     deps = [
         "//eteq:eteq",
         "//dbg:stream_out",
+        "//utils:utils",
         "//testutil:tutil",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",

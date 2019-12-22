@@ -16,6 +16,16 @@
 namespace teq
 {
 
+/// Encoding of operation
+struct Opcode final
+{
+	/// String representation of operation
+	std::string name_;
+
+	/// Numerical encoding of operation
+	size_t code_;
+};
+
 /// Interface of iOperation-defined operation node
 struct iFunctor : public iTensor, public marsh::iAttributed
 {

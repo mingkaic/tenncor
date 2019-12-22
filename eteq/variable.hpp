@@ -132,8 +132,8 @@ VarptrT<T> make_variable_scalar (T scalar,
 
 /// Return variable node filled with scalar matching link shape
 template <typename T>
-VarptrT<T> make_variable_like (T scalar,
-	ETensor<T> link, std::string label = "");
+VarptrT<T> make_variable_like (T scalar, 
+	teq::TensptrT like, std::string label = "");
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>

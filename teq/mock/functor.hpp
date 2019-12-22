@@ -2,17 +2,25 @@
 
 #include "teq/ifunctor.hpp"
 
-#ifndef TEQ_MOCK_OPFUNC_HPP
-#define TEQ_MOCK_OPFUNC_HPP
+#ifndef TEQ_MOCK_FUNCTOR_HPP
+#define TEQ_MOCK_FUNCTOR_HPP
 
 struct MockFunctor : public teq::iFunctor
 {
-	MockFunctor (teq::TensptrsT datas, std::vector<double> data,
-		teq::Opcode opcode = teq::Opcode{}) : datas_(datas),
-		opcode_(opcode), data_(data, datas.front()->shape()) {}
+	MockFunctor (teq::TensptrsT children, std::vector<double> data, teq::Opcode opcode) :
+		children_(children), opcode_(opcode), data_(data, children.front()->shape()) {}
+
+	MockFunctor (teq::TensptrsT children, std::vector<double> data) :
+		MockFunctor(children, data, teq::Opcode()) {}
+
+	MockFunctor (teq::TensptrsT children, teq::Opcode opcode) :
+		MockFunctor(children, {}, opcode) {}
+
+	MockFunctor (teq::TensptrsT children) :
+		MockFunctor(children, {}, teq::Opcode()) {}
 
 	MockFunctor (const MockFunctor& other) : updated_(other.updated_),
-		datas_(other.datas_), opcode_(other.opcode_), data_(other.data_) {}
+		children_(other.children_), opcode_(other.opcode_), data_(other.data_) {}
 
 	virtual ~MockFunctor (void) = default;
 
@@ -33,7 +41,7 @@ struct MockFunctor : public teq::iFunctor
 
 	teq::TensptrsT get_children (void) const override
 	{
-		return datas_;
+		return children_;
 	}
 
 	const marsh::iObject* get_attr (std::string attr_name) const override
@@ -58,7 +66,7 @@ struct MockFunctor : public teq::iFunctor
 
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		datas_[index] = arg;
+		children_[index] = arg;
 	}
 
 	void calc(void) override
@@ -103,7 +111,7 @@ struct MockFunctor : public teq::iFunctor
 
 	bool updated_ = false;
 
-	teq::TensptrsT datas_;
+	teq::TensptrsT children_;
 
 	teq::Opcode opcode_;
 
@@ -112,4 +120,4 @@ struct MockFunctor : public teq::iFunctor
 	MockLeaf data_;
 };
 
-#endif // TEQ_MOCK_OPFUNC_HPP
+#endif // TEQ_MOCK_FUNCTOR_HPP

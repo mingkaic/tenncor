@@ -32,7 +32,7 @@ static std::vector<double> random_data (size_t n, double lower, double upper)
 	std::vector<double> out(n);
 	std::uniform_real_distribution<double> dist(lower, upper);
 	std::generate(out.begin(), out.end(),
-		[&dist]() { return dist(mersenne_engine); });
+		[&dist] { return dist(mersenne_engine); });
 	return out;
 }
 

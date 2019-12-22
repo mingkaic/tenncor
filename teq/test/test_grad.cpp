@@ -24,38 +24,34 @@ struct MockDeriveFunc final : public teq::iDerivativeFuncs
 		else if (label == "FUNC2")
 		{
 			return std::make_shared<MockFunctor>(
-				teq::TensptrsT{op->get_children()[arg_idx]},
-				std::vector<double>{}, teq::Opcode{"FUNC4", 3});
+				teq::TensptrsT{op->get_children()[arg_idx]}, teq::Opcode{"FUNC4", 3});
 		}
-		return teq::TensptrT(new MockLeaf({}, op->shape(), "other"));
+		return teq::TensptrT(new MockLeaf(op->shape(), "other"));
 	}
 
 	teq::TensptrT chain_rule (teq::FuncptrT op, const teq::TensptrT& local_der,
 		teq::TensptrT supcomp_grad, size_t arg_idx) const override
 	{
 		teq::TensptrT tens(new MockFunctor(
-			teq::TensptrsT{op,local_der},
-			std::vector<double>{}, teq::Opcode{"FUNC2", 1}));
+			teq::TensptrsT{op,local_der}, teq::Opcode{"FUNC2", 1}));
 
 		return teq::TensptrT(new MockFunctor(
-			teq::TensptrsT{tens, supcomp_grad},
-			std::vector<double>{}, teq::Opcode{"FUNC3", 2}));
+			teq::TensptrsT{tens, supcomp_grad}, teq::Opcode{"FUNC3", 2}));
 	}
 
 	teq::TensptrT get_const_one (teq::Shape shape) const override
 	{
-		return teq::TensptrT(new MockLeaf({}, shape, "1"));
+		return teq::TensptrT(new MockLeaf(shape, "1"));
 	}
 
 	teq::TensptrT get_const_zero (teq::Shape shape) const override
 	{
-		return teq::TensptrT(new MockLeaf({}, shape, "0"));
+		return teq::TensptrT(new MockLeaf(shape, "0"));
 	}
 
 	teq::TensptrT add (teq::TensptrsT elems) const override
 	{
-		return teq::TensptrT(new MockFunctor(elems,
-			std::vector<double>{}, teq::Opcode{"FUNC", 0}));
+		return teq::TensptrT(new MockFunctor(elems, teq::Opcode{"FUNC", 0}));
 	}
 };
 
@@ -73,11 +69,10 @@ TEST(GRAD, OneZero)
 	 *   \    /
 	 *   FUNC
 	 */
-	teq::TensptrT leaf(new MockLeaf({}, shape, "leaf"));
-	teq::TensptrT leaf2(new MockLeaf({}, shape, "leaf2"));
-	teq::TensptrT leaf3(new MockLeaf({}, shape, "leaf3"));
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf, leaf2},
-		std::vector<double>{}, teq::Opcode{"FUNC", 0}));
+	teq::TensptrT leaf(new MockLeaf(shape, "leaf"));
+	teq::TensptrT leaf2(new MockLeaf(shape, "leaf2"));
+	teq::TensptrT leaf3(new MockLeaf(shape, "leaf3"));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf, leaf2}, teq::Opcode{"FUNC", 0}));
 
 	auto wun = teq::derive(f, f, builder);
 	auto wun2 = teq::derive(leaf, leaf, builder);
@@ -115,10 +110,9 @@ TEST(GRAD, BuilderStandardV)
 	 *   \    /
 	 *   FUNC
 	 */
-	teq::TensptrT leaf(new MockLeaf({}, shape, "leaf"));
-	teq::TensptrT leaf2(new MockLeaf({}, shape, "leaf2"));
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf, leaf2},
-		std::vector<double>{}, teq::Opcode{"FUNC", 0}));
+	teq::TensptrT leaf(new MockLeaf(shape, "leaf"));
+	teq::TensptrT leaf2(new MockLeaf(shape, "leaf2"));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf, leaf2}, teq::Opcode{"FUNC", 0}));
 
 	auto gl = teq::derive(f, leaf, builder);
 	auto gl2 = teq::derive(f, leaf2, builder);
@@ -160,13 +154,10 @@ TEST(GRAD, BuilderDiamond)
 	 *   \   /
 	 *   FUNC3
 	 */
-	teq::TensptrT leaf(new MockLeaf({}, shape, "leaf"));
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf},
-		std::vector<double>{}, teq::Opcode{"FUNC", 0}));
-	teq::TensptrT f2(new MockFunctor(teq::TensptrsT{leaf},
-		std::vector<double>{}, teq::Opcode{"FUNC2", 1}));
-	teq::TensptrT f3(new MockFunctor(teq::TensptrsT{f, f2},
-		std::vector<double>{}, teq::Opcode{"FUNC3", 2}));
+	teq::TensptrT leaf(new MockLeaf(shape, "leaf"));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf}, teq::Opcode{"FUNC", 0}));
+	teq::TensptrT f2(new MockFunctor(teq::TensptrsT{leaf}, teq::Opcode{"FUNC2", 1}));
+	teq::TensptrT f3(new MockFunctor(teq::TensptrsT{f, f2}, teq::Opcode{"FUNC3", 2}));
 
 	auto gl = teq::derive(f3, leaf, builder);
 
@@ -222,15 +213,11 @@ TEST(GRAD, TadPole)
 	 *   \   /
 	 *   FUNC4
 	 */
-	teq::TensptrT leaf(new MockLeaf({}, shape, "leaf"));
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf},
-		std::vector<double>{}, teq::Opcode{"FUNC", 0}));
-	teq::TensptrT f2(new MockFunctor(teq::TensptrsT{f},
-		std::vector<double>{}, teq::Opcode{"FUNC2", 1}));
-	teq::TensptrT f3(new MockFunctor(teq::TensptrsT{f},
-		std::vector<double>{}, teq::Opcode{"FUNC3", 2}));
-	teq::TensptrT f4(new MockFunctor(teq::TensptrsT{f2, f3},
-		std::vector<double>{}, teq::Opcode{"FUNC4", 3}));
+	teq::TensptrT leaf(new MockLeaf(shape, "leaf"));
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf}, teq::Opcode{"FUNC", 0}));
+	teq::TensptrT f2(new MockFunctor(teq::TensptrsT{f}, teq::Opcode{"FUNC2", 1}));
+	teq::TensptrT f3(new MockFunctor(teq::TensptrsT{f}, teq::Opcode{"FUNC3", 2}));
+	teq::TensptrT f4(new MockFunctor(teq::TensptrsT{f2, f3}, teq::Opcode{"FUNC4", 3}));
 
 	auto gl = teq::derive(f4, leaf, builder);
 	EXPECT_GRAPHEQ(

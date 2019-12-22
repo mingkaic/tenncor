@@ -54,19 +54,15 @@ TEST(SAVE, SaveGraph)
 				src2,
 				std::make_shared<MockFunctor>(teq::TensptrsT{
 					std::make_shared<MockFunctor>(teq::TensptrsT{
+						std::make_shared<MockFunctor>(teq::TensptrsT{osrc}, teq::Opcode{"neg", 3}),
 						std::make_shared<MockFunctor>(teq::TensptrsT{
-							osrc,
-						}, std::vector<double>{}, teq::Opcode{"neg", 3}),
-						std::make_shared<MockFunctor>(teq::TensptrsT{
-							std::make_shared<MockFunctor>(teq::TensptrsT{
-								src,
-							}, std::vector<double>{}, teq::Opcode{"sin", 5}),
+							std::make_shared<MockFunctor>(teq::TensptrsT{src}, teq::Opcode{"sin", 5}),
 							src,
-						}, std::vector<double>{}, teq::Opcode{"+", 4}),
-					}, std::vector<double>{}, teq::Opcode{"/", 2}),
+						}, teq::Opcode{"+", 4}),
+					}, teq::Opcode{"/", 2}),
 					osrc2,
-				}, std::vector<double>{}, teq::Opcode{"@", 1}),
-			}, std::vector<double>{}, teq::Opcode{"-", 0});
+				}, teq::Opcode{"@", 1}),
+			}, teq::Opcode{"-", 0});
 			roots.push_back(dest);
 			ids.insert({dest.get(), "root1"});
 		}
@@ -84,17 +80,11 @@ TEST(SAVE, SaveGraph)
 			teq::TensptrT dest = std::make_shared<MockFunctor>(teq::TensptrsT{
 				src,
 				std::make_shared<MockFunctor>(teq::TensptrsT{
-					std::make_shared<MockFunctor>(teq::TensptrsT{
-						src,
-					}, std::vector<double>{}, teq::Opcode{"abs", 7}),
-					std::make_shared<MockFunctor>(teq::TensptrsT{
-						src2,
-					}, std::vector<double>{}, teq::Opcode{"exp", 8}),
-					std::make_shared<MockFunctor>(teq::TensptrsT{
-						src3,
-					}, std::vector<double>{}, teq::Opcode{"neg", 3}),
-				}, std::vector<double>{}, teq::Opcode{"*", 6}),
-			}, std::vector<double>{}, teq::Opcode{"-", 0});
+					std::make_shared<MockFunctor>(teq::TensptrsT{src}, teq::Opcode{"abs", 7}),
+					std::make_shared<MockFunctor>(teq::TensptrsT{src2}, teq::Opcode{"exp", 8}),
+					std::make_shared<MockFunctor>(teq::TensptrsT{src3}, teq::Opcode{"neg", 3}),
+				}, teq::Opcode{"*", 6}),
+			}, teq::Opcode{"-", 0});
 			roots.push_back(dest);
 			ids.insert({dest.get(), "root2"});
 		}

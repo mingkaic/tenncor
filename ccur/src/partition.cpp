@@ -56,7 +56,7 @@ PartGroupsT k_partition (teq::TensptrsT roots, size_t k, OpWeightT weights)
 				weight_map.emplace(tens,
 					estd::try_get(weights, tens->type_code(), 1));
 			}
-			teq::TensCIdxT parents;
+			teq::ParentMapT parents;
 			if (estd::get(parents, pfinder.parents_, tens))
 			{
 				for (auto& ppair : parents)

@@ -50,15 +50,6 @@ using siterator = ShapeT::iterator;
 /// Type of constant iterator used to iterate through internal array
 using const_siterator = ShapeT::const_iterator;
 
-/// Type used for coordinate dimensions
-using CDimT = double;
-
-/// Array type used to hold dimension info when transforming coordinates
-/// Coordinates are allowed to be negative, negative dimensions are counted
-/// backward from the corresponding shape dimension
-/// For example, given shape=[5], coord=[-1] is the same as coord=[4]
-using CoordT = std::array<CDimT,rank_cap>;
-
 /// Models an aligned shape using an array of DimT values
 /// For each DimT at index i, DimT value is number of elements at dimension i
 /// For example, shape={3, 2} can model tensor [[x, y, z], [u, v, w]]
@@ -67,7 +58,7 @@ struct Shape final
 {
 	Shape (void)
 	{
-		std::fill(begin(), end(), 1);
+		std::fill(dims_.begin(), dims_.end(), 1);
 	}
 
 	Shape (std::vector<DimT> dims)
@@ -104,7 +95,7 @@ struct Shape final
 	/// Return the total number of elements represented by the shape
 	NElemT n_elems (void) const
 	{
-		auto it = begin();
+		auto it = dims_.begin();
 		return std::accumulate(it, it + rank_cap, (NElemT) 1,
 			std::multiplies<NElemT>());
 	}
@@ -124,14 +115,14 @@ struct Shape final
 	bool compatible_after (const Shape& other, RankT idx) const
 	{
 		return idx < rank_cap && std::equal(
-			dims_.begin() + idx, dims_.end(), other.dims_.begin() + idx,
+			dims_.begin() + idx, dims_.end(), other.begin() + idx,
 			[](DimT a, DimT b) { return a == 0 || b == 0 || a == b; });
 	}
 
 	/// Return string representation of shape
 	std::string to_string (void) const
 	{
-		return fmts::to_string(begin(), end());
+		return fmts::to_string(dims_.begin(), dims_.end());
 	}
 
 	// >>>> INTERNAL CONTROL <<<<
@@ -183,18 +174,7 @@ private:
 	ShapeT dims_;
 };
 
-/// Return the flat index mapped by coord according to shape
-/// For example, 2-D tensor has indices in place of value as follows:
-/// [[0, 1, ..., n-1], [n, n+1, ..., 2*n-1]]
-/// The index follows the equation: index = coord[0]+coord[1]*shape[0]+...
-/// Invalid coordinate where the coordinate value is beyond the dimension
-/// for any index will report error
-NElemT index (const Shape& shape, CoordT coord);
-
-/// Return the coordinate of a flat index according to shape
-/// Coordinate dimensions are 0-based
-/// For example [0, 0, ..., 0] <-> 0
-CoordT coordinate (const Shape& shape, NElemT idx);
+using ShapesT = std::vector<Shape>;
 
 /// Return list of shape dimensions with trailing ones/zeros trimmed
 std::vector<DimT> narrow_shape (const Shape& sign);

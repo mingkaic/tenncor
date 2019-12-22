@@ -96,7 +96,7 @@ struct InteractiveSession final : public teq::iSession
 			create_model();
 		}
 
-		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
+		jobs::ScopeGuard defer([this] { ++this->update_it_; });
 
 		// ignore any node data updates when
 		// not connected or out of sync interval
@@ -190,7 +190,7 @@ struct InteractiveSession final : public teq::iSession
 			create_model();
 		}
 
-		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
+		jobs::ScopeGuard defer([this] { ++this->update_it_; });
 
 		// ignore any node data updates when
 		// not connected or out of sync interval
@@ -317,7 +317,7 @@ struct InteractiveSession final : public teq::iSession
 	{
 		std::condition_variable client_done;
 		std::thread timed_killer(
-		[&]()
+		[&]
 		{
 			std::mutex mtx;
 			std::unique_lock<std::mutex> lck(mtx);

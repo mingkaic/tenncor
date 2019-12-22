@@ -75,7 +75,7 @@ ETensor<T> make_constant_scalar (T scalar, teq::Shape shape);
 
 /// Return constant node filled with scalar matching link shape
 template <typename T>
-ETensor<T> make_constant_like (T scalar, ETensor<T> link);
+ETensor<T> make_constant_like (T scalar, teq::TensptrT like);
 
 /// Return constant node given raw array and shape
 template <typename T>

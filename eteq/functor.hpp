@@ -30,7 +30,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 {
 	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
 	/// Return nullptr if functor is redundant
-	static teq::TensptrT get (egen::_GENERATED_OPCODE opcode,
+	static Functor<T>* get (egen::_GENERATED_OPCODE opcode,
 		teq::TensptrsT children, marsh::Maps&& attrs)
 	{
 		if (children.empty())
@@ -39,7 +39,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 				egen::name_op(opcode).c_str());
 		}
 
-		ShapesT shapes;
+		teq::ShapesT shapes;
 		shapes.reserve(children.size());
 		egen::_GENERATED_DTYPE tcode = egen::get_type<T>();
 		for (teq::TensptrT child : children)
@@ -54,14 +54,10 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 			shapes.push_back(child->shape());
 		}
 
-		ShapeOpt outshape;
+		teq::Shape outshape;
 		OPCODE_LOOKUP(CHOOSE_PARSER, opcode)
-		if (false == outshape.has_value())
-		{
-			return children.front();
-		}
-		return teq::TensptrT(new Functor<T>(opcode,
-			teq::Shape(*outshape), children, std::move(attrs)));
+		return new Functor<T>(
+			opcode, outshape, children, std::move(attrs));
 	}
 
 	~Functor (void)
@@ -317,7 +313,8 @@ using FuncptrT = std::shared_ptr<Functor<T>>;
 
 /// Return functor node given opcode and node arguments
 template <typename T, typename ...ARGS>
-ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode, ETensorsT<T> links, ARGS... vargs);
+ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode, 
+	const teq::TensptrsT& children, ARGS... vargs);
 
 }
 

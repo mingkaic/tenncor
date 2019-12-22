@@ -1,10 +1,4 @@
-#include <optional>
-
-#include "marsh/attrs.hpp"
-
-#include "teq/shape.hpp"
-
-#include "eigen/generated/opcode.hpp"
+#include "eteq/funcopt.hpp"
 
 #ifndef ETEQ_SHAPER_HPP
 #define ETEQ_SHAPER_HPP
@@ -12,17 +6,13 @@
 namespace eteq
 {
 
-using ShapeOpt = std::optional<teq::Shape>;
-
-using ShapesT = std::vector<teq::Shape>;
-
 // todo: move these to eigen and auto-generate
 template <egen::_GENERATED_OPCODE OPCODE>
 struct ShapeParser final
 {
 	/// Return output shape if operator is not redundant
 	/// given specified attributes and input shapes
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		return shapes.front();
 	}
@@ -32,34 +22,15 @@ struct ReducePacker
 {
 	virtual ~ReducePacker (void) = default;
 
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		std::set<teq::RankT> ranks;
 		eigen::Packer<std::set<teq::RankT>>().unpack(ranks, attrs);
-		std::string rank_snapshot = fmts::to_string(
-			ranks.begin(), ranks.end());
-
 		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
-		for (auto it = ranks.begin(), et = ranks.end(); it != et;)
+		for (teq::RankT i : ranks)
 		{
-			if (slist.at(*it) != 1)
-			{
-				slist[*it] = 1;
-				++it;
-			}
-			else
-			{
-				it = ranks.erase(it);
-			}
-		}
-		if (ranks.empty())
-		{
-			logs::debugf("reducing with no significant dimensions... "
-				"treating as identity: (dims=%s, shape=%s)",
-				rank_snapshot.c_str(),
-				shape.to_string().c_str());
-			return ShapeOpt();
+			slist[i] = 1;
 		}
 		return teq::Shape(slist);
 	}
@@ -92,21 +63,12 @@ struct ShapeParser<egen::REDUCE_MAX> final : private ReducePacker
 template <>
 struct ShapeParser<egen::ARGMAX> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		teq::RankT return_dim;
 		eigen::Packer<teq::RankT>().unpack(return_dim, attrs);
-
 		teq::Shape shape = shapes.front();
-		if (shape.at(return_dim) == 1)
-		{
-			logs::debugf("argreducing with no significant dimensions... "
-				"treating as identity: (return_dim=%d, shape=%s)",
-				(int) return_dim, shape.to_string().c_str());
-			return ShapeOpt();
-		}
-
-		std::vector<teq::DimT> slist = std::vector<teq::DimT>(shape.begin(), shape.end());
+		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		slist[return_dim] = 1;
 		return teq::Shape(slist);
 	}
@@ -115,14 +77,14 @@ struct ShapeParser<egen::ARGMAX> final
 template <>
 struct ShapeParser<egen::SLICE> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		eigen::PairVecT<teq::DimT> extents;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, attrs);
-
 		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
-		for (size_t i = 0, n = extents.size(); i < n; ++i)
+		for (size_t i = 0, n = std::min(extents.size(), 
+			(size_t) teq::rank_cap); i < n; ++i)
 		{
 			teq::DimT offsets = extents[i].first;
 			if (offsets < shape.at(i))
@@ -130,45 +92,21 @@ struct ShapeParser<egen::SLICE> final
 				slist[i] = std::min(extents[i].second, (teq::DimT) (shape.at(i) - offsets));
 			}
 		}
-
-		teq::Shape sign(slist);
-		if (std::all_of(slist.begin(), slist.end(),
-			[](teq::DimT d) { return d > 0; }) &&
-			sign.compatible_after(shape, 0))
-		{
-			logs::debugf("slice parameter covers whole tensor... "
-				"treating as identity: (extents=%s)",
-				eigen::to_string(extents).c_str());
-			return ShapeOpt();
-		}
-		return sign;
+		return teq::Shape(slist);
 	}
 };
 
 template <>
 struct ShapeParser<egen::PAD> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		eigen::PairVecT<teq::DimT> paddings;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(paddings, attrs);
-
-		if (std::all_of(paddings.begin(), paddings.end(),
-			[](std::pair<teq::DimT,teq::DimT> pad)
-			{
-				return pad.first == 0 && pad.second == 0;
-			}))
-		{
-			logs::debugf("padding are all zero... "
-				"treating as identity: (paddings=%s)",
-				eigen::to_string(paddings).c_str());
-			return ShapeOpt();
-		}
-
 		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
-		size_t n = std::min(paddings.size(), (size_t) teq::rank_cap);
-		for (size_t i = 0; i < n; ++i)
+		for (size_t i = 0, n = std::min(paddings.size(), 
+			(size_t) teq::rank_cap); i < n; ++i)
 		{
 			if (slist[i] > 0)
 			{
@@ -182,7 +120,7 @@ struct ShapeParser<egen::PAD> final
 template <>
 struct ShapeParser<egen::STRIDE> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		std::vector<teq::DimT> incrs;
 		eigen::Packer<std::vector<teq::DimT>>().unpack(incrs, attrs);
@@ -206,30 +144,18 @@ struct ShapeParser<egen::STRIDE> final
 template <>
 struct ShapeParser<egen::SCATTER> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
-
-		teq::Shape inshape = shapes.front();
-		teq::Shape sign(
-			std::vector<teq::DimT>(outshape.begin(), outshape.end()));
-		if (std::all_of(inshape.begin(), inshape.end(),
-			[](teq::DimT d) { return d > 0; }) &&
-			inshape.compatible_after(sign, 0))
-		{
-			logs::debugf("scattering produces the same shape %s",
-				outshape.to_string().c_str());
-			return ShapeOpt();
-		}
-		return sign;
+		return outshape;
 	}
 };
 
 template <>
 struct ShapeParser<egen::MATMUL> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		eigen::PairVecT<teq::RankT> ranks;
 		eigen::Packer<eigen::PairVecT<teq::RankT>>().unpack(ranks, attrs);
@@ -282,7 +208,7 @@ struct ShapeParser<egen::MATMUL> final
 template <>
 struct ShapeParser<egen::CONV> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		std::vector<teq::RankT> ranks;
 		eigen::Packer<std::vector<teq::RankT>>().unpack(ranks, attrs);
@@ -326,40 +252,23 @@ struct ShapeParser<egen::CONV> final
 template <>
 struct ShapeParser<egen::REVERSE> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		return shapes.front();
 	}
 };
 
-static inline bool is_inorder (const std::vector<teq::RankT>& order)
-{
-	size_t n = order.size();
-	bool inorder = n > 0 ? (order[0] == 0) : true;
-	for (size_t i = 1; i < n && inorder; ++i)
-	{
-		inorder = inorder && (order[i] == (order[i-1] + 1));
-	}
-	return inorder;
-}
-
 template <>
 struct ShapeParser<egen::PERMUTE> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		std::vector<teq::RankT> order;
 		eigen::Packer<std::vector<teq::RankT>>().unpack(order, attrs);
-
-		if (is_inorder(order))
-		{
-			logs::debug("permuting with same "
-				"dimensions ... treating as identity");
-			return ShapeOpt();
-		}
 		bool visited[teq::rank_cap];
 		std::fill(visited, visited + teq::rank_cap, false);
-		for (teq::RankT i = 0, n = order.size(); i < n; ++i)
+		for (teq::RankT i = 0, n = std::min(order.size(), 
+			(size_t) teq::rank_cap); i < n; ++i)
 		{
 			if (visited[order[i]])
 			{
@@ -389,19 +298,10 @@ struct ShapeParser<egen::PERMUTE> final
 template <>
 struct ShapeParser<egen::EXTEND> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> bcast = eigen::unpack_extend(shape, attrs);
-		if (nullptr != attrs.get_attr(
-			eigen::Packer<std::vector<teq::DimT>>().get_key()) &&
-			(bcast.empty() || std::all_of(bcast.begin(), bcast.end(),
-			[](teq::DimT d) { return 1 == d; })))
-		{
-			logs::debug("extending with nothing... treating as identity");
-			return ShapeOpt();
-		}
-
 		if (std::any_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 0 == d; }))
 		{
@@ -426,7 +326,7 @@ struct ShapeParser<egen::EXTEND> final
 template <>
 struct ShapeParser<egen::CONCAT> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		teq::RankT axis;
 		eigen::Packer<teq::RankT>().unpack(axis, attrs);
@@ -449,13 +349,8 @@ struct ShapeParser<egen::CONCAT> final
 template <>
 struct ShapeParser<egen::GROUP_CONCAT> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
-		if (shapes.size() == 1)
-		{
-			logs::debug("concatenating a single node... treating as identity");
-			return ShapeOpt();
-		}
 		teq::RankT axis;
 		eigen::Packer<teq::RankT>().unpack(axis, attrs);
 
@@ -476,23 +371,11 @@ struct ShapeParser<egen::GROUP_CONCAT> final
 template <>
 struct ShapeParser<egen::RESHAPE> final
 {
-	ShapeOpt shape (const marsh::Maps& attrs, const ShapesT& shapes)
+	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
-
-		teq::Shape inshape = shapes.front();
-		teq::Shape sign(
-			std::vector<teq::DimT>(outshape.begin(), outshape.end()));
-		if (std::all_of(inshape.begin(), inshape.end(),
-			[](teq::DimT d) { return d > 0; }) &&
-			inshape.compatible_after(sign, 0))
-		{
-			logs::debugf("reshape produces the same shape %s",
-				outshape.to_string().c_str());
-			return ShapeOpt();
-		}
-		return sign;
+		return outshape;
 	}
 };
 

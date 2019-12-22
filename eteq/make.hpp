@@ -1,12 +1,12 @@
-
 #include "eigen/packattr.hpp"
 
 #include "eteq/constant.hpp"
 #include "eteq/variable.hpp"
 #include "eteq/functor.hpp"
+#include "eteq/funcopt.hpp"
 
-#ifndef ETEQ_CONVERT_HPP
-#define ETEQ_CONVERT_HPP
+#ifndef ETEQ_MAKE_HPP
+#define ETEQ_MAKE_HPP
 
 namespace eteq
 {
@@ -33,10 +33,10 @@ VarptrT<T> make_variable (teq::Shape shape, std::string label)
 
 /// Return variable node filled with scalar matching link shape
 template <typename T>
-VarptrT<T> make_variable_like (T scalar,
-	ETensor<T> link, std::string label)
+VarptrT<T> make_variable_like (
+	T scalar, teq::TensptrT like, std::string label)
 {
-	return make_variable_scalar(scalar, link->shape(), label);
+	return make_variable_scalar(scalar, like->shape(), label);
 }
 
 /// Return variable node given raw array and shape
@@ -56,56 +56,62 @@ ETensor<T> make_constant_scalar (T scalar, teq::Shape shape)
 
 /// Return constant node filled with scalar matching link shape
 template <typename T>
-ETensor<T> make_constant_like (T scalar, ETensor<T> link)
+ETensor<T> make_constant_like (T scalar, teq::TensptrT like)
 {
-	return make_constant_scalar(scalar, link->shape());
+	return make_constant_scalar(scalar, like->shape());
 }
 
 /// Return constant node given raw array and shape
 template <typename T>
 ETensor<T> make_constant (T* data, teq::Shape shape)
 {
-	return ETensor<T>(teq::TensptrT(
-		Constant<T>::get(data, shape)));
+	return ETensor<T>(teq::TensptrT(Constant<T>::get(data, shape)));
 }
+
+#define CHOOSE_FUNCOPT(OPCODE)\
+redundant = FuncOpt<OPCODE>().is_redundant(attrs, shapes);
 
 /// Return functor node given opcode and node arguments
 template <typename T, typename ...ARGS>
-ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode, ETensorsT<T> links, ARGS... vargs)
+ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode, 
+	const teq::TensptrsT& children, ARGS... vargs)
 {
-	if (links.empty())
+	if (children.empty())
 	{
 		logs::fatalf("cannot %s without arguments", egen::name_op(opcode).c_str());
 	}
 	marsh::Maps attrs;
 	eigen::pack_attr(attrs, vargs...);
 
-	if (links.empty())
+	teq::ShapesT shapes;
+	shapes.reserve(children.size());
+	std::transform(children.begin(), children.end(), 
+		std::back_inserter(shapes),
+		[](teq::TensptrT child)
+		{
+			return child->shape();
+		});
+	bool redundant = false;
+	OPCODE_LOOKUP(CHOOSE_FUNCOPT, opcode)
+	if (redundant)
 	{
-		logs::fatalf("cannot perform `%s` without arguments",
-			egen::name_op(opcode).c_str());
+		return children.front();
 	}
-	return ETensor<T>(Functor<T>::get(opcode,
-		teq::TensptrsT(links.begin(), links.end()), std::move(attrs)));
+	return ETensor<T>(teq::TensptrT(Functor<T>::get(
+		opcode, children, std::move(attrs))));
 }
+
+#undef CHOOSE_FUNCOPT
 
 template <typename T>
-ETensor<T> make_layer (teq::Opcode opcode, ETensor<T> input, ETensor<T> output)
+ETensor<T> make_layer (std::string layername, 
+	teq::TensptrT input, teq::FuncptrT output)
 {
-	egen::_GENERATED_DTYPE tcode = egen::get_type<T>();
-	if (tcode != input->type_code())
-	{
-		logs::fatalf("incompatible tensor types %s and %s: "
-			"cross-type functors not supported yet",
-			egen::name_type(tcode).c_str(),
-			input->type_label().c_str());
-	}
-
-	static_cast<teq::iFunctor*>(output.get())->add_attr(teq::layer_key,
-		std::make_unique<teq::LayerObj>(opcode.name_, input));
-	return output;
+	output->add_attr(teq::layer_key,
+		std::make_unique<teq::LayerObj>(layername, input));
+	return ETensor<T>(output);
 }
 
 }
 
-#endif // ETEQ_CONVERT_HPP
+#endif // ETEQ_MAKE_HPP

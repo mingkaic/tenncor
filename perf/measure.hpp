@@ -72,7 +72,7 @@ private:
 struct MeasureScope final : public jobs::ScopeGuard
 {
 	MeasureScope (PerfRecord* record, std::string fname) :
-		jobs::ScopeGuard([this, fname]()
+		jobs::ScopeGuard([this, fname]
 		{
 			this->record_->record_duration(fname,
 				std::chrono::duration_cast<std::chrono::nanoseconds>(
