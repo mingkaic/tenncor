@@ -62,15 +62,15 @@ PYBIND11_MODULE(eteq, m)
 				return pyutils::shapedarr2arr<PybindT>(*self);
 			});
 
-	// ==== link ====
-	auto link = (py::class_<eteq::ETensor<PybindT>>)
+	// ==== etens ====
+	auto etens = (py::class_<eteq::ETensor<PybindT>>)
 		py::module::import("eteq.tenncor").attr("ETensor<PybindT>");
 
-	link
+	etens
 		.def("as_tens",
 			[](eteq::ETensor<PybindT>& self)
 			{ return self; },
-			"Return internal tensor of this link instance")
+			"Return internal tensor of this etens instance")
 		.def("shape",
 			[](eteq::ETensor<PybindT>& self)
 			{
@@ -99,9 +99,9 @@ PYBIND11_MODULE(eteq, m)
 				troots.reserve(roots.size());
 				std::transform(roots.begin(), roots.end(),
 					std::back_inserter(troots),
-					[](eteq::ETensor<PybindT>& link)
+					[](eteq::ETensor<PybindT>& etens)
 					{
-						return link;
+						return etens;
 					});
 				self->track(troots);
 			})
@@ -110,13 +110,13 @@ PYBIND11_MODULE(eteq, m)
 				std::vector<eteq::ETensor<PybindT>> ignored)
 			{
 				teq::TensSetT ignored_set;
-				for (eteq::ETensor<PybindT>& link : ignored)
+				for (eteq::ETensor<PybindT>& etens : ignored)
 				{
-					ignored_set.emplace(link.get());
+					ignored_set.emplace(etens.get());
 				}
 				self->update(ignored_set);
 			},
-			"Calculate every link in the graph given list of nodes to ignore",
+			"Calculate every etens in the graph given list of nodes to ignore",
 			py::arg("ignored") = std::vector<eteq::ETensor<PybindT>>{})
 		.def("update_target",
 			[](teq::iSession* self,
@@ -125,17 +125,17 @@ PYBIND11_MODULE(eteq, m)
 			{
 				teq::TensSetT targeted_set;
 				teq::TensSetT ignored_set;
-				for (eteq::ETensor<PybindT>& link : targeted)
+				for (eteq::ETensor<PybindT>& etens : targeted)
 				{
-					targeted_set.emplace(link.get());
+					targeted_set.emplace(etens.get());
 				}
-				for (eteq::ETensor<PybindT>& link : ignored)
+				for (eteq::ETensor<PybindT>& etens : ignored)
 				{
-					ignored_set.emplace(link.get());
+					ignored_set.emplace(etens.get());
 				}
 				self->update_target(targeted_set, ignored_set);
 			},
-			"Calculate link relevant to targets in the graph given list of nodes to ignore",
+			"Calculate etens relevant to targets in the graph given list of nodes to ignore",
 			py::arg("targeted"),
 			py::arg("ignored") = std::vector<eteq::ETensor<PybindT>>{})
 		.def("get_tracked", &teq::iSession::get_tracked);
@@ -166,9 +166,12 @@ PYBIND11_MODULE(eteq, m)
 			},
 			"Assign numpy data array to variable");
 
+	// optimization rules
+	py::class_<opt::CversionCtx> rules(m, "OptRules");
+
 	// ==== inline functions ====
 	m
-		.def("link",
+		.def("etens",
 			[](teq::TensptrT tens)
 			{
 				return eteq::ETensor<PybindT>(tens);
@@ -181,14 +184,14 @@ PYBIND11_MODULE(eteq, m)
 				return eteq::make_constant_scalar<PybindT>(scalar,
 					pyutils::p2cshape(slist));
 			},
-			"Return scalar constant link")
+			"Return scalar constant etens")
 		.def("constant",
 			[](py::array data)
 			{
 				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
 				return eteq::make_constant(arr.data_.data(), arr.shape_);
-			}, "Return constant link with data")
+			}, "Return constant etens with data")
 
 		// variable creation
 		.def("scalar_variable",
@@ -219,12 +222,9 @@ PYBIND11_MODULE(eteq, m)
 			{
 				eigen::get_engine().seed(seed);
 			},
-			"Seed internal RNG");
+			"Seed internal RNG")
 
-	// optimization rules
-	py::class_<opt::CversionCtx> rules(m, "OptRules");
-
-	m
+		// optimization
 		.def("parse_optrules", &eteq::parse_file<PybindT>,
 			py::arg("filename") = "cfg/optimizations.rules",
 			"Optimize using rules for specified filename")

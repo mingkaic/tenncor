@@ -28,8 +28,6 @@ const std::string leafname_key = "TENSOR_NAME";
 
 const std::string leafusage_key = "LEAF_USAGE";
 
-const std::string subgraph_key = "LAYER_SUBGRAPH";
-
 void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib,
 	const teq::CTensMapT<std::string>& tensid);
 

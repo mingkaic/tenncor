@@ -57,7 +57,7 @@ TEST(DENSE, Serialization)
 			layr::unif_xavier_init<float>(2),
 			layr::unif_xavier_init<float>(4));
 
-		auto contents = layr::calc_storage<double>(y, x);
+		auto contents = layr::calc_storage<float>(y, x);
 		ASSERT_EQ(2, contents.size());
 		teq::TensptrT weight, bias;
 		if (contents[0]->to_string() == layr::weight_key)

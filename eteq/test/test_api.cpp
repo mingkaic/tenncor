@@ -1164,10 +1164,7 @@ TEST(API, Rprod)
 
 	eteq::ETensor<int32_t> gsrc = eteq::derive(dest, src);
 	eteq::ETensor<int32_t> gsrc2 = eteq::derive(dest2, src);
-	session.track({
-		gsrc,
-		gsrc2,
-	});
+	session.track({gsrc, gsrc2});
 	session.update();
 
 	auto gotshape = gsrc->shape();

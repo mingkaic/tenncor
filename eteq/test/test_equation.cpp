@@ -71,12 +71,7 @@ TEST(EQUATION, MatmulComplex)
 	auto dc = eteq::derive(dest, c);
 
 	teq::Session session;
-	session.track({
-		dest,
-		da,
-		db,
-		dc,
-	});
+	session.track({dest, da, db, dc});
 	session.update();
 
 	{
@@ -225,12 +220,7 @@ TEST(EQUATION, SigmoidMLP_Slow)
 	auto db1 = eteq::derive(err, bias1);
 
 	teq::Session session;
-	session.track({
-		dw0,
-		db0,
-		dw1,
-		db1,
-	});
+	session.track({dw0, db0, dw1, db1});
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -448,12 +438,7 @@ TEST(EQUATION, SigmoidMLP_Fast)
 	auto db1 = eteq::derive(err, bias1);
 
 	teq::Session session;
-	session.track({
-		dw0,
-		db0,
-		dw1,
-		db1,
-	});
+	session.track({dw0, db0, dw1, db1});
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -669,21 +654,11 @@ TEST(EQUATION, OptimizedSigmoidMLP_Slow)
 
 	// optimize
 	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
-	teq::TensptrsT roots = {
-		dw0,
-		db0,
-		dw1,
-		db1,
-	};
+	teq::TensptrsT roots = {dw0, db0, dw1, db1};
 	eteq::optimize<double>(roots, rules);
 
 	teq::Session session;
-	session.track({
-		dw0,
-		db0,
-		dw1,
-		db1,
-	});
+	session.track(roots);
 	session.update();
 
 	std::vector<double> expect_gw0 = {
@@ -902,21 +877,11 @@ TEST(EQUATION, OptimizedSigmoidMLP_Fast)
 
 	// optimize
 	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
-	teq::TensptrsT roots = {
-		dw0,
-		db0,
-		dw1,
-		db1,
-	};
+	teq::TensptrsT roots = {dw0, db0, dw1, db1};
 	eteq::optimize<double>(roots, rules);
 
 	teq::Session session;
-	session.track({
-		dw0,
-		db0,
-		dw1,
-		db1,
-	});
+	session.track(roots);
 	session.update();
 
 	std::vector<double> expect_gw0 = {

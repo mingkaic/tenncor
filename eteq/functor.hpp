@@ -84,12 +84,6 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 	Functor<T>& operator = (Functor<T>&& other) = delete;
 
 	/// Implementation of iTensor
-	void accept (teq::iTraveler& visiter) override
-	{
-		visiter.visit(*this);
-	}
-
-	/// Implementation of iTensor
 	teq::Shape shape (void) const override
 	{
 		return shape_;

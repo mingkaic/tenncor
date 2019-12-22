@@ -7,8 +7,7 @@ namespace eteq
 
 template <typename CAST, typename T>
 static inline void pack (char* data, size_t n,
-	onnx::TensorProto& out,
-	void(onnx::TensorProto::* insert)(T))
+	onnx::TensorProto& out, void(onnx::TensorProto::* insert)(T))
 {
 	CAST* ptr = (CAST*) data;
 	for (size_t i = 0; i < n; ++i)

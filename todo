@@ -11,6 +11,7 @@ P5 = "get to it eventually"
 
    - enhance opt to accept and use multi-typed attributes,
       and eteq extension to change shape according to optimized attributes
+   - renable test for duplicate removal optimization filter
 
 === transparency/code readability ===
 P2 - generate value-range graph to detect erroneous operators

@@ -122,7 +122,7 @@ private:
 		auto pb_attrs = pb_node->mutable_attribute();
 
 		AttributeProto* inner_workings = pb_attrs->Add();
-		inner_workings->set_name(subgraph_key);
+		inner_workings->set_name(teq::layer_key);
 		inner_workings->set_type(AttributeProto::GRAPH);
 		GraphProto* subgraph = inner_workings->mutable_g();
 
@@ -159,7 +159,7 @@ private:
 		marshal_attrs(*pb_attrs, func, tens_);
 
 		roots_.emplace(&func);
-		tens_.emplace(&func, id);
+		tens_.emplace(&func, submarsh.tens_.at(&func));
 	}
 
 	std::string get_id (teq::iTensor& tens) const

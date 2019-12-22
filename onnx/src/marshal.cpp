@@ -117,6 +117,10 @@ void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib,
 	std::vector<std::string> attr_keys = attrib.ls_attrs();
 	for (std::string attr_key : attr_keys)
 	{
+		if (attr_key == teq::layer_key)
+		{
+			continue; // ignore: since marshaler resolves graph info
+		}
 		auto attr = attrib.get_attr(attr_key);
 		AttributeProto* pb_attrs = out.Add();
 		pb_attrs->set_name(attr_key);
@@ -158,6 +162,7 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 	const GraphProto* subgraph = nullptr;
 	for (const auto& pb_attr : pb_attrs)
 	{
+		std::string attr_name = pb_attr.name();
 		marsh::iObject* val = nullptr;
 		switch (pb_attr.type())
 		{
@@ -215,20 +220,21 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 			}
 				break;
 			case AttributeProto::GRAPH:
-				if (pb_attr.name() == subgraph_key)
+				if (attr_name == teq::layer_key)
 				{
 					subgraph = &pb_attr.g();
 				}
 				else
 				{
 					logs::warnf("unknown graph attribute %s",
-						pb_attr.name().c_str());
+						attr_name.c_str());
 				}
 				continue;
 			default:
-				logs::fatal("unknown onnx attribute type");
+				logs::fatalf("unknown onnx attribute type of %s",
+					attr_name.c_str());
 		}
-		out.add_attr(pb_attr.name(), marsh::ObjptrT(val));
+		out.add_attr(attr_name, marsh::ObjptrT(val));
 	}
 	return subgraph;
 }

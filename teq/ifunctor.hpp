@@ -36,6 +36,12 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 		return static_cast<iFunctor*>(this->clone_impl());
 	}
 
+	/// Implementation of iTensor
+	void accept (iTraveler& visiter) override
+	{
+		visiter.visit(*this);
+	}
+
 	/// Return operation encoding
 	virtual Opcode get_opcode (void) const = 0;
 
