@@ -1,33 +1,31 @@
-#include "layr/rbm.hpp"
-#include "layr/err_approx.hpp"
+#include "layr/approx.hpp"
+#include "layr/trainer/trainer.hpp"
 
-#include "rocnnet/trainer/sgd_trainer.hpp"
-
-#ifndef RCN_RBM_TRAINER_HPP
-#define RCN_RBM_TRAINER_HPP
+#ifndef TRAINER_RBM_HPP
+#define TRAINER_RBM_HPP
 
 namespace trainer
 {
 
 template <typename T>
 eteq::ETensor<T> sample_v2h (
-	const layr::RBMBuilder<T>& conn, eteq::ETensor<T> vis)
+	const layr::RBMLayer<T>& model, eteq::ETensor<T> vis)
 {
-	return tenncor::random::rand_binom_one(conn.fwd_(vis));
+	return tenncor::random::rand_binom_one(model.fwd_.connect(vis));
 }
 
 template <typename T>
 eteq::ETensor<T> sample_h2v (
-	const layr::RBMBuilder<T>& conn, eteq::ETensor<T> hid)
+	const layr::RBMLayer<T>& model, eteq::ETensor<T> hid)
 {
-	return tenncor::random::rand_binom_one(conn.bwd_(hid));
+	return tenncor::random::rand_binom_one(model.bwd_.connect(hid));
 }
 
 template <typename T>
 eteq::ETensor<T> gibbs_hvh (
-	const layr::RBMBuilder<T>& conn, eteq::ETensor<T> hid)
+	const layr::RBMLayer<T>& model, eteq::ETensor<T> hid)
 {
-	return sample_v2h(conn, sample_h2v(conn, hid));
+	return sample_v2h(model, sample_h2v(model, hid));
 }
 
 // source for below algorithms:
@@ -57,8 +55,8 @@ layr::AssignGroupsT<T> bbernoulli_approx (const layr::VarErrsT<T>& assocs,
 		auto momentum_next = discount_factor * eteq::ETensor<T>(momentum) +
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
 		auto leaf_next = eteq::ETensor<T>(assocs[i].first) + momentum_next;
-		assigns.push_back(layr::VarAssign{momentum, momentum_next});
-		assigns.push_back(layr::VarAssign{assocs[i].first, leaf_next});
+		assigns.push_back(layr::VarAssign<T>{momentum, momentum_next});
+		assigns.push_back(layr::VarAssign<T>{assocs[i].first, leaf_next});
 	}
 	return {assigns};
 }
@@ -73,18 +71,18 @@ struct CDChainIO final
 
 	eteq::ETensor<T> visible_;
 
-	eteq::ETensor<T> hidden_ = nullptr;
+	eteq::ETensor<T> hidden_;
 
-	eteq::ETensor<T> visible_mean_ = nullptr;
+	eteq::ETensor<T> visible_mean_;
 
-	eteq::ETensor<T> hidden_mean_ = nullptr;
+	eteq::ETensor<T> hidden_mean_;
 };
 
 /// Contrastive divergence error approximation instead of
 /// using backprop calculated gradient
 template <typename T>
-layr::VarErrsT cd_grad_approx (CDChainIO<T>& io,
-	const layr::RBMBuilder<T>& connecter, size_t cdk = 1,
+layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
+	const layr::RBMLayer<T>& model, size_t cdk = 1,
 	eteq::VarptrT<T> persistent = nullptr)
 {
 	if (nullptr == io.visible_)
@@ -93,43 +91,39 @@ layr::VarErrsT cd_grad_approx (CDChainIO<T>& io,
 	}
 	if (nullptr == io.hidden_)
 	{
-		io.hidden_ = sample_v2h(connecter, io.visible_);
+		io.hidden_ = sample_v2h(model, io.visible_);
 	}
 	auto chain_it = nullptr == persistent ?
 		io.hidden_ : eteq::ETensor<T>(persistent);
 	for (size_t i = 0; i < cdk - 1; ++i)
 	{
-		chain_it = gibbs_hvh(connecter, chain_it);
+		chain_it = gibbs_hvh(model, chain_it);
 	}
 
-	io.visible_mean_ = connecter.bwd_(chain_it);
-	io.hidden_mean_ = connecter.fwd_(io.visible_mean_);
+	io.visible_mean_ = model.bwd_.connect(chain_it);
+	io.hidden_mean_ = model.fwd_.connect(io.visible_mean_);
 
-	auto bwd_model = static_cast<eteq::Layer<T>*>(io.visible_mean_);
-	auto fwd_model = static_cast<eteq::Layer<T>*>(io.hidden_mean_);
-	auto bcontent = bwd_model->get_storage();
-	auto fcontent = fwd_model->get_storage();
+	eteq::VarptrsT<T> fcontent = model.fwd_.get_storage();
+	eteq::VarptrsT<T> bcontent = model.bwd_.get_storage();
 	std::unordered_map<std::string,eteq::VarptrT<T>> vars;
-	for (auto tens : bcontent)
+	for (eteq::VarptrT<T> var : fcontent)
 	{
-		vars.emplace(tens->to_string(),
-			std::static_pointer_cast<eteq::Variable<T>>(tens));
+		vars.emplace(var->to_string(), var);
 	}
-	for (auto tens : fcontent)
+	for (eteq::VarptrT<T> var : bcontent)
 	{
-		vars.emplace(tens->to_string(),
-			std::static_pointer_cast<eteq::Variable<T>>(tens));
+		vars.emplace(var->to_string(), var);
 	}
 
 	auto grad_w =
 		tenncor::matmul(tenncor::transpose(io.visible_), io.hidden_) -
 		tenncor::matmul(tenncor::transpose(io.visible_mean_), io.hidden_mean_);
-	layr::VarErrsT varerrs = {
-		{vars[layr::weight_key], grad_w},
+	layr::VarErrsT<T> varerrs = {
+		{vars[layr::weight_label], grad_w},
 	};
 
-	std::string hid_key = "h" + layr::bias_key;
-	std::string vis_key = "v" + layr::bias_key;
+	std::string hid_key = "h" + layr::bias_label;
+	std::string vis_key = "v" + layr::bias_label;
 	if (estd::has(vars, hid_key))
 	{
 		auto grad_hb = tenncor::reduce_mean_1d(io.hidden_ - io.hidden_mean_, 1);
@@ -148,11 +142,9 @@ layr::VarErrsT cd_grad_approx (CDChainIO<T>& io,
 }
 
 template <typename T>
-TrainErrF<T> rbm_train (const layr::RBMBuilder<T>& connecter,
-	teq::iSession& sess, eteq::ETensor<T> visible,
-	T learning_rate, T discount_factor,
-	layr::ErrorF<T> err_func = layr::ErrorF<T>(),
-	size_t cdk = 1)
+TrainErrF<T> rbm (const layr::RBMLayer<T>& model, teq::iSession& sess,
+	eteq::ETensor<T> visible, T learning_rate, T discount_factor,
+	layr::ErrorF<T> err_func = layr::ErrorF<T>(), size_t cdk = 1)
 {
 	CDChainIO<T> chain_io(visible);
 	layr::VarErrsT<T> varerrs = cd_grad_approx<T>(chain_io, model, cdk);
@@ -160,7 +152,7 @@ TrainErrF<T> rbm_train (const layr::RBMBuilder<T>& connecter,
 
 	teq::TensptrsT to_track;
 	to_track.reserve(updates.size() + 1);
-	eteq::ETensor<T> error = nullptr;
+	eteq::ETensor<T> error;
 	if (err_func)
 	{
 		error = err_func(chain_io.visible_, chain_io.visible_mean_);
@@ -178,7 +170,7 @@ TrainErrF<T> rbm_train (const layr::RBMBuilder<T>& connecter,
 
 	return [&sess, updates, error]
 	{
-		assign_groups_preupdate<T>(updates,
+		layr::assign_groups_preupdate<T>(updates,
 			[&](teq::TensSetT& sources)
 			{
 				sess.update_target(sources);
@@ -188,7 +180,7 @@ TrainErrF<T> rbm_train (const layr::RBMBuilder<T>& connecter,
 			return teq::ShapedArr<T>{teq::Shape(),std::vector<T>{-1}};
 		}
 		sess.update_target({error.get()});
-		T* data = error->data();
+		T* data = (T*) error->data();
 		teq::Shape shape = error->shape();
 		return teq::ShapedArr<T>{shape,
 			std::vector<T>(data, data + shape.n_elems()),
@@ -198,4 +190,4 @@ TrainErrF<T> rbm_train (const layr::RBMBuilder<T>& connecter,
 
 }
 
-#endif // RCN_RBM_TRAINER_HPP
+#endif // TRAINER_RBM_HPP

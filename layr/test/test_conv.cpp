@@ -11,11 +11,11 @@
 
 TEST(CONV, Connection)
 {
-	std::string label = "especially_convoluted";
+	auto conv = layr::conv<float>({6, 5}, 4, 3);
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({4, 10, 9, 2}), "x");
-	auto y = layr::conv(eteq::ETensor<float>(x), {6, 5}, 4, 3);
+	auto y = conv.connect(eteq::ETensor<float>(x));
 
 	EXPECT_GRAPHEQ(
 		"(ADD[3\\6\\4\\2\\1\\1\\1\\1])\n"

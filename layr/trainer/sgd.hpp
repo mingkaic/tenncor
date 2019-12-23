@@ -1,32 +1,24 @@
-#include "eteq/derive.hpp"
+#include "layr/trainer/trainer.hpp"
 
-#include "layr/api.hpp"
-#include "layr/err_approx.hpp"
-
-#ifndef RCN_SGD_TRAINER_HPP
-#define RCN_SGD_TRAINER_HPP
+#ifndef TRAINER_SGD_HPP
+#define TRAINER_SGD_HPP
 
 namespace trainer
 {
 
 template <typename T>
-using TrainErrF = std::function<teq::ShapedArr<T>(void)>;
-
-template <typename T=PybindT>
-TrainErrF<T> sgd_train (layr::UnaryF<T> connect, teq::iSession& sess,
-	eteq::ETensor<T> train_in, eteq::ETensor<T> expected_out,
+TrainErrF<T> sgd (const eteq::ELayer<T>& model, teq::iSession& sess,
+	eteq::ETensor<T> train_in, eteq::ETensor<T> expect_out,
 	layr::ApproxF<T> update, layr::ErrorF<T> errfunc = layr::sqr_diff<T>,
 	layr::UnaryF<T> proc_grad = layr::UnaryF<T>())
 {
-	eteq::ETensor<T> train_out = connect(train_in);
-	auto error = errfunc(expected_out, train_out);
+	eteq::ETensor<T> train_out = model.connect(train_in);
+	auto error = errfunc(expect_out, train_out);
 
-	teq::TensptrsT contents;
-	layr::get_storage(contents, train_out);
+	eteq::VarptrsT<T> contents = model.get_storage();
 	layr::VarErrsT<T> vars;
-	for (auto tens : contents)
+	for (auto var : contents)
 	{
-		auto var = std::static_pointer_cast<eteq::Variable<T>>(tens);
 		auto derivative = eteq::derive(error, eteq::ETensor<T>(var));
 		if (proc_grad)
 		{
@@ -67,4 +59,4 @@ TrainErrF<T> sgd_train (layr::UnaryF<T> connect, teq::iSession& sess,
 
 }
 
-#endif // RCN_SGD_TRAINER_HPP
+#endif // TRAINER_SGD_HPP

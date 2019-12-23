@@ -10,7 +10,7 @@
 
 #include "eteq/make.hpp"
 
-#include "layr/err_approx.hpp"
+#include "layr/approx.hpp"
 
 
 TEST(APPROX, StochasticGD)

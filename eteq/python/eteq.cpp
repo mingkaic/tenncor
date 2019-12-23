@@ -7,6 +7,7 @@
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/derive.hpp"
 #include "eteq/make.hpp"
+#include "eteq/layer.hpp"
 #include "eteq/optimize.hpp"
 
 namespace py = pybind11;
@@ -64,13 +65,10 @@ PYBIND11_MODULE(eteq, m)
 
 	// ==== etens ====
 	auto etens = (py::class_<eteq::ETensor<PybindT>>)
-		py::module::import("eteq.tenncor").attr("ETensor<PybindT>");
+		py::module::import("eteq.tenncor").attr("ETensor");
 
 	etens
-		.def("as_tens",
-			[](eteq::ETensor<PybindT>& self)
-			{ return self; },
-			"Return internal tensor of this etens instance")
+		.def(py::init<teq::TensptrT>())
 		.def("shape",
 			[](eteq::ETensor<PybindT>& self)
 			{
@@ -86,6 +84,26 @@ PYBIND11_MODULE(eteq, m)
 				return pyead::typedata_to_array<PybindT>(
 					*self, py::dtype::of<PybindT>());
 			});
+
+	// ==== elayer ====
+	py::class_<eteq::ELayer<PybindT>> elayer(m, "ELayer");
+
+	elayer
+		.def(py::init(
+			[](eteq::ETensor<PybindT> root, eteq::ETensor<PybindT> input)
+			{
+				auto f = std::dynamic_pointer_cast<teq::iFunctor>((teq::TensptrT) root);
+				if (nullptr == f)
+				{
+					logs::fatal("cannot create ELayer with non-function root");
+				}
+				return eteq::ELayer<PybindT>(f, input);
+			}),
+			py::arg("root"), py::arg("input"))
+		.def("connect", &eteq::ELayer<PybindT>::connect)
+		.def("get_storage", &eteq::ELayer<PybindT>::get_storage)
+		.def("root", &eteq::ELayer<PybindT>::root)
+		.def("input", &eteq::ELayer<PybindT>::input);
 
 	// ==== session ====
 	py::class_<teq::iSession> isess(m, "iSession");
@@ -171,12 +189,6 @@ PYBIND11_MODULE(eteq, m)
 
 	// ==== inline functions ====
 	m
-		.def("etens",
-			[](teq::TensptrT tens)
-			{
-				return eteq::ETensor<PybindT>(tens);
-			})
-
 		// constant creation
 		.def("scalar_constant",
 			[](PybindT scalar, std::vector<py::ssize_t> slist)

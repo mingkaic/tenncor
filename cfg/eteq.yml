@@ -2,6 +2,7 @@ api:
   pybind_type: float
   includes:
   - '"eteq/make.hpp"'
+  - '"eteq/layer.hpp"'
   namespaces:
     tenncor:
       - template: typename T
@@ -1418,11 +1419,11 @@ api:
       - template: typename T
         name: dense
         args:
-        - dtype: eteq::ETensor<T>
+        - dtype: const eteq::ETensor<T>&
           name: input
-        - dtype: eteq::ETensor<T>
+        - dtype: const eteq::ETensor<T>&
           name: weight
-        - dtype: eteq::ETensor<T>
+        - dtype: const eteq::ETensor<T>&
           name: bias
           default: eteq::ETensor<T>()
           check_null: false
@@ -1439,11 +1440,11 @@ api:
       - template: typename T
         name: conv
         args:
-        - dtype: eteq::ETensor<T>
+        - dtype: const eteq::ETensor<T>&
           name: input
-        - dtype: eteq::ETensor<T>
+        - dtype: const eteq::ETensor<T>&
           name: weight
-        - dtype: eteq::ETensor<T>
+        - dtype: const eteq::ETensor<T>&
           name: bias
           default: eteq::ETensor<T>()
           check_null: false
@@ -1457,3 +1458,151 @@ api:
                   auto output = tenncor::nn::conv2d(input, weight, bias, zero_padding);
                   auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
                   return eteq::make_layer<T>("_CONV_LAYER", input, f);
+      - template: typename T
+        name: rnn
+        args:
+        - dtype: const eteq::ETensor<T>&
+          name: input
+        - dtype: const eteq::ETensor<T>&
+          name: init_state
+        - dtype: const eteq::ELayer<T>&
+          name: cell
+        - dtype: teq::RankT
+          name: seq_dim
+          default: "1"
+        out:
+          type: eteq::ETensor<T>
+          val: |
+              //
+                  teq::Shape inshape = input->shape();
+                  teq::DimT nseq = inshape.at(seq_dim);
+                  if (nseq == 0)
+                  {
+                      logs::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
+                          seq_dim, inshape.to_string().c_str());
+                  }
+                  if (seq_dim == 0)
+                  {
+                      logs::fatal("spliting input across 0th dimension... "
+                          "dense connection will not match");
+                  }
+                  eteq::ETensor<T> inslice;
+                  eteq::ETensor<T> state = init_state;
+                  eteq::ETensorsT<T> states;
+                  for (teq::DimT i = 0; i < nseq; ++i)
+                  {
+                      inslice = ::tenncor::slice(input, i, 1, seq_dim);
+                      state = cell.connect(::tenncor::concat(inslice, state, 0));
+                      states.push_back(state);
+                  }
+                  auto output = ::tenncor::concat(states, seq_dim);
+                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
+                  return eteq::make_layer<T>("_RNN_LAYER", input, f);
+      - template: typename T
+        name: lstm
+        args:
+        - dtype: const eteq::ETensor<T>&
+          name: input
+        - dtype: const eteq::ETensor<T>&
+          name: init_state
+        - dtype: const eteq::ETensor<T>&
+          name: init_hidden
+        - dtype: const eteq::ELayer<T>&
+          name: ggate
+        - dtype: const eteq::ELayer<T>&
+          name: forgate
+        - dtype: const eteq::ELayer<T>&
+          name: ingate
+        - dtype: const eteq::ELayer<T>&
+          name: outgate
+        - dtype: teq::RankT
+          name: seq_dim
+          default: "1"
+        out:
+          type: eteq::ETensor<T>
+          val: |
+              //
+                  teq::Shape inshape = input->shape();
+                  teq::DimT nseq = inshape.at(seq_dim);
+                  if (nseq == 0)
+                  {
+                      logs::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
+                          seq_dim, inshape.to_string().c_str());
+                  }
+                  if (seq_dim == 0)
+                  {
+                      logs::fatal("spliting input across 0th dimension... "
+                          "dense connection will not match");
+                  }
+                  eteq::ETensor<T> inslice;
+                  eteq::ETensor<T> xc;
+                  eteq::ETensor<T> state = init_state;
+                  eteq::ETensor<T> hidden = init_hidden;
+                  eteq::ETensorsT<T> states;
+                  for (teq::DimT i = 0; i < nseq; ++i)
+                  {
+                      inslice = ::tenncor::slice(input, i, 1, seq_dim);
+                      xc = ::tenncor::concat(inslice, hidden, 0);
+
+                      auto gate = ::tenncor::tanh(ggate.connect(xc));
+                      auto input = ::tenncor::sigmoid(ingate.connect(xc));
+                      auto forget = ::tenncor::sigmoid(forgate.connect(xc));
+                      auto output = ::tenncor::sigmoid(outgate.connect(xc));
+                      state = gate * input + state * forget;
+                      hidden = state * output;
+                      states.push_back(hidden);
+                  }
+                  auto output = ::tenncor::concat(states, seq_dim);
+                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
+                  return eteq::make_layer<T>("_LSTM_LAYER", input, f);
+      - template: typename T
+        name: gru
+        args:
+        - dtype: const eteq::ETensor<T>&
+          name: input
+        - dtype: const eteq::ETensor<T>&
+          name: init_state
+        - dtype: const eteq::ELayer<T>&
+          name: ugate
+        - dtype: const eteq::ELayer<T>&
+          name: rgate
+        - dtype: const eteq::ELayer<T>&
+          name: hgate
+        - dtype: teq::RankT
+          name: seq_dim
+          default: "1"
+        out:
+          type: eteq::ETensor<T>
+          val: |
+              //
+                  teq::Shape inshape = input->shape();
+                  teq::DimT nseq = inshape.at(seq_dim);
+                  if (nseq == 0)
+                  {
+                      logs::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
+                          seq_dim, inshape.to_string().c_str());
+                  }
+                  if (seq_dim == 0)
+                  {
+                      logs::fatal("spliting input across 0th dimension... "
+                          "dense connection will not match");
+                  }
+                  eteq::ETensor<T> inslice;
+                  eteq::ETensor<T> xc;
+                  eteq::ETensor<T> state = init_state;
+                  eteq::ETensorsT<T> states;
+                  for (teq::DimT i = 0; i < nseq; ++i)
+                  {
+                      inslice = ::tenncor::slice(input, i, 1, seq_dim);
+                      xc = ::tenncor::concat(inslice, state, 0);
+
+                      auto update = ::tenncor::sigmoid(ugate.connect(xc));
+                      auto reset = ::tenncor::sigmoid(rgate.connect(xc));
+                      auto hidden = ::tenncor::tanh(hgate.connect(
+                          ::tenncor::concat(inslice, reset * state, 0)));
+                      state = update * state + ((T) 1 - update) * hidden;
+                      states.push_back(state);
+                  }
+                  auto output = ::tenncor::concat(states, seq_dim);
+                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
+                  return eteq::make_layer<T>("_GRU_LAYER", input, f);

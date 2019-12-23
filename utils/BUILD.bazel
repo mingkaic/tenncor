@@ -37,6 +37,7 @@ cc_test(
     deps = [
         "//utils:utils",
         "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
     ],
     copts = ["-std=c++17"],
 )

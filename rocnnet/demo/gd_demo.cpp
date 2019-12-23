@@ -13,8 +13,7 @@
 #include "dbg/emit/session.hpp"
 
 #include "layr/api.hpp"
-
-#include "rocnnet/trainer/sgd_trainer.hpp"
+#include "layr/trainer/sgd.hpp"
 
 static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
@@ -89,17 +88,16 @@ int main (int argc, const char** argv)
 	uint8_t n_out = n_in / 2;
 	std::vector<teq::DimT> n_outs = {9, n_out};
 
-	auto model_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in}));
-	auto interm0 = layr::dense(eteq::ETensor<PybindT>(model_input), {n_hid},
-		layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>());
-	auto interm1 = tenncor::sigmoid(interm0);
-	auto interm2 = layr::dense(interm1, {n_out},
-		layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>());
-	auto interm3 = tenncor::sigmoid(interm2);
-	layr::ManagedModel<PybindT> model(interm3, eteq::ETensor<PybindT>(model_input));
-
-	layr::ManagedModel<PybindT> untrained_model = model;
-	layr::ManagedModel<PybindT> trained_model = model;
+	eteq::ELayer<PybindT> model = layr::link<PybindT>({
+		layr::dense<PybindT>(teq::Shape({n_in}), {n_hid},
+			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
+		layr::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
+		layr::dense<PybindT>(teq::Shape({n_hid}), {n_out},
+			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
+		layr::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
+	});
+	eteq::ELayer<PybindT> untrained_model = model.deep_clone();
+	eteq::ELayer<PybindT> trained_model = model.deep_clone();
 
 	std::ifstream loadstr(loadpath);
 	try
@@ -113,7 +111,7 @@ int main (int argc, const char** argv)
 		{
 			throw std::exception();
 		}
-		trained_model.load(pb_model);
+		trained_model = eteq::load_layer<PybindT>(pb_model);
 		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
@@ -144,14 +142,15 @@ int main (int argc, const char** argv)
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
-	auto train = trainer::sgd_train(model.get_builder(), sess,
-		eteq::ETensor<PybindT>(train_input), eteq::ETensor<PybindT>(train_output), approx);
+	auto train = trainer::sgd(model, sess,
+		eteq::ETensor<PybindT>(train_input),
+		eteq::ETensor<PybindT>(train_output), approx);
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");
-	auto untrained_out = untrained_model.retrail(eteq::ETensor<PybindT>(testin));
-	auto out = model.retrail(eteq::ETensor<PybindT>(testin));
-	auto trained_out = trained_model.retrail(eteq::ETensor<PybindT>(testin));
+	auto untrained_out = untrained_model.connect(eteq::ETensor<PybindT>(testin));
+	auto out = model.connect(eteq::ETensor<PybindT>(testin));
+	auto trained_out = trained_model.connect(eteq::ETensor<PybindT>(testin));
 	sess.track({untrained_out, out, trained_out});
 
 	auto rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
@@ -225,7 +224,7 @@ int main (int argc, const char** argv)
 		if (savestr.is_open())
 		{
 			onnx::ModelProto pb_model;
-			model.save(pb_model);
+			eteq::save_layer<PybindT>(pb_model, model);
 			if (pb_model.SerializeToOstream(&savestr))
 			{
 				logs::infof("successfully saved model to `%s`", savepath.c_str());

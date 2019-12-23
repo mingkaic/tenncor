@@ -52,6 +52,13 @@ def _strip_template_prefix(template):
     # todo: parse valued templates variable (e.g.: size_t N)
     return template
 
+_var_pattern = '\\s*[a-zA-Z_$][a-zA-Z_$0-9]*\\s*'
+_template_pattern = '<{var_pattern}(,{var_pattern})*>'.format(
+    var_pattern=_var_pattern)
+
+def _remove_template(stmt):
+    return re.sub(_template_pattern, '', stmt)
+
 _func_fmt = '''
 {outtype} {funcname}_{idx} ({param_decl})
 {{
@@ -217,7 +224,7 @@ def _handle_defs(pybind_type, apis, module_name, first_module):
                 module_name=module_name,
                 outtype=outtype,
                 label=label,
-                name=outtype.split('::')[-1]))
+                name=_remove_template(outtype.split('::')[-1])))
 
     func_defs = [_mdef_tmpl.format(
             module_name=module_name,

@@ -1,5 +1,5 @@
 ///
-/// err_approx.hpp
+/// approx.hpp
 /// layr
 ///
 /// Purpose:
@@ -14,8 +14,8 @@
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/make.hpp"
 
-#ifndef LAYR_ERR_APPROX_HPP
-#define LAYR_ERR_APPROX_HPP
+#ifndef LAYR_APPROX_HPP
+#define LAYR_APPROX_HPP
 
 namespace layr
 {
@@ -198,4 +198,4 @@ void assign_groups_preupdate (
 
 }
 
-#endif // LAYR_ERR_APPROX_HPP
+#endif // LAYR_APPROX_HPP
