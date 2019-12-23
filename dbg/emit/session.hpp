@@ -91,11 +91,6 @@ struct InteractiveSession final : public teq::iSession
 	/// Implementation of iSession
 	void update (teq::TensSetT ignored = {}) override
 	{
-		if (false == sent_graph_)
-		{
-			create_model();
-		}
-
 		jobs::ScopeGuard defer([this] { ++this->update_it_; });
 
 		// ignore any node data updates when
@@ -104,6 +99,11 @@ struct InteractiveSession final : public teq::iSession
 		{
 			sess_.update(ignored);
 			return;
+		}
+
+		if (false == sent_graph_)
+		{
+			create_model();
 		}
 
 		// basic copy over from session::update
@@ -185,11 +185,6 @@ struct InteractiveSession final : public teq::iSession
 		teq::TensSetT targeted,
 		teq::TensSetT ignored = {}) override
 	{
-		if (false == sent_graph_)
-		{
-			create_model();
-		}
-
 		jobs::ScopeGuard defer([this] { ++this->update_it_; });
 
 		// ignore any node data updates when
@@ -198,6 +193,11 @@ struct InteractiveSession final : public teq::iSession
 		{
 			sess_.update_target(targeted, ignored);
 			return;
+		}
+
+		if (false == sent_graph_)
+		{
+			create_model();
 		}
 
 		// basic copy over from session::update_target

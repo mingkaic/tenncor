@@ -89,6 +89,15 @@ private:
 		{
 			ctens->accept(*this);
 		}
+		auto attrs = func.ls_attrs();
+		for (auto attr : attrs)
+		{
+			if (auto tensattr = dynamic_cast<
+				const teq::TensorObj*>(func.get_attr(attr)))
+			{
+				tensattr->get_tensor()->accept(*this);
+			}
+		}
 
 		std::string id = get_id(func);
 		NodeProto* pb_node = pb_graph_.add_node();
