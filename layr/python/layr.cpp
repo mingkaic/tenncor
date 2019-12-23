@@ -25,6 +25,30 @@ PYBIND11_MODULE(layr, m)
 	py::class_<layr::RBMLayer<PybindT>> rbmlayer(m, "RBMLayer");
 
 	m
+		// ==== inits ====
+		.def("variable_from_init",
+			[](layr::InitF<PybindT> init, std::vector<py::ssize_t> slist,
+				std::string label)
+			{
+				return init(pyutils::p2cshape(slist), label);
+			},
+			"Return labelled variable containing data created from initializer",
+			py::arg("init"), py::arg("slist"), py::arg("label") = "")
+		.def("zero_init", layr::zero_init<PybindT>)
+		.def("variance_scaling_init",
+			[](PybindT factor)
+			{
+				return layr::variance_scaling_init<PybindT>(factor);
+			},
+			"truncated_normal(shape, 0, sqrt(factor / ((fanin + fanout)/2))",
+			py::arg("factor"))
+		.def("unif_xavier_init", &layr::unif_xavier_init<PybindT>,
+			"uniform xavier initializer",
+			py::arg("factor") = 1)
+		.def("norm_xavier_init", &layr::norm_xavier_init<PybindT>,
+			"normal xavier initializer",
+			py::arg("factor") = 1)
+
 		// ==== layer creation ====
 		.def("dense",
 			[](std::vector<teq::DimT> inslist, std::vector<teq::DimT> hidden_dims,
@@ -56,6 +80,10 @@ PYBIND11_MODULE(layr, m)
 			py::arg("nhidden"), py::arg("nvisible"),
 			py::arg("weight_init"), py::arg("bias_init"))
 
+		.def("bind", &layr::bind<PybindT>,
+			py::arg("unary"), py::arg("inshape") = teq::Shape())
+		.def("link", &layr::link<PybindT>)
+
 		// ==== layer training ====
 		.def("sgd_train", &trainer::sgd<PybindT>,
 			py::arg("model"), py::arg("sess"),
@@ -66,5 +94,70 @@ PYBIND11_MODULE(layr, m)
 			py::arg("rbm_model"), py::arg("sess"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
 			py::arg("errfunc") = layr::ErrorF<PybindT>(),
-			py::arg("cdk") = 1);
+			py::arg("cdk") = 1)
+
+		// ==== optimizations ====
+		.def("get_sgd",
+			[](PybindT learning_rate) -> layr::ApproxF<PybindT>
+			{
+				return [=](const layr::VarErrsT<PybindT>& leaves)
+				{
+					return layr::sgd(leaves, learning_rate);
+				};
+			},
+			py::arg("learning_rate") = 0.5)
+		.def("get_adagrad",
+			[](PybindT learning_rate, PybindT epsilon) -> layr::ApproxF<PybindT>
+			{
+				return [=](const layr::VarErrsT<PybindT>& leaves)
+				{
+					return layr::adagrad<PybindT>(leaves, learning_rate, epsilon);
+				};
+			},
+			py::arg("learning_rate") = 0.5,
+			py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon())
+		.def("get_rms_momentum",
+			[](PybindT learning_rate, PybindT discount_factor, PybindT epsilon) -> layr::ApproxF<PybindT>
+			{
+				return [=](const layr::VarErrsT<PybindT>& leaves)
+				{
+					return layr::rms_momentum<PybindT>(leaves, learning_rate,
+						discount_factor, epsilon);
+				};
+			},
+			py::arg("learning_rate") = 0.5,
+			py::arg("discount_factor") = 0.99,
+			py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon())
+
+		// ==== serialization ====
+		.def("load_layer_file",
+			[](std::string filename)
+			{
+				std::ifstream input(filename);
+				if (false == input.is_open())
+				{
+					logs::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				if (false == pb_model.ParseFromIstream(&input))
+				{
+					logs::fatalf("failed to parse onnx from %s",
+						filename.c_str());
+				}
+				auto layer = eteq::load_layer<PybindT>(pb_model);
+				input.close();
+				return layer;
+			})
+		.def("save_layer_file",
+			[](std::string filename, const eteq::ELayer<PybindT>& model)
+			{
+				std::ofstream output(filename);
+				if (false == output.is_open())
+				{
+					logs::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				eteq::save_layer<PybindT>(pb_model, model);
+				return pb_model.SerializeToOstream(&output);
+			});
 }

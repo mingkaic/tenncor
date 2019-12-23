@@ -48,9 +48,7 @@ TEST(OPTIMIZE, EqualityCheck)
 
 	ASSERT_HAS(hash.hashes_, s1.get());
 	ASSERT_HAS(hash.hashes_, s2.get());
-	EXPECT_NE(
-		hash.hashes_[s1.get()],
-		hash.hashes_[s2.get()]);
+	EXPECT_NE(hash.hashes_[s1.get()], hash.hashes_[s2.get()]);
 
 	auto a = cst + cst2;
 	auto b = cst2 + cst;
@@ -58,9 +56,7 @@ TEST(OPTIMIZE, EqualityCheck)
 	b->accept(hash);
 	ASSERT_HAS(hash.hashes_, a.get());
 	ASSERT_HAS(hash.hashes_, b.get());
-	EXPECT_EQ(
-		hash.hashes_[a.get()],
-		hash.hashes_[b.get()]);
+	EXPECT_EQ(hash.hashes_[a.get()], hash.hashes_[b.get()]);
 
 	auto c = var / cst;
 	auto d = var / cst;

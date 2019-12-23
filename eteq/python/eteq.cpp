@@ -100,6 +100,7 @@ PYBIND11_MODULE(eteq, m)
 				return eteq::ELayer<PybindT>(f, input);
 			}),
 			py::arg("root"), py::arg("input"))
+		.def("deep_clone", &eteq::ELayer<PybindT>::deep_clone)
 		.def("connect", &eteq::ELayer<PybindT>::connect)
 		.def("get_storage", &eteq::ELayer<PybindT>::get_storage)
 		.def("root", &eteq::ELayer<PybindT>::root)
@@ -189,7 +190,7 @@ PYBIND11_MODULE(eteq, m)
 
 	// ==== inline functions ====
 	m
-		// constant creation
+		// ==== constant creation ====
 		.def("scalar_constant",
 			[](PybindT scalar, std::vector<py::ssize_t> slist)
 			{
@@ -205,7 +206,7 @@ PYBIND11_MODULE(eteq, m)
 				return eteq::make_constant(arr.data_.data(), arr.shape_);
 			}, "Return constant etens with data")
 
-		// variable creation
+		// ==== variable creation ====
 		.def("scalar_variable",
 			[](PybindT scalar, std::vector<py::ssize_t> slist, std::string label)
 			{
@@ -226,7 +227,7 @@ PYBIND11_MODULE(eteq, m)
 			py::arg("data"),
 			py::arg("label") = "")
 
-		// other stuff
+		// ==== other stuff ====
 		.def("derive", &eteq::derive<PybindT>,
 			"Return derivative of first tensor with respect to second tensor (deprecated)")
 		.def("seed",
@@ -236,7 +237,7 @@ PYBIND11_MODULE(eteq, m)
 			},
 			"Seed internal RNG")
 
-		// optimization
+		// ==== optimization ====
 		.def("parse_optrules", &eteq::parse_file<PybindT>,
 			py::arg("filename") = "cfg/optimizations.rules",
 			"Optimize using rules for specified filename")

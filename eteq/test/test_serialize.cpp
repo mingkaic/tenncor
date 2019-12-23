@@ -33,30 +33,18 @@ TEST(SERIALIZE, SaveGraph)
 	teq::Shape bias1_shape({5});
 	teq::Shape out_shape({5,3});
 
-	eteq::ETensor<double> in = eteq::ETensor<double>(
-		eteq::make_variable<double>(
-		std::vector<double>(in_shape.n_elems()).data(),
-		in_shape, "in"));
-	eteq::ETensor<double> weight0 = eteq::ETensor<double>(
-		eteq::make_variable<double>(
-		std::vector<double>(weight0_shape.n_elems()).data(),
-		weight0_shape, "weight0"));
-	eteq::ETensor<double> bias0 = eteq::ETensor<double>(
-		eteq::make_variable<double>(
-		std::vector<double>(bias0_shape.n_elems()).data(),
-		bias0_shape, "bias0"));
-	eteq::ETensor<double> weight1 = eteq::ETensor<double>(
-		eteq::make_variable<double>(
-		std::vector<double>(weight1_shape.n_elems()).data(),
-		weight1_shape, "weight1"));
-	eteq::ETensor<double> bias1 = eteq::ETensor<double>(
-		eteq::make_variable<double>(
-		std::vector<double>(bias1_shape.n_elems()).data(),
-		bias1_shape, "bias1"));
-	eteq::ETensor<double> out = eteq::ETensor<double>(
-		eteq::make_variable<double>(
-		std::vector<double>(out_shape.n_elems()).data(),
-		out_shape, "out"));
+	eteq::ETensor<double> in = eteq::ETensor<double>(eteq::make_variable<double>(
+		std::vector<double>(in_shape.n_elems()).data(), in_shape, "in"));
+	eteq::ETensor<double> weight0 = eteq::ETensor<double>(eteq::make_variable<double>(
+		std::vector<double>(weight0_shape.n_elems()).data(), weight0_shape, "weight0"));
+	eteq::ETensor<double> bias0 = eteq::ETensor<double>(eteq::make_variable<double>(
+		std::vector<double>(bias0_shape.n_elems()).data(), bias0_shape, "bias0"));
+	eteq::ETensor<double> weight1 = eteq::ETensor<double>(eteq::make_variable<double>(
+		std::vector<double>(weight1_shape.n_elems()).data(), weight1_shape, "weight1"));
+	eteq::ETensor<double> bias1 = eteq::ETensor<double>(eteq::make_variable<double>(
+		std::vector<double>(bias1_shape.n_elems()).data(), bias1_shape, "bias1"));
+	eteq::ETensor<double> out = eteq::ETensor<double>(eteq::make_variable<double>(
+		std::vector<double>(out_shape.n_elems()).data(), out_shape, "out"));
 
 	auto layer0 = tenncor::matmul(in, weight0) + tenncor::extend(bias0, 1, {3});
 	auto sig0 = 1. / (1. + tenncor::exp(-layer0));

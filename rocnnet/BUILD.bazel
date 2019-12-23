@@ -54,8 +54,8 @@ cc_binary(
     srcs = ["demo/gd_demo.cpp"],
     copts = ["-std=c++17"],
     deps = [
+        "//layr:layr",
         "//dbg/emit:emit",
-        "//rocnnet/trainer:trainer",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
     data = ["//:models", "//cfg:optimizations"],
@@ -64,20 +64,23 @@ cc_binary(
 py_binary(
     name = "gd_demo",
     srcs = ["demo/gd_demo.py"],
-    deps = [":rocnnet_py"],
-    data = ["//:models", "//cfg:optimizations"],
-)
-
-py_binary(
-    name = "dqn_demo",
-    srcs = ["demo/dqn_demo.py"],
-    deps = [":rocnnet_py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
     data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
     name = "rbm_demo",
     srcs = ["demo/rbm_demo.py"],
+    deps = ["//layr:layr_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "dqn_demo",
+    srcs = ["demo/dqn_demo.py"],
     deps = [":rocnnet_py"],
     data = ["//:models", "//cfg:optimizations"],
 )
