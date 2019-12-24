@@ -74,7 +74,10 @@ py_binary(
 py_binary(
     name = "rbm_demo",
     srcs = ["demo/rbm_demo.py"],
-    deps = ["//layr:layr_py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
     data = ["//:models", "//cfg:optimizations"],
 )
 

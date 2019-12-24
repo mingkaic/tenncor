@@ -69,7 +69,7 @@ def main(args):
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = layr.load_layer_file(args.load)
+        trained = layr.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
@@ -85,9 +85,10 @@ def main(args):
         layr.get_sgd(0.9))
 
     testin = eteq.Variable([ninput], label='testin')
-    untrained_out = untrained.connect(testin)
-    trained_out = model.connect(testin)
-    pretrained_out = trained.connect(testin)
+    tin = tc.ETensor(testin)
+    untrained_out = untrained.connect(tin)
+    trained_out = model.connect(tin)
+    pretrained_out = trained.connect(tin)
     sess.track([untrained_out, trained_out, pretrained_out])
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
@@ -133,7 +134,7 @@ def main(args):
 
     try:
         print('saving')
-        if layr.save_layer_file(args.save, model):
+        if layr.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

@@ -180,7 +180,7 @@ def main(args):
 
     train = rcn.sgd_train(model, sess, tinput, toutput,
         make_rms_prop(learning_rate, momentum_term, lmbd, eps),
-        errfunc=loss)
+        err_func=loss)
 
     test_invar = eteq.Variable([n_test, sequence_len, ninput])
     tin = tc.permute(test_invar, [0, 2, 1])

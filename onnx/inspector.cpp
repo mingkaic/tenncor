@@ -17,16 +17,16 @@ void write_json (std::string writepath, const std::string& jsonstr)
 		std::fstream writestr(writepath, std::ios::out | std::ios::trunc | std::ios::binary);
 		if (writestr.is_open())
 		{
-			onnx::GraphProto graph;
+			onnx::ModelProto model;
 			google::protobuf::util::JsonParseOptions options;
 			options.ignore_unknown_fields = true;
 			if (google::protobuf::util::Status::OK !=
 				google::protobuf::util::JsonStringToMessage(
-					jsonstr, &graph, options))
+					jsonstr, &model, options))
 			{
-				logs::fatal("failed to parse json graph");
+				logs::fatal("failed to parse json model");
 			}
-			if (false == graph.SerializeToOstream(&writestr))
+			if (false == model.SerializeToOstream(&writestr))
 			{
 				logs::fatalf("failed to serialize protobuf to %s",
 					writepath.c_str());
@@ -74,8 +74,8 @@ int main (int argc, const char** argv)
 		std::string jsonstr;
 		if (estd::has_affix(readpath, onnx_ext))
 		{
-			onnx::GraphProto graph;
-			if (false == graph.ParseFromIstream(&readstr))
+			onnx::ModelProto model;
+			if (false == model.ParseFromIstream(&readstr))
 			{
 				logs::fatalf("failed to parse from istream when read file %s",
 					readpath.c_str());
@@ -85,9 +85,9 @@ int main (int argc, const char** argv)
 			options.always_print_primitive_fields = true;
 			if (google::protobuf::util::Status::OK !=
 				google::protobuf::util::MessageToJsonString(
-					graph, &jsonstr, options))
+					model, &jsonstr, options))
 			{
-				logs::fatal("failed to parse onnx graph");
+				logs::fatal("failed to parse onnx model");
 			}
 		}
 		else

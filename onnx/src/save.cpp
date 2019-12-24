@@ -9,26 +9,22 @@
 namespace onnx
 {
 
-struct OnnxMarshaler final : public teq::OnceTraveler
+struct OnnxMarshaler final : public teq::iTraveler
 {
 	OnnxMarshaler (GraphProto& graph, const TensIdT& identified,
-		const iMarshFuncs& marshaler, teq::TensSetT stops = {},
-		std::string id_prefix = "") :
+		const iMarshFuncs& marshaler, teq::TensSetT stops = {}) :
 		pb_graph_(graph), identified_(identified),
-		marshaler_(marshaler), id_prefix_(id_prefix), stops_(stops) {}
+		marshaler_(marshaler), stops_(stops) {}
 
-	std::unordered_set<const teq::iTensor*> roots_;
-
-	teq::CTensMapT<std::string> tens_;
-
-private:
-	void visit_leaf (teq::iLeaf& leaf) override
+	void visit (teq::iLeaf& leaf) override
 	{
-		if (estd::has(stops_, &leaf))
+		if (estd::has(stops_, &leaf) ||
+			estd::has(tens_, &leaf))
 		{
 			return;
 		}
 		std::string id = get_id(leaf);
+		tens_.emplace(&leaf, id);
 		auto usage = leaf.get_usage();
 
 		TensorAnnotation* pb_annotation =
@@ -61,12 +57,12 @@ private:
 			marshaler_.marsh_leaf(*pb_tens, leaf);
 		}
 		roots_.emplace(&leaf);
-		tens_.emplace(&leaf, id);
 	}
 
-	void visit_func (teq::iFunctor& func) override
+	void visit (teq::iFunctor& func) override
 	{
-		if (estd::has(stops_, &func))
+		if (estd::has(stops_, &func) ||
+			estd::has(tens_, &func))
 		{
 			return;
 		}
@@ -82,6 +78,11 @@ private:
 		}
 	}
 
+	std::unordered_set<const teq::iTensor*> roots_;
+
+	teq::CTensMapT<std::string> tens_;
+
+private:
 	void marshal_func (teq::iFunctor& func)
 	{
 		auto children = func.get_children();
@@ -121,21 +122,17 @@ private:
 	void marshal_layer (teq::iFunctor& func, const teq::LayerObj* layer)
 	{
 		// for layers, skip the subgraph and marshal inputs first
-		layer->get_tensor()->accept(*this);
+		teq::TensptrT input = layer->get_tensor();
+		input->accept(*this);
 
-		std::string id = get_id(func);
 		NodeProto* pb_node = pb_graph_.add_node();
-		pb_node->set_name(id);
-		pb_node->add_output(id);
 		pb_node->set_op_type(layer->get_opname());
 		auto pb_attrs = pb_node->mutable_attribute();
-
 		AttributeProto* inner_workings = pb_attrs->Add();
 		inner_workings->set_name(teq::layer_key);
 		inner_workings->set_type(AttributeProto::GRAPH);
 		GraphProto* subgraph = inner_workings->mutable_g();
 
-		teq::TensptrT input = layer->get_tensor();
 		std::string subid = estd::must_getf(tens_, input.get(),
 			"cannot find child traversed %s",
 			input->to_string().c_str());
@@ -156,19 +153,22 @@ private:
 		roots_.erase(input.get());
 
 		OnnxMarshaler submarsh(*subgraph, identified_,
-			marshaler_, teq::TensSetT{input.get()}, id);
+			marshaler_, teq::TensSetT{input.get()});
 		submarsh.roots_ = roots_;
 		submarsh.tens_ = tens_;
 		submarsh.marshal_func(func);
+		roots_ = submarsh.roots_;
+		tens_ = submarsh.tens_;
 
+		std::string id = tens_.at(&func);
 		ValueInfoProto* pb_output = subgraph->add_output();
-		pb_output->set_name(submarsh.tens_.at(&func));
+
+		pb_output->set_name(id);
+		pb_node->set_name(id);
+		pb_node->add_output(id);
+
 		marshal_io(*pb_output, func.shape());
-
 		marshal_attrs(*pb_attrs, func, tens_);
-
-		roots_.emplace(&func);
-		tens_.emplace(&func, submarsh.tens_.at(&func));
 	}
 
 	std::string get_id (teq::iTensor& tens) const
@@ -177,7 +177,7 @@ private:
 		{
 			return identified_.left.at(&tens);
 		}
-		std::string proposed_id = id_prefix_ + id_prelim + fmts::to_string(tens_.size());
+		std::string proposed_id = fmts::to_string(tens_.size());
 		while (estd::has(identified_.right, proposed_id)) // almost never going to loop
 		{
 			proposed_id = boost::uuids::to_string(uuid_gen_());
@@ -190,8 +190,6 @@ private:
 	const TensIdT& identified_;
 
 	const iMarshFuncs& marshaler_;
-
-	std::string id_prefix_;
 
 	teq::TensSetT stops_;
 

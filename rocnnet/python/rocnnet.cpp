@@ -466,7 +466,7 @@ PYBIND11_MODULE(rocnnet, m)
 		.def("sgd_train", &trainer::sgd_train,
 			py::arg("model"), py::arg("sess"),
 			py::arg("train_in"), py::arg("expected_out"), py::arg("update"),
-			py::arg("errfunc") = layr::ErrorF(layr::sqr_diff),
+			py::arg("err_func") = layr::ErrorF(layr::sqr_diff),
 			py::arg("gradprocess") = trainer::NodeUnarF(pyrocnnet::identity))
 		.def("rbm_train", &trainer::rbm_train,
 			py::arg("model"), py::arg("sess"),

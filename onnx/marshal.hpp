@@ -22,8 +22,6 @@ using TensorT = std::pair<int32_t,teq::Shape>;
 
 using AnnotationsT = std::unordered_map<std::string,std::string>;
 
-const std::string id_prelim = "::";
-
 const std::string leafname_key = "TENSOR_NAME";
 
 const std::string leafusage_key = "LEAF_USAGE";

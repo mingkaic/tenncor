@@ -154,6 +154,11 @@ eteq::ELayer<T> gru (teq::DimT indim, teq::DimT hidden_dim,
 template <typename T>
 struct RBMLayer final
 {
+	RBMLayer<T> deep_clone (void) const
+	{
+		return RBMLayer<T>{fwd_.deep_clone(), bwd_.deep_clone()};
+	}
+
 	eteq::ELayer<T> fwd_;
 
 	eteq::ELayer<T> bwd_;

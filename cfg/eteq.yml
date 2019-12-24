@@ -1548,8 +1548,9 @@ api:
                       auto input = ::tenncor::sigmoid(ingate.connect(xc));
                       auto forget = ::tenncor::sigmoid(forgate.connect(xc));
                       auto output = ::tenncor::sigmoid(outgate.connect(xc));
-                      state = gate * input + state * forget;
-                      hidden = state * output;
+                      state = ::tenncor::add(::tenncor::mul(gate,input),
+                          ::tenncor::mul(state,forget));
+                      hidden = ::tenncor::mul(state, output);
                       states.push_back(hidden);
                   }
                   auto output = ::tenncor::concat(states, seq_dim);
@@ -1599,8 +1600,9 @@ api:
                       auto update = ::tenncor::sigmoid(ugate.connect(xc));
                       auto reset = ::tenncor::sigmoid(rgate.connect(xc));
                       auto hidden = ::tenncor::tanh(hgate.connect(
-                          ::tenncor::concat(inslice, reset * state, 0)));
-                      state = update * state + ((T) 1 - update) * hidden;
+                          ::tenncor::concat(inslice, ::tenncor::mul(reset,state), 0)));
+                      state = ::tenncor::add(::tenncor::mul(update,state),
+                          ::tenncor::mul(::tenncor::sub((T)1,update),hidden));
                       states.push_back(state);
                   }
                   auto output = ::tenncor::concat(states, seq_dim);

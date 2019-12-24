@@ -165,31 +165,84 @@ private:
 	ETensor<T> input_;
 };
 
-const std::string input_key = "model_input";
+template <typename T>
+using ELayersT = std::vector<ELayer<T>>;
+
+const std::string root_key_fmt = "_r%d";
+
+const std::string input_key_fmt = "_i%d";
+
+const std::string key_delim = ",";
 
 template <typename T>
-void save_layer (onnx::ModelProto& model, const ELayer<T>& layer)
+void save_layers (onnx::ModelProto& model, const ELayersT<T>& layers)
 {
+	teq::TensptrsT roots;
+	roots.reserve(layers.size());
+	std::unordered_map<teq::iTensor*,std::vector<std::string>> encodings;
+	for (size_t i = 0, n = layers.size(); i < n; ++i)
+	{
+		const ELayer<T>& layer = layers[i];
+		teq::TensptrT root = layer.root();
+		teq::TensptrT input = layer.input();
+		encodings[root.get()].push_back(fmts::sprintf(root_key_fmt, i));
+		encodings[input.get()].push_back(fmts::sprintf(input_key_fmt, i));
+		roots.push_back(root);
+	}
 	onnx::TensIdT ids;
-	ids.insert({layer.input().get(), input_key});
-	save_model(model, {layer.root()}, ids);
+	for (auto encpair : encodings)
+	{
+		std::string id = fmts::join(key_delim,
+			encpair.second.begin(), encpair.second.end());
+		ids.insert({encpair.first, id});
+	}
+	save_model(model, roots, ids);
 }
 
 template <typename T>
-ELayer<T> load_layer (const onnx::ModelProto& model)
+ELayersT<T> load_layers (const onnx::ModelProto& model)
 {
 	onnx::TensptrIdT ids;
 	auto roots = load_model(ids, model);
 	if (roots.empty())
 	{
-		logs::fatal("cannot load model without roots");
+		logs::fatal("failed to load model without roots");
 	}
-	auto input = estd::must_getf(ids.right, input_key,
-		"failed to find %s", input_key.c_str());
-	auto root = roots.front();
-	auto f = std::static_pointer_cast<teq::iFunctor>(
-		(teq::TensptrT) root);
-	return ELayer<T>(f, ETensor<T>(input));
+	std::unordered_map<std::string,teq::TensptrT> encodings;
+	for (auto idpair : ids.right)
+	{
+		std::string id = idpair.first;
+		teq::TensptrT tens = idpair.second;
+		switch (id[0])
+		{
+			case '_':
+			{
+				auto keys = fmts::split(id, key_delim);
+				for (std::string key : keys)
+				{
+					encodings.emplace(key, tens);
+				}
+			}
+				break;
+			default:
+				break;
+		}
+	}
+	teq::TensptrT root;
+	teq::TensptrT input;
+	ELayersT<T> layers;
+	for (size_t i = 0;
+		estd::get(input, encodings, fmts::sprintf(input_key_fmt, i)) &&
+		estd::get(root, encodings, fmts::sprintf(root_key_fmt, i)); ++i)
+	{
+		auto f = std::dynamic_pointer_cast<teq::iFunctor>(root);
+		if (nullptr == f)
+		{
+			logs::fatal("failed to find non-functor root");
+		}
+		layers.push_back(ELayer<T>(f, ETensor<T>(input)));
+	}
+	return layers;
 }
 
 }

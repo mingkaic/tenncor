@@ -11,7 +11,7 @@ from tensorflow.examples.tutorials.mnist import input_data
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
-import rocnnet.rocnnet as rcn
+import layr.layr as layr
 
 prog_description = 'Demo rbm_trainer'
 
@@ -68,20 +68,19 @@ def main(args):
     learning_rate = 0.01
     momentum = 0.95
 
-    model = rcn.RBM(n_hidden, n_visible,
-        weight_init=rcn.unif_xavier_init(args.xavier_const),
-        bias_init=rcn.zero_init(),
-        label="demo")
+    model = layr.rbm(n_hidden, n_visible,
+        weight_init=layr.unif_xavier_init(args.xavier_const),
+        bias_init=layr.zero_init())
 
-    untrained = model.clone()
+    untrained = model.deep_clone()
+    trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = rcn.load_file_rbmmodel(args.load, "demo")
+        trained = layr.RBMLayer(*layr.load_layers_file(args.load))
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
-        trained = model.clone()
 
     sess = eteq.Session()
     n_batch = 10
@@ -89,20 +88,21 @@ def main(args):
     # ds = tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=n_batch)
 
     train_input = eteq.Variable([n_batch, n_visible])
-    train = rcn.rbm_train(model, sess, train_input,
+    train = layr.rbm_train(model, sess, tc.ETensor(train_input),
         learning_rate=learning_rate,
         discount_factor=momentum,
         err_func=mse_errfunc)
 
     x = eteq.scalar_variable(0, [1, n_visible])
+    xin = tc.ETensor(x)
     genx = model.backward_connect(
-        tc.random.rand_binom_one(model.connect(x)))
+        tc.random.rand_binom_one(model.connect(xin)))
 
     untrained_genx = untrained.backward_connect(
-        tc.random.rand_binom_one(untrained.connect(x)))
+        tc.random.rand_binom_one(untrained.connect(xin)))
 
     trained_genx = trained.backward_connect(
-        tc.random.rand_binom_one(trained.connect(x)))
+        tc.random.rand_binom_one(trained.connect(xin)))
 
     mnist_images = input_data.read_data_sets('MNIST_data/', one_hot=True).train.images
 
@@ -179,7 +179,7 @@ def main(args):
 
     try:
         print('saving')
-        if model.save_file(args.save):
+        if layr.save_layers_file(args.save, [model.fwd(), model.bwd()]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

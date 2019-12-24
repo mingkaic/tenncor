@@ -111,7 +111,7 @@ int main (int argc, const char** argv)
 		{
 			throw std::exception();
 		}
-		trained_model = eteq::load_layer<PybindT>(pb_model);
+		trained_model = eteq::load_layers<PybindT>(pb_model)[0];
 		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
@@ -224,7 +224,7 @@ int main (int argc, const char** argv)
 		if (savestr.is_open())
 		{
 			onnx::ModelProto pb_model;
-			eteq::save_layer<PybindT>(pb_model, model);
+			eteq::save_layers<PybindT>(pb_model, {model});
 			if (pb_model.SerializeToOstream(&savestr))
 			{
 				logs::infof("successfully saved model to `%s`", savepath.c_str());

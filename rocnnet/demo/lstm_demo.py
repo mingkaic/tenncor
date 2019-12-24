@@ -85,7 +85,7 @@ def main(args):
 
     trainer = rcn.sgd_train(model, sess, test_inputs, test_outputs,
         rcn.get_sgd(learning_rate=0.1),
-        errfunc=lstm_loss)
+        err_func=lstm_loss)
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     start = time.time()

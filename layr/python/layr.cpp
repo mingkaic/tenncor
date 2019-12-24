@@ -22,7 +22,46 @@ PYBIND11_MODULE(layr, m)
 {
 	m.doc() = "layer api";
 
+	// === supports ===
+	py::class_<layr::VarAssign<PybindT>> assigns(m, "VarAssign");
+	assigns
+		.def(py::init(
+			[](eteq::VarptrT<PybindT> target, eteq::ETensor<PybindT> source)
+			{
+				return layr::VarAssign<PybindT>{target, source};
+			}))
+		.def("target", [](layr::VarAssign<PybindT>& assign) { return assign.target_; })
+		.def("source", [](layr::VarAssign<PybindT>& assign) { return assign.source_; });
+
+	// ==== layer ====
 	py::class_<layr::RBMLayer<PybindT>> rbmlayer(m, "RBMLayer");
+	rbmlayer
+		.def(py::init(
+			[](eteq::ELayer<PybindT> fwd, eteq::ELayer<PybindT> bwd)
+			{
+				return layr::RBMLayer<PybindT>{fwd, bwd};
+			}))
+		.def("deep_clone", &layr::RBMLayer<PybindT>::deep_clone)
+		.def("fwd",
+			[](layr::RBMLayer<PybindT>& self)
+			{
+				return self.fwd_;
+			})
+		.def("bwd",
+			[](layr::RBMLayer<PybindT>& self)
+			{
+				return self.bwd_;
+			})
+		.def("connect",
+			[](layr::RBMLayer<PybindT>& self, const eteq::ETensor<PybindT>& e)
+			{
+				return self.fwd_.connect(e);
+			})
+		.def("backward_connect",
+			[](layr::RBMLayer<PybindT>& self, const eteq::ETensor<PybindT>& e)
+			{
+				return self.bwd_.connect(e);
+			});
 
 	m
 		// ==== inits ====
@@ -88,12 +127,12 @@ PYBIND11_MODULE(layr, m)
 		.def("sgd_train", &trainer::sgd<PybindT>,
 			py::arg("model"), py::arg("sess"),
 			py::arg("train_in"), py::arg("expect_out"), py::arg("update"),
-			py::arg("errfunc") = layr::ErrorF<PybindT>(layr::sqr_diff<PybindT>),
+			py::arg("err_func") = layr::ErrorF<PybindT>(layr::sqr_diff<PybindT>),
 			py::arg("proc_grad") = layr::UnaryF<PybindT>())
 		.def("rbm_train", &trainer::rbm<PybindT>,
 			py::arg("rbm_model"), py::arg("sess"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
-			py::arg("errfunc") = layr::ErrorF<PybindT>(),
+			py::arg("err_func") = layr::ErrorF<PybindT>(),
 			py::arg("cdk") = 1)
 
 		// ==== optimizations ====
@@ -130,7 +169,7 @@ PYBIND11_MODULE(layr, m)
 			py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon())
 
 		// ==== serialization ====
-		.def("load_layer_file",
+		.def("load_layers_file",
 			[](std::string filename)
 			{
 				std::ifstream input(filename);
@@ -144,12 +183,12 @@ PYBIND11_MODULE(layr, m)
 					logs::fatalf("failed to parse onnx from %s",
 						filename.c_str());
 				}
-				auto layer = eteq::load_layer<PybindT>(pb_model);
+				auto layers = eteq::load_layers<PybindT>(pb_model);
 				input.close();
-				return layer;
+				return layers;
 			})
-		.def("save_layer_file",
-			[](std::string filename, const eteq::ELayer<PybindT>& model)
+		.def("save_layers_file",
+			[](std::string filename, const eteq::ELayersT<PybindT>& models)
 			{
 				std::ofstream output(filename);
 				if (false == output.is_open())
@@ -157,7 +196,7 @@ PYBIND11_MODULE(layr, m)
 					logs::fatalf("file %s not found", filename.c_str());
 				}
 				onnx::ModelProto pb_model;
-				eteq::save_layer<PybindT>(pb_model, model);
+				eteq::save_layers<PybindT>(pb_model, models);
 				return pb_model.SerializeToOstream(&output);
 			});
 }
