@@ -68,7 +68,7 @@ def main(args):
     learning_rate = 0.01
     momentum = 0.95
 
-    model = layr.rbm(n_hidden, n_visible,
+    model = layr.rbm(n_visible, n_hidden,
         weight_init=layr.unif_xavier_init(args.xavier_const),
         bias_init=layr.zero_init())
 
@@ -95,14 +95,14 @@ def main(args):
 
     x = eteq.scalar_variable(0, [1, n_visible])
     xin = tc.ETensor(x)
-    genx = model.backward_connect(
-        tc.random.rand_binom_one(model.connect(xin)))
+    genx = tc.sigmoid(model.backward_connect(
+        tc.random.rand_binom_one(tc.sigmoid(model.connect(xin)))))
 
-    untrained_genx = untrained.backward_connect(
-        tc.random.rand_binom_one(untrained.connect(xin)))
+    untrained_genx = tc.sigmoid(untrained.backward_connect(
+        tc.random.rand_binom_one(tc.sigmoid(untrained.connect(xin)))))
 
-    trained_genx = trained.backward_connect(
-        tc.random.rand_binom_one(trained.connect(xin)))
+    trained_genx = tc.sigmoid(trained.backward_connect(
+        tc.random.rand_binom_one(tc.sigmoid(trained.connect(xin)))))
 
     mnist_images = input_data.read_data_sets('MNIST_data/', one_hot=True).train.images
 

@@ -4,18 +4,7 @@ load("//third_party/drake_rules:pybind.bzl", "pybind_library")
 
 filegroup(
     name = "srcs",
-    srcs = glob(["demo/*.cpp", "demo/*.py"]) + [
-        "//rocnnet/trainer:srcs",
-        "BUILD.bazel",
-    ],
-    visibility = ["//visibility:public"],
-)
-
-pybind_library(
-    name = "rocnnet_py",
-    cc_srcs = glob(["python/*.cpp"]),
-    cc_deps = ["//rocnnet/trainer:trainer", "//pyutils:pyutils"],
-    py_deps = ["//eteq:eteq_py"],
+    srcs = glob(["demo/*.cpp", "demo/*.py"]) + ["BUILD.bazel"],
     visibility = ["//visibility:public"],
 )
 
@@ -30,20 +19,30 @@ py_binary(
 py_binary(
     name = "comparison_mlp",
     srcs = ["comparison/comparison_mlp.py"],
-    deps = [":rocnnet_py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
 )
 
 py_binary(
     name = "comparison_mlp_grad",
     srcs = ["comparison/comparison_mlp_grad.py"],
-    deps = [":rocnnet_py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
     data = ["//cfg:optimizations"],
 )
 
 py_binary(
     name = "comparison_mlp_grad_pll",
     srcs = ["comparison/comparison_mlp_grad_pll.py"],
-    deps = [":rocnnet_py", "//ccur:ccur_py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+        "//ccur:ccur_py",
+    ],
     data = ["//cfg:optimizations"],
 )
 
@@ -84,41 +83,59 @@ py_binary(
 py_binary(
     name = "dqn_demo",
     srcs = ["demo/dqn_demo.py"],
-    deps = [":rocnnet_py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
     data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
     name = "dbn_demo",
     srcs = ["demo/dbn_demo.py"],
-    deps = [":rocnnet_py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
     data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
     name = "cnn_demo",
     srcs = ["demo/cnn_demo.py"],
-    deps = [":rocnnet_py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
     data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
     name = "rnn_demo",
     srcs = ["demo/rnn_demo.py"],
-    deps = [":rocnnet_py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
     data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
     name = "lstm_demo",
     srcs = ["demo/lstm_demo.py"],
-    deps = [":rocnnet_py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
     data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
     name = "gru_demo",
     srcs = ["demo/gru_demo.py"],
-    deps = [":rocnnet_py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
     data = ["//:models", "//cfg:optimizations"],
 )

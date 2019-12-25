@@ -8,7 +8,7 @@ import tensorflow as tf
 import eteq.tenncor as tc
 import eteq.eteq as eteq
 
-import rocnnet.rocnnet as rcn
+import layr.layr as layr
 
 matrix_dims = [
     24,
@@ -130,15 +130,16 @@ for matrix_dim in matrix_dims:
     batch_size = 1
 
     # regular mlp
-    brain = rcn.SequentialModel("comparison")
-    brain.add(rcn.Dense(matrix_dim, eteq.Shape([n_in]),
-        weight_init=rcn.unif_xavier_init(),
-        bias_init=rcn.zero_init(), label="0"))
-    brain.add(rcn.sigmoid())
-    brain.add(rcn.Dense(n_out, eteq.Shape([matrix_dim]),
-        weight_init=rcn.unif_xavier_init(),
-        bias_init=rcn.zero_init(), label="1"))
-    brain.add(rcn.sigmoid())
+    brain = layr.link([
+        layr.dense([n_in], [matrix_dim],
+            weight_init=layr.unif_xavier_init(),
+            bias_init=layr.zero_init()),
+        layr.bind(tc.sigmoid),
+        layr.dense([matrix_dim], [n_out],
+            weight_init=layr.unif_xavier_init(),
+            bias_init=layr.zero_init()),
+        layr.bind(tc.sigmoid),
+    ])
 
     invar = eteq.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
     out = brain.connect(invar)

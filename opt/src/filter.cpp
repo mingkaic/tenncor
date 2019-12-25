@@ -36,9 +36,8 @@ void remove_duplicates (teq::TensptrsT& roots, EqualF equals)
 		}
 		else
 		{
-			functors.push_back(
-				std::static_pointer_cast<teq::iFunctor>(
-					owners.at(tens).lock()));
+			functors.push_back(std::static_pointer_cast<teq::iFunctor>(
+				owners.at(tens).lock()));
 		}
 	}
 

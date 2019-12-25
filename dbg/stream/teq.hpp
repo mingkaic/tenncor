@@ -25,7 +25,7 @@ struct PrettyEquation final
 	PrettyEquation (void) : drawer_(
 		[](teq::iTensor*& root) -> std::vector<teq::iTensor*>
 		{
-			if (teq::iFunctor* f = dynamic_cast<teq::iFunctor*>(root))
+			if (auto f = dynamic_cast<teq::iFunctor*>(root))
 			{
 				auto children = f->get_children();
 				std::vector<teq::iTensor*> tens;

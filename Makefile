@@ -30,10 +30,10 @@ print_vars:
 	@echo "CC: " $(CC)
 
 rocnnet_py_build:
-	bazel build --config $(CC)_eigen_optimal //rocnnet:rocnnet_py
+	bazel build --config $(CC)_eigen_optimal //layr:layr_py
 
-rocnnet_py_export: bazel-bin/rocnnet/rocnnet.so bazel-bin/eteq/tenncor.so bazel-bin/eteq/eteq.so
-	cp -f bazel-bin/rocnnet/rocnnet.so rocnnet/notebooks/rocnnet
+rocnnet_py_export: bazel-bin/layr/layr.so bazel-bin/eteq/tenncor.so bazel-bin/eteq/eteq.so
+	cp -f bazel-bin/layr/*.so rocnnet/notebooks/layr
 	cp -f bazel-bin/eteq/*.so rocnnet/notebooks/eteq
 
 

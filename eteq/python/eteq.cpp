@@ -92,12 +92,8 @@ PYBIND11_MODULE(eteq, m)
 		.def(py::init(
 			[](eteq::ETensor<PybindT> root, eteq::ETensor<PybindT> input)
 			{
-				auto f = std::dynamic_pointer_cast<teq::iFunctor>((teq::TensptrT) root);
-				if (nullptr == f)
-				{
-					logs::fatal("cannot create ELayer with non-function root");
-				}
-				return eteq::ELayer<PybindT>(f, input);
+				return eteq::ELayer<PybindT>(
+					estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root), input);
 			}),
 			py::arg("root"), py::arg("input"))
 		.def("deep_clone", &eteq::ELayer<PybindT>::deep_clone)

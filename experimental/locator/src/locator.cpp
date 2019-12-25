@@ -65,7 +65,7 @@ std::string display_location (teq::iTensor* tens,
 		out << fmts::join(",", tagstr.begin(), tagstr.end());
 	}
 	out << "}";
-	if (teq::iFunctor* f = dynamic_cast<teq::iFunctor*>(tens))
+	if (auto f = dynamic_cast<teq::iFunctor*>(tens))
 	{
 		auto args = f->get_children();
 		for (teq::TensptrT arg : args)

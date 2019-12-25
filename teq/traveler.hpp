@@ -289,6 +289,22 @@ private:
 				fcpy->update_child(tens, i);
 			}
 		}
+		auto attrs = fcpy->ls_attrs();
+		for (auto attr : attrs)
+		{
+			if (auto refattr = dynamic_cast<
+				const TensorRef*>(fcpy->get_attr(attr)))
+			{
+				auto reftens = refattr->get_tensor();
+				TensptrT newref;
+				if (estd::get(newref, clones_, reftens.get()))
+				{
+					auto alt = refattr->copynreplace(newref);
+					fcpy->rm_attr(attr);
+					fcpy->add_attr(attr, marsh::ObjptrT(alt));
+				}
+			}
+		}
 		clones_.emplace(&func, fcpy);
 	}
 };

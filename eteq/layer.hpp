@@ -1,3 +1,5 @@
+#include "estd/cast.hpp"
+
 #include "eteq/functor.hpp"
 #include "eteq/serialize.hpp"
 
@@ -74,6 +76,27 @@ private:
 	teq::PathFinder pfinder_;
 };
 
+struct BreadthStat final : public teq::OnceTraveler
+{
+	teq::TensMapT<size_t> breadth_;
+
+private:
+	void visit_leaf (teq::iLeaf& leaf) override
+	{
+		breadth_.emplace(&leaf, breadth_.size());
+	}
+
+	void visit_func (teq::iFunctor& func) override
+	{
+		auto children = func.get_children();
+		for (teq::TensptrT child : children)
+		{
+			child->accept(*this);
+		}
+		breadth_.emplace(&func, breadth_.size());
+	}
+};
+
 /// Copy everything from input.first to root, except replacing input.first with input.second
 template <typename T>
 ETensor<T> trail (const ETensor<T>& root,
@@ -98,8 +121,14 @@ void get_storage (VarptrsT<T>& storages, const teq::TensptrT& root)
 			teq::GraphStat stats;
 			stats.graphsize_.emplace(input.get(), estd::NumRange<size_t>());
 			root->accept(stats);
+
+			BreadthStat bstats;
+			bstats.breadth_.emplace(input.get(), 0);
+			root->accept(bstats);
+
 			teq::OwnerMapT owner = teq::track_owners({root});
 
+			VarptrsT<T> buf;
 			for (auto gpair : stats.graphsize_)
 			{
 				if (0 == gpair.second.upper_ && input.get() != gpair.first)
@@ -107,10 +136,17 @@ void get_storage (VarptrsT<T>& storages, const teq::TensptrT& root)
 					if (auto var = std::dynamic_pointer_cast<
 						Variable<T>>(owner.at(gpair.first).lock()))
 					{
-						storages.push_back(var);
+						buf.push_back(var);
 					}
 				}
 			}
+			std::sort(buf.begin(), buf.end(),
+				[&bstats](VarptrT<T> a, VarptrT<T> b)
+				{
+					return bstats.breadth_.at(a.get()) <
+						bstats.breadth_.at(b.get());
+				});
+			storages.insert(storages.end(), buf.begin(), buf.end());
 		}
 		auto children = f->get_children();
 		for (auto child : children)
@@ -235,12 +271,8 @@ ELayersT<T> load_layers (const onnx::ModelProto& model)
 		estd::get(input, encodings, fmts::sprintf(input_key_fmt, i)) &&
 		estd::get(root, encodings, fmts::sprintf(root_key_fmt, i)); ++i)
 	{
-		auto f = std::dynamic_pointer_cast<teq::iFunctor>(root);
-		if (nullptr == f)
-		{
-			logs::fatal("failed to find non-functor root");
-		}
-		layers.push_back(ELayer<T>(f, ETensor<T>(input)));
+		layers.push_back(ELayer<T>(
+			estd::must_ptr_cast<teq::iFunctor>(root), ETensor<T>(input)));
 	}
 	return layers;
 }

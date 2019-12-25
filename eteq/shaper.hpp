@@ -14,7 +14,22 @@ struct ShapeParser final
 	/// given specified attributes and input shapes
 	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{
-		return shapes.front();
+		if (shapes.empty())
+		{
+			logs::fatal("cannot generated outshape without shapes");
+		}
+		teq::Shape outshape = shapes.front();
+		for (size_t i = 1, n = shapes.size(); i < n; ++i)
+		{
+			if (false == shapes[i].compatible_after(outshape, 0))
+			{
+				logs::fatalf("cannot %s with incompatible shapes %s and %s",
+					egen::name_op(OPCODE).c_str(),
+					shapes[i].to_string().c_str(),
+					outshape.to_string().c_str());
+			}
+		}
+		return outshape;
 	}
 };
 
@@ -83,7 +98,7 @@ struct ShapeParser<egen::SLICE> final
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, attrs);
 		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
-		for (size_t i = 0, n = std::min(extents.size(), 
+		for (size_t i = 0, n = std::min(extents.size(),
 			(size_t) teq::rank_cap); i < n; ++i)
 		{
 			teq::DimT offsets = extents[i].first;
@@ -105,7 +120,7 @@ struct ShapeParser<egen::PAD> final
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(paddings, attrs);
 		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
-		for (size_t i = 0, n = std::min(paddings.size(), 
+		for (size_t i = 0, n = std::min(paddings.size(),
 			(size_t) teq::rank_cap); i < n; ++i)
 		{
 			if (slist[i] > 0)
@@ -267,7 +282,7 @@ struct ShapeParser<egen::PERMUTE> final
 		eigen::Packer<std::vector<teq::RankT>>().unpack(order, attrs);
 		bool visited[teq::rank_cap];
 		std::fill(visited, visited + teq::rank_cap, false);
-		for (teq::RankT i = 0, n = std::min(order.size(), 
+		for (teq::RankT i = 0, n = std::min(order.size(),
 			(size_t) teq::rank_cap); i < n; ++i)
 		{
 			if (visited[order[i]])

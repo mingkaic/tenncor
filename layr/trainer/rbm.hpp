@@ -11,14 +11,16 @@ template <typename T>
 eteq::ETensor<T> sample_v2h (
 	const layr::RBMLayer<T>& model, eteq::ETensor<T> vis)
 {
-	return tenncor::random::rand_binom_one(model.fwd_.connect(vis));
+	return tenncor::random::rand_binom_one(tenncor::sigmoid(
+		model.fwd_.connect(vis)));
 }
 
 template <typename T>
 eteq::ETensor<T> sample_h2v (
 	const layr::RBMLayer<T>& model, eteq::ETensor<T> hid)
 {
-	return tenncor::random::rand_binom_one(model.bwd_.connect(hid));
+	return tenncor::random::rand_binom_one(tenncor::sigmoid(
+		model.bwd_.connect(hid)));
 }
 
 template <typename T>
@@ -100,8 +102,8 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 		chain_it = gibbs_hvh(model, chain_it);
 	}
 
-	io.visible_mean_ = model.bwd_.connect(chain_it);
-	io.hidden_mean_ = model.fwd_.connect(io.visible_mean_);
+	io.visible_mean_ = tenncor::sigmoid(model.bwd_.connect(chain_it));
+	io.hidden_mean_ = tenncor::sigmoid(model.fwd_.connect(io.visible_mean_));
 
 	eteq::VarptrsT<T> fcontent = model.fwd_.get_storage();
 	eteq::VarptrsT<T> bcontent = model.bwd_.get_storage();

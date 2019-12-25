@@ -73,7 +73,7 @@ redundant = FuncOpt<OPCODE>().is_redundant(attrs, shapes);
 
 /// Return functor node given opcode and node arguments
 template <typename T, typename ...ARGS>
-ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode, 
+ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
 	const teq::TensptrsT& children, ARGS... vargs)
 {
 	if (children.empty())
@@ -85,7 +85,7 @@ ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
 
 	teq::ShapesT shapes;
 	shapes.reserve(children.size());
-	std::transform(children.begin(), children.end(), 
+	std::transform(children.begin(), children.end(),
 		std::back_inserter(shapes),
 		[](teq::TensptrT child)
 		{
@@ -104,7 +104,7 @@ ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
 #undef CHOOSE_FUNCOPT
 
 template <typename T>
-ETensor<T> make_layer (std::string layername, 
+ETensor<T> make_layer (std::string layername,
 	teq::TensptrT input, teq::FuncptrT output)
 {
 	output->add_attr(teq::layer_key,

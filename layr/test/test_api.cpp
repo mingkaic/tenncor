@@ -61,8 +61,8 @@ TEST(CONV, Connection)
 
 TEST(RBM, Connection)
 {
-	auto rrbm = layr::rbm<float>(5, 6, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
-	auto nobias = layr::rbm<float>(6, 7, layr::unif_xavier_init<float>(3), layr::InitF<float>());
+	auto rrbm = layr::rbm<float>(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
+	auto nobias = layr::rbm<float>(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<float>(0, teq::Shape({7, 2}), "x2");
@@ -86,8 +86,8 @@ TEST(RBM, Connection)
 
 TEST(RBM, BackwardConnection)
 {
-	auto rrbm = layr::rbm<float>(5, 6, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
-	auto nobias = layr::rbm<float>(6, 7, layr::unif_xavier_init<float>(3), layr::InitF<float>());
+	auto rrbm = layr::rbm<float>(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
+	auto nobias = layr::rbm<float>(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
 
 	auto y = eteq::make_variable_scalar<float>(0, teq::Shape({5, 2}), "y");
 	auto y2 = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "y2");

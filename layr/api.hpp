@@ -67,12 +67,12 @@ eteq::ELayer<T> conv (std::pair<teq::DimT,teq::DimT> filter_hw,
 
 template <typename T>
 eteq::ELayer<T> rnn (teq::DimT indim, teq::DimT hidden_dim,
-	UnaryF<T> activation, layr::InitF<T> weight_init, layr::InitF<T> bias_init,
-	teq::DimT nseq, teq::RankT seq_dim)
+	UnaryF<T> activation, teq::DimT nseq, layr::InitF<T> weight_init,
+	layr::InitF<T> bias_init, teq::RankT seq_dim)
 {
 	// input needs to specify number of sequences,
 	// since graph topography can't be traced
-	std::vector<teq::DimT> inslist(teq::rank_cap, 0);
+	std::vector<teq::DimT> inslist(teq::rank_cap, 1);
 	inslist[0] = indim;
 	inslist[seq_dim] = nseq;
 	eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
@@ -96,12 +96,12 @@ eteq::ELayer<T> rnn (teq::DimT indim, teq::DimT hidden_dim,
 
 template <typename T>
 eteq::ELayer<T> lstm (teq::DimT indim, teq::DimT hidden_dim,
-layr::InitF<T> weight_init, layr::InitF<T> bias_init,
-	teq::DimT nseq, teq::RankT seq_dim)
+	teq::DimT nseq, layr::InitF<T> weight_init,
+	layr::InitF<T> bias_init, teq::RankT seq_dim)
 {
 	// input needs to specify number of sequences,
 	// since graph topography can't be traced
-	std::vector<teq::DimT> inslist(teq::rank_cap, 0);
+	std::vector<teq::DimT> inslist(teq::rank_cap, 1);
 	inslist[0] = indim;
 	inslist[seq_dim] = nseq;
 	eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
@@ -126,12 +126,12 @@ layr::InitF<T> weight_init, layr::InitF<T> bias_init,
 
 template <typename T>
 eteq::ELayer<T> gru (teq::DimT indim, teq::DimT hidden_dim,
-	layr::InitF<T> weight_init, layr::InitF<T> bias_init,
-	teq::DimT nseq, teq::RankT seq_dim)
+	teq::DimT nseq, layr::InitF<T> weight_init,
+	layr::InitF<T> bias_init, teq::RankT seq_dim)
 {
 	// input needs to specify number of sequences,
 	// since graph topography can't be traced
-	std::vector<teq::DimT> inslist(teq::rank_cap, 0);
+	std::vector<teq::DimT> inslist(teq::rank_cap, 1);
 	inslist[0] = indim;
 	inslist[seq_dim] = nseq;
 	eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
@@ -166,7 +166,7 @@ struct RBMLayer final
 
 /// Returns forward builder, and assigns backward builder
 template <typename T>
-RBMLayer<T> rbm (teq::DimT nhidden, teq::DimT nvisible,
+RBMLayer<T> rbm (teq::DimT nvisible, teq::DimT nhidden,
 	layr::InitF<T> weight_init, layr::InitF<T> bias_init)
 {
 	eteq::ETensor<T> fwdinput(eteq::make_variable_scalar<T>(
@@ -197,12 +197,8 @@ eteq::ELayer<T> bind (UnaryF<T> unary, teq::Shape inshape = teq::Shape())
 	eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
 		0, inshape, input_label));
 	auto output = unary(input);
-	auto f = std::dynamic_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-	if (nullptr == f)
-	{
-		logs::fatal("cannot make layer with non-functor root");
-	}
-	return eteq::ELayer<T>(f, input);
+	return eteq::ELayer<T>(
+		estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) output), input);
 }
 
 template <typename T>

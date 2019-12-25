@@ -60,16 +60,29 @@ struct Packer final
 		return "";
 	}
 
-	void pack (marsh::iAttributed& attrib, T pack)
+	void pack (marsh::iAttributed& attrib, T pack) const
 	{
 		logs::fatal("unknown attribute");
 	}
 
-	void unpack (T& out, const marsh::iAttributed& attrib)
+	void unpack (T& out, const marsh::iAttributed& attrib) const
 	{
 		logs::fatal("unknown attribute");
 	}
 };
+
+template <typename T>
+const marsh::iObject* get_attr (const Packer<T>& packer,
+	const marsh::iAttributed& attrib)
+{
+	auto key = packer.get_key();
+	auto attr = attrib.get_attr(key);
+	if (nullptr == attr)
+	{
+		logs::fatalf("cannot find %s attribute", key.c_str());
+	}
+	return attr;
+}
 
 template <>
 struct Packer<PairVecT<teq::DimT>>
@@ -81,7 +94,7 @@ struct Packer<PairVecT<teq::DimT>>
 		return key_;
 	}
 
-	void pack (marsh::iAttributed& attrib, PairVecT<teq::DimT> dims)
+	void pack (marsh::iAttributed& attrib, PairVecT<teq::DimT> dims) const
 	{
 		size_t n = dims.size();
 		if (n > teq::rank_cap)
@@ -97,15 +110,11 @@ struct Packer<PairVecT<teq::DimT>>
 			encode_pair(dims)));
 	}
 
-	void unpack (PairVecT<teq::DimT>& out, const marsh::iAttributed& attrib)
+	void unpack (PairVecT<teq::DimT>& out, const marsh::iAttributed& attrib) const
 	{
-		auto attr = dynamic_cast<const marsh::NumArray<int64_t>*>(
-			attrib.get_attr(key_));
-		if (nullptr == attr)
-		{
-			logs::fatalf("cannot find %s attribute", key_.c_str());
-		}
-		auto& encoding = attr->contents_;
+		auto attr = get_attr(*this, attrib);
+		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& encoding = narr.contents_;
 		out = decode_pair<teq::DimT>(encoding);
 	}
 };
@@ -120,7 +129,7 @@ struct Packer<PairVecT<teq::RankT>>
 		return key_;
 	}
 
-	void pack (marsh::iAttributed& attrib, PairVecT<teq::RankT> ranks)
+	void pack (marsh::iAttributed& attrib, PairVecT<teq::RankT> ranks) const
 	{
 		size_t n = ranks.size();
 		if (n > teq::rank_cap)
@@ -130,7 +139,7 @@ struct Packer<PairVecT<teq::RankT>>
 		}
 		if (n == 0)
 		{
-			logs::fatal("cannot find ranks");
+			logs::fatal("cannot find pair of ranks");
 		}
 		if (std::any_of(ranks.begin(), ranks.end(),
 			[](std::pair<teq::RankT,teq::RankT> rpair)
@@ -146,15 +155,11 @@ struct Packer<PairVecT<teq::RankT>>
 			encode_pair(ranks)));
 	}
 
-	void unpack (PairVecT<teq::RankT>& out, const marsh::iAttributed& attrib)
+	void unpack (PairVecT<teq::RankT>& out, const marsh::iAttributed& attrib) const
 	{
-		auto attr = dynamic_cast<const marsh::NumArray<int64_t>*>(
-			attrib.get_attr(key_));
-		if (nullptr == attr)
-		{
-			logs::fatalf("cannot find %s attribute", key_.c_str());
-		}
-		auto& encoding = attr->contents_;
+		auto attr = get_attr(*this, attrib);
+		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& encoding = narr.contents_;
 		out = decode_pair<teq::RankT>(encoding);
 	}
 };
@@ -169,7 +174,7 @@ struct Packer<std::vector<teq::DimT>>
 		return key_;
 	}
 
-	void pack (marsh::iAttributed& attrib, std::vector<teq::DimT> dims)
+	void pack (marsh::iAttributed& attrib, std::vector<teq::DimT> dims) const
 	{
 		size_t n = dims.size();
 		if (n > teq::rank_cap)
@@ -186,15 +191,11 @@ struct Packer<std::vector<teq::DimT>>
 			std::make_unique<marsh::NumArray<int64_t>>(idims));
 	}
 
-	void unpack (std::vector<teq::DimT>& out, const marsh::iAttributed& attrib)
+	void unpack (std::vector<teq::DimT>& out, const marsh::iAttributed& attrib) const
 	{
-		auto attr = dynamic_cast<const marsh::NumArray<int64_t>*>(
-			attrib.get_attr(key_));
-		if (nullptr == attr)
-		{
-			logs::fatalf("cannot find %s attribute", key_.c_str());
-		}
-		auto& encoding = attr->contents_;
+		auto attr = get_attr(*this, attrib);
+		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& encoding = narr.contents_;
 		out = std::vector<teq::DimT>(encoding.begin(), encoding.end());
 	}
 };
@@ -209,7 +210,7 @@ struct Packer<std::vector<teq::RankT>>
 		return key_;
 	}
 
-	void pack (marsh::iAttributed& attrib, std::vector<teq::RankT> ranks)
+	void pack (marsh::iAttributed& attrib, std::vector<teq::RankT> ranks) const
 	{
 		size_t n = ranks.size();
 		if (n > teq::rank_cap)
@@ -236,15 +237,11 @@ struct Packer<std::vector<teq::RankT>>
 			std::make_unique<marsh::NumArray<int64_t>>(sranks));
 	}
 
-	void unpack (std::vector<teq::RankT>& out, const marsh::iAttributed& attrib)
+	void unpack (std::vector<teq::RankT>& out, const marsh::iAttributed& attrib) const
 	{
-		auto attr = dynamic_cast<const marsh::NumArray<int64_t>*>(
-			attrib.get_attr(key_));
-		if (nullptr == attr)
-		{
-			logs::fatalf("cannot find %s attribute", key_.c_str());
-		}
-		auto& encoding = attr->contents_;
+		auto attr = get_attr(*this, attrib);
+		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& encoding = narr.contents_;
 		out = std::vector<teq::RankT>(encoding.begin(), encoding.end());
 	}
 };
@@ -259,7 +256,7 @@ struct Packer<std::set<teq::RankT>>
 		return key_;
 	}
 
-	void pack (marsh::iAttributed& attrib, std::set<teq::RankT> ranks)
+	void pack (marsh::iAttributed& attrib, std::set<teq::RankT> ranks) const
 	{
 		size_t n = ranks.size();
 		if (n > teq::rank_cap)
@@ -267,25 +264,17 @@ struct Packer<std::set<teq::RankT>>
 			logs::fatalf("cannot specify %d ranks when %d (rank_cap) "
 				"are available", n, teq::rank_cap);
 		}
-		if (n == 0)
-		{
-			logs::fatal("cannot find ranks");
-		}
 		std::vector<int64_t> sranks(ranks.begin(), ranks.end());
 		std::sort(sranks.begin(), sranks.end());
 		attrib.add_attr(key_,
 			std::make_unique<marsh::NumArray<int64_t>>(sranks));
 	}
 
-	void unpack (std::set<teq::RankT>& out, const marsh::iAttributed& attrib)
+	void unpack (std::set<teq::RankT>& out, const marsh::iAttributed& attrib) const
 	{
-		auto attr = dynamic_cast<const marsh::NumArray<int64_t>*>(
-			attrib.get_attr(key_));
-		if (nullptr == attr)
-		{
-			logs::fatalf("cannot find %s attribute", key_.c_str());
-		}
-		auto& encoding = attr->contents_;
+		auto attr = get_attr(*this, attrib);
+		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& encoding = narr.contents_;
 		out = std::set<teq::RankT>(encoding.begin(), encoding.end());
 	}
 };
@@ -300,20 +289,16 @@ struct Packer<teq::RankT>
 		return key_;
 	}
 
-	void pack (marsh::iAttributed& attrib, teq::RankT rank)
+	void pack (marsh::iAttributed& attrib, teq::RankT rank) const
 	{
 		attrib.add_attr(key_, std::make_unique<marsh::Number<int64_t>>(rank));
 	}
 
-	void unpack (teq::RankT& out, const marsh::iAttributed& attrib)
+	void unpack (teq::RankT& out, const marsh::iAttributed& attrib) const
 	{
-		auto attr = dynamic_cast<const marsh::Number<int64_t>*>(
-			attrib.get_attr(key_));
-		if (nullptr == attr)
-		{
-			logs::fatalf("cannot find %s attribute", key_.c_str());
-		}
-		out = attr->val_;
+		auto attr = get_attr(*this, attrib);
+		auto& narr = dynamic_cast<const marsh::Number<int64_t>&>(*attr);
+		out = narr.val_;
 	}
 };
 
@@ -327,22 +312,18 @@ struct Packer<teq::Shape>
 		return key_;
 	}
 
-	void pack (marsh::iAttributed& attrib, teq::Shape shape)
+	void pack (marsh::iAttributed& attrib, teq::Shape shape) const
 	{
 		std::vector<int64_t> slist(shape.begin(), shape.end());
 		attrib.add_attr(key_,
 			std::make_unique<marsh::NumArray<int64_t>>(slist));
 	}
 
-	void unpack (teq::Shape& out, const marsh::iAttributed& attrib)
+	void unpack (teq::Shape& out, const marsh::iAttributed& attrib) const
 	{
-		auto attr = dynamic_cast<const marsh::NumArray<int64_t>*>(
-			attrib.get_attr(key_));
-		if (nullptr == attr)
-		{
-			logs::fatalf("cannot find %s attribute", key_.c_str());
-		}
-		auto& encoding = attr->contents_;
+		auto attr = get_attr(*this, attrib);
+		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& encoding = narr.contents_;
 		std::vector<teq::DimT> slist(encoding.begin(), encoding.end());
 		out = teq::Shape(slist);
 	}
@@ -358,21 +339,17 @@ struct Packer<teq::TensptrT>
 		return key_;
 	}
 
-	void pack (marsh::iAttributed& attrib, teq::TensptrT tens)
+	void pack (marsh::iAttributed& attrib, teq::TensptrT tens) const
 	{
 		attrib.add_attr(key_,
 			std::make_unique<teq::TensorObj>(tens));
 	}
 
-	void unpack (teq::TensptrT& out, const marsh::iAttributed& attrib)
+	void unpack (teq::TensptrT& out, const marsh::iAttributed& attrib) const
 	{
-		auto attr = dynamic_cast<const teq::TensorObj*>(
-			attrib.get_attr(key_));
-		if (nullptr == attr)
-		{
-			logs::fatalf("cannot find %s attribute", key_.c_str());
-		}
-		out = attr->get_tensor();
+		auto attr = get_attr(*this, attrib);
+		auto& tarr = dynamic_cast<const teq::TensorObj&>(*attr);
+		out = tarr.get_tensor();
 	}
 };
 

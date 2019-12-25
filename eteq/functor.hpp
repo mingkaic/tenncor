@@ -307,7 +307,7 @@ using FuncptrT = std::shared_ptr<Functor<T>>;
 
 /// Return functor node given opcode and node arguments
 template <typename T, typename ...ARGS>
-ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode, 
+ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
 	const teq::TensptrsT& children, ARGS... vargs);
 
 }

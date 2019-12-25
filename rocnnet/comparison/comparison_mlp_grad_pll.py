@@ -10,7 +10,7 @@ import eteq.eteq as eteq
 
 import ccur.ccur as ccur
 
-import rocnnet.rocnnet as rcn
+import layr.layr as layr
 
 matrix_dims = [
     24,
@@ -136,15 +136,16 @@ for matrix_dim in matrix_dims:
     tfsess = tf.compat.v1.Session()
 
     # regular mlp
-    brain = rcn.SequentialModel("comparison")
-    brain.add(rcn.Dense(matrix_dim, eteq.Shape([n_in]),
-        weight_init=rcn.unif_xavier_init(),
-        bias_init=rcn.zero_init(), label="0"))
-    brain.add(rcn.sigmoid())
-    brain.add(rcn.Dense(n_out, eteq.Shape([matrix_dim]),
-        weight_init=rcn.unif_xavier_init(),
-        bias_init=rcn.zero_init(), label="1"))
-    brain.add(rcn.sigmoid())
+    brain = layr.link([
+        layr.dense([n_in], [matrix_dim],
+            weight_init=layr.unif_xavier_init(),
+            bias_init=layr.zero_init()),
+        layr.bind(tc.sigmoid),
+        layr.dense([matrix_dim], [n_out],
+            weight_init=layr.unif_xavier_init(),
+            bias_init=layr.zero_init()),
+        layr.bind(tc.sigmoid),
+    ])
 
     invar = eteq.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
     out = brain.connect(invar)
@@ -153,8 +154,8 @@ for matrix_dim in matrix_dims:
 
     train_input = eteq.Variable([batch_size, n_in])
     train_output = eteq.Variable([batch_size, n_out])
-    trainer = rcn.sgd_train(brain, sess,
-        train_input, train_output, rcn.get_sgd(learning_rate))
+    trainer = layr.sgd_train(brain, sess,
+        train_input, train_output, layr.get_sgd(learning_rate))
 
     # tensorflow mlp
     tf_brain = MLP([n_in], [matrix_dim, n_out], [tf.sigmoid, tf.sigmoid], scope='brain_' + str(matrix_dim))

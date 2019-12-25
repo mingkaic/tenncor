@@ -212,7 +212,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 		const teq::TensptrT& root, const teq::TensptrT& child,
 		marsh::Maps&& attrs) const override
 	{
-		teq::FuncptrT f = std::static_pointer_cast<teq::iFunctor>(root);
+		auto f = std::static_pointer_cast<teq::iFunctor>(root);
 		size_t gencode = f->type_code();
 		teq::TensptrT layer = nullptr;
 		TYPE_LOOKUP(_OUT_GENLAYR, (egen::_GENERATED_DTYPE) gencode);
