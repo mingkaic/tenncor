@@ -113,9 +113,9 @@ def main(args):
     x = np.array([1, 1, 0, 0, 0, 0])
     sess = eteq.Session()
     var = eteq.variable(x)
-    untrained_out = untrained.connect(var)
-    out = model.connect(var)
-    trained_out = trained.connect(var)
+    untrained_out = untrained.connect(tc.ETensor(var))
+    out = model.connect(tc.ETensor(var))
+    trained_out = trained.connect(tc.ETensor(var))
     sess.track([untrained_out, out, trained_out])
     sess.update_target([untrained_out, out, trained_out])
     # since x is similar to first 3 rows of x, expect results simlar to first 3 rows of y [1, 0]
@@ -125,7 +125,7 @@ def main(args):
 
     try:
         print('saving')
-        if model.save_file(args.save):
+        if layr.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

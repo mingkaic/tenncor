@@ -16,7 +16,8 @@ struct DBNTrainer final
 		teq::DimT batch_size, T pretrain_lr = 0.1,
 		T train_lr = 0.1, size_t cdk = 10,
 		T l2_reg = 0., T lr_scaling = 0.95) :
-		batch_size_(batch_size)
+		batch_size_(batch_size),
+		nlayers_(rbms.size())
 	{
 		input_size_ = rbms.front().fwd_.input()->shape().at(0);
 		output_size_ = dense.root()->shape().at(0);
@@ -68,7 +69,8 @@ struct DBNTrainer final
 			}
 			rupdates_.push_back(assigns);
 
-			auto vhv = gibbs_hvh(rbm, rx);
+			auto vhv = tenncor::sigmoid(rbm.bwd_.connect(
+				tenncor::sigmoid(rbm.fwd_.connect(rx))));
 			auto rcost = -tenncor::reduce_mean(tenncor::reduce_sum_1d(
 				rx * tenncor::log(vhv) + ((T) 1 - rx) *
 				tenncor::log((T) 1 - vhv), 0));
