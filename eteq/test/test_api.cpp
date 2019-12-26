@@ -242,9 +242,9 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	eteq::ETensor<double> clhs = lhs_op(src, cst);
 	eteq::ETensor<double> crhs = rhs_op(cst, src2);
 
-	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
-	ASSERT_NE(nullptr, dtens);
-	dtens->calc();
+	teq::Session session;
+	session.track({dest});
+	session.update();
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -255,12 +255,8 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(fwd(data[i], data2[i]), optr[i]);
 	}
 
-	auto clhstens = dynamic_cast<eteq::Functor<double>*>(clhs.get());
-	auto crhstens = dynamic_cast<eteq::Functor<double>*>(crhs.get());
-	ASSERT_NE(nullptr, clhstens);
-	ASSERT_NE(nullptr, crhstens);
-	clhstens->calc();
-	crhstens->calc();
+	session.track({clhs, crhs});
+	session.update();
 	{
 		auto gotshape = clhs->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -279,8 +275,6 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	{
 		EXPECT_DOUBLE_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
-
-	teq::Session session;
 
 	eteq::ETensor<double> dest2 = op(src, src);
 	eteq::ETensor<double> gsame = eteq::derive(dest2, src);
@@ -376,9 +370,9 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	eteq::ETensor<int32_t> clhs = lhs_op(src, cst);
 	eteq::ETensor<int32_t> crhs = rhs_op(cst, src2);
 
-	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
-	ASSERT_NE(nullptr, dtens);
-	dtens->calc();
+	teq::Session session;
+	session.track({dest});
+	session.update();
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -389,12 +383,8 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(fwd(data[i], data2[i]), optr[i]);
 	}
 
-	auto clhstens = dynamic_cast<eteq::Functor<int32_t>*>(clhs.get());
-	auto crhstens = dynamic_cast<eteq::Functor<int32_t>*>(crhs.get());
-	ASSERT_NE(nullptr, clhstens);
-	ASSERT_NE(nullptr, crhstens);
-	clhstens->calc();
-	crhstens->calc();
+	session.track({clhs, crhs});
+	session.update();
 	{
 		auto gotshape = clhs->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -413,8 +403,6 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	{
 		EXPECT_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
-
-	teq::Session session;
 
 	eteq::ETensor<int32_t> dest2 = op(src, src);
 	eteq::ETensor<int32_t> gsame = eteq::derive(dest2, src);
@@ -904,6 +892,57 @@ TEST(API, Select)
 
 	trinar_elem(cond, data, data2, slist);
 	trinar_elem(cond_2d, data_2d, data2_2d, slist_2d);
+}
+
+
+TEST(API, Slice)
+{std::vector<teq::DimT> slist = {3, 2, 4};
+	std::vector<double> data = {
+		0.0919361505, 0.5135099474, 0.3147548326, 0.0281299379, 0.3705218798, 0.6808164860,
+		0.1933972592, 0.2326945471, 0.4600163558, 0.1600801317, 0.9942654588, 0.8739832345,
+		0.9664644529, 0.6152766955, 0.8795922916, 0.6384690466, 0.3922073677, 0.5979097486,
+		0.0425608731, 0.1178122813, 0.1594330664, 0.0926580999, 0.9309809737, 0.2119471989,
+	};
+
+	teq::Shape shape(slist);
+	teq::NElemT n = shape.n_elems();
+	assert(data.size() == n);
+
+	eteq::ETensor<double> src =
+		eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> dest = tenncor::slice(src, {{0, 3}, {1, 1}});
+
+	teq::Shape exshape({3, 1, 4});
+	std::vector<double> exdata = {
+		0.0281299379, 0.3705218798, 0.6808164860,
+		0.1600801317, 0.9942654588, 0.8739832345,
+		0.6384690466, 0.3922073677, 0.5979097486,
+		0.0926580999, 0.9309809737, 0.2119471989,
+	};
+	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
+	ASSERT_NE(nullptr, dtens);
+	dtens->calc();
+	auto gotshape = dest->shape();
+	ASSERT_ARREQ(exshape, gotshape);
+	double* optr = (double*) dest->data();
+	std::vector<double> gotdata(optr, optr + gotshape.n_elems());
+	EXPECT_VECEQ(exdata, gotdata);
+
+	std::vector<double> exdata2 = {
+		0, 0, 0, 1, 1, 1,
+		0, 0, 0, 1, 1, 1,
+		0, 0, 0, 1, 1, 1,
+		0, 0, 0, 1, 1, 1,
+	};
+	teq::Session session;
+	eteq::ETensor<double> g = eteq::derive(dest, src);
+	session.track({g});
+	session.update();
+	auto gotshape2 = g->shape();
+	ASSERT_ARREQ(shape, gotshape2);
+	double* goptr = (double*) g->data();
+	std::vector<double> gotdata2(goptr, goptr + gotshape2.n_elems());
+	EXPECT_VECEQ(exdata2, gotdata2);
 }
 
 

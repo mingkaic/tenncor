@@ -301,7 +301,7 @@ struct ShapeParser<egen::PERMUTE> final
 			}
 		}
 		teq::Shape shape = shapes.front();
-		std::vector<teq::DimT> slist(teq::rank_cap, 0);
+		std::vector<teq::DimT> slist(teq::rank_cap, 1);
 		for (teq::RankT i = 0; i < teq::rank_cap; ++i)
 		{
 			slist[i] = shape.at(order[i]);

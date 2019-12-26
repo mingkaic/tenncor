@@ -99,7 +99,11 @@ PYBIND11_MODULE(eteq, m)
 		.def("deep_clone", &eteq::ELayer<PybindT>::deep_clone)
 		.def("connect", &eteq::ELayer<PybindT>::connect)
 		.def("get_storage", &eteq::ELayer<PybindT>::get_storage)
-		.def("root", &eteq::ELayer<PybindT>::root)
+		.def("root",
+			[](eteq::ELayer<PybindT>& self) -> eteq::ETensor<PybindT>
+			{
+				return eteq::ETensor<PybindT>(self.root());
+			})
 		.def("input", &eteq::ELayer<PybindT>::input);
 
 	// ==== session ====
@@ -211,6 +215,16 @@ PYBIND11_MODULE(eteq, m)
 			"Return labelled variable containing numpy data array",
 			py::arg("scalar"),
 			py::arg("slist"),
+			py::arg("label") = "")
+		.def("variable_like",
+			[](PybindT scalar, eteq::ETensor<PybindT> like, std::string label)
+			{
+				return eteq::make_variable_like<PybindT>(
+					scalar, (teq::TensptrT) like, label);
+			},
+			"Return labelled variable containing numpy data array",
+			py::arg("scalar"),
+			py::arg("like"),
 			py::arg("label") = "")
 		.def("variable",
 			[](py::array data, std::string label)

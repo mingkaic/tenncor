@@ -7,7 +7,7 @@ import numpy as np
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
-import rocnnet.rocnnet as rcn
+import layr.layr as layr
 
 prog_description = 'Demo gru'
 
@@ -93,25 +93,24 @@ def main(args):
 
     print_interval = 100
 
-    model = rcn.SequentialModel("model")
-    model.add(rcn.GRU(h_size, N,
-        weight_init=old_winit,
-        bias_init=rcn.zero_init(),
-        label="gru"))
-    model.add(rcn.Dense(o_size, eteq.Shape([h_size]),
-        weight_init=old_winit,
-        bias_init=rcn.zero_init(),
-        label="labeller"))
-    model.add(rcn.softmax(0))
-    untrained_model = model.clone()
+    model = layr.link([
+        layr.gru(N, h_size,
+            weight_init=old_winit,
+            bias_init=layr.zero_init()),
+        layr.dense([h_size], [o_size],
+            weight_init=old_winit,
+            bias_init=layr.zero_init()),
+        layr.bind(lambda x: tc.softmax(x, 0, 1)),
+    ])
+    untrained_model = model.deep_clone()
+    pretrained_model = model.deep_clone()
     try:
         print('loading ' + args.load)
-        pretrained_model = rcn.load_file_seqmodel(args.load, "model")
+        pretrained_model = layr.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
-        pretrained_model = model.clone()
 
     sess = eteq.Session()
 
@@ -126,9 +125,8 @@ def main(args):
     pretraiend_prob = pretrained_model.connect(sample_inp)
     sess.track([untrained_prob, pretraiend_prob])
 
-    trainer = rcn.sgd_train(model, sess, inps, expected_output,
-        update=rcn.get_adagrad(
-            learning_rate=learning_rate, epsilon=1e-8),
+    trainer = layr.sgd_train(model, sess, inps, expected_output,
+        update=layr.get_adagrad(learning_rate=learning_rate, epsilon=1e-8),
         err_func=encoded_loss)
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
@@ -176,7 +174,7 @@ def main(args):
 
     try:
         print('saving')
-        if model.save_file(args.save):
+        if layr.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

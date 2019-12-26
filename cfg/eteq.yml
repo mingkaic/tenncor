@@ -1203,10 +1203,9 @@ api:
                   auto it = shape.begin() + offset;
                   std::vector<teq::DimT> xlist(it, it + ndims);
                   return ::tenncor::div(exarg,
-                      ::tenncor::extend(::tenncor::add(
+                      ::tenncor::extend_like(::tenncor::add(
                           ::tenncor::reduce_sum(exarg, offset, ndims),
-                          std::numeric_limits<T>::epsilon()),
-                          offset, xlist));
+                          std::numeric_limits<T>::epsilon()), exarg));
       - template: typename T
         name: relu
         args:

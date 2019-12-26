@@ -111,4 +111,80 @@ TEST(RBM, BackwardConnection)
 }
 
 
+TEST(BIND, Sigmoid)
+{
+	auto sgm = layr::bind<float>(tenncor::sigmoid<float>);
+
+	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
+	auto s = sgm.connect(eteq::ETensor<float>(x));
+
+	EXPECT_GRAPHEQ(
+		"(SIGMOID[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])", s);
+}
+
+
+TEST(BIND, Softmax)
+{
+	auto sft0 = layr::bind<float>(
+		[](eteq::ETensor<float> e)
+		{
+			return tenncor::softmax(e, 0, 1);
+		});
+
+	auto sft1 = layr::bind<float>(
+		[](eteq::ETensor<float> e)
+		{
+			return tenncor::softmax(e, 1, 1);
+		});
+
+	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
+	auto s0 = sft0.connect(eteq::ETensor<float>(x));
+	auto s1 = sft1.connect(eteq::ETensor<float>(x));
+
+	std::string eps_str = fmts::to_string(std::numeric_limits<float>::epsilon());
+	auto expect_str0 = fmts::sprintf(
+		"(DIV[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" `--(EXP[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" |   `--(SUB[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" |       `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" |       `--(EXTEND[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" |           `--(REDUCE_MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |               `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" `--(EXTEND[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(ADD[1\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(REDUCE_SUM[1\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         |   `--(EXP[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         |       `--(SUB[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         |           `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         |           `--(EXTEND[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         |               `--(REDUCE_MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |                   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(EXTEND[1\\2\\1\\1\\1\\1\\1\\1])\n"
+		"             `--(constant:%s[1\\1\\1\\1\\1\\1\\1\\1])", eps_str.c_str());
+	EXPECT_GRAPHEQ(expect_str0.c_str(), s0);
+
+	auto expect_str1 = fmts::sprintf(
+		"(DIV[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" `--(EXP[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" |   `--(SUB[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" |       `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" |       `--(EXTEND[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" |           `--(REDUCE_MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |               `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" `--(EXTEND[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(ADD[6\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(REDUCE_SUM[6\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   `--(EXP[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         |       `--(SUB[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         |           `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         |           `--(EXTEND[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         |               `--(REDUCE_MAX[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |                   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(EXTEND[6\\1\\1\\1\\1\\1\\1\\1])\n"
+		"             `--(constant:%s[1\\1\\1\\1\\1\\1\\1\\1])", eps_str.c_str());
+	EXPECT_GRAPHEQ(expect_str1.c_str(), s1);
+}
+
+
 #endif // DISABLE_API_TEST

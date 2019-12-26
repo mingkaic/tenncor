@@ -68,22 +68,24 @@ TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs)
 	};
 	for (iFunctor* parent : parents)
 	{
-		TensptrsT prevs = estd::must_getf(grads, parent,
-			"failed to find derivative with respect to %s",
-			parent->to_string().c_str());
-		assert(prevs.size() > 0);
-		TensptrT bwd = prevs.size() > 1 ? funcs.add(prevs) : prevs.front();
-		auto& nexts = roadmap[parent].at(target_label).children_;
-		auto parent_ptr = std::static_pointer_cast<iFunctor>(
-			owners[parent].lock());
-		TensptrsT children = parent->get_children();
-		size_t nchildren = children.size();
-		for (size_t i : nexts)
+		TensptrsT prevs;
+		// sometimes parent might be reachable through attribute only (todo: fix PathFinder to iterate through children)
+		if (estd::get(prevs, grads, parent))
 		{
-			assert(i < nchildren);
-			auto local = funcs.local_derivative(parent_ptr, i);
-			auto grad_step = funcs.chain_rule(parent_ptr, local, bwd, i);
-			grads[children[i].get()].push_back(grad_step);
+			assert(prevs.size() > 0);
+			TensptrT bwd = prevs.size() > 1 ? funcs.add(prevs) : prevs.front();
+			auto& nexts = roadmap[parent].at(target_label).children_;
+			auto parent_ptr = std::static_pointer_cast<iFunctor>(
+				owners[parent].lock());
+			TensptrsT children = parent->get_children();
+			size_t nchildren = children.size();
+			for (size_t i : nexts)
+			{
+				assert(i < nchildren);
+				auto local = funcs.local_derivative(parent_ptr, i);
+				auto grad_step = funcs.chain_rule(parent_ptr, local, bwd, i);
+				grads[children[i].get()].push_back(grad_step);
+			}
 		}
 	}
 

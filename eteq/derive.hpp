@@ -527,11 +527,14 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				teq::Shape cshape = op->get_children().front()->shape();
 				eigen::PairVecT<teq::DimT> paddings;
 				paddings.reserve(teq::rank_cap);
-				for (size_t i = 0; i < teq::rank_cap; ++i)
+				for (size_t i = 0, n = std::min(extents.size(),
+					(size_t) teq::rank_cap); i < n; ++i)
 				{
-					teq::DimT leftpad = extents[i].first;
-					paddings.push_back({leftpad,
-						cshape.at(i) - (leftpad + extents[i].second)});
+					teq::DimT offset = std::min(extents[i].first,
+						(teq::DimT) (cshape.at(i) - 1));
+					teq::DimT extent = std::min(extents[i].second,
+						(teq::DimT) (cshape.at(i) - offset));
+					paddings.push_back({offset, cshape.at(i) - (offset + extent)});
 				}
 				out = ETensor<T>(local_der) *
 					tenncor::pad(ETensor<T>(supcomp_grad), paddings);

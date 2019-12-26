@@ -58,7 +58,9 @@ ETensor<T> make_constant_scalar (T scalar, teq::Shape shape)
 template <typename T>
 ETensor<T> make_constant_like (T scalar, teq::TensptrT like)
 {
-	return make_constant_scalar(scalar, like->shape());
+	return make_functor<T>(::egen::EXTEND,teq::TensptrsT{
+		make_constant_scalar<T>(scalar, teq::Shape())
+	}, (teq::TensptrT) like);
 }
 
 /// Return constant node given raw array and shape
