@@ -129,14 +129,21 @@ void get_storage (VarptrsT<T>& storages, const teq::TensptrT& root)
 			teq::OwnerMapT owner = teq::track_owners({root});
 
 			VarptrsT<T> buf;
+			teq::TensSetT vset = {input.get()};
+			for (auto storage : storages)
+			{
+				vset.emplace(storage.get());
+			}
 			for (auto gpair : stats.graphsize_)
 			{
-				if (0 == gpair.second.upper_ && input.get() != gpair.first)
+				if (0 == gpair.second.upper_ &&
+					false == estd::has(vset, gpair.first))
 				{
 					if (auto var = std::dynamic_pointer_cast<
 						Variable<T>>(owner.at(gpair.first).lock()))
 					{
 						buf.push_back(var);
+						vset.emplace(var.get());
 					}
 				}
 			}
@@ -175,7 +182,8 @@ struct ELayer final
 
 	ETensor<T> connect (const ETensor<T>& oinput) const
 	{
-		return trail(ETensor<T>(root_), teq::TensMapT<teq::TensptrT>{{input_.get(), (teq::TensptrT) oinput}});
+		return trail(ETensor<T>(root_), teq::TensMapT<teq::TensptrT>{
+			{input_.get(), (teq::TensptrT) oinput}});
 	}
 
 	teq::FuncptrT root (void) const

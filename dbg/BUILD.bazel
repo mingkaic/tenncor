@@ -27,7 +27,10 @@ cc_library(
 pybind_library(
     name = "stream_dbg_py",
     cc_srcs = ["//dbg:python/stream.cpp"],
-    cc_deps = ["//dbg:stream_out"],
+    cc_deps = [
+        "//dbg:stream_out",
+        "//eteq:eteq",
+    ],
 )
 
 py_library(

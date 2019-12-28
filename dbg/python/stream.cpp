@@ -9,16 +9,19 @@
 #include "dbg/stream/teq.hpp"
 #include "dbg/stream/teq_csv.hpp"
 
+#include "eteq/generated/pyapi.hpp"
+#include "eteq/etens.hpp"
+
 namespace py = pybind11;
 
 PYBIND11_MODULE(stream_dbg, m)
 {
 	m.doc() = "print teq equation graphs to stream";
 
-	// ==== to stdout functions ====
 	m
+		// ==== to stdout functions ====
 		.def("print_graph",
-			[](teq::TensptrT root, bool showshape)
+			[](eteq::ETensor<PybindT> root, bool showshape)
 			{
 				PrettyEquation peq;
 				peq.showshape_ = showshape;
@@ -28,7 +31,7 @@ PYBIND11_MODULE(stream_dbg, m)
 			py::arg("root"),
 			py::arg("showshape") = false)
 		.def("print_graphcsv",
-			[](teq::TensptrT root, bool showshape)
+			[](eteq::ETensor<PybindT> root, bool showshape)
 			{
 				CSVEquation ceq;
 				ceq.showshape_ = showshape;
@@ -37,12 +40,11 @@ PYBIND11_MODULE(stream_dbg, m)
 			},
 			"Print csv of graph edges to stdout",
 			py::arg("root"),
-			py::arg("showshape") = false);
+			py::arg("showshape") = false)
 
-	// ==== to string functions ====
-	m
+		// ==== to string functions ====
 		.def("graph_to_str",
-			[](teq::TensptrT root, bool showshape)
+			[](eteq::ETensor<PybindT> root, bool showshape)
 			{
 				std::stringstream ss;
 				PrettyEquation peq;
@@ -54,29 +56,24 @@ PYBIND11_MODULE(stream_dbg, m)
 			py::arg("root"),
 			py::arg("showshape") = false)
 		.def("graph_to_csvstr",
-			[](teq::TensptrT root, bool showshape,
-				teq::TensMapT<std::string> abbrevs)
+			[](eteq::ETensor<PybindT> root, bool showshape)
 			{
 				std::stringstream ss;
 				CSVEquation ceq;
 				ceq.showshape_ = showshape;
-				ceq.abbreviate_ = abbrevs;
 				root->accept(ceq);
 				ceq.to_stream(ss);
 				return ss.str();
 			},
 			"Return csv of graph edges as string",
 			py::arg("root"),
-			py::arg("showshape") = false,
-			py::arg("abbrevs") = teq::TensMapT<std::string>())
+			py::arg("showshape") = false)
 		.def("multigraph_to_csvstr",
-			[](teq::TensptrsT roots, bool showshape,
-				teq::TensMapT<std::string> abbrevs)
+			[](eteq::ETensorsT<PybindT> roots, bool showshape)
 			{
 				std::stringstream ss;
 				CSVEquation ceq;
 				ceq.showshape_ = showshape;
-				ceq.abbreviate_ = abbrevs;
 				for (auto& root : roots)
 				{
 					root->accept(ceq);
@@ -86,13 +83,11 @@ PYBIND11_MODULE(stream_dbg, m)
 			},
 			"Return csv of graph edges of multiple roots as string",
 			py::arg("roots"),
-			py::arg("showshape") = false,
-			py::arg("abbrevs") = teq::TensMapT<std::string>());
+			py::arg("showshape") = false)
 
-	// ==== to file functions ====
-	m
+		// ==== to file functions ====
 		.def("graph_to_file",
-			[](teq::TensptrT root, std::string filename, bool showshape)
+			[](eteq::ETensor<PybindT> root, std::string filename, bool showshape)
 			{
 				std::ofstream outstr(filename);
 				if (outstr.is_open())
@@ -112,15 +107,13 @@ PYBIND11_MODULE(stream_dbg, m)
 			py::arg("filename"),
 			py::arg("showshape") = false)
 		.def("graph_to_csvfile",
-			[](teq::TensptrT root, std::string filename, bool showshape,
-				teq::TensMapT<std::string> abbrevs)
+			[](eteq::ETensor<PybindT> root, std::string filename, bool showshape)
 			{
 				std::ofstream outstr(filename);
 				if (outstr.is_open())
 				{
 					CSVEquation ceq;
 					ceq.showshape_ = showshape;
-					ceq.abbreviate_ = abbrevs;
 					root->accept(ceq);
 					ceq.to_stream(outstr);
 				}
@@ -132,18 +125,15 @@ PYBIND11_MODULE(stream_dbg, m)
 			"Stream csv of graph edges to file",
 			py::arg("root"),
 			py::arg("filename"),
-			py::arg("showshape") = false,
-			py::arg("abbrevs") = teq::TensMapT<std::string>())
+			py::arg("showshape") = false)
 		.def("multigraph_to_csvfile",
-			[](teq::TensptrsT roots, std::string filename, bool showshape,
-				teq::TensMapT<std::string> abbrevs)
+			[](eteq::ETensorsT<PybindT> roots, std::string filename, bool showshape)
 			{
 				std::ofstream outstr(filename);
 				if (outstr.is_open())
 				{
 					CSVEquation ceq;
 					ceq.showshape_ = showshape;
-					ceq.abbreviate_ = abbrevs;
 					for (auto& root : roots)
 					{
 						root->accept(ceq);
@@ -158,6 +148,5 @@ PYBIND11_MODULE(stream_dbg, m)
 			"Return csv of graph edges of multiple roots to file",
 			py::arg("roots"),
 			py::arg("filename"),
-			py::arg("showshape") = false,
-			py::arg("abbrevs") = teq::TensMapT<std::string>());
+			py::arg("showshape") = false);
 }

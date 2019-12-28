@@ -60,8 +60,8 @@ def make_rms_prop(learning_rate, momentum_term, lmbd, eps):
     def rms_prop(grads):
         targets = [target for target, _ in grads]
         gs = [grad for _, grad in grads]
-        momentum = [eteq.variable_like(0, tc.ETensor(target)) for target in targets]
-        mvavg_sqr = [eteq.variable_like(0, tc.ETensor(target)) for target in targets]
+        momentum = [eteq.variable_like(0, tc.ETensor(target), label='momentum_' + str(target)) for target in targets]
+        mvavg_sqr = [eteq.variable_like(0, tc.ETensor(target), label='mving_avg_' + str(target)) for target in targets]
 
         # group 1
         momentum_tmp = [tc.ETensor(mom) * momentum_term for mom in momentum]

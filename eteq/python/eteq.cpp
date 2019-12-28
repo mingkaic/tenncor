@@ -176,6 +176,7 @@ PYBIND11_MODULE(eteq, m)
 			py::arg("shape"),
 			py::arg("scalar") = 0,
 			py::arg("label") = "")
+		.def("__str__", &eteq::Variable<PybindT>::to_string)
 		.def("assign",
 			[](eteq::Variable<PybindT>* self, py::array data)
 			{
