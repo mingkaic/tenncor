@@ -72,7 +72,7 @@ def make_rms_prop(learning_rate, momentum_term, lmbd, eps):
             for target, grad in zip(mvavg_sqr, gs)]
 
         # group 3
-        pgrad_norm_nodes = [(learning_rate * grad) / tc.sqrt(tc.ETensor(mvsqr)) + eps
+        pgrad_norm_nodes = [(learning_rate * grad) / (tc.sqrt(tc.ETensor(mvsqr)) + eps)
             for grad, mvsqr in zip(gs, mvavg_sqr)]
 
         group3 = [layr.VarAssign(target, momentum_tmp_node - pgrad_norm_node)
