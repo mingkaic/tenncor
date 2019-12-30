@@ -93,11 +93,11 @@ struct FuncOpt<egen::SLICE> final
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, attrs);
 		teq::Shape shape = shapes.front();
 		bool redundant = true;
-		for (size_t i = 0, n = std::min(extents.size(), 
+		for (size_t i = 0, n = std::min(extents.size(),
 			(size_t) teq::rank_cap); i < n && redundant; ++i)
 		{
 			auto& exts = extents[i];
-			redundant = redundant && exts.first == 0 && 
+			redundant = redundant && exts.first == 0 &&
 				exts.second > shape.at(i);
 		}
 		if (redundant)
@@ -157,7 +157,7 @@ struct FuncOpt<egen::PERMUTE> final
 		std::vector<teq::RankT> order;
 		eigen::Packer<std::vector<teq::RankT>>().unpack(order, attrs);
 		bool redundant = order.empty() ? true : (order[0] == 0);
-		for (size_t i = 1, n = std::min(order.size(), (size_t) teq::rank_cap); 
+		for (size_t i = 1, n = std::min(order.size(), (size_t) teq::rank_cap);
 			i < n && redundant; ++i)
 		{
 			redundant = redundant && (order[i] == (order[i-1] + 1));

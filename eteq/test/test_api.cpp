@@ -480,6 +480,56 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 }
 
 
+static void nnary_elementary (std::vector<std::vector<double>> datas,
+	std::vector<teq::DimT> shape_list,
+	std::function<double(size_t)> calc_expect,
+	std::function<double(size_t,size_t)> calc_grad)
+{
+	teq::Shape shape(shape_list);
+	teq::NElemT n = shape.n_elems();
+
+	eteq::ETensorsT<double> srcs;
+	for (auto& data : datas)
+	{
+		assert(data.size() == n);
+		srcs.push_back(eteq::make_constant<double>(data.data(), shape));
+	}
+	eteq::ETensor<double> dest = tenncor::sum(srcs);
+
+	teq::Session session;
+
+	session.track({dest});
+	session.update();
+	{
+		auto gotshape = dest->shape();
+		ASSERT_ARREQ(shape, gotshape);
+	}
+	double* optr = (double*) dest->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		double expect = calc_expect(i);
+		EXPECT_DOUBLE_EQ(expect, optr[i]);
+	}
+
+	for (size_t i = 0, m = datas.size(); i < m; ++i)
+	{
+		eteq::ETensor<double> gsrc = eteq::derive(dest, srcs[i]);
+		session.track({gsrc});
+		session.update();
+		{
+			auto gotshape = gsrc->shape();
+			ASSERT_ARREQ(shape, gotshape);
+		}
+		double* goptr = (double*) gsrc->data();
+		for (size_t j = 0; j < n; ++j)
+		{
+			double expect = calc_grad(i, j);
+			EXPECT_DOUBLE_EQ(expect, goptr[j]);
+		}
+	}
+}
+
+
 TEST(API, Abs)
 {
 	unary_elementary(
@@ -1844,6 +1894,41 @@ TEST(API, Convolution)
 		std::vector<double> gb_data(gb, gb + gbshape.n_elems());
 		ASSERT_VECEQ(expect_gb, gb_data);
 	}
+}
+
+
+TEST(API, GroupSum)
+{
+	// tensor operation
+	std::vector<teq::DimT> slist = {3, 2, 4};
+	std::vector<double> data = {
+		0.0919361505, 0.5135099474, 0.3147548326, 0.0281299379, 0.3705218798, 0.6808164860,
+		0.1933972592, 0.2326945471, 0.4600163558, 0.1600801317, 0.9942654588, 0.8739832345,
+		0.9664644529, 0.6152766955, 0.8795922916, 0.6384690466, 0.3922073677, 0.5979097486,
+		0.0425608731, 0.1178122813, 0.1594330664, 0.0926580999, 0.9309809737, 0.2119471989,
+	};
+	std::vector<double> data2 = {
+		0.2547977589, 0.8808089905, 0.4323663340, 0.5710527217, 0.6207772267, 0.8574923091,
+		0.2315629833, 0.8740258926, 0.9239905856, 0.0346148639, 0.3255387878, 0.7443564112,
+		0.0930828560, 0.9324878301, 0.6552622891, 0.8305292319, 0.9515416240, 0.3653033185,
+		0.0504231590, 0.8494357051, 0.0908431573, 0.1567913571, 0.1211327459, 0.5269402648,
+	};
+	std::vector<double> data3 = {
+		0.7337234864, 0.8450250437, 0.0507189845, 0.3380472189, 0.8024848119, 0.7459583505,
+		0.2284865796, 0.1801980249, 0.7544559936, 0.6563679706, 0.2774781414, 0.7505901549,
+		0.5510430193, 0.5049274633, 0.5092842413, 0.1561237874, 0.0534285259, 0.0532025873,
+		0.8582970171, 0.7204149643, 0.2353877684, 0.5085232728, 0.6655741337, 0.5997891975,
+	};
+
+	nnary_elementary({data, data2, data3}, slist,
+		[&](size_t i)
+		{
+			return data[i] + data2[i] + data3[i];
+		},
+		[&](size_t gradi, size_t i)
+		{
+			return gradi < 3 ? 1 : 0;
+		});
 }
 
 
