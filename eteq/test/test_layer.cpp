@@ -54,13 +54,16 @@ TEST(LAYER, DenseSerialization)
 	std::vector<float> bias_data;
 	{
 		auto x = eteq::make_variable_scalar<float>(0, teq::Shape({ninput, 2}), "x");
-		eteq::VarptrT<float> weight = eteq::make_variable_scalar<float>(0, teq::Shape({noutput, ninput}), "weight");
-		eteq::VarptrT<float> bias = eteq::make_variable_scalar<float>(0, teq::Shape({noutput}), "bias");
+		eteq::VarptrT<float> weight = eteq::make_variable_scalar<float>(
+			0, teq::Shape({noutput, ninput}), "weight");
+		eteq::VarptrT<float> bias = eteq::make_variable_scalar<float>(
+			0, teq::Shape({noutput}), "bias");
 		auto y = tenncor::layer::dense(eteq::ETensor<float>(x),
 			eteq::ETensor<float>(weight), eteq::ETensor<float>(bias));
 
-		eteq::VarptrsT<float> contents;
-		eteq::get_storage<float>(contents, (teq::TensptrT) y);
+		eteq::VarptrsT<float> contents = eteq::ELayer<float>(
+			std::static_pointer_cast<teq::iFunctor>(teq::TensptrT(y)),
+				eteq::ETensor<float>(x)).get_storage();
 		ASSERT_EQ(2, contents.size());
 		EXPECT_ARRHAS(contents, weight);
 		EXPECT_ARRHAS(contents, bias);

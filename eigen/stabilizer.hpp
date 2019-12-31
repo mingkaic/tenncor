@@ -546,7 +546,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 
 // todo: handle complex T
 template <typename T>
-struct Stabilizer final : public teq::OnceTraveler
+struct Stabilizer final : public teq::iOnceTraveler
 {
 	teq::TensMapT<estd::NumRange<T>> ranges_;
 

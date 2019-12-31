@@ -94,7 +94,7 @@ def main(args):
     print_interval = 100
 
     model = layr.link([
-        layr.gru(N, h_size,
+        layr.gru(N, h_size, seq_length,
             weight_init=old_winit,
             bias_init=layr.zero_init()),
         layr.dense([h_size], [o_size],
@@ -114,12 +114,12 @@ def main(args):
 
     sess = eteq.Session()
 
-    sample_inp = eteq.Variable([1, vocab_size], 0)
+    sample_inp = tc.ETensor(eteq.Variable([1, vocab_size], 0))
     sample_prob = model.connect(sample_inp)
     sess.track([sample_prob])
 
-    inps = eteq.Variable([seq_length, vocab_size], 0)
-    expected_output = eteq.Variable([seq_length, vocab_size], 0)
+    inps = tc.ETensor(eteq.Variable([seq_length, vocab_size], 0))
+    expected_output = tc.ETensor(eteq.Variable([seq_length, vocab_size], 0))
 
     untrained_prob = untrained_model.connect(sample_inp)
     pretraiend_prob = pretrained_model.connect(sample_inp)

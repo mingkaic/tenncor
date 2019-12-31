@@ -5,15 +5,15 @@
 namespace teq
 {
 
-struct OwnerTracker final : public OnceTraveler
+struct OwnerTracker final : public iOnceTraveler
 {
 	OwnerMapT owners_;
 
 private:
-	/// Implementation of OnceTraveler
+	/// Implementation of iOnceTraveler
 	void visit_leaf (iLeaf& leaf) override {}
 
-	/// Implementation of OnceTraveler
+	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override
 	{
 		auto children = func.get_children();

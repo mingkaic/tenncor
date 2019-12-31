@@ -93,9 +93,6 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    assert(4 == len(model.get_storage()))
-    assert(4 == len(trained.get_storage()))
-    assert(4 == len(untrained.get_storage()))
     bgd = layr.get_rms_momentum(
         learning_rate = 0.1,
         discount_factor = 0.5)

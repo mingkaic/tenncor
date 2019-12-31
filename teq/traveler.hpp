@@ -20,9 +20,9 @@ namespace teq
 {
 
 /// Extremely generic traveler that visits every node in the graph once
-struct OnceTraveler : public iTraveler
+struct iOnceTraveler : public iTraveler
 {
-	virtual ~OnceTraveler (void) = default;
+	virtual ~iOnceTraveler (void) = default;
 
 	/// Implementation of iTraveler
 	void visit (iLeaf& leaf) override
@@ -128,7 +128,7 @@ using TensPathsT = TensMapT<PathNodeT>;
 /// being a boolean vector denoting nodes leading to target
 /// For a boolean value x at index i in mapped vector,
 /// x is true if the ith child leads to target
-struct PathFinder final : public OnceTraveler
+struct PathFinder final : public iOnceTraveler
 {
 	PathFinder (iTensor* target, std::string label = "target") :
 		targets_({{target, label}}) {}
@@ -138,7 +138,7 @@ struct PathFinder final : public OnceTraveler
 
 	void clear (void) override
 	{
-		OnceTraveler::clear();
+		iOnceTraveler::clear();
 		roadmap_.clear();
 	}
 
@@ -146,10 +146,10 @@ struct PathFinder final : public OnceTraveler
 	TensPathsT roadmap_;
 
 private:
-	/// Implementation of OnceTraveler
+	/// Implementation of iOnceTraveler
 	void visit_leaf (iLeaf& leaf) override {}
 
-	/// Implementation of OnceTraveler
+	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override
 	{
 		auto children = func.get_children();
@@ -253,7 +253,7 @@ using OwnerMapT = TensMapT<TensrefT>;
 /// This utility function will grab reference maps of root's subtree
 OwnerMapT track_owners (TensptrsT roots);
 
-struct Copier final : public OnceTraveler
+struct Copier final : public iOnceTraveler
 {
 	Copier (TensSetT ignores = {}) : ignores_(ignores) {}
 
@@ -262,7 +262,7 @@ struct Copier final : public OnceTraveler
 	TensSetT ignores_;
 
 private:
-	/// Implementation of OnceTraveler
+	/// Implementation of iOnceTraveler
 	void visit_leaf (iLeaf& leaf) override
 	{
 		if (estd::has(ignores_, &leaf))

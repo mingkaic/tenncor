@@ -146,12 +146,12 @@ opt::CversionCtx parse_file (std::string filename)
 }
 
 template <typename T>
-struct Hasher final : public teq::OnceTraveler
+struct Hasher final : public teq::iOnceTraveler
 {
 	teq::TensMapT<boost::uuids::uuid> hashes_;
 
 private:
-	/// Implementation of OnceTraveler
+	/// Implementation of iOnceTraveler
 	void visit_leaf (teq::iLeaf& leaf) override
 	{
 		if (teq::Immutable == leaf.get_usage())
@@ -167,7 +167,7 @@ private:
 		}
 	}
 
-	/// Implementation of OnceTraveler
+	/// Implementation of iOnceTraveler
 	void visit_func (teq::iFunctor& func) override
 	{
 		auto children = func.get_children();

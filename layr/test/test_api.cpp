@@ -409,11 +409,11 @@ TEST(CONNECT, DenseTanhRNN)
 
 	auto err = tenncor::pow(out - output, 2.);
 	auto contents = layer.get_storage();
-	auto istate = contents[0];
-	auto weight1 = contents[1];
-	auto bias1 = contents[2];
-	auto weight0 = contents[3];
-	auto bias0 = contents[4];
+	auto weight0 = contents[0];
+	auto bias0 = contents[1];
+	auto istate = contents[2];
+	auto weight1 = contents[3];
+	auto bias1 = contents[4];
 
 	auto dw1 = eteq::derive(err, eteq::ETensor<double>(weight1));
 	auto db1 = eteq::derive(err, eteq::ETensor<double>(bias1));
@@ -620,13 +620,13 @@ TEST(CONNECT, TanhRNNFull)
 
 	auto err = tenncor::pow(out - output, 2.);
 	auto contents = layer.get_storage();
-	auto weight2 = contents[0];
-	auto bias2 = contents[1];
+	auto weight0 = contents[0];
+	auto bias0 = contents[1];
 	auto istate = contents[2];
 	auto weight1 = contents[3];
 	auto bias1 = contents[4];
-	auto weight0 = contents[5];
-	auto bias0 = contents[6];
+	auto weight2 = contents[5];
+	auto bias2 = contents[6];
 
 	auto dw0 = eteq::derive(err, eteq::ETensor<double>(weight0));
 	auto db0 = eteq::derive(err, eteq::ETensor<double>(bias0));
@@ -858,13 +858,13 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 	auto err = tenncor::reduce_mean(-(out * tenncor::log(common) + (1. - out) * tenncor::log(1. - common)));
 
 	auto contents = layer.get_storage();
-	auto weight2 = contents[0];
-	auto bias2 = contents[1];
+	auto weight0 = contents[0];
+	auto bias0 = contents[1];
 	auto istate = contents[2];
 	auto weight1 = contents[3];
 	auto bias1 = contents[4];
-	auto weight0 = contents[5];
-	auto bias0 = contents[6];
+	auto weight2 = contents[5];
+	auto bias2 = contents[6];
 
 	auto dw0 = eteq::derive(err, eteq::ETensor<double>(weight0));
 	auto db0 = eteq::derive(err, eteq::ETensor<double>(bias0));
@@ -1284,13 +1284,13 @@ TEST(CONNECT, TanhRNNTraining)
 	auto err = tenncor::reduce_mean(-(out * tenncor::log(common) + (1. - out) * tenncor::log(1. - common)));
 
 	auto contents = layer.get_storage();
-	auto weight2 = contents[0];
-	auto bias2 = contents[1];
+	auto weight0 = contents[0];
+	auto bias0 = contents[1];
 	auto istate = contents[2];
 	auto weight1 = contents[3];
 	auto bias1 = contents[4];
-	auto weight0 = contents[5];
-	auto bias0 = contents[6];
+	auto weight2 = contents[5];
+	auto bias2 = contents[6];
 
 	auto dw0 = eteq::derive(err, eteq::ETensor<double>(weight0));
 	auto db0 = eteq::derive(err, eteq::ETensor<double>(bias0));

@@ -38,7 +38,7 @@ enum NODE_TYPE
 using GetTypeF = std::function<NODE_TYPE(teq::iFunctor&)>;
 
 /// Use CSVEquation to render teq::TensptrT graph to output csv edges
-struct CSVEquation final : public teq::OnceTraveler
+struct CSVEquation final : public teq::iOnceTraveler
 {
 	CSVEquation (GetTypeF get_ftype =
 		[](teq::iFunctor& func) { return FUNCTOR; }) :

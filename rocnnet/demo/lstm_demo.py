@@ -58,7 +58,7 @@ def main(args):
     input_val_arr = [np.random.random(x_dim) for _ in y_list]
     sess = eteq.Session()
 
-    model = layr.lstm(x_dim, mem_cell_ct,
+    model = layr.lstm(x_dim, mem_cell_ct, len(y_list),
         weight_init=layr.unif_xavier_init(1),
         bias_init=layr.unif_xavier_init(1))
     untrained_model = model.deep_clone()
@@ -71,8 +71,8 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    test_inputs = eteq.variable(np.array(input_val_arr), 'test_input')
-    test_outputs = eteq.variable(np.array(y_list), 'test_outputs')
+    test_inputs = tc.ETensor(eteq.variable(np.array(input_val_arr), 'test_input'))
+    test_outputs = tc.ETensor(eteq.variable(np.array(y_list), 'test_outputs'))
 
     untrained = tc.slice(untrained_model.connect(test_inputs), 0, 1, 0)
     hiddens = tc.slice(model.connect(test_inputs), 0, 1, 0)
