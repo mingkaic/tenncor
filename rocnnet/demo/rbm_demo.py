@@ -87,22 +87,21 @@ def main(args):
 
     # ds = tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=n_batch)
 
-    train_input = eteq.Variable([n_batch, n_visible])
-    train = layr.rbm_train(model, sess, tc.ETensor(train_input),
+    train_input = eteq.EVariable([n_batch, n_visible])
+    train = layr.rbm_train(model, sess, train_input,
         learning_rate=learning_rate,
         discount_factor=momentum,
         err_func=mse_errfunc)
 
     x = eteq.scalar_variable(0, [1, n_visible])
-    xin = tc.ETensor(x)
     genx = tc.sigmoid(model.backward_connect(
-        tc.random.rand_binom_one(tc.sigmoid(model.connect(xin)))))
+        tc.random.rand_binom_one(tc.sigmoid(model.connect(x)))))
 
     untrained_genx = tc.sigmoid(untrained.backward_connect(
-        tc.random.rand_binom_one(tc.sigmoid(untrained.connect(xin)))))
+        tc.random.rand_binom_one(tc.sigmoid(untrained.connect(x)))))
 
     trained_genx = tc.sigmoid(trained.backward_connect(
-        tc.random.rand_binom_one(tc.sigmoid(trained.connect(xin)))))
+        tc.random.rand_binom_one(tc.sigmoid(trained.connect(x)))))
 
     mnist_images = input_data.read_data_sets('MNIST_data/', one_hot=True).train.images
 

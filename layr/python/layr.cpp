@@ -29,12 +29,15 @@ PYBIND11_MODULE(layr, m)
 	py::class_<layr::VarAssign<PybindT>> assigns(m, "VarAssign");
 	assigns
 		.def(py::init(
-			[](eteq::VarptrT<PybindT> target, eteq::ETensor<PybindT> source)
+			[](eteq::EVariable<PybindT> target, eteq::ETensor<PybindT> source)
 			{
 				return layr::VarAssign<PybindT>{target, source};
 			}))
-		.def("target", [](layr::VarAssign<PybindT>& assign) { return assign.target_; })
-		.def("source", [](layr::VarAssign<PybindT>& assign) { return assign.source_; });
+		.def("target",
+			[](layr::VarAssign<PybindT>& assign) -> eteq::EVariable<PybindT>
+			{ return assign.target_; })
+		.def("source",
+			[](layr::VarAssign<PybindT>& assign) { return assign.source_; });
 
 	py::class_<trainer::DQNInfo<PybindT>> dqninfo(m, "DQNInfo");
 	dqninfo

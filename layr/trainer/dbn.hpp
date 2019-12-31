@@ -29,7 +29,7 @@ struct DBNTrainer final
 
 		// setups:
 		// general rbm sampling
-		sample_pipes_.push_back(eteq::ETensor<T>(trainx_));
+		sample_pipes_.push_back(trainx_);
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			sample_pipes_.push_back(sample_v2h(rbms[i], sample_pipes_[i]));
@@ -62,8 +62,7 @@ struct DBNTrainer final
 				// if var is a weight or bias add assign with learning rate
 				// otherwise assign directly
 				auto next_var = estd::has(to_learn, varerr.first.get()) ?
-					eteq::ETensor<T>(varerr.first) +
-					pretrain_lr * varerr.second : varerr.second;
+					varerr.first + pretrain_lr * varerr.second : varerr.second;
 				assigns.push_back(layr::VarAssign<T>{varerr.first, next_var});
 				to_track.push_back(next_var);
 			}
@@ -86,7 +85,7 @@ struct DBNTrainer final
 		eteq::VarptrT<T> w = contents[0];
 		eteq::VarptrT<T> b = contents[1];
 		auto final_out = tenncor::softmax(dense.connect(sample_pipes_.back()), softmax_dim, 1);
-		auto diff = eteq::ETensor<T>(trainy_) - final_out;
+		auto diff = trainy_ - final_out;
 		auto l2_regularized = tenncor::matmul(tenncor::transpose(
 			sample_pipes_.back()), diff) - l2_reg * eteq::ETensor<T>(w);
 
@@ -95,22 +94,22 @@ struct DBNTrainer final
 		auto tlr_placeholder = eteq::make_variable_scalar<T>(
 			train_lr, teq::Shape(), "learning_rate");
 		auto dw = eteq::ETensor<T>(w) +
-			tenncor::extend(eteq::ETensor<T>(tlr_placeholder), 0,
+			tenncor::extend(tlr_placeholder, 0,
 				std::vector<teq::DimT>(wshape.begin(), wshape.end())) *
 			l2_regularized;
 		auto db = eteq::ETensor<T>(b) +
-			tenncor::extend(eteq::ETensor<T>(tlr_placeholder), 0,
+			tenncor::extend(tlr_placeholder, 0,
 				std::vector<teq::DimT>(bshape.begin(), bshape.end())) *
 			tenncor::reduce_mean_1d(diff, 1);
-		auto dtrain_lr = eteq::ETensor<T>(tlr_placeholder) * lr_scaling;
+		auto dtrain_lr = tlr_placeholder * lr_scaling;
 
 		tupdates_ = {
 			layr::AssignsT<T>{layr::VarAssign<T>{w, dw}, layr::VarAssign<T>{b, db}},
 			layr::AssignsT<T>{layr::VarAssign<T>{tlr_placeholder, dtrain_lr}},
 		};
-		tcost_ = -tenncor::reduce_mean(tenncor::reduce_sum_1d(
-			eteq::ETensor<T>(trainy_) * tenncor::log(final_out) +
-			((T) 1 - eteq::ETensor<T>(trainy_)) * tenncor::log((T) 1 - final_out), 0));
+		tcost_ = -tenncor::reduce_mean(
+			tenncor::reduce_sum_1d(trainy_ * tenncor::log(final_out) +
+			((T) 1 - trainy_) * tenncor::log((T) 1 - final_out), 0));
 
 		train_sess_.track({sample_pipes_.back(), dw, db, dtrain_lr, tcost_});
 	}
@@ -202,9 +201,9 @@ struct DBNTrainer final
 
 	size_t batch_size_;
 
-	eteq::VarptrT<T> trainx_;
+	eteq::EVariable<T> trainx_;
 
-	eteq::VarptrT<T> trainy_;
+	eteq::EVariable<T> trainy_;
 
 	std::vector<eteq::ETensor<T>> sample_pipes_;
 

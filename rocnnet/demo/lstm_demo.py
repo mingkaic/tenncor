@@ -71,8 +71,8 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    test_inputs = tc.ETensor(eteq.variable(np.array(input_val_arr), 'test_input'))
-    test_outputs = tc.ETensor(eteq.variable(np.array(y_list), 'test_outputs'))
+    test_inputs = eteq.variable(np.array(input_val_arr), 'test_input')
+    test_outputs = eteq.variable(np.array(y_list), 'test_outputs')
 
     untrained = tc.slice(untrained_model.connect(test_inputs), 0, 1, 0)
     hiddens = tc.slice(model.connect(test_inputs), 0, 1, 0)

@@ -114,12 +114,12 @@ def main(args):
 
     sess = eteq.Session()
 
-    sample_inp = tc.ETensor(eteq.Variable([1, vocab_size], 0))
+    sample_inp = eteq.EVariable([1, vocab_size], 0)
     sample_prob = model.connect(sample_inp)
     sess.track([sample_prob])
 
-    inps = tc.ETensor(eteq.Variable([seq_length, vocab_size], 0))
-    expected_output = tc.ETensor(eteq.Variable([seq_length, vocab_size], 0))
+    inps = eteq.EVariable([seq_length, vocab_size], 0)
+    expected_output = eteq.EVariable([seq_length, vocab_size], 0)
 
     untrained_prob = untrained_model.connect(sample_inp)
     pretraiend_prob = pretrained_model.connect(sample_inp)

@@ -45,7 +45,7 @@ class EADTest(unittest.TestCase):
     def _common_unary(self, shape, api, real, derive):
         data = np.random.rand(*shape) * 34
         var = eteq.variable(data, 'var')
-        out = api(tc.ETensor(var))
+        out = api(var)
 
         sess = eteq.Session()
         sess.track([out])
@@ -55,8 +55,8 @@ class EADTest(unittest.TestCase):
         self._array_close(real(data), fout)
 
         var2 = eteq.variable(data, 'var2')
-        ex = eteq.derive(out, tc.ETensor(var))
-        zero = eteq.derive(out, tc.ETensor(var2))
+        ex = eteq.derive(out, var)
+        zero = eteq.derive(out, var2)
 
         sess.track([ex, zero])
         sess.update()
@@ -71,7 +71,7 @@ class EADTest(unittest.TestCase):
     def _common_unary_tf(self, shape, api, tf_op):
         data = np.random.rand(*shape)
         var = eteq.variable(data, 'var')
-        out = api(tc.ETensor(var))
+        out = api(var)
 
         tf_var = tf.Variable(data)
         tf_out = tf_op(tf_var)
@@ -88,8 +88,8 @@ class EADTest(unittest.TestCase):
         self._array_close(real, fout)
 
         var2 = eteq.variable(data, 'var2')
-        ex = eteq.derive(out, tc.ETensor(var))
-        zero = eteq.derive(out, tc.ETensor(var2))
+        ex = eteq.derive(out, var)
+        zero = eteq.derive(out, var2)
 
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
@@ -111,10 +111,10 @@ class EADTest(unittest.TestCase):
         cst = random.uniform(0.5, 5)
         cst2 = random.uniform(0.5, 5)
 
-        out = api(tc.ETensor(var), tc.ETensor(var2))
-        both = api(tc.ETensor(var), tc.ETensor(var))
-        clhs = api(tc.ETensor(var), cst)
-        crhs = api(cst2, tc.ETensor(var2))
+        out = api(var, var2)
+        both = api(var, var)
+        clhs = api(var, cst)
+        crhs = api(cst2, var2)
 
         sess = eteq.Session()
         sess.track([out, both, clhs, crhs])
@@ -131,12 +131,12 @@ class EADTest(unittest.TestCase):
 
         var3 = eteq.variable(data, 'var3')
 
-        zero = eteq.derive(out, tc.ETensor(var3))
-        ex = eteq.derive(out, tc.ETensor(var))
-        ex2 = eteq.derive(out, tc.ETensor(var2))
-        ex3 = eteq.derive(both, tc.ETensor(var))
-        ex4 = eteq.derive(clhs, tc.ETensor(var))
-        ex5 = eteq.derive(crhs, tc.ETensor(var2))
+        zero = eteq.derive(out, var3)
+        ex = eteq.derive(out, var)
+        ex2 = eteq.derive(out, var2)
+        ex3 = eteq.derive(both, var)
+        ex4 = eteq.derive(clhs, var)
+        ex5 = eteq.derive(crhs, var2)
 
         sess.track([zero, ex, ex2, ex3, ex4, ex5])
         sess.update()
@@ -176,7 +176,7 @@ class EADTest(unittest.TestCase):
         tfsess = tfSess()
         tfsess.run(tf_var.initializer)
 
-        out = dim_reduce(tc.ETensor(var), 1)
+        out = dim_reduce(var, 1)
         tf_out = tf_reduce(tf_var, [1])
 
         sess = eteq.Session()
@@ -189,8 +189,8 @@ class EADTest(unittest.TestCase):
         self._array_close(tf_fout, fout)
 
         var2 = eteq.variable(data, 'var2')
-        ex = eteq.derive(out, tc.ETensor(var))
-        zero = eteq.derive(out, tc.ETensor(var2))
+        ex = eteq.derive(out, var)
+        zero = eteq.derive(out, var2)
         sess.track([ex, zero])
         sess.update()
 
@@ -218,8 +218,8 @@ class EADTest(unittest.TestCase):
             tfsess = tfSess()
             tfsess.run(tf_var.initializer)
 
-            out = all_reduce(tc.ETensor(var))
-            out2 = dim_reduce(tc.ETensor(var), offset=1)
+            out = all_reduce(var)
+            out2 = dim_reduce(var, offset=1)
             tf_out = tf_reduce(tf_var)
             tf_out2 = tf_reduce(tf_var, [0, 1])
 
@@ -236,9 +236,9 @@ class EADTest(unittest.TestCase):
             self._array_close(tf_fout2, fout2)
 
             var2 = eteq.variable(data, 'var2')
-            ex = eteq.derive(out, tc.ETensor(var))
-            ex2 = eteq.derive(out2, tc.ETensor(var))
-            zero = eteq.derive(out, tc.ETensor(var2))
+            ex = eteq.derive(out, var)
+            ex2 = eteq.derive(out2, var)
+            zero = eteq.derive(out, var2)
             sess.track([ex, ex2, zero])
             sess.update()
 
@@ -270,7 +270,7 @@ class EADTest(unittest.TestCase):
             tfsess = tfSess()
             tfsess.run(tf_var.initializer)
 
-            out = tc.permute(dim_reduce(tc.ETensor(var),
+            out = tc.permute(dim_reduce(var,
                 return_dim=1), [0, 2, 1])
             tf_out = tf_reduce(tf_var, 1)
 
@@ -295,9 +295,9 @@ class EADTest(unittest.TestCase):
             var = eteq.variable(data, 'var')
 
             sess = eteq.Session()
-            sess.track([tc.ETensor(var)])
+            sess.track([var])
             sess.update()
-            fout = tc.ETensor(var).get()
+            fout = var.get()
 
             pad_removed = len(shape) - len(fout.shape)
             padding = [1] * pad_removed
@@ -305,8 +305,8 @@ class EADTest(unittest.TestCase):
             self._array_close(data, fout)
 
             var2 = eteq.variable(data, 'var2')
-            one = eteq.derive(tc.ETensor(var), tc.ETensor(var))
-            zero = eteq.derive(tc.ETensor(var), tc.ETensor(var2))
+            one = eteq.derive(var, var)
+            zero = eteq.derive(var, var2)
             sess.track([one, zero])
             sess.update()
 
@@ -620,7 +620,7 @@ class EADTest(unittest.TestCase):
         expected_out = np.array(list(data) * 3).reshape([3, 2])
         var = eteq.variable(data, 'var')
 
-        out = tc.extend(tc.ETensor(var), 1, [3])
+        out = tc.extend(var, 1, [3])
         sess = eteq.Session()
         sess.track([out])
         sess.update()
@@ -628,7 +628,7 @@ class EADTest(unittest.TestCase):
         fout = out.get()
         self._array_close(expected_out, fout)
 
-        ex = eteq.derive(out, tc.ETensor(var))
+        ex = eteq.derive(out, var)
         sess.track([ex])
         sess.update()
 
@@ -675,7 +675,7 @@ class EADTest(unittest.TestCase):
             tfsess = tfSess()
             tfsess.run(tf_var.initializer)
 
-            out = tc.reduce_l2norm(tc.ETensor(var))
+            out = tc.reduce_l2norm(var)
             tf_out = tf.norm(tf_var)
 
             sess = eteq.Session()
@@ -688,8 +688,8 @@ class EADTest(unittest.TestCase):
             self._array_close(tf_fout, fout)
 
             var2 = eteq.variable(data, 'var2')
-            ex = eteq.derive(out, tc.ETensor(var))
-            zero = eteq.derive(out, tc.ETensor(var2))
+            ex = eteq.derive(out, var)
+            zero = eteq.derive(out, var2)
             sess.track([ex, zero])
             sess.update()
 
@@ -738,7 +738,7 @@ class EADTest(unittest.TestCase):
             tfsess.run(tf_var2.initializer)
 
             # regular matmul
-            out = tc.matmul(tc.ETensor(var), tc.ETensor(var2))
+            out = tc.matmul(var, var2)
 
             # tensorflow matmul
             tf_out = tf.matmul(tf_var, tf_var2)
@@ -757,9 +757,9 @@ class EADTest(unittest.TestCase):
 
             var3 = eteq.variable(data, 'var3')
 
-            zero = eteq.derive(out, tc.ETensor(var3))
-            ex = eteq.derive(out, tc.ETensor(var))
-            ex2 = eteq.derive(out, tc.ETensor(var2))
+            zero = eteq.derive(out, var3)
+            ex = eteq.derive(out, var)
+            ex2 = eteq.derive(out, var2)
 
             sess.track([zero, ex, ex2])
             sess.update()
@@ -783,7 +783,7 @@ class EADTest(unittest.TestCase):
 
             if is_symmetric:
                 # test with symmetric property
-                both = tc.matmul(tc.ETensor(var), tc.ETensor(var))
+                both = tc.matmul(var, var)
 
                 tf_both = tf.matmul(tf_var, tf_var)
 
@@ -795,7 +795,7 @@ class EADTest(unittest.TestCase):
 
                 self._array_close(tf_fboth, fboth)
 
-                ex3 = eteq.derive(both, tc.ETensor(var))
+                ex3 = eteq.derive(both, var)
                 sess.track([ex3])
                 sess.update()
 
@@ -828,7 +828,7 @@ class EADTest(unittest.TestCase):
             tf_var = tf.Variable(tf_data)
             tf_kernel = tf.Variable(tf_kdata)
 
-            out = tc.convolution(tc.ETensor(var), tc.ETensor(vkernel), list(range(8)))
+            out = tc.convolution(var, vkernel, list(range(8)))
 
             sess = eteq.Session()
             sess.track([out])
@@ -847,9 +847,9 @@ class EADTest(unittest.TestCase):
             self._array_close(tf_fout, fout)
 
             var2 = eteq.variable(data, 'var2')
-            zero = eteq.derive(out, tc.ETensor(var2))
-            ex = eteq.derive(out, tc.ETensor(var))
-            ex2 = eteq.derive(out, tc.ETensor(vkernel))
+            zero = eteq.derive(out, var2)
+            ex = eteq.derive(out, var)
+            ex2 = eteq.derive(out, vkernel)
 
             sess.track([zero, ex, ex2])
             sess.update()
@@ -886,7 +886,7 @@ class EADTest(unittest.TestCase):
         tfimage = tf.Variable(data)
         tfkernel = tf.Variable(kdata)
 
-        out = tc.nn.conv2d(tc.ETensor(image), tc.ETensor(kernel))
+        out = tc.nn.conv2d(image, kernel)
 
         sess = eteq.Session()
         sess.track([out])
@@ -903,9 +903,9 @@ class EADTest(unittest.TestCase):
         self._array_close(tfconv_output, conv_output)
 
         var2 = eteq.variable(data, 'var2')
-        zero = eteq.derive(out, tc.ETensor(var2))
-        ex = eteq.derive(out, tc.ETensor(image))
-        ex2 = eteq.derive(out, tc.ETensor(kernel))
+        zero = eteq.derive(out, var2)
+        ex = eteq.derive(out, image)
+        ex2 = eteq.derive(out, kernel)
 
         sess.track([zero, ex, ex2])
         sess.update()
@@ -930,7 +930,7 @@ class EADTest(unittest.TestCase):
         data = np.random.rand(*shape).astype(np.float32)
 
         image = eteq.variable(data, 'image')
-        out = tc.nn.mean_pool2d(tc.ETensor(image), [1, 2])
+        out = tc.nn.mean_pool2d(image, [1, 2])
         sess = eteq.Session()
         sess.track([out])
         sess.update()
@@ -945,8 +945,8 @@ class EADTest(unittest.TestCase):
         self._array_close(tfoutput, output)
 
         var2 = eteq.variable(data, 'var2')
-        zero = eteq.derive(out, tc.ETensor(var2))
-        ex = eteq.derive(out, tc.ETensor(image))
+        zero = eteq.derive(out, var2)
+        ex = eteq.derive(out, image)
 
         sess.track([zero, ex])
         sess.update()
@@ -967,7 +967,7 @@ class EADTest(unittest.TestCase):
         data = np.random.rand(*shape).astype(np.float32)
 
         image = eteq.variable(data, 'image')
-        out = tc.nn.max_pool2d(tc.ETensor(image), [1, 2])
+        out = tc.nn.max_pool2d(image, [1, 2])
         sess = eteq.Session()
         sess.track([out])
         sess.update()
@@ -982,8 +982,8 @@ class EADTest(unittest.TestCase):
         self._array_close(tfoutput, output)
 
         var2 = eteq.variable(data, 'var2')
-        zero = eteq.derive(out, tc.ETensor(var2))
-        ex = eteq.derive(out, tc.ETensor(image))
+        zero = eteq.derive(out, var2)
+        ex = eteq.derive(out, image)
 
         sess.track([zero, ex])
         sess.update()
@@ -1012,7 +1012,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = tc.mul(tc.reduce_sum(tc.ETensor(var), offset=1, ndims=1), tc.ETensor(var2))
+        out = tc.mul(tc.reduce_sum(var, offset=1, ndims=1), var2)
         tf_out = tf.multiply(tf.reduce_sum(tf_var, 0), tf_var2)
 
         # evaluate regular matmul
@@ -1026,7 +1026,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = eteq.derive(out, tc.ETensor(var))
+        ex = eteq.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1048,7 +1048,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = tc.mul(tc.extend(tc.ETensor(var), 1, [3]), tc.ETensor(var2))
+        out = tc.mul(tc.extend(var, 1, [3]), var2)
         tf_out = tf_var * tf_var2
 
         # evaluate regular matmul
@@ -1062,7 +1062,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = eteq.derive(out, tc.ETensor(var))
+        ex = eteq.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1084,7 +1084,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = tc.mul(tc.permute(tc.ETensor(var), [1,0]), tc.ETensor(var2))
+        out = tc.mul(tc.permute(var, [1,0]), var2)
         tf_out = tf.transpose(tf_var) * tf_var2
 
         # evaluate regular matmul
@@ -1098,7 +1098,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = eteq.derive(out, tc.ETensor(var))
+        ex = eteq.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1124,7 +1124,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
 
-        out = tc.mul(tc.matmul(tc.ETensor(var), tc.ETensor(var2)), tc.ETensor(var3))
+        out = tc.mul(tc.matmul(var, var2), var3)
         tf_out = tf.multiply(tf.matmul(tf_var, tf_var2), tf_var3)
 
         # evaluate regular matmul
@@ -1138,7 +1138,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = eteq.derive(out, tc.ETensor(var))
+        ex = eteq.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1164,7 +1164,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
 
-        out = tc.matmul(tc.matmul(tc.ETensor(var), tc.ETensor(var2)), tc.ETensor(var3))
+        out = tc.matmul(tc.matmul(var, var2), var3)
         tf_out = tf.matmul(tf.matmul(tf_var, tf_var2), tf_var3)
 
         # evaluate regular matmul
@@ -1178,7 +1178,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = eteq.derive(out, tc.ETensor(var))
+        ex = eteq.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1200,7 +1200,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = tc.matmul(tc.reduce_sum(tc.ETensor(var), offset=2, ndims=1), tc.ETensor(var2))
+        out = tc.matmul(tc.reduce_sum(var, offset=2, ndims=1), var2)
         tf_out = tf.matmul(tf.reduce_sum(tf_var, 0), tf_var2)
 
         # evaluate regular matmul
@@ -1214,7 +1214,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = eteq.derive(out, tc.ETensor(var))
+        ex = eteq.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1237,7 +1237,7 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = tc.matmul(tc.extend(tc.ETensor(var), 1, [10]), tc.ETensor(var2))
+        out = tc.matmul(tc.extend(var, 1, [10]), var2)
         tf_out = tf.matmul(tf_var * ones, tf_var2)
 
         # evaluate regular matmul
@@ -1251,7 +1251,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = eteq.derive(out, tc.ETensor(var))
+        ex = eteq.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1275,8 +1275,8 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
 
         out = tc.matmul(
-            tc.extend(tc.ETensor(var), 1, [10]),
-            tc.permute(tc.extend(tc.ETensor(var), 1, [3]), [1, 0]))
+            tc.extend(var, 1, [10]),
+            tc.permute(tc.extend(var, 1, [3]), [1, 0]))
         tf_out = tf.matmul(tf_var * ones, tf.transpose(tf_var * ones2))
 
         # evaluate regular matmul
@@ -1290,7 +1290,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = eteq.derive(out, tc.ETensor(var))
+        ex = eteq.derive(out, var)
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1315,9 +1315,9 @@ class EADTest(unittest.TestCase):
         tf_b = tf.Variable(data2)
         tf_c = tf.Variable(data3)
 
-        d = tc.matmul(tc.ETensor(a), tc.ETensor(b))
-        e = tc.matmul(tc.ETensor(c), d)
-        f = tc.matmul(tc.transpose(d), tc.transpose(tc.ETensor(c)))
+        d = tc.matmul(a, b)
+        e = tc.matmul(c, d)
+        f = tc.matmul(tc.transpose(d), tc.transpose(c))
         dest = tc.matmul(e, f)
 
         tf_d = tf.matmul(tf_a, tf_b)
@@ -1325,9 +1325,9 @@ class EADTest(unittest.TestCase):
         tf_f = tf.matmul(tf.transpose(tf_d), tf.transpose(tf_c))
         tf_dest = tf.matmul(tf_e, tf_f)
 
-        da = eteq.derive(dest, tc.ETensor(a))
-        db = eteq.derive(dest, tc.ETensor(b))
-        dc = eteq.derive(dest, tc.ETensor(c))
+        da = eteq.derive(dest, a)
+        db = eteq.derive(dest, b)
+        dc = eteq.derive(dest, c)
         tf_da, tf_db, tf_dc = tf.gradients(tf_dest, [tf_a, tf_b, tf_c])
 
         tfsess = tfSess()

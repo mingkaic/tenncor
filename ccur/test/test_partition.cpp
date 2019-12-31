@@ -100,12 +100,12 @@ TEST(PARTITION, Kpartition)
 		0.4350741570, 0.3949956178, 0.2341486792, 0.1348473539, 0.8681677362,
 	};
 
-	eteq::ETensor<double> in(eteq::make_variable<double>(in_data.data(), in_shape));
-	eteq::ETensor<double> weight0(eteq::make_variable<double>(w0_data.data(), weight0_shape));
-	eteq::ETensor<double> bias0(eteq::make_variable<double>(b0_data.data(), bias0_shape));
-	eteq::ETensor<double> weight1(eteq::make_variable<double>(w1_data.data(), weight1_shape));
-	eteq::ETensor<double> bias1(eteq::make_variable<double>(b1_data.data(), bias1_shape));
-	eteq::ETensor<double> out(eteq::make_variable<double>(out_data.data(), out_shape));
+	eteq::EVariable<double> in = eteq::make_variable<double>(in_data.data(), in_shape);
+	eteq::EVariable<double> weight0 = eteq::make_variable<double>(w0_data.data(), weight0_shape);
+	eteq::EVariable<double> bias0 = eteq::make_variable<double>(b0_data.data(), bias0_shape);
+	eteq::EVariable<double> weight1 = eteq::make_variable<double>(w1_data.data(), weight1_shape);
+	eteq::EVariable<double> bias1 = eteq::make_variable<double>(b1_data.data(), bias1_shape);
+	eteq::EVariable<double> out = eteq::make_variable<double>(out_data.data(), out_shape);
 
 	auto layer0 = tenncor::matmul(in, weight0) + tenncor::extend(bias0, 1, {3});
 	auto sig0 = tenncor::sigmoid(layer0);

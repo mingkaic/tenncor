@@ -85,6 +85,32 @@ PYBIND11_MODULE(eteq, m)
 					*self, py::dtype::of<PybindT>());
 			});
 
+	// ==== variable ====
+	py::class_<eteq::EVariable<PybindT>,eteq::ETensor<PybindT>> evar(m, "EVariable");
+
+	evar
+		.def(py::init(
+			[](std::vector<py::ssize_t> slist, PybindT scalar, std::string label)
+			{
+				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
+			}),
+			py::arg("shape"),
+			py::arg("scalar") = 0,
+			py::arg("label") = "")
+		.def("__str__",
+			[](eteq::EVariable<PybindT>& self)
+			{
+				return self->to_string();
+			})
+		.def("assign",
+			[](eteq::EVariable<PybindT>& self, py::array data)
+			{
+				teq::ShapedArr<PybindT> arr;
+				pyutils::arr2shapedarr(arr, data);
+				eteq::VarptrT<PybindT>(self)->assign(arr);
+			},
+			"Assign numpy data array to variable");
+
 	// ==== elayer ====
 	py::class_<eteq::ELayer<PybindT>> elayer(m, "ELayer");
 
@@ -162,29 +188,6 @@ PYBIND11_MODULE(eteq, m)
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
 		.def(py::init());
-
-	// ==== variable ====
-	py::class_<eteq::Variable<PybindT>,eteq::VarptrT<PybindT>,
-		teq::iTensor> variable(m, "Variable");
-
-	variable
-		.def(py::init(
-			[](std::vector<py::ssize_t> slist, PybindT scalar, std::string label)
-			{
-				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
-			}),
-			py::arg("shape"),
-			py::arg("scalar") = 0,
-			py::arg("label") = "")
-		.def("__str__", &eteq::Variable<PybindT>::to_string)
-		.def("assign",
-			[](eteq::Variable<PybindT>* self, py::array data)
-			{
-				teq::ShapedArr<PybindT> arr;
-				pyutils::arr2shapedarr(arr, data);
-				self->assign(arr);
-			},
-			"Assign numpy data array to variable");
 
 	// optimization rules
 	py::class_<opt::CversionCtx> rules(m, "OptRules");

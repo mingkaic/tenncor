@@ -78,21 +78,20 @@ struct DQNTrainer final
 		output_mask_ = eteq::make_variable_scalar<T>(0, batchout, "action_mask");
 
 		// forward action score computation
-		output_ = source_model_.connect(eteq::ETensor<T>(input_));
-		train_out_ = source_model_.connect(eteq::ETensor<T>(train_input_));
+		output_ = source_model_.connect(input_);
+		train_out_ = source_model_.connect(train_input_);
 
 		// predicting target future rewards
-		next_output_ = target_model_.connect(eteq::ETensor<T>(next_input_));
+		next_output_ = target_model_.connect(next_input_);
 
-		auto target_values = eteq::ETensor<T>(next_output_mask_) *
+		auto target_values = next_output_mask_ *
 			tenncor::reduce_max_1d(next_output_, 0);
 		// reward for each instance in batch
-		future_reward_ = eteq::ETensor<T>(reward_) +
-			params_.discount_rate_ * target_values;
+		future_reward_ = reward_ + params_.discount_rate_ * target_values;
 
 		// prediction error
 		auto masked_output_score = tenncor::reduce_sum_1d(
-			train_out_ * eteq::ETensor<T>(output_mask_), 0);
+			train_out_ * output_mask_, 0);
 		prediction_error_ = tenncor::reduce_mean(tenncor::square(
 			masked_output_score - future_reward_));
 
@@ -254,14 +253,14 @@ struct DQNTrainer final
 
 	// === forward computation ===
 	// fanin: shape <ninput>
-	eteq::VarptrT<T> input_ = nullptr;
+	eteq::EVariable<T> input_;
 
 	// fanout: shape <noutput>
 	eteq::ETensor<T> output_;
 
 	// === backward computation ===
 	// train fanin: shape <ninput, batchsize>
-	eteq::VarptrT<T> train_input_ = nullptr;
+	eteq::EVariable<T> train_input_;
 
 	// train fanout: shape <noutput, batchsize>
 	eteq::ETensor<T> train_out_;
@@ -311,20 +310,20 @@ private:
 
 	// === prediction computation ===
 	// train_fanin: shape <ninput, batchsize>
-	eteq::VarptrT<T> next_input_ = nullptr;
+	eteq::EVariable<T> next_input_;
 
 	// train mask: shape <batchsize>
-	eteq::VarptrT<T> next_output_mask_ = nullptr;
+	eteq::EVariable<T> next_output_mask_;
 
 	// reward associated with next_output_: shape <batchsize>
-	eteq::VarptrT<T> reward_ = nullptr;
+	eteq::EVariable<T> reward_;
 
 	// future reward calculated from reward history: <1, batchsize>
 	eteq::ETensor<T> future_reward_;
 
 	// === q-value computation ===
 	// weight output to get overall score: shape <noutput, batchsize>
-	eteq::VarptrT<T> output_mask_ = nullptr;
+	eteq::EVariable<T> output_mask_;
 
 	// overall score: shape <noutput>
 	eteq::ETensor<T> score_;

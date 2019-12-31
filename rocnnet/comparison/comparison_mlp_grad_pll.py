@@ -152,8 +152,8 @@ for matrix_dim in matrix_dims:
     expected_out = eteq.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
     err = tc.square(expected_out - out)
 
-    train_input = eteq.Variable([batch_size, n_in])
-    train_output = eteq.Variable([batch_size, n_out])
+    train_input = eteq.EVariable([batch_size, n_in])
+    train_output = eteq.EVariable([batch_size, n_out])
     trainer = layr.sgd_train(brain, sess,
         train_input, train_output, layr.get_sgd(learning_rate))
 

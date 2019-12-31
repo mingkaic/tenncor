@@ -35,15 +35,14 @@ eteq::ELayer<T> dense (teq::Shape inshape, std::vector<teq::DimT> hidden_dims,
 	eigen::PairVecT<teq::RankT> dims = {{0, 1}})
 {
 	eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0, inshape, input_label));
-	teq::TensptrT weight = weight_init(gen_rshape(
+	eteq::EVariable<T> weight = weight_init(gen_rshape(
 		hidden_dims, inshape, dims), weight_label);
-	teq::TensptrT bias;
+	eteq::EVariable<T> bias;
 	if (bias_init)
 	{
 		bias = bias_init(teq::Shape(hidden_dims), bias_label);
 	}
-	auto output = tenncor::layer::dense(input,
-		eteq::ETensor<T>(weight), eteq::ETensor<T>(bias), dims);
+	auto output = tenncor::layer::dense(input, weight, bias, dims);
 	auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
 	return eteq::ELayer<T>(f, input);
 }
@@ -56,11 +55,10 @@ eteq::ELayer<T> conv (std::pair<teq::DimT,teq::DimT> filter_hw,
 	// image must be in form [in, iwidth, iheight, batch]
 	eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0,
 		teq::Shape({in_ncol, filter_hw.second, filter_hw.first, 1}), input_label));
-	teq::TensptrT weight = unif_xavier_init<T>(1)(teq::Shape({out_ncol,
+	eteq::EVariable<T> weight = unif_xavier_init<T>(1)(teq::Shape({out_ncol,
 		in_ncol, filter_hw.second, filter_hw.first}), weight_label);
-	teq::TensptrT bias = zero_init<T>()(teq::Shape({out_ncol}), bias_label);
-	auto output = tenncor::layer::conv(input, eteq::ETensor<T>(weight),
-		eteq::ETensor<T>(bias), zero_padding);
+	eteq::EVariable<T> bias = zero_init<T>()(teq::Shape({out_ncol}), bias_label);
+	auto output = tenncor::layer::conv(input, weight, bias, zero_padding);
 	auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
 	return eteq::ELayer<T>(f, input);
 }
@@ -86,7 +84,7 @@ eteq::ELayer<T> rnn (teq::DimT indim, teq::DimT hidden_dim,
 
 	auto init_state = eteq::make_variable<T>(
 		teq::Shape({hidden_dim}), "init_state");
-	eteq::ETensor<T> state = tenncor::extend_like(eteq::ETensor<T>(init_state),
+	eteq::ETensor<T> state = tenncor::extend_like(init_state,
 		tenncor::slice(input, 0, 1, seq_dim));
 
 	auto output = tenncor::layer::rnn(input, state, cell, seq_dim);
@@ -173,19 +171,18 @@ RBMLayer<T> rbm (teq::DimT nvisible, teq::DimT nhidden,
 		0, teq::Shape({nvisible}), input_label));
 	eteq::ETensor<T> bwdinput(eteq::make_variable_scalar<T>(
 		0, teq::Shape({nhidden}), input_label));
-	teq::TensptrT weight = weight_init(
+	eteq::EVariable<T> weight = weight_init(
 		teq::Shape({nhidden, nvisible}), weight_label);
-	teq::TensptrT hbias;
-	teq::TensptrT vbias;
+	eteq::EVariable<T> hbias;
+	eteq::EVariable<T> vbias;
 	if (bias_init)
 	{
 		hbias = bias_init(teq::Shape({nhidden}), "h" + bias_label);
 		vbias = bias_init(teq::Shape({nvisible}), "v" + bias_label);
 	}
-	auto fwd = tenncor::layer::dense(fwdinput,
-		eteq::ETensor<T>(weight), eteq::ETensor<T>(hbias), {{0, 1}});
-	auto bwd = tenncor::layer::dense(bwdinput,
-		tenncor::transpose(eteq::ETensor<T>(weight)), eteq::ETensor<T>(vbias), {{0, 1}});
+	auto fwd = tenncor::layer::dense(fwdinput, weight, hbias, {{0, 1}});
+	auto bwd = tenncor::layer::dense(
+		bwdinput, tenncor::transpose(weight), vbias, {{0, 1}});
 	auto ffwd = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) fwd);
 	auto fbwd = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) bwd);
 	return RBMLayer<T>{eteq::ELayer<T>(ffwd, fwdinput), eteq::ELayer<T>(fbwd, bwdinput)};

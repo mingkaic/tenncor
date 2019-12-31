@@ -13,6 +13,8 @@
 #include "eigen/generated/dtype.hpp"
 #include "eigen/eigen.hpp"
 
+#include "eteq/variable.hpp"
+
 #ifndef ETEQ_ETENS_HPP
 #define ETEQ_ETENS_HPP
 
@@ -50,6 +52,24 @@ struct ETensor
 
 private:
 	teq::TensptrT tens_;
+};
+
+template <typename T>
+struct EVariable final : public ETensor<T>
+{
+	EVariable (void) = default;
+
+	EVariable (VarptrT<T> vars) : ETensor<T>(vars) {}
+
+	operator VarptrT<T>() const
+	{
+		return std::static_pointer_cast<Variable<T>>(teq::TensptrT(*this));
+	}
+
+	eteq::Variable<T>* operator-> () const
+	{
+		return static_cast<Variable<T>*>(this->get());
+	}
 };
 
 /// Type of typed functor arguments

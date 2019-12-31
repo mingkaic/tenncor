@@ -21,7 +21,7 @@ namespace layr
 {
 
 template <typename T>
-using VarErrT = std::pair<eteq::VarptrT<T>,eteq::ETensor<T>>;
+using VarErrT = std::pair<eteq::EVariable<T>,eteq::ETensor<T>>;
 
 /// Ordered association between variable and error
 template <typename T>
@@ -86,8 +86,8 @@ AssignGroupsT<T> sgd (const VarErrsT<T>& assocs,
 	std::back_inserter(assignments),
 	[&](VarErrT<T> verrs)
 	{
-		return VarAssign<T>{verrs.first, eteq::ETensor<T>(verrs.first) -
-			verrs.second * learning_rate};
+		return VarAssign<T>{verrs.first,
+			verrs.first - verrs.second * learning_rate};
 	});
 	return {assignments};
 }
@@ -105,14 +105,13 @@ AssignGroupsT<T> adagrad (const VarErrsT<T>& assocs,
 	leaves.reserve(nassocs);
 	for (size_t i = 0; i < nassocs; ++i)
 	{
-		eteq::VarptrT<T> momentum = eteq::make_variable_like<T>(
+		eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
 			1, assocs[i].second, "momentum");
 
-		auto next_momentum = eteq::ETensor<T>(momentum) +
+		auto next_momentum = momentum +
 			tenncor::square(assocs[i].second);
-		auto leaf_next = eteq::ETensor<T>(assocs[i].first) -
-			assocs[i].second * learning_rate /
-			(tenncor::sqrt(eteq::ETensor<T>(momentum)) + epsilon);
+		auto leaf_next = assocs[i].first - assocs[i].second * learning_rate /
+			(tenncor::sqrt(momentum) + epsilon);
 		momentums.push_back(VarAssign<T>{momentum, next_momentum});
 		leaves.push_back(VarAssign<T>{assocs[i].first, leaf_next});
 	}
@@ -145,14 +144,13 @@ AssignGroupsT<T> rms_momentum (const VarErrsT<T>& assocs,
 	leaves.reserve(nassocs);
 	for (size_t i = 0; i < nassocs; ++i)
 	{
-		eteq::VarptrT<T> momentum = eteq::make_variable_like<T>(
+		eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
 			1, assocs[i].second, "momentum");
 
-		auto momentum_next = discount_factor * eteq::ETensor<T>(momentum) +
+		auto momentum_next = discount_factor * momentum +
 			((T) 1 - discount_factor) * tenncor::square(assocs[i].second);
-		auto leaf_next = eteq::ETensor<T>(assocs[i].first) -
-			assocs[i].second * learning_rate /
-			(tenncor::sqrt(eteq::ETensor<T>(momentum)) + epsilon);
+		auto leaf_next = assocs[i].first - assocs[i].second * learning_rate /
+			(tenncor::sqrt(momentum) + epsilon);
 		momentums.push_back(VarAssign<T>{momentum, momentum_next});
 		leaves.push_back(VarAssign<T>{assocs[i].first, leaf_next});
 	}

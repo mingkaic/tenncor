@@ -1251,8 +1251,8 @@ api:
           val: |
               //
                   auto trial = ::tenncor::random::rand_unif(
-                      eteq::ETensor<T>(eteq::make_variable_like<T>((T) 0, arg)),
-                      eteq::ETensor<T>(eteq::make_variable_like<T>((T) 1, arg)));
+                      eteq::make_variable_like<T>((T) 0, arg),
+                      eteq::make_variable_like<T>((T) 1, arg));
                   return ::tenncor::lt(trial, arg);
     tenncor::nn:
       - template: typename T

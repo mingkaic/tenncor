@@ -129,7 +129,7 @@ TEST(APPROX, GroupAssign)
 			ASSERT_EQ(1, updated.size());
 			updated_order.push_back(*updated.begin());
 			teq::ShapedArr<PybindT> arr(shape, 2);
-			err->assign(arr);
+			eteq::VarptrT<PybindT>(err)->assign(arr);
 			sess.update(teq::TensSetT(updated_order.begin(),
 				updated_order.end()));
 		});
@@ -190,7 +190,7 @@ TEST(APPROX, PreUpdateGroupAssign)
 		[&](teq::TensSetT& to_update)
 		{
 			teq::ShapedArr<PybindT> arr(shape, 2);
-			err->assign(arr);
+			eteq::VarptrT<PybindT>(err)->assign(arr);
 			ASSERT_EQ(1, to_update.size());
 			sess.update_target(to_update);
 		});

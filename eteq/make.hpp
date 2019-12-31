@@ -13,7 +13,7 @@ namespace eteq
 
 /// Return variable node given scalar and shape
 template <typename T>
-VarptrT<T> make_variable_scalar (T scalar,
+EVariable<T> make_variable_scalar (T scalar,
 	teq::Shape shape, std::string label)
 {
 	if (label.empty())
@@ -21,19 +21,19 @@ VarptrT<T> make_variable_scalar (T scalar,
 		label = fmts::to_string(scalar);
 	}
 	std::vector<T> data(shape.n_elems(), scalar);
-	return VarptrT<T>(Variable<T>::get(data.data(), shape, label));
+	return EVariable<T>(VarptrT<T>(Variable<T>::get(data.data(), shape, label)));
 }
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>
-VarptrT<T> make_variable (teq::Shape shape, std::string label)
+EVariable<T> make_variable (teq::Shape shape, std::string label)
 {
 	return make_variable_scalar<T>(0, shape, label);
 }
 
 /// Return variable node filled with scalar matching link shape
 template <typename T>
-VarptrT<T> make_variable_like (
+EVariable<T> make_variable_like (
 	T scalar, teq::TensptrT like, std::string label)
 {
 	return make_variable_scalar(scalar, like->shape(), label);
@@ -41,9 +41,9 @@ VarptrT<T> make_variable_like (
 
 /// Return variable node given raw array and shape
 template <typename T>
-VarptrT<T> make_variable (T* data, teq::Shape shape, std::string label)
+EVariable<T> make_variable (T* data, teq::Shape shape, std::string label)
 {
-	return VarptrT<T>(Variable<T>::get(data, shape, label));
+	return EVariable<T>(VarptrT<T>(Variable<T>::get(data, shape, label)));
 }
 
 /// Return constant node given scalar and shape

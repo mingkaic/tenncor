@@ -60,25 +60,25 @@ def make_rms_prop(learning_rate, momentum_term, lmbd, eps):
     def rms_prop(grads):
         targets = [target for target, _ in grads]
         gs = [grad for _, grad in grads]
-        momentum = [eteq.variable_like(0, tc.ETensor(target), label='momentum_' + str(target)) for target in targets]
-        mvavg_sqr = [eteq.variable_like(0, tc.ETensor(target), label='mving_avg_' + str(target)) for target in targets]
+        momentum = [eteq.variable_like(0, target, label='momentum_' + str(target)) for target in targets]
+        mvavg_sqr = [eteq.variable_like(0, target, label='mving_avg_' + str(target)) for target in targets]
 
         # group 1
-        momentum_tmp = [tc.ETensor(mom) * momentum_term for mom in momentum]
-        group1 = [layr.VarAssign(target, tc.ETensor(target) + source) for target, source in zip(targets, momentum_tmp)]
+        momentum_tmp = [mom * momentum_term for mom in momentum]
+        group1 = [layr.VarAssign(target, target + source) for target, source in zip(targets, momentum_tmp)]
 
         # group 2
-        group2 = [layr.VarAssign(target, lmbd * tc.ETensor(target) + (1-lmbd) * tc.pow(grad, 2))
+        group2 = [layr.VarAssign(target, lmbd * target + (1-lmbd) * tc.pow(grad, 2))
             for target, grad in zip(mvavg_sqr, gs)]
 
         # group 3
-        pgrad_norm_nodes = [(learning_rate * grad) / (tc.sqrt(tc.ETensor(mvsqr)) + eps)
+        pgrad_norm_nodes = [(learning_rate * grad) / (tc.sqrt(mvsqr) + eps)
             for grad, mvsqr in zip(gs, mvavg_sqr)]
 
         group3 = [layr.VarAssign(target, momentum_tmp_node - pgrad_norm_node)
             for target, momentum_tmp_node, pgrad_norm_node in zip(momentum, momentum_tmp, pgrad_norm_nodes)]
 
-        group3 += [layr.VarAssign(target, tc.ETensor(target) - pgrad_norm) for target, pgrad_norm in zip(targets, pgrad_norm_nodes)]
+        group3 += [layr.VarAssign(target, target - pgrad_norm) for target, pgrad_norm in zip(targets, pgrad_norm_nodes)]
 
         return [group1, group2, group3]
 
@@ -169,10 +169,10 @@ def main(args):
 
     sess = eteq.Session()
 
-    train_invar = eteq.Variable([n_batch, sequence_len, ninput])
-    train_exout = eteq.Variable([n_batch, sequence_len, noutput])
-    tinput = tc.permute(tc.ETensor(train_invar), [0, 2, 1])
-    toutput = tc.permute(tc.ETensor(train_exout), [0, 2, 1])
+    train_invar = eteq.EVariable([n_batch, sequence_len, ninput])
+    train_exout = eteq.EVariable([n_batch, sequence_len, noutput])
+    tinput = tc.permute(train_invar, [0, 2, 1])
+    toutput = tc.permute(train_exout, [0, 2, 1])
 
     error = loss(toutput, model.connect(tinput))
     sess.track([error])
@@ -181,8 +181,8 @@ def main(args):
         make_rms_prop(learning_rate, momentum_term, lmbd, eps),
         err_func=loss)
 
-    test_invar = eteq.Variable([n_test, sequence_len, ninput])
-    tin = tc.permute(tc.ETensor(test_invar), [0, 2, 1])
+    test_invar = eteq.EVariable([n_test, sequence_len, ninput])
+    tin = tc.permute(test_invar, [0, 2, 1])
     untrained_out = tc.round(untrained.connect(tin))
     trained_out = tc.round(model.connect(tin))
     pretrained_out = tc.round(trained.connect(tin))

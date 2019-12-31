@@ -54,9 +54,9 @@ layr::AssignGroupsT<T> bbernoulli_approx (const layr::VarErrsT<T>& assocs,
 
 		auto slist = teq::narrow_shape(err->shape());
 		teq::DimT shape_factor = slist.empty() ? 1 : slist.back();
-		auto momentum_next = discount_factor * eteq::ETensor<T>(momentum) +
+		auto momentum_next = discount_factor * momentum +
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
-		auto leaf_next = eteq::ETensor<T>(assocs[i].first) + momentum_next;
+		auto leaf_next = assocs[i].first + momentum_next;
 		assigns.push_back(layr::VarAssign<T>{momentum, momentum_next});
 		assigns.push_back(layr::VarAssign<T>{assocs[i].first, leaf_next});
 	}

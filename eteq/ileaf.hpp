@@ -11,8 +11,6 @@
 #include "eigen/generated/dtype.hpp"
 #include "eigen/eigen.hpp"
 
-#include "eteq/etens.hpp"
-
 #ifndef ETEQ_ILEAF_HPP
 #define ETEQ_ILEAF_HPP
 

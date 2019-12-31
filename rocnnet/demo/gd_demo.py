@@ -78,14 +78,14 @@ def main(args):
     sess = eteq.Session()
     n_batch = args.n_batch
     show_every_n = 500
-    train_input = eteq.Variable([n_batch, ninput])
-    train_output = eteq.Variable([n_batch, noutput])
+    train_input = eteq.EVariable([n_batch, ninput])
+    train_output = eteq.EVariable([n_batch, noutput])
     train = layr.sgd_train(model, sess,
-        tc.ETensor(train_input), tc.ETensor(train_output),
+        train_input, train_output,
         layr.get_sgd(0.9))
 
-    testin = eteq.Variable([ninput], label='testin')
-    tin = tc.ETensor(testin)
+    testin = eteq.EVariable([ninput], label='testin')
+    tin = testin
     untrained_out = untrained.connect(tin)
     trained_out = model.connect(tin)
     pretrained_out = trained.connect(tin)

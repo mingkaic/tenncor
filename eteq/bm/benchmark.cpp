@@ -58,8 +58,8 @@ static void NAME(benchmark::State& state)\
 		teq::Shape shape = rand_shape(n);\
 		std::vector<double> data = random_data(shape.n_elems(), -35, 35);\
 		std::vector<T> convdata(data.begin(), data.end());\
-		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::ETensor<T> out = FUNC(eteq::ETensor<T>(var));\
+		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
+		eteq::ETensor<T> out = FUNC(var);\
 		teq::Session session;\
 		session.track({out});\
 		state.ResumeTiming();\
@@ -80,8 +80,8 @@ static void NAME(benchmark::State& state)\
 		teq::Shape shape = rand_shape(n);\
 		std::vector<double> data = random_data(shape.n_elems(), 0, 35);\
 		std::vector<T> convdata(data.begin(), data.end());\
-		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::ETensor<T> out = FUNC(eteq::ETensor<T>(var));\
+		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
+		eteq::ETensor<T> out = FUNC(var);\
 		teq::Session session;\
 		session.track({out});\
 		state.ResumeTiming();\
@@ -131,9 +131,9 @@ static void NAME(benchmark::State& state)\
 		std::vector<double> data2 = random_data(shape.n_elems(), 1, 4);\
 		std::vector<T> convdata(data.begin(), data.end());\
 		std::vector<T> convdata2(data2.begin(), data2.end());\
-		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::VarptrT<T> var2 = eteq::make_variable<T>(convdata2.data(), shape, "var2");\
-		eteq::ETensor<T> out = FUNC(eteq::ETensor<T>(var), eteq::ETensor<T>(var2));\
+		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
+		eteq::EVariable<T> var2 = eteq::make_variable<T>(convdata2.data(), shape, "var2");\
+		eteq::ETensor<T> out = FUNC(var, var2);\
 		teq::Session session;\
 		session.track({out});\
 		state.ResumeTiming();\
@@ -189,10 +189,9 @@ static void BM_Matmul(benchmark::State& state)
 		std::vector<double> data2 = random_data(rightshape.n_elems(), -35, 35);
 		std::vector<T> convdata(data.begin(), data.end());
 		std::vector<T> convdata2(data2.begin(), data2.end());
-		eteq::VarptrT<T> var = eteq::make_variable<T>(convdata.data(), leftshape, "var");
-		eteq::VarptrT<T> var2 = eteq::make_variable<T>(convdata2.data(), rightshape, "var2");
-		eteq::ETensor<T> out = tenncor::matmul(
-			eteq::ETensor<T>(var), eteq::ETensor<T>(var2));
+		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), leftshape, "var");
+		eteq::EVariable<T> var2 = eteq::make_variable<T>(convdata2.data(), rightshape, "var2");
+		eteq::ETensor<T> out = tenncor::matmul(var, var2);
 		teq::Session session;
 		session.track({out});
 		state.ResumeTiming();
@@ -223,22 +222,18 @@ static void BM_MatmulComplex(benchmark::State& state)
 	teq::Shape bshape(blist);
 	teq::Shape cshape(clist);
 
-	eteq::VarptrT<int32_t> a = eteq::make_variable<int32_t>(ashape);
-	eteq::VarptrT<int32_t> b = eteq::make_variable<int32_t>(bshape);
-	eteq::VarptrT<int32_t> c = eteq::make_variable<int32_t>(cshape);
+	eteq::EVariable<int32_t> a = eteq::make_variable<int32_t>(ashape);
+	eteq::EVariable<int32_t> b = eteq::make_variable<int32_t>(bshape);
+	eteq::EVariable<int32_t> c = eteq::make_variable<int32_t>(cshape);
 
-	eteq::ETensor<int32_t> atens = eteq::ETensor<int32_t>(a);
-	eteq::ETensor<int32_t> btens = eteq::ETensor<int32_t>(b);
-	eteq::ETensor<int32_t> ctens = eteq::ETensor<int32_t>(c);
-
-	auto d = tenncor::matmul(atens, btens);
-	auto e = tenncor::matmul(ctens, d);
-	auto f = tenncor::matmul(tenncor::transpose(d), tenncor::transpose(ctens));
+	auto d = tenncor::matmul(a, b);
+	auto e = tenncor::matmul(c, d);
+	auto f = tenncor::matmul(tenncor::transpose(d), tenncor::transpose(c));
 	auto dest = tenncor::matmul(e, f);
 
-	eteq::ETensor<int32_t> da = eteq::derive(dest, atens);
-	eteq::ETensor<int32_t> db = eteq::derive(dest, btens);
-	eteq::ETensor<int32_t> dc = eteq::derive(dest, ctens);
+	eteq::ETensor<int32_t> da = eteq::derive(dest, a);
+	eteq::ETensor<int32_t> db = eteq::derive(dest, b);
+	eteq::ETensor<int32_t> dc = eteq::derive(dest, c);
 	teq::Session session;
 	session.track({da, db, dc});
 
@@ -271,36 +266,29 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	teq::Shape bias1_shape({5});
 	teq::Shape out_shape({5,3});
 
-	eteq::VarptrT<double> in = eteq::make_variable<double>(in_shape);
-	eteq::VarptrT<double> weight0 = eteq::make_variable<double>(weight0_shape);
-	eteq::VarptrT<double> bias0 = eteq::make_variable<double>(bias0_shape);
-	eteq::VarptrT<double> weight1 = eteq::make_variable<double>(weight1_shape);
-	eteq::VarptrT<double> bias1 = eteq::make_variable<double>(bias1_shape);
-	eteq::VarptrT<double> out = eteq::make_variable<double>(out_shape);
-
-	eteq::ETensor<double> intens = eteq::ETensor<double>(in);
-	eteq::ETensor<double> weight0tens = eteq::ETensor<double>(weight0);
-	eteq::ETensor<double> bias0tens = eteq::ETensor<double>(bias0);
-	eteq::ETensor<double> weight1tens = eteq::ETensor<double>(weight1);
-	eteq::ETensor<double> bias1tens = eteq::ETensor<double>(bias1);
-	eteq::ETensor<double> outtens = eteq::ETensor<double>(out);
+	eteq::EVariable<double> in = eteq::make_variable<double>(in_shape);
+	eteq::EVariable<double> weight0 = eteq::make_variable<double>(weight0_shape);
+	eteq::EVariable<double> bias0 = eteq::make_variable<double>(bias0_shape);
+	eteq::EVariable<double> weight1 = eteq::make_variable<double>(weight1_shape);
+	eteq::EVariable<double> bias1 = eteq::make_variable<double>(bias1_shape);
+	eteq::EVariable<double> out = eteq::make_variable<double>(out_shape);
 
 	auto layer0 =
-		tenncor::matmul(intens, weight0tens) +
-		tenncor::extend(bias0tens, 1, {3});
+		tenncor::matmul(in, weight0) +
+		tenncor::extend(bias0, 1, {3});
 	auto sig0 = 1. / (1. + tenncor::exp(-layer0));
 
 	auto layer1 =
-		tenncor::matmul(sig0, weight1tens) +
-		tenncor::extend(bias1tens, 1, {3});
+		tenncor::matmul(sig0, weight1) +
+		tenncor::extend(bias1, 1, {3});
 	auto sig1 = 1. / (1. + tenncor::exp(-layer1));
 
-	auto err = tenncor::pow(outtens - sig1, 2.);
+	auto err = tenncor::pow(out - sig1, 2.);
 
-	auto dw0 = eteq::derive(err, weight0tens);
-	auto db0 = eteq::derive(err, bias0tens);
-	auto dw1 = eteq::derive(err, weight1tens);
-	auto db1 = eteq::derive(err, bias1tens);
+	auto dw0 = eteq::derive(err, weight0);
+	auto db0 = eteq::derive(err, bias0);
+	auto dw1 = eteq::derive(err, weight1);
+	auto db1 = eteq::derive(err, bias1);
 	teq::Session session;
 	session.track({dw0, db0, dw1, db1});
 
@@ -339,36 +327,29 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	teq::Shape bias1_shape({5});
 	teq::Shape out_shape({5,3});
 
-	eteq::VarptrT<double> in = eteq::make_variable<double>(in_shape);
-	eteq::VarptrT<double> weight0 = eteq::make_variable<double>(weight0_shape);
-	eteq::VarptrT<double> bias0 = eteq::make_variable<double>(bias0_shape);
-	eteq::VarptrT<double> weight1 = eteq::make_variable<double>(weight1_shape);
-	eteq::VarptrT<double> bias1 = eteq::make_variable<double>(bias1_shape);
-	eteq::VarptrT<double> out = eteq::make_variable<double>(out_shape);
-
-	eteq::ETensor<double> intens = eteq::ETensor<double>(in);
-	eteq::ETensor<double> weight0tens = eteq::ETensor<double>(weight0);
-	eteq::ETensor<double> bias0tens = eteq::ETensor<double>(bias0);
-	eteq::ETensor<double> weight1tens = eteq::ETensor<double>(weight1);
-	eteq::ETensor<double> bias1tens = eteq::ETensor<double>(bias1);
-	eteq::ETensor<double> outtens = eteq::ETensor<double>(out);
+	eteq::EVariable<double> in = eteq::make_variable<double>(in_shape);
+	eteq::EVariable<double> weight0 = eteq::make_variable<double>(weight0_shape);
+	eteq::EVariable<double> bias0 = eteq::make_variable<double>(bias0_shape);
+	eteq::EVariable<double> weight1 = eteq::make_variable<double>(weight1_shape);
+	eteq::EVariable<double> bias1 = eteq::make_variable<double>(bias1_shape);
+	eteq::EVariable<double> out = eteq::make_variable<double>(out_shape);
 
 	auto layer0 =
-		tenncor::matmul(intens, weight0tens) +
-		tenncor::extend(bias0tens, 1, {3});
+		tenncor::matmul(in, weight0) +
+		tenncor::extend(bias0, 1, {3});
 	auto sig0 = tenncor::sigmoid(layer0);
 
 	auto layer1 =
-		tenncor::matmul(sig0, weight1tens) +
-		tenncor::extend(bias1tens, 1, {3});
+		tenncor::matmul(sig0, weight1) +
+		tenncor::extend(bias1, 1, {3});
 	auto sig1 = tenncor::sigmoid(layer1);
 
-	auto err = tenncor::pow(outtens - sig1, 2.);
+	auto err = tenncor::pow(out - sig1, 2.);
 
-	auto dw0 = eteq::derive(err, weight0tens);
-	auto db0 = eteq::derive(err, bias0tens);
-	auto dw1 = eteq::derive(err, weight1tens);
-	auto db1 = eteq::derive(err, bias1tens);
+	auto dw0 = eteq::derive(err, weight0);
+	auto db0 = eteq::derive(err, bias0);
+	auto dw1 = eteq::derive(err, weight1);
+	auto db1 = eteq::derive(err, bias1);
 
 	// optimize
 	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
