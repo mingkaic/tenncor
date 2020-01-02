@@ -10,6 +10,8 @@ P5 = "get to it eventually"
       and eteq extension to change shape according to optimized attributes
    - renable test for duplicate removal optimization filter
 P2 - upgrade layr to allow restructuring recurrent structure sequence length
+   - fix group sum (see derivative issue)
+   - fix gru demo to run optimally
 
 >>> c++20 upgrades >>>
    - replace ManagedJob and Sequence with std::interrupt_token and std::jthread
