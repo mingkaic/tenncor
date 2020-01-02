@@ -115,17 +115,15 @@ def main(args):
     sess = eteq.Session()
 
     sample_inp = eteq.EVariable([1, vocab_size], 0)
-    sample_prob = model.connect(sample_inp)
-    sess.track([sample_prob])
 
-    inps = eteq.EVariable([seq_length, vocab_size], 0)
-    expected_output = eteq.EVariable([seq_length, vocab_size], 0)
+    sample_prob = tc.slice(model.connect(sample_inp), 0, 1, 1)
+    untrained_prob = tc.slice(untrained_model.connect(sample_inp), 0, 1, 1)
+    pretraiend_prob = tc.slice(pretrained_model.connect(sample_inp), 0, 1, 1)
+    sess.track([sample_prob, untrained_prob, pretraiend_prob])
 
-    untrained_prob = untrained_model.connect(sample_inp)
-    pretraiend_prob = pretrained_model.connect(sample_inp)
-    sess.track([untrained_prob, pretraiend_prob])
-
-    trainer = layr.sgd_train(model, sess, inps, expected_output,
+    train_inps = eteq.EVariable([seq_length, vocab_size], 0)
+    train_output = eteq.EVariable([seq_length, vocab_size], 0)
+    trainer = layr.sgd_train(model, sess, train_inps, train_output,
         update=layr.get_adagrad(learning_rate=learning_rate, epsilon=1e-8),
         err_func=encoded_loss)
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
@@ -150,8 +148,8 @@ def main(args):
             print('----\n%s\n----' % (''.join(ix_to_char[ix] for ix in sample_ix)))
 
         # Get gradients for current oldModel based on input and target sequences
-        inps.assign(encoded_inp)
-        expected_output.assign(encoded_out)
+        train_inps.assign(encoded_inp)
+        train_output.assign(encoded_out)
         loss = trainer().as_numpy()
 
         smooth_loss = smooth_loss * 0.999 + loss * 0.001

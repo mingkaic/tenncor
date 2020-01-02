@@ -6,12 +6,10 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - update rocnnet trainer + demos to use new layer
-   - test onnx serialization
-
    - enhance opt to accept and use multi-typed attributes,
       and eteq extension to change shape according to optimized attributes
    - renable test for duplicate removal optimization filter
+P2 - upgrade layr to allow restructuring recurrent structure sequence length
 
 >>> c++20 upgrades >>>
    - replace ManagedJob and Sequence with std::interrupt_token and std::jthread
@@ -58,6 +56,7 @@ P4 - implement reduce_prod gradient using Eigen cumprod
 
 === correction ===
 P2 - full test coverage for tenncor::layer and tenncor::nn namespaces
+P2 - fully test onnx and standard compatibility
 P2 - test opt module against varying graphs
 P2 - reorient tests so that tests cover its own immediate module
 P2 - fix rbm demo converging to infinity problem
