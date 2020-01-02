@@ -5,12 +5,13 @@
 namespace opt
 {
 
-void replace_parents (const teq::ParentFinder& pfinder,
+void replace_parents (teq::ParentFinder& pfinder,
 	teq::TensptrT target, teq::iTensor* source)
 {
 	teq::ParentMapT pmap;
 	if (estd::get(pmap, pfinder.parents_, source))
 	{
+		teq::ParentMapT& tmap = pfinder.parents_[target.get()];
 		for (auto& ppair : pmap)
 		{
 			auto f = static_cast<teq::iFunctor*>(ppair.first);
@@ -18,16 +19,18 @@ void replace_parents (const teq::ParentFinder& pfinder,
 			{
 				f->update_child(target, i);
 			}
+			tmap.emplace(ppair);
 		}
+		pfinder.parents_.erase(source);
 	}
 }
 
-teq::TensptrsT optimize (teq::TensptrsT roots,
+void optimize (teq::TensptrsT& roots,
 	const CversionCtx& opts, const CustomFilters& filters)
 {
 	if (roots.empty())
 	{
-		return roots;
+		return;
 	}
 
 	for (auto& filter : filters.prefilters_)
@@ -152,7 +155,6 @@ teq::TensptrsT optimize (teq::TensptrsT roots,
 	{
 		filter(roots);
 	}
-	return roots;
 }
 
 }

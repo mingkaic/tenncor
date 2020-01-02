@@ -1,7 +1,5 @@
 licenses(["notice"])
 
-load("//third_party/drake_rules:pybind.bzl", "pybind_library")
-
 filegroup(
     name = "srcs",
     srcs = glob(["demo/*.cpp", "demo/*.py"]) + ["BUILD.bazel"],

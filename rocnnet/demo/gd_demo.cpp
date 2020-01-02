@@ -162,8 +162,8 @@ int main (int argc, const char** argv)
 	{
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		eteq::VarptrT<float>(train_input)->assign(batch);
-		eteq::VarptrT<float>(train_output)->assign(batch_out);
+		train_input->assign(batch);
+		train_output->assign(batch_out);
 		auto err = train();
 		if (i % show_every_n == show_every_n - 1)
 		{

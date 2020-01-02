@@ -103,14 +103,14 @@ using CversionsT = std::vector<std::pair<teq::FuncptrT,teq::TensptrT>>;
 /// Replace source tensor's position with target's position
 /// in the sense that all parents of source (found in pfinder)
 /// take on target as the new child in place of source's
-void replace_parents (const teq::ParentFinder& pfinder,
+void replace_parents (teq::ParentFinder& pfinder,
 	teq::TensptrT target, teq::iTensor* source);
 
 /// Return optimized roots where optimization rules are applied to subgraphs
 /// Optimized graph roots are moved back to their corresponding root tensors
 /// Additionally two or more tensors sharing symbolically identical
 /// representations are "joined" (with the exception of tensors in roots set)
-teq::TensptrsT optimize (teq::TensptrsT roots,
+void optimize (teq::TensptrsT& roots,
 	const CversionCtx& opts, const CustomFilters& filters);
 
 }

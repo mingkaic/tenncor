@@ -22,9 +22,6 @@ TEQ_TEST := //teq:test
 
 CC := clang
 
-COVERAGE_PIPE := ./bazel-bin/external/com_github_mingkaic_cppkg/merge_cov $(COVERAGE_INFO_FILE)
-
-TMP_LOGFILE := /tmp/tenncor-test.log
 
 print_vars:
 	@echo "CC: " $(CC)
@@ -115,6 +112,14 @@ gru_model_j2o: models/gru.json
 	mv /tmp/gru.onnx models
 
 
+cov_clean: coverage.info
+	lcov --remove coverage.info $(COVERAGE_IGNORE) -o coverage.info
+	lcov --list coverage.info
+
+cov_genhtml: coverage.info
+	genhtml -o html coverage.info
+
+
 coverage:
 	$(CCOVER) $(TEQ_TEST) $(ONNX_TEST) $(OPT_TEST) $(EIGEN_TEST) $(ETEQ_CTEST) $(CCUR_TEST) $(LAYR_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
@@ -152,25 +157,6 @@ cover_teq:
 	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' -o coverage.info
 
 
-# optimized comparisons
-compare_matmul:
-	bazel run --config $(CC)_eigen_optimal //rocnnet:comparison_matmul
-
-compare_mlp:
-	bazel run --config $(CC)_eigen_optimal //rocnnet:comparison_mlp
-
-compare_mlp_grad:
-	bazel run --config $(CC)_eigen_optimal //rocnnet:comparison_mlp_grad
-
-
-cov_clean: coverage.info
-	lcov --remove coverage.info $(COVERAGE_IGNORE) -o coverage.info
-	lcov --list coverage.info
-
-cov_genhtml: coverage.info
-	genhtml -o html coverage.info
-
-
 lcov: coverage cov_clean
 
 lcov_ccur: cover_ccur cov_clean
@@ -185,9 +171,9 @@ lcov_onnx: cover_onnx cov_clean
 
 lcov_teq: cover_teq cov_clean
 
-.PHONY: print_vars rocnnet_py_build rocnnet_py_export
+
+.PHONY: print_vars rocnnet_py_build rocnnet_py_export cov_clean cov_genhtml
 .PHONY: coverage cover_ccur cover_eigen cover_eteq cover_layr cover_opt cover_onnx cover_teq
-.PHONY: compare_matmul compare_mlp compare_mlp_grad cov_clean cov_genhtml
 .PHONY: lcov lcov_ccur lcov_eteq lcov_layr lcov_opt lcov_onnx lcov_teq
 .PHONY: onnx2json onnx_test_o2j eteq_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
 .PHONY: json2onnx onnx_test_j2o eteq_test_j2o gd_model_j2o rbm_model_j2o dqn_model_j2o dbn_model_j2o rnn_model_j2o lstm_model_j2o gru_model_j2o

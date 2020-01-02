@@ -54,7 +54,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	{
 		auto wunfunc = std::make_shared<MockFunctor>(teq::TensptrsT{var, zero}, teq::Opcode{"POW", 0});
 		auto zrofunc = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"POW", 0});
-		auto opted = opt::optimize({wunfunc, zrofunc}, rules, empty);
+		teq::TensptrsT opted = {wunfunc, zrofunc};
+		opt::optimize(opted, rules, empty);
 		ASSERT_EQ(2, opted.size());
 
 		// expect both optimized wunfunc to be 1
@@ -67,7 +68,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	{
 		auto lvfunc = std::make_shared<MockFunctor>(teq::TensptrsT{var, zero}, teq::Opcode{"ADD", 0});
 		auto rvfunc = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"ADD", 0});
-		auto opted = opt::optimize({lvfunc, rvfunc}, rules, empty);
+		teq::TensptrsT opted = {lvfunc, rvfunc};
+		opt::optimize(opted, rules, empty);
 		ASSERT_EQ(2, opted.size());
 
 		// expect both optimized l and r vfuncs to be var
@@ -79,7 +81,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	{
 		auto lzero = std::make_shared<MockFunctor>(teq::TensptrsT{var, zero}, teq::Opcode{"MUL", 0});
 		auto rzero = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"MUL", 0});
-		auto opted = opt::optimize({lzero, rzero}, rules, empty);
+		teq::TensptrsT opted = {lzero, rzero};
+		opt::optimize(opted, rules, empty);
 		ASSERT_EQ(2, opted.size());
 
 		// expect both optimized l and r zeros to be 0
@@ -91,7 +94,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 	{
 		auto posvar = std::make_shared<MockFunctor>(teq::TensptrsT{var, zero}, teq::Opcode{"SUB", 0});
 		auto negvar = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"SUB", 0});
-		auto opted = opt::optimize({posvar, negvar}, rules, empty);
+		teq::TensptrsT opted = {posvar, negvar};
+		opt::optimize(opted, rules, empty);
 		ASSERT_EQ(2, opted.size());
 
 		// expect optimized posvar to be var
@@ -106,7 +110,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 
 	{
 		auto divz = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"DIV", 0});
-		auto opted = opt::optimize({divz}, rules, empty);
+		teq::TensptrsT opted = {divz};
+		opt::optimize(opted, rules, empty);
 		ASSERT_EQ(1, opted.size());
 
 		// expect optimized divz to be zero
@@ -115,7 +120,8 @@ TEST(OPTIMIZE, PruneZeroSingles)
 
 	{
 		auto no_opt = std::make_shared<MockFunctor>(teq::TensptrsT{zero, var}, teq::Opcode{"MAX", 0});
-		auto opted = opt::optimize({no_opt}, rules, empty);
+		teq::TensptrsT opted = {no_opt};
+		opt::optimize(opted, rules, empty);
 		ASSERT_EQ(1, opted.size());
 
 		// expect optimized not_opt to remain the same
@@ -157,9 +163,10 @@ TEST(OPTIMIZE, PruneZeroGraph)
 	auto nocascades = std::make_shared<MockFunctor>(
 		teq::TensptrsT{nocascades1, got2}, teq::Opcode{"SUB", 0});
 
-	auto opteds = opt::optimize({nocascades}, rules, empty);
-	ASSERT_EQ(1, opteds.size());
-	teq::TensptrT opted = opteds[0];
+	teq::TensptrsT opted = {nocascades};
+	opt::optimize(opted, rules, empty);
+	ASSERT_EQ(1, opted.size());
+	teq::TensptrT o = opted[0];
 	EXPECT_GRAPHEQ(
 		"(SUB[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		" `--(POW[2\\3\\4\\1\\1\\1\\1\\1])\n"
@@ -176,7 +183,7 @@ TEST(OPTIMIZE, PruneZeroGraph)
 		" |       `--(constant:var2[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		" |       `--(NEG[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		" |           `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		" `--(constant:var2[2\\3\\4\\1\\1\\1\\1\\1])\n", opted);
+		" `--(constant:var2[2\\3\\4\\1\\1\\1\\1\\1])\n", o);
 }
 
 
@@ -213,12 +220,13 @@ TEST(OPTIMIZE, PropagateZeroGraph)
 	auto negvar1 = std::make_shared<MockFunctor>(teq::TensptrsT{neg, negvar0}, teq::Opcode{"MAX", 0});
 	auto negvar = std::make_shared<MockFunctor>(teq::TensptrsT{negvar1, var}, teq::Opcode{"SUB", 0});
 
-	auto opteds = opt::optimize({negvar}, rules, preconst);
-	ASSERT_EQ(1, opteds.size());
-	teq::TensptrT opted = opteds[0];
+	teq::TensptrsT opted = {negvar};
+	opt::optimize(opted, rules, preconst);
+	ASSERT_EQ(1, opted.size());
+	teq::TensptrT o = opted[0];
 	EXPECT_GRAPHEQ(
 		"(NEG[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		" `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])\n", opted);
+		" `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])\n", o);
 }
 
 
@@ -234,7 +242,8 @@ TEST(OPTIMIZE, PruneOneSingles)
 	{
 		auto vfunc = std::make_shared<MockFunctor>(teq::TensptrsT{var, one}, teq::Opcode{"POW", 0});
 		auto wunfunc = std::make_shared<MockFunctor>(teq::TensptrsT{one, var}, teq::Opcode{"POW", 0});
-		auto opted = opt::optimize({vfunc, wunfunc}, rules, empty);
+		teq::TensptrsT opted = {vfunc, wunfunc};
+		opt::optimize(opted, rules, empty);
 		ASSERT_EQ(2, opted.size());
 
 		// expect optimized vfunc to be 1
@@ -248,7 +257,8 @@ TEST(OPTIMIZE, PruneOneSingles)
 	{
 		auto lvfunc = std::make_shared<MockFunctor>(teq::TensptrsT{var, one}, teq::Opcode{"MUL", 0});
 		auto rvfunc = std::make_shared<MockFunctor>(teq::TensptrsT{one, var}, teq::Opcode{"MUL", 0});
-		auto opted = opt::optimize({lvfunc, rvfunc}, rules, empty);
+		teq::TensptrsT opted = {lvfunc, rvfunc};
+		opt::optimize(opted, rules, empty);
 		ASSERT_EQ(2, opted.size());
 
 		// expect both optimized l and r vfuncs to be var
@@ -259,7 +269,8 @@ TEST(OPTIMIZE, PruneOneSingles)
 
 	{
 		auto nomer = std::make_shared<MockFunctor>(teq::TensptrsT{var, one}, teq::Opcode{"DIV", 0});
-		auto opted = opt::optimize({nomer}, rules, empty);
+		teq::TensptrsT opted = {nomer};
+		opt::optimize(opted, rules, empty);
 		ASSERT_EQ(1, opted.size());
 
 		// expect optimized nomer to be var
@@ -269,7 +280,8 @@ TEST(OPTIMIZE, PruneOneSingles)
 
 	{
 		auto wun = std::make_shared<MockFunctor>(teq::TensptrsT{var, var}, teq::Opcode{"DIV", 0});
-		auto opted = opt::optimize({wun}, rules, empty);
+		teq::TensptrsT opted = {wun};
+		opt::optimize(opted, rules, empty);
 		ASSERT_EQ(1, opted.size());
 
 		// expect optimized wun to be 1
@@ -278,7 +290,8 @@ TEST(OPTIMIZE, PruneOneSingles)
 
 	{
 		auto no_opt = std::make_shared<MockFunctor>(teq::TensptrsT{one, var}, teq::Opcode{"MAX", 0});
-		auto opted = opt::optimize({no_opt}, rules, empty);
+		teq::TensptrsT opted = {no_opt};
+		opt::optimize(opted, rules, empty);
 		ASSERT_EQ(1, opted.size());
 
 		// expect optimized no_opt to remain the same
@@ -311,9 +324,10 @@ TEST(OPTIMIZE, PruneOneGraph)
 	auto root1 = std::make_shared<MockFunctor>(teq::TensptrsT{m, root0}, teq::Opcode{"POW", 0});
 	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{root1, var}, teq::Opcode{"SUB", 0});
 
-	auto opteds = opt::optimize({root}, rules, empty);
-	ASSERT_EQ(1, opteds.size());
-	teq::TensptrT opted = opteds[0];
+	teq::TensptrsT opted = {root};
+	opt::optimize(opted, rules, empty);
+	ASSERT_EQ(1, opted.size());
+	teq::TensptrT o = opted[0];
 	EXPECT_GRAPHEQ(
 		"(SUB[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		" `--(POW[2\\3\\4\\1\\1\\1\\1\\1])\n"
@@ -329,7 +343,7 @@ TEST(OPTIMIZE, PruneOneGraph)
 		" |       `--(MAX[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		" |           `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		" |           `--(constant:1[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		" `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])", opted);
+		" `--(constant:var[2\\3\\4\\1\\1\\1\\1\\1])", o);
 }
 
 
@@ -367,10 +381,11 @@ TEST(OPTIMIZE, PropagateOneGraph)
 	auto posvar22 = std::make_shared<MockFunctor>(teq::TensptrsT{var, posvar21}, teq::Opcode{"POW", 0});
 	auto posvar2 = std::make_shared<MockFunctor>(teq::TensptrsT{var2, posvar22}, teq::Opcode{"POW", 0});
 
-	auto opteds = opt::optimize({posvar2}, rules, preconst);
-	ASSERT_EQ(1, opteds.size());
-	teq::TensptrT opted = opteds[0];
-	EXPECT_GRAPHEQ("(constant:var2[2\\3\\4\\1\\1\\1\\1\\1])\n", opted);
+	teq::TensptrsT opted = {posvar2};
+	opt::optimize(opted, rules, preconst);
+	ASSERT_EQ(1, opted.size());
+	teq::TensptrT o = opted[0];
+	EXPECT_GRAPHEQ("(constant:var2[2\\3\\4\\1\\1\\1\\1\\1])\n", o);
 }
 
 
@@ -387,10 +402,11 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 		auto rule1 = std::make_shared<MockFunctor>(teq::TensptrsT{var}, teq::Opcode{"REDUCE_SUM", 0});
 		rule1->add_attr("special", std::make_unique<marsh::NumArray<double>>(
 			std::vector<double>{1, 2}));
-		auto opteds = opt::optimize({rule1}, rules, empty);
-		ASSERT_EQ(1, opteds.size());
+		teq::TensptrsT opted = {rule1};
+		opt::optimize(opted, rules, empty);
+		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ("(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
-			opteds[0]);
+			opted[0]);
 	}
 
 	// remove redundent reduced argument for non-empty shape
@@ -398,10 +414,11 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 		auto rule2 = std::make_shared<MockFunctor>(teq::TensptrsT{var}, teq::Opcode{"REDUCE_PROD", 0});
 		rule2->add_attr("special2", std::make_unique<marsh::NumArray<double>>(
 			std::vector<double>{2, 3}));
-		auto opteds = opt::optimize({rule2}, rules, empty);
-		ASSERT_EQ(1, opteds.size());
+		teq::TensptrsT opted = {rule2};
+		opt::optimize(opted, rules, empty);
+		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ("(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
-			opteds[0]);
+			opted[0]);
 	}
 
 	// don't reduce non-redundent reduced argument
@@ -409,12 +426,13 @@ TEST(OPTIMIZE, PruneEdgeSingles)
 		auto not_rule2 = std::make_shared<MockFunctor>(teq::TensptrsT{var}, teq::Opcode{"REDUCE_PROD", 0});
 		not_rule2->add_attr("special2", std::make_unique<marsh::NumArray<double>>(
 			std::vector<double>{2, 1}));
-		auto opteds = opt::optimize({not_rule2}, rules, empty);
-		ASSERT_EQ(1, opteds.size());
+		teq::TensptrsT opted = {not_rule2};
+		opt::optimize(opted, rules, empty);
+		ASSERT_EQ(1, opted.size());
 		EXPECT_GRAPHEQ(
 			"(REDUCE_PROD[2\\3\\4\\1\\1\\1\\1\\1])\n"
 			" `--(constant:special_var[2\\3\\4\\1\\1\\1\\1\\1])",
-			opteds[0]);
+			opted[0]);
 	}
 }
 
@@ -452,9 +470,10 @@ TEST(OPTIMIZE, PruneOpGraph)
 	auto to_opt1 = std::make_shared<MockFunctor>(teq::TensptrsT{m, to_opt0}, teq::Opcode{"MIN", 0});
 	auto to_opt = std::make_shared<MockFunctor>(teq::TensptrsT{to_opt1, got2}, teq::Opcode{"SUB", 0});
 
-	auto opteds = opt::optimize({to_opt}, rules, empty);
-	ASSERT_EQ(1, opteds.size());
-	auto root = opteds[0];
+	teq::TensptrsT opted = {to_opt};
+	opt::optimize(opted, rules, empty);
+	ASSERT_EQ(1, opted.size());
+	auto root = opted[0];
 
 	EXPECT_GRAPHEQ(
 		"(SUB[2\\3\\4\\1\\1\\1\\1\\1])\n"
@@ -518,9 +537,10 @@ TEST(OPTIMIZE, NearMatch)
 	auto oneadd = std::make_shared<MockFunctor>(teq::TensptrsT{one, envar}, teq::Opcode{"ADD", 0});
 	auto sigmoid = std::make_shared<MockFunctor>(teq::TensptrsT{one, oneadd}, teq::Opcode{"DIV", 0});
 
-	auto opteds = opt::optimize({sigmoid}, rules, empty);
-	ASSERT_EQ(1, opteds.size());
-	auto root = opteds[0];
+	teq::TensptrsT opted = {sigmoid};
+	opt::optimize(opted, rules, empty);
+	ASSERT_EQ(1, opted.size());
+	auto root = opted[0];
 
 	EXPECT_GRAPHEQ(
 		"(DIV[2\\3\\4\\1\\1\\1\\1\\1])\n"

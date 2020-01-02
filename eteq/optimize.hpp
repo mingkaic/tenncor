@@ -188,7 +188,17 @@ private:
 		{
 			if (auto value = func.get_attr(key))
 			{
-				attrs.emplace(key, value->to_string());
+				if (auto tref = dynamic_cast<const teq::TensorRef*>(value))
+				{
+					auto ref = tref->get_tensor();
+					ref->accept(*this);
+					attrs.emplace(key, boost::uuids::to_string(
+						hashes_.at(ref.get())));
+				}
+				else
+				{
+					attrs.emplace(key, value->to_string());
+				}
 			}
 		}
 		encode_label(&func, func.shape().to_string() + "|" +
@@ -257,8 +267,7 @@ void constant_funcs (teq::TensptrsT& roots)
 }
 
 template <typename T>
-teq::TensptrsT optimize (teq::TensptrsT roots,
-	const opt::CversionCtx& opts)
+void optimize (teq::TensptrsT& roots, const opt::CversionCtx& opts)
 {
 	opt::CustomFilters filters;
 	filters.prefilters_.push_back(remove_duplicates<T>);
@@ -268,7 +277,7 @@ teq::TensptrsT optimize (teq::TensptrsT roots,
 		filters.prenode_filters_.push_back(constant_func<T>);
 		filters.postfilters_.push_back(remove_duplicates<T>);
 	}
-	return opt::optimize(roots, opts, filters);
+	opt::optimize(roots, opts, filters);
 }
 
 /// Apply optimization to graph roots tracked by session

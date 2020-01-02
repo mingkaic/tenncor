@@ -107,7 +107,7 @@ PYBIND11_MODULE(eteq, m)
 			{
 				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
-				eteq::VarptrT<PybindT>(self)->assign(arr);
+				self->assign(arr);
 			},
 			"Assign numpy data array to variable");
 

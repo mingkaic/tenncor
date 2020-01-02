@@ -57,12 +57,12 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		112505257984, 278567649280,
 	};
 
-	eteq::ETensor<float> a = eteq::ETensor<float>(
-		eteq::make_variable<float>(data.data(), ashape));
-	eteq::ETensor<float> b = eteq::ETensor<float>(
-		eteq::make_variable<float>(data2.data(), bshape));
-	eteq::ETensor<float> c = eteq::ETensor<float>(
-		eteq::make_variable<float>(data3.data(), cshape));
+	eteq::EVariable<float> a =
+		eteq::make_variable<float>(data.data(), ashape);
+	eteq::EVariable<float> b =
+		eteq::make_variable<float>(data2.data(), bshape);
+	eteq::EVariable<float> c =
+		eteq::make_variable<float>(data3.data(), cshape);
 
 	auto d = tenncor::matmul(a, b);
 	auto e = tenncor::matmul(c, d);
@@ -262,18 +262,18 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		0.0083642760546029649, 0.055794840260731907, 0.013998520595663564, 0.07944113167106924, 0.012580279526871407,
 	};
 
-	eteq::ETensor<double> in = eteq::ETensor<double>(
-		eteq::make_variable<double>(in_data.data(), in_shape));
-	eteq::ETensor<double> weight0 = eteq::ETensor<double>(
-		eteq::make_variable<double>(w0_data.data(), weight0_shape));
-	eteq::ETensor<double> bias0 = eteq::ETensor<double>(
-		eteq::make_variable<double>(b0_data.data(), bias0_shape));
-	eteq::ETensor<double> weight1 = eteq::ETensor<double>(
-		eteq::make_variable<double>(w1_data.data(), weight1_shape));
-	eteq::ETensor<double> bias1 = eteq::ETensor<double>(
-		eteq::make_variable<double>(b1_data.data(), bias1_shape));
-	eteq::ETensor<double> out = eteq::ETensor<double>(
-		eteq::make_variable<double>(out_data.data(), out_shape));
+	eteq::EVariable<double> in =
+		eteq::make_variable<double>(in_data.data(), in_shape);
+	eteq::EVariable<double> weight0 =
+		eteq::make_variable<double>(w0_data.data(), weight0_shape);
+	eteq::EVariable<double> bias0 =
+		eteq::make_variable<double>(b0_data.data(), bias0_shape);
+	eteq::EVariable<double> weight1 =
+		eteq::make_variable<double>(w1_data.data(), weight1_shape);
+	eteq::EVariable<double> bias1 =
+		eteq::make_variable<double>(b1_data.data(), bias1_shape);
+	eteq::EVariable<double> out =
+		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	auto layer0 = tenncor::matmul(in, weight0) + tenncor::extend(bias0, 1, {3});
 	auto sig0 = 1. / (1. + tenncor::exp(-layer0));
@@ -484,18 +484,18 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		0.0083642760546030238, 0.055794840260732122, 0.013998520595663699, 0.079441131671069379, 0.012580279526871282,
 	};
 
-	eteq::ETensor<double> in = eteq::ETensor<double>(
-		eteq::make_variable<double>(in_data.data(), in_shape));
-	eteq::ETensor<double> weight0 = eteq::ETensor<double>(
-		eteq::make_variable<double>(w0_data.data(), weight0_shape));
-	eteq::ETensor<double> bias0 = eteq::ETensor<double>(
-		eteq::make_variable<double>(b0_data.data(), bias0_shape));
-	eteq::ETensor<double> weight1 = eteq::ETensor<double>(
-		eteq::make_variable<double>(w1_data.data(), weight1_shape));
-	eteq::ETensor<double> bias1 = eteq::ETensor<double>(
-		eteq::make_variable<double>(b1_data.data(), bias1_shape));
-	eteq::ETensor<double> out = eteq::ETensor<double>(
-		eteq::make_variable<double>(out_data.data(), out_shape));
+	eteq::EVariable<double> in =
+		eteq::make_variable<double>(in_data.data(), in_shape);
+	eteq::EVariable<double> weight0 =
+		eteq::make_variable<double>(w0_data.data(), weight0_shape);
+	eteq::EVariable<double> bias0 =
+		eteq::make_variable<double>(b0_data.data(), bias0_shape);
+	eteq::EVariable<double> weight1 =
+		eteq::make_variable<double>(w1_data.data(), weight1_shape);
+	eteq::EVariable<double> bias1 =
+		eteq::make_variable<double>(b1_data.data(), bias1_shape);
+	eteq::EVariable<double> out =
+		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	auto layer0 = tenncor::matmul(in, weight0) + tenncor::extend(bias0, 1, {3});
 	auto sig0 = tenncor::sigmoid(layer0);
@@ -568,12 +568,12 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 	teq::Shape weight_shape({5, 10});
 	teq::Shape bias_shape({5});
 	teq::Shape state_shape({5});
-	teq::Shape out_shape({5,3});
+	teq::Shape out_shape({5, 3});
 
 	std::vector<double> in_data = {
 		0.8575073725, 0.0910915775, 0.9133499042, 0.0660953837, 0.2419061306,
 		0.3696410139, 0.4013100896, 0.5172528430, 0.1323293907, 0.4278464745,
-		0.0410668952, 0.1652450001, 0.4190357348, 0.2008750679, 0.5067047954
+		0.0410668952, 0.1652450001, 0.4190357348, 0.2008750679, 0.5067047954,
 	};
 	std::vector<double> weight_data = {
 		0.1613409462, 0.9457144276, 0.9495257985, 0.2793930966, 0.2723075870,
@@ -617,20 +617,20 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 		0.037213495617765324, 0.19248718495392608, 0.13617200776678728, 0.11084523350674103, 0.081535346039776163
 	};
 
-	eteq::ETensor<double> in = eteq::ETensor<double>(
-		eteq::make_variable<double>(in_data.data(), in_shape));
-	eteq::ETensor<double> weight = eteq::ETensor<double>(
-		eteq::make_variable<double>(weight_data.data(), weight_shape));
-	eteq::ETensor<double> bias = eteq::ETensor<double>(
-		eteq::make_variable<double>(bias_data.data(), bias_shape));
-	eteq::ETensor<double> istate = eteq::ETensor<double>(
-		eteq::make_variable<double>(state_data.data(), state_shape));
-	eteq::ETensor<double> out = eteq::ETensor<double>(
-		eteq::make_variable<double>(out_data.data(), out_shape));
+	eteq::EVariable<double> in =
+		eteq::make_variable<double>(in_data.data(), in_shape);
+	eteq::EVariable<double> weight =
+		eteq::make_variable<double>(weight_data.data(), weight_shape);
+	eteq::EVariable<double> bias =
+		eteq::make_variable<double>(bias_data.data(), bias_shape);
+	eteq::EVariable<double> istate =
+		eteq::make_variable<double>(state_data.data(), state_shape);
+	eteq::EVariable<double> out =
+		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	teq::RankT seq_dim = 1;
 	size_t nseq = in->shape().at(seq_dim);
-	auto state = istate;
+	eteq::ETensor<double> state = istate;
 	std::vector<eteq::ETensor<double>> states;
 	for (size_t i = 0; i < nseq; ++i)
 	{
@@ -745,16 +745,16 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		0.037213495617765324, 0.19248718495392608, 0.13617200776678728, 0.11084523350674103, 0.081535346039776163,
 	};
 
-	eteq::ETensor<double> in = eteq::ETensor<double>(
-		eteq::make_variable<double>(in_data.data(), in_shape));
-	eteq::ETensor<double> weight = eteq::ETensor<double>(
-		eteq::make_variable<double>(weight_data.data(), weight_shape));
-	eteq::ETensor<double> bias = eteq::ETensor<double>(
-		eteq::make_variable<double>(bias_data.data(), bias_shape));
-	eteq::ETensor<double> istate = eteq::ETensor<double>(
-		eteq::make_variable<double>(state_data.data(), state_shape));
-	eteq::ETensor<double> out = eteq::ETensor<double>(
-		eteq::make_variable<double>(out_data.data(), out_shape));
+	eteq::EVariable<double> in =
+		eteq::make_variable<double>(in_data.data(), in_shape);
+	eteq::EVariable<double> weight =
+		eteq::make_variable<double>(weight_data.data(), weight_shape);
+	eteq::EVariable<double> bias =
+		eteq::make_variable<double>(bias_data.data(), bias_shape);
+	eteq::EVariable<double> istate =
+		eteq::make_variable<double>(state_data.data(), state_shape);
+	eteq::EVariable<double> out =
+		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
@@ -870,16 +870,16 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		0.037213495617765324, 0.19248718495392608, 0.13617200776678728, 0.11084523350674103, 0.081535346039776163,
 	};
 
-	eteq::ETensor<double> in = eteq::ETensor<double>(
-		eteq::make_variable<double>(in_data.data(), in_shape));
-	eteq::ETensor<double> weight = eteq::ETensor<double>(
-		eteq::make_variable<double>(weight_data.data(), weight_shape));
-	eteq::ETensor<double> bias = eteq::ETensor<double>(
-		eteq::make_variable<double>(bias_data.data(), bias_shape));
-	eteq::ETensor<double> istate = eteq::ETensor<double>(
-		eteq::make_variable<double>(state_data.data(), state_shape));
-	eteq::ETensor<double> out = eteq::ETensor<double>(
-		eteq::make_variable<double>(out_data.data(), out_shape));
+	eteq::EVariable<double> in =
+		eteq::make_variable<double>(in_data.data(), in_shape);
+	eteq::EVariable<double> weight =
+		eteq::make_variable<double>(weight_data.data(), weight_shape);
+	eteq::EVariable<double> bias =
+		eteq::make_variable<double>(bias_data.data(), bias_shape);
+	eteq::EVariable<double> istate =
+		eteq::make_variable<double>(state_data.data(), state_shape);
+	eteq::EVariable<double> out =
+		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
