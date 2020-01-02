@@ -982,11 +982,11 @@ TEST(EQUATION, TanhRNNLayerConnect)
 
 TEST(EQUATION, OptimizedMatmulComplex)
 {
-	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
+	auto rules = eteq::parse_file<float>("cfg/optimizations.rules");
 	matmul_complex(
 		[&rules](teq::TensptrsT roots)
 		{
-			eteq::optimize<double>(roots, rules);
+			eteq::optimize<float>(roots, rules);
 		});
 }
 
