@@ -8,25 +8,26 @@
 
 #include "teq/session.hpp"
 
+#include "utils/coord.hpp"
+
 #include "eteq/generated/api.hpp"
-#include "eteq/constant.hpp"
-#include "eteq/variable.hpp"
-#include "eteq/grader.hpp"
+#include "eteq/make.hpp"
+#include "eteq/derive.hpp"
 
 
 using UnaryDblF = std::function<double(double)>;
 
 template <typename T>
-using UnaryOpF = std::function<eteq::NodeptrT<T>(eteq::NodeptrT<T>&)>;
+using UnaryOpF = std::function<eteq::ETensor<T>(eteq::ETensor<T>&)>;
 
 template <typename T>
-using BinaryOpF = std::function<eteq::NodeptrT<T>(eteq::NodeptrT<T>&,eteq::NodeptrT<T>&)>;
+using BinaryOpF = std::function<eteq::ETensor<T>(eteq::ETensor<T>&,eteq::ETensor<T>&)>;
 
 template <typename T>
-using LhsBinaryOpF = std::function<eteq::NodeptrT<T>(eteq::NodeptrT<T>&,T&)>;
+using LhsBinaryOpF = std::function<eteq::ETensor<T>(eteq::ETensor<T>&,T&)>;
 
 template <typename T>
-using RhsBinaryOpF = std::function<eteq::NodeptrT<T>(T&,eteq::NodeptrT<T>&)>;
+using RhsBinaryOpF = std::function<eteq::ETensor<T>(T&,eteq::ETensor<T>&)>;
 
 template <typename T>
 using BinaryFwdF = std::function<T(T,T)>;
@@ -39,7 +40,7 @@ using MatVecT = std::vector<std::vector<int32_t>>;
 static const int FREIVALD_N = 10;
 
 
-static MatVecT create_2d (eteq::NodeptrT<int32_t> data,
+static MatVecT create_2d (eteq::ETensor<int32_t> data,
 	std::pair<teq::RankT,teq::RankT> dims = {0, 1})
 {
 	int32_t* ptr = (int32_t*) data->data();
@@ -78,7 +79,7 @@ static bool freivald (MatVecT a, MatVecT b, MatVecT c)
 		// generate r of len b[0].size() or c[0].size()
 		std::vector<int32_t> r(bdim);
 		std::uniform_int_distribution<int> dist{0, 1};
-		std::generate(r.begin(), r.end(), [&]() { return dist(eigen::get_engine()); });
+		std::generate(r.begin(), r.end(), [&] { return dist(eigen::get_engine()); });
 
 		// p = matmul(a, matmul(b, r)) - matmul(c, r)
 		std::vector<int32_t> br; // matmul(b, r)
@@ -130,30 +131,32 @@ static bool freivald (MatVecT a, MatVecT b, MatVecT c)
 
 
 static void unary_generic (UnaryOpF<double> op,
-	std::function<void(eteq::NodeptrT<double>,teq::Shape&,std::vector<double>&)> verify,
+	std::function<void(eteq::ETensor<double>,teq::Shape&,std::vector<double>&)> verify,
 	std::function<void(double*,std::vector<double>&)> bwverify)
 {
-	std::vector<teq::DimT> slist = {2, 3, 4};
-	teq::Shape shape(slist);
+	teq::Shape shape({2, 3, 4});
 	std::vector<double> data = {
 		22, 15, 74, 38, 61, 95, 62, 81, 99, 76, 7, 22,
 		56, 50, 19, 13, 12, 10, 31, 40, 60, 54, 6, 83
 	};
 
-	eteq::NodeptrT<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::NodeptrT<double> dest = op(src);
+	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> dest = op(src);
 
-	dest->update();
+	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
+	{
+		dtens->calc();
+	}
 	verify(dest, shape, data);
 
 	teq::Session session;
 
-	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
-	session.track({gsrc->get_tensor()});
+	eteq::ETensor<double> gsrc = eteq::derive(dest, src);
+	session.track({gsrc});
 	session.update();
 
 	auto gotshape = gsrc->shape();
-	ASSERT_ARREQ(slist, gotshape);
+	ASSERT_ARREQ(shape, gotshape);
 	double* goptr = (double*) gsrc->data();
 	bwverify(goptr, data);
 }
@@ -167,13 +170,15 @@ static void unar_elem (std::vector<double> data,
 	teq::NElemT n = shape.n_elems();
 	assert(data.size() == n);
 
-	eteq::NodeptrT<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::NodeptrT<double> dest = op(src);
+	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> dest = op(src);
 
-	dest->update();
+	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
+	ASSERT_NE(nullptr, dtens);
+	dtens->calc();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* optr = (double*) dest->data();
 	for (size_t i = 0; i < n; ++i)
@@ -183,13 +188,13 @@ static void unar_elem (std::vector<double> data,
 
 	teq::Session session;
 
-	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
+	eteq::ETensor<double> gsrc = eteq::derive(dest, src);
 
-	session.track({gsrc->get_tensor()});
+	session.track({gsrc});
 	session.update();
 	{
 		auto gotshape = gsrc->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsrc->data();
 	for (size_t i = 0; i < n; ++i)
@@ -231,16 +236,18 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	assert(data.size() == n);
 	assert(data2.size() == n);
 
-	eteq::NodeptrT<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::NodeptrT<double> src2 = eteq::make_constant<double>(data2.data(), shape);
-	eteq::NodeptrT<double> dest = op(src, src2);
-	eteq::NodeptrT<double> clhs = lhs_op(src, cst);
-	eteq::NodeptrT<double> crhs = rhs_op(cst, src2);
+	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> src2 = eteq::make_constant<double>(data2.data(), shape);
+	eteq::ETensor<double> dest = op(src, src2);
+	eteq::ETensor<double> clhs = lhs_op(src, cst);
+	eteq::ETensor<double> crhs = rhs_op(cst, src2);
 
-	dest->update();
+	teq::Session session;
+	session.track({dest});
+	session.update();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* optr = (double*) dest->data();
 	for (size_t i = 0; i < n; ++i)
@@ -248,15 +255,15 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(fwd(data[i], data2[i]), optr[i]);
 	}
 
-	clhs->update();
-	crhs->update();
+	session.track({clhs, crhs});
+	session.update();
 	{
 		auto gotshape = clhs->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	{
 		auto gotshape = crhs->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* lptr = (double*) clhs->data();
 	for (size_t i = 0; i < n; ++i)
@@ -269,15 +276,13 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
 
-	teq::Session session;
-
-	eteq::NodeptrT<double> dest2 = op(src, src);
-	eteq::NodeptrT<double> gsame = eteq::derive(dest2, src);
-	session.track({gsame->get_tensor()});
+	eteq::ETensor<double> dest2 = op(src, src);
+	eteq::ETensor<double> gsame = eteq::derive(dest2, src);
+	session.track({gsame});
 	session.update();
 	{
 		auto gotshape = gsame->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsame->data();
 	for (size_t i = 0; i < n; ++i)
@@ -285,12 +290,12 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1., 1.), goptr[i]);
 	}
 
-	eteq::NodeptrT<double> gleft = eteq::derive(dest, src);
-	session.track({gleft->get_tensor()});
+	eteq::ETensor<double> gleft = eteq::derive(dest, src);
+	session.track({gleft});
 	session.update();
 	{
 		auto gotshape = gleft->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr2 = (double*) gleft->data();
 	for (size_t i = 0; i < n; ++i)
@@ -298,12 +303,12 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 1., 0.), goptr2[i]);
 	}
 
-	eteq::NodeptrT<double> gright = eteq::derive(dest, src2);
-	session.track({gright->get_tensor()});
+	eteq::ETensor<double> gright = eteq::derive(dest, src2);
+	session.track({gright});
 	session.update();
 	{
 		auto gotshape = gright->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr3 = (double*) gright->data();
 	for (size_t i = 0; i < n; ++i)
@@ -359,16 +364,18 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	teq::Shape shape(shape_list);
 	teq::NElemT n = shape.n_elems();
 
-	eteq::NodeptrT<int32_t> src = eteq::make_constant<int32_t>(data.data(), shape);
-	eteq::NodeptrT<int32_t> src2 = eteq::make_constant<int32_t>(data2.data(), shape);
-	eteq::NodeptrT<int32_t> dest = op(src, src2);
-	eteq::NodeptrT<int32_t> clhs = lhs_op(src, cst);
-	eteq::NodeptrT<int32_t> crhs = rhs_op(cst, src2);
+	eteq::ETensor<int32_t> src = eteq::make_constant<int32_t>(data.data(), shape);
+	eteq::ETensor<int32_t> src2 = eteq::make_constant<int32_t>(data2.data(), shape);
+	eteq::ETensor<int32_t> dest = op(src, src2);
+	eteq::ETensor<int32_t> clhs = lhs_op(src, cst);
+	eteq::ETensor<int32_t> crhs = rhs_op(cst, src2);
 
-	dest->update();
+	teq::Session session;
+	session.track({dest});
+	session.update();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* optr = (int32_t*) dest->data();
 	for (size_t i = 0; i < n; ++i)
@@ -376,15 +383,15 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(fwd(data[i], data2[i]), optr[i]);
 	}
 
-	clhs->update();
-	crhs->update();
+	session.track({clhs, crhs});
+	session.update();
 	{
 		auto gotshape = clhs->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	{
 		auto gotshape = crhs->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* lptr = (int32_t*) clhs->data();
 	for (size_t i = 0; i < n; ++i)
@@ -397,15 +404,13 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
 
-	teq::Session session;
-
-	eteq::NodeptrT<int32_t> dest2 = op(src, src);
-	eteq::NodeptrT<int32_t> gsame = eteq::derive(dest2, src);
-	session.track({gsame->get_tensor()});
+	eteq::ETensor<int32_t> dest2 = op(src, src);
+	eteq::ETensor<int32_t> gsame = eteq::derive(dest2, src);
+	session.track({gsame});
 	session.update();
 	{
 		auto gotshape = gsame->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* goptr = (int32_t*) gsame->data();
 	for (size_t i = 0; i < n; ++i)
@@ -413,12 +418,12 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(bwd(data[i], data[i], 1., 1.), goptr[i]);
 	}
 
-	eteq::NodeptrT<int32_t> gleft = eteq::derive(dest, src);
-	session.track({gleft->get_tensor()});
+	eteq::ETensor<int32_t> gleft = eteq::derive(dest, src);
+	session.track({gleft});
 	session.update();
 	{
 		auto gotshape = gleft->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* goptr2 = (int32_t*) gleft->data();
 	for (size_t i = 0; i < n; ++i)
@@ -426,12 +431,12 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(bwd(data[i], data2[i], 1., 0.), goptr2[i]);
 	}
 
-	eteq::NodeptrT<int32_t> gright = eteq::derive(dest, src2);
-	session.track({gright->get_tensor()});
+	eteq::ETensor<int32_t> gright = eteq::derive(dest, src2);
+	session.track({gright});
 	session.update();
 	{
 		auto gotshape = gright->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	int32_t* goptr3 = (int32_t*) gright->data();
 	for (size_t i = 0; i < n; ++i)
@@ -475,10 +480,60 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 }
 
 
+static void nnary_elementary (std::vector<std::vector<double>> datas,
+	std::vector<teq::DimT> shape_list,
+	std::function<double(size_t)> calc_expect,
+	std::function<double(size_t,size_t)> calc_grad)
+{
+	teq::Shape shape(shape_list);
+	teq::NElemT n = shape.n_elems();
+
+	eteq::ETensorsT<double> srcs;
+	for (auto& data : datas)
+	{
+		assert(data.size() == n);
+		srcs.push_back(eteq::make_constant<double>(data.data(), shape));
+	}
+	eteq::ETensor<double> dest = tenncor::sum(srcs);
+
+	teq::Session session;
+
+	session.track({dest});
+	session.update();
+	{
+		auto gotshape = dest->shape();
+		ASSERT_ARREQ(shape, gotshape);
+	}
+	double* optr = (double*) dest->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		double expect = calc_expect(i);
+		EXPECT_DOUBLE_EQ(expect, optr[i]);
+	}
+
+	for (size_t i = 0, m = datas.size(); i < m; ++i)
+	{
+		eteq::ETensor<double> gsrc = eteq::derive(dest, srcs[i]);
+		session.track({gsrc});
+		session.update();
+		{
+			auto gotshape = gsrc->shape();
+			ASSERT_ARREQ(shape, gotshape);
+		}
+		double* goptr = (double*) gsrc->data();
+		for (size_t j = 0; j < n; ++j)
+		{
+			double expect = calc_grad(i, j);
+			EXPECT_DOUBLE_EQ(expect, goptr[j]);
+		}
+	}
+}
+
+
 TEST(API, Abs)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::abs(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::abs(a); },
 		[](double d) { return std::abs(d); },
 		[](double d) { return d / std::abs(d); });
 }
@@ -489,10 +544,10 @@ TEST(API, Neg)
 	auto fwd = [](double d) { return -d; };
 	auto bwd = [](double d) { return -1.; };
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::neg(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::neg(a); },
 		fwd, bwd);
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return -a; },
+		[](eteq::ETensor<double>& a) { return -a; },
 		fwd, bwd);
 }
 
@@ -500,7 +555,7 @@ TEST(API, Neg)
 TEST(API, Sin)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::sin(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::sin(a); },
 		[](double d) { return std::sin(d); },
 		[](double d) { return std::cos(d); });
 }
@@ -509,7 +564,7 @@ TEST(API, Sin)
 TEST(API, Cos)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::cos(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::cos(a); },
 		[](double d) { return std::cos(d); },
 		[](double d) { return -std::sin(d); });
 }
@@ -518,7 +573,7 @@ TEST(API, Cos)
 TEST(API, Tan)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::tan(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::tan(a); },
 		[](double d) { return std::tan(d); },
 		[](double d) {
 			double denom = std::cos(d);
@@ -530,7 +585,7 @@ TEST(API, Tan)
 TEST(API, Exp)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::exp(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::exp(a); },
 		[](double d) { return std::exp(d); },
 		[](double d) { return std::exp(d); });
 }
@@ -539,7 +594,7 @@ TEST(API, Exp)
 TEST(API, Log)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::log(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::log(a); },
 		[](double d) { return std::log(d); },
 		[](double d) { return 1. / d; });
 }
@@ -548,7 +603,7 @@ TEST(API, Log)
 TEST(API, Sqrt)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::sqrt(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::sqrt(a); },
 		[](double d) { return std::sqrt(d); },
 		[](double d) { return 1. / (2 * std::sqrt(d)); });
 }
@@ -557,7 +612,7 @@ TEST(API, Sqrt)
 TEST(API, Round)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::round(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::round(a); },
 		[](double d) { return std::round(d); },
 		[](double d) { return 1.; });
 }
@@ -566,7 +621,7 @@ TEST(API, Round)
 TEST(API, Sigmoid)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::sigmoid(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::sigmoid(a); },
 		[](double d) { return 1 / (1 + std::exp(-d)); },
 		[](double d)
 		{
@@ -579,7 +634,7 @@ TEST(API, Sigmoid)
 TEST(API, Tanh)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::tanh(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::tanh(a); },
 		[](double d)
 		{
 			double e2d = std::exp(2 * d);
@@ -597,7 +652,7 @@ TEST(API, Tanh)
 TEST(API, Square)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::square(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::square(a); },
 		[](double d) { return d * d; },
 		[](double d) { return 2 * d; });
 }
@@ -606,7 +661,7 @@ TEST(API, Square)
 TEST(API, Cube)
 {
 	unary_elementary(
-		[](eteq::NodeptrT<double>& a) { return tenncor::cube(a); },
+		[](eteq::ETensor<double>& a) { return tenncor::cube(a); },
 		[](double d) { return d * d * d; },
 		[](double d) { return 3 * d * d; });
 }
@@ -615,11 +670,11 @@ TEST(API, Cube)
 TEST(API, Pow)
 {
 	binary_elementary(
-		[](eteq::NodeptrT<double>& a, eteq::NodeptrT<double>& b)
+		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
 		{ return tenncor::pow(a, b); },
-		[](eteq::NodeptrT<double>& a, double& b)
+		[](eteq::ETensor<double>& a, double& b)
 		{ return tenncor::pow(a, b); },
-		[](double& a, eteq::NodeptrT<double>& b)
+		[](double& a, eteq::ETensor<double>& b)
 		{ return tenncor::pow(a, b); },
 		[](double a, double b) { return std::pow(a, b); },
 		[](double a, double b, double leftg, double rightg)
@@ -636,19 +691,19 @@ TEST(API, Add)
 	auto bwd = [](double a, double b, double leftg, double rightg)
 		{ return leftg + rightg; };
 	binary_elementary(
-		[](eteq::NodeptrT<double>& a, eteq::NodeptrT<double>& b)
+		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
 		{ return tenncor::add(a, b); },
-		[](eteq::NodeptrT<double>& a, double& b)
+		[](eteq::ETensor<double>& a, double& b)
 		{ return tenncor::add(a, b); },
-		[](double& a, eteq::NodeptrT<double>& b)
+		[](double& a, eteq::ETensor<double>& b)
 		{ return tenncor::add(a, b); },
 		fwd, bwd);
 	binary_elementary(
-		[](eteq::NodeptrT<double>& a, eteq::NodeptrT<double>& b)
+		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
 		{ return a + b; },
-		[](eteq::NodeptrT<double>& a, double& b)
+		[](eteq::ETensor<double>& a, double& b)
 		{ return a + b; },
-		[](double& a, eteq::NodeptrT<double>& b)
+		[](double& a, eteq::ETensor<double>& b)
 		{ return a + b; },
 		fwd, bwd);
 }
@@ -660,19 +715,19 @@ TEST(API, Sub)
 	auto bwd = [](double a, double b, double leftg, double rightg)
 		{ return leftg - rightg; };
 	binary_elementary(
-		[](eteq::NodeptrT<double>& a, eteq::NodeptrT<double>& b)
+		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
 		{ return tenncor::sub(a, b); },
-		[](eteq::NodeptrT<double>& a, double& b)
+		[](eteq::ETensor<double>& a, double& b)
 		{ return tenncor::sub(a, b); },
-		[](double& a, eteq::NodeptrT<double>& b)
+		[](double& a, eteq::ETensor<double>& b)
 		{ return tenncor::sub(a, b); },
 		fwd, bwd);
 	binary_elementary(
-		[](eteq::NodeptrT<double>& a, eteq::NodeptrT<double>& b)
+		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
 		{ return a - b; },
-		[](eteq::NodeptrT<double>& a, double& b)
+		[](eteq::ETensor<double>& a, double& b)
 		{ return a - b; },
-		[](double& a, eteq::NodeptrT<double>& b)
+		[](double& a, eteq::ETensor<double>& b)
 		{ return a - b; },
 		fwd, bwd);
 }
@@ -686,19 +741,19 @@ TEST(API, Mul)
 			return leftg * b + rightg * a;
 		};
 	binary_elementary(
-		[](eteq::NodeptrT<double>& a, eteq::NodeptrT<double>& b)
+		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
 		{ return tenncor::mul(a, b); },
-		[](eteq::NodeptrT<double>& a, double& b)
+		[](eteq::ETensor<double>& a, double& b)
 		{ return tenncor::mul(a, b); },
-		[](double& a, eteq::NodeptrT<double>& b)
+		[](double& a, eteq::ETensor<double>& b)
 		{ return tenncor::mul(a, b); },
 		fwd, bwd);
 	binary_elementary(
-		[](eteq::NodeptrT<double>& a, eteq::NodeptrT<double>& b)
+		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
 		{ return a * b; },
-		[](eteq::NodeptrT<double>& a, double& b)
+		[](eteq::ETensor<double>& a, double& b)
 		{ return a * b; },
-		[](double& a, eteq::NodeptrT<double>& b)
+		[](double& a, eteq::ETensor<double>& b)
 		{ return a * b; },
 		fwd, bwd);
 }
@@ -712,19 +767,19 @@ TEST(API, Div)
 			return (leftg * b - rightg * a) / (b * b);
 		};
 	binary_elementary(
-		[](eteq::NodeptrT<double>& a, eteq::NodeptrT<double>& b)
+		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
 		{ return tenncor::div(a, b); },
-		[](eteq::NodeptrT<double>& a, double& b)
+		[](eteq::ETensor<double>& a, double& b)
 		{ return tenncor::div(a, b); },
-		[](double& a, eteq::NodeptrT<double>& b)
+		[](double& a, eteq::ETensor<double>& b)
 		{ return tenncor::div(a, b); },
 		fwd, bwd);
 	binary_elementary(
-		[](eteq::NodeptrT<double>& a, eteq::NodeptrT<double>& b)
+		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
 		{ return a / b; },
-		[](eteq::NodeptrT<double>& a, double& b)
+		[](eteq::ETensor<double>& a, double& b)
 		{ return a / b; },
-		[](double& a, eteq::NodeptrT<double>& b)
+		[](double& a, eteq::ETensor<double>& b)
 		{ return a / b; },
 		fwd, bwd);
 }
@@ -733,11 +788,11 @@ TEST(API, Div)
 TEST(API, Min)
 {
 	binary_elementary(
-		[](eteq::NodeptrT<double>& a, eteq::NodeptrT<double>& b)
+		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
 		{ return tenncor::min(a, b); },
-		[](eteq::NodeptrT<double>& a, double& b)
+		[](eteq::ETensor<double>& a, double& b)
 		{ return tenncor::min(a, b); },
-		[](double& a, eteq::NodeptrT<double>& b)
+		[](double& a, eteq::ETensor<double>& b)
 		{ return tenncor::min(a, b); },
 		[](double a, double b) { return std::min(a, b); },
 		[](double a, double b, double leftg, double rightg)
@@ -759,11 +814,11 @@ TEST(API, Min)
 TEST(API, Max)
 {
 	binary_elementary(
-		[](eteq::NodeptrT<double>& a, eteq::NodeptrT<double>& b)
+		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
 		{ return tenncor::max(a, b); },
-		[](eteq::NodeptrT<double>& a, double& b)
+		[](eteq::ETensor<double>& a, double& b)
 		{ return tenncor::max(a, b); },
-		[](double& a, eteq::NodeptrT<double>& b)
+		[](double& a, eteq::ETensor<double>& b)
 		{ return tenncor::max(a, b); },
 		[](double a, double b) { return std::max(a, b); },
 		[](double a, double b, double leftg, double rightg)
@@ -830,19 +885,21 @@ TEST(API, Select)
 		assert(data.size() == n);
 		assert(data2.size() == n);
 
-		eteq::NodeptrT<double> cond_src =
+		eteq::ETensor<double> cond_src =
 			eteq::make_constant<double>(cond.data(), shape);
-		eteq::NodeptrT<double> src =
+		eteq::ETensor<double> src =
 			eteq::make_constant<double>(data.data(), shape);
-		eteq::NodeptrT<double> src2 =
+		eteq::ETensor<double> src2 =
 			eteq::make_constant<double>(data2.data(), shape);
-		eteq::NodeptrT<double> dest =
+		eteq::ETensor<double> dest =
 			tenncor::if_then_else(cond_src, src, src2);
 
-		dest->update();
+		auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
+		ASSERT_NE(nullptr, dtens);
+		dtens->calc();
 		{
 			auto gotshape = dest->shape();
-			ASSERT_ARREQ(shape_list, gotshape);
+			ASSERT_ARREQ(shape, gotshape);
 		}
 		double* optr = (double*) dest->data();
 		for (size_t i = 0; i < n; ++i)
@@ -853,16 +910,15 @@ TEST(API, Select)
 
 		teq::Session session;
 
-		eteq::NodeptrT<double> dest2 =
-			tenncor::if_then_else(cond_src, src, src);
-		EXPECT_EQ(dest2->get_tensor(), src->get_tensor());
+		eteq::ETensor<double> dest2 = tenncor::if_then_else(cond_src, src, src);
+		EXPECT_EQ(dest2.get(), src.get());
 
-		eteq::NodeptrT<double> gleft = eteq::derive(dest, src);
-		session.track({gleft->get_tensor()});
+		eteq::ETensor<double> gleft = eteq::derive(dest, src);
+		session.track({gleft});
 		session.update();
 		{
 			auto gotshape = gleft->shape();
-			ASSERT_ARREQ(shape_list, gotshape);
+			ASSERT_ARREQ(shape, gotshape);
 		}
 		double* goptr = (double*) gleft->data();
 		for (size_t i = 0; i < n; ++i)
@@ -870,12 +926,12 @@ TEST(API, Select)
 			EXPECT_DOUBLE_EQ(cond[i], goptr[i]);
 		}
 
-		eteq::NodeptrT<double> gright = eteq::derive(dest, src2);
-		session.track({gright->get_tensor()});
+		eteq::ETensor<double> gright = eteq::derive(dest, src2);
+		session.track({gright});
 		session.update();
 		{
 			auto gotshape = gright->shape();
-			ASSERT_ARREQ(shape_list, gotshape);
+			ASSERT_ARREQ(shape, gotshape);
 		}
 		double* goptr2 = (double*) gright->data();
 		for (size_t i = 0; i < n; ++i)
@@ -889,25 +945,77 @@ TEST(API, Select)
 }
 
 
+TEST(API, Slice)
+{
+	std::vector<teq::DimT> slist = {3, 2, 4};
+	std::vector<double> data = {
+		0.0919361505, 0.5135099474, 0.3147548326, 0.0281299379, 0.3705218798, 0.6808164860,
+		0.1933972592, 0.2326945471, 0.4600163558, 0.1600801317, 0.9942654588, 0.8739832345,
+		0.9664644529, 0.6152766955, 0.8795922916, 0.6384690466, 0.3922073677, 0.5979097486,
+		0.0425608731, 0.1178122813, 0.1594330664, 0.0926580999, 0.9309809737, 0.2119471989,
+	};
+
+	teq::Shape shape(slist);
+	teq::NElemT n = shape.n_elems();
+	assert(data.size() == n);
+
+	eteq::ETensor<double> src =
+		eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> dest = tenncor::slice(src, {{0, 3}, {1, 1}});
+
+	teq::Shape exshape({3, 1, 4});
+	std::vector<double> exdata = {
+		0.0281299379, 0.3705218798, 0.6808164860,
+		0.1600801317, 0.9942654588, 0.8739832345,
+		0.6384690466, 0.3922073677, 0.5979097486,
+		0.0926580999, 0.9309809737, 0.2119471989,
+	};
+	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
+	ASSERT_NE(nullptr, dtens);
+	dtens->calc();
+	auto gotshape = dest->shape();
+	ASSERT_ARREQ(exshape, gotshape);
+	double* optr = (double*) dest->data();
+	std::vector<double> gotdata(optr, optr + gotshape.n_elems());
+	EXPECT_VECEQ(exdata, gotdata);
+
+	std::vector<double> exdata2 = {
+		0, 0, 0, 1, 1, 1,
+		0, 0, 0, 1, 1, 1,
+		0, 0, 0, 1, 1, 1,
+		0, 0, 0, 1, 1, 1,
+	};
+	teq::Session session;
+	eteq::ETensor<double> g = eteq::derive(dest, src);
+	session.track({g});
+	session.update();
+	auto gotshape2 = g->shape();
+	ASSERT_ARREQ(shape, gotshape2);
+	double* goptr = (double*) g->data();
+	std::vector<double> gotdata2(goptr, goptr + gotshape2.n_elems());
+	EXPECT_VECEQ(exdata2, gotdata2);
+}
+
+
 TEST(API, Eq)
 {
 	auto fwd = [](int32_t a, int32_t b) { return a == b; };
 	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{ return 0; };
 	binary_elementary_int(
-		[](eteq::NodeptrT<int32_t>& a, eteq::NodeptrT<int32_t>& b)
+		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
 		{ return tenncor::eq(a, b); },
-		[](eteq::NodeptrT<int32_t>& a, int32_t& b)
+		[](eteq::ETensor<int32_t>& a, int32_t& b)
 		{ return tenncor::eq(a, b); },
-		[](int32_t& a, eteq::NodeptrT<int32_t>& b)
+		[](int32_t& a, eteq::ETensor<int32_t>& b)
 		{ return tenncor::eq(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
-		[](eteq::NodeptrT<int32_t>& a, eteq::NodeptrT<int32_t>& b)
+		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
 		{ return a == b; },
-		[](eteq::NodeptrT<int32_t>& a, int32_t& b)
+		[](eteq::ETensor<int32_t>& a, int32_t& b)
 		{ return a == b; },
-		[](int32_t& a, eteq::NodeptrT<int32_t>& b)
+		[](int32_t& a, eteq::ETensor<int32_t>& b)
 		{ return a == b; },
 		fwd, bwd);
 }
@@ -919,19 +1027,19 @@ TEST(API, Neq)
 	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{ return 0; };
 	binary_elementary_int(
-		[](eteq::NodeptrT<int32_t>& a, eteq::NodeptrT<int32_t>& b)
+		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
 		{ return tenncor::neq(a, b); },
-		[](eteq::NodeptrT<int32_t>& a, int32_t& b)
+		[](eteq::ETensor<int32_t>& a, int32_t& b)
 		{ return tenncor::neq(a, b); },
-		[](int32_t& a, eteq::NodeptrT<int32_t>& b)
+		[](int32_t& a, eteq::ETensor<int32_t>& b)
 		{ return tenncor::neq(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
-		[](eteq::NodeptrT<int32_t>& a, eteq::NodeptrT<int32_t>& b)
+		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
 		{ return a != b; },
-		[](eteq::NodeptrT<int32_t>& a, int32_t& b)
+		[](eteq::ETensor<int32_t>& a, int32_t& b)
 		{ return a != b; },
-		[](int32_t& a, eteq::NodeptrT<int32_t>& b)
+		[](int32_t& a, eteq::ETensor<int32_t>& b)
 		{ return a != b; },
 		fwd, bwd);
 }
@@ -943,19 +1051,19 @@ TEST(API, Lt)
 	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{ return 0; };
 	binary_elementary_int(
-		[](eteq::NodeptrT<int32_t>& a, eteq::NodeptrT<int32_t>& b)
+		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
 		{ return tenncor::lt(a, b); },
-		[](eteq::NodeptrT<int32_t>& a, int32_t& b)
+		[](eteq::ETensor<int32_t>& a, int32_t& b)
 		{ return tenncor::lt(a, b); },
-		[](int32_t& a, eteq::NodeptrT<int32_t>& b)
+		[](int32_t& a, eteq::ETensor<int32_t>& b)
 		{ return tenncor::lt(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
-		[](eteq::NodeptrT<int32_t>& a, eteq::NodeptrT<int32_t>& b)
+		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
 		{ return a < b; },
-		[](eteq::NodeptrT<int32_t>& a, int32_t& b)
+		[](eteq::ETensor<int32_t>& a, int32_t& b)
 		{ return a < b; },
-		[](int32_t& a, eteq::NodeptrT<int32_t>& b)
+		[](int32_t& a, eteq::ETensor<int32_t>& b)
 		{ return a < b; },
 		fwd, bwd);
 }
@@ -967,19 +1075,19 @@ TEST(API, Gt)
 	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{ return 0; };
 	binary_elementary_int(
-		[](eteq::NodeptrT<int32_t>& a, eteq::NodeptrT<int32_t>& b)
+		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
 		{ return tenncor::gt(a, b); },
-		[](eteq::NodeptrT<int32_t>& a, int32_t& b)
+		[](eteq::ETensor<int32_t>& a, int32_t& b)
 		{ return tenncor::gt(a, b); },
-		[](int32_t& a, eteq::NodeptrT<int32_t>& b)
+		[](int32_t& a, eteq::ETensor<int32_t>& b)
 		{ return tenncor::gt(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
-		[](eteq::NodeptrT<int32_t>& a, eteq::NodeptrT<int32_t>& b)
+		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
 		{ return a > b; },
-		[](eteq::NodeptrT<int32_t>& a, int32_t& b)
+		[](eteq::ETensor<int32_t>& a, int32_t& b)
 		{ return a > b; },
-		[](int32_t& a, eteq::NodeptrT<int32_t>& b)
+		[](int32_t& a, eteq::ETensor<int32_t>& b)
 		{ return a > b; },
 		fwd, bwd);
 }
@@ -988,8 +1096,8 @@ TEST(API, Gt)
 TEST(API, NElems)
 {
 	unary_generic(
-		[](eteq::NodeptrT<double>& src) { return tenncor::n_elems(src); },
-		[](eteq::NodeptrT<double> out, teq::Shape& shape, std::vector<double>&)
+		[](eteq::ETensor<double>& src) { return tenncor::n_elems(src); },
+		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>&)
 		{
 			ASSERT_EQ(1, out->shape().n_elems());
 			double got = *((double*) out->data());
@@ -1010,8 +1118,8 @@ TEST(API, NDims)
 {
 	teq::RankT dim = 2;
 	unary_generic(
-		[dim](eteq::NodeptrT<double>& src) { return tenncor::n_dims(src, dim); },
-		[dim](eteq::NodeptrT<double> out, teq::Shape& shape, std::vector<double>&)
+		[dim](eteq::ETensor<double>& src) { return tenncor::n_dims(src, dim); },
+		[dim](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>&)
 		{
 			ASSERT_EQ(1, out->shape().n_elems());
 			double got = *((double*) out->data());
@@ -1031,8 +1139,8 @@ TEST(API, NDims)
 TEST(API, Rsum)
 {
 	unary_generic(
-		[](eteq::NodeptrT<double>& src) { return tenncor::reduce_sum(src); },
-		[](eteq::NodeptrT<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor<double>& src) { return tenncor::reduce_sum(src); },
+		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
 			{
@@ -1051,8 +1159,8 @@ TEST(API, Rsum)
 			}
 		});
 	unary_generic(
-		[](eteq::NodeptrT<double>& src) { return tenncor::reduce_sum(src, 1, 1); },
-		[](eteq::NodeptrT<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor<double>& src) { return tenncor::reduce_sum(src, 1, 1); },
+		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
@@ -1099,11 +1207,13 @@ TEST(API, Rprod)
 		7, 2,
 	};
 
-	eteq::NodeptrT<int32_t> src = eteq::make_constant<int32_t>(data.data(), shape);
-	eteq::NodeptrT<int32_t> dest = tenncor::reduce_prod(src);
-	eteq::NodeptrT<int32_t> dest2 = tenncor::reduce_prod(src, 1, 1);
+	eteq::ETensor<int32_t> src = eteq::make_constant<int32_t>(data.data(), shape);
+	eteq::ETensor<int32_t> dest = tenncor::reduce_prod(src);
+	eteq::ETensor<int32_t> dest2 = tenncor::reduce_prod(src, 1, 1);
 
-	dest->update();
+	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
+	ASSERT_NE(nullptr, dtens);
+	dtens->calc();
 	{
 		size_t n = dest->shape().n_elems();
 		{
@@ -1115,7 +1225,9 @@ TEST(API, Rprod)
 		EXPECT_EQ(expect, got);
 	}
 
-	dest2->update();
+	auto dtens2 = static_cast<eteq::Functor<int32_t>*>(dest2.get());
+	ASSERT_NE(nullptr, dtens2);
+	dtens2->calc();
 	{
 		std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 		expect_list[1] = 1;
@@ -1140,16 +1252,13 @@ TEST(API, Rprod)
 
 	teq::Session session;
 
-	eteq::NodeptrT<int32_t> gsrc = eteq::derive(dest, src);
-	eteq::NodeptrT<int32_t> gsrc2 = eteq::derive(dest2, src);
-	session.track({
-		gsrc->get_tensor(),
-		gsrc2->get_tensor(),
-	});
+	eteq::ETensor<int32_t> gsrc = eteq::derive(dest, src);
+	eteq::ETensor<int32_t> gsrc2 = eteq::derive(dest2, src);
+	session.track({gsrc, gsrc2});
 	session.update();
 
 	auto gotshape = gsrc->shape();
-	ASSERT_ARREQ(slist, gotshape);
+	ASSERT_ARREQ(shape, gotshape);
 	int32_t* goptr = (int32_t*) gsrc->data();
 	{
 		size_t n = data.size();
@@ -1178,7 +1287,7 @@ TEST(API, Rprod)
 		9, 7,
 	};
 	auto gotshape2 = gsrc2->shape();
-	ASSERT_ARREQ(slist, gotshape2);
+	ASSERT_ARREQ(shape, gotshape2);
 	int32_t* goptr2 = (int32_t*) gsrc2->data();
 	{
 		for (size_t i = 0, n = ex_grad.size(); i < n; ++i)
@@ -1192,8 +1301,8 @@ TEST(API, Rprod)
 TEST(API, Rmin)
 {
 	unary_generic(
-		[](eteq::NodeptrT<double>& src) { return tenncor::reduce_min(src); },
-		[](eteq::NodeptrT<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor<double>& src) { return tenncor::reduce_min(src); },
+		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
 			ASSERT_EQ(1, n);
@@ -1218,8 +1327,8 @@ TEST(API, Rmin)
 			}
 		});
 	unary_generic(
-		[](eteq::NodeptrT<double>& src) { return tenncor::reduce_min(src, 1, 1); },
-		[](eteq::NodeptrT<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor<double>& src) { return tenncor::reduce_min(src, 1, 1); },
+		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
@@ -1266,7 +1375,7 @@ TEST(API, Rmin)
 				expect[min_idx] = 1;
 			}
 			std::vector<double> got(gout, gout + m);
-			EXPECT_ARREQ(expect, got);
+			EXPECT_VECEQ(expect, got);
 		});
 }
 
@@ -1274,8 +1383,8 @@ TEST(API, Rmin)
 TEST(API, Rmax)
 {
 	unary_generic(
-		[](eteq::NodeptrT<double>& src) { return tenncor::reduce_max(src); },
-		[](eteq::NodeptrT<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor<double>& src) { return tenncor::reduce_max(src); },
+		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
 			ASSERT_EQ(1, n);
@@ -1300,8 +1409,8 @@ TEST(API, Rmax)
 			}
 		});
 	unary_generic(
-		[](eteq::NodeptrT<double>& src) { return tenncor::reduce_max(src, 1, 1); },
-		[](eteq::NodeptrT<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor<double>& src) { return tenncor::reduce_max(src, 1, 1); },
+		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
@@ -1348,7 +1457,7 @@ TEST(API, Rmax)
 				expect[max_idx] = 1;
 			}
 			std::vector<double> got(gout, gout + m);
-			EXPECT_ARREQ(expect, got);
+			EXPECT_VECEQ(expect, got);
 		});
 }
 
@@ -1364,10 +1473,12 @@ TEST(API, Permute)
 		75, 64, 30, 17, 90, 79, 21, 54, 6, 7, 69, 53
 	};
 
-	eteq::NodeptrT<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::NodeptrT<double> dest = tenncor::permute(src, pidx);
+	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> dest = tenncor::permute(src, pidx);
 
-	dest->update();
+	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
+	ASSERT_NE(nullptr, dtens);
+	dtens->calc();
 	size_t n = dest->shape().n_elems();
 	ASSERT_EQ(nelem, n);
 	double* got = (double*) dest->data();
@@ -1385,12 +1496,12 @@ TEST(API, Permute)
 
 	teq::Session session;
 
-	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
-	session.track({gsrc->get_tensor()});
+	eteq::ETensor<double> gsrc = eteq::derive(dest, src);
+	session.track({gsrc});
 	session.update();
 	{
 		auto gotshape = gsrc->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsrc->data();
 	for (size_t i = 0, n = data.size(); i < n; ++i)
@@ -1410,12 +1521,17 @@ TEST(API, Extend)
 		51, 42, 9, 43, 37, 36, 65, 95, 10, 33
 	};
 
-	eteq::NodeptrT<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::NodeptrT<double> dest = tenncor::extend(src, slist.size(), ext);
+	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> dest = tenncor::extend(src, slist.size(), ext);
 
-	dest->update();
+	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
+	ASSERT_NE(nullptr, dtens);
+	dtens->calc();
 	size_t ext_nelem = teq::Shape(ext).n_elems();
-	size_t n = dest->shape().n_elems();
+	auto extshape = dest->shape();
+	teq::Shape expect_shape({2, 5, 1, 3});
+	EXPECT_ARREQ(expect_shape, extshape);
+	size_t n = extshape.n_elems();
 	ASSERT_EQ(nelem * ext_nelem, n);
 	double* got = (double*) dest->data();
 	for (size_t i = 0; i < nelem; ++i)
@@ -1428,12 +1544,12 @@ TEST(API, Extend)
 
 	teq::Session session;
 
-	eteq::NodeptrT<double> gsrc = eteq::derive(dest, src);
-	session.track({gsrc->get_tensor()});
+	eteq::ETensor<double> gsrc = eteq::derive(dest, src);
+	session.track({gsrc});
 	session.update();
 	{
 		auto gotshape = gsrc->shape();
-		ASSERT_ARREQ(slist, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr = (double*) gsrc->data();
 	for (size_t i = 0, n = data.size(); i < n; ++i)
@@ -1476,11 +1592,13 @@ TEST(API, Matmul)
 		23+77, 23+77, 23+77, 23+77,
 	};
 
-	eteq::NodeptrT<int32_t> a = eteq::make_constant<int32_t>(data.data(), ashape);
-	eteq::NodeptrT<int32_t> b = eteq::make_constant<int32_t>(data2.data(), bshape);
-	eteq::NodeptrT<int32_t> dest = tenncor::matmul(a, b);
+	eteq::ETensor<int32_t> a = eteq::make_constant<int32_t>(data.data(), ashape);
+	eteq::ETensor<int32_t> b = eteq::make_constant<int32_t>(data2.data(), bshape);
+	eteq::ETensor<int32_t> dest = tenncor::matmul(a, b);
 
-	dest->update();
+	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
+	ASSERT_NE(nullptr, dtens);
+	dtens->calc();
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(2, gotshape.at(1));
@@ -1494,41 +1612,36 @@ TEST(API, Matmul)
 
 	teq::Session session;
 
-	eteq::NodeptrT<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
-	eteq::NodeptrT<int32_t> dest2 = tenncor::matmul(c, c);
-	eteq::NodeptrT<int32_t> gsame = eteq::derive(dest2, c);
-	session.track({gsame->get_tensor()});
+	eteq::ETensor<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
+	eteq::ETensor<int32_t> dest2 = tenncor::matmul(c, c);
+	eteq::ETensor<int32_t> gsame = eteq::derive(dest2, c);
+	session.track({gsame});
 	session.update();
 	teq::Shape gcshape = gsame->shape();
-	{
-		std::vector<teq::DimT> glist(gcshape.begin(), gcshape.end());
-		ASSERT_ARREQ(sqrlist, glist);
-	}
+	ASSERT_ARREQ(cshape, gcshape);
 
-	eteq::NodeptrT<int32_t> gleft = eteq::derive(dest, a);
-	session.track({gleft->get_tensor()});
+	eteq::ETensor<int32_t> gleft = eteq::derive(dest, a);
+	session.track({gleft});
 	session.update();
 	teq::Shape gashape = gleft->shape();
 	{
-		std::vector<teq::DimT> glist(gashape.begin(), gashape.end());
-		ASSERT_ARREQ(alist, glist);
+		ASSERT_ARREQ(ashape, gashape);
 		int32_t* ga = (int32_t*) gleft->data();
 		ASSERT_NE(nullptr, ga);
 		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
-		ASSERT_ARREQ(expect_ga, ga_data);
+		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
-	eteq::NodeptrT<int32_t> gright = eteq::derive(dest, b);
-	session.track({gright->get_tensor()});
+	eteq::ETensor<int32_t> gright = eteq::derive(dest, b);
+	session.track({gright});
 	session.update();
 	teq::Shape gbshape = gright->shape();
 	{
-		std::vector<teq::DimT> glist(gbshape.begin(), gbshape.end());
-		ASSERT_ARREQ(blist, glist);
+		ASSERT_ARREQ(bshape, gbshape);
 		int32_t* gb = (int32_t*) gright->data();
 		ASSERT_NE(nullptr, gb);
 		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
-		ASSERT_ARREQ(expect_gb, gb_data);
+		ASSERT_VECEQ(expect_gb, gb_data);
 	}
 }
 
@@ -1565,11 +1678,13 @@ TEST(API, Contract)
 		23+77, 23+77, 23+77, 23+77,
 	};
 
-	eteq::NodeptrT<int32_t> a = eteq::make_constant<int32_t>(data.data(), ashape);
-	eteq::NodeptrT<int32_t> b = eteq::make_constant<int32_t>(data2.data(), bshape);
-	eteq::NodeptrT<int32_t> dest = tenncor::contract(a, b, {{0, 2}});
+	eteq::ETensor<int32_t> a = eteq::make_constant<int32_t>(data.data(), ashape);
+	eteq::ETensor<int32_t> b = eteq::make_constant<int32_t>(data2.data(), bshape);
+	eteq::ETensor<int32_t> dest = tenncor::contract(a, b, {{0, 2}});
 
-	dest->update();
+	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
+	ASSERT_NE(nullptr, dtens);
+	dtens->calc();
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(1, gotshape.at(1));
@@ -1585,41 +1700,36 @@ TEST(API, Contract)
 
 	teq::Session session;
 
-	eteq::NodeptrT<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
-	eteq::NodeptrT<int32_t> dest2 = tenncor::contract(c, c, {{0, 0}});
-	eteq::NodeptrT<int32_t> gsame = eteq::derive(dest2, c);
-	session.track({gsame->get_tensor()});
+	eteq::ETensor<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
+	eteq::ETensor<int32_t> dest2 = tenncor::contract(c, c, {{0, 0}});
+	eteq::ETensor<int32_t> gsame = eteq::derive(dest2, c);
+	session.track({gsame});
 	session.update();
 	teq::Shape gcshape = gsame->shape();
-	{
-		std::vector<teq::DimT> glist(gcshape.begin(), gcshape.end());
-		ASSERT_ARREQ(sqrlist, glist);
-	}
+	ASSERT_ARREQ(cshape, gcshape);
 
-	eteq::NodeptrT<int32_t> gleft = eteq::derive(dest, a);
-	session.track({gleft->get_tensor()});
+	eteq::ETensor<int32_t> gleft = eteq::derive(dest, a);
+	session.track({gleft});
 	session.update();
 	teq::Shape gashape = gleft->shape();
 	{
-		std::vector<teq::DimT> glist(gashape.begin(), gashape.end());
-		ASSERT_ARREQ(alist, glist);
+		ASSERT_ARREQ(ashape, gashape);
 		int32_t* ga = (int32_t*) gleft->data();
 		ASSERT_NE(nullptr, ga);
 		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
-		ASSERT_ARREQ(expect_ga, ga_data);
+		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
-	eteq::NodeptrT<int32_t> gright = eteq::derive(dest, b);
-	session.track({gright->get_tensor()});
+	eteq::ETensor<int32_t> gright = eteq::derive(dest, b);
+	session.track({gright});
 	session.update();
 	teq::Shape gbshape = gright->shape();
 	{
-		std::vector<teq::DimT> glist(gbshape.begin(), gbshape.end());
-		ASSERT_ARREQ(blist, glist);
+		ASSERT_ARREQ(bshape, gbshape);
 		int32_t* gb = (int32_t*) gright->data();
 		ASSERT_NE(nullptr, gb);
 		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
-		ASSERT_ARREQ(expect_gb, gb_data);
+		ASSERT_VECEQ(expect_gb, gb_data);
 	}
 }
 
@@ -1630,14 +1740,16 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	double lo = 0.2547977589;
 	teq::Shape shape(shape_list);
 
-	eteq::NodeptrT<double> src = eteq::make_constant_scalar<double>(lo, shape);
-	eteq::NodeptrT<double> src2 = eteq::make_constant_scalar<double>(hi, shape);
-	eteq::NodeptrT<double> dest = tenncor::random::rand_unif(src, src2);
+	eteq::ETensor<double> src = eteq::make_constant_scalar<double>(lo, shape);
+	eteq::ETensor<double> src2 = eteq::make_constant_scalar<double>(hi, shape);
+	eteq::ETensor<double> dest = tenncor::random::rand_unif(src, src2);
 
-	dest->update();
+	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
+	ASSERT_NE(nullptr, dtens);
+	dtens->calc();
 	{
 		auto gotshape = dest->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* optr = (double*) dest->data();
 	size_t nelems = dest->shape().n_elems();
@@ -1649,22 +1761,22 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 
 	teq::Session session;
 
-	eteq::NodeptrT<double> gleft = eteq::derive(dest, src);
-	session.track({gleft->get_tensor()});
+	eteq::ETensor<double> gleft = eteq::derive(dest, src);
+	session.track({gleft});
 	session.update();
 	{
 		auto gotshape = gleft->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr2 = (double*) gleft->data();
 	EXPECT_DOUBLE_EQ(0, goptr2[0]);
 
-	eteq::NodeptrT<double> gright = eteq::derive(dest, src);
-	session.track({gright->get_tensor()});
+	eteq::ETensor<double> gright = eteq::derive(dest, src);
+	session.track({gright});
 	session.update();
 	{
 		auto gotshape = gright->shape();
-		ASSERT_ARREQ(shape_list, gotshape);
+		ASSERT_ARREQ(shape, gotshape);
 	}
 	double* goptr3 = (double*) gright->data();
 	EXPECT_DOUBLE_EQ(0, goptr3[0]);
@@ -1738,13 +1850,15 @@ TEST(API, Convolution)
 		2083, 2021,
 	};
 
-	eteq::NodeptrT<double> img = eteq::make_constant<double>(data.data(), shape);
-	eteq::NodeptrT<double> kernel = eteq::make_constant<double>(data2.data(), kshape);
+	eteq::ETensor<double> img = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> kernel = eteq::make_constant<double>(data2.data(), kshape);
 	std::vector<teq::RankT> dims(teq::rank_cap);
 	std::iota(dims.begin(), dims.end(), 0);
-	eteq::NodeptrT<double> dest = tenncor::convolution(img, kernel, dims);
+	eteq::ETensor<double> dest = tenncor::convolution(img, kernel, dims);
 
-	dest->update();
+	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
+	ASSERT_NE(nullptr, dtens);
+	dtens->calc();
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(expectslist, gotshape);
@@ -1752,34 +1866,69 @@ TEST(API, Convolution)
 		double* optr = (double*) dest->data();
 		ASSERT_NE(nullptr, optr);
 		std::vector<double> outdata(optr, optr + gotshape.n_elems());
-		ASSERT_ARREQ(expect_out, outdata);
+		ASSERT_VECEQ(expect_out, outdata);
 	}
 
 	teq::Session session;
 
-	eteq::NodeptrT<double> gleft = eteq::derive(dest, img);
-	ASSERT_NE(nullptr, gleft);
-	session.track({gleft->get_tensor()});
+	eteq::ETensor<double> gleft = eteq::derive(dest, img);
+	ASSERT_NE(nullptr, gleft.get());
+	session.track({gleft});
 	session.update();
 	{
 		auto gashape = gleft->shape();
-		ASSERT_ARREQ(alist, gashape);
+		ASSERT_ARREQ(shape, gashape);
 		double* ga = (double*) gleft->data();
 		std::vector<double> ga_data(ga, ga + gashape.n_elems());
-		ASSERT_ARREQ(expect_ga, ga_data);
+		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
-	eteq::NodeptrT<double> gright = eteq::derive(dest, kernel);
-	ASSERT_NE(nullptr, gright);
-	session.track({gright->get_tensor()});
+	eteq::ETensor<double> gright = eteq::derive(dest, kernel);
+	ASSERT_NE(nullptr, gright.get());
+	session.track({gright});
 	session.update();
 	{
 		auto gbshape = gright->shape();
-		ASSERT_ARREQ(blist, gbshape);
+		ASSERT_ARREQ(kshape, gbshape);
 		double* gb = (double*) gright->data();
 		std::vector<double> gb_data(gb, gb + gbshape.n_elems());
-		ASSERT_ARREQ(expect_gb, gb_data);
+		ASSERT_VECEQ(expect_gb, gb_data);
 	}
+}
+
+
+TEST(API, GroupSum)
+{
+	// tensor operation
+	std::vector<teq::DimT> slist = {3, 2, 4};
+	std::vector<double> data = {
+		0.0919361505, 0.5135099474, 0.3147548326, 0.0281299379, 0.3705218798, 0.6808164860,
+		0.1933972592, 0.2326945471, 0.4600163558, 0.1600801317, 0.9942654588, 0.8739832345,
+		0.9664644529, 0.6152766955, 0.8795922916, 0.6384690466, 0.3922073677, 0.5979097486,
+		0.0425608731, 0.1178122813, 0.1594330664, 0.0926580999, 0.9309809737, 0.2119471989,
+	};
+	std::vector<double> data2 = {
+		0.2547977589, 0.8808089905, 0.4323663340, 0.5710527217, 0.6207772267, 0.8574923091,
+		0.2315629833, 0.8740258926, 0.9239905856, 0.0346148639, 0.3255387878, 0.7443564112,
+		0.0930828560, 0.9324878301, 0.6552622891, 0.8305292319, 0.9515416240, 0.3653033185,
+		0.0504231590, 0.8494357051, 0.0908431573, 0.1567913571, 0.1211327459, 0.5269402648,
+	};
+	std::vector<double> data3 = {
+		0.7337234864, 0.8450250437, 0.0507189845, 0.3380472189, 0.8024848119, 0.7459583505,
+		0.2284865796, 0.1801980249, 0.7544559936, 0.6563679706, 0.2774781414, 0.7505901549,
+		0.5510430193, 0.5049274633, 0.5092842413, 0.1561237874, 0.0534285259, 0.0532025873,
+		0.8582970171, 0.7204149643, 0.2353877684, 0.5085232728, 0.6655741337, 0.5997891975,
+	};
+
+	nnary_elementary({data, data2, data3}, slist,
+		[&](size_t i)
+		{
+			return data[i] + data2[i] + data3[i];
+		},
+		[&](size_t gradi, size_t i)
+		{
+			return gradi < 3 ? 1 : 0;
+		});
 }
 
 

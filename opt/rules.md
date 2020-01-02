@@ -32,7 +32,8 @@ comm - declares that the following symbol is a commutative function
 - number: a double precision decimal in base-10 form without scientific notation (hex and binary not supported)
 - symbol: an alphabetic word with the following constraints:
     - no longer than 31 letters in length (symbols longer than 31 are unrecognized)
-    - may contain underscores ('_')
+    - the first character must be alphabetic
+    - after the first character, characters can contain numbers and underscores ('_')
 
 ## **Conversion Syntax**
 
@@ -49,7 +50,7 @@ A **matcher** is a function (commutative or non-commutative)
 The function takes the form:
 
 ```
-[ <keyword> ] <function name> '(' <argument> [ '=' <attribute> ] [ ',' <more...> ] [ ',' '..' <variadics> ] ')'
+[ <keyword> ] <function name> [ <attribute> ] '(' <argument> [ ',' <more...> ] [ ',' '..' <variadics> ] ')'
 ```
 
 where symbols wrapped in:
@@ -82,7 +83,7 @@ The attribute's `<key>` is a symbol, and `<value>` can be a number or array of n
 
 ### Note on Attribute
 
-Specifying attribute adds a matcher constraint whereby the `marsh::Maps` returned from `iEdge::get_attrs` must contains a key-value pair equal to specified key-value pair.
+Specifying attribute adds a matcher constraint whereby the `marsh::Maps` returned from node attributes must contains a key-value pair equal to specified key-value pair.
 
 ### Note on Variadic Arguments and Commutative functions
 
@@ -114,13 +115,13 @@ A **target** can be any of the following:
 A target function is much like matcher function except it takes the form:
 
 ```
-<function name> '(' <argument> [ '=' <attribute> ] [ ',' <more...> ] [ ',' '..' <variadics> ] ')'
+<function name> [ <attribute> ] '(' <argument> [ ',' <more...> ] [ ',' '..' <variadics> ] ')'
 ```
 
 or
 
 ```
-<function name> '(' '..' <variadics> ')'
+<function name> [ <attribute> ] '(' '..' <variadics> ')'
 ```
 
 Since commutativity specifies argument order when matching, targets don't care about this property.

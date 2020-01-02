@@ -11,17 +11,17 @@ struct GraphEmitterImpl final : public gemitter::GraphEmitter::Service
 	}
 
 	// Create or update listed nodes and edges
-	grpc::Status CreateGraph(grpc::ServerContext* context,
-		const gemitter::CreateGraphRequest* request,
-		gemitter::CreateGraphResponse* response) override
+	grpc::Status CreateModel(grpc::ServerContext* context,
+		const gemitter::CreateModelRequest* request,
+		gemitter::CreateModelResponse* response) override
 	{
-		const gemitter::GraphInfo& info = request->payload();
-		const tenncor::Graph& graph = info.graph();
-		gid_ = info.graph_id();
+		const gemitter::ModelPayload& info = request->payload();
+		const onnx::ModelProto& model = info.model();
+		gid_ = info.model_id();
 
 		google::protobuf::util::JsonPrintOptions options;
 		auto status = google::protobuf::util::MessageToJsonString(
-			graph, &latest_graph_, options);
+			model, &latest_model_, options);
 		if (false == status.ok())
 		{
 			std::cout << "failed to serialize created graph" << std::endl;
@@ -42,12 +42,12 @@ struct GraphEmitterImpl final : public gemitter::GraphEmitter::Service
 		while (reader->Read(&req))
 		{
 			auto node_data = req.payload();
-			auto gid = node_data.graph_id();
+			auto gid = node_data.model_id();
 			if (gid != gid_)
 			{
 				std::cout << "recording node meant for graph " << gid << std::endl;
 			}
-			std::cout << "Updating node " << node_data.node_idx() << std::endl;
+			std::cout << "Updating node " << node_data.node_id() << std::endl;
 		}
 
 		response->set_status(gemitter::OK);
@@ -56,9 +56,9 @@ struct GraphEmitterImpl final : public gemitter::GraphEmitter::Service
 	}
 
 	// Wipe and reupdate entire graph with listed nodes and edges
-	grpc::Status DeleteGraph(grpc::ServerContext* context,
-		const gemitter::DeleteGraphRequest* request,
-		gemitter::DeleteGraphResponse* response) override
+	grpc::Status DeleteModel(grpc::ServerContext* context,
+		const gemitter::DeleteModelRequest* request,
+		gemitter::DeleteModelResponse* response) override
 	{
 		response->set_status(gemitter::OK);
 		response->set_message("Deleted Graph");
@@ -67,7 +67,7 @@ struct GraphEmitterImpl final : public gemitter::GraphEmitter::Service
 
 	std::string gid_;
 
-	std::string latest_graph_;
+	std::string latest_model_;
 };
 
 int main (int argc, char** argv)

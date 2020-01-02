@@ -11,6 +11,7 @@
 
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
+#include "teq/objs.hpp"
 
 #ifndef TEQ_TRAVELER_HPP
 #define TEQ_TRAVELER_HPP
@@ -19,35 +20,29 @@ namespace teq
 {
 
 /// Extremely generic traveler that visits every node in the graph once
-struct OnceTraveler : public iTraveler
+struct iOnceTraveler : public iTraveler
 {
-	virtual ~OnceTraveler (void) = default;
+	virtual ~iOnceTraveler (void) = default;
 
 	/// Implementation of iTraveler
-	void visit (iLeaf* leaf) override
+	void visit (iLeaf& leaf) override
 	{
-		if (false == estd::has(visited_, leaf))
+		if (false == estd::has(visited_, &leaf))
 		{
-			visited_.emplace(leaf);
+			visited_.emplace(&leaf);
 			visit_leaf(leaf);
 		}
 	}
 
 	/// Implementation of iTraveler
-	void visit (iFunctor* func) override
+	void visit (iFunctor& func) override
 	{
-		if (false == estd::has(visited_, func))
+		if (false == estd::has(visited_, &func))
 		{
-			visited_.emplace(func);
+			visited_.emplace(&func);
 			visit_func(func);
 		}
 	}
-
-	/// Do something during unique visit to leaf
-	virtual void visit_leaf (iLeaf* leaf) = 0;
-
-	/// Do something during unique visit to functor
-	virtual void visit_func (iFunctor* func) = 0;
 
 	virtual void clear (void)
 	{
@@ -56,198 +51,262 @@ struct OnceTraveler : public iTraveler
 
 	/// Set of tensors visited
 	TensSetT visited_;
+
+protected:
+	/// Do something during unique visit to leaf
+	virtual void visit_leaf (iLeaf& leaf) = 0;
+
+	/// Do something during unique visit to functor
+	virtual void visit_func (iFunctor& func) = 0;
 };
 
-/// Traveler that maps each tensor to its subtree's maximum depth
+/// Traveler that maps each tensor to its positional information represented
+/// by the longest and shortest distance from leaves (NumRange)
 struct GraphStat final : public iTraveler
 {
 	/// Implementation of iTraveler
-	void visit (iLeaf* leaf) override
+	void visit (iLeaf& leaf) override
 	{
-		graphsize_.emplace(leaf, estd::NumRange<size_t>());
+		graphsize_.emplace(&leaf, estd::NumRange<size_t>());
 	}
 
-	/// Implementation of iTraveler
-	void visit (iFunctor* func) override
+	void visit (iFunctor& func) override
 	{
-		if (false == estd::has(graphsize_, func))
+		if (estd::has(graphsize_, &func))
 		{
-			auto children = func->get_children();
-			size_t nchildren = children.size();
-			std::vector<size_t> max_heights;
-			std::vector<size_t> min_heights;
-			max_heights.reserve(nchildren);
-			min_heights.reserve(nchildren);
-			for (const iEdge& child : children)
-			{
-				iTensor* tens = child.get_tensor().get();
-				tens->accept(*this);
-				estd::NumRange<size_t> range = estd::must_getf(graphsize_, tens,
-					"GraphStat failed to visit child `%s` of functor `%s`",
-						tens->to_string().c_str(), func->to_string().c_str());
-				max_heights.push_back(range.upper_);
-				min_heights.push_back(range.lower_);
-			}
-			size_t max_height = 1;
-			size_t min_height = 1;
-			auto max_it = std::max_element(
-				max_heights.begin(), max_heights.end());
-			auto min_it = std::min_element(
-				min_heights.begin(), min_heights.end());
-			if (max_heights.end() != max_it)
-			{
-				max_height += *max_it;
-			}
-			if (min_heights.end() != max_it)
-			{
-				min_height += *min_it;
-			}
-			graphsize_.emplace(func, estd::NumRange<size_t>(min_height, max_height));
+			return;
 		}
+		auto children = func.get_children();
+		size_t nchildren = children.size();
+		std::vector<size_t> max_heights;
+		std::vector<size_t> min_heights;
+		max_heights.reserve(nchildren);
+		min_heights.reserve(nchildren);
+		for (TensptrT child : children)
+		{
+			child->accept(*this);
+			estd::NumRange<size_t> range = estd::must_getf(graphsize_, child.get(),
+				"GraphStat failed to visit child `%s` of functor `%s`",
+					child->to_string().c_str(), func.to_string().c_str());
+			max_heights.push_back(range.upper_);
+			min_heights.push_back(range.lower_);
+		}
+		size_t max_height = 1;
+		size_t min_height = 1;
+		auto max_it = std::max_element(
+			max_heights.begin(), max_heights.end());
+		auto min_it = std::min_element(
+			min_heights.begin(), min_heights.end());
+		if (max_heights.end() != max_it)
+		{
+			max_height += *max_it;
+		}
+		if (min_heights.end() != max_it)
+		{
+			min_height += *min_it;
+		}
+		graphsize_.emplace(&func,
+			estd::NumRange<size_t>(min_height, max_height));
 	}
 
 	// Maximum depth of the subtree of mapped tensors
-	std::unordered_map<iTensor*,estd::NumRange<size_t>> graphsize_;
+	TensMapT<estd::NumRange<size_t>> graphsize_;
 };
 
-/// Map tensors to indices of children
-using ParentMapT = std::unordered_map<iTensor*,std::vector<size_t>>;
+struct PathDirection
+{
+	std::vector<size_t> children_;
+	std::vector<std::string> attrs_;
+};
+
+using PathNodeT = std::unordered_map<std::string,PathDirection>;
+
+using TensPathsT = TensMapT<PathNodeT>;
 
 /// Traveler that paints paths to a target tensor
-/// All nodes in the path are added as keys to the parents_ map with the values
+/// All nodes in the path are added as keys to the roadmap_ map with the values
 /// being a boolean vector denoting nodes leading to target
 /// For a boolean value x at index i in mapped vector,
 /// x is true if the ith child leads to target
-struct PathFinder final : public OnceTraveler
+struct PathFinder final : public iOnceTraveler
 {
-	PathFinder (const iTensor* target) : target_(target) {}
+	PathFinder (iTensor* target, std::string label = "target") :
+		targets_({{target, label}}) {}
 
-	/// Implementation of OnceTraveler
-	void visit_leaf (iLeaf* leaf) override {}
+	/// For multiple targets, the first target found overshadows target nodes under the first subgraph (todo: label roads)
+	PathFinder (TensMapT<std::string> targets) : targets_(targets) {}
 
-	/// Implementation of OnceTraveler
-	void visit_func (iFunctor* func) override
+	void clear (void) override
 	{
-		auto children = func->get_children();
+		iOnceTraveler::clear();
+		roadmap_.clear();
+	}
+
+	/// Map of parent to child indices that lead to target tensor
+	TensPathsT roadmap_;
+
+private:
+	/// Implementation of iOnceTraveler
+	void visit_leaf (iLeaf& leaf) override {}
+
+	/// Implementation of iOnceTraveler
+	void visit_func (iFunctor& func) override
+	{
+		auto children = func.get_children();
 		size_t n = children.size();
-		std::unordered_set<size_t> path;
+		PathNodeT nexts;
 		for (size_t i = 0; i < n; ++i)
 		{
-			TensptrT tens = children[i].get().get_tensor();
-			if (tens.get() == target_)
+			TensptrT tens = children[i];
+			std::string label;
+			if (estd::get(label, targets_, tens.get()))
 			{
-				path.emplace(i);
+				nexts[label].children_.push_back(i);
 			}
 			else
 			{
 				tens->accept(*this);
-				if (estd::has(parents_, tens.get()))
+				if (estd::has(roadmap_, tens.get()))
 				{
-					path.emplace(i);
+					auto& subnode = roadmap_.at(tens.get());
+					for (auto& spair : subnode)
+					{
+						nexts[spair.first].children_.push_back(i);
+					}
 				}
 			}
 		}
-		if (false == path.empty())
+		auto attrs = func.ls_attrs();
+		for (auto attr : attrs)
 		{
-			parents_[func] = std::vector<size_t>(path.begin(), path.end());
+			if (auto tens_attr = dynamic_cast<const TensorRef*>(
+				func.get_attr(attr)))
+			{
+				auto tens = tens_attr->get_tensor();
+				std::string label;
+				if (estd::get(label, targets_, tens.get()))
+				{
+					nexts[label].attrs_.push_back(attr);
+				}
+				else
+				{
+					tens->accept(*this);
+					if (estd::has(roadmap_, tens.get()))
+					{
+						auto& subnode = roadmap_.at(tens.get());
+						for (auto& spair : subnode)
+						{
+							nexts[spair.first].attrs_.push_back(attr);
+						}
+					}
+				}
+			}
+		}
+		if (false == nexts.empty())
+		{
+			roadmap_.emplace(&func, nexts);
 		}
 	}
 
-	void clear (void) override
-	{
-		OnceTraveler::clear();
-		parents_.clear();
-	}
-
 	/// Target of tensor all paths are travelling to
-	const iTensor* target_;
-
-	/// Map of parent to child indices that lead to target tensor
-	ParentMapT parents_;
+	TensMapT<std::string> targets_;
 };
+
+/// Map tensors to indices of children
+using ParentMapT = TensMapT<std::vector<size_t>>;
 
 /// Traveler that for each child tracks the relationship to all parents
 struct ParentFinder final : public iTraveler
 {
 	/// Implementation of iTraveler
-	void visit (iLeaf* leaf) override
+	void visit (iLeaf& leaf) override
 	{
-		parents_.emplace(leaf, ParentMapT());
+		parents_.emplace(&leaf, ParentMapT());
 	}
 
 	/// Implementation of iTraveler
-	void visit (iFunctor* func) override
+	void visit (iFunctor& func) override
 	{
-		if (false == estd::has(parents_, func))
+		if (estd::has(parents_, &func))
 		{
-			auto children = func->get_children();
-			for (size_t i = 0, n = children.size(); i < n; ++i)
-			{
-				auto& child = children[i];
-				auto tens = child.get().get_tensor();
-				tens->accept(*this);
-				parents_[tens.get()][func].push_back(i);
-			}
-			parents_.emplace(func, ParentMapT());
+			return;
 		}
+		auto children = func.get_children();
+		for (size_t i = 0, n = children.size(); i < n; ++i)
+		{
+			auto tens = children[i];
+			tens->accept(*this);
+			parents_[tens.get()][&func].push_back(i);
+		}
+		parents_.emplace(&func, ParentMapT());
 	}
 
 	/// Tracks child to parents relationship
 	/// Maps child tensor to parent mapping to indices that point to child
-	std::unordered_map<iTensor*,ParentMapT> parents_;
+	TensMapT<ParentMapT> parents_;
 };
 
 /// Map between tensor and its corresponding smart pointer
-using OwnerMapT = std::unordered_map<iTensor*,TensrefT>;
+using OwnerMapT = TensMapT<TensrefT>;
 
 /// Travelers will lose smart pointer references,
 /// This utility function will grab reference maps of root's subtree
 OwnerMapT track_owners (TensptrsT roots);
 
-/// Leaves set and sets of functors ordered by height (by ascending order)
-struct HeightMatrix
+struct Copier final : public iOnceTraveler
 {
-	HeightMatrix (const TensptrsT& roots) // todo: make this a function
+	Copier (TensSetT ignores = {}) : ignores_(ignores) {}
+
+	TensMapT<TensptrT> clones_;
+
+	TensSetT ignores_;
+
+private:
+	/// Implementation of iOnceTraveler
+	void visit_leaf (iLeaf& leaf) override
 	{
-		GraphStat stat;
-		for (TensptrT root : roots)
+		if (estd::has(ignores_, &leaf))
 		{
-			root->accept(stat);
+			return;
 		}
-
-		std::vector<size_t> root_heights;
-		root_heights.reserve(roots.size());
-		std::transform(roots.begin(), roots.end(),
-			std::back_inserter(root_heights),
-			[&stat](const TensptrT& root)
-			{
-				return stat.graphsize_[root.get()].upper_;
-			});
-		// max of the maxheight of roots should be the maxheight of the whole graph
-		size_t maxheight = *std::max_element(
-			root_heights.begin(), root_heights.end());
-		funcs_ = std::vector<std::unordered_set<iFunctor*>>(maxheight);
-
-		for (auto& gpair : stat.graphsize_)
-		{
-			auto tens = gpair.first;
-			size_t height = gpair.second.upper_;
-			if (0 == height)
-			{
-				leaves_.emplace(static_cast<iLeaf*>(tens));
-			}
-			else
-			{
-				funcs_[height - 1].emplace(static_cast<iFunctor*>(tens));
-			}
-		}
+		clones_.emplace(&leaf, leaf.clone());
 	}
 
-	/// Leaves of specified subroot
-	std::unordered_set<iLeaf*> leaves_;
-
-	/// Functors of subgraph ordered by ascending maximum height
-	std::vector<std::unordered_set<iFunctor*>> funcs_;
+	void visit_func (iFunctor& func) override
+	{
+		if (estd::has(ignores_, &func))
+		{
+			return;
+		}
+		auto children = func.get_children();
+		auto fcpy = func.clone();
+		for (size_t i = 0, n = children.size(); i < n; ++i)
+		{
+			TensptrT tens = children[i];
+			tens->accept(*this);
+			if (estd::get(tens, clones_, tens.get()))
+			{
+				fcpy->update_child(tens, i);
+			}
+		}
+		auto attrs = fcpy->ls_attrs();
+		for (auto attr : attrs)
+		{
+			if (auto refattr = dynamic_cast<
+				const TensorRef*>(fcpy->get_attr(attr)))
+			{
+				auto reftens = refattr->get_tensor();
+				TensptrT newref;
+				if (estd::get(newref, clones_, reftens.get()))
+				{
+					auto alt = refattr->copynreplace(newref);
+					fcpy->rm_attr(attr);
+					fcpy->add_attr(attr, marsh::ObjptrT(alt));
+				}
+			}
+		}
+		clones_.emplace(&func, fcpy);
+	}
 };
 
 }

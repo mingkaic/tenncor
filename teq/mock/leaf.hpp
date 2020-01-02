@@ -3,21 +3,22 @@
 #ifndef TEQ_MOCK_LEAF_HPP
 #define TEQ_MOCK_LEAF_HPP
 
-struct MockTensor : public teq::iLeaf
+struct MockLeaf : public teq::iLeaf
 {
-	MockTensor (std::string label = "") : label_(label) {}
+	MockLeaf (void) : usage_(teq::Immutable) {}
 
-	MockTensor (teq::Shape shape,
-		std::string label = "") :
-		shape_(shape), label_(label) {}
+	MockLeaf (teq::Shape shape, std::string label = "", bool cst = true) : 
+		shape_(shape), label_(label),
+		usage_(cst ? teq::Immutable : teq::Variable) {}
 
-	MockTensor (teq::Shape shape,
-		std::string label, bool cst) :
-		shape_(shape), label_(label), cst_(cst) {}
+	MockLeaf (std::vector<double> data, teq::Shape shape,
+		std::string label = "", bool cst = true) :
+		data_(data), shape_(shape), label_(label),
+		usage_(cst ? teq::Immutable : teq::Variable) {}
 
-	virtual ~MockTensor (void) = default;
+	virtual ~MockLeaf (void) = default;
 
-	const teq::Shape& shape (void) const override
+	teq::Shape shape (void) const override
 	{
 		return shape_;
 	}
@@ -29,12 +30,12 @@ struct MockTensor : public teq::iLeaf
 
 	void* data (void) override
 	{
-		return nullptr;
+		return data_.data();
 	}
 
 	const void* data (void) const override
 	{
-		return nullptr;
+		return data_.data();
 	}
 
 	size_t type_code (void) const override
@@ -44,24 +45,31 @@ struct MockTensor : public teq::iLeaf
 
 	std::string type_label (void) const override
 	{
-		return "";
+		return "double";
 	}
 
 	size_t nbytes (void) const override
 	{
-		return 0;
+		return data_.size() * sizeof(double);
 	}
 
-	bool is_const (void) const override
+	teq::Usage get_usage (void) const override
 	{
-		return cst_;
+		return usage_;
 	}
+
+	teq::iTensor* clone_impl (void) const override
+	{
+		return new MockLeaf(*this);
+	}
+
+	std::vector<double> data_;
 
 	teq::Shape shape_;
 
 	std::string label_;
 
-	bool cst_ = true;
+	teq::Usage usage_ = teq::Unknown;
 };
 
 #endif // TEQ_MOCK_LEAF_HPP

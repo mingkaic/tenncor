@@ -12,10 +12,8 @@
 
 #include "dbg/emit/session.hpp"
 
-#include "layr/seqmodel.hpp"
-#include "layr/ulayer.hpp"
-
-#include "rocnnet/trainer/sgd_trainer.hpp"
+#include "layr/api.hpp"
+#include "layr/trainer/sgd.hpp"
 
 static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
@@ -68,7 +66,7 @@ int main (int argc, const char** argv)
 		("save", flag::opt::value<std::string>(&savepath)->default_value(""),
 			"filename to save model")
 		("load", flag::opt::value<std::string>(&loadpath)->default_value(
-			"models/gd.pbx"), "filename to load pretrained model");
+			"models/gd.onnx"), "filename to load pretrained model");
 
 	int exit_status = 0;
 	std::clock_t start;
@@ -86,71 +84,74 @@ int main (int argc, const char** argv)
 	}
 
 	uint8_t n_in = 10;
+	uint8_t n_hid = 9;
 	uint8_t n_out = n_in / 2;
 	std::vector<teq::DimT> n_outs = {9, n_out};
 
-	layr::SequentialModel model("demo");
-	model.push_back(std::make_shared<layr::Dense>(9, teq::Shape({n_in}),
-		layr::unif_xavier_init<PybindT>(1),
-		layr::zero_init<PybindT>(), nullptr, "0"));
-	model.push_back(layr::sigmoid());
-	model.push_back(std::make_shared<layr::Dense>(n_out, teq::Shape({9}),
-		layr::unif_xavier_init<PybindT>(1),
-		layr::zero_init<PybindT>(), nullptr, "1"));
-	model.push_back(layr::sigmoid());
-
-	layr::SequentialModel untrained_model(model);
-	layr::SeqModelptrT trained_model = nullptr;
+	eteq::ELayer<PybindT> model = layr::link<PybindT>({
+		layr::dense<PybindT>(teq::Shape({n_in}), {n_hid},
+			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
+		layr::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
+		layr::dense<PybindT>(teq::Shape({n_hid}), {n_out},
+			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
+		layr::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
+	});
+	eteq::ELayer<PybindT> untrained_model = model.deep_clone();
+	eteq::ELayer<PybindT> trained_model = model.deep_clone();
 
 	std::ifstream loadstr(loadpath);
-	if (loadstr.is_open())
+	try
 	{
-		teq::TensptrsT trained_roots;
-		trained_model = std::static_pointer_cast<layr::SequentialModel>(
-			layr::load_layer(loadstr, trained_roots, layr::seq_model_key, "demo"));
+		if (false == loadstr.is_open())
+		{
+			throw std::exception();
+		}
+		onnx::ModelProto pb_model;
+		if (false == pb_model.ParseFromIstream(&loadstr))
+		{
+			throw std::exception();
+		}
+		trained_model = eteq::load_layers<PybindT>(pb_model)[0];
 		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
-	else
+	catch (...)
 	{
 		logs::warnf("model failed to loaded from file `%s`", loadpath.c_str());
-		trained_model = std::make_shared<layr::SequentialModel>(model);
 	}
 
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
-	layr::ApproxF approx = [](const layr::VarErrsT& leaves)
+	layr::ApproxF<PybindT> approx =
+		[](const layr::VarErrsT<PybindT>& leaves)
+		{
+			return layr::sgd<PybindT>(leaves, 0.9); // learning rate = 0.9
+		};
+	dbg::InteractiveSession sess("localhost:50051");
 	{
-		return layr::sgd(leaves, 0.9); // learning rate = 0.9
-	};
-	teq::Session sess;
-	// dbg::InteractiveSession sess("localhost:50051");
-	{
-	// jobs::ScopeGuard defer(
-	// 	[&sess]()
-	// 	{
-	// 		// 10 seconds
-	// 		std::chrono::time_point<std::chrono::system_clock> deadline =
-	// 			std::chrono::system_clock::now() +
-	// 			std::chrono::seconds(10);
-	// 		sess.join_then_stop(deadline);
-	// 	});
+
+	jobs::ScopeGuard defer(
+		[&sess]
+		{
+			// 10 seconds
+			std::chrono::time_point<std::chrono::system_clock> deadline =
+				std::chrono::system_clock::now() +
+				std::chrono::seconds(10);
+			sess.join_then_stop(deadline);
+		});
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
-	auto train = trainer::sgd_train(model, sess,
-		eteq::convert_to_node(train_input), eteq::convert_to_node(train_output), approx);
+	auto train = trainer::sgd(model, sess,
+		eteq::ETensor<PybindT>(train_input),
+		eteq::ETensor<PybindT>(train_output), approx);
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");
-	auto untrained_out = untrained_model.connect(testin);
-	auto out = model.connect(testin);
-	auto trained_out = trained_model->connect(testin);
-	sess.track({
-		untrained_out->get_tensor(),
-		out->get_tensor(),
-		trained_out->get_tensor(),
-	});
+	auto untrained_out = untrained_model.connect(eteq::ETensor<PybindT>(testin));
+	auto out = model.connect(eteq::ETensor<PybindT>(testin));
+	auto trained_out = trained_model.connect(eteq::ETensor<PybindT>(testin));
+	sess.track({untrained_out, out, trained_out});
 
 	auto rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
 	eteq::optimize<PybindT>(sess, rules);
@@ -166,9 +167,10 @@ int main (int argc, const char** argv)
 		auto err = train();
 		if (i % show_every_n == show_every_n - 1)
 		{
+			float ferr = std::accumulate(err.data_.begin(), err.data_.end(), 0.f);
 			std::cout << "training " << i + 1 << '\n';
-			std::cout << "trained error: " <<
-				fmts::to_string(err.data_.begin(), err.data_.end()) << '\n';
+			std::cout << "trained error: " << fmts::to_string(
+				err.data_.begin(), err.data_.end()) << "~" << ferr << '\n';
 		}
 	}
 	duration = (std::clock() - start) / (float) CLOCKS_PER_SEC;
@@ -181,9 +183,9 @@ int main (int argc, const char** argv)
 	float trained_err = 0;
 	float pretrained_err = 0;
 
-	float* untrained_res = untrained_out->data();
-	float* trained_res = out->data();
-	float* pretrained_res = trained_out->data();
+	float* untrained_res = (PybindT*) untrained_out->data();
+	float* trained_res = (PybindT*) out->data();
+	float* pretrained_res = (PybindT*) trained_out->data();
 	for (size_t i = 0; i < n_test; i++)
 	{
 		if (i % show_every_n == show_every_n - 1)
@@ -192,7 +194,7 @@ int main (int argc, const char** argv)
 		}
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		testin->assign(batch.data_.data(), batch.shape_);
+		testin->assign(batch);
 		sess.update();
 
 		float untrained_avgerr = 0;
@@ -221,7 +223,9 @@ int main (int argc, const char** argv)
 		std::ofstream savestr(savepath);
 		if (savestr.is_open())
 		{
-			if (layr::save_layer(savestr, model, {}))
+			onnx::ModelProto pb_model;
+			eteq::save_layers<PybindT>(pb_model, {model});
+			if (pb_model.SerializeToOstream(&savestr))
 			{
 				logs::infof("successfully saved model to `%s`", savepath.c_str());
 			}
@@ -232,9 +236,9 @@ int main (int argc, const char** argv)
 			logs::warnf("failed to save model to `%s`", savepath.c_str());
 		}
 	}
+
 	}
 
 	google::protobuf::ShutdownProtobufLibrary();
-
 	return exit_status;
 }

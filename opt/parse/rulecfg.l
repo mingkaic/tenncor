@@ -41,12 +41,12 @@
 
 comm							{ return COMMUTATIVE; }
 
-[a-zA-Z\_][a-zA-Z\_]{0,30}		{
+[a-zA-Z\_][0-9a-zA-Z\_]{0,30}		{
 	strncpy(yylval.label, yytext, NSYMBOL);
 	return SYMBOL;
 }
 
--?(0|[1-9][0-9]*)(\.\d+)?		{
+-?(0|[1-9][0-9]*)(\.[0-9]*)?		{
 	yylval.number = atof(yytext);
 	return NUMBER;
 }

@@ -68,7 +68,7 @@ sess = eteq.Session()
 
 raw_inshape[0] = 1
 test_inshape = raw_inshape
-testin = eteq.Variable(test_inshape, label="testin")
+testin = eteq.EVariable(test_inshape, label="testin")
 testout = model.connect(testin)
 sess.track([
     testout,
@@ -77,8 +77,8 @@ sess.track([
 raw_inshape[0] = nbatch
 train_inshape = raw_inshape
 train_outshape = [nbatch, 10]
-train_input = eteq.Variable(train_inshape, label="trainin")
-train_output = eteq.Variable(train_outshape, label="trainout")
+train_input = eteq.EVariable(train_inshape, label="trainin")
+train_output = eteq.EVariable(train_outshape, label="trainout")
 normalized = train_input / 255 - 0.5
 train = rcn.sgd_train(model, sess,
     normalized, train_output, rcn.get_sgd(0.5))

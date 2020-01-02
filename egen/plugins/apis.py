@@ -56,8 +56,8 @@ def _parse_args(arg, accept_def = True):
 
 def _nullcheck(args):
     tens = list(filter(lambda arg: arg.get('check_null', True) and (
-        arg['dtype'] == 'teq::TensptrT' or
-        arg['dtype'] == 'eteq::NodeptrT<T>'), args))
+        'teq::TensptrT' in arg['dtype']  or
+        'eteq::ETensor<T>' in arg['dtype']), args))
     if len(tens) == 0:
         return 'false'
     varnames = [ten['name'] for ten in tens]

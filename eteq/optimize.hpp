@@ -9,8 +9,7 @@
 #include "opt/filter.hpp"
 
 #include "eteq/generated/api.hpp"
-#include "eteq/constant.hpp"
-#include "eteq/functor.hpp"
+#include "eteq/make.hpp"
 
 #ifndef ETEQ_OPT_HPP
 #define ETEQ_OPT_HPP
@@ -23,8 +22,8 @@ struct AnyTarget final : public opt::iTarget
 {
 	AnyTarget (std::string symbol) : symbol_(symbol) {}
 
-	teq::TensptrT convert (
-		teq::Shape outshape, const opt::Candidate& candidate) const override
+	teq::TensptrT convert (teq::Shape outshape,
+		const opt::Candidate& candidate) const override
 	{
 		return estd::must_getf(candidate.anys_, symbol_,
 			"cannot find any symbol %s", symbol_.c_str());
@@ -38,18 +37,22 @@ struct ScalarTarget final : public opt::iTarget
 {
 	ScalarTarget (double scalar) : scalar_(scalar) {}
 
-	teq::TensptrT convert (
-		teq::Shape outshape, const opt::Candidate& candidate) const override
+	teq::TensptrT convert (teq::Shape outshape,
+		const opt::Candidate& candidate) const override
 	{
-		return make_constant_scalar(scalar_, outshape)->get_tensor();
+		return make_constant_scalar(scalar_, outshape);
 	}
 
 	T scalar_;
 };
 
-struct FTargEdge final
+template <typename T>
+struct FuncTarget final : public opt::iTarget
 {
-	FTargEdge (opt::TargptrT target, const ::PtrList& attrs) : target_(target)
+	FuncTarget (std::string opname, std::vector<opt::TargptrT> args,
+		std::string variadic, const ::PtrList& attrs) :
+		opcode_(egen::get_op(opname)),
+		args_(args), variadic_(variadic)
 	{
 		if (::KV_PAIR != attrs.type_)
 		{
@@ -64,58 +67,38 @@ struct FTargEdge final
 			{
 				values.push_back(jt->val_);
 			}
-			if (key == eigen::shaper_key)
-			{
-				shape_ = teq::Shape(std::vector<teq::DimT>(values.begin(), values.end()));
-			}
-			else if (key == eigen::coorder_key)
-			{
-				coords_ = values;
-			}
+			attrs_.add_attr(key, std::make_unique<marsh::NumArray<double>>(values));
 		}
 	}
 
-	opt::TargptrT target_;
-
-	std::optional<teq::Shape> shape_;
-
-	std::vector<double> coords_;
-};
-
-template <typename T>
-struct FuncTarget final : public opt::iTarget
-{
-	FuncTarget (std::string opname, std::vector<FTargEdge> args,
-		std::string variadic) :
-		opcode_(egen::get_op(opname)),
-		args_(args), variadic_(variadic) {}
-
 	teq::TensptrT convert (
-		teq::Shape outshape, const opt::Candidate& candidate) const override
+		teq::Shape outshape,
+		const opt::Candidate& candidate) const override
 	{
-		ArgsT<T> args;
-		for (auto& targ : args_)
+		teq::TensptrsT children;
+		children.reserve(args_.size());
+		for (opt::TargptrT targ : args_)
 		{
-			auto arg = to_node<T>(targ.target_->convert(outshape, candidate));
-			teq::Shape argshape = targ.shape_ ? *targ.shape_ : arg->shape();
-			args.push_back(Edge<T>(arg, argshape, targ.coords_));
+			// todo: reverse outshape
+			children.push_back(targ->convert(outshape, candidate));
 		}
 		if (variadic_.size() > 0)
 		{
-			auto& edges = candidate.variadic_.at(variadic_);
-			for (const teq::iEdge& edge : edges)
-			{
-				args.push_back(*static_cast<const eteq::Edge<T>*>(&edge));
-			}
+			auto& args = candidate.variadic_.at(variadic_);
+			children.insert(children.end(), args.begin(), args.end());
 		}
-		return teq::TensptrT(eteq::Functor<T>::get(opcode_, args));
+		std::unique_ptr<marsh::Maps> attrs(attrs_.clone());
+		return teq::TensptrT(Functor<T>::get(
+			opcode_, children, std::move(*attrs)));
 	}
 
 	egen::_GENERATED_OPCODE opcode_;
 
-	std::vector<FTargEdge> args_;
+	std::vector<opt::TargptrT> args_;
 
 	std::string variadic_;
+
+	marsh::Maps attrs_;
 };
 
 template <typename T>
@@ -133,15 +116,13 @@ opt::TargptrT build_target (::TreeNode* target)
 		case ::TreeNode::FUNCTOR:
 		{
 			::Functor* func = target->val_.functor_;
-			std::vector<FTargEdge> args;
+			std::vector<opt::TargptrT> args;
 			for (auto it = func->args_.head_; it != nullptr; it = it->next_)
 			{
-				auto arg = (::Arg*) it->val_;
-				args.push_back(FTargEdge(
-					build_target<T>(arg->node_), arg->attrs_));
+				args.push_back(build_target<T>((::TreeNode*) it->val_));
 			}
 			out = std::make_shared<FuncTarget<T>>(std::string(func->name_),
-				args, std::string(func->variadic_));
+				args, std::string(func->variadic_), func->attrs_);
 		}
 			break;
 		default:
@@ -165,48 +146,64 @@ opt::CversionCtx parse_file (std::string filename)
 }
 
 template <typename T>
-struct Hasher final : public teq::OnceTraveler
+struct Hasher final : public teq::iOnceTraveler
 {
-	Hasher (tag::PropertyRegistry& prop_reg = tag::get_property_reg()) :
-		prop_reg_(prop_reg) {}
+	teq::TensMapT<boost::uuids::uuid> hashes_;
 
-	/// Implementation of OnceTraveler
-	void visit_leaf (teq::iLeaf* leaf) override
+private:
+	/// Implementation of iOnceTraveler
+	void visit_leaf (teq::iLeaf& leaf) override
 	{
-		if (leaf->is_const())
+		if (teq::Immutable == leaf.get_usage())
 		{
-			std::string label = leaf->shape().to_string() + "|";
-			T* data = (T*) leaf->data();
-			label += fmts::to_string(data, data + leaf->shape().n_elems());
-			encode_label(leaf, label);
+			std::string label = leaf.shape().to_string() + "|";
+			T* data = (T*) leaf.data();
+			label += fmts::to_string(data, data + leaf.shape().n_elems());
+			encode_label(&leaf, label);
 		}
 		else
 		{
-			hashes_.emplace(leaf, uuid_gen_());
+			hashes_.emplace(&leaf, uuid_gen_());
 		}
 	}
 
-	/// Implementation of OnceTraveler
-	void visit_func (teq::iFunctor* func) override
+	/// Implementation of iOnceTraveler
+	void visit_func (teq::iFunctor& func) override
 	{
-		auto children = func->get_children();
+		auto children = func.get_children();
 		std::vector<std::string> hshs;
 		hshs.reserve(children.size());
-		for (const teq::iEdge& child : children)
+		for (teq::TensptrT child : children)
 		{
-			auto ctens = child.get_tensor();
-			ctens->accept(*this);
-			marsh::Maps mvalues;
-			child.get_attrs(mvalues);
-			hshs.push_back(boost::uuids::to_string(hashes_.at(ctens.get())) +
-				":" + mvalues.to_string());
+			child->accept(*this);
+			hshs.push_back(boost::uuids::to_string(hashes_.at(child.get())));
 		}
-		if (prop_reg_.has_property(func, tag::immutable_tag))
+		if (nullptr != func.get_attr(eigen::commutative_attr))
 		{
 			std::sort(hshs.begin(), hshs.end());
 		}
-		encode_label(func, func->shape().to_string() + "|" +
-			func->get_opcode().name_ + "\\" +
+		std::unordered_map<std::string,std::string> attrs;
+		auto keys = func.ls_attrs();
+		for (auto key : keys)
+		{
+			if (auto value = func.get_attr(key))
+			{
+				if (auto tref = dynamic_cast<const teq::TensorRef*>(value))
+				{
+					auto ref = tref->get_tensor();
+					ref->accept(*this);
+					attrs.emplace(key, boost::uuids::to_string(
+						hashes_.at(ref.get())));
+				}
+				else
+				{
+					attrs.emplace(key, value->to_string());
+				}
+			}
+		}
+		encode_label(&func, func.shape().to_string() + "|" +
+			func.to_string() + "\\" +
+			fmts::to_string(attrs.begin(), attrs.end()) + "\\" +
 			fmts::to_string(hshs.begin(), hshs.end()));
 	}
 
@@ -221,11 +218,6 @@ struct Hasher final : public teq::OnceTraveler
 		hashes_.emplace(tens, uuid);
 	}
 
-	std::unordered_map<teq::iTensor*,boost::uuids::uuid> hashes_;
-
-	tag::PropertyRegistry& prop_reg_;
-
-private:
 	std::unordered_map<std::string,boost::uuids::uuid> uuids_;
 
 	boost::uuids::random_generator uuid_gen_;
@@ -250,13 +242,13 @@ template <typename T>
 teq::TensptrT constant_func (teq::FuncptrT& func, opt::ParentReplF replacer)
 {
 	return opt::constant_func(func, replacer,
-		[](teq::FuncptrT func) -> teq::TensptrT
+		[](teq::FuncptrT func)
 		{
 			teq::Session sess;
 			sess.track({func});
 			sess.update_target({func.get()});
-			T* data = (T*) static_cast<Functor<T>*>(func.get())->data();
-			return make_constant(data, func->shape())->get_tensor();
+			T* data = (T*) func->data();
+			return make_constant(data, func->shape());
 		});
 }
 
@@ -266,17 +258,16 @@ void constant_funcs (teq::TensptrsT& roots)
 	teq::Session sess;
 	sess.track(roots);
 	opt::constant_funcs(roots,
-		[&sess](teq::FuncptrT func) -> teq::TensptrT
+		[&sess](teq::FuncptrT func)
 		{
 			sess.update_target({func.get()});
-			T* data = (T*) static_cast<Functor<T>*>(func.get())->data();
-			return make_constant(data, func->shape())->get_tensor();
+			T* data = (T*) func->data();
+			return make_constant(data, func->shape());
 		});
 }
 
 template <typename T>
-teq::TensptrsT optimize (teq::TensptrsT roots,
-	const opt::CversionCtx& opts)
+void optimize (teq::TensptrsT& roots, const opt::CversionCtx& opts)
 {
 	opt::CustomFilters filters;
 	filters.prefilters_.push_back(remove_duplicates<T>);
@@ -286,7 +277,7 @@ teq::TensptrsT optimize (teq::TensptrsT roots,
 		filters.prenode_filters_.push_back(constant_func<T>);
 		filters.postfilters_.push_back(remove_duplicates<T>);
 	}
-	return opt::optimize(roots, opts, filters);
+	opt::optimize(roots, opts, filters);
 }
 
 /// Apply optimization to graph roots tracked by session

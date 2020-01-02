@@ -17,7 +17,7 @@
 #define DBG_TEQ_HPP
 
 /// Map tensor to label
-using LabelsMapT = std::unordered_map<teq::iTensor*,std::string>;
+using LabelsMapT = teq::TensMapT<std::string>;
 
 /// Use PrettyTree to render teq::TensptrT graph as an ascii art
 struct PrettyEquation final
@@ -25,16 +25,16 @@ struct PrettyEquation final
 	PrettyEquation (void) : drawer_(
 		[](teq::iTensor*& root) -> std::vector<teq::iTensor*>
 		{
-			if (teq::iFunctor* f = dynamic_cast<teq::iFunctor*>(root))
+			if (auto f = dynamic_cast<teq::iFunctor*>(root))
 			{
 				auto children = f->get_children();
 				std::vector<teq::iTensor*> tens;
 				tens.reserve(children.size());
 				std::transform(children.begin(), children.end(),
 					std::back_inserter(tens),
-					[](const teq::iEdge& child)
+					[](teq::TensptrT child)
 					{
-						return child.get_tensor().get();
+						return child.get();
 					});
 				return tens;
 			}
@@ -51,7 +51,7 @@ struct PrettyEquation final
 				}
 				if (auto var = dynamic_cast<teq::iLeaf*>(root))
 				{
-					out << (var->is_const() ? "constant:" : "variable:");
+					out << teq::get_usage_name(var->get_usage()) << ":";
 				}
 				out << root->to_string();
 				if (showshape_)

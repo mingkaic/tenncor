@@ -28,7 +28,7 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//tag:tag",
+        "//teq:teq",
         "//opt/parse:parse",
         "@boost//:functional",
         "@boost//:uuid",

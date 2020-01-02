@@ -91,13 +91,13 @@ struct EnumHash
     }}
 }};
 
-static std::unordered_map<_GENERATED_DTYPE,std::string,EnumHash> type2name =
+static const std::unordered_map<_GENERATED_DTYPE,std::string,EnumHash> type2name =
 {{
     //>>> type2names
     {type2names}
 }};
 
-static std::unordered_map<std::string,_GENERATED_DTYPE> name2type =
+static const std::unordered_map<std::string,_GENERATED_DTYPE> name2type =
 {{
     //>>> name2types
     {name2types}

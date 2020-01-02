@@ -1,0 +1,78 @@
+licenses(["notice"])
+
+load(
+    "@com_github_stackb_rules_proto//cpp:cpp_proto_library.bzl",
+    "cpp_proto_library"
+)
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.hpp",
+        "src/*.cpp",
+    ]) + ["BUILD.bazel"],
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+    visibility = ["//visibility:private"],
+)
+
+######### LIBRARY #########
+
+cpp_proto_library(
+    name = "onnx_cc_proto",
+    deps = ["@com_github_onnx_onnx//:onnx_proto"],
+)
+
+cc_library(
+    name = "onnx",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//teq:teq",
+        "//onnx:onnx_cc_proto",
+        "@boost//:uuid",
+        "@boost//:bimap",
+    ],
+)
+######### TOOLS #########
+
+cc_binary(
+    name = "inspector",
+    srcs = glob(["inspector.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//onnx:onnx_cc_proto",
+        "@com_github_mingkaic_cppkg//estd:estd",
+        "@com_github_mingkaic_cppkg//flag:flag",
+    ],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    size = "small",
+    srcs = ["//onnx:test_srcs"],
+    deps = [
+        "//onnx:onnx",
+        "//teq:mock_teq",
+        "//dbg:stream_out",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    copts = ["-std=c++17"],
+    data = ["//:test_models"],
+    linkstatic = True,
+)

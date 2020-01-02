@@ -7,7 +7,7 @@ import numpy as np
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
-import rocnnet.rocnnet as rcn
+import layr.layr as layr
 
 prog_description = 'Demo lstm'
 
@@ -40,8 +40,8 @@ def main(args):
         help='Number of times of train (default: 100)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/lstm.pbx',
-        help='Filename to load pretrained model (default: models/lstm.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/lstm.onnx',
+        help='Filename to load pretrained model (default: models/lstm.onnx)')
     args = parser.parse_args(args)
 
     if args.seed:
@@ -58,20 +58,18 @@ def main(args):
     input_val_arr = [np.random.random(x_dim) for _ in y_list]
     sess = eteq.Session()
 
-    lstm = rcn.LSTM(mem_cell_ct, x_dim,
-        weight_init=rcn.unif_xavier_init(1),
-        bias_init=rcn.unif_xavier_init(1))
-    model = rcn.SequentialModel("model")
-    model.add(lstm)
-    untrained_model = model.clone()
+    model = layr.lstm(x_dim, mem_cell_ct, len(y_list),
+        weight_init=layr.unif_xavier_init(1),
+        bias_init=layr.unif_xavier_init(1))
+    untrained_model = model.deep_clone()
+    pretrained_model = model.deep_clone()
     try:
         print('loading ' + args.load)
-        pretrained_model = rcn.load_file_seqmodel(args.load, "model")
+        pretrained_model = layr.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
-        pretrained_model = model.clone()
 
     test_inputs = eteq.variable(np.array(input_val_arr), 'test_input')
     test_outputs = eteq.variable(np.array(y_list), 'test_outputs')
@@ -83,9 +81,9 @@ def main(args):
     err = tc.reduce_sum(loss(tc.transpose(tc.slice(hiddens, 0, 1, 0)), test_outputs))
     sess.track([untrained, hiddens, pretrained, err])
 
-    trainer = rcn.sgd_train(model, sess, test_inputs, test_outputs,
-        rcn.get_sgd(learning_rate=0.1),
-        errfunc=lstm_loss)
+    trainer = layr.sgd_train(model, sess, test_inputs, test_outputs,
+        layr.get_sgd(learning_rate=0.1),
+        err_func=lstm_loss)
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     start = time.time()
@@ -104,7 +102,7 @@ def main(args):
 
     try:
         print('saving')
-        if model.save_file(args.save):
+        if layr.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

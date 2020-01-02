@@ -5,21 +5,20 @@
 namespace teq
 {
 
-struct OwnerTracker final : public OnceTraveler
+struct OwnerTracker final : public iOnceTraveler
 {
 	OwnerMapT owners_;
 
 private:
-	/// Implementation of OnceTraveler
-	void visit_leaf (iLeaf* leaf) override {}
+	/// Implementation of iOnceTraveler
+	void visit_leaf (iLeaf& leaf) override {}
 
-	/// Implementation of OnceTraveler
-	void visit_func (iFunctor* func) override
+	/// Implementation of iOnceTraveler
+	void visit_func (iFunctor& func) override
 	{
-		auto children = func->get_children();
-		for (const teq::iEdge& child : children)
+		auto children = func.get_children();
+		for (const TensptrT& tens : children)
 		{
-			TensptrT tens = child.get_tensor();
 			tens->accept(*this);
 			owners_.emplace(tens.get(), tens);
 		}

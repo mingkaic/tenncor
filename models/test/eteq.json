@@ -1,3987 +1,5538 @@
 {
- "label": "",
- "nodes": [
+ "node": [
   {
-   "label": "in",
-   "source": {
-    "shape": [
-     "10",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "typelabel": "DOUBLE",
-    "isConst": false
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "training_in"
-     ]
+   "input": [
+    "::0"
+   ],
+   "output": [
+    "::1"
+   ],
+   "name": "::1",
+   "opType": "EXTEND",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "dimensions",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1",
+      "1",
+      "9"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "9",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::1"
+   ],
+   "output": [
+    "::2"
+   ],
+   "name": "::2",
+   "opType": "PERMUTE",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "ranks",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "2",
+      "1",
+      "0"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "-1",
-   "source": {
-    "shape": [
-     "9",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::0",
+    "::5"
+   ],
+   "output": [
+    "::6"
+   ],
+   "name": "::6",
+   "opType": "MATMUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "rank_pairs",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "0",
+      "1"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "weight0",
-   "source": {
-    "shape": [
-     "9",
-     "10",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "typelabel": "DOUBLE",
-    "isConst": false
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "storage_weight0"
-     ]
+   "input": [
+    "::7"
+   ],
+   "output": [
+    "::8"
+   ],
+   "name": "::8",
+   "opType": "EXTEND",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "dimensions",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1",
+      "3"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "bias0",
-   "source": {
-    "shape": [
-     "9",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "typelabel": "DOUBLE",
-    "isConst": false
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "storage_bias0"
-     ]
+   "input": [
+    "::6",
+    "::8"
+   ],
+   "output": [
+    "::9"
+   ],
+   "name": "::9",
+   "opType": "ADD",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "9",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::9"
+   ],
+   "output": [
+    "::10"
+   ],
+   "name": "::10",
+   "opType": "NEG",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "9",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::10"
+   ],
+   "output": [
+    "::11"
+   ],
+   "name": "::11",
+   "opType": "EXP",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "9",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::13"
+   ],
+   "output": [
+    "::14"
+   ],
+   "name": "::14",
+   "opType": "NEG",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "weight1",
-   "source": {
-    "shape": [
-     "5",
-     "9",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "typelabel": "DOUBLE",
-    "isConst": false
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "storage_weight1"
-     ]
+   "input": [
+    "::15",
+    "::11"
+   ],
+   "output": [
+    "::16"
+   ],
+   "name": "::16",
+   "opType": "ADD",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::14",
+    "::16"
+   ],
+   "output": [
+    "::17"
+   ],
+   "name": "::17",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "-1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::17",
+    "::16"
+   ],
+   "output": [
+    "::18"
+   ],
+   "name": "::18",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "bias1",
-   "source": {
-    "shape": [
-     "5",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-    "typelabel": "DOUBLE",
-    "isConst": false
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "storage_bias1"
-     ]
+   "input": [
+    "::19"
+   ],
+   "output": [
+    "::20"
+   ],
+   "name": "::20",
+   "opType": "EXTEND",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "dimensions",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1",
+      "1",
+      "3"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::20"
+   ],
+   "output": [
+    "::21"
+   ],
+   "name": "::21",
+   "opType": "PERMUTE",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "ranks",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "0",
+      "2",
+      "1"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::13",
+    "::16"
+   ],
+   "output": [
+    "::24"
+   ],
+   "name": "::24",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::24",
+    "::19"
+   ],
+   "output": [
+    "::25"
+   ],
+   "name": "::25",
+   "opType": "MATMUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "rank_pairs",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "0",
+      "1"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "-1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::26"
+   ],
+   "output": [
+    "::27"
+   ],
+   "name": "::27",
+   "opType": "EXTEND",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "dimensions",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1",
+      "3"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "2",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABA",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::25",
+    "::27"
+   ],
+   "output": [
+    "::28"
+   ],
+   "name": "::28",
+   "opType": "ADD",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "out",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "typelabel": "DOUBLE",
-    "isConst": false
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "training_out"
-     ]
-    }
-   }
+   "input": [
+    "::28"
+   ],
+   "output": [
+    "::29"
+   ],
+   "name": "::29",
+   "opType": "NEG",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::29"
+   ],
+   "output": [
+    "::30"
+   ],
+   "name": "::30",
+   "opType": "EXP",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::32"
+   ],
+   "output": [
+    "::33"
+   ],
+   "name": "::33",
+   "opType": "NEG",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "9",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::34",
+    "::30"
+   ],
+   "output": [
+    "::35"
+   ],
+   "name": "::35",
+   "opType": "ADD",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "9",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::33",
+    "::35"
+   ],
+   "output": [
+    "::36"
+   ],
+   "name": "::36",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "-1",
-   "source": {
-    "shape": [
-     "9",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::36",
+    "::35"
+   ],
+   "output": [
+    "::37"
+   ],
+   "name": "::37",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "9",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::32",
+    "::35"
+   ],
+   "output": [
+    "::41"
+   ],
+   "name": "::41",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::40",
+    "::41"
+   ],
+   "output": [
+    "::42"
+   ],
+   "name": "::42",
+   "opType": "SUB",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "-1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::39",
+    "::43"
+   ],
+   "output": [
+    "::44"
+   ],
+   "name": "::44",
+   "opType": "SUB",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    }
-   }
+   "input": [
+    "::42",
+    "::44"
+   ],
+   "output": [
+    "::45"
+   ],
+   "name": "::45",
+   "opType": "POW",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
   },
   {
-   "label": "-1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::39",
+    "::45"
+   ],
+   "output": [
+    "::46"
+   ],
+   "name": "::46",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::46",
+    "::47"
+   ],
+   "output": [
+    "::48"
+   ],
+   "name": "::48",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::38",
+    "::48"
+   ],
+   "output": [
+    "::49"
+   ],
+   "name": "::49",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::37",
+    "::49"
+   ],
+   "output": [
+    "::50"
+   ],
+   "name": "::50",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "-1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::31",
+    "::50"
+   ],
+   "output": [
+    "::51"
+   ],
+   "name": "::51",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::30",
+    "::51"
+   ],
+   "output": [
+    "::52"
+   ],
+   "name": "::52",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "-1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::23",
+    "::52"
+   ],
+   "output": [
+    "::53"
+   ],
+   "name": "::53",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::22",
+    "::53"
+   ],
+   "output": [
+    "::54"
+   ],
+   "name": "::54",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::54"
+   ],
+   "output": [
+    "::55"
+   ],
+   "name": "::55",
+   "opType": "EXTEND",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "dimensions",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1",
+      "1",
+      "9"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPw==",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::21",
+    "::55"
+   ],
+   "output": [
+    "::56"
+   ],
+   "name": "::56",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::56"
+   ],
+   "output": [
+    "::57"
+   ],
+   "name": "::57",
+   "opType": "PERMUTE",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "ranks",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "2",
+      "1",
+      "0"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "-1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::57"
+   ],
+   "output": [
+    "::58"
+   ],
+   "name": "::58",
+   "opType": "REDUCE_SUM",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "rank_set",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::18",
+    "::58"
+   ],
+   "output": [
+    "::59"
+   ],
+   "name": "::59",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "-1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/AAAAAAAA8L8AAAAAAADwvwAAAAAAAPC/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::12",
+    "::59"
+   ],
+   "output": [
+    "::60"
+   ],
+   "name": "::60",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::11",
+    "::60"
+   ],
+   "output": [
+    "::61"
+   ],
+   "name": "::61",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "1",
-   "source": {
-    "shape": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/",
-    "typelabel": "DOUBLE",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
+   "input": [
+    "::4",
+    "::61"
+   ],
+   "output": [
+    "::62"
+   ],
+   "name": "::62",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
     }
-   }
+   ],
+   "docString": ""
   },
   {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 0,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1,
-         1,
-         9
-        ]
+   "input": [
+    "::3",
+    "::62"
+   ],
+   "output": [
+    "::63"
+   ],
+   "name": "::63",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::63"
+   ],
+   "output": [
+    "::64"
+   ],
+   "name": "::64",
+   "opType": "EXTEND",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "dimensions",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1",
+      "1",
+      "10"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::2",
+    "::64"
+   ],
+   "output": [
+    "::65"
+   ],
+   "name": "::65",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::65"
+   ],
+   "output": [
+    "::66"
+   ],
+   "name": "::66",
+   "opType": "PERMUTE",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "ranks",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "0",
+      "2",
+      "1"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::66"
+   ],
+   "output": [
+    "dw0"
+   ],
+   "name": "dw0",
+   "opType": "REDUCE_SUM",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "rank_set",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::13"
+   ],
+   "output": [
+    "::72"
+   ],
+   "name": "::72",
+   "opType": "NEG",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::72",
+    "::16"
+   ],
+   "output": [
+    "::73"
+   ],
+   "name": "::73",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::73",
+    "::16"
+   ],
+   "output": [
+    "::74"
+   ],
+   "name": "::74",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::19"
+   ],
+   "output": [
+    "::75"
+   ],
+   "name": "::75",
+   "opType": "EXTEND",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "dimensions",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1",
+      "1",
+      "3"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::75"
+   ],
+   "output": [
+    "::76"
+   ],
+   "name": "::76",
+   "opType": "PERMUTE",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "ranks",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "0",
+      "2",
+      "1"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::32"
+   ],
+   "output": [
+    "::80"
+   ],
+   "name": "::80",
+   "opType": "NEG",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::80",
+    "::35"
+   ],
+   "output": [
+    "::81"
+   ],
+   "name": "::81",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::81",
+    "::35"
+   ],
+   "output": [
+    "::82"
+   ],
+   "name": "::82",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::39",
+    "::84"
+   ],
+   "output": [
+    "::85"
+   ],
+   "name": "::85",
+   "opType": "SUB",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::42",
+    "::85"
+   ],
+   "output": [
+    "::86"
+   ],
+   "name": "::86",
+   "opType": "POW",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::39",
+    "::86"
+   ],
+   "output": [
+    "::87"
+   ],
+   "name": "::87",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::87",
+    "::88"
+   ],
+   "output": [
+    "::89"
+   ],
+   "name": "::89",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::83",
+    "::89"
+   ],
+   "output": [
+    "::90"
+   ],
+   "name": "::90",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::82",
+    "::90"
+   ],
+   "output": [
+    "::91"
+   ],
+   "name": "::91",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::79",
+    "::91"
+   ],
+   "output": [
+    "::92"
+   ],
+   "name": "::92",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::30",
+    "::92"
+   ],
+   "output": [
+    "::93"
+   ],
+   "name": "::93",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::78",
+    "::93"
+   ],
+   "output": [
+    "::94"
+   ],
+   "name": "::94",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::77",
+    "::94"
+   ],
+   "output": [
+    "::95"
+   ],
+   "name": "::95",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::95"
+   ],
+   "output": [
+    "::96"
+   ],
+   "name": "::96",
+   "opType": "EXTEND",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "dimensions",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1",
+      "1",
+      "9"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::76",
+    "::96"
+   ],
+   "output": [
+    "::97"
+   ],
+   "name": "::97",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::97"
+   ],
+   "output": [
+    "::98"
+   ],
+   "name": "::98",
+   "opType": "PERMUTE",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "ranks",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "2",
+      "1",
+      "0"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::98"
+   ],
+   "output": [
+    "::99"
+   ],
+   "name": "::99",
+   "opType": "REDUCE_SUM",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "rank_set",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::74",
+    "::99"
+   ],
+   "output": [
+    "::100"
+   ],
+   "name": "::100",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::71",
+    "::100"
+   ],
+   "output": [
+    "::101"
+   ],
+   "name": "::101",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::11",
+    "::101"
+   ],
+   "output": [
+    "::102"
+   ],
+   "name": "::102",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::70",
+    "::102"
+   ],
+   "output": [
+    "::103"
+   ],
+   "name": "::103",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::69",
+    "::103"
+   ],
+   "output": [
+    "::104"
+   ],
+   "name": "::104",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::104"
+   ],
+   "output": [
+    "::105"
+   ],
+   "name": "::105",
+   "opType": "REDUCE_SUM",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "rank_set",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::68",
+    "::105"
+   ],
+   "output": [
+    "db0"
+   ],
+   "name": "db0",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::24"
+   ],
+   "output": [
+    "::107"
+   ],
+   "name": "::107",
+   "opType": "EXTEND",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "dimensions",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1",
+      "1",
+      "5"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::107"
+   ],
+   "output": [
+    "::108"
+   ],
+   "name": "::108",
+   "opType": "PERMUTE",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "ranks",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "2",
+      "1",
+      "0"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::32"
+   ],
+   "output": [
+    "::112"
+   ],
+   "name": "::112",
+   "opType": "NEG",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::112",
+    "::35"
+   ],
+   "output": [
+    "::113"
+   ],
+   "name": "::113",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::113",
+    "::35"
+   ],
+   "output": [
+    "::114"
+   ],
+   "name": "::114",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::39",
+    "::116"
+   ],
+   "output": [
+    "::117"
+   ],
+   "name": "::117",
+   "opType": "SUB",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::42",
+    "::117"
+   ],
+   "output": [
+    "::118"
+   ],
+   "name": "::118",
+   "opType": "POW",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::39",
+    "::118"
+   ],
+   "output": [
+    "::119"
+   ],
+   "name": "::119",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::119",
+    "::120"
+   ],
+   "output": [
+    "::121"
+   ],
+   "name": "::121",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::115",
+    "::121"
+   ],
+   "output": [
+    "::122"
+   ],
+   "name": "::122",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::114",
+    "::122"
+   ],
+   "output": [
+    "::123"
+   ],
+   "name": "::123",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::111",
+    "::123"
+   ],
+   "output": [
+    "::124"
+   ],
+   "name": "::124",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::30",
+    "::124"
+   ],
+   "output": [
+    "::125"
+   ],
+   "name": "::125",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::110",
+    "::125"
+   ],
+   "output": [
+    "::126"
+   ],
+   "name": "::126",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::109",
+    "::126"
+   ],
+   "output": [
+    "::127"
+   ],
+   "name": "::127",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::127"
+   ],
+   "output": [
+    "::128"
+   ],
+   "name": "::128",
+   "opType": "EXTEND",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "dimensions",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1",
+      "1",
+      "9"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::108",
+    "::128"
+   ],
+   "output": [
+    "::129"
+   ],
+   "name": "::129",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::129"
+   ],
+   "output": [
+    "::130"
+   ],
+   "name": "::130",
+   "opType": "PERMUTE",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "ranks",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "0",
+      "2",
+      "1"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::130"
+   ],
+   "output": [
+    "dw1"
+   ],
+   "name": "dw1",
+   "opType": "REDUCE_SUM",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "rank_set",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::32"
+   ],
+   "output": [
+    "::136"
+   ],
+   "name": "::136",
+   "opType": "NEG",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::136",
+    "::35"
+   ],
+   "output": [
+    "::137"
+   ],
+   "name": "::137",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::137",
+    "::35"
+   ],
+   "output": [
+    "::138"
+   ],
+   "name": "::138",
+   "opType": "DIV",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::39",
+    "::140"
+   ],
+   "output": [
+    "::141"
+   ],
+   "name": "::141",
+   "opType": "SUB",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::42",
+    "::141"
+   ],
+   "output": [
+    "::142"
+   ],
+   "name": "::142",
+   "opType": "POW",
+   "domain": "",
+   "attribute": [],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::39",
+    "::142"
+   ],
+   "output": [
+    "::143"
+   ],
+   "name": "::143",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::143",
+    "::144"
+   ],
+   "output": [
+    "::145"
+   ],
+   "name": "::145",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::139",
+    "::145"
+   ],
+   "output": [
+    "::146"
+   ],
+   "name": "::146",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::138",
+    "::146"
+   ],
+   "output": [
+    "::147"
+   ],
+   "name": "::147",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::135",
+    "::147"
+   ],
+   "output": [
+    "::148"
+   ],
+   "name": "::148",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::30",
+    "::148"
+   ],
+   "output": [
+    "::149"
+   ],
+   "name": "::149",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::134",
+    "::149"
+   ],
+   "output": [
+    "::150"
+   ],
+   "name": "::150",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::133",
+    "::150"
+   ],
+   "output": [
+    "::151"
+   ],
+   "name": "::151",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::151"
+   ],
+   "output": [
+    "::152"
+   ],
+   "name": "::152",
+   "opType": "REDUCE_SUM",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "rank_set",
+     "refAttrName": "",
+     "docString": "",
+     "type": "INTS",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [
+      "1"
+     ],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  },
+  {
+   "input": [
+    "::132",
+    "::152"
+   ],
+   "output": [
+    "db1"
+   ],
+   "name": "db1",
+   "opType": "MUL",
+   "domain": "",
+   "attribute": [
+    {
+     "name": "commutative",
+     "refAttrName": "",
+     "docString": "",
+     "type": "STRING",
+     "f": 0,
+     "i": "0",
+     "s": "",
+     "floats": [],
+     "ints": [],
+     "strings": [],
+     "tensors": [],
+     "graphs": [],
+     "sparseTensors": []
+    }
+   ],
+   "docString": ""
+  }
+ ],
+ "name": "",
+ "initializer": [
+  {
+   "dims": [
+    "10",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::0",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "9",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::3",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "9",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::4",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "9",
+    "10",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::5",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "9",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::7",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "9",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::12",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "9",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::13",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "9",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::15",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "9",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::19",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::22",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::23",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::26",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::31",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::32",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::34",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::38",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::39",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::40",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::43",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::47",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "9",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::68",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "9",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::69",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "9",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::70",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "9",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::71",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::77",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::78",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::79",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::83",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::84",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::88",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::109",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::110",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::111",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::115",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::116",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::120",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::132",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::133",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::134",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::135",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::139",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::140",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  },
+  {
+   "dims": [
+    "5",
+    "3",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1",
+    "1"
+   ],
+   "dataType": 11,
+   "floatData": [],
+   "int32Data": [],
+   "stringData": [],
+   "int64Data": [],
+   "name": "::144",
+   "docString": "",
+   "rawData": "",
+   "externalData": [],
+   "dataLocation": "DEFAULT",
+   "doubleData": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "uint64Data": []
+  }
+ ],
+ "sparseInitializer": [],
+ "docString": "",
+ "input": [],
+ "output": [
+  {
+   "name": "db0",
+   "type": {
+    "tensorType": {
+     "elemType": 0,
+     "shape": {
+      "dim": [
+       {
+        "denotation": "",
+        "dimValue": "9"
        },
-       "shape": {
-        "values": [
-         10,
-         3,
-         9,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "MATMUL",
-   "functor": {
-    "opname": "MATMUL",
-    "args": [
-     {
-      "idx": 0,
-      "attrs": {
-       "coorder": {
-        "values": [
-         0,
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "shape": {
-        "values": [
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     },
-     {
-      "idx": 3,
-      "attrs": {
-       "shape": {
-        "values": [
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 4,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1,
-         3
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "shape": {
-        "values": [
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 6,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 8,
-      "attrs": {
-       "shape": {
-        "values": [
-         5,
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "coorder": {
-        "values": [
-         1,
-         1,
-         3
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 11,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1,
-         3
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "shape": {
-        "values": [
-         5,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 13,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "SUB",
-   "functor": {
-    "opname": "SUB",
-    "args": [
-     {
-      "idx": 16,
-      "attrs": {}
-     },
-     {
-      "idx": 18,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 6,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 8,
-      "attrs": {
-       "shape": {
-        "values": [
-         5,
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "coorder": {
-        "values": [
-         1,
-         1,
-         3
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 13,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "SUB",
-   "functor": {
-    "opname": "SUB",
-    "args": [
-     {
-      "idx": 16,
-      "attrs": {}
-     },
-     {
-      "idx": 28,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 13,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "SUB",
-   "functor": {
-    "opname": "SUB",
-    "args": [
-     {
-      "idx": 16,
-      "attrs": {}
-     },
-     {
-      "idx": 34,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 13,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "SUB",
-   "functor": {
-    "opname": "SUB",
-    "args": [
-     {
-      "idx": 16,
-      "attrs": {}
-     },
-     {
-      "idx": 41,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 43,
-      "attrs": {
-       "coorder": {
-        "values": [
-         2,
-         1,
-         0,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "shape": {
-        "values": [
-         9,
-         3,
-         10,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        }
-      }
+      ]
      }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "ADD",
-   "functor": {
-    "opname": "ADD",
-    "args": [
-     {
-      "idx": 44,
-      "attrs": {}
-     },
-     {
-      "idx": 45,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "sum"
-     ]
     },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
+    "denotation": ""
+   },
+   "docString": ""
   },
   {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 47,
-      "attrs": {
-       "coorder": {
-        "values": [
-         0,
-         2,
-         1,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
+   "name": "db1",
+   "type": {
+    "tensorType": {
+     "elemType": 0,
+     "shape": {
+      "dim": [
+       {
+        "denotation": "",
+        "dimValue": "5"
        },
-       "shape": {
-        "values": [
-         5,
-         3,
-         9,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 52,
-      "attrs": {
-       "coorder": {
-        "values": [
-         0,
-         2,
-         1,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "shape": {
-        "values": [
-         5,
-         3,
-         9,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 60,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "EXP",
-   "functor": {
-    "opname": "EXP",
-    "args": [
-     {
-      "idx": 63,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "ADD",
-   "functor": {
-    "opname": "ADD",
-    "args": [
-     {
-      "idx": 7,
-      "attrs": {}
-     },
-     {
-      "idx": 64,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "sum"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 46,
-      "attrs": {}
-     },
-     {
-      "idx": 65,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 6,
-      "attrs": {}
-     },
-     {
-      "idx": 65,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 51,
-      "attrs": {}
-     },
-     {
-      "idx": 65,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 66,
-      "attrs": {}
-     },
-     {
-      "idx": 65,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "MATMUL",
-   "functor": {
-    "opname": "MATMUL",
-    "args": [
-     {
-      "idx": 67,
-      "attrs": {
-       "coorder": {
-        "values": [
-         0,
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "shape": {
-        "values": [
-         5,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     },
-     {
-      "idx": 8,
-      "attrs": {
-       "shape": {
-        "values": [
-         5,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 68,
-      "attrs": {}
-     },
-     {
-      "idx": 65,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 67,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1,
-         1,
-         5
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "shape": {
-        "values": [
-         9,
-         3,
-         5,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "ADD",
-   "functor": {
-    "opname": "ADD",
-    "args": [
-     {
-      "idx": 70,
-      "attrs": {}
-     },
-     {
-      "idx": 48,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "sum"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 72,
-      "attrs": {
-       "coorder": {
-        "values": [
-         2,
-         1,
-         0,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "shape": {
-        "values": [
-         5,
-         3,
-         9,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "NEG",
-   "functor": {
-    "opname": "NEG",
-    "args": [
-     {
-      "idx": 73,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "EXP",
-   "functor": {
-    "opname": "EXP",
-    "args": [
-     {
-      "idx": 75,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "ADD",
-   "functor": {
-    "opname": "ADD",
-    "args": [
-     {
-      "idx": 14,
-      "attrs": {}
-     },
-     {
-      "idx": 76,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "sum"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 49,
-      "attrs": {}
-     },
-     {
-      "idx": 77,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 13,
-      "attrs": {}
-     },
-     {
-      "idx": 77,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 53,
-      "attrs": {}
-     },
-     {
-      "idx": 77,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 55,
-      "attrs": {}
-     },
-     {
-      "idx": 77,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 57,
-      "attrs": {}
-     },
-     {
-      "idx": 77,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 78,
-      "attrs": {}
-     },
-     {
-      "idx": 77,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "SUB",
-   "functor": {
-    "opname": "SUB",
-    "args": [
-     {
-      "idx": 17,
-      "attrs": {}
-     },
-     {
-      "idx": 79,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 80,
-      "attrs": {}
-     },
-     {
-      "idx": 77,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 81,
-      "attrs": {}
-     },
-     {
-      "idx": 77,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "DIV",
-   "functor": {
-    "opname": "DIV",
-    "args": [
-     {
-      "idx": 82,
-      "attrs": {}
-     },
-     {
-      "idx": 77,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "POW",
-   "functor": {
-    "opname": "POW",
-    "args": [
-     {
-      "idx": 84,
-      "attrs": {}
-     },
-     {
-      "idx": 50,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "POW",
-   "functor": {
-    "opname": "POW",
-    "args": [
-     {
-      "idx": 84,
-      "attrs": {}
-     },
-     {
-      "idx": 54,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "POW",
-   "functor": {
-    "opname": "POW",
-    "args": [
-     {
-      "idx": 84,
-      "attrs": {}
-     },
-     {
-      "idx": 56,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "POW",
-   "functor": {
-    "opname": "POW",
-    "args": [
-     {
-      "idx": 84,
-      "attrs": {}
-     },
-     {
-      "idx": 58,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 16,
-      "attrs": {}
-     },
-     {
-      "idx": 88,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 16,
-      "attrs": {}
-     },
-     {
-      "idx": 89,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 16,
-      "attrs": {}
-     },
-     {
-      "idx": 90,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 16,
-      "attrs": {}
-     },
-     {
-      "idx": 91,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 92,
-      "attrs": {}
-     },
-     {
-      "idx": 19,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 93,
-      "attrs": {}
-     },
-     {
-      "idx": 29,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 94,
-      "attrs": {}
-     },
-     {
-      "idx": 35,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 95,
-      "attrs": {}
-     },
-     {
-      "idx": 42,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 15,
-      "attrs": {}
-     },
-     {
-      "idx": 96,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 27,
-      "attrs": {}
-     },
-     {
-      "idx": 97,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 33,
-      "attrs": {}
-     },
-     {
-      "idx": 98,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 40,
-      "attrs": {}
-     },
-     {
-      "idx": 99,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 83,
-      "attrs": {}
-     },
-     {
-      "idx": 100,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 85,
-      "attrs": {}
-     },
-     {
-      "idx": 101,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 86,
-      "attrs": {}
-     },
-     {
-      "idx": 102,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 87,
-      "attrs": {}
-     },
-     {
-      "idx": 103,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 12,
-      "attrs": {}
-     },
-     {
-      "idx": 104,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 26,
-      "attrs": {}
-     },
-     {
-      "idx": 105,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 32,
-      "attrs": {}
-     },
-     {
-      "idx": 106,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 39,
-      "attrs": {}
-     },
-     {
-      "idx": 107,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 76,
-      "attrs": {}
-     },
-     {
-      "idx": 108,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 76,
-      "attrs": {}
-     },
-     {
-      "idx": 109,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 76,
-      "attrs": {}
-     },
-     {
-      "idx": 110,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 76,
-      "attrs": {}
-     },
-     {
-      "idx": 111,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 10,
-      "attrs": {}
-     },
-     {
-      "idx": 112,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 25,
-      "attrs": {}
-     },
-     {
-      "idx": 113,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 31,
-      "attrs": {}
-     },
-     {
-      "idx": 114,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 38,
-      "attrs": {}
-     },
-     {
-      "idx": 115,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 9,
-      "attrs": {}
-     },
-     {
-      "idx": 116,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 24,
-      "attrs": {}
-     },
-     {
-      "idx": 117,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 30,
-      "attrs": {}
-     },
-     {
-      "idx": 118,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 37,
-      "attrs": {}
-     },
-     {
-      "idx": 119,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 120,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1,
-         1,
-         9
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "shape": {
-        "values": [
-         5,
-         3,
-         9,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 121,
-      "attrs": {
-       "shape": {
-        "values": [
-         5,
-         3,
-         9,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "coorder": {
-        "values": [
-         1,
-         1,
-         9
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        }
-      }
+      ]
      }
-    ]
+    },
+    "denotation": ""
    },
-   "tags": {}
+   "docString": ""
   },
   {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 122,
-      "attrs": {
-       "shape": {
-        "values": [
-         5,
-         3,
-         9,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
+   "name": "dw0",
+   "type": {
+    "tensorType": {
+     "elemType": 0,
+     "shape": {
+      "dim": [
+       {
+        "denotation": "",
+        "dimValue": "9"
        },
-       "coorder": {
-        "values": [
-         1,
-         1,
-         9
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "REDUCE_SUM",
-   "functor": {
-    "opname": "REDUCE_SUM",
-    "args": [
-     {
-      "idx": 123,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "10"
        },
-       "shape": {
-        "values": [
-         5,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 61,
-      "attrs": {}
-     },
-     {
-      "idx": 124,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 62,
-      "attrs": {}
-     },
-     {
-      "idx": 125,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 74,
-      "attrs": {}
-     },
-     {
-      "idx": 126,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 36,
-      "attrs": {}
-     },
-     {
-      "idx": 127,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "derivative_db1",
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 128,
-      "attrs": {
-       "shape": {
-        "values": [
-         9,
-         3,
-         5,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "coorder": {
-        "values": [
-         2,
-         1,
-         0,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 129,
-      "attrs": {
-       "shape": {
-        "values": [
-         9,
-         3,
-         5,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "coorder": {
-        "values": [
-         2,
-         1,
-         0,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 130,
-      "attrs": {
-       "shape": {
-        "values": [
-         5,
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "coorder": {
-        "values": [
-         0,
-         2,
-         1,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "REDUCE_SUM",
-   "functor": {
-    "opname": "REDUCE_SUM",
-    "args": [
-     {
-      "idx": 132,
-      "attrs": {
-       "coorder": {
-        "values": [
-         2
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "shape": {
-        "values": [
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "REDUCE_SUM",
-   "functor": {
-    "opname": "REDUCE_SUM",
-    "args": [
-     {
-      "idx": 133,
-      "attrs": {
-       "shape": {
-        "values": [
-         9,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "coorder": {
-        "values": [
-         2
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        }
-      }
+      ]
      }
-    ]
+    },
+    "denotation": ""
    },
-   "tags": {}
+   "docString": ""
   },
   {
-   "label": "REDUCE_SUM",
-   "functor": {
-    "opname": "REDUCE_SUM",
-    "args": [
-     {
-      "idx": 134,
-      "attrs": {
-       "coorder": {
-        "values": [
-         2
-        ]
+   "name": "dw1",
+   "type": {
+    "tensorType": {
+     "elemType": 0,
+     "shape": {
+      "dim": [
+       {
+        "denotation": "",
+        "dimValue": "5"
        },
-       "shape": {
-        "values": [
-         5,
-         9,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "derivative_dw1"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 69,
-      "attrs": {}
-     },
-     {
-      "idx": 135,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 71,
-      "attrs": {}
-     },
-     {
-      "idx": 136,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 5,
-      "attrs": {}
-     },
-     {
-      "idx": 138,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    },
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 23,
-      "attrs": {}
-     },
-     {
-      "idx": 139,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 64,
-      "attrs": {}
-     },
-     {
-      "idx": 140,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 64,
-      "attrs": {}
-     },
-     {
-      "idx": 141,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 2,
-      "attrs": {}
-     },
-     {
-      "idx": 142,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 22,
-      "attrs": {}
-     },
-     {
-      "idx": 143,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 1,
-      "attrs": {}
-     },
-     {
-      "idx": 144,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 21,
-      "attrs": {}
-     },
-     {
-      "idx": 145,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "EXTEND",
-   "functor": {
-    "opname": "EXTEND",
-    "args": [
-     {
-      "idx": 146,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1,
-         1,
-         10
-        ]
+       {
+        "denotation": "",
+        "dimValue": "9"
        },
-       "shape": {
-        "values": [
-         9,
-         3,
-         10,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "REDUCE_SUM",
-   "functor": {
-    "opname": "REDUCE_SUM",
-    "args": [
-     {
-      "idx": 147,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
        },
-       "shape": {
-        "values": [
-         9,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
+       },
+       {
+        "denotation": "",
+        "dimValue": "1"
        }
-      }
+      ]
      }
-    ]
-   },
-   "tags": {}
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 59,
-      "attrs": {}
-     },
-     {
-      "idx": 148,
-      "attrs": {}
-     }
-    ]
-   },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
     },
-    "properties": {
-     "labels": [
-      "commutative"
-     ]
-    }
-   }
-  },
-  {
-   "label": "MUL",
-   "functor": {
-    "opname": "MUL",
-    "args": [
-     {
-      "idx": 20,
-      "attrs": {}
-     },
-     {
-      "idx": 149,
-      "attrs": {}
-     }
-    ]
+    "denotation": ""
    },
-   "tags": {
-    "groups": {
-     "labels": [
-      "prod"
-     ]
+   "docString": ""
+  }
+ ],
+ "valueInfo": [],
+ "quantizationAnnotation": [
+  {
+   "tensorName": "::0",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "in"
     },
-    "properties": {
-     "labels": [
-      "derivative_db0",
-      "commutative"
-     ]
+    {
+     "key": "LEAF_USAGE",
+     "value": "variable"
     }
-   }
+   ]
   },
   {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 150,
-      "attrs": {
-       "shape": {
-        "values": [
-         9,
-         10,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       },
-       "coorder": {
-        "values": [
-         0,
-         2,
-         1,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {}
+   "tensorName": "::3",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
   },
   {
-   "label": "REDUCE_SUM",
-   "functor": {
-    "opname": "REDUCE_SUM",
-    "args": [
-     {
-      "idx": 152,
-      "attrs": {
-       "shape": {
-        "values": [
-         9,
-         10,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       },
-       "coorder": {
-        "values": [
-         2
-        ]
-       }
-      }
-     }
-    ]
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "derivative_dw0"
-     ]
+   "tensorName": "::4",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "-1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
     }
-   }
+   ]
+  },
+  {
+   "tensorName": "::5",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "weight0"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "variable"
+    }
+   ]
+  },
+  {
+   "tensorName": "::7",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "bias0"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "variable"
+    }
+   ]
+  },
+  {
+   "tensorName": "::12",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::13",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::15",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::19",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "weight1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "variable"
+    }
+   ]
+  },
+  {
+   "tensorName": "::22",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::23",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "-1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::26",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "bias1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "variable"
+    }
+   ]
+  },
+  {
+   "tensorName": "::31",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::32",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::34",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::38",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "-1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::39",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "2"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::40",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "out"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "variable"
+    }
+   ]
+  },
+  {
+   "tensorName": "::43",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::47",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::68",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::69",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::70",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "-1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::71",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::77",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::78",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "-1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::79",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::83",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "-1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::84",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::88",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::109",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::110",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "-1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::111",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::115",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "-1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::116",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::120",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::132",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::133",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::134",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "-1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::135",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::139",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "-1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::140",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
+  },
+  {
+   "tensorName": "::144",
+   "quantParameterTensorNames": [
+    {
+     "key": "TENSOR_NAME",
+     "value": "1"
+    },
+    {
+     "key": "LEAF_USAGE",
+     "value": "constant"
+    }
+   ]
   }
  ]
 }

@@ -19,8 +19,7 @@ opt::TargptrT build_mock_target (::TreeNode* target)
 			std::vector<opt::TargptrT> args;
 			for (auto it = func->args_.head_; it != nullptr; it = it->next_)
 			{
-				auto arg = (::Arg*) it->val_;
-				args.push_back(build_mock_target(arg->node_));
+				args.push_back(build_mock_target((::TreeNode*) it->val_));
 			}
 			out = std::make_shared<MockFTarget>(std::string(func->name_),
 				args, std::string(func->variadic_));

@@ -1,5 +1,7 @@
 licenses(["notice"])
 
+load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+
 package(
     default_visibility = ["//visibility:public"],
 )
@@ -24,10 +26,23 @@ filegroup(
 
 cc_library(
     name = "layr",
-    hdrs = glob(["*.hpp"]),
+    hdrs = glob([
+        "*.hpp",
+        "trainer/*.hpp",
+    ]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = ["//eteq:eteq"],
+)
+
+pybind_library(
+    name = "layr_py",
+    cc_srcs = ["//layr:python/layr.cpp"],
+    cc_deps = [
+        "//layr:layr",
+        "//pyutils:pyutils",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########
