@@ -93,6 +93,7 @@ TEST(PARSE, Fails)
 	const char* invalid_comm = "comm X=>X;";
 	const char* scalar_matcher = "2=>F(X);";
 	const char* symbol_matcher = "C=>G(X);";
+	const char* bad_token = "F(C)=>~;";
 
 	::PtrList* arr = nullptr;
 	EXPECT_EQ(1, ::parse_str(&arr, single_graph));
@@ -129,6 +130,10 @@ TEST(PARSE, Fails)
 	::PtrList* arr9 = nullptr;
 	EXPECT_EQ(1, ::parse_str(&arr9, symbol_matcher));
 	ASSERT_EQ(nullptr, arr9);
+
+	::PtrList* arr10 = nullptr;
+	EXPECT_EQ(1, ::parse_str(&arr10, bad_token));
+	ASSERT_EQ(nullptr, arr10);
 }
 
 
@@ -261,6 +266,190 @@ TEST(PARSE, OptimizationRules)
 	EXPECT_EQ(::CONVERSION, arr->type_);
 
 	::cversions_free(arr);
+}
+
+
+TEST(LIST, NumListMove)
+{
+	::NumList* lst = ::new_numlist();
+	ASSERT_EQ(NULL, lst->head_);
+	ASSERT_EQ(NULL, lst->tail_);
+	::numlist_pushback(lst, 4.);
+	::numlist_pushback(lst, 5.);
+	::numlist_pushback(NULL, 6.);
+
+	::NumNode* head = lst->head_;
+	::NumNode* tail = lst->tail_;
+	ASSERT_EQ(NULL, tail->next_);
+	ASSERT_EQ(4., head->val_);
+	ASSERT_EQ(5., tail->val_);
+
+	// failed move should not change lst
+	::numlist_move(NULL, lst);
+	ASSERT_EQ(head, lst->head_);
+	ASSERT_EQ(tail, lst->tail_);
+	// ensure the list structure is not changed
+	ASSERT_EQ(tail, head->next_);
+	ASSERT_EQ(NULL, tail->next_);
+
+	// failed move should not change lst
+	::numlist_move(lst, NULL);
+	ASSERT_EQ(head, lst->head_);
+	ASSERT_EQ(tail, lst->tail_);
+	// ensure the list structure is not changed
+	ASSERT_EQ(tail, head->next_);
+	ASSERT_EQ(NULL, tail->next_);
+
+	::NumList* lst2 = ::new_numlist();
+	ASSERT_EQ(NULL, lst2->head_);
+	ASSERT_EQ(NULL, lst2->tail_);
+
+	// move lst to lst2
+	::numlist_move(lst2, lst);
+	ASSERT_EQ(head, lst2->head_);
+	ASSERT_EQ(tail, lst2->tail_);
+	// ensure the list structure is not changed after move
+	ASSERT_EQ(tail, head->next_);
+	ASSERT_EQ(NULL, tail->next_);
+	// ensure lst is cleared after moving
+	ASSERT_EQ(NULL, lst->head_);
+	ASSERT_EQ(NULL, lst->tail_);
+
+	::numlist_free(lst);
+	::numlist_free(lst2);
+}
+
+
+TEST(LIST, NumListClear)
+{
+	::NumList* lst = ::new_numlist();
+	ASSERT_EQ(NULL, lst->head_);
+	ASSERT_EQ(NULL, lst->tail_);
+	::numlist_pushback(lst, 4.);
+	::numlist_pushback(lst, 5.);
+	::numlist_pushback(NULL, 6.);
+
+	ASSERT_EQ(lst->tail_, lst->head_->next_);
+	ASSERT_EQ(NULL, lst->tail_->next_);
+	ASSERT_EQ(4., lst->head_->val_);
+	ASSERT_EQ(5., lst->tail_->val_);
+
+	::numlist_clear(NULL);
+	::numlist_clear(lst);
+
+	ASSERT_EQ(NULL, lst->head_);
+	ASSERT_EQ(NULL, lst->tail_);
+
+	::numlist_free(lst);
+	::numlist_free(NULL);
+}
+
+
+TEST(LIST, PtrListMove)
+{
+	int a = 3, b = 5;
+	void* obj = &a;
+	void* obj2 = &b;
+
+	::PtrList* lst = ::new_ptrlist(4);
+	ASSERT_EQ(4, lst->type_);
+	ASSERT_EQ(NULL, lst->head_);
+	ASSERT_EQ(NULL, lst->tail_);
+	::ptrlist_pushback(lst, obj);
+	::ptrlist_pushback(lst, obj2);
+	::ptrlist_pushback(NULL, obj);
+
+	::PtrNode* head = lst->head_;
+	::PtrNode* tail = lst->tail_;
+	ASSERT_EQ(NULL, tail->next_);
+	ASSERT_EQ(3, *((int*) head->val_));
+	ASSERT_EQ(5, *((int*) tail->val_));
+
+	// failed move should not change lst
+	::ptrlist_move(NULL, lst);
+	ASSERT_EQ(head, lst->head_);
+	ASSERT_EQ(tail, lst->tail_);
+	// ensure the list structure is not changed
+	ASSERT_EQ(tail, head->next_);
+	ASSERT_EQ(NULL, tail->next_);
+
+	// failed move should not change lst
+	::ptrlist_move(lst, NULL);
+	ASSERT_EQ(head, lst->head_);
+	ASSERT_EQ(tail, lst->tail_);
+	// ensure the list structure is not changed
+	ASSERT_EQ(tail, head->next_);
+	ASSERT_EQ(NULL, tail->next_);
+
+	::PtrList* lst2 = ::new_ptrlist(2);
+	ASSERT_EQ(2, lst2->type_);
+	ASSERT_EQ(NULL, lst2->head_);
+	ASSERT_EQ(NULL, lst2->tail_);
+
+	// move lst to lst2
+	::ptrlist_move(lst2, lst);
+	ASSERT_EQ(4, lst2->type_);
+	ASSERT_EQ(head, lst2->head_);
+	ASSERT_EQ(tail, lst2->tail_);
+	// ensure the list structure is not changed after move
+	ASSERT_EQ(tail, head->next_);
+	ASSERT_EQ(NULL, tail->next_);
+	// ensure lst is cleared after moving
+	ASSERT_EQ(NULL, lst->head_);
+	ASSERT_EQ(NULL, lst->tail_);
+
+	::ptrlist_free(lst, NULL);
+	::ptrlist_free(lst2, NULL);
+}
+
+
+TEST(LIST, PtrListClear)
+{
+	int a = 3, b = 5;
+	int* obj = new int;
+	int* obj2 = new int;
+	*obj = a;
+	*obj2 = b;
+
+	void (*delobjs)(void*) = [](void* ptr)
+	{
+		auto i = (int*) ptr;
+		delete i;
+	};
+
+	::PtrList* lst = ::new_ptrlist(4);
+	{
+		ASSERT_EQ(4, lst->type_);
+		ASSERT_EQ(NULL, lst->head_);
+		ASSERT_EQ(NULL, lst->tail_);
+		::ptrlist_pushback(lst, obj);
+		::ptrlist_pushback(lst, obj2);
+		::ptrlist_pushback(NULL, obj);
+
+		::PtrNode* head = lst->head_;
+		::PtrNode* tail = lst->tail_;
+		ASSERT_EQ(NULL, tail->next_);
+		ASSERT_EQ(3, *((int*) head->val_));
+		ASSERT_EQ(5, *((int*) tail->val_));
+
+		::ptrlist_clear(NULL, NULL);
+		::ptrlist_clear(lst, NULL);
+
+		ASSERT_EQ(NULL, lst->head_);
+		ASSERT_EQ(NULL, lst->tail_);
+	}
+	{
+		::ptrlist_pushback(lst, obj);
+		::ptrlist_pushback(lst, obj2);
+
+		::ptrlist_clear(lst, delobjs);
+
+		ASSERT_EQ(NULL, lst->head_);
+		ASSERT_EQ(NULL, lst->tail_);
+	}
+
+	::ptrlist_free(lst, NULL);
+	::ptrlist_free(NULL, NULL);
 }
 
 

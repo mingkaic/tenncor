@@ -66,9 +66,7 @@ rules:		%empty
 
 conversion:	matcher ARROW target
 			{
-				struct Conversion* cv = $$ = malloc(sizeof(struct Conversion));
-				cv->matcher_ = $1;
-				cv->target_ = $3;
+				$$ = new_conversion($1, $3);
 			}
 
 matcher:	mfunction
@@ -84,45 +82,27 @@ matcher:	mfunction
 
 matcher_el:	NUMBER
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = SCALAR;
-				node->val_.scalar_ = $1;
+				$$ = new_numnode($1);
 			}
 			|
 			SYMBOL
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = ANY;
-				char* dst = node->val_.any_ = malloc(NSYMBOL);
-				strncpy(dst, $1, NSYMBOL);
+				$$ = new_anynode($1);
 			}
 			|
 			matcher
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = FUNCTOR;
-				node->val_.functor_ = $1;
+				$$ = new_fncnode($1);
 			}
 
 function:	SYMBOL
 			{
-				size_t nbytes = sizeof(struct Functor);
-				struct Functor* f = $$ = malloc(nbytes);
-				memset(f, 0, nbytes);
-				strncpy(f->name_, $1, NSYMBOL);
-				f->attrs_.type_ = KV_PAIR;
+				$$ = new_functor($1, NULL);
 			}
 			|
 			SYMBOL LCB attr RCB
 			{
-				size_t nbytes = sizeof(struct Functor);
-				struct Functor* f = $$ = malloc(nbytes);
-				memset(f, 0, nbytes);
-				strncpy(f->name_, $1, NSYMBOL);
-				ptrlist_move(&f->attrs_, $3);
+				$$ = new_functor($1, $3);
 				free($3);
 			}
 
@@ -155,27 +135,17 @@ margs:		margs COMMA matcher_el
 
 target:		NUMBER
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = SCALAR;
-				node->val_.scalar_ = $1;
+				$$ = new_numnode($1);
 			}
 			|
 			SYMBOL
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = ANY;
-				char* dst = node->val_.any_ = malloc(NSYMBOL);
-				strncpy(dst, $1, NSYMBOL);
+				$$ = new_anynode($1);
 			}
 			|
 			tfunction
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = FUNCTOR;
-				node->val_.functor_ = $1;
+				$$ = new_fncnode($1);
 			}
 
 tfunction:	function LPAREN targs RPAREN

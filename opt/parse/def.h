@@ -41,6 +41,8 @@ struct Functor
 	struct PtrList attrs_;
 };
 
+struct Functor* new_functor (char* symbol, struct PtrList* attr);
+
 /// Recursively free the functor and all it's contents
 void func_recursive_free (void* arg);
 
@@ -63,6 +65,12 @@ struct TreeNode
 	} val_;
 };
 
+struct TreeNode* new_numnode (double scalar);
+
+struct TreeNode* new_anynode (char* any);
+
+struct TreeNode* new_fncnode (struct Functor* f);
+
 /// Recursively free the subgraph and all of its descendants
 void node_recursive_free (void* node);
 
@@ -75,6 +83,9 @@ struct Conversion
 	/// Root of target subgraph
 	struct TreeNode* target_;
 };
+
+struct Conversion* new_conversion (
+	struct Functor* matcher, struct TreeNode* target);
 
 /// Recursively free the conversion and its sub nodes
 void conversion_recursive_free (void* conv);
