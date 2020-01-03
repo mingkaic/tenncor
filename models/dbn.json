@@ -1,115 +1,1393 @@
 {
- "label": "",
- "nodes": [
-  {
-   "label": "weight",
-   "source": {
-    "shape": [
-     "3",
+ "irVersion": "6",
+ "opsetImport": [],
+ "producerName": "tenncor",
+ "producerVersion": "1.0.0",
+ "domain": "com.tenncor.eteq",
+ "modelVersion": "6",
+ "docString": "",
+ "graph": {
+  "node": [
+   {
+    "input": [
+     "_i0"
+    ],
+    "output": [
+     "5"
+    ],
+    "name": "5",
+    "opType": "_DENSE_LAYER",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "layer",
+      "refAttrName": "",
+      "docString": "",
+      "type": "GRAPH",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "g": {
+       "node": [
+        {
+         "input": [
+          "_i0",
+          "1"
+         ],
+         "output": [
+          "2"
+         ],
+         "name": "2",
+         "opType": "MATMUL",
+         "domain": "",
+         "attribute": [
+          {
+           "name": "rank_pairs",
+           "refAttrName": "",
+           "docString": "",
+           "type": "INTS",
+           "f": 0,
+           "i": "0",
+           "s": "",
+           "floats": [],
+           "ints": [
+            "0",
+            "1"
+           ],
+           "strings": [],
+           "tensors": [],
+           "graphs": [],
+           "sparseTensors": []
+          }
+         ],
+         "docString": ""
+        },
+        {
+         "input": [
+          "3"
+         ],
+         "output": [
+          "4"
+         ],
+         "name": "4",
+         "opType": "EXTEND",
+         "domain": "",
+         "attribute": [
+          {
+           "name": "tensor",
+           "refAttrName": "",
+           "docString": "",
+           "type": "TENSOR",
+           "f": 0,
+           "i": "0",
+           "s": "",
+           "t": {
+            "dims": [],
+            "dataType": 0,
+            "floatData": [],
+            "int32Data": [],
+            "stringData": [],
+            "int64Data": [],
+            "name": "2",
+            "docString": "",
+            "rawData": "",
+            "externalData": [],
+            "dataLocation": "DEFAULT",
+            "doubleData": [],
+            "uint64Data": []
+           },
+           "floats": [],
+           "ints": [],
+           "strings": [],
+           "tensors": [],
+           "graphs": [],
+           "sparseTensors": []
+          }
+         ],
+         "docString": ""
+        },
+        {
+         "input": [
+          "2",
+          "4"
+         ],
+         "output": [
+          "5"
+         ],
+         "name": "5",
+         "opType": "ADD",
+         "domain": "",
+         "attribute": [
+          {
+           "name": "commutative",
+           "refAttrName": "",
+           "docString": "",
+           "type": "STRING",
+           "f": 0,
+           "i": "0",
+           "s": "",
+           "floats": [],
+           "ints": [],
+           "strings": [],
+           "tensors": [],
+           "graphs": [],
+           "sparseTensors": []
+          }
+         ],
+         "docString": ""
+        }
+       ],
+       "name": "",
+       "initializer": [
+        {
+         "dims": [
+          "3",
+          "6",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+         ],
+         "dataType": 1,
+         "floatData": [
+          -6.1994729,
+          6.82230139,
+          -1.13846898,
+          -2.122,
+          4.24576473,
+          -8.17099667,
+          1.7913295,
+          4.14762115,
+          4.44266415,
+          4.0434885,
+          -7.23617697,
+          2.82013083,
+          0.758377,
+          -5.2808423,
+          -0.235136926,
+          -1.58270025,
+          -5.44926739,
+          0.955459714
+         ],
+         "int32Data": [],
+         "stringData": [],
+         "int64Data": [],
+         "name": "1",
+         "docString": "",
+         "rawData": "",
+         "externalData": [],
+         "dataLocation": "DEFAULT",
+         "doubleData": [],
+         "uint64Data": []
+        },
+        {
+         "dims": [
+          "3",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+         ],
+         "dataType": 1,
+         "floatData": [
+          -0.225907117,
+          -0.120245203,
+          0.327112645
+         ],
+         "int32Data": [],
+         "stringData": [],
+         "int64Data": [],
+         "name": "3",
+         "docString": "",
+         "rawData": "",
+         "externalData": [],
+         "dataLocation": "DEFAULT",
+         "doubleData": [],
+         "uint64Data": []
+        }
+       ],
+       "sparseInitializer": [],
+       "docString": "",
+       "input": [
+        {
+         "name": "_i0",
+         "type": {
+          "tensorType": {
+           "elemType": 1,
+           "shape": {
+            "dim": [
+             {
+              "denotation": "",
+              "dimValue": "6"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             }
+            ]
+           }
+          },
+          "denotation": ""
+         },
+         "docString": ""
+        }
+       ],
+       "output": [
+        {
+         "name": "5",
+         "type": {
+          "tensorType": {
+           "elemType": 0,
+           "shape": {
+            "dim": [
+             {
+              "denotation": "",
+              "dimValue": "3"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             }
+            ]
+           }
+          },
+          "denotation": ""
+         },
+         "docString": ""
+        }
+       ],
+       "valueInfo": [],
+       "quantizationAnnotation": [
+        {
+         "tensorName": "1",
+         "quantParameterTensorNames": [
+          {
+           "key": "TENSOR_NAME",
+           "value": "weight"
+          },
+          {
+           "key": "LEAF_USAGE",
+           "value": "variable"
+          }
+         ]
+        },
+        {
+         "tensorName": "3",
+         "quantParameterTensorNames": [
+          {
+           "key": "TENSOR_NAME",
+           "value": "hbias"
+          },
+          {
+           "key": "LEAF_USAGE",
+           "value": "variable"
+          }
+         ]
+        }
+       ]
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     },
+     {
+      "name": "commutative",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "5"
+    ],
+    "output": [
+     "6"
+    ],
+    "name": "6",
+    "opType": "SIGMOID",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "6"
+    ],
+    "output": [
+     "11"
+    ],
+    "name": "11",
+    "opType": "_DENSE_LAYER",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "layer",
+      "refAttrName": "",
+      "docString": "",
+      "type": "GRAPH",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "g": {
+       "node": [
+        {
+         "input": [
+          "6",
+          "7"
+         ],
+         "output": [
+          "8"
+         ],
+         "name": "8",
+         "opType": "MATMUL",
+         "domain": "",
+         "attribute": [
+          {
+           "name": "rank_pairs",
+           "refAttrName": "",
+           "docString": "",
+           "type": "INTS",
+           "f": 0,
+           "i": "0",
+           "s": "",
+           "floats": [],
+           "ints": [
+            "0",
+            "1"
+           ],
+           "strings": [],
+           "tensors": [],
+           "graphs": [],
+           "sparseTensors": []
+          }
+         ],
+         "docString": ""
+        },
+        {
+         "input": [
+          "9"
+         ],
+         "output": [
+          "10"
+         ],
+         "name": "10",
+         "opType": "EXTEND",
+         "domain": "",
+         "attribute": [
+          {
+           "name": "tensor",
+           "refAttrName": "",
+           "docString": "",
+           "type": "TENSOR",
+           "f": 0,
+           "i": "0",
+           "s": "",
+           "t": {
+            "dims": [],
+            "dataType": 0,
+            "floatData": [],
+            "int32Data": [],
+            "stringData": [],
+            "int64Data": [],
+            "name": "8",
+            "docString": "",
+            "rawData": "",
+            "externalData": [],
+            "dataLocation": "DEFAULT",
+            "doubleData": [],
+            "uint64Data": []
+           },
+           "floats": [],
+           "ints": [],
+           "strings": [],
+           "tensors": [],
+           "graphs": [],
+           "sparseTensors": []
+          }
+         ],
+         "docString": ""
+        },
+        {
+         "input": [
+          "8",
+          "10"
+         ],
+         "output": [
+          "11"
+         ],
+         "name": "11",
+         "opType": "ADD",
+         "domain": "",
+         "attribute": [
+          {
+           "name": "commutative",
+           "refAttrName": "",
+           "docString": "",
+           "type": "STRING",
+           "f": 0,
+           "i": "0",
+           "s": "",
+           "floats": [],
+           "ints": [],
+           "strings": [],
+           "tensors": [],
+           "graphs": [],
+           "sparseTensors": []
+          }
+         ],
+         "docString": ""
+        }
+       ],
+       "name": "",
+       "initializer": [
+        {
+         "dims": [
+          "3",
+          "3",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+         ],
+         "dataType": 1,
+         "floatData": [
+          -4.9512248,
+          -2.49195552,
+          6.75729895,
+          4.08521032,
+          9.00801086,
+          -5.21597195,
+          -4.60907745,
+          -2.61278963,
+          6.78535032
+         ],
+         "int32Data": [],
+         "stringData": [],
+         "int64Data": [],
+         "name": "7",
+         "docString": "",
+         "rawData": "",
+         "externalData": [],
+         "dataLocation": "DEFAULT",
+         "doubleData": [],
+         "uint64Data": []
+        },
+        {
+         "dims": [
+          "3",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+         ],
+         "dataType": 1,
+         "floatData": [
+          0.21733509,
+          0.0286440551,
+          -0.285652161
+         ],
+         "int32Data": [],
+         "stringData": [],
+         "int64Data": [],
+         "name": "9",
+         "docString": "",
+         "rawData": "",
+         "externalData": [],
+         "dataLocation": "DEFAULT",
+         "doubleData": [],
+         "uint64Data": []
+        }
+       ],
+       "sparseInitializer": [],
+       "docString": "",
+       "input": [
+        {
+         "name": "6",
+         "type": {
+          "tensorType": {
+           "elemType": 1,
+           "shape": {
+            "dim": [
+             {
+              "denotation": "",
+              "dimValue": "3"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             }
+            ]
+           }
+          },
+          "denotation": ""
+         },
+         "docString": ""
+        }
+       ],
+       "output": [
+        {
+         "name": "11",
+         "type": {
+          "tensorType": {
+           "elemType": 0,
+           "shape": {
+            "dim": [
+             {
+              "denotation": "",
+              "dimValue": "3"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             }
+            ]
+           }
+          },
+          "denotation": ""
+         },
+         "docString": ""
+        }
+       ],
+       "valueInfo": [],
+       "quantizationAnnotation": [
+        {
+         "tensorName": "7",
+         "quantParameterTensorNames": [
+          {
+           "key": "TENSOR_NAME",
+           "value": "weight"
+          },
+          {
+           "key": "LEAF_USAGE",
+           "value": "variable"
+          }
+         ]
+        },
+        {
+         "tensorName": "9",
+         "quantParameterTensorNames": [
+          {
+           "key": "TENSOR_NAME",
+           "value": "hbias"
+          },
+          {
+           "key": "LEAF_USAGE",
+           "value": "variable"
+          }
+         ]
+        }
+       ]
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     },
+     {
+      "name": "commutative",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "11"
+    ],
+    "output": [
+     "12"
+    ],
+    "name": "12",
+    "opType": "SIGMOID",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "12"
+    ],
+    "output": [
+     "17"
+    ],
+    "name": "17",
+    "opType": "_DENSE_LAYER",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "layer",
+      "refAttrName": "",
+      "docString": "",
+      "type": "GRAPH",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "g": {
+       "node": [
+        {
+         "input": [
+          "12",
+          "13"
+         ],
+         "output": [
+          "14"
+         ],
+         "name": "14",
+         "opType": "MATMUL",
+         "domain": "",
+         "attribute": [
+          {
+           "name": "rank_pairs",
+           "refAttrName": "",
+           "docString": "",
+           "type": "INTS",
+           "f": 0,
+           "i": "0",
+           "s": "",
+           "floats": [],
+           "ints": [
+            "0",
+            "1"
+           ],
+           "strings": [],
+           "tensors": [],
+           "graphs": [],
+           "sparseTensors": []
+          }
+         ],
+         "docString": ""
+        },
+        {
+         "input": [
+          "15"
+         ],
+         "output": [
+          "16"
+         ],
+         "name": "16",
+         "opType": "EXTEND",
+         "domain": "",
+         "attribute": [
+          {
+           "name": "tensor",
+           "refAttrName": "",
+           "docString": "",
+           "type": "TENSOR",
+           "f": 0,
+           "i": "0",
+           "s": "",
+           "t": {
+            "dims": [],
+            "dataType": 0,
+            "floatData": [],
+            "int32Data": [],
+            "stringData": [],
+            "int64Data": [],
+            "name": "14",
+            "docString": "",
+            "rawData": "",
+            "externalData": [],
+            "dataLocation": "DEFAULT",
+            "doubleData": [],
+            "uint64Data": []
+           },
+           "floats": [],
+           "ints": [],
+           "strings": [],
+           "tensors": [],
+           "graphs": [],
+           "sparseTensors": []
+          }
+         ],
+         "docString": ""
+        },
+        {
+         "input": [
+          "14",
+          "16"
+         ],
+         "output": [
+          "17"
+         ],
+         "name": "17",
+         "opType": "ADD",
+         "domain": "",
+         "attribute": [
+          {
+           "name": "commutative",
+           "refAttrName": "",
+           "docString": "",
+           "type": "STRING",
+           "f": 0,
+           "i": "0",
+           "s": "",
+           "floats": [],
+           "ints": [],
+           "strings": [],
+           "tensors": [],
+           "graphs": [],
+           "sparseTensors": []
+          }
+         ],
+         "docString": ""
+        }
+       ],
+       "name": "",
+       "initializer": [
+        {
+         "dims": [
+          "2",
+          "3",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+         ],
+         "dataType": 1,
+         "floatData": [
+          0.522106409,
+          -0.522105932,
+          1.22991943,
+          -1.22991788,
+          -1.64578116,
+          -0.354144365
+         ],
+         "int32Data": [],
+         "stringData": [],
+         "int64Data": [],
+         "name": "13",
+         "docString": "",
+         "rawData": "",
+         "externalData": [],
+         "dataLocation": "DEFAULT",
+         "doubleData": [],
+         "uint64Data": []
+        },
+        {
+         "dims": [
+          "2",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1",
+          "1"
+         ],
+         "dataType": 1,
+         "floatData": [
+          -0.160525203,
+          -0.125178561
+         ],
+         "int32Data": [],
+         "stringData": [],
+         "int64Data": [],
+         "name": "15",
+         "docString": "",
+         "rawData": "",
+         "externalData": [],
+         "dataLocation": "DEFAULT",
+         "doubleData": [],
+         "uint64Data": []
+        }
+       ],
+       "sparseInitializer": [],
+       "docString": "",
+       "input": [
+        {
+         "name": "12",
+         "type": {
+          "tensorType": {
+           "elemType": 1,
+           "shape": {
+            "dim": [
+             {
+              "denotation": "",
+              "dimValue": "3"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             }
+            ]
+           }
+          },
+          "denotation": ""
+         },
+         "docString": ""
+        }
+       ],
+       "output": [
+        {
+         "name": "17",
+         "type": {
+          "tensorType": {
+           "elemType": 0,
+           "shape": {
+            "dim": [
+             {
+              "denotation": "",
+              "dimValue": "2"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             }
+            ]
+           }
+          },
+          "denotation": ""
+         },
+         "docString": ""
+        }
+       ],
+       "valueInfo": [],
+       "quantizationAnnotation": [
+        {
+         "tensorName": "13",
+         "quantParameterTensorNames": [
+          {
+           "key": "TENSOR_NAME",
+           "value": "weight"
+          },
+          {
+           "key": "LEAF_USAGE",
+           "value": "variable"
+          }
+         ]
+        },
+        {
+         "tensorName": "15",
+         "quantParameterTensorNames": [
+          {
+           "key": "TENSOR_NAME",
+           "value": "bias"
+          },
+          {
+           "key": "LEAF_USAGE",
+           "value": "variable"
+          }
+         ]
+        }
+       ]
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     },
+     {
+      "name": "commutative",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "17"
+    ],
+    "output": [
+     "18"
+    ],
+    "name": "18",
+    "opType": "REDUCE_MAX",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "rank_set",
+      "refAttrName": "",
+      "docString": "",
+      "type": "INTS",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "floats": [],
+      "ints": [
+       "0",
+       "1",
+       "2",
+       "3",
+       "4",
+       "5",
+       "6",
+       "7"
+      ],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "18"
+    ],
+    "output": [
+     "19"
+    ],
+    "name": "19",
+    "opType": "EXTEND",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "tensor",
+      "refAttrName": "",
+      "docString": "",
+      "type": "TENSOR",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "t": {
+       "dims": [],
+       "dataType": 0,
+       "floatData": [],
+       "int32Data": [],
+       "stringData": [],
+       "int64Data": [],
+       "name": "17",
+       "docString": "",
+       "rawData": "",
+       "externalData": [],
+       "dataLocation": "DEFAULT",
+       "doubleData": [],
+       "uint64Data": []
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "17",
+     "19"
+    ],
+    "output": [
+     "20"
+    ],
+    "name": "20",
+    "opType": "SUB",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "20"
+    ],
+    "output": [
+     "21"
+    ],
+    "name": "21",
+    "opType": "EXP",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "21"
+    ],
+    "output": [
+     "22"
+    ],
+    "name": "22",
+    "opType": "REDUCE_SUM",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "rank_set",
+      "refAttrName": "",
+      "docString": "",
+      "type": "INTS",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "floats": [],
+      "ints": [
+       "0"
+      ],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "23"
+    ],
+    "output": [
+     "24"
+    ],
+    "name": "24",
+    "opType": "EXTEND",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "tensor",
+      "refAttrName": "",
+      "docString": "",
+      "type": "TENSOR",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "t": {
+       "dims": [],
+       "dataType": 0,
+       "floatData": [],
+       "int32Data": [],
+       "stringData": [],
+       "int64Data": [],
+       "name": "22",
+       "docString": "",
+       "rawData": "",
+       "externalData": [],
+       "dataLocation": "DEFAULT",
+       "doubleData": [],
+       "uint64Data": []
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "22",
+     "24"
+    ],
+    "output": [
+     "25"
+    ],
+    "name": "25",
+    "opType": "ADD",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "commutative",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "25"
+    ],
+    "output": [
+     "26"
+    ],
+    "name": "26",
+    "opType": "EXTEND",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "tensor",
+      "refAttrName": "",
+      "docString": "",
+      "type": "TENSOR",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "t": {
+       "dims": [],
+       "dataType": 0,
+       "floatData": [],
+       "int32Data": [],
+       "stringData": [],
+       "int64Data": [],
+       "name": "21",
+       "docString": "",
+       "rawData": "",
+       "externalData": [],
+       "dataLocation": "DEFAULT",
+       "doubleData": [],
+       "uint64Data": []
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "21",
+     "26"
+    ],
+    "output": [
+     "_r0"
+    ],
+    "name": "_r0",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   }
+  ],
+  "name": "",
+  "initializer": [
+   {
+    "dims": [
      "6",
      "1",
      "1",
      "1",
      "1",
      "1",
-     "1"
-    ],
-    "data": "FWLGwEtQ2kBauZG/2c4HwE7dh0BnvALBSUrlP1C5hEBOKo5AQmSBQMOO58AGfTRA/yRCP6n8qMC8x3C+7JXKv2ZgrsACmXQ/",
-    "typelabel": "FLOAT",
-    "isConst": false
-   },
-   "tags": {
-    "layer_dense": {
-     "labels": [
-      "hidden::weight:0"
-     ]
-    },
-    "layer_rbm": {
-     "labels": [
-      "0:layer_dense:hidden:0"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:0:0"
-     ]
-    }
-   }
-  },
-  {
-   "label": "bias",
-   "source": {
-    "shape": [
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
      "1",
      "1"
     ],
-    "data": "MlRnvh5D9r1Pe6c+",
-    "typelabel": "FLOAT",
-    "isConst": false
-   },
-   "tags": {
-    "layer_dense": {
-     "labels": [
-      "hidden::bias:0"
-     ]
-    },
-    "layer_rbm": {
-     "labels": [
-      "0:layer_dense:hidden:0"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:0:0"
-     ]
-    }
-   }
-  },
-  {
-   "label": "bias",
-   "source": {
-    "shape": [
-     "6",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
+    "dataType": 1,
+    "floatData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
     ],
-    "data": "ESIRPRqARz3GRIk/oX2dPNSoAL8N6hO/",
-    "typelabel": "FLOAT",
-    "isConst": false
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "_i0",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
+    "uint64Data": []
    },
-   "tags": {
-    "layer_dense": {
-     "labels": [
-      "visible::bias:0"
-     ]
-    },
-    "layer_rbm": {
-     "labels": [
-      "0:layer_dense:visible:1"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:0:0"
-     ]
-    }
-   }
-  },
-  {
-   "label": "0",
-   "source": {
-    "shape": [
+   {
+    "dims": [
      "1",
      "1",
      "1",
@@ -119,330 +1397,102 @@
      "1",
      "1"
     ],
-    "data": "AAAAAA==",
-    "typelabel": "FLOAT",
-    "isConst": true
-   },
-   "tags": {
-    "layer_sigmoid": {
-     "labels": [
-      "::uparam:0"
-     ]
-    },
-    "layer_rbm": {
-     "labels": [
-      "1:layer_sigmoid::2",
-      "0:layer_sigmoid::2"
-     ]
-    },
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:1:1",
-      "demo:layer_rbm:0:0"
-     ]
-    }
-   }
-  },
-  {
-   "label": "weight",
-   "source": {
-    "shape": [
-     "3",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
+    "dataType": 1,
+    "floatData": [
+     1.1920929e-07
     ],
-    "data": "b3CewDN8H8DLO9hAC7qCQNAgEEE+6abAkH2TwPI3J8CXIdlA",
-    "typelabel": "FLOAT",
-    "isConst": false
-   },
-   "tags": {
-    "layer_rbm": {
-     "labels": [
-      "1:layer_dense:hidden:0"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:1:1"
-     ]
-    },
-    "layer_dense": {
-     "labels": [
-      "hidden::weight:0"
-     ]
-    }
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "23",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
+    "uint64Data": []
    }
-  },
-  {
-   "label": "bias",
-   "source": {
-    "shape": [
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "F41ePvCm6jwAQZK+",
-    "typelabel": "FLOAT",
-    "isConst": false
-   },
-   "tags": {
-    "layer_dense": {
-     "labels": [
-      "hidden::bias:0"
-     ]
-    },
-    "layer_rbm": {
-     "labels": [
-      "1:layer_dense:hidden:0"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:1:1"
-     ]
-    }
-   }
-  },
-  {
-   "label": "bias",
-   "source": {
-    "shape": [
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "6J7wPuTpC76qGeo+",
-    "typelabel": "FLOAT",
-    "isConst": false
-   },
-   "tags": {
-    "layer_dense": {
-     "labels": [
-      "visible::bias:0"
-     ]
-    },
-    "layer_rbm": {
-     "labels": [
-      "1:layer_dense:visible:1"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:1:1"
-     ]
-    }
-   }
-  },
-  {
-   "label": "weight",
-   "source": {
-    "shape": [
-     "2",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "xKgFP7yoBb8Abp0/822dv/Wo0r9pUrW+",
-    "typelabel": "FLOAT",
-    "isConst": false
-   },
-   "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_dense:log_layer:2"
-     ]
-    },
-    "layer_dense": {
-     "labels": [
-      "log_layer::weight:0"
-     ]
-    }
-   }
-  },
-  {
-   "label": "bias",
-   "source": {
-    "shape": [
-     "2",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "uGAkvs8uAL4=",
-    "typelabel": "FLOAT",
-    "isConst": false
-   },
-   "tags": {
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_dense:log_layer:2"
-     ]
-    },
-    "layer_dense": {
-     "labels": [
-      "log_layer::bias:0"
-     ]
-    }
-   }
-  },
-  {
-   "label": "0",
-   "source": {
-    "shape": [
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "data": "AAAAAA==",
-    "typelabel": "FLOAT",
-    "isConst": true
-   },
-   "tags": {
-    "properties": {
-     "labels": [
-      "immutable"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_softmax::3"
-     ]
-    },
-    "layer_softmax": {
-     "labels": [
-      "::uparam:0"
-     ]
-    }
-   }
-  },
-  {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
-     {
-      "idx": 0,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1,
-         0,
-         2,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
-       },
-       "shape": {
-        "values": [
-         6,
-         3,
-         1,
-         1,
-         1,
-         1,
-         1,
-         1
-        ]
-       }
+  ],
+  "sparseInitializer": [],
+  "docString": "",
+  "input": [],
+  "output": [
+   {
+    "name": "_r0",
+    "type": {
+     "tensorType": {
+      "elemType": 0,
+      "shape": {
+       "dim": [
+        {
+         "denotation": "",
+         "dimValue": "2"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        }
+       ]
       }
+     },
+     "denotation": ""
+    },
+    "docString": ""
+   }
+  ],
+  "valueInfo": [],
+  "quantizationAnnotation": [
+   {
+    "tensorName": "_i0",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "input"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "variable"
      }
     ]
    },
-   "tags": {
-    "layer_dense": {
-     "labels": [
-      "visible::weight:0"
-     ]
-    },
-    "layer_rbm": {
-     "labels": [
-      "0:layer_dense:visible:1"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:0:0"
-     ]
-    }
-   }
-  },
-  {
-   "label": "PERMUTE",
-   "functor": {
-    "opname": "PERMUTE",
-    "args": [
+   {
+    "tensorName": "23",
+    "quantParameterTensorNames": [
      {
-      "idx": 4,
-      "attrs": {
-       "coorder": {
-        "values": [
-         1,
-         0,
-         2,
-         3,
-         4,
-         5,
-         6,
-         7
-        ]
-       }
-      }
+      "key": "TENSOR_NAME",
+      "value": "1.19209e-07"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "constant"
      }
     ]
-   },
-   "tags": {
-    "layer_dense": {
-     "labels": [
-      "visible::weight:0"
-     ]
-    },
-    "layer_rbm": {
-     "labels": [
-      "1:layer_dense:visible:1"
-     ]
-    },
-    "layer_seqmodel": {
-     "labels": [
-      "demo:layer_rbm:1:1"
-     ]
-    }
    }
-  }
- ]
+  ]
+ },
+ "metadataProps": []
 }

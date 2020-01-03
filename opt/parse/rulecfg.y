@@ -24,7 +24,6 @@ extern YY_FLUSH_BUFFER;
 	struct Conversion* 	conv;
 	struct TreeNode*	node;
 	struct Functor*		functor;
-	struct Arg*			argument;
 	struct KeyVal*		kvpair;
 
 	// lists
@@ -37,12 +36,16 @@ extern YY_FLUSH_BUFFER;
 
 %type <conv> 		conversion
 %type <node>		matcher_el target
-%type <functor>		matcher mfunction tfunction
-%type <argument> 	marg targ
+%type <functor>		matcher function mfunction tfunction
 %type <kvpair>		key_val
 
-%type <objs>		margs targs edge_attr
+%type <objs>		margs targs attr
 %type <nums> 		num_arr
+
+%destructor { conversion_recursive_free($$); } <conv>
+%destructor { node_recursive_free($$); } <node>
+%destructor { func_recursive_free($$); } <functor>
+%destructor { kv_recursive_free($$); } <kvpair>
 
 %token
 STMT_TERM ARROW LPAREN RPAREN COMMA ASSIGN LSB RSB LCB RCB
@@ -63,9 +66,7 @@ rules:		%empty
 
 conversion:	matcher ARROW target
 			{
-				struct Conversion* cv = $$ = malloc(sizeof(struct Conversion));
-				cv->matcher_ = $1;
-				cv->target_ = $3;
+				$$ = new_conversion($1, $3);
 			}
 
 matcher:	mfunction
@@ -81,176 +82,107 @@ matcher:	mfunction
 
 matcher_el:	NUMBER
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = SCALAR;
-				node->val_.scalar_ = $1;
+				$$ = new_numnode($1);
 			}
 			|
 			SYMBOL
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = ANY;
-				char* dst = node->val_.any_ = malloc(NSYMBOL);
-				strncpy(dst, $1, NSYMBOL);
+				$$ = new_anynode($1);
 			}
 			|
 			matcher
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = FUNCTOR;
-				node->val_.functor_ = $1;
+				$$ = new_fncnode($1);
 			}
 
-mfunction:	SYMBOL LPAREN margs RPAREN
+function:	SYMBOL
 			{
-				size_t nbytes = sizeof(struct Functor);
-				struct Functor* f = $$ = malloc(nbytes);
-				memset(f, 0, nbytes);
+				$$ = new_functor($1, NULL);
+			}
+			|
+			SYMBOL LCB attr RCB
+			{
+				$$ = new_functor($1, $3);
+				free($3);
+			}
 
-				strncpy(f->name_, $1, NSYMBOL);
+mfunction:	function LPAREN margs RPAREN
+			{
+				struct Functor* f = $$ = $1;
 				ptrlist_move(&f->args_, $3);
 				free($3);
 			}
 			|
-			SYMBOL LPAREN margs COMMA VARIADIC SYMBOL RPAREN
+			function LPAREN margs COMMA VARIADIC SYMBOL RPAREN
 			{
-				size_t nbytes = sizeof(struct Functor);
-				struct Functor* f = $$ = malloc(nbytes);
-				memset(f, 0, nbytes);
-
-				strncpy(f->name_, $1, NSYMBOL);
+				struct Functor* f = $$ = $1;
 				strncpy(f->variadic_, $6, NSYMBOL);
 				ptrlist_move(&f->args_, $3);
 				free($3);
 			}
 
-margs:		margs COMMA marg
+margs:		margs COMMA matcher_el
 			{
 				struct PtrList* list = $$ = $1;
 				ptrlist_pushback(list, $3);
 			}
 			|
-			marg
+			matcher_el
 			{
 				struct PtrList* list = $$ = new_ptrlist(ARGUMENT);
 				ptrlist_pushback(list, $1);
-			}
-
-marg:		matcher_el
-			{
-				size_t nbytes = sizeof(struct Arg);
-				struct Arg* a = $$ = malloc(nbytes);
-				memset(a, 0, nbytes);
-				a->node_ = $1;
-				a->attrs_.type_ = KV_PAIR;
-			}
-			|
-			matcher_el ASSIGN LCB edge_attr RCB
-			{
-				size_t nbytes = sizeof(struct Arg);
-				struct Arg* a = $$ = malloc(nbytes);
-				memset(a, 0, nbytes);
-				a->node_ = $1;
-
-				ptrlist_move(&a->attrs_, $4);
-				free($4);
 			}
 
 target:		NUMBER
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = SCALAR;
-				node->val_.scalar_ = $1;
+				$$ = new_numnode($1);
 			}
 			|
 			SYMBOL
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = ANY;
-				char* dst = node->val_.any_ = malloc(NSYMBOL);
-				strncpy(dst, $1, NSYMBOL);
+				$$ = new_anynode($1);
 			}
 			|
 			tfunction
 			{
-				size_t nbytes = sizeof(struct TreeNode);
-				struct TreeNode* node = $$ = malloc(nbytes);
-				node->type_ = FUNCTOR;
-				node->val_.functor_ = $1;
+				$$ = new_fncnode($1);
 			}
 
-tfunction:	SYMBOL LPAREN targs RPAREN
+tfunction:	function LPAREN targs RPAREN
 			{
-				size_t nbytes = sizeof(struct Functor);
-				struct Functor* f = $$ = malloc(nbytes);
-				memset(f, 0, nbytes);
-
-				strncpy(f->name_, $1, NSYMBOL);
+				struct Functor* f = $$ = $1;
 				ptrlist_move(&f->args_, $3);
 				free($3);
 			}
 			|
-			SYMBOL LPAREN targs COMMA VARIADIC SYMBOL RPAREN
+			function LPAREN targs COMMA VARIADIC SYMBOL RPAREN
 			{
-				size_t nbytes = sizeof(struct Functor);
-				struct Functor* f = $$ = malloc(nbytes);
-				memset(f, 0, nbytes);
-
-				strncpy(f->name_, $1, NSYMBOL);
+				struct Functor* f = $$ = $1;
 				strncpy(f->variadic_, $6, NSYMBOL);
 				ptrlist_move(&f->args_, $3);
 				free($3);
 			}
 			|
-			SYMBOL LPAREN VARIADIC SYMBOL RPAREN
+			function LPAREN VARIADIC SYMBOL RPAREN
 			{
-				size_t nbytes = sizeof(struct Functor);
-				struct Functor* f = $$ = malloc(nbytes);
-				memset(f, 0, nbytes);
-
-				strncpy(f->name_, $1, NSYMBOL);
+				struct Functor* f = $$ = $1;
 				strncpy(f->variadic_, $4, NSYMBOL);
 				f->args_.type_ = ARGUMENT;
 			}
 
-targs:		targs COMMA targ
+targs:		targs COMMA target
 			{
 				struct PtrList* list = $$ = $1;
 				ptrlist_pushback(list, $3);
 			}
 			|
-			targ
+			target
 			{
 				struct PtrList* list = $$ = new_ptrlist(ARGUMENT);
 				ptrlist_pushback(list, $1);
 			}
 
-targ:		target
-			{
-				size_t nbytes = sizeof(struct Arg);
-				struct Arg* a = $$ = malloc(nbytes);
-				memset(a, 0, nbytes);
-				a->node_ = $1;
-				a->attrs_.type_ = KV_PAIR;
-			}
-			|
-			target ASSIGN LCB edge_attr RCB
-			{
-				size_t nbytes = sizeof(struct Arg);
-				struct Arg* a = $$ = malloc(nbytes);
-				memset(a, 0, nbytes);
-				a->node_ = $1;
-
-				ptrlist_move(&a->attrs_, $4);
-				free($4);
-			}
-
-edge_attr:	edge_attr COMMA key_val
+attr:		attr COMMA key_val
 			{
 				struct PtrList* list = $$ = $1;
 				ptrlist_pushback(list, $3);
@@ -329,6 +261,7 @@ int parse_file (struct PtrList** cversions, FILE* file)
 		YY_FLUSH_BUFFER;
 		yyrestart(yyin);
 		exit_status = yyparse(cversions);
+		yylex_destroy(yyin);
 		fclose(file);
 	}
 	return exit_status;

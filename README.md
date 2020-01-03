@@ -35,15 +35,11 @@ Additionally, ETEQ also defines data format and (de)serialization methods requir
 
 This module specifies graph optimization through TEQ's visitor pattern.
 
-### [PBM (ProtoBuf Marshaller)](pbm/README_PBM.md)
+### [ONNX (ONNX marshaller)](onnx/README_ONNX.md)
 
 This module marshals any TEQ graph, but requires data serialization functors when saving and loading.
 
 ## Supplemental Components
-
-### [TAG (TAGger)](tag/README_TAG.md)
-
-This module tags TEQ tensors with labels.
 
 ### [CCUR (ConCURrent session)](ccur/README_CCUR.md)
 

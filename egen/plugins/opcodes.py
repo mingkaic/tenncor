@@ -70,13 +70,13 @@ struct EnumHash
     }}
 }};
 
-static std::unordered_map<_GENERATED_OPCODE,std::string,EnumHash> code2name =
+static const std::unordered_map<_GENERATED_OPCODE,std::string,EnumHash> code2name =
 {{
     //>>> code2names
     {code2names}
 }};
 
-static std::unordered_map<std::string,_GENERATED_OPCODE> name2code =
+static const std::unordered_map<std::string,_GENERATED_OPCODE> name2code =
 {{
     //>>> name2codes
     {name2codes}
@@ -123,14 +123,14 @@ def _handle_code2names(params, opcalls):
     _code2names_tmp = '{{ {code}, "{code}" }}'
     return ',\n    '.join([
         _code2names_tmp.format(code=code)
-        for code in opcalls
+        for code in list(opcalls.keys())
     ])
 
 def _handle_name2codes(params, opcalls):
     _name2codes_tmp = '{{ "{code}", {code} }}'
     return ',\n    '.join([
         _name2codes_tmp.format(code=code)
-        for code in opcalls
+        for code in list(opcalls.keys())
     ])
 
 _plugin_id = "OPCODE"

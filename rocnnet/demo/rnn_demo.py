@@ -6,7 +6,7 @@ import argparse
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
-import rocnnet.rocnnet as rcn
+import layr.layr as layr
 
 import numpy as np
 import matplotlib
@@ -60,24 +60,25 @@ def make_rms_prop(learning_rate, momentum_term, lmbd, eps):
     def rms_prop(grads):
         targets = [target for target, _ in grads]
         gs = [grad for _, grad in grads]
-        momentum = [eteq.scalar_variable(0, target.shape()) for target in targets]
-        mvavg_sqr = [eteq.scalar_variable(0, target.shape()) for target in targets]
+        momentum = [eteq.variable_like(0, target, label='momentum_' + str(target)) for target in targets]
+        mvavg_sqr = [eteq.variable_like(0, target, label='mving_avg_' + str(target)) for target in targets]
 
         # group 1
         momentum_tmp = [mom * momentum_term for mom in momentum]
-        group1 = [rcn.VarAssign(target, target + source) for target, source in zip(targets, momentum_tmp)]
+        group1 = [layr.VarAssign(target, target + source) for target, source in zip(targets, momentum_tmp)]
 
         # group 2
-        group2 = [rcn.VarAssign(target, lmbd * target + (1-lmbd) * tc.pow(grad, 2)) for target, grad in zip(mvavg_sqr, gs)]
+        group2 = [layr.VarAssign(target, lmbd * target + (1-lmbd) * tc.pow(grad, 2))
+            for target, grad in zip(mvavg_sqr, gs)]
 
         # group 3
-        pgrad_norm_nodes = [(learning_rate * grad) / tc.sqrt(mvsqr) + eps
+        pgrad_norm_nodes = [(learning_rate * grad) / (tc.sqrt(mvsqr) + eps)
             for grad, mvsqr in zip(gs, mvavg_sqr)]
 
-        group3 = [rcn.VarAssign(target, momentum_tmp_node - pgrad_norm_node)
+        group3 = [layr.VarAssign(target, momentum_tmp_node - pgrad_norm_node)
             for target, momentum_tmp_node, pgrad_norm_node in zip(momentum, momentum_tmp, pgrad_norm_nodes)]
 
-        group3 += [rcn.VarAssign(target, target - pgrad_norm) for target, pgrad_norm in zip(targets, pgrad_norm_nodes)]
+        group3 += [layr.VarAssign(target, target - pgrad_norm) for target, pgrad_norm in zip(targets, pgrad_norm_nodes)]
 
         return [group1, group2, group3]
 
@@ -110,8 +111,8 @@ def main(args):
         help='Number of times to test (default: 5)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/rnn.pbx',
-        help='Filename to load pretrained model (default: models/rnn.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/rnn.onnx',
+        help='Filename to load pretrained model (default: models/rnn.onnx)')
     args = parser.parse_args(args)
 
     if args.seed:
@@ -139,50 +140,48 @@ def main(args):
     print(f'train_output tensor shape: {train_output.shape}')
 
     # keep this here to get nice weights
-    rcn.Dense(2, eteq.Shape([3]), weight_init)
-    rcn.Dense(3, eteq.Shape([3]), weight_init)
-    rcn.Dense(3, eteq.Shape([1]), weight_init)
+    layr.dense([3], [2], weight_init)
+    layr.dense([3], [3], weight_init)
+    layr.dense([1], [3], weight_init)
 
     # model parameters
     nunits = 3  # Number of states in the recurrent layer
     ninput = 2
     noutput = 1
 
-    model = rcn.SequentialModel("demo")
-    model.add(rcn.Dense(nunits, eteq.Shape([ninput]),
-        weight_init, label="input"))
-    model.add(rcn.RNN(nunits, nunits, rcn.tanh(),
-        weight_init=weight_init, bias_init=rcn.zero_init(),
-        seq_dim=2, label="unfold"))
-    model.add(rcn.Dense(noutput, eteq.Shape([nunits]),
-        weight_init, label="output"))
-    model.add(rcn.sigmoid(label="classifier"))
-
-    untrained = model.clone()
+    model = layr.link([
+        layr.dense([ninput], [nunits], weight_init),
+        layr.rnn(nunits, nunits, tc.tanh, sequence_len,
+            weight_init=weight_init, bias_init=layr.zero_init(),
+            seq_dim=2),
+        layr.dense([nunits], [noutput], weight_init),
+        layr.bind(tc.sigmoid),
+    ])
+    untrained = model.deep_clone()
+    trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = rcn.load_file_seqmodel(args.load, "demo")
+        trained = layr.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
-        trained = model.clone()
 
     sess = eteq.Session()
 
-    train_invar = eteq.Variable([n_batch, sequence_len, ninput])
-    train_exout = eteq.Variable([n_batch, sequence_len, noutput])
+    train_invar = eteq.EVariable([n_batch, sequence_len, ninput])
+    train_exout = eteq.EVariable([n_batch, sequence_len, noutput])
     tinput = tc.permute(train_invar, [0, 2, 1])
     toutput = tc.permute(train_exout, [0, 2, 1])
 
     error = loss(toutput, model.connect(tinput))
     sess.track([error])
 
-    train = rcn.sgd_train(model, sess, tinput, toutput,
+    train = layr.sgd_train(model, sess, tinput, toutput,
         make_rms_prop(learning_rate, momentum_term, lmbd, eps),
-        errfunc=loss)
+        err_func=loss)
 
-    test_invar = eteq.Variable([n_test, sequence_len, ninput])
+    test_invar = eteq.EVariable([n_test, sequence_len, ninput])
     tin = tc.permute(test_invar, [0, 2, 1])
     untrained_out = tc.round(untrained.connect(tin))
     trained_out = tc.round(model.connect(tin))
@@ -268,7 +267,7 @@ def main(args):
 
     try:
         print('saving')
-        if model.save_file(args.save):
+        if layr.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

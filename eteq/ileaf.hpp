@@ -23,8 +23,13 @@ struct iLeaf : public teq::iLeaf
 {
 	virtual ~iLeaf (void) = default;
 
+	iLeaf<T>* clone (void) const
+	{
+		return static_cast<iLeaf<T>*>(this->clone_impl());
+	}
+
 	/// Implementation of iTensor
-	const teq::Shape& shape (void) const override
+	teq::Shape shape (void) const override
 	{
 		return shape_;
 	}

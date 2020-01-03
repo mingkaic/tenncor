@@ -11,6 +11,11 @@ namespace marsh
 
 struct JsonMarshaler final : public iMarshaler
 {
+	void marshal (const String& str) override
+	{
+		jreps_[&str].put("", str.to_string());
+	}
+
 	void marshal (const iNumber& num) override
 	{
 		jreps_[&num].put("", num.to_string());
@@ -20,7 +25,7 @@ struct JsonMarshaler final : public iMarshaler
 	{
 		auto& jarr = jreps_[&arr];
 		arr.foreach(
-			[&](const ObjptrT& entry)
+			[&](size_t i, const ObjptrT& entry)
 			{
 				entry->accept(*this);
 				jarr.push_back(std::make_pair("", jreps_[entry.get()]));
@@ -30,12 +35,14 @@ struct JsonMarshaler final : public iMarshaler
 	void marshal (const Maps& mm) override
 	{
 		auto& json_map = jreps_[&mm];
-		auto keys = mm.keys();
+		auto keys = mm.ls_attrs();
 		for (auto& key : keys)
 		{
-			auto& val = mm.contents_.at(key);
-			val->accept(*this);
-			json_map.add_child(key, jreps_[val.get()]);
+			if (auto val = mm.get_attr(key))
+			{
+				val->accept(*this);
+				json_map.add_child(key, jreps_[val]);
+			}
 		}
 	}
 

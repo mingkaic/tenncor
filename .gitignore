@@ -60,7 +60,7 @@ shareds/
 bazel-*
 
 **/*.csv
-**/*.pbx
+**/*.onnx
 
 CMakeFiles
 **/samples
@@ -77,7 +77,7 @@ html/
 !.gitmodules
 !.astylerc
 !.bazelrc
-!models/*.pbx
-!models/**/*.pbx
-!rocnnet/pretrained/*.pbx
-!rocnnet/notebooks/*.pbx
+!models/*.onnx
+!models/**/*.onnx
+!rocnnet/pretrained/*.onnx
+!rocnnet/notebooks/*.onnx

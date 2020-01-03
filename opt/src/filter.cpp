@@ -10,7 +10,7 @@ void remove_duplicates (teq::TensptrsT& roots, EqualF equals)
 	teq::OwnerMapT owners = teq::track_owners(roots);
 	teq::GraphStat stat;
 	teq::ParentFinder pfinder;
-	std::unordered_map<teq::iTensor*,std::vector<size_t>> rindices;
+	teq::TensMapT<std::vector<size_t>> rindices;
 	for (size_t i = 0, n = roots.size(); i < n; ++i)
 	{
 		teq::TensptrT& root = roots[i];
@@ -29,16 +29,15 @@ void remove_duplicates (teq::TensptrsT& roots, EqualF equals)
 		{
 			auto leaf = std::static_pointer_cast<teq::iLeaf>(
 				owners.at(tens).lock());
-			if (leaf->is_const())
+			if (teq::Immutable == leaf->get_usage())
 			{
 				csts.push_back(leaf);
 			}
 		}
 		else
 		{
-			functors.push_back(
-				std::static_pointer_cast<teq::iFunctor>(
-					owners.at(tens).lock()));
+			functors.push_back(std::static_pointer_cast<teq::iFunctor>(
+				owners.at(tens).lock()));
 		}
 	}
 
@@ -122,11 +121,10 @@ teq::TensptrT constant_func (teq::FuncptrT& func,
 {
 	auto children = func->get_children();
 	if (std::all_of(children.begin(), children.end(),
-		[&](const teq::iEdge& child)
+		[&](teq::TensptrT ctens)
 		{
-			auto ctens = child.get_tensor();
 			auto leaf = dynamic_cast<teq::iLeaf*>(ctens.get());
-			return nullptr != leaf && leaf->is_const();
+			return nullptr != leaf && teq::Immutable == leaf->get_usage();
 		}))
 	{
 		teq::TensptrT converted = calc_func(func);
@@ -144,7 +142,7 @@ void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_func)
 	teq::OwnerMapT owners = teq::track_owners(roots);
 	teq::GraphStat stat;
 	teq::ParentFinder pfinder;
-	std::unordered_map<teq::iTensor*,std::vector<size_t>> rindices;
+	teq::TensMapT<std::vector<size_t>> rindices;
 	for (size_t i = 0, n = roots.size(); i < n; ++i)
 	{
 		teq::TensptrT& root = roots[i];
@@ -163,7 +161,8 @@ void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_func)
 			functors.push_back(std::static_pointer_cast<teq::iFunctor>(
 				owners.at(gpair.first).lock()));
 		}
-		else if (static_cast<teq::iLeaf*>(gpair.first)->is_const())
+		else if (teq::Immutable == static_cast<teq::iLeaf*>(
+			gpair.first)->get_usage())
 		{
 			constants.emplace(gpair.first);
 		}
@@ -180,31 +179,30 @@ void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_func)
 	{
 		auto children = func->get_children();
 		if (std::all_of(children.begin(), children.end(),
-			[&](const teq::iEdge& child)
+			[&](teq::TensptrT ctens)
 			{
-				auto ctens = child.get_tensor();
 				return estd::has(constants, ctens.get()) ||
 					estd::has(constant_roots, ctens);
 			}))
 		{
 			// maintain functor constant roots
-			for (const teq::iEdge& child : children)
+			for (teq::TensptrT child : children)
 			{
-				constant_roots.erase(child.get_tensor());
+				constant_roots.erase(child);
 			}
 			constants.emplace(func.get());
 			constant_roots.emplace(func);
 		}
 	}
 	// replace constant_roots funcs with their constant counter-part
-	for (auto& cst : constant_roots)
+	for (teq::TensptrT root : constant_roots)
 	{
-		auto func = std::static_pointer_cast<teq::iFunctor>(cst);
-		teq::TensptrT converted = calc_func(func);
-		if (func != converted)
+		teq::FuncptrT croot = std::static_pointer_cast<teq::iFunctor>(root);
+		teq::TensptrT converted = calc_func(croot);
+		if (croot != converted)
 		{
-			replace_parents(pfinder, converted, func.get());
-			auto it = rindices.find(func.get());
+			replace_parents(pfinder, converted, croot.get());
+			auto it = rindices.find(croot.get());
 			if (rindices.end() != it)
 			{
 				for (size_t ri : it->second)

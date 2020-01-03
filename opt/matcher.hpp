@@ -13,15 +13,69 @@
 namespace opt
 {
 
+using AttrMapT = std::unordered_map<std::string,const marsh::iObject*>;
+
 void merge_cands (CandsT& out, const CandsT& a, const CandsT& b);
 
 static boost::uuids::random_generator uuid_gen;
 
 struct iMatcher
 {
+	iMatcher (const ::PtrList& attrs)
+	{
+		if (::KV_PAIR != attrs.type_)
+		{
+			logs::fatalf("passing attributes by %d typed list", attrs.type_);
+		}
+		for (auto it = attrs.head_; nullptr != it; it = it->next_)
+		{
+			auto kv = (::KeyVal*) it->val_;
+			std::string key(kv->key_);
+			if (estd::has(attrs_, key))
+			{
+				// todo: warn of duplicate attrs
+				continue;
+			}
+			std::vector<double> values;
+			for (auto jt = kv->val_.head_; nullptr != jt; jt = jt->next_)
+			{
+				values.push_back(jt->val_);
+			}
+			if (kv->val_scalar_ && values.size() > 0)
+			{
+				attrs_.emplace(key,
+					std::make_unique<marsh::Number<double>>(values[0]));
+			}
+			else
+			{
+				attrs_.emplace(key,
+					std::make_unique<marsh::NumArray<double>>(values));
+			}
+		}
+	}
+
 	virtual ~iMatcher (void) = default;
 
-	virtual CandsT match (const MatchCtxT& ctx, const teq::CEdgesT& args) const = 0;
+	/// Return matched candidates, empty candidates indicate no matches
+	CandsT match (const MatchCtxT& ctx, teq::TensptrsT args, AttrMapT attrs) const
+	{
+		if (attrs_.size() > 0)
+		{
+			for (auto& apairs : attrs_)
+			{
+				if (false == estd::has(attrs, apairs.first))
+				{
+					return CandsT{};
+				}
+				if (false == attrs.at(
+					apairs.first)->equals(*apairs.second))
+				{
+					return CandsT{};
+				}
+			}
+		}
+		return children_match(ctx, args);
+	}
 
 	virtual std::string get_fid (void) const = 0;
 
@@ -30,13 +84,41 @@ struct iMatcher
 	virtual void add_edge (AnyEMatcher* matcher) = 0;
 
 	virtual void add_edge (FuncEMatcher* matcher) = 0;
+
+protected:
+	virtual CandsT children_match (const MatchCtxT& ctx, teq::TensptrsT args) const = 0;
+
+private:
+	std::unordered_map<std::string,marsh::ObjptrT> attrs_;
 };
 
 struct OrderedMatcher final : public iMatcher
 {
-	OrderedMatcher (std::string variadic) : variadic_(variadic) {}
+	OrderedMatcher (const ::PtrList& attrs, std::string variadic) :
+		iMatcher(attrs), variadic_(variadic) {}
 
-	CandsT match (const MatchCtxT& ctx, const teq::CEdgesT& args) const override
+	std::string get_fid (void) const override
+	{
+		return id_;
+	}
+
+	void add_edge (ScalarEMatcher* matcher) override
+	{
+		edges_.emplace(edges_.end(), EMatchptrT(matcher));
+	}
+
+	void add_edge (AnyEMatcher* matcher) override
+	{
+		edges_.emplace(edges_.end(), EMatchptrT(matcher));
+	}
+
+	void add_edge (FuncEMatcher* matcher) override
+	{
+		edges_.emplace(edges_.end(), EMatchptrT(matcher));
+	}
+
+private:
+	CandsT children_match (const MatchCtxT& ctx, teq::TensptrsT args) const override
 	{
 		size_t nematchers = edges_.size();
 		size_t nargs = args.size();
@@ -67,7 +149,7 @@ struct OrderedMatcher final : public iMatcher
 		}
 		if (variadic_.size() > 0)
 		{
-			teq::CEdgesT varis(args.begin() + nematchers, args.end());
+			teq::TensptrsT varis(args.begin() + nematchers, args.end());
 			for (auto& cand : cands)
 			{
 				cand.variadic_[variadic_] = varis;
@@ -76,27 +158,6 @@ struct OrderedMatcher final : public iMatcher
 		return cands;
 	}
 
-	std::string get_fid (void) const override
-	{
-		return id_;
-	}
-
-	void add_edge (ScalarEMatcher* matcher) override
-	{
-		edges_.emplace(edges_.end(), EMatchptrT(matcher));
-	}
-
-	void add_edge (AnyEMatcher* matcher) override
-	{
-		edges_.emplace(edges_.end(), EMatchptrT(matcher));
-	}
-
-	void add_edge (FuncEMatcher* matcher) override
-	{
-		edges_.emplace(edges_.end(), EMatchptrT(matcher));
-	}
-
-private:
 	const std::string id_ = boost::uuids::to_string(uuid_gen());
 
 	std::string variadic_;
@@ -105,19 +166,23 @@ private:
 };
 
 static void match_cands (CandsT& cands,
-	std::list<std::reference_wrapper<const teq::iEdge>>& unmatched,
+	std::list<teq::TensptrT>& unmatched,
 	const MatchCtxT& ctx, const EMatchptrsT& matchers)
 {
 	size_t i = 0, n = matchers.size();
 	if (n > 0 && cands.empty())
 	{
 		for (auto it = unmatched.begin(), et = unmatched.end();
-			it != et && cands.empty(); ++it)
+			it != et && cands.empty();)
 		{
 			cands = matchers.at(i)->match(ctx, *it);
 			if (cands.size() > 0)
 			{
-				unmatched.erase(it);
+				it = unmatched.erase(it);
+			}
+			else
+			{
+				++it;
 			}
 		}
 		++i;
@@ -131,15 +196,19 @@ static void match_cands (CandsT& cands,
 		bool unfound = true;
 		CandsT ecands;
 		for (auto it = unmatched.begin(), et = unmatched.end();
-			it != et && ecands.size() > 0; ++it)
+			it != et && ecands.size() > 0;)
 		{
 			ecands = matchers.at(i)->match(ctx, *it);
 			if (ecands.size() > 0)
 			{
 				// candidates found
-				unmatched.erase(it);
+				it = unmatched.erase(it);
 				merge_cands(cands, cands, ecands);
 				unfound = false;
+			}
+			else
+			{
+				++it;
 			}
 		}
 		if (unfound)
@@ -151,10 +220,31 @@ static void match_cands (CandsT& cands,
 
 struct CommutativeMatcher final : public iMatcher
 {
-	CommutativeMatcher (std::string variadic) : variadic_(variadic) {}
+	CommutativeMatcher (const ::PtrList& attrs, std::string variadic) :
+		iMatcher(attrs), variadic_(variadic) {}
 
-	/// Return matched candidates, empty candidates indicate no matches
-	CandsT match (const MatchCtxT& ctx, const teq::CEdgesT& args) const override
+	std::string get_fid (void) const override
+	{
+		return id_;
+	}
+
+	void add_edge (ScalarEMatcher* matcher) override
+	{
+		scalars_.emplace(scalars_.end(), EMatchptrT(matcher));
+	}
+
+	void add_edge (AnyEMatcher* matcher) override
+	{
+		anys_.emplace(anys_.end(), EMatchptrT(matcher));
+	}
+
+	void add_edge (FuncEMatcher* matcher) override
+	{
+		funcs_.emplace(funcs_.end(), EMatchptrT(matcher));
+	}
+
+private:
+	CandsT children_match (const MatchCtxT& ctx, teq::TensptrsT args) const override
 	{
 		size_t nscalars = scalars_.size();
 		size_t nfuncs = funcs_.size();
@@ -171,7 +261,7 @@ struct CommutativeMatcher final : public iMatcher
 		// assert nematchers <= nargs
 
 		CandsT cands;
-		std::list<std::reference_wrapper<const teq::iEdge>> unmatched(
+		std::list<teq::TensptrT> unmatched(
 			args.begin(), args.end());
 
 		// match scalars first
@@ -193,7 +283,7 @@ struct CommutativeMatcher final : public iMatcher
 		//	variadic -> anys_.size() <= unmatched.size()
 
 		// match remaining anys
-		teq::CEdgesT remaining(unmatched.begin(), unmatched.end());
+		teq::TensptrsT remaining(unmatched.begin(), unmatched.end());
 		size_t nremaining = remaining.size();
 		std::vector<size_t> indices(nremaining);
 		std::iota(indices.begin(), indices.end(), 0);
@@ -222,7 +312,7 @@ struct CommutativeMatcher final : public iMatcher
 			if (variadic_.size() > 0 && nanys < nremaining)
 			{
 				// dump remaining[indices[nanys]:] as variadic
-				teq::CEdgesT varis;
+				teq::TensptrsT varis;
 				for (size_t i = nanys; i < nremaining; ++i)
 				{
 					varis.push_back(remaining[indices[i]]);
@@ -239,27 +329,6 @@ struct CommutativeMatcher final : public iMatcher
 		return out;
 	}
 
-	std::string get_fid (void) const override
-	{
-		return id_;
-	}
-
-	void add_edge (ScalarEMatcher* matcher) override
-	{
-		scalars_.emplace(scalars_.end(), EMatchptrT(matcher));
-	}
-
-	void add_edge (AnyEMatcher* matcher) override
-	{
-		anys_.emplace(anys_.end(), EMatchptrT(matcher));
-	}
-
-	void add_edge (FuncEMatcher* matcher) override
-	{
-		funcs_.emplace(funcs_.end(), EMatchptrT(matcher));
-	}
-
-private:
 	const std::string id_ = boost::uuids::to_string(uuid_gen());
 
 	std::string variadic_;

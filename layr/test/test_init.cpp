@@ -18,7 +18,7 @@ TEST(INIT, Zero)
 	auto shape = z->shape();
 	ASSERT_ARREQ(slist, shape);
 
-	double* d = z->data();
+	double* d = (double*) z->data();
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(0, d[i]);
@@ -47,7 +47,7 @@ TEST(INIT, VarianceScaling)
 		double upper = ex_stdev * 2;
 		double lower = -upper;
 
-		double* d = v1->data();
+		double* d = (double*) v1->data();
 		for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 		{
 			EXPECT_GT(upper, d[i]);
@@ -63,7 +63,7 @@ TEST(INIT, VarianceScaling)
 		double ex_stdev = std::sqrt(factor / shape.at(2));
 		double bound = ex_stdev * 2;
 
-		double* d = v2->data();
+		double* d = (double*) v2->data();
 		for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 		{
 			EXPECT_GT(bound, d[i]);
@@ -89,7 +89,7 @@ TEST(INIT, UniformXavier)
 
 	double bound = factor * std::sqrt(6. / (shape.at(0) + shape.at(1)));
 
-	double* d = x->data();
+	double* d = (double*) x->data();
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_GT(bound, d[i]);

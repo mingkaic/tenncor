@@ -6,6 +6,7 @@ load("//third_party/repos:pybind11.bzl", "pybind11_repository")
 load("//third_party/repos:python.bzl", "python_repository")
 load("//third_party/repos:cppkg.bzl", "cppkg_repository")
 load("//third_party/repos:flexison.bzl", "flexison_repository")
+load("//third_party/repos:onnx.bzl", "onnx_repository")
 
 def dependencies(excludes = []):
     ignores = native.existing_rules().keys() + excludes
@@ -32,3 +33,6 @@ def dependencies(excludes = []):
 
     if "rules_m4" not in ignores and "rules_flex" not in ignores and "rules_bison" not in ignores:
         flexison_repository()
+
+    if "com_github_onnx_onnx" not in ignores:
+        onnx_repository()

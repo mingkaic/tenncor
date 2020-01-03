@@ -3,7 +3,7 @@
 #include "estd/estd.hpp"
 #include "fmts/fmts.hpp"
 
-#include "marsh/imarshal.hpp"
+#include "marsh/attrs.hpp"
 
 #ifndef MARSH_OBJS_HPP
 #define MARSH_OBJS_HPP
@@ -11,20 +11,50 @@
 namespace marsh
 {
 
-struct iObject
+struct String final : public iObject
 {
-	virtual ~iObject (void) = default;
+	String (void) = default;
 
-	virtual size_t class_code (void) const = 0;
+	String (std::string val) : val_(val) {}
 
-	virtual std::string to_string (void) const = 0;
+	String* clone (void) const
+	{
+		return static_cast<String*>(clone_impl());
+	}
 
-	virtual bool equals (const iObject& other) const = 0;
+	size_t class_code (void) const override
+	{
+		static const std::type_info& tp = typeid(String);
+		return tp.hash_code();
+	}
 
-	virtual void accept (iMarshaler& marshaler) const = 0;
+	std::string to_string (void) const override
+	{
+		return val_;
+	}
+
+	bool equals (const iObject& other) const override
+	{
+		if (other.class_code() != this->class_code())
+		{
+			return false;
+		}
+		return val_ == static_cast<const String*>(&other)->val_;
+	}
+
+	void accept (iMarshaler& marshaler) const override
+	{
+		marshaler.marshal(*this);
+	}
+
+private:
+	iObject* clone_impl (void) const override
+	{
+		return new String(*this);
+	}
+
+	std::string val_;
 };
-
-using ObjptrT = std::unique_ptr<iObject>;
 
 struct iNumber : public iObject
 {
@@ -33,6 +63,8 @@ struct iNumber : public iObject
 	virtual double to_float64 (void) const = 0;
 
 	virtual int64_t to_int64 (void) const = 0;
+
+	virtual bool is_integral (void) const = 0;
 
 	void accept (iMarshaler& marshaler) const override
 	{
@@ -44,7 +76,14 @@ template <typename T,
 	typename std::enable_if<std::is_arithmetic<T>::value>::type* = nullptr>
 struct Number final : public iNumber
 {
+	Number (void) : val_(0) {}
+
 	Number (T val) : val_(val) {}
+
+	Number<T>* clone (void) const
+	{
+		return static_cast<Number<T>*>(clone_impl());
+	}
 
 	size_t class_code (void) const override
 	{
@@ -76,16 +115,27 @@ struct Number final : public iNumber
 		return val_;
 	}
 
+	bool is_integral (void) const override
+	{
+		return std::is_integral<T>::value;
+	}
+
 	T val_;
+
+private:
+	iObject* clone_impl (void) const override
+	{
+		return new Number<T>(val_);
+	}
 };
 
 struct iArray : public iObject
 {
 	virtual ~iArray (void) = default;
 
-	virtual void foreach (std::function<void(ObjptrT&)> consume) = 0;
+	virtual void foreach (std::function<void(size_t,ObjptrT&)> consume) = 0;
 
-	virtual void foreach (std::function<void(const ObjptrT&)> consume) const = 0;
+	virtual void foreach (std::function<void(size_t,const ObjptrT&)> consume) const = 0;
 
 	virtual size_t size (void) const = 0;
 
@@ -97,6 +147,11 @@ struct iArray : public iObject
 
 struct ObjArray final : public iArray
 {
+	ObjArray* clone (void) const
+	{
+		return static_cast<ObjArray*>(clone_impl());
+	}
+
 	size_t class_code (void) const override
 	{
 		static const std::type_info& tp = typeid(ObjArray);
@@ -141,23 +196,35 @@ struct ObjArray final : public iArray
 		return contents_.size();
 	}
 
-	void foreach (std::function<void(ObjptrT&)> consume) override
+	void foreach (std::function<void(size_t,ObjptrT&)> consume) override
 	{
-		for (ObjptrT& obj : contents_)
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
-			consume(obj);
+			consume(i, contents_.at(i));
 		}
 	}
 
-	void foreach (std::function<void(const ObjptrT&)> consume) const override
+	void foreach (std::function<void(size_t,const ObjptrT&)> consume) const override
 	{
-		for (const ObjptrT& obj : contents_)
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
-			consume(obj);
+			consume(i, contents_.at(i));
 		}
 	}
 
 	std::vector<ObjptrT> contents_;
+
+private:
+	iObject* clone_impl (void) const override
+	{
+		auto cpy = new ObjArray();
+		for (auto& obj : contents_)
+		{
+			cpy->contents_.insert(cpy->contents_.end(),
+				ObjptrT(obj->clone()));
+		}
+		return cpy;
+	}
 };
 
 template <typename T,
@@ -167,7 +234,12 @@ struct NumArray final : public iArray
 	NumArray (void) = default;
 
 	NumArray (const std::vector<T>& contents) :
-		contents_(contents.begin(), contents.end()) {}
+		contents_(contents) {}
+
+	NumArray<T>* clone (void) const
+	{
+		return static_cast<NumArray<T>*>(clone_impl());
+	}
 
 	size_t class_code (void) const override
 	{
@@ -196,28 +268,39 @@ struct NumArray final : public iArray
 		return contents_.size();
 	}
 
-	void foreach (std::function<void(ObjptrT&)> consume) override
+	void foreach (std::function<void(size_t,ObjptrT&)> consume) override
 	{
-		for (T val : contents_)
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
-			ObjptrT obj = std::make_unique<Number<T>>(val);
-			consume(obj);
+			ObjptrT obj = std::make_unique<Number<T>>(contents_[i]);
+			consume(i, obj);
 		}
 	}
 
-	void foreach (std::function<void(const ObjptrT&)> consume) const override
+	void foreach (std::function<void(size_t,const ObjptrT&)> consume) const override
 	{
-		for (T val : contents_)
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
-			consume(std::make_unique<Number<T>>(val));
+			consume(i, std::make_unique<Number<T>>(contents_[i]));
 		}
 	}
 
 	std::vector<T> contents_;
+
+private:
+	iObject* clone_impl (void) const override
+	{
+		return new NumArray<T>(contents_);
+	}
 };
 
-struct Maps final : public iObject
+struct Maps final : public iObject, public iAttributed
 {
+	Maps* clone (void) const
+	{
+		return static_cast<Maps*>(clone_impl());
+	}
+
 	size_t class_code (void) const override
 	{
 		static const std::type_info& tp = typeid(Maps);
@@ -226,7 +309,7 @@ struct Maps final : public iObject
 
 	std::string to_string (void) const override
 	{
-		auto ks = keys();
+		auto ks = ls_attrs();
 		std::sort(ks.begin(), ks.end());
 		std::vector<std::pair<std::string,std::string>> pairs;
 		for (std::string key : ks)
@@ -263,7 +346,13 @@ struct Maps final : public iObject
 		marshaler.marshal(*this);
 	}
 
-	std::vector<std::string> keys (void) const
+	const iObject* get_attr (std::string attr_key) const override
+	{
+		return estd::has(contents_, attr_key) ?
+			contents_.at(attr_key).get() : nullptr;
+	}
+
+	std::vector<std::string> ls_attrs (void) const override
 	{
 		std::vector<std::string> out;
 		out.reserve(contents_.size());
@@ -275,8 +364,32 @@ struct Maps final : public iObject
 		return out;
 	}
 
+	void add_attr (std::string attr_key, ObjptrT&& attr_val) override
+	{
+		contents_.emplace(attr_key, std::move(attr_val));
+	}
+
+	void rm_attr (std::string attr_key) override
+	{
+		contents_.erase(attr_key);
+	}
+
+private:
+	iObject* clone_impl (void) const override
+	{
+		auto cpy = new Maps();
+		for (auto& cpair : contents_)
+		{
+			cpy->add_attr(cpair.first,
+				ObjptrT(cpair.second->clone()));
+		}
+		return cpy;
+	}
+
 	std::unordered_map<std::string,ObjptrT> contents_;
 };
+
+void get_attrs (Maps& mvalues, const iAttributed& attributed);
 
 }
 

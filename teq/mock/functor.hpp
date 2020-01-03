@@ -1,58 +1,118 @@
+#include "marsh/objs.hpp"
+
 #include "teq/ifunctor.hpp"
-#include "teq/mock/edge.hpp"
 
 #ifndef TEQ_MOCK_FUNCTOR_HPP
 #define TEQ_MOCK_FUNCTOR_HPP
 
-struct MockFunctor final : public teq::iFunctor
+struct MockFunctor : public teq::iFunctor
 {
-	MockFunctor (teq::TensptrsT tens,
-		teq::Opcode opcode = teq::Opcode{}) :
-		opcode_(opcode),
-		shape_(tens[0]->shape()),
-		args_(MockEdgesT(tens.begin(), tens.end())) {}
+	MockFunctor (teq::TensptrsT children, std::vector<double> data, teq::Opcode opcode) :
+		children_(children), opcode_(opcode), data_(data, children.front()->shape()) {}
 
-	MockFunctor (MockEdgesT args,
-		teq::Opcode opcode = teq::Opcode{}) :
-		opcode_(opcode),
-		shape_(args[0].shape()),
-		args_(args) {}
+	MockFunctor (teq::TensptrsT children, std::vector<double> data) :
+		MockFunctor(children, data, teq::Opcode()) {}
 
-	/// Implementation of iTensor
-	const teq::Shape& shape (void) const override
-	{
-		return shape_;
-	}
+	MockFunctor (teq::TensptrsT children, teq::Opcode opcode) :
+		MockFunctor(children, {}, opcode) {}
 
-	/// Implementation of iTensor
+	MockFunctor (teq::TensptrsT children) :
+		MockFunctor(children, {}, teq::Opcode()) {}
+
+	MockFunctor (const MockFunctor& other) : updated_(other.updated_),
+		children_(other.children_), opcode_(other.opcode_), data_(other.data_) {}
+
+	virtual ~MockFunctor (void) = default;
+
 	std::string to_string (void) const override
 	{
 		return opcode_.name_;
 	}
 
-	/// Implementation of iFunctor
 	teq::Opcode get_opcode (void) const override
 	{
 		return opcode_;
 	}
 
-	/// Implementation of iFunctor
-	teq::CEdgesT get_children (void) const override
+	teq::TensptrsT get_children (void) const override
 	{
-		return teq::CEdgesT(args_.begin(), args_.end());
+		return children_;
 	}
 
-	/// Implementation of iFunctor
+	const marsh::iObject* get_attr (std::string attr_name) const override
+	{
+		return attrs_.get_attr(attr_name);
+	}
+
+	std::vector<std::string> ls_attrs (void) const override
+	{
+		return attrs_.ls_attrs();
+	}
+
+	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
+	{
+		attrs_.add_attr(attr_key, std::move(attr_val));
+	}
+
+	void rm_attr (std::string attr_key) override
+	{
+		attrs_.rm_attr(attr_key);
+	}
+
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		args_[index] = MockEdge(arg);
+		children_[index] = arg;
 	}
+
+	void calc(void) override
+	{
+		updated_ = true;
+	}
+
+	void* data (void) override
+	{
+		return data_.data();
+	}
+
+	const void* data (void) const override
+	{
+		return data_.data();
+	}
+
+	teq::Shape shape (void) const override
+	{
+		return data_.shape();
+	}
+
+	size_t type_code (void) const override
+	{
+		return data_.type_code();
+	}
+
+	std::string type_label (void) const override
+	{
+		return data_.type_label();
+	}
+
+	size_t nbytes (void) const override
+	{
+		return data_.nbytes();
+	}
+
+	teq::iTensor* clone_impl (void) const override
+	{
+		return new MockFunctor(*this);
+	}
+
+	bool updated_ = false;
+
+	teq::TensptrsT children_;
 
 	teq::Opcode opcode_;
 
-	teq::Shape shape_;
+	marsh::Maps attrs_;
 
-	MockEdgesT args_;
+	MockLeaf data_;
 };
 
 #endif // TEQ_MOCK_FUNCTOR_HPP

@@ -5,7 +5,7 @@
 namespace opt
 {
 
-static std::string to_string (::KeyVal* kv)
+static std::string to_string (const ::KeyVal* kv)
 {
 	std::string out = std::string(kv->key_) + ":[";
 	auto it = kv->val_.head_;
@@ -21,40 +21,35 @@ static std::string to_string (::KeyVal* kv)
 	return out;
 }
 
-static std::string to_string (::TreeNode* node);
+static std::string to_string (const ::TreeNode* node);
 
-static std::string to_string (::Arg* arg)
-{
-	std::string out = to_string(arg->node_);
-	auto it = arg->attrs_.head_;
-	if (nullptr != it)
-	{
-		out += "={" + to_string((::KeyVal*) it->val_);
-		for (it = it->next_; it != nullptr; it = it->next_)
-		{
-			out += "," + to_string((::KeyVal*) it->val_);
-		}
-		out += "}";
-	}
-	return out;
-}
-
-static std::string to_string (::Functor* functor)
+static std::string to_string (const ::Functor* functor)
 {
 	std::string comm_prefix;
 	if (functor->commutative_)
 	{
 		comm_prefix = "comm ";
 	}
-	std::string out = comm_prefix + std::string(functor->name_) + "(";
+	std::string out = comm_prefix + std::string(functor->name_);
+	auto ait = functor->attrs_.head_;
+	if (nullptr != ait)
+	{
+		out += "={" + to_string((::KeyVal*) ait->val_);
+		for (ait = ait->next_; ait != nullptr; ait = ait->next_)
+		{
+			out += "," + to_string((::KeyVal*) ait->val_);
+		}
+		out += "}";
+	}
+	out += "(";
 	assert(::ARGUMENT == functor->args_.type_);
 	auto it = functor->args_.head_;
 	if (nullptr != it)
 	{
-		out += to_string((::Arg*) it->val_);
+		out += to_string((::TreeNode*) it->val_);
 		for (it = it->next_; nullptr != it; it = it->next_)
 		{
-			out += "," + to_string((::Arg*) it->val_);
+			out += "," + to_string((::TreeNode*) it->val_);
 		}
 	}
 
@@ -67,7 +62,7 @@ static std::string to_string (::Functor* functor)
 	return out;
 }
 
-static std::string to_string (::TreeNode* node)
+static std::string to_string (const ::TreeNode* node)
 {
 	std::string out;
 	switch (node->type_)
@@ -85,7 +80,7 @@ static std::string to_string (::TreeNode* node)
 	return out;
 }
 
-static std::string to_string (::Conversion* cversion)
+static std::string to_string (const ::Conversion* cversion)
 {
 	return to_string(cversion->matcher_) + "=>" + to_string(cversion->target_);
 }
@@ -96,8 +91,7 @@ static bool validate_matcher_helper (const ::Functor* matcher, bool& used_comm)
 	size_t nargs = 0;
 	for (auto it = matcher->args_.head_; nullptr != it; it = it->next_, ++nargs)
 	{
-		auto arg = (::Arg*) it->val_;
-		auto child = arg->node_;
+		auto child = (::TreeNode*) it->val_;
 		if (child->type_ == ::TreeNode::FUNCTOR)
 		{
 			auto nextfunc = child->val_.functor_;
@@ -161,33 +155,30 @@ static std::string parse_matcher (
 	if (matcher->commutative_)
 	{
 		outmatcher = std::make_shared<CommutativeMatcher>(
-			std::string(matcher->variadic_));
+			matcher->attrs_, std::string(matcher->variadic_));
 	}
 	else
 	{
 		outmatcher = std::make_shared<OrderedMatcher>(
-			std::string(matcher->variadic_));
+			matcher->attrs_, std::string(matcher->variadic_));
 	}
 	cmatchers.push_back(outmatcher);
 
 	for (auto it = matcher->args_.head_; nullptr != it; it = it->next_)
 	{
-		auto arg = (::Arg*) it->val_;
-		auto child = arg->node_;
+		auto child = (::TreeNode*) it->val_;
 		switch (child->type_)
 		{
 			case ::TreeNode::SCALAR:
-				outmatcher->add_edge(new ScalarEMatcher(
-					child->val_.scalar_, arg->attrs_));
+				outmatcher->add_edge(new ScalarEMatcher(child->val_.scalar_));
 				break;
 			case ::TreeNode::ANY:
 				outmatcher->add_edge(new AnyEMatcher(
-					std::string(child->val_.any_), arg->attrs_));
+					std::string(child->val_.any_)));
 				break;
 			case ::TreeNode::FUNCTOR:
 				outmatcher->add_edge(new FuncEMatcher(
-					parse_matcher(out, child->val_.functor_),
-						arg->attrs_));
+					parse_matcher(out, child->val_.functor_)));
 				break;
 			default:
 				logs::fatalf("unknown matcher argument of type %d", child->type_);

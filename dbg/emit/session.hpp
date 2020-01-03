@@ -66,9 +66,7 @@ struct InteractiveSession final : public teq::iSession
 	static boost::uuids::random_generator uuid_gen_;
 
 	InteractiveSession (std::shared_ptr<grpc::ChannelInterface> channel,
-		ClientConfig client_cfg = ClientConfig(),
-		tag::TagRegistry& registry = tag::get_reg()) :
-		registry_(registry),
+		ClientConfig client_cfg = ClientConfig()) :
 		client_(channel, client_cfg)
 	{
 		logs::infof("created session: %s", sess_id_.c_str());
@@ -93,12 +91,7 @@ struct InteractiveSession final : public teq::iSession
 	/// Implementation of iSession
 	void update (teq::TensSetT ignored = {}) override
 	{
-		if (false == sent_graph_)
-		{
-			create_graph();
-		}
-
-		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
+		jobs::ScopeGuard defer([this] { ++this->update_it_; });
 
 		// ignore any node data updates when
 		// not connected or out of sync interval
@@ -108,8 +101,13 @@ struct InteractiveSession final : public teq::iSession
 			return;
 		}
 
+		if (false == sent_graph_)
+		{
+			create_model();
+		}
+
 		// basic copy over from session::update
-		std::list<teq::iOperableFunc*> reqs;
+		std::list<teq::iFunctor*> reqs;
 		teq::TensSetT acceptable;
 		for (auto& root : sess_.tracked_)
 		{
@@ -126,9 +124,9 @@ struct InteractiveSession final : public teq::iSession
 			{
 				reqs.push_front(op);
 				auto children = op->get_children();
-				for (const teq::iEdge& child : children)
+				for (teq::TensptrT child : children)
 				{
-					acceptable.emplace(child.get_tensor().get());
+					acceptable.emplace(child.get());
 				}
 			}
 		}
@@ -149,8 +147,8 @@ struct InteractiveSession final : public teq::iSession
 
 				gemitter::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
-				payload->set_graph_id(sess_id_);
-				payload->set_node_idx(indices_[leaf]);
+				payload->set_model_id(sess_id_);
+				payload->set_node_id(ids_.left.at(leaf));
 				google::protobuf::RepeatedField<float> field(
 					data.begin(), data.end());
 				payload->mutable_data()->Swap(&field);
@@ -161,7 +159,7 @@ struct InteractiveSession final : public teq::iSession
 		// ignored nodes and its dependers will never fulfill requirement
 		for (auto& op : reqs)
 		{
-			op->update();
+			op->calc();
 			egen::_GENERATED_DTYPE dtype =
 				(egen::_GENERATED_DTYPE) op->type_code();
 			std::vector<float> data;
@@ -171,8 +169,8 @@ struct InteractiveSession final : public teq::iSession
 			// create requests (bulk of the overhead)
 			gemitter::UpdateNodeDataRequest request;
 			auto payload = request.mutable_payload();
-			payload->set_graph_id(sess_id_);
-			payload->set_node_idx(indices_[op]);
+			payload->set_model_id(sess_id_);
+			payload->set_node_id(ids_.left.at(op));
 			google::protobuf::RepeatedField<float> field(
 				data.begin(), data.end());
 			payload->mutable_data()->Swap(&field);
@@ -187,12 +185,7 @@ struct InteractiveSession final : public teq::iSession
 		teq::TensSetT targeted,
 		teq::TensSetT ignored = {}) override
 	{
-		if (false == sent_graph_)
-		{
-			create_graph();
-		}
-
-		jobs::ScopeGuard defer([this]() { ++this->update_it_; });
+		jobs::ScopeGuard defer([this] { ++this->update_it_; });
 
 		// ignore any node data updates when
 		// not connected or out of sync interval
@@ -202,8 +195,13 @@ struct InteractiveSession final : public teq::iSession
 			return;
 		}
 
+		if (false == sent_graph_)
+		{
+			create_model();
+		}
+
 		// basic copy over from session::update_target
-		std::list<teq::iOperableFunc*> reqs;
+		std::list<teq::iFunctor*> reqs;
 		teq::TensSetT acceptable;
 		for (auto& root : targeted)
 		{
@@ -219,9 +217,9 @@ struct InteractiveSession final : public teq::iSession
 			{
 				reqs.push_front(op);
 				auto children = op->get_children();
-				for (const teq::iEdge& child : children)
+				for (teq::TensptrT child : children)
 				{
-					acceptable.emplace(child.get_tensor().get());
+					acceptable.emplace(child.get());
 				}
 			}
 		}
@@ -242,8 +240,8 @@ struct InteractiveSession final : public teq::iSession
 
 				gemitter::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
-				payload->set_graph_id(sess_id_);
-				payload->set_node_idx(indices_[leaf]);
+				payload->set_model_id(sess_id_);
+				payload->set_node_id(ids_.left.at(leaf));
 				google::protobuf::RepeatedField<float> field(
 					data.begin(), data.end());
 				payload->mutable_data()->Swap(&field);
@@ -254,7 +252,7 @@ struct InteractiveSession final : public teq::iSession
 		// ignored nodes and its dependers will never fulfill requirement
 		for (auto& op : reqs)
 		{
-			op->update();
+			op->calc();
 			egen::_GENERATED_DTYPE dtype =
 				(egen::_GENERATED_DTYPE) op->type_code();
 			std::vector<float> data;
@@ -264,8 +262,8 @@ struct InteractiveSession final : public teq::iSession
 			// create requests (bulk of the overhead)
 			gemitter::UpdateNodeDataRequest request;
 			auto payload = request.mutable_payload();
-			payload->set_graph_id(sess_id_);
-			payload->set_node_idx(indices_[op]);
+			payload->set_model_id(sess_id_);
+			payload->set_node_id(ids_.left.at(op));
 			google::protobuf::RepeatedField<float> field(
 				data.begin(), data.end());
 			payload->mutable_data()->Swap(&field);
@@ -288,7 +286,7 @@ struct InteractiveSession final : public teq::iSession
 		stat_.graphsize_.clear();
 		if (sent_graph_)
 		{
-			client_.delete_graph(sess_id_);
+			client_.delete_model(sess_id_);
 			sess_id_ = boost::uuids::to_string(
 				InteractiveSession::uuid_gen_());
 		}
@@ -297,14 +295,14 @@ struct InteractiveSession final : public teq::iSession
 	}
 
 	/// Send create graph request
-	void create_graph (void)
+	void create_model (void)
 	{
-		gemitter::CreateGraphRequest request;
+		gemitter::CreateModelRequest request;
 		auto payload = request.mutable_payload();
-		payload->set_graph_id(sess_id_);
+		payload->set_model_id(sess_id_);
 		teq::TensptrsT tracked(sess_.tracked_.begin(), sess_.tracked_.end());
-		indices_ = eteq::save_graph(*payload->mutable_graph(), tracked);
-		client_.create_graph(request);
+		eteq::save_model(*payload->mutable_model(), tracked, ids_);
+		client_.create_model(request);
 	}
 
 	/// Wait until client completes its request calls
@@ -319,7 +317,7 @@ struct InteractiveSession final : public teq::iSession
 	{
 		std::condition_variable client_done;
 		std::thread timed_killer(
-		[&]()
+		[&]
 		{
 			std::mutex mtx;
 			std::unique_lock<std::mutex> lck(mtx);
@@ -349,9 +347,6 @@ struct InteractiveSession final : public teq::iSession
 	/// Session underneath
 	teq::Session sess_;
 
-	/// Tag registry
-	tag::TagRegistry& registry_;
-
 private:
 	std::string sess_id_ = boost::uuids::to_string(
 		InteractiveSession::uuid_gen_());
@@ -364,7 +359,7 @@ private:
 
 	teq::GraphStat stat_;
 
-	pbm::TensMapIndicesT indices_;
+	onnx::TensIdT ids_;
 };
 
 boost::uuids::random_generator InteractiveSession::uuid_gen_;

@@ -7,7 +7,6 @@
 ///
 
 #include "teq/itensor.hpp"
-#include "teq/idata.hpp"
 
 #ifndef TEQ_ILEAF_HPP
 #define TEQ_ILEAF_HPP
@@ -15,19 +14,32 @@
 namespace teq
 {
 
+enum Usage
+{
+	Unknown = 0,
+	Immutable,
+	Variable,
+	Placeholder,
+};
+
 /// Leaf of the graph commonly representing the variable in an equation
-struct iLeaf : public iTensor, public iData
+struct iLeaf : public iTensor
 {
 	virtual ~iLeaf (void) = default;
+
+	iLeaf* clone (void) const
+	{
+		return static_cast<iLeaf*>(this->clone_impl());
+	}
 
 	/// Implementation of iTensor
 	void accept (iTraveler& visiter) override
 	{
-		visiter.visit(this);
+		visiter.visit(*this);
 	}
 
-	/// Return true if leaf is immutable, otherwise false
-	virtual bool is_const (void) const = 0;
+	/// Return intended usage context
+	virtual Usage get_usage (void) const = 0;
 };
 
 /// Leaf smart pointer
@@ -37,7 +49,7 @@ static const size_t label_limit = 5;
 
 /// Return constant data string representation
 template <typename T>
-std::string const_encode (const T* data, const teq::Shape& shape)
+std::string const_encode (const T* data, const Shape& shape)
 {
 	size_t nelems = shape.n_elems();
 	if (std::all_of(data + 1, data + nelems,
@@ -65,6 +77,10 @@ std::string const_encode (const T* data, const teq::Shape& shape)
 	}
 	return out;
 }
+
+Usage get_named_usage (std::string name);
+
+std::string get_usage_name (Usage usage);
 
 }
 

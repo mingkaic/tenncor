@@ -6,7 +6,7 @@ import numpy as np
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
-import rocnnet.rocnnet as rcn
+import layr.layr as layr
 
 prog_description = 'Demo dbn_trainer'
 
@@ -37,8 +37,8 @@ def main(args):
         help='Length of the Contrastive divergence chain (default: 1)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/dbn.pbx',
-        help='Filename to load pretrained model (default: models/dbn.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/dbn.onnx',
+        help='Filename to load pretrained model (default: models/dbn.onnx)')
     args = parser.parse_args(args)
 
     if args.seed:
@@ -64,32 +64,34 @@ def main(args):
         [0, 0]])
 
     # construct DBN
-    model = rcn.SequentialModel("demo")
-    model.add(rcn.RBM(3, 6,
-        weight_init=rcn.unif_xavier_init(),
-        bias_init=rcn.zero_init(), label="0"))
-    model.add(rcn.RBM(3, 3,
-        weight_init=rcn.unif_xavier_init(),
-        bias_init=rcn.zero_init(), label="1"))
-    model.add(rcn.Dense(2, eteq.Shape([3]),
-        weight_init=rcn.zero_init(),
-        bias_init=rcn.zero_init(), label="log_layer"))
-    model.add(rcn.softmax(0))
+    rbms = [
+        layr.rbm(6, 3,
+            weight_init=layr.unif_xavier_init(),
+            bias_init=layr.zero_init()),
+        layr.rbm(3, 3,
+            weight_init=layr.unif_xavier_init(),
+            bias_init=layr.zero_init())
+    ]
+    dense = layr.dense([3], [2],
+        weight_init=layr.zero_init(),
+        bias_init=layr.zero_init())
+    softmax_dim = 0
 
-    untrained = model.clone()
+    rbm_interlace = zip([rbm.fwd() for rbm in rbms], len(rbms) * [layr.bind(tc.sigmoid)])
+    model = layr.link([e for inters in rbm_interlace for e in inters] +
+        [dense, layr.bind(lambda x: tc.softmax(x, softmax_dim, 1))])
+    untrained = model.deep_clone()
+    trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = rcn.load_file_seqmodel(args.load, "demo")
+        trained = layr.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
-        trained = model.clone()
 
-    trainer = rcn.DBNTrainer(model, x.shape[0],
-        pretrain_lr = 0.1,
-        train_lr = 0.1,
-        cdk = args.cdk)
+    trainer = layr.DBNTrainer(rbms, dense, softmax_dim, x.shape[0],
+        pretrain_lr = 0.1, train_lr = 0.1, cdk = args.cdk)
 
     def pretrain_log(epoch, layer):
         if epoch % 100 == 0:
@@ -123,7 +125,7 @@ def main(args):
 
     try:
         print('saving')
-        if model.save_file(args.save):
+        if layr.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

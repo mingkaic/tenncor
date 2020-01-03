@@ -42,9 +42,9 @@ coverage:cc_coverage --instrument_test_targets --experimental_cc_coverage --comb
 # === MEMORY ANALYSIS ===
 
 # using valgrind
-run:valgrind --run_under="valgrind --leak-check=full"
-test:valgrind --run_under="valgrind --leak-check=full"
-coverage:valgrind --run_under="valgrind --leak-check=full"
+run:valgrind --run_under="valgrind --leak-check=full --show-leak-kinds=all"
+test:valgrind --run_under="valgrind --leak-check=full --show-leak-kinds=all"
+coverage:valgrind --run_under="valgrind --leak-check=full --show-leak-kinds=all"
 
 # using asan
 run:asan --linkopt -fsanitize=address

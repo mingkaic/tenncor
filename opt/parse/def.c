@@ -15,16 +15,22 @@ void kv_recursive_free (void* kv)
 	free(k);
 }
 
-void arg_recursive_free (void* arg)
+struct Functor* new_functor (char* symbol, struct PtrList* attr)
 {
-	if (NULL == arg)
+	if (NULL == symbol)
 	{
-		return;
+		return NULL;
 	}
-	struct Arg* a = (struct Arg*) arg;
-	node_recursive_free(a->node_);
-	objs_clear(&a->attrs_);
-	free(a);
+	size_t nbytes = sizeof(struct Functor);
+	struct Functor* f = malloc(nbytes);
+	memset(f, 0, nbytes);
+	strncpy(f->name_, symbol, NSYMBOL);
+	ptrlist_move(&f->attrs_, attr);
+	if (NULL == attr)
+	{
+		f->attrs_.type_ = KV_PAIR;
+	}
+	return f;
 }
 
 void func_recursive_free (void* func)
@@ -34,8 +40,42 @@ void func_recursive_free (void* func)
 		return;
 	}
 	struct Functor* f = (struct Functor*) func;
+	objs_clear(&f->attrs_);
 	objs_clear(&f->args_);
 	free(f);
+}
+
+struct TreeNode* new_numnode (double scalar)
+{
+	struct TreeNode* node = malloc(sizeof(struct TreeNode));
+	node->type_ = SCALAR;
+	node->val_.scalar_ = scalar;
+	return node;
+}
+
+struct TreeNode* new_anynode (char* any)
+{
+	if (NULL == any)
+	{
+		return NULL;
+	}
+	struct TreeNode* node = malloc(sizeof(struct TreeNode));
+	node->type_ = ANY;
+	char* dst = node->val_.any_ = malloc(NSYMBOL);
+	strncpy(dst, any, NSYMBOL);
+	return node;
+}
+
+struct TreeNode* new_fncnode (struct Functor* f)
+{
+	if (NULL == f)
+	{
+		return NULL;
+	}
+	struct TreeNode* node = malloc(sizeof(struct TreeNode));
+	node->type_ = FUNCTOR;
+	node->val_.functor_ = f;
+	return node;
 }
 
 void node_recursive_free (void* node)
@@ -59,6 +99,19 @@ void node_recursive_free (void* node)
 			fprintf(stderr, "freeing unknown node %d\n", root->type_);
 	}
 	free(root);
+}
+
+struct Conversion* new_conversion (
+	struct Functor* matcher, struct TreeNode* target)
+{
+	if (NULL == matcher || NULL == target)
+	{
+		return NULL;
+	}
+	struct Conversion* cv = malloc(sizeof(struct Conversion));
+	cv->matcher_ = matcher;
+	cv->target_ = target;
+	return cv;
 }
 
 void conversion_recursive_free (void* conv)
@@ -86,7 +139,7 @@ void objs_free (struct PtrList* objs)
 			recursive_free = conversion_recursive_free;
 			break;
 		case ARGUMENT:
-			recursive_free = arg_recursive_free;
+			recursive_free = node_recursive_free;
 			break;
 		case KV_PAIR:
 			recursive_free = kv_recursive_free;
@@ -106,7 +159,7 @@ void objs_clear (struct PtrList* objs)
 			recursive_free = &conversion_recursive_free;
 			break;
 		case ARGUMENT:
-			recursive_free = &arg_recursive_free;
+			recursive_free = &node_recursive_free;
 			break;
 		case KV_PAIR:
 			recursive_free = &kv_recursive_free;

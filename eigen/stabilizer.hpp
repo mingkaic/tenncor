@@ -2,7 +2,6 @@
 
 #include "eigen/generated/opcode.hpp"
 #include "eigen/generated/dtype.hpp"
-#include "eigen/edge.hpp"
 
 #ifndef EIGEN_STABILIZER_HPP
 #define EIGEN_STABILIZER_HPP
@@ -116,9 +115,9 @@ static estd::NumRange<T> pow_range (const NumRangesT<T>& ranges)
 }
 
 template <typename T>
-estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& ranges)
+estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& ranges)
 {
-	teq::Opcode opcode = func->get_opcode();
+	teq::Opcode opcode = func.get_opcode();
 	estd::NumRange<T> outrange;
 	switch (opcode.code_)
 	{
@@ -270,9 +269,11 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::ARGMAX:
 		{
-			const teq::iEdge& arg = func->get_children()[0];
-			teq::RankT return_dim = get_coorder(arg)[0];
-			teq::Shape shape = arg.get_tensor()->shape();
+			teq::RankT return_dim;
+			Packer<teq::RankT>().unpack(return_dim, func);
+
+			teq::TensptrT arg = func.get_children().front();
+			teq::Shape shape = arg->shape();
 			teq::NElemT maxn = teq::rank_cap == return_dim ?
 				shape.n_elems() : shape.at(return_dim);
 			outrange = estd::NumRange<T>(0, maxn - 1);
@@ -446,20 +447,16 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::REDUCE_SUM:
 		{
-			const teq::iEdge& arg = func->get_children()[0];
-			const teq::Shape& shape = arg.argshape();
+			std::set<teq::RankT> ranks;
+			Packer<std::set<teq::RankT>>().unpack(ranks, func);
+			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
+
+			teq::TensptrT arg = func.get_children()[0];
+			teq::Shape shape = arg->shape();
 			teq::NElemT nreds = 1;
-			bool reduced = false;
-			auto c = get_coorder(arg);
-			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-				i < n && c[i] < teq::rank_cap; ++i)
+			for (teq::RankT rank : ranks)
 			{
-				reduced = true;
-				nreds *= shape.at(c[i]);
-			}
-			if (false == reduced)
-			{
-				nreds = shape.n_elems();
+				nreds *= shape.at(rank);
 			}
 			outrange = estd::NumRange<T>(
 				ranges[0].lower_ * nreds,
@@ -468,20 +465,16 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::REDUCE_PROD:
 		{
-			const teq::iEdge& arg = func->get_children()[0];
-			const teq::Shape& shape = arg.argshape();
+			std::set<teq::RankT> ranks;
+			Packer<std::set<teq::RankT>>().unpack(ranks, func);
+			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
+
+			teq::TensptrT arg = func.get_children()[0];
+			teq::Shape shape = arg->shape();
 			teq::NElemT nreds = 1;
-			bool reduced = false;
-			auto c = get_coorder(arg);
-			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-				i < n && c[i] < teq::rank_cap; ++i)
+			for (teq::RankT rank : ranks)
 			{
-				reduced = true;
-				nreds *= shape.at(c[i]);
-			}
-			if (false == reduced)
-			{
-				nreds = shape.n_elems();
+				nreds *= shape.at(rank);
 			}
 			T lower = std::pow(ranges[0].lower_, nreds);
 			T upper = std::pow(ranges[0].upper_, nreds);
@@ -496,19 +489,17 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 			break;
 		case egen::MATMUL:
 		{
+			PairVecT<teq::RankT> dims;
+			Packer<PairVecT<teq::RankT>>().unpack(dims, func);
+
 			// matmul = <left> * <right> then reduce sum by common dimensions
 			// so apply range rule for product, then for reduce sum
-			const teq::iEdge& arg = func->get_children()[0];
-			const teq::Shape& shape = arg.argshape();
+			teq::TensptrT arg = func.get_children().front();
+			teq::Shape shape = arg->shape();
 			teq::NElemT ncommons = 1;
-			auto c = get_coorder(arg);
-			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-				i < n && c[i] < teq::rank_cap; ++i)
+			for (auto dim : dims)
 			{
-				if (c[i] < teq::rank_cap)
-				{
-					ncommons *= shape.at(c[i]);
-				}
+				ncommons *= shape.at(dim.first);
 			}
 			T llower = ranges[0].lower_;
 			T lupper = ranges[0].upper_;
@@ -529,15 +520,9 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 		{
 			// conv = <image> * <kernel> then reduce by kernel dimensions that convolves
 			// apply range rule similar to matmul
-			const teq::iEdge& arg = func->get_children()[1];
-			const teq::Shape& shape = arg.get_tensor()->shape();
-			teq::NElemT nkern = 1;
-			auto c = get_coorder(arg);
-			for (size_t i = 0, n = std::min((size_t) teq::rank_cap, c.size());
-				i < n && c[i] < teq::rank_cap; ++i)
-			{
-				nkern *= shape.at(i);
-			}
+			teq::TensptrT arg = func.get_children()[1];
+			teq::Shape shape = arg->shape();
+			teq::NElemT nkern = shape.n_elems();
 			T llower = ranges[0].lower_;
 			T lupper = ranges[0].upper_;
 			T rlower = ranges[1].lower_;
@@ -561,51 +546,46 @@ estd::NumRange<T> generate_range (teq::iFunctor* func, const NumRangesT<T>& rang
 
 // todo: handle complex T
 template <typename T>
-struct Stabilizer final : public teq::iTraveler
+struct Stabilizer final : public teq::iOnceTraveler
 {
+	teq::TensMapT<estd::NumRange<T>> ranges_;
+
+private:
 	/// Implementation of iTraveler
-	void visit (teq::iLeaf* leaf) override
+	void visit_leaf (teq::iLeaf& leaf) override
 	{
-		if (false == estd::has(ranges_, leaf))
+		if (egen::get_type<T>() == leaf.type_code() &&
+			teq::Immutable == leaf.get_usage())
 		{
-			if (egen::get_type<T>() == leaf->type_code() && leaf->is_const())
-			{
-				auto data = (T*) leaf->data();
-				teq::NElemT n = leaf->shape().n_elems();
-				ranges_.emplace(leaf, estd::NumRange<T>(
-					*std::min_element(data, data + n),
-					*std::max_element(data, data + n)));
-			}
-			else
-			{
-				ranges_.emplace(leaf, estd::NumRange<T>(
-					std::numeric_limits<T>::min(),
-					std::numeric_limits<T>::max()));
-			}
+			auto data = (T*) leaf.data();
+			teq::NElemT n = leaf.shape().n_elems();
+			ranges_.emplace(&leaf, estd::NumRange<T>(
+				*std::min_element(data, data + n),
+				*std::max_element(data, data + n)));
+		}
+		else
+		{
+			ranges_.emplace(&leaf, estd::NumRange<T>(
+				std::numeric_limits<T>::min(),
+				std::numeric_limits<T>::max()));
 		}
 	}
 
 	/// Implementation of iTraveler
-	void visit (teq::iFunctor* func) override
+	void visit_func (teq::iFunctor& func) override
 	{
-		if (false == estd::has(ranges_, func))
+		NumRangesT<T> ranges;
+		auto children = func.get_children();
+		ranges.reserve(children.size());
+		for (teq::TensptrT child : children)
 		{
-			auto args = func->get_children();
-			NumRangesT<T> ranges;
-			ranges.reserve(args.size());
-			for (const teq::iEdge& arg : args)
-			{
-				teq::iTensor* argtens = arg.get_tensor().get();
-				argtens->accept(*this);
-				ranges.push_back(ranges_[argtens]);
-			}
-
-			// func range
-			ranges_.emplace(func, generate_range(func, ranges));
+			child->accept(*this);
+			ranges.push_back(ranges_[child.get()]);
 		}
-	}
 
-	std::unordered_map<teq::iTensor*,estd::NumRange<T>> ranges_;
+		// func range
+		ranges_.emplace(&func, generate_range(func, ranges));
+	}
 };
 
 }

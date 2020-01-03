@@ -1,21 +1,21 @@
 syntax = "proto3";
 
-import "pbm/graph.proto";
+import "onnx/onnx.proto";
 
 package gemitter;
 
 // ======== GENERAL MESSAGE OBJECTS ========
 
-message GraphInfo {
-    string graph_id = 1;
+message ModelPayload {
+    string model_id = 1;
 
-    tenncor.Graph graph = 2;
+    onnx.ModelProto model = 2;
 }
 
-message NodeData {
-    string graph_id = 1;
+message NodePayload {
+    string model_id = 1;
 
-    int32 node_idx = 2;
+    string node_id = 2;
 
     repeated float data = 3;
 }
@@ -31,18 +31,18 @@ enum Status {
 
 message Empty {}
 
-message CreateGraphRequest {
-    GraphInfo payload = 1;
+message CreateModelRequest {
+    ModelPayload payload = 1;
 }
 
-message CreateGraphResponse {
+message CreateModelResponse {
     Status status = 1;
 
     string message = 2;
 }
 
 message UpdateNodeDataRequest {
-    NodeData payload = 1;
+    NodePayload payload = 1;
 }
 
 message UpdateNodeDataResponse {
@@ -51,25 +51,26 @@ message UpdateNodeDataResponse {
     string message = 2;
 }
 
-message DeleteGraphRequest {
-    string graph_id = 1;
+message DeleteModelRequest {
+    string model_id = 1;
 }
 
-message DeleteGraphResponse {
+message DeleteModelResponse {
     Status status = 1;
 
     string message = 2;
 }
 
 service GraphEmitter {
+    // Liveness probe: no timeout means host is reachable
     rpc HealthCheck (Empty) returns (Empty);
 
-    // Create or update graph
-    rpc CreateGraph (CreateGraphRequest) returns (CreateGraphResponse);
+    // Create uniquely identified graph
+    rpc CreateModel (CreateModelRequest) returns (CreateModelResponse);
 
-    // Update (tensor) data on existing nodes
+    // Update tensor/node data in specified graph
     rpc UpdateNodeData (stream UpdateNodeDataRequest) returns (UpdateNodeDataResponse);
 
-    // Delete graph
-    rpc DeleteGraph (DeleteGraphRequest) returns (DeleteGraphResponse);
+    // Delete existing graph
+    rpc DeleteModel (DeleteModelRequest) returns (DeleteModelResponse);
 }

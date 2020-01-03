@@ -6,7 +6,8 @@
 /// Implement algorithm that applies conversion rules to graph roots
 ///
 
-#include "tag/prop.hpp"
+#include "teq/ifunctor.hpp"
+#include "teq/traveler.hpp"
 
 #include "opt/matcher.hpp"
 
@@ -20,8 +21,8 @@ struct iTarget
 {
 	virtual ~iTarget (void) = default;
 
-	virtual teq::TensptrT convert (
-		teq::Shape outshape, const Candidate& candidate) const = 0;
+	virtual teq::TensptrT convert (teq::Shape outshape,
+		const Candidate& candidate) const = 0;
 };
 
 using TargptrT = std::shared_ptr<iTarget>;
@@ -32,14 +33,20 @@ struct CversionCtx
 	/// Return function id (fid) of promising matcher once found
 	teq::TensptrT optimize (MatchCtxT& out, teq::iFunctor* f) const
 	{
-		const teq::CEdgesT& args = f->get_children();
+		teq::TensptrsT args = f->get_children();
 		std::string opname = f->get_opcode().name_;
+		AttrMapT attrs;
+		auto keys = f->ls_attrs();
+		for (auto key : keys)
+		{
+			attrs.emplace(key, f->get_attr(key));
+		}
 		if (estd::has(matchers_, opname))
 		{
 			const MatchsT& matchers = matchers_.at(opname);
 			for (auto& matcher : matchers)
 			{
-				auto cands = matcher->match(out, args);
+				auto cands = matcher->match(out, args, attrs);
 				if (cands.size() > 0)
 				{
 					auto fid = matcher->get_fid();
@@ -96,15 +103,14 @@ using CversionsT = std::vector<std::pair<teq::FuncptrT,teq::TensptrT>>;
 /// Replace source tensor's position with target's position
 /// in the sense that all parents of source (found in pfinder)
 /// take on target as the new child in place of source's
-void replace_parents (const teq::ParentFinder& pfinder,
-	teq::TensptrT target, teq::iTensor* source,
-	tag::TagRegistry& registry = tag::get_reg());
+void replace_parents (teq::ParentFinder& pfinder,
+	teq::TensptrT target, teq::iTensor* source);
 
 /// Return optimized roots where optimization rules are applied to subgraphs
 /// Optimized graph roots are moved back to their corresponding root tensors
 /// Additionally two or more tensors sharing symbolically identical
 /// representations are "joined" (with the exception of tensors in roots set)
-teq::TensptrsT optimize (teq::TensptrsT roots,
+void optimize (teq::TensptrsT& roots,
 	const CversionCtx& opts, const CustomFilters& filters);
 
 }

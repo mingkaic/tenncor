@@ -6,10 +6,8 @@
 /// Implement constant leaf tensor
 ///
 
-#include "tag/prop.hpp"
-
+#include "eteq/etens.hpp"
 #include "eteq/ileaf.hpp"
-#include "eteq/inode.hpp"
 
 #ifndef ETEQ_CONSTANT_HPP
 #define ETEQ_CONSTANT_HPP
@@ -23,18 +21,15 @@ struct Constant final : public iLeaf<T>
 {
 	/// Return Constant tensor containing first
 	/// shape.n_elems() values of data pointer
-	static Constant<T>* get (T* data, teq::Shape shape);
-
-	/// Return Constant tensor containing scalar expanded to fill shape
-	static Constant<T>* get_scalar (T scalar, teq::Shape shape)
+	static Constant<T>* get (T* data, teq::Shape shape)
 	{
-		size_t n = shape.n_elems();
-		T buffer[n];
-		std::fill(buffer, buffer + n, scalar);
-		return Constant<T>::get(buffer, shape);
+		return new Constant(data, shape);
 	}
 
-	Constant (const Constant<T>& other) = delete;
+	Constant<T>* clone (void) const
+	{
+		return static_cast<Constant<T>*>(clone_impl());
+	}
 
 	Constant (Constant<T>&& other) = delete;
 
@@ -49,9 +44,9 @@ struct Constant final : public iLeaf<T>
 	}
 
 	/// Implementation of iLeaf
-	bool is_const (void) const override
+	teq::Usage get_usage (void) const override
 	{
-		return true;
+		return teq::Immutable;
 	}
 
 	/// Return true if constant data values are all the same, otherwise false
@@ -66,90 +61,26 @@ struct Constant final : public iLeaf<T>
 private:
 	Constant (T* data, teq::Shape shape) :
 		iLeaf<T>(data, shape) {}
+
+	Constant (const Constant<T>& other) = default;
+
+	teq::iTensor* clone_impl (void) const override
+	{
+		return new Constant<T>(*this);
+	}
 };
-
-/// Constant's node wrapper
-template <typename T>
-struct ConstantNode final : public iNode<T>
-{
-	ConstantNode (std::shared_ptr<Constant<T>> cst) : cst_(cst) {}
-
-	/// Return deep copy of this instance (with a copied constant)
-	ConstantNode<T>* clone (void) const
-	{
-		return static_cast<ConstantNode<T>*>(clone_impl());
-	}
-
-	/// Implementation of iNode<T>
-	T* data (void) override
-	{
-		return (T*) cst_->data();
-	}
-
-	/// Implementation of iNode<T>
-	void update (void) override {}
-
-	/// Implementation of iNode<T>
-	teq::TensptrT get_tensor (void) const override
-	{
-		return cst_;
-	}
-
-protected:
-	iNode<T>* clone_impl (void) const override
-	{
-		teq::Shape shape = cst_->shape();
-		const T* d = (const T*) cst_->data();
-		std::vector<T> cpy(d, d + shape.n_elems());
-		return new ConstantNode(std::shared_ptr<Constant<T>>(
-			Constant<T>::get(cpy.data(), shape)));
-	}
-
-private:
-	/// Implementation of iNode<T>
-	void add_parent (Functor<T>* parent) override {}
-
-	/// Implementation of iNode<T>
-	void remove_parent (Functor<T>* parent) override {}
-
-	std::shared_ptr<Constant<T>> cst_;
-};
-
-template <typename T>
-Constant<T>* Constant<T>::get (T* data, teq::Shape shape)
-{
-	static bool registered = register_builder<Constant<T>,T>(
-		[](teq::TensptrT tens)
-		{
-			return std::make_shared<ConstantNode<T>>(
-				std::static_pointer_cast<Constant<T>>(tens));
-		});
-	assert(registered);
-
-	return new Constant(data, shape);
-}
 
 /// Return constant node given scalar and shape
 template <typename T>
-NodeptrT<T> make_constant_scalar (T scalar, teq::Shape shape)
-{
-	auto out = std::make_shared<ConstantNode<T>>(
-		std::shared_ptr<Constant<T>>(Constant<T>::get_scalar(scalar, shape))
-	);
-	tag::get_property_reg().property_tag(out->get_tensor(), tag::immutable_tag);
-	return out;
-}
+ETensor<T> make_constant_scalar (T scalar, teq::Shape shape);
+
+/// Return constant node filled with scalar matching link shape
+template <typename T>
+ETensor<T> make_constant_like (T scalar, teq::TensptrT like);
 
 /// Return constant node given raw array and shape
 template <typename T>
-NodeptrT<T> make_constant (T* data, teq::Shape shape)
-{
-	auto out = std::make_shared<ConstantNode<T>>(
-		std::shared_ptr<Constant<T>>(Constant<T>::get(data, shape))
-	);
-	tag::get_property_reg().property_tag(out->get_tensor(), tag::immutable_tag);
-	return out;
-}
+ETensor<T> make_constant (T* data, teq::Shape shape);
 
 }
 

@@ -14,9 +14,9 @@
 
 TEST(TRAVELER, GraphStat)
 {
-	teq::TensptrT a(new MockTensor());
-	teq::TensptrT b(new MockTensor());
-	teq::TensptrT c(new MockTensor());
+	teq::TensptrT a(new MockLeaf());
+	teq::TensptrT b(new MockLeaf());
+	teq::TensptrT c(new MockLeaf());
 
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
@@ -34,9 +34,9 @@ TEST(TRAVELER, GraphStat)
 
 TEST(TRAVELER, PathFinder)
 {
-	teq::TensptrT a(new MockTensor());
-	teq::TensptrT b(new MockTensor());
-	teq::TensptrT c(new MockTensor());
+	teq::TensptrT a(new MockLeaf());
+	teq::TensptrT b(new MockLeaf());
+	teq::TensptrT c(new MockLeaf());
 
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
@@ -46,44 +46,52 @@ TEST(TRAVELER, PathFinder)
 	g->accept(finder);
 
 	{
-		ASSERT_HAS(finder.parents_, g.get());
-		EXPECT_ARRHAS(finder.parents_[g.get()], 1);
+		ASSERT_HAS(finder.roadmap_, g.get());
+		auto& gdirs = finder.roadmap_[g.get()];
+		ASSERT_HAS(gdirs, "target");
+		EXPECT_ARRHAS(gdirs["target"].children_, 1);
 
-		ASSERT_HAS(finder.parents_, f.get());
-		EXPECT_ARRHAS(finder.parents_[f.get()], 0);
+		ASSERT_HAS(finder.roadmap_, f.get());
+		auto& fdirs = finder.roadmap_[f.get()];
+		ASSERT_HAS(fdirs, "target")
+		EXPECT_ARRHAS(fdirs["target"].children_, 0);
 	}
 
 	finder.clear();
 	f->accept(finder);
 
 	{
-		ASSERT_HASNOT(finder.parents_, g.get());
+		ASSERT_HASNOT(finder.roadmap_, g.get());
 
-		ASSERT_HAS(finder.parents_, f.get());
-		EXPECT_ARRHAS(finder.parents_[f.get()], 0);
+		ASSERT_HAS(finder.roadmap_, f.get());
+		auto& fdirs = finder.roadmap_[f.get()];
+		ASSERT_HAS(fdirs, "target")
+		EXPECT_ARRHAS(fdirs["target"].children_, 0);
 	}
 
 	teq::PathFinder finder2(c.get());
 	g->accept(finder2);
 
 	{
-		ASSERT_HAS(finder2.parents_, g.get());
-		EXPECT_ARRHAS(finder2.parents_[g.get()], 0);
+		ASSERT_HAS(finder2.roadmap_, g.get());
+		auto& gdirs = finder2.roadmap_[g.get()];
+		ASSERT_HAS(gdirs, "target")
+		EXPECT_ARRHAS(gdirs["target"].children_, 0);
 	}
 
 	finder2.clear();
 	f->accept(finder2);
 
-	EXPECT_HASNOT(finder2.parents_, f.get());
-	EXPECT_EQ(0, finder2.parents_.size());
+	EXPECT_HASNOT(finder2.roadmap_, f.get());
+	EXPECT_EQ(0, finder2.roadmap_.size());
 }
 
 
 TEST(TRAVELER, ReverseParentGraph)
 {
-	teq::TensptrT a(new MockTensor());
-	teq::TensptrT b(new MockTensor());
-	teq::TensptrT c(new MockTensor());
+	teq::TensptrT a(new MockLeaf());
+	teq::TensptrT b(new MockLeaf());
+	teq::TensptrT c(new MockLeaf());
 
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"f", 1}));
 
@@ -123,9 +131,9 @@ TEST(TRAVELER, ReverseParentGraph)
 TEST(TRAVELER, Owners)
 {
 	teq::OwnerMapT owners;
-	teq::TensptrT a(new MockTensor());
-	teq::TensptrT b(new MockTensor());
-	teq::TensptrT c(new MockTensor());
+	teq::TensptrT a(new MockLeaf());
+	teq::TensptrT b(new MockLeaf());
+	teq::TensptrT c(new MockLeaf());
 	teq::iTensor* fref;
 	teq::iTensor* gref;
 	{

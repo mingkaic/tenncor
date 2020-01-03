@@ -6,7 +6,7 @@ import numpy as np
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
-import rocnnet.rocnnet as rcn
+import layr.layr as layr
 
 prog_description = 'Demo sgd_trainer'
 
@@ -42,8 +42,8 @@ def main(args):
         help='Number of times to test (default: 500)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/gd.pbx',
-        help='Filename to load pretrained model (default: models/gd.pbx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/gd.onnx',
+        help='Filename to load pretrained model (default: models/gd.onnx)')
     args = parser.parse_args(args)
 
     if args.seed:
@@ -55,42 +55,41 @@ def main(args):
     ninput = 10
     noutput = int(ninput / 2)
 
-    model = rcn.SequentialModel("demo")
-    model.add(rcn.Dense(nunits, eteq.Shape([ninput]),
-        weight_init=rcn.unif_xavier_init(),
-        bias_init=rcn.zero_init(), label="0"))
-    model.add(rcn.sigmoid())
-    model.add(rcn.Dense(noutput, eteq.Shape([nunits]),
-        weight_init=rcn.unif_xavier_init(),
-        bias_init=rcn.zero_init(), label="1"))
-    model.add(rcn.sigmoid())
-
-    untrained = model.clone()
+    model = layr.link([
+        layr.dense([ninput], [nunits],
+            weight_init=layr.unif_xavier_init(),
+            bias_init=layr.zero_init()),
+        layr.bind(tc.sigmoid),
+        layr.dense([nunits], [noutput],
+            weight_init=layr.unif_xavier_init(),
+            bias_init=layr.zero_init()),
+        layr.bind(tc.sigmoid),
+    ])
+    untrained = model.deep_clone()
+    trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = rcn.load_file_seqmodel(args.load, "demo")
+        trained = layr.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
-        trained = model.clone()
 
     sess = eteq.Session()
     n_batch = args.n_batch
     show_every_n = 500
-    train_input = eteq.Variable([n_batch, ninput])
-    train_output = eteq.Variable([n_batch, noutput])
-    train = rcn.sgd_train(model, sess, train_input, train_output, rcn.get_sgd(0.9))
+    train_input = eteq.EVariable([n_batch, ninput])
+    train_output = eteq.EVariable([n_batch, noutput])
+    train = layr.sgd_train(model, sess,
+        train_input, train_output,
+        layr.get_sgd(0.9))
 
-    testin = eteq.Variable([ninput], label='testin')
-    untrained_out = untrained.connect(testin)
-    trained_out = model.connect(testin)
-    pretrained_out = trained.connect(testin)
-    sess.track([
-        untrained_out,
-        trained_out,
-        pretrained_out,
-    ])
+    testin = eteq.EVariable([ninput], label='testin')
+    tin = testin
+    untrained_out = untrained.connect(tin)
+    trained_out = model.connect(tin)
+    pretrained_out = trained.connect(tin)
+    sess.track([untrained_out, trained_out, pretrained_out])
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     start = time.time()
@@ -135,7 +134,7 @@ def main(args):
 
     try:
         print('saving')
-        if model.save_file(args.save):
+        if layr.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

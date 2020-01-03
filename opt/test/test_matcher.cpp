@@ -20,8 +20,8 @@ TEST(MATCHER, OrdrAny)
 {
 	std::vector<teq::DimT> slist = {3, 2};
 	teq::Shape shape(slist);
-	eteq::NodeptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
-	eteq::NodeptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
+	eteq::ETensor<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::ETensor<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto f1 = tenncor::pow(a, b);
 	auto f2 = tenncor::pow(a, a);
@@ -38,31 +38,25 @@ TEST(MATCHER, OrdrAny)
 		vpool.branches_.emplace(voter->label_, voter);
 	}
 
-	auto atens = a->get_tensor();
-	auto btens = b->get_tensor();
-	auto f1tens = f1->get_tensor();
-	auto f2tens = f2->get_tensor();
-	auto f3tens = f3->get_tensor();
+	f2->accept(matcher);
+	f1->accept(matcher);
+	f3->accept(matcher);
 
-	f2tens->accept(matcher);
-	f1tens->accept(matcher);
-	f3tens->accept(matcher);
+	ASSERT_TRUE(estd::has(matcher.candidates_, a.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, b.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f1.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f2.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f3.get()));
 
-	ASSERT_TRUE(estd::has(matcher.candidates_, atens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, btens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, f1tens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, f2tens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, f3tens.get()));
-
-	auto& acands = matcher.candidates_[atens.get()]; // expect empty
-	auto& bcands = matcher.candidates_[btens.get()]; // expect empty
+	auto& acands = matcher.candidates_[a.get()]; // expect empty
+	auto& bcands = matcher.candidates_[b.get()]; // expect empty
 
 	EXPECT_EQ(0, acands.size());
 	EXPECT_EQ(0, bcands.size());
 
-	auto& f1cands = matcher.candidates_[f1tens.get()]; // expect {diff}
-	auto& f2cands = matcher.candidates_[f2tens.get()]; // expect {same,diff}
-	auto& f3cands = matcher.candidates_[f3tens.get()]; // expect {same,diff}
+	auto& f1cands = matcher.candidates_[f1.get()]; // expect {diff}
+	auto& f2cands = matcher.candidates_[f2.get()]; // expect {same,diff}
+	auto& f3cands = matcher.candidates_[f3.get()]; // expect {same,diff}
 
 	EXPECT_EQ(1, f1cands.size());
 	EXPECT_EQ(2, f2cands.size());
@@ -79,8 +73,8 @@ TEST(MATCHER, CommAny)
 {
 	std::vector<teq::DimT> slist = {3, 2};
 	teq::Shape shape(slist);
-	eteq::NodeptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
-	eteq::NodeptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
+	eteq::ETensor<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::ETensor<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto f1 = a * b;
 	auto f2 = a * a;
@@ -107,47 +101,37 @@ TEST(MATCHER, CommAny)
 		vpool.branches_.emplace(voter->label_, voter);
 	}
 
-	auto atens = a->get_tensor();
-	auto btens = b->get_tensor();
-	auto f1tens = f1->get_tensor();
-	auto f2tens = f2->get_tensor();
-	auto f3tens = f3->get_tensor();
-	auto f4_sub_ltens = f4_sub_l->get_tensor();
-	auto f4_sub_rtens = f4_sub_r->get_tensor();
-	auto f5tens = f5->get_tensor();
-	auto f6tens = f6->get_tensor();
+	f2->accept(matcher);
+	f1->accept(matcher);
+	f3->accept(matcher);
+	f4_sub_l->accept(matcher);
+	f4_sub_r->accept(matcher);
+	f5->accept(matcher);
+	f6->accept(matcher);
 
-	f2tens->accept(matcher);
-	f1tens->accept(matcher);
-	f3tens->accept(matcher);
-	f4_sub_ltens->accept(matcher);
-	f4_sub_rtens->accept(matcher);
-	f5tens->accept(matcher);
-	f6tens->accept(matcher);
+	ASSERT_TRUE(estd::has(matcher.candidates_, a.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, b.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f1.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f2.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f3.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f4_sub_l.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f4_sub_r.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f5.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, f6.get()));
 
-	ASSERT_TRUE(estd::has(matcher.candidates_, atens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, btens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, f1tens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, f2tens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, f3tens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, f4_sub_ltens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, f4_sub_rtens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, f5tens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, f6tens.get()));
-
-	auto& acands = matcher.candidates_[atens.get()]; // expect empty
-	auto& bcands = matcher.candidates_[btens.get()]; // expect empty
+	auto& acands = matcher.candidates_[a.get()]; // expect empty
+	auto& bcands = matcher.candidates_[b.get()]; // expect empty
 
 	EXPECT_EQ(0, acands.size());
 	EXPECT_EQ(0, bcands.size());
 
-	auto& f1cands = matcher.candidates_[f1tens.get()]; // expect {diff}
-	auto& f2cands = matcher.candidates_[f2tens.get()]; // expect {same,diff}
-	auto& f3cands = matcher.candidates_[f3tens.get()]; // expect {same,diff}
-	auto& f4sublcands = matcher.candidates_[f4_sub_ltens.get()]; // expect {similar,diff}
-	auto& f4subrcands = matcher.candidates_[f4_sub_rtens.get()]; // expect {similar,diff}
-	auto& f5cands = matcher.candidates_[f5tens.get()]; // expect {similar,diff,weird}
-	auto& f6cands = matcher.candidates_[f6tens.get()]; // expect {weird,diff}
+	auto& f1cands = matcher.candidates_[f1.get()]; // expect {diff}
+	auto& f2cands = matcher.candidates_[f2.get()]; // expect {same,diff}
+	auto& f3cands = matcher.candidates_[f3.get()]; // expect {same,diff}
+	auto& f4sublcands = matcher.candidates_[f4_sub_l.get()]; // expect {similar,diff}
+	auto& f4subrcands = matcher.candidates_[f4_sub_r.get()]; // expect {similar,diff}
+	auto& f5cands = matcher.candidates_[f5.get()]; // expect {similar,diff,weird}
+	auto& f6cands = matcher.candidates_[f6.get()]; // expect {weird,diff}
 
 	EXPECT_EQ(1, f1cands.size());
 	EXPECT_EQ(2, f2cands.size());
@@ -178,8 +162,8 @@ TEST(MATCHER, Ambiguous_CommAny)
 {
 	std::vector<teq::DimT> slist = {3, 2};
 	teq::Shape shape(slist);
-	eteq::NodeptrT<float> a = eteq::make_variable_scalar<float>(2, shape);
-	eteq::NodeptrT<float> b = eteq::make_variable_scalar<float>(3, shape);
+	eteq::ETensor<float> a = eteq::make_variable_scalar<float>(2, shape);
+	eteq::ETensor<float> b = eteq::make_variable_scalar<float>(3, shape);
 
 	auto same = a * b;
 	auto sub_l = same * a; // match against similar and similar2
@@ -202,21 +186,16 @@ TEST(MATCHER, Ambiguous_CommAny)
 		vpool.branches_.emplace(voter->label_, voter);
 	}
 
-	auto atens = a->get_tensor();
-	auto btens = b->get_tensor();
-	auto sub_ltens = sub_l->get_tensor();
-	auto sub_rtens = sub_r->get_tensor();
-
 	sub_ltens->accept(matcher);
 	sub_rtens->accept(matcher);
 
-	ASSERT_TRUE(estd::has(matcher.candidates_, atens.get()));
-	ASSERT_TRUE(estd::has(matcher.candidates_, btens.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, a.get()));
+	ASSERT_TRUE(estd::has(matcher.candidates_, b.get()));
 	ASSERT_TRUE(estd::has(matcher.candidates_, sub_ltens.get()));
 	ASSERT_TRUE(estd::has(matcher.candidates_, sub_rtens.get()));
 
-	auto& acands = matcher.candidates_[atens.get()]; // expect empty
-	auto& bcands = matcher.candidates_[btens.get()]; // expect empty
+	auto& acands = matcher.candidates_[a.get()]; // expect empty
+	auto& bcands = matcher.candidates_[b.get()]; // expect empty
 
 	EXPECT_EQ(0, acands.size());
 	EXPECT_EQ(0, bcands.size());
