@@ -16,7 +16,7 @@
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
-import rocnnet.rocnnet as rcn
+import layr.layr as layr
 
 import tensorflow_datasets as tfds
 import numpy as np
@@ -43,26 +43,26 @@ cifar = tfds.as_numpy(ds)
 raw_inshape = [dim.value for dim in ds.output_shapes['image']]
 
 # construct CNN
-model = rcn.SequentialModel("demo")
-model.add(rcn.Conv([5, 5], 3, 16, "0",
-    zero_padding=[2, 2])) # outputs [nbatch, 32, 32, 16]
-model.add(rcn.relu())
-model.add(rcn.maxpool2d([1, 2])) # outputs [nbatch, 16, 16, 16]
-model.add(rcn.Conv([5, 5], 16, 20, "1",
-    zero_padding=[2, 2])) # outputs [nbatch, 16, 16, 20]
-model.add(rcn.relu())
-model.add(rcn.maxpool2d([1, 2])) # outputs [nbatch, 8, 8, 20]
-model.add(rcn.Conv([5, 5], 20, 20, "2",
-    zero_padding=[2, 2])) # outputs [nbatch, 8, 8, 20]
-model.add(rcn.relu())
-model.add(rcn.maxpool2d([1, 2])) # outputs [nbatch, 4, 4, 20]
+model = layr.link([
+    layr.conv([5, 5], 3, 16,
+        zero_padding=[2, 2]), # outputs [nbatch, 32, 32, 16]
+    layr.bind(tc.relu),
+    layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2])), # outputs [nbatch, 16, 16, 16]
+    layr.conv([5, 5], 16, 20,
+        zero_padding=[2, 2]), # outputs [nbatch, 16, 16, 20]
+    layr.bind(tc.relu),
+    layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2])), # outputs [nbatch, 8, 8, 20]
+    layr.conv([5, 5], 20, 20,
+        zero_padding=[2, 2]), # outputs [nbatch, 8, 8, 20]
+    layr.bind(tc.relu),
+    layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2])), # outputs [nbatch, 4, 4, 20]
 
-model.add(rcn.Dense(10, eteq.Shape([4, 4, 20]), # weight has shape [10, 4, 4, 20]
-    weight_init=rcn.unif_xavier_init(),
-    bias_init=rcn.zero_init(),
-    params=eteq.constant(np.array([0, 1, 1, 2, 2, 3], dtype=np.float32)),
-    label="fc")) # outputs [nbatch, 10]
-model.add(rcn.softmax(1))
+    layr.dense([4, 4, 20], [10], # weight has shape [10, 4, 4, 20]
+        weight_init=layr.unif_xavier_init(),
+        bias_init=layr.zero_init(),
+        dims=[[0, 1], [1, 2], [2, 3]]), # outputs [nbatch, 10]
+    layr.bind(lambda x: tc.softmax(x, 1, 1))
+])
 
 sess = eteq.Session()
 
@@ -80,8 +80,8 @@ train_outshape = [nbatch, 10]
 train_input = eteq.EVariable(train_inshape, label="trainin")
 train_output = eteq.EVariable(train_outshape, label="trainout")
 normalized = train_input / 255 - 0.5
-train = rcn.sgd_train(model, sess,
-    normalized, train_output, rcn.get_sgd(0.5))
+train = layr.sgd_train(model, sess,
+    normalized, train_output, layr.get_sgd(0.5))
 eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
 # train
