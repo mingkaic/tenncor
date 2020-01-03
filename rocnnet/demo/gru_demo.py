@@ -116,10 +116,10 @@ def main(args):
 
     sample_inp = eteq.EVariable([1, vocab_size], 0)
 
-    sample_prob = tc.slice(model.connect(sample_inp), 0, 1, 1)
+    trained_prob = tc.slice(model.connect(sample_inp), 0, 1, 1)
     untrained_prob = tc.slice(untrained_model.connect(sample_inp), 0, 1, 1)
-    pretraiend_prob = tc.slice(pretrained_model.connect(sample_inp), 0, 1, 1)
-    sess.track([sample_prob, untrained_prob, pretraiend_prob])
+    pretrained_prob = tc.slice(pretrained_model.connect(sample_inp), 0, 1, 1)
+    sess.track([trained_prob, untrained_prob, pretrained_prob])
 
     train_inps = eteq.EVariable([seq_length, vocab_size], 0)
     train_output = eteq.EVariable([seq_length, vocab_size], 0)
@@ -144,7 +144,7 @@ def main(args):
 
         # Occasionally sample from oldModel and print result
         if i % print_interval == 0:
-            sample_ix = sample(sess, sample_inp, sample_prob, inputs[0], 1000)
+            sample_ix = sample(sess, sample_inp, trained_prob, inputs[0], 1000)
             print('----\n%s\n----' % (''.join(ix_to_char[ix] for ix in sample_ix)))
 
         # Get gradients for current oldModel based on input and target sequences
@@ -164,8 +164,8 @@ def main(args):
         p += seq_length
 
     untrained_sample = sample(sess, sample_inp, untrained_prob, char_to_ix[data[0]], 1000)
-    trained_sample = sample(sess, sample_inp, sample_prob, char_to_ix[data[0]], 1000)
-    pretrained_sample = sample(sess, sample_inp, pretraiend_prob, char_to_ix[data[0]], 1000)
+    trained_sample = sample(sess, sample_inp, trained_prob, char_to_ix[data[0]], 1000)
+    pretrained_sample = sample(sess, sample_inp, pretrained_prob, char_to_ix[data[0]], 1000)
     print('--untrained--\n%s\n----' % (''.join(ix_to_char[ix] for ix in untrained_sample)))
     print('--trained--\n%s\n----' % (''.join(ix_to_char[ix] for ix in trained_sample)))
     print('--pretrained--\n%s\n----' % (''.join(ix_to_char[ix] for ix in pretrained_sample)))

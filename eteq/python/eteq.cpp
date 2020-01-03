@@ -124,7 +124,13 @@ PYBIND11_MODULE(eteq, m)
 			py::arg("root"), py::arg("input"))
 		.def("deep_clone", &eteq::ELayer<PybindT>::deep_clone)
 		.def("connect", &eteq::ELayer<PybindT>::connect)
-		.def("get_storage", &eteq::ELayer<PybindT>::get_storage)
+		.def("get_storage",
+			[](eteq::ELayer<PybindT>& self)
+			{
+				auto stores = self.get_storage();
+				std::vector<eteq::EVariable<PybindT>> estores(stores.begin(), stores.end());
+				return estores;
+			})
 		.def("root",
 			[](eteq::ELayer<PybindT>& self) -> eteq::ETensor<PybindT>
 			{

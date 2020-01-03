@@ -16,8 +16,8 @@ struct DBNTrainer final
 		teq::DimT batch_size, T pretrain_lr = 0.1,
 		T train_lr = 0.1, size_t cdk = 10,
 		T l2_reg = 0., T lr_scaling = 0.95) :
-		batch_size_(batch_size),
-		nlayers_(rbms.size())
+		nlayers_(rbms.size()),
+		batch_size_(batch_size)
 	{
 		input_size_ = rbms.front().fwd_.input()->shape().at(0);
 		output_size_ = dense.root()->shape().at(0);
