@@ -145,14 +145,12 @@ struct EigenAssignTens final : public iEigen<T>
 {
 	EigenAssignTens (T init_value, DimensionsT dims, EigenArgs args,
 		std::function<void(TensorT<T>&,const EigenArgs&)> assign) :
-		args_(args), assign_(assign), data_(dims)
-	{
-		data_.setConstant(init_value);
-	}
+		args_(args), assign_(assign), data_(dims), init_(init_value) {}
 
 	/// Implementation of iEigen<T>
 	void assign (void) override
 	{
+		data_.setConstant(init_);
 		assign_(data_, args_);
 	}
 
@@ -170,6 +168,8 @@ struct EigenAssignTens final : public iEigen<T>
 
 	/// Output tensor data object
 	TensorT<T> data_;
+
+	T init_;
 };
 
 /// Implementation of iEigen that assigns Matrix operator to Matrix object

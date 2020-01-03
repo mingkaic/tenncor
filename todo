@@ -6,19 +6,16 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - enhance opt to accept and use multi-typed attributes,
-      and eteq extension to change shape according to optimized attributes
-   - renable test for duplicate removal optimization filter
-P2 - upgrade layr to allow restructuring recurrent structure sequence length
-   - fix group sum (see derivative issue)
+   - fix convolutional nn demo
+   - upgrade layr to allow restructuring recurrent structure sequence length
    - fix gru demo to run optimally
+   - improve grader/optimization rule according to rnn, lstm, gru
+   - implement and verify correctness of deep speech finetuning layers
+      (outlined in https://arxiv.org/pdf/1412.5567.pdf)
+      (or GRU veriants in https://arxiv.org/pdf/1901.03860.pdf)
 
->>> c++20 upgrades >>>
-   - replace ManagedJob and Sequence with std::interrupt_token and std::jthread
-   - replace fmts with std::format/format_to
-   - use constant PI / square 2 etc.
-   - upgrade log with source location
-   - add discard reasons for unshared_ptr tensor makes
+>>> bugs >>>
+   - eteq extension to change shape according to optimized attributes
 
 === transparency/code readability ===
 P2 - generate value-range graph to detect erroneous operators
@@ -39,22 +36,23 @@ P4 - investigate adopting more of boost in place of cppkg
 P5 - refactor, and rename variables to improve readability
 P5 - formalize codestyle
 
+=== feature ===
+   - renable test for duplicate removal optimization filter
+   - enhance opt to accept and use multi-typed attributes,
+P2 - make shape dimension size configurable (instead of fixed rank_cap)
+P3 - function with multiple typed inputs (e.g.: if_then_else)
+P4 - implement reduce_prod gradient using Eigen cumprod
+   - implement control edges to replace tensor and layer attributes OR
+      generalize tensor attribute to include control information
+
 === usage ===
 P2 - demo A3C
    - implement models concerning visual and audio processing, and semantic data processing
    - separate supervised and unsupervised trainers (since they have different statefulness)
 
 === demos ===
-P2 - fix convolutional nn demo
    - switch rbm and dbn demos to use tensorflow datasets
    - improve rnn demo to use more stable weights
-
-=== feature ===
-P2 - make shape dimension size configurable (instead of fixed rank_cap)
-P3 - function with multiple typed inputs (e.g.: if_then_else)
-P4 - implement reduce_prod gradient using Eigen cumprod
-   - implement control edges to replace tensor and layer attributes OR
-      generalize tensor attribute to include control information
 
 === correction ===
 P2 - full test coverage for tenncor::layer and tenncor::nn namespaces
@@ -70,7 +68,6 @@ P3 - test rocnnet, and trainer (or subgraph equivalent)
 === performance ===
 
 run-time performance:
-   - improve grader/optimization rule according to rnn, lstm, gru
 P3 - improve ccur module
 P2 - make eigen device configurable
 P4 - implement GPU settings
@@ -91,3 +88,10 @@ P4 - more performance test
 === update ===
 P5 - update all fmts usages
 P5 - address warnings
+
+>>> c++20 upgrades >>>
+   - replace ManagedJob and Sequence with std::interrupt_token and std::jthread
+   - replace fmts with std::format/format_to
+   - use constant PI / square 2 etc.
+   - upgrade log with source location
+   - add discard reasons for unshared_ptr tensor makes

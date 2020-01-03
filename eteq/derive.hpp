@@ -658,15 +658,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 	teq::TensptrT add (teq::TensptrsT elems) const override
 	{
 		assert(elems.size() > 0);
-		ETensorsT<T> etens(elems.begin(), elems.end());
-		// todo: use group sum when it works
-		// return tenncor::sum(etens);
-		ETensor<T> acc(etens.front());
-		for (size_t i = 1, n = etens.size(); i < n; ++i)
-		{
-			acc = acc + etens[i];
-		}
-		return acc;
+		return tenncor::sum(ETensorsT<T>(elems.begin(), elems.end()));
 	}
 };
 
