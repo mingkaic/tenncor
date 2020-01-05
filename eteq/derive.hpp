@@ -548,7 +548,8 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				teq::Shape oshape = op->shape();
 				eigen::PairVecT<teq::DimT> extents;
 				extents.reserve(teq::rank_cap);
-				for (size_t i = 0; i < teq::rank_cap; ++i)
+				for (size_t i = 0; i < std::min(paddings.size(),
+					(size_t) teq::rank_cap); ++i)
 				{
 					teq::DimT offset = paddings[i].first;
 					extents.push_back({offset,

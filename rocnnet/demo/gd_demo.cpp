@@ -10,7 +10,8 @@
 #include "eteq/eteq.hpp"
 #include "eteq/optimize.hpp"
 
-#include "dbg/emit/session.hpp"
+#include "dbg/psess/plugin_sess.hpp"
+#include "dbg/psess/emit/emitter.hpp"
 
 #include "layr/api.hpp"
 #include "layr/trainer/sgd.hpp"
@@ -127,17 +128,19 @@ int main (int argc, const char** argv)
 		{
 			return layr::sgd<PybindT>(leaves, 0.9); // learning rate = 0.9
 		};
-	dbg::InteractiveSession sess("localhost:50051");
+	emit::Emitter emitter("localhost:50051");
+	dbg::PluginSession sess;
+	sess.plugins_.push_back(emitter);
 	{
 
 	jobs::ScopeGuard defer(
-		[&sess]
+		[&emitter]
 		{
 			// 10 seconds
 			std::chrono::time_point<std::chrono::system_clock> deadline =
 				std::chrono::system_clock::now() +
 				std::chrono::seconds(10);
-			sess.join_then_stop(deadline);
+			emitter.join_then_stop(deadline);
 		});
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));

@@ -11,7 +11,7 @@
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
 
-#include "dbg/stream/tree.hpp"
+#include "dbg/print/tree.hpp"
 
 #ifndef DBG_TEQ_HPP
 #define DBG_TEQ_HPP

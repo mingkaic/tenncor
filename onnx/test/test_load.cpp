@@ -11,7 +11,7 @@
 #include "teq/mock/leaf.hpp"
 #include "teq/mock/functor.hpp"
 
-#include "dbg/stream/teq.hpp"
+#include "dbg/print/teq.hpp"
 
 #include "onnx/load.hpp"
 

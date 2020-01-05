@@ -43,10 +43,14 @@ struct iSession
 	virtual TensptrSetT get_tracked (void) const = 0;
 };
 
+using FuncListT = std::list<iFunctor*>;
+
 /// iSession implementation that tracks subgraphs by ordering operable functors
 /// in a vector such that parents are visited after children
-struct Session final : public iSession
+struct Session : public iSession
 {
+	virtual ~Session (void) = default;
+
 	/// Implementation of iSession
 	void track (TensptrsT roots) override
 	{
@@ -75,7 +79,7 @@ struct Session final : public iSession
 	/// Implementation of iSession
 	void update (TensSetT ignored = {}) override
 	{
-		std::list<iFunctor*> reqs;
+		FuncListT reqs;
 		TensSetT acceptable;
 		for (auto& root : tracked_)
 		{
@@ -98,16 +102,13 @@ struct Session final : public iSession
 			}
 		}
 
-		for (auto& op : reqs)
-		{
-			op->calc();
-		}
+		calc_reqfuncs(reqs);
 	}
 
 	/// Implementation of iSession
 	void update_target (TensSetT target, TensSetT ignored = {}) override
 	{
-		std::list<iFunctor*> reqs;
+		FuncListT reqs;
 		TensSetT acceptable;
 		for (auto& root : target)
 		{
@@ -130,10 +131,7 @@ struct Session final : public iSession
 			}
 		}
 
-		for (auto& op : reqs)
-		{
-			op->calc();
-		}
+		calc_reqfuncs(reqs);
 	}
 
 	/// Implementation of iSession
@@ -154,7 +152,16 @@ struct Session final : public iSession
 	TensptrSetT tracked_;
 
 	/// Operable functors ordered by height in the tracked graph
-	std::vector<iFunctor*> ops_;
+	FuncsT ops_;
+
+protected:
+	virtual void calc_reqfuncs (FuncListT& reqs)
+	{
+		for (auto& op : reqs)
+		{
+			op->calc();
+		}
+	}
 };
 
 }

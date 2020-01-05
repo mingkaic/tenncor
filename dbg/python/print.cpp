@@ -6,15 +6,15 @@
 
 #include "teq/teq.hpp"
 
-#include "dbg/stream/teq.hpp"
-#include "dbg/stream/teq_csv.hpp"
+#include "dbg/print/teq.hpp"
+#include "dbg/print/teq_csv.hpp"
 
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/etens.hpp"
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(stream_dbg, m)
+PYBIND11_MODULE(print, m)
 {
 	m.doc() = "print teq equation graphs to stream";
 

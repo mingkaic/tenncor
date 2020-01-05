@@ -16,7 +16,7 @@ cc_library(
     hdrs = ["tutil.hpp"],
     srcs = ["src/tutil.cpp"],
     deps = [
-        "//dbg:stream_out",
+        "//dbg:print",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",

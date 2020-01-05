@@ -52,7 +52,7 @@ cc_binary(
     copts = ["-std=c++17"],
     deps = [
         "//layr:layr",
-        "//dbg/emit:emit",
+        "//dbg:emit_plugin",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
     data = ["//:models", "//cfg:optimizations"],
@@ -99,16 +99,6 @@ py_binary(
 )
 
 py_binary(
-    name = "cnn_demo",
-    srcs = ["demo/cnn_demo.py"],
-    deps = [
-        "//eteq:eteq_py",
-        "//layr:layr_py",
-    ],
-    data = ["//:models", "//cfg:optimizations"],
-)
-
-py_binary(
     name = "rnn_demo",
     srcs = ["demo/rnn_demo.py"],
     deps = [
@@ -134,6 +124,17 @@ py_binary(
     deps = [
         "//eteq:eteq_py",
         "//layr:layr_py",
+    ],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "cnn_demo",
+    srcs = ["demo/cnn_demo.py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+        "//dbg:psess_py",
     ],
     data = ["//:models", "//cfg:optimizations"],
 )

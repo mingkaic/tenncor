@@ -2,7 +2,7 @@
 
 #include "exam/exam.hpp"
 
-#include "dbg/stream/teq.hpp"
+#include "dbg/print/teq.hpp"
 
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"

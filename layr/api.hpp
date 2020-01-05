@@ -199,6 +199,31 @@ eteq::ELayer<T> bind (UnaryF<T> unary, teq::Shape inshape = teq::Shape())
 }
 
 template <typename T>
+eteq::ELayer<T> link (const std::vector<eteq::ELayer<T>>& layers,
+	const eteq::ETensor<T>& input)
+{
+	if (layers.empty())
+	{
+		logs::fatal("cannot link no layers");
+	}
+	auto output = input;
+	for (size_t i = 0, n = layers.size(); i < n; ++i)
+	{
+		auto& lay = layers[i];
+		if (lay.input().get() == input.get())
+		{
+			output = eteq::ETensor<T>(lay.root());
+		}
+		else
+		{
+			output = lay.connect(output);
+		}
+	}
+	return eteq::ELayer<T>(std::static_pointer_cast<
+		teq::iFunctor>(teq::TensptrT(output)), input);
+}
+
+template <typename T>
 eteq::ELayer<T> link (const std::vector<eteq::ELayer<T>>& layers)
 {
 	if (layers.empty())
@@ -206,13 +231,7 @@ eteq::ELayer<T> link (const std::vector<eteq::ELayer<T>>& layers)
 		logs::fatal("cannot link no layers");
 	}
 	eteq::ETensor<T> input = layers.front().input();
-	teq::FuncptrT output = layers.front().root();
-	for (size_t i = 1, n = layers.size(); i < n; ++i)
-	{
-		output = std::static_pointer_cast<teq::iFunctor>(
-			(teq::TensptrT) layers[i].connect(eteq::ETensor<T>(output)));
-	}
-	return eteq::ELayer<T>(output, input);
+	return link<T>(layers, input);
 }
 
 }

@@ -214,7 +214,17 @@ PYBIND11_MODULE(layr, m)
 
 		.def("bind", &layr::bind<PybindT>,
 			py::arg("unary"), py::arg("inshape") = teq::Shape())
-		.def("link", &layr::link<PybindT>)
+		.def("link",
+			[](const std::vector<eteq::ELayer<PybindT>>& layers)
+			{
+				return layr::link<PybindT>(layers);
+			})
+		.def("link",
+			[](const std::vector<eteq::ELayer<PybindT>>& layers,
+				const eteq::ETensor<PybindT>& input)
+			{
+				return layr::link<PybindT>(layers, input);
+			})
 
 		// ==== layer training ====
 		.def("sgd_train", &trainer::sgd<PybindT>,

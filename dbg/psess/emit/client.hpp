@@ -1,6 +1,6 @@
 ///
 /// client.hpp
-/// dbg
+/// emit
 ///
 /// Purpose:
 /// Implement grpc client that create and update graphs
@@ -13,12 +13,12 @@
 #include "jobs/managed_job.hpp"
 #include "jobs/sequence.hpp"
 
-#include "dbg/emit/gemitter.grpc.pb.h"
-
 #ifndef DBG_GRPC_CLIENT_HPP
 #define DBG_GRPC_CLIENT_HPP
 
-namespace dbg
+#include "dbg/psess/emit/gemitter.grpc.pb.h"
+
+namespace emit
 {
 
 static const size_t max_attempts = 10;

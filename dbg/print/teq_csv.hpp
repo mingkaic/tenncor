@@ -18,7 +18,7 @@
 
 #include "estd/estd.hpp"
 
-#include "dbg/stream/teq.hpp"
+#include "dbg/print/teq.hpp"
 
 #ifndef DBG_TEQ_CSV_HPP
 #define DBG_TEQ_CSV_HPP

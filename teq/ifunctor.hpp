@@ -57,6 +57,8 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 
 using FuncptrT = std::shared_ptr<iFunctor>;
 
+using FuncsT = std::vector<iFunctor*>;
+
 }
 
 #endif // TEQ_IFUNCTOR_HPP

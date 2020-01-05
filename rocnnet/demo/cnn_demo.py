@@ -17,6 +17,7 @@
 import eteq.tenncor as tc
 import eteq.eteq as eteq
 import layr.layr as layr
+import dbg.psess as ps
 
 import tensorflow_datasets as tfds
 import numpy as np
@@ -43,28 +44,33 @@ cifar = tfds.as_numpy(ds)
 raw_inshape = [dim.value for dim in ds.output_shapes['image']]
 
 # construct CNN
-model = layr.link([
+model = layr.link([ # minimum input shape of [1, 32, 32, 3]
     layr.conv([5, 5], 3, 16,
         zero_padding=[2, 2]), # outputs [nbatch, 32, 32, 16]
     layr.bind(tc.relu),
-    layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2])), # outputs [nbatch, 16, 16, 16]
+    layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
+        inshape=eteq.Shape([1, 32, 32, 16])), # outputs [nbatch, 16, 16, 16]
     layr.conv([5, 5], 16, 20,
         zero_padding=[2, 2]), # outputs [nbatch, 16, 16, 20]
     layr.bind(tc.relu),
-    layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2])), # outputs [nbatch, 8, 8, 20]
+    layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
+        inshape=eteq.Shape([1, 16, 16, 20])), # outputs [nbatch, 8, 8, 20]
     layr.conv([5, 5], 20, 20,
         zero_padding=[2, 2]), # outputs [nbatch, 8, 8, 20]
     layr.bind(tc.relu),
-    layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2])), # outputs [nbatch, 4, 4, 20]
+    layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
+        inshape=eteq.Shape([1, 8, 8, 20])), # outputs [nbatch, 4, 4, 20]
 
-    layr.dense([4, 4, 20], [10], # weight has shape [10, 4, 4, 20]
+    layr.dense([20, 4, 4, 1], [10], # weight has shape [10, 4, 4, 20]
         weight_init=layr.unif_xavier_init(),
         bias_init=layr.zero_init(),
         dims=[[0, 1], [1, 2], [2, 3]]), # outputs [nbatch, 10]
     layr.bind(lambda x: tc.softmax(x, 1, 1))
-])
+], eteq.EVariable([1, 32, 32, 3], label='input'))
 
-sess = eteq.Session()
+sess = ps.PluginSess()
+inspector = ps.Inspector()
+sess.add_plugin(inspector)
 
 raw_inshape[0] = 1
 test_inshape = raw_inshape
@@ -74,14 +80,21 @@ sess.track([
     testout,
 ])
 
+def cross_entropy_loss(T, Y):
+    epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in eteq
+    leftY = Y + epsilon
+    rightT = 1 - Y + epsilon
+    return -(T * tc.log(leftY) + (1-T) * tc.log(rightT))
+
 raw_inshape[0] = nbatch
 train_inshape = raw_inshape
 train_outshape = [nbatch, 10]
 train_input = eteq.EVariable(train_inshape, label="trainin")
 train_output = eteq.EVariable(train_outshape, label="trainout")
-normalized = train_input / 255 - 0.5
+normalized = train_input / 255. - 0.5
 train = layr.sgd_train(model, sess,
-    normalized, train_output, layr.get_sgd(0.5))
+    normalized, train_output, layr.get_sgd(0.5),
+    err_func=cross_entropy_loss)
 eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
 # train
@@ -97,10 +110,10 @@ for i, data in enumerate(cifar):
         print('done epoch {}'.format(j))
         if j % show_every_n == show_every_n - 1:
             guess_err = trained_err.as_numpy()
-            err = np.max(guess_err, axis=1)
+            err = np.average(guess_err)
             print(('training {}th image, epoch {}\n'+
                 'training error:\n{}\n'+
-                'training error max:\n{}')
+                'average training error:\n{}')
                 .format(i, j + 1, guess_err, err))
 
 # test

@@ -96,7 +96,7 @@ cc_test(
     srcs = ["//ccur:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//dbg:stream_out",
+        "//dbg:print",
         "//ccur:ccur",
         "//eteq:eteq",
         "@gtest//:gtest",
