@@ -86,6 +86,12 @@ def cross_entropy_loss(T, Y):
     rightT = 1 - Y + epsilon
     return -(T * tc.log(leftY) + (1-T) * tc.log(rightT))
 
+def error_wrapper(T, Y):
+    layer_roots = layr.find_layer_roots([Y])
+    for lroots in layer_roots:
+        inspector.add(lroots)
+    return cross_entropy_loss(T, Y)
+
 raw_inshape[0] = nbatch
 train_inshape = raw_inshape
 train_outshape = [nbatch, 10]
@@ -94,7 +100,8 @@ train_output = eteq.EVariable(train_outshape, label="trainout")
 normalized = train_input / 255. - 0.5
 train = layr.sgd_train(model, sess,
     normalized, train_output, layr.get_sgd(0.5),
-    err_func=cross_entropy_loss)
+    err_func=error_wrapper)
+inspector.add(normalized)
 eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
 # train

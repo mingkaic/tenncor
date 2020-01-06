@@ -9,6 +9,7 @@
 #include "pyutils/convert.hpp"
 
 #include "eteq/generated/pyapi.hpp"
+#include "eteq/query.hpp"
 
 #include "layr/init.hpp"
 #include "layr/approx.hpp"
@@ -301,5 +302,34 @@ PYBIND11_MODULE(layr, m)
 				onnx::ModelProto pb_model;
 				eteq::save_layers<PybindT>(pb_model, models);
 				return pb_model.SerializeToOstream(&output);
+			})
+
+		// ==== query ====
+		.def("find_layer_roots",
+			[](eteq::ETensorsT<PybindT>& roots)
+			{
+				teq::GraphStat stat;
+				eteq::LayerQuery q;
+				for (auto& root : roots)
+				{
+					root->accept(q);
+					root->accept(stat);
+				}
+				auto owners = teq::track_owners(
+					teq::TensptrsT(roots.begin(), roots.end()));
+				std::sort(q.found_.begin(), q.found_.end(),
+					[&stat](teq::iTensor* l, teq::iTensor* r)
+					{
+						return stat.graphsize_[l].upper_ < stat.graphsize_[r].upper_;
+					});
+				eteq::ETensorsT<PybindT> found;
+				found.reserve(q.found_.size());
+				std::transform(q.found_.begin(), q.found_.end(),
+					std::back_inserter(found),
+					[&](teq::iTensor* tens)
+					{
+						return eteq::ETensor<PybindT>(owners.at(tens).lock());
+					});
+				return found;
 			});
 }

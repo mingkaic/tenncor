@@ -69,6 +69,11 @@ PYBIND11_MODULE(eteq, m)
 
 	etens
 		.def(py::init<teq::TensptrT>())
+		.def("__str__",
+			[](eteq::ETensor<PybindT>& self)
+			{
+				return self->to_string();
+			})
 		.def("shape",
 			[](eteq::ETensor<PybindT>& self)
 			{
@@ -97,11 +102,6 @@ PYBIND11_MODULE(eteq, m)
 			py::arg("shape"),
 			py::arg("scalar") = 0,
 			py::arg("label") = "")
-		.def("__str__",
-			[](eteq::EVariable<PybindT>& self)
-			{
-				return self->to_string();
-			})
 		.def("assign",
 			[](eteq::EVariable<PybindT>& self, py::array data)
 			{
