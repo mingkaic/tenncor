@@ -192,6 +192,8 @@ PYBIND11_MODULE(layr, m)
 			py::arg("dims") = eigen::PairVecT<teq::RankT>{{0, 1}})
 		.def("conv", &layr::conv<PybindT>,
 			py::arg("filter_hw"), py::arg("in_ncol"), py::arg("out_ncol"),
+			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
+			py::arg("bias_init") = layr::zero_init<PybindT>(),
 			py::arg("zero_padding") = std::pair<teq::DimT,teq::DimT>{0, 0})
 		.def("rnn", &layr::rnn<PybindT>,
 			py::arg("indim"), py::arg("hidden_dim"), py::arg("activation"), py::arg("nseq"),

@@ -28,7 +28,8 @@ using ShapeFactorF = std::function<T(teq::Shape)>;
 template <typename T>
 T fanio (teq::Shape shape)
 {
-	return shape.at(0) + shape.at(1);
+	auto slist = teq::narrow_shape(shape);
+	return std::accumulate(slist.begin(), slist.end(), (teq::DimT) 0);
 }
 
 /// Return the mean of the first 2 dimensions of a shape

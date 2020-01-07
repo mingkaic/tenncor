@@ -46,23 +46,26 @@ raw_inshape = [dim.value for dim in ds.output_shapes['image']]
 # construct CNN
 model = layr.link([ # minimum input shape of [1, 32, 32, 3]
     layr.conv([5, 5], 3, 16,
+        weight_init=layr.norm_xavier_init(0.25),
         zero_padding=[2, 2]), # outputs [nbatch, 32, 32, 16]
     layr.bind(tc.relu),
     layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
         inshape=eteq.Shape([1, 32, 32, 16])), # outputs [nbatch, 16, 16, 16]
     layr.conv([5, 5], 16, 20,
+        weight_init=layr.norm_xavier_init(0.25),
         zero_padding=[2, 2]), # outputs [nbatch, 16, 16, 20]
     layr.bind(tc.relu),
     layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
         inshape=eteq.Shape([1, 16, 16, 20])), # outputs [nbatch, 8, 8, 20]
     layr.conv([5, 5], 20, 20,
+        weight_init=layr.norm_xavier_init(0.25),
         zero_padding=[2, 2]), # outputs [nbatch, 8, 8, 20]
     layr.bind(tc.relu),
     layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
         inshape=eteq.Shape([1, 8, 8, 20])), # outputs [nbatch, 4, 4, 20]
 
     layr.dense([20, 4, 4, 1], [10], # weight has shape [10, 4, 4, 20]
-        weight_init=layr.unif_xavier_init(),
+        weight_init=layr.norm_xavier_init(0.5),
         bias_init=layr.zero_init(),
         dims=[[0, 1], [1, 2], [2, 3]]), # outputs [nbatch, 10]
     layr.bind(lambda x: tc.softmax(x, 1, 1))
@@ -99,7 +102,7 @@ train_input = eteq.EVariable(train_inshape, label="trainin")
 train_output = eteq.EVariable(train_outshape, label="trainout")
 normalized = train_input / 255. - 0.5
 train = layr.sgd_train(model, sess,
-    normalized, train_output, layr.get_sgd(0.5),
+    normalized, train_output, layr.get_sgd(0.01),
     err_func=error_wrapper)
 inspector.add(normalized)
 eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
