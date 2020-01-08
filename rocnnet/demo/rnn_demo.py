@@ -12,7 +12,7 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-prog_description = 'Demo rnn_trainer'
+prog_description = 'Demo rnn model'
 
 def cross_entropy_loss(T, Y):
     epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in eteq

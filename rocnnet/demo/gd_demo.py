@@ -8,7 +8,7 @@ import eteq.tenncor as tc
 import eteq.eteq as eteq
 import layr.layr as layr
 
-prog_description = 'Demo sgd_trainer'
+prog_description = 'Demo sgd trainer'
 
 def batch_generate(n, batchsize):
     inbatch = np.random.rand(batchsize * n)

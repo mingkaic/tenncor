@@ -8,7 +8,7 @@ import eteq.tenncor as tc
 import eteq.eteq as eteq
 import layr.layr as layr
 
-prog_description = 'Demo dbn_trainer'
+prog_description = 'Demo dbn model'
 
 def str2bool(opt):
     optstr = opt.lower()
