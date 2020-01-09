@@ -6,7 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - fix convolutional nn demo
    - upgrade layr to allow restructuring recurrent structure sequence length
    - fix gru demo to run optimally
    - improve grader/optimization rule according to rnn, lstm, gru
@@ -17,6 +16,7 @@ P5 = "get to it eventually"
 >>>> aux project >>>>
    - implement TEQ query/structure identification using GraphQL parser
    - use GQL-TEQ to replace OPTimizer
+   - train convolutional nn demo
 
 >>> bugs >>>
    - eteq extension to change shape according to optimized attributes

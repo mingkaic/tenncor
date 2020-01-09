@@ -59,6 +59,8 @@ using FuncptrT = std::shared_ptr<iFunctor>;
 
 using FuncsT = std::vector<iFunctor*>;
 
+using FuncSetT = std::unordered_set<iFunctor*>;
+
 }
 
 #endif // TEQ_IFUNCTOR_HPP

@@ -45,6 +45,8 @@ struct iLeaf : public iTensor
 /// Leaf smart pointer
 using LeafptrT = std::shared_ptr<iLeaf>;
 
+using LeafSetT = std::unordered_set<LeafptrT>;
+
 static const size_t label_limit = 5;
 
 /// Return constant data string representation

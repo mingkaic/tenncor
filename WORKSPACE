@@ -2,7 +2,7 @@ workspace(name = "com_github_mingkaic_tenncor")
 
 # === import external dependencies ===
 
-load("//:third_party/all.bzl", "dependencies")
+load("//third_party:all.bzl", "dependencies")
 dependencies()
 
 # == flex + bison rules ==
@@ -18,7 +18,7 @@ bison_register_toolchains()
 load("@com_github_mingkaic_cppkg//:gtest.bzl", "gtest_repository")
 gtest_repository(name = "gtest")
 
-load("//third_party/repos:benchmark.bzl", "benchmark_repository")
+load("//third_party:repos/benchmark.bzl", "benchmark_repository")
 benchmark_repository()
 
 load("@com_github_mingkaic_cppkg//:cppkg.bzl", "dependencies")
@@ -38,3 +38,11 @@ cpp_grpc_library()
 
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 grpc_deps()
+
+load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+rules_foreign_cc_dependencies(
+    native_tools_toolchains=[
+        "//third_party:built_cmake_toolchain",
+        "//third_party:built_ninja_toolchain",
+    ],
+)
