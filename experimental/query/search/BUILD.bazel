@@ -26,7 +26,10 @@ cc_library(
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
-    deps = ["@boost//:functional"],
+    deps = [
+        "//eigen:eigen",
+        "@boost//:functional",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -37,8 +40,9 @@ cc_test(
     srcs = ["//experimental/query/search:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//experimental/query/search:search",
+        "//eteq:eteq",
         "//testutil:tutil",
+        "//experimental/query/search:search",
     ],
     linkstatic = True,
 )

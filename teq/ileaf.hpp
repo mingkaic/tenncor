@@ -45,7 +45,8 @@ struct iLeaf : public iTensor
 /// Leaf smart pointer
 using LeafptrT = std::shared_ptr<iLeaf>;
 
-using LeafSetT = std::unordered_set<LeafptrT>;
+template <typename T>
+using LeafMapT = std::unordered_map<iLeaf*,T>;
 
 static const size_t label_limit = 5;
 

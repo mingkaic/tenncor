@@ -41,6 +41,8 @@ template <typename VECKEY, typename VAL,
 	typename HASHER=std::hash<ArrValT<VECKEY>>> // todo: replace w/ c++2a concepts
 struct Trie
 {
+	using TrieNodeT = TrieNode<ArrValT<VECKEY>,VAL,HASHER>;
+
 	// assert keys only consists of lower-case characters
 	void add (const VECKEY& keys, VAL val)
 	{
@@ -63,6 +65,33 @@ struct Trie
 			it = next;
 		}
 		it->leaf_ = val;
+	}
+
+	VAL& emplace (const VECKEY& keys, VAL val)
+	{
+		auto hit = keys.begin();
+		auto het = keys.end();
+		TrieNodeT* it = prefix_find(hit, het);
+		TrieNodeT* next;
+		if (nullptr == it)
+		{
+			logs::fatal("cannot emplace empty keys");
+		}
+		for (; hit != het; ++hit)
+		{
+			next = estd::try_get(it->children_, *hit, nullptr);
+			if (nullptr == next)
+			{
+				next = new TrieNodeT();
+				it->children_.emplace(*hit, next);
+			}
+			it = next;
+		}
+		if (false == it->leaf_.has_value())
+		{
+			it->leaf_ = val;
+		}
+		return *(it->leaf_);
 	}
 
 	void rm (const VECKEY& keys)
@@ -149,8 +178,6 @@ struct Trie
 	}
 
 private:
-	using TrieNodeT = TrieNode<ArrValT<VECKEY>,VAL,HASHER>;
-
 	using KeyIt = typename VECKEY::const_iterator;
 
 	TrieNodeT* prefix_find (KeyIt& hash_it, KeyIt hash_et)
