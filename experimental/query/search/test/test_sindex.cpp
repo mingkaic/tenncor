@@ -100,6 +100,23 @@ TEST(SINDEX, GraphPathPrefix)
 		query::PathNode{0, egen::POW},
 		query::PathNode{0, egen::SUB},
 	}));
+	EXPECT_FALSE(itable.contains_prefix(query::PathNodesT{
+		query::PathNode{0, egen::POW},
+		query::PathNode{0, egen::SUB},
+		query::PathNode{0, egen::GROUP_CONCAT},
+	}));
+	EXPECT_TRUE(itable.contains_prefix(query::PathNodesT{
+		query::PathNode{0, egen::POW},
+		query::PathNode{1, egen::SUB},
+		query::PathNode{0, egen::GROUP_CONCAT},
+	}));
+	EXPECT_TRUE(itable.contains_prefix(query::PathNodesT{
+		query::PathNode{0, egen::POW},
+		query::PathNode{1, egen::SUB},
+		query::PathNode{1, egen::GROUP_CONCAT},
+		query::PathNode{0, egen::TANH},
+		query::PathNode{0, egen::ADD},
+	}));
 }
 
 

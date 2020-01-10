@@ -8,7 +8,12 @@ type Layer {
     input: Node!
 }
 
-union Attribute = Node | Layer | String | Int | Float | [Int] | [Float]
+union AttrVal = Node | Layer | String | Int | Float | [Int] | [Float]
+
+type Attribute {
+    key: String
+    val: AttrVal
+}
 
 # include constant scalar
 union Node = Constant | Variable | Operator
