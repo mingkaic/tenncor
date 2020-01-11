@@ -73,7 +73,7 @@ void populate_itable (OpTrieT& itable, teq::TensptrsT roots);
 
 using PathCbF = std::function<void(const PathListT&,const PathVal&)>;
 
-void possible_paths (PathCbF& cb,
+void possible_paths (const PathCbF& cb,
 	const OpTrieT& itable, const PathNodesT& path);
 
 }

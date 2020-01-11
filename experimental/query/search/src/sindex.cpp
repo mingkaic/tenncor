@@ -80,9 +80,10 @@ void populate_itable (OpTrieT& itable, teq::TensptrsT roots)
 	}
 }
 
-static void possible_paths_helper (PathCbF& cb,
+static void possible_paths_helper (const PathCbF& cb,
 	PathListT& buffer, const OpTrieT::TrieNodeT* node)
 {
+	assert(nullptr != node);
 	if (node->leaf_.has_value())
 	{
 		cb(buffer, *node->leaf_);
@@ -109,11 +110,14 @@ static void possible_paths_helper (PathCbF& cb,
 	buffer.pop_back();
 }
 
-void possible_paths (PathCbF& cb,
+void possible_paths (const PathCbF& cb,
 	const OpTrieT& itable, const PathNodesT& path)
 {
-	PathListT buf;
-	possible_paths_helper(cb, buf, itable.match_prefix(path));
+	if (const OpTrieT::TrieNodeT* next = itable.match_prefix(path))
+	{
+		PathListT buf;
+		possible_paths_helper(cb, buf, next);
+	}
 }
 
 }

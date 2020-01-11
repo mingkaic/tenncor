@@ -206,9 +206,9 @@ TEST(SINDEX, GraphPathPossibes)
 	query::search::OpTrieT itable;
 	query::search::populate_itable(itable, {dw, db, dstate});
 
-	std::stringstream ss;
-	query::search::PathCbF print_ss =
-		[&ss](const query::search::PathListT& path,
+	auto print_ss =
+		[](std::stringstream& ss,
+			const query::search::PathListT& path,
 			const query::search::PathVal& val)
 		{
 			for (const auto& node : path)
@@ -226,10 +226,18 @@ TEST(SINDEX, GraphPathPossibes)
 			}
 			ss << "]\n";
 		};
-	query::search::possible_paths(print_ss, itable, query::PathNodesT{
+	std::stringstream ss;
+	query::PathNodesT keys = {
 		query::PathNode{0, egen::POW},
-		query::PathNode{1, egen::SUB},
-	});
+		query::PathNode{0, egen::SUB},
+	};
+	ASSERT_TRUE(itable.contains_prefix(keys));
+	query::search::possible_paths(
+		[&](const query::search::PathListT& path,
+			const query::search::PathVal& val)
+		{
+			print_ss(ss, path, val);
+		}, itable, keys);
 	const char* expect_ss =
 		"GROUP_CONCAT:0,TANH:0,ADD:0,EXTEND:0,leaves:[bias]\n"
 		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]\n"
@@ -253,6 +261,26 @@ TEST(SINDEX, GraphPathPossibes)
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:1,leaves:[weight]\n";
 	EXPECT_STREQ(expect_ss, ss.str().c_str());
+
+	std::stringstream ss2;
+	query::PathNodesT keys2 = {
+		query::PathNode{0, egen::POW},
+		query::PathNode{0, egen::SUB},
+		query::PathNode{0, egen::GROUP_CONCAT},
+	};
+	ASSERT_TRUE(itable.contains_prefix(keys2));
+	query::search::possible_paths(
+		[&](const query::search::PathListT& path,
+			const query::search::PathVal& val)
+		{
+			print_ss(ss2, path, val);
+		}, itable, keys2);
+	const char* expect_ss2 =
+		"GROUP_CONCAT:0,TANH:0,ADD:0,EXTEND:0,leaves:[bias]\n"
+		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]\n"
+		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]\n"
+		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:1,leaves:[weight]\n";
+	EXPECT_STREQ(expect_ss2, ss2.str().c_str());
 }
 
 
