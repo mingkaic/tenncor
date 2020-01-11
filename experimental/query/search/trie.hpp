@@ -177,6 +177,18 @@ struct Trie
 		return VECKEY(keys.begin(), hit);
 	}
 
+	const TrieNodeT* match_prefix (const VECKEY& prefix) const
+	{
+		auto hit = prefix.begin();
+		auto het = prefix.end();
+		auto found = prefix_find(hit, het);
+		if (nullptr != found && hit == het)
+		{
+			return found;
+		}
+		return nullptr;
+	}
+
 private:
 	using KeyIt = typename VECKEY::const_iterator;
 

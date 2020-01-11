@@ -19,7 +19,21 @@ struct PathNode final
 {
 	friend bool operator == (const PathNode& a, const PathNode& b)
 	{
+		if (egen::is_commutative(a.op_) && a.op_ == b.op_)
+		{
+			// ignore idx
+			return true;
+		}
 		return a.idx_ == b.idx_ && a.op_ == b.op_;
+	}
+
+	friend bool operator < (const PathNode& a, const PathNode& b)
+	{
+		if (egen::name_op(a.op_) < egen::name_op(b.op_))
+		{
+			return true;
+		}
+		return a.idx_ < b.idx_;
 	}
 
 	size_t idx_;
@@ -32,13 +46,14 @@ using PathNodesT = std::vector<PathNode>;
 namespace search
 {
 
+using PathListT = std::list<PathNode>;
+
 struct PathNodeHasher final
 {
 	size_t operator() (const PathNode& node) const
 	{
-		size_t seed = 0;
+		size_t seed = egen::is_commutative(node.op_) ? 0 : node.idx_;
 		boost::hash_combine(seed, node.op_);
-		boost::hash_combine(seed, node.idx_);
 		return seed;
 	}
 };
@@ -55,6 +70,11 @@ using OpTrieT = estd::Trie<PathNodesT,PathVal,PathNodeHasher>;
 
 /// Populate index table of graph structure
 void populate_itable (OpTrieT& itable, teq::TensptrsT roots);
+
+using PathCbF = std::function<void(const PathListT&,const PathVal&)>;
+
+void possible_paths (PathCbF& cb,
+	const OpTrieT& itable, const PathNodesT& path);
 
 }
 

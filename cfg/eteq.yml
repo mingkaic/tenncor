@@ -150,14 +150,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(::egen::ADD,teq::TensptrsT{a, b});
-                  if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
-                  {
-                      f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
-                  }
-                  return out;
+          val: return eteq::make_functor<T>(::egen::ADD,teq::TensptrsT{a, b});
       - template: typename T
         name: add
         operator: +
@@ -223,14 +216,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(::egen::MUL,teq::TensptrsT{a, b});
-                  if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
-                  {
-                      f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
-                  }
-                  return out;
+          val: return eteq::make_functor<T>(::egen::MUL,teq::TensptrsT{a, b});
       - template: typename T
         name: mul
         operator: "*"
@@ -296,14 +282,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(::egen::EQ,teq::TensptrsT{a, b});
-                  if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
-                  {
-                      f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
-                  }
-                  return out;
+          val: return eteq::make_functor<T>(::egen::EQ,teq::TensptrsT{a, b});
       - template: typename T
         name: eq
         operator: ==
@@ -336,14 +315,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(::egen::NEQ,teq::TensptrsT{a, b});
-                  if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
-                  {
-                      f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
-                  }
-                  return out;
+          val: return eteq::make_functor<T>(::egen::NEQ,teq::TensptrsT{a, b});
       - template: typename T
         name: neq
         operator: "!="
@@ -441,14 +413,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: |
-              //
-                  auto out = eteq::make_functor<T>(::egen::MIN,teq::TensptrsT{a, b});
-                  if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
-                  {
-                      f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
-                  }
-                  return out;
+          val: return eteq::make_functor<T>(::egen::MIN,teq::TensptrsT{a, b});
       - template: typename T
         name: min
         args:
@@ -497,14 +462,7 @@ api:
           name: b
         out:
           type: eteq::ETensor<T>
-          val: |
-              //
-                auto out = eteq::make_functor<T>(::egen::MAX,teq::TensptrsT{a, b});
-                if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
-                {
-                    f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
-                }
-                return out;
+          val: return eteq::make_functor<T>(::egen::MAX,teq::TensptrsT{a, b});
       - template: typename T
         name: max
         args:
@@ -1143,12 +1101,7 @@ api:
                       default:
                           break;
                   }
-                  auto out = eteq::make_functor<T>(::egen::GROUP_SUM, eteq::to_tensors(args));
-                  if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
-                  {
-                      f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
-                  }
-                  return out;
+                  return eteq::make_functor<T>(::egen::GROUP_SUM, eteq::to_tensors(args));
       - template: typename T
         name: prod
         args:
@@ -1170,12 +1123,7 @@ api:
                       default:
                           break;
                   }
-                  auto out = eteq::make_functor<T>(::egen::GROUP_PROD, eteq::to_tensors(args));
-                  if (auto f = dynamic_cast<eteq::Functor<T>*>(out.get()))
-                  {
-                      f->add_attr(eigen::commutative_attr, std::make_unique<marsh::String>());
-                  }
-                  return out;
+                  return eteq::make_functor<T>(::egen::GROUP_PROD, eteq::to_tensors(args));
       - template: typename T
         name: softmax
         args:

@@ -178,7 +178,8 @@ private:
 			child->accept(*this);
 			hshs.push_back(boost::uuids::to_string(hashes_.at(child.get())));
 		}
-		if (nullptr != func.get_attr(eigen::commutative_attr))
+		if (egen::is_commutative(
+			(egen::_GENERATED_OPCODE) func.get_opcode().code_))
 		{
 			std::sort(hshs.begin(), hshs.end());
 		}

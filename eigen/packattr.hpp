@@ -8,8 +8,6 @@
 namespace eigen
 {
 
-const std::string commutative_attr = "commutative";
-
 template <typename T>
 using PairVecT = std::vector<std::pair<T,T>>;
 

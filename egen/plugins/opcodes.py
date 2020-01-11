@@ -24,6 +24,8 @@ std::string name_op (_GENERATED_OPCODE code);
 
 _GENERATED_OPCODE get_op (std::string name);
 
+bool is_commutative (_GENERATED_OPCODE code);
+
 template <typename T>
 void typed_exec (_GENERATED_OPCODE opcode, {params})
 {{
@@ -82,6 +84,12 @@ static const std::unordered_map<std::string,_GENERATED_OPCODE> name2code =
     {name2codes}
 }};
 
+static const std::unordered_set<_GENERATED_OPCODE> commutatives =
+{{
+    //>>> commcodes
+    {commcodes}
+}};
+
 std::string name_op (_GENERATED_OPCODE code)
 {{
     return estd::try_get(code2name, code, "BAD_OP");
@@ -90,6 +98,11 @@ std::string name_op (_GENERATED_OPCODE code)
 _GENERATED_OPCODE get_op (std::string name)
 {{
     return estd::try_get(name2code, name, BAD_OP);
+}}
+
+bool is_commutative (_GENERATED_OPCODE code)
+{{
+    return estd::has(commutatives, code);
 }}
 
 }}
@@ -108,7 +121,7 @@ def _handle_params(params, opcalls):
 def _handle_ops(params, opcalls):
     _opcode_case_tmp = 'case {code}: {stmt} break;'
     return '\n        '.join([
-        _opcode_case_tmp.format(code=opcode, stmt=opcalls[opcode])
+        _opcode_case_tmp.format(code=opcode, stmt=opcalls[opcode]['stmt'])
         for opcode in opcalls
     ])
 
@@ -132,6 +145,11 @@ def _handle_name2codes(params, opcalls):
         _name2codes_tmp.format(code=code)
         for code in list(opcalls.keys())
     ])
+
+def _handle_commcodes(params, opcalls):
+    return ',\n    '.join(filter(
+        lambda code: opcalls[code].get("commutative", False),
+        list(opcalls.keys())))
 
 _plugin_id = "OPCODE"
 

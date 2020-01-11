@@ -8,8 +8,6 @@ namespace query
 namespace search
 {
 
-using PathListT = std::list<PathNode>;
-
 using PathListsT = std::vector<PathListT>;
 
 using PathInfoT = teq::LeafMapT<PathListsT>;
@@ -25,6 +23,7 @@ private:
 	{
 		egen::_GENERATED_OPCODE fop =
 			(egen::_GENERATED_OPCODE) func.get_opcode().code_;
+		bool is_comm = egen::is_commutative(fop);
 		auto children = func.get_children();
 		PathInfoT& finfo = paths_[&func];
 		for (size_t i = 0, n = children.size(); i < n; ++i)
@@ -34,21 +33,23 @@ private:
 			if (estd::has(paths_, child.get()))
 			{
 				// child is a functor with path info
-				auto& cinfo = paths_[child.get()];
-				for (auto pathpair : cinfo)
+				PathInfoT& cinfo = paths_[child.get()];
+				for (std::pair<teq::iLeaf*,PathListsT> pathpair : cinfo)
 				{
-					for (auto& path : pathpair.second)
+					for (PathListT& path : pathpair.second)
 					{
-						path.push_front(PathNode{i, fop});
+						path.push_front(PathNode{is_comm ? 0 : i, fop});
 					}
-					finfo[pathpair.first] = pathpair.second;
+					PathListsT& lentries = finfo[pathpair.first];
+					lentries.insert(lentries.end(),
+						pathpair.second.begin(), pathpair.second.end());
 				}
 			}
 			else
 			{
 				// child is a leaf
 				auto cleaf = static_cast<teq::iLeaf*>(child.get());
-				finfo[cleaf].push_back(PathListT{PathNode{i, fop}});
+				finfo[cleaf].push_back(PathListT{PathNode{is_comm ? 0 : i, fop}});
 			}
 		}
 	}
@@ -77,6 +78,42 @@ void populate_itable (OpTrieT& itable, teq::TensptrsT roots)
 			}
 		}
 	}
+}
+
+static void possible_paths_helper (PathCbF& cb,
+	PathListT& buffer, const OpTrieT::TrieNodeT* node)
+{
+	if (node->leaf_.has_value())
+	{
+		cb(buffer, *node->leaf_);
+	}
+	if (node->children_.empty())
+	{
+		return;
+	}
+	buffer.push_back(PathNode{});
+	std::vector<std::pair<PathNode,const OpTrieT::TrieNodeT*>> cpairs(
+		node->children_.begin(), node->children_.end());
+	std::sort(cpairs.begin(), cpairs.end(),
+		[](std::pair<PathNode,const OpTrieT::TrieNodeT*>& a,
+			std::pair<PathNode,const OpTrieT::TrieNodeT*>& b)
+		{
+			return a.first < b.first;
+		});
+	for (const auto& cpair : cpairs)
+	{
+		const OpTrieT::TrieNodeT* next = cpair.second;
+		buffer.back() = cpair.first;
+		possible_paths_helper(cb, buffer, next);
+	}
+	buffer.pop_back();
+}
+
+void possible_paths (PathCbF& cb,
+	const OpTrieT& itable, const PathNodesT& path)
+{
+	PathListT buf;
+	possible_paths_helper(cb, buf, itable.match_prefix(path));
 }
 
 }

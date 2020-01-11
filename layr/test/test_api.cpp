@@ -40,7 +40,8 @@ TEST(DENSE, Connection)
 
 TEST(CONV, Connection)
 {
-	auto conv = layr::conv<float>({6, 5}, 4, 3);
+	auto conv = layr::conv<float>({6, 5}, 4, 3,
+		layr::unif_xavier_init<float>(1), layr::zero_init<float>());
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({4, 10, 9, 2}), "x");
