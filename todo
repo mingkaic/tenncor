@@ -15,8 +15,7 @@ P5 = "get to it eventually"
       (or GRU veriants in https://arxiv.org/pdf/1901.03860.pdf)
 
 >>>> aux project >>>>
-   - implement TEQ query/structure identification using GraphQL parser
-   - use GQL-TEQ to replace OPTimizer
+   - implement TEQ query/structure identification
    - train convolutional nn demo
 
 >>> bugs >>>
@@ -93,6 +92,7 @@ P4 - more performance test
 === update ===
 P5 - update all fmts usages
 P5 - address warnings
+   - use protobuf to model and validate eteq API configurations (the .yaml files in /cfg directory)
 
 >>> c++20 upgrades >>>
    - replace ManagedJob and Sequence with std::interrupt_token and std::jthread

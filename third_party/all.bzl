@@ -7,8 +7,6 @@ load("//third_party:repos/python.bzl", "python_repository")
 load("//third_party:repos/cppkg.bzl", "cppkg_repository")
 load("//third_party:repos/flexison.bzl", "flexison_repository")
 load("//third_party:repos/onnx.bzl", "onnx_repository")
-load("//third_party:repos/foreigncc.bzl", "foreign_cc_repository")
-load("//third_party:repos/gqlparser.bzl", "gqlparser_repository")
 
 def dependencies(excludes = []):
     ignores = native.existing_rules().keys() + excludes
@@ -38,9 +36,3 @@ def dependencies(excludes = []):
 
     if "com_github_onnx_onnx" not in ignores:
         onnx_repository()
-
-    if "rules_foreign_cc" not in ignores:
-        foreign_cc_repository()
-
-    if "com_github_graphql_parser" not in ignores:
-        gqlparser_repository()

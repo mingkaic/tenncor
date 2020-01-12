@@ -10,11 +10,18 @@ namespace search
 
 using PathListsT = std::vector<PathListT>;
 
+struct PathInfo final
+{
+	teq::LeafMapT<PathListsT> leaves_;
+
+	teq::FuncMapT<PathListsT> attrs_;
+};
+
 using PathInfoT = teq::LeafMapT<PathListsT>;
 
 struct OpPathBuilder final : public teq::iOnceTraveler
 {
-	std::unordered_map<teq::iTensor*,PathInfoT> paths_;
+	std::unordered_map<teq::iTensor*,PathInfo> paths_;
 
 private:
 	void visit_leaf (teq::iLeaf& leaf) override {}
@@ -25,31 +32,48 @@ private:
 			(egen::_GENERATED_OPCODE) func.get_opcode().code_;
 		bool is_comm = egen::is_commutative(fop);
 		auto children = func.get_children();
-		PathInfoT& finfo = paths_[&func];
+		PathInfo& finfo = paths_[&func];
 		for (size_t i = 0, n = children.size(); i < n; ++i)
 		{
+			PathNode node{is_comm ? 0 : i, fop};
 			auto child = children[i];
 			child->accept(*this);
 			if (estd::has(paths_, child.get()))
 			{
 				// child is a functor with path info
-				PathInfoT& cinfo = paths_[child.get()];
-				for (std::pair<teq::iLeaf*,PathListsT> pathpair : cinfo)
+				PathInfo& cinfo = paths_[child.get()];
+				for (std::pair<teq::iLeaf*,PathListsT>
+					pathpair : cinfo.leaves_)
 				{
 					for (PathListT& path : pathpair.second)
 					{
-						path.push_front(PathNode{is_comm ? 0 : i, fop});
+						path.push_front(node);
 					}
-					PathListsT& lentries = finfo[pathpair.first];
+					PathListsT& lentries = finfo.leaves_[pathpair.first];
 					lentries.insert(lentries.end(),
 						pathpair.second.begin(), pathpair.second.end());
+				}
+				for (std::pair<teq::iFunctor*,PathListsT>
+					pathpair : cinfo.attrs_)
+				{
+					for (PathListT& path : pathpair.second)
+					{
+						path.push_front(node);
+					}
+					PathListsT& lentries = finfo.attrs_[pathpair.first];
+					lentries.insert(lentries.end(),
+						pathpair.second.begin(), pathpair.second.end());
+				}
+				if (func.ls_attrs().size() > 0)
+				{
+					finfo.attrs_[&func].push_back(PathListT{node});
 				}
 			}
 			else
 			{
 				// child is a leaf
 				auto cleaf = static_cast<teq::iLeaf*>(child.get());
-				finfo[cleaf].push_back(PathListT{PathNode{is_comm ? 0 : i, fop}});
+				finfo.leaves_[cleaf].push_back(PathListT{node});
 			}
 		}
 	}
@@ -66,15 +90,25 @@ void populate_itable (OpTrieT& itable, teq::TensptrsT roots)
 	for (auto& pathpair : builder.paths_)
 	{
 		auto func = static_cast<teq::iFunctor*>(pathpair.first);
-		PathInfoT& info = pathpair.second;
-		for (auto& leafpair : info)
+		PathInfo& info = pathpair.second;
+		for (auto& leafpair : info.leaves_)
 		{
 			auto leaf = leafpair.first;
 			auto& paths = leafpair.second;
 			for (auto& path : paths)
 			{
 				itable.emplace(PathNodesT(path.begin(), path.end()),
-					PathVal())[leaf].emplace(func);
+					PathVal()).leaves_[leaf].emplace(func);
+			}
+		}
+		for (auto& attrpair : info.attrs_)
+		{
+			auto attr = attrpair.first;
+			auto& paths = attrpair.second;
+			for (auto& path : paths)
+			{
+				itable.emplace(PathNodesT(path.begin(), path.end()),
+					PathVal()).attrs_.emplace(attr);
 			}
 		}
 	}

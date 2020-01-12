@@ -19,12 +19,13 @@ struct PathNode final
 {
 	friend bool operator == (const PathNode& a, const PathNode& b)
 	{
-		if (egen::is_commutative(a.op_) && a.op_ == b.op_)
+		bool codeq = a.op_ == b.op_;
+		if (egen::is_commutative(a.op_) && codeq)
 		{
 			// ignore idx
 			return true;
 		}
-		return a.idx_ == b.idx_ && a.op_ == b.op_;
+		return a.idx_ == b.idx_ && codeq;
 	}
 
 	friend bool operator < (const PathNode& a, const PathNode& b)
@@ -59,7 +60,12 @@ struct PathNodeHasher final
 };
 
 // path root R to leaf L key maps to mapping L -> []R
-using PathVal = teq::LeafMapT<teq::FuncSetT>;
+struct PathVal final
+{
+	teq::LeafMapT<teq::FuncSetT> leaves_;
+
+	teq::FuncSetT attrs_;
+};
 
 // Rationality:
 // # of Path Keys = # Leaves

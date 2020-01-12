@@ -1,43 +1,69 @@
-# Implicit GQL Schema
+# QUERY
 
-Query accepts GQL commands assuming we have the following implicit schema:
+This module searches for TEQ subgraphs that match particular structural/label/attribute parameters.
+
+## Outline
+
+In traditional structured query language (SQL), a query at least consists of a `return-fields` and `condition`. E.g.:
 
 ```
-type Layer {
-    name: String!
-    input: Node!
+SELECT username, password
+FROM account JOIN violation ON account.id=violation.account_id
+WHERE violation.level='CRITICAL';
+```
+
+return-fields are `username` and `password` of the account model.
+
+conditions are that the accounts have violations of a CRITICAL `level`.
+
+TEQ's graph querying module uses a json object to represent `condition`.
+
+The json object encodes expected matching subgraph's structure and each operator's attribute.
+
+The condition object has the following schema (protobuf):
+
+```
+message Node {
+    oneof node {
+        double cst = 1;
+        Variable var = 2;
+        Operator op = 3;
+    }
 }
 
-union AttrVal = Node | Layer | String | Int | Float | [Int] | [Float]
-
-type Attribute {
-    key: String
-    val: AttrVal
+message Variable {
+    string label = 1;
+    string dtype = 2;
+    repeated uint32 shape = 3;
 }
 
-# include constant scalar
-union Node = Constant | Variable | Operator
-
-type Variable {
-    name: String
-    dtype: String!
-    shape: [Int!]
+message Operator {
+    string opname = 1;
+    map<string,Attribute> attrs = 2;
+    repeated Node args = 3;
 }
 
-type Operator {
-    name: String
-    args: [Node]
-    attrs: Attribute
+message Attribute {
+    oneof val {
+        int inum = 1;
+        double dnum = 2;
+        repeated int inums = 3;
+        repeated double dnums = 4;
+        string str = 5;
+        Node node = 6;
+        Layer layer = 7;
+    }
 }
 
-type Constant {
-    scalar: Float
+message Layer {
+    string name = 1;
+    Node input = 2;
 }
 ```
 
-For Query interface, accepted commands rejects mutations.
+## Example
 
-assuming we have the following TEQ graph
+Assuming we have the following TEQ graph
 
 ```
 tenncor::EVariable var = eteq::make_variable_scalar<int32_t>(3, teq::Shape({3, 2}), "A");
@@ -58,36 +84,19 @@ auto root = tenncor::sigmoid(tenncor::exp(var2) + tenncor::matmul(-var, cst)) + 
 // `-- A
 ```
 
-sample query:
+The following parameters:
 
 ```
-query SelectPath($root: Node, $depth int) {
-    ... on Constant {
-        scalar
-    }
-    ... on Variable {
-        name
-        shape
-    }
-    ... on Operator {
-        name
-        args
-    }
-}
-```
-
-The following sample data 1:
-
-```
-SelectPath({
-    "name": "ADD",
+condition = `{
+    "opname": "ADD",
     "args": [
         {},
         {
-            "name": "MATMUL"
+            "opname": "MATMUL"
         }
     ]
-}, 2)
+}`
+depth = 2
 ```
 
 yields:
@@ -95,26 +104,28 @@ yields:
 ```
 [
     {
-        "name": "ADD",
+        "opname": "ADD",
+        "attribute": ...,
         "args": [
             {
-                "name": "EXP",
+                "opname": "EXP",
+                "attribute": ...,
                 "args": [
                     {
-                        "name": "B",
+                        "label": "B",
                         "shape": [2, 2],
                     }
                 ]
             },
             {
-                "name": "MATMUL",
+                "opname": "MATMUL",
+                "attribute": ...,
                 "args": [
                     {
-                        "name": "NEG"
+                        "opname": "NEG"
+                        "attribute": ...
                     },
-                    {
-                        "scalar": 5.0
-                    }
+                    5.0
                 ]
             }
         ]
@@ -122,12 +133,13 @@ yields:
 ]
 ```
 
-The following sample data 2:
+The following parameter:
 
 ```
-SelectPath({
-    "name": "ADD"
-}, 1)
+condition = `{
+    "opname": "ADD"
+}`
+depth = 1
 ```
 
 yields:
@@ -135,24 +147,29 @@ yields:
 ```
 [
     {
-        "name": "ADD":
+        "opname": "ADD":
+        "attribute": ...,
         "args": [
             {
-                "name": "EXP"
+                "opname": "EXP"
+                "attribute": ...
             },
             {
-                "name": "MATMUL"
+                "opname": "MATMUL"
+                "attribute": ...
             }
         ]
     },
     {
-        "name": "ADD":
+        "opname": "ADD":
+        "attribute": ...,
         "args": [
             {
-                "name": "SIGMOID"
+                "opname": "SIGMOID"
+                "attribute": ...
             },
             {
-                "name": "A",
+                "label": "A",
                 "shape": [3, 2]
             }
         ]

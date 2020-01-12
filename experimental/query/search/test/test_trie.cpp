@@ -11,7 +11,7 @@
 #include "experimental/query/search/trie.hpp"
 
 
-const size_t nalphabet = 'z' - 'a' + 1;
+const int nalphabet = 'z' - 'a' + 1;
 
 
 struct AlphaHash final

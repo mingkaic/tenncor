@@ -61,6 +61,9 @@ using FuncsT = std::vector<iFunctor*>;
 
 using FuncSetT = std::unordered_set<iFunctor*>;
 
+template <typename T>
+using FuncMapT = std::unordered_map<iFunctor*,T>;
+
 }
 
 #endif // TEQ_IFUNCTOR_HPP

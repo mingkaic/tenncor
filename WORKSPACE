@@ -38,11 +38,3 @@ cpp_grpc_library()
 
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 grpc_deps()
-
-load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
-rules_foreign_cc_dependencies(
-    native_tools_toolchains=[
-        "//third_party:built_cmake_toolchain",
-        "//third_party:built_ninja_toolchain",
-    ],
-)

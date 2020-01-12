@@ -1,0 +1,63 @@
+licenses(["notice"])
+
+load(
+    "@com_github_stackb_rules_proto//cpp:cpp_proto_library.bzl",
+    "cpp_proto_library"
+)
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.hpp",
+        "src/*.cpp",
+    ]) + [
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "query",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//experimental/query:query_cc_proto",
+        "//experimental/query/search:search",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "query_proto",
+    srcs = ["query.proto"],
+)
+
+cpp_proto_library(
+    name = "query_cc_proto",
+    deps = ["//experimental/query:query_proto"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = ["//experimental/query:test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//eteq:eteq",
+        "//testutil:tutil",
+        "//experimental/query:query",
+    ],
+    linkstatic = True,
+)
