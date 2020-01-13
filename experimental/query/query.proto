@@ -43,8 +43,8 @@ message Attribute {
 
     optional int64 inum = 2;
     optional double dnum = 3;
-    repeated int64 inums = 4;
-    repeated double dnums = 5;
+    repeated int64 iarr = 4;
+    repeated double darr = 5;
     optional string str = 6;
     optional Node node = 7;
     optional Layer layer = 8;
