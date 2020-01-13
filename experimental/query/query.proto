@@ -1,30 +1,36 @@
-syntax = "proto3";
+syntax = "proto2";
 
 package query;
 
 message Node {
-    oneof node {
-        double cst = 1;
-        Variable var = 2;
-        Operator op = 3;
+    enum NodeType {
+        UNKNOWN_NODE = 0;
+        CONSTANT = 1;
+        VARIABLE = 2;
+        OPERATOR = 3;
     }
+    required NodeType type = 1;
+
+    optional double cst = 2;
+    optional Variable var = 3;
+    optional Operator op = 4;
 }
 
 message Variable {
-    string label = 1;
-    string dtype = 2;
+    optional string label = 1;
+    optional string dtype = 2;
     repeated uint32 shape = 3;
 }
 
 message Operator {
-    string opname = 1;
+    required string opname = 1;
     map<string,Attribute> attrs = 2;
     repeated Node args = 3;
 }
 
 message Attribute {
     enum AttrType {
-        BAD = 0;
+        UNKNOWN_ATTR = 0;
         INT = 1;
         DOUBLE = 2;
         INT_ARR = 3;
@@ -33,18 +39,18 @@ message Attribute {
         NODE = 6;
         LAYER = 7;
     }
-    AttrType type = 1; // only non-optional field
+    required AttrType type = 1;
 
-    int64 inum = 2;
-    double dnum = 3;
+    optional int64 inum = 2;
+    optional double dnum = 3;
     repeated int64 inums = 4;
     repeated double dnums = 5;
-    string str = 6;
-    Node node = 7;
-    Layer layer = 8;
+    optional string str = 6;
+    optional Node node = 7;
+    optional Layer layer = 8;
 }
 
 message Layer {
-    string name = 1;
-    Node input = 2;
+    optional string name = 1;
+    optional Node input = 2;
 }

@@ -23,7 +23,7 @@ struct Variable final : public iLeaf<T>
 {
 	/// Return Variable given raw pointer array whose size is denoted by shape
 	static Variable<T>* get (T* ptr, teq::Shape shape,
-		std::string label = "", teq::Usage usage = teq::Variable)
+		std::string label = "", teq::Usage usage = teq::VARUSAGE)
 	{
 		return new Variable<T>(ptr, shape, label, usage);
 	}

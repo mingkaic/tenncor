@@ -16,10 +16,10 @@ namespace teq
 
 enum Usage
 {
-	Unknown = 0,
-	Immutable,
-	Variable,
-	Placeholder,
+	UNKNOWN_USAGE = 0,
+	IMMUTABLE,
+	VARUSAGE,
+	PLACEHOLDER,
 };
 
 /// Leaf of the graph commonly representing the variable in an equation

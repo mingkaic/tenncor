@@ -154,7 +154,7 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_leaf (teq::iLeaf& leaf) override
 	{
-		if (teq::Immutable == leaf.get_usage())
+		if (teq::IMMUTABLE == leaf.get_usage())
 		{
 			std::string label = leaf.shape().to_string() + "|";
 			T* data = (T*) leaf.data();

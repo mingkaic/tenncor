@@ -220,7 +220,6 @@ TEST(SINDEX, GraphPathPossibles)
 				0 < val.attrs_.size());
 			if (val.leaves_.size() > 0)
 			{
-				ss << "leaves:[";
 				std::vector<std::string> leaves;
 				leaves.reserve(val.leaves_.size());
 				for (auto& lpair : val.leaves_)
@@ -228,30 +227,21 @@ TEST(SINDEX, GraphPathPossibles)
 					leaves.push_back(lpair.first->to_string());
 				}
 				std::sort(leaves.begin(), leaves.end());
-				auto it = leaves.begin();
-				ss << *it;
-				++it;
-				for (auto et = leaves.end(); it != et; ++it)
-				{
-					ss << "," << *it;
-				}
-				ss << "]";
+				ss << "leaves:[" << fmts::join(",", leaves.begin(), leaves.end()) << "]";
 			}
 			if (val.attrs_.size() > 0)
 			{
-				ss << "attrs:[";
-				auto it = val.attrs_.begin();
-				auto attrkeys = (*it)->ls_attrs();
-				std::sort(attrkeys.begin(), attrkeys.end());
-				ss << fmts::to_string(attrkeys.begin(), attrkeys.end());
-				++it;
-				for (auto et = val.attrs_.end(); it != et; ++it)
+				std::vector<std::string> attrs;
+				attrs.reserve(val.attrs_.size());
+				for (auto& apair : val.attrs_)
 				{
-					attrkeys = (*it)->ls_attrs();
+					auto attrkeys = apair.first->ls_attrs();
 					std::sort(attrkeys.begin(), attrkeys.end());
-					ss << "," << fmts::to_string(attrkeys.begin(), attrkeys.end());
+					attrs.push_back(
+						fmts::to_string(attrkeys.begin(), attrkeys.end()));
 				}
-				ss << "]";
+				std::sort(attrs.begin(), attrs.end());
+				ss << "attrs:[" << fmts::join(",", attrs.begin(), attrs.end()) << "]";
 			}
 			ss << "\n";
 		};
@@ -270,52 +260,52 @@ TEST(SINDEX, GraphPathPossibles)
 	const char* expect_ss =
 		"GROUP_CONCAT:0,attrs:[[layer\\rank]]\n"
 		"GROUP_CONCAT:0,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,EXTEND:0,leaves:[bias]\n"
+		"GROUP_CONCAT:0,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
 		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
 		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]\n"
+		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
 		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:1,leaves:[weight]\n"
+		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
+		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
 		"GROUP_CONCAT:1,attrs:[[layer\\rank]]\n"
 		"GROUP_CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]\n"
+		"GROUP_CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
 		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
 		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]\n"
+		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
 		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
 		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]\n"
+		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
 		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
 		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]\n"
+		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
 		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]\n"
+		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
+		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
+		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
 		"GROUP_CONCAT:2,attrs:[[layer\\rank]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,EXTEND:0,leaves:[bias]\n"
+		"GROUP_CONCAT:2,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]\n"
+		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]\n"
+		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]\n"
+		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]\n"
+		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]\n"
+		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
 		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:1,leaves:[weight]\n";
+		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
+		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
+		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
+		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n";
 	EXPECT_STREQ(expect_ss, ss.str().c_str());
 
 	std::stringstream ss2;
@@ -334,13 +324,13 @@ TEST(SINDEX, GraphPathPossibles)
 	const char* expect_ss2 =
 		"attrs:[[layer\\rank]]\n"
 		"TANH:0,ADD:0,attrs:[[layer]]\n"
-		"TANH:0,ADD:0,EXTEND:0,leaves:[bias]\n"
+		"TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
 		"TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
 		"TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]\n"
+		"TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
 		"TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]\n"
-		"TANH:0,ADD:0,MATMUL:1,leaves:[weight]\n";
+		"TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
+		"TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n";
 	EXPECT_STREQ(expect_ss2, ss2.str().c_str());
 
 	std::stringstream leaf_ss;

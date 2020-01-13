@@ -59,12 +59,14 @@ struct PathNodeHasher final
 	}
 };
 
-// path root R to leaf L key maps to mapping L -> []R
+// path root R to leaf L key maps to mapping different mappings
 struct PathVal final
 {
-	teq::LeafMapT<teq::FuncSetT> leaves_;
+	// Maps reachable leaf L -> set of path roots R
+	teq::LeafMapT<teq::TensSetT> leaves_;
 
-	teq::FuncSetT attrs_;
+	// Maps reachable attributable functor F -> set of path roots R
+	teq::FuncMapT<teq::TensSetT> attrs_;
 };
 
 // Rationality:
@@ -78,6 +80,9 @@ using OpTrieT = estd::Trie<PathNodesT,PathVal,PathNodeHasher>;
 void populate_itable (OpTrieT& itable, teq::TensptrsT roots);
 
 using PathCbF = std::function<void(const PathListT&,const PathVal&)>;
+
+void possible_paths (const PathCbF& cb,
+	const OpTrieT::TrieNodeT* node);
 
 void possible_paths (const PathCbF& cb,
 	const OpTrieT& itable, const PathNodesT& path);

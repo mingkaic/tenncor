@@ -13,6 +13,9 @@
 namespace tutil
 {
 
+std::string compare_graph (std::istream& expectstr, teq::iTensor* root,
+	bool showshape = true, LabelsMapT labels = {});
+
 std::string compare_graph (std::istream& expectstr, teq::TensptrT root,
 	bool showshape = true, LabelsMapT labels = {});
 

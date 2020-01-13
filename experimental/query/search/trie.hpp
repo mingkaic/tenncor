@@ -41,7 +41,18 @@ template <typename VECKEY, typename VAL,
 	typename HASHER=std::hash<ArrValT<VECKEY>>> // todo: replace w/ c++2a concepts
 struct Trie
 {
-	using TrieNodeT = TrieNode<ArrValT<VECKEY>,VAL,HASHER>;
+	using TrieKeyT = ArrValT<VECKEY>;
+
+	using TrieNodeT = TrieNode<TrieKeyT,VAL,HASHER>;
+
+	static const TrieNodeT* next (const TrieNodeT* root, const TrieKeyT& key)
+	{
+		if (nullptr == root)
+		{
+			return root;
+		}
+		return estd::try_get(root->children_, key, nullptr);
+	}
 
 	// assert keys only consists of lower-case characters
 	void add (const VECKEY& keys, VAL val)
@@ -52,17 +63,20 @@ struct Trie
 		TrieNodeT* next;
 		if (nullptr == it)
 		{
-			return;
+			it = root_.get();
 		}
-		for (; hit != het; ++hit)
+		else
 		{
-			next = estd::try_get(it->children_, *hit, nullptr);
-			if (nullptr == next)
+			for (; hit != het; ++hit)
 			{
-				next = new TrieNodeT();
-				it->children_.emplace(*hit, next);
+				next = estd::try_get(it->children_, *hit, nullptr);
+				if (nullptr == next)
+				{
+					next = new TrieNodeT();
+					it->children_.emplace(*hit, next);
+				}
+				it = next;
 			}
-			it = next;
 		}
 		it->leaf_ = val;
 	}
@@ -75,17 +89,20 @@ struct Trie
 		TrieNodeT* next;
 		if (nullptr == it)
 		{
-			logs::fatal("cannot emplace empty keys");
+			it = root_.get();
 		}
-		for (; hit != het; ++hit)
+		else
 		{
-			next = estd::try_get(it->children_, *hit, nullptr);
-			if (nullptr == next)
+			for (; hit != het; ++hit)
 			{
-				next = new TrieNodeT();
-				it->children_.emplace(*hit, next);
+				next = estd::try_get(it->children_, *hit, nullptr);
+				if (nullptr == next)
+				{
+					next = new TrieNodeT();
+					it->children_.emplace(*hit, next);
+				}
+				it = next;
 			}
-			it = next;
 		}
 		if (false == it->leaf_.has_value())
 		{
@@ -187,6 +204,11 @@ struct Trie
 			return found;
 		}
 		return nullptr;
+	}
+
+	const TrieNodeT* root (void) const
+	{
+		return root_.get();
 	}
 
 private:

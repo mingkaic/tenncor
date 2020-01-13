@@ -5,16 +5,16 @@
 
 struct MockLeaf : public teq::iLeaf
 {
-	MockLeaf (void) : usage_(teq::Immutable) {}
+	MockLeaf (void) : usage_(teq::IMMUTABLE) {}
 
 	MockLeaf (teq::Shape shape, std::string label = "", bool cst = true) : 
 		shape_(shape), label_(label),
-		usage_(cst ? teq::Immutable : teq::Variable) {}
+		usage_(cst ? teq::IMMUTABLE : teq::VARUSAGE) {}
 
 	MockLeaf (std::vector<double> data, teq::Shape shape,
 		std::string label = "", bool cst = true) :
 		data_(data), shape_(shape), label_(label),
-		usage_(cst ? teq::Immutable : teq::Variable) {}
+		usage_(cst ? teq::IMMUTABLE : teq::VARUSAGE) {}
 
 	virtual ~MockLeaf (void) = default;
 
@@ -69,7 +69,7 @@ struct MockLeaf : public teq::iLeaf
 
 	std::string label_;
 
-	teq::Usage usage_ = teq::Unknown;
+	teq::Usage usage_ = teq::UNKNOWN_USAGE;
 };
 
 #endif // TEQ_MOCK_LEAF_HPP

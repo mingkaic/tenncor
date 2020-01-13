@@ -46,7 +46,7 @@ struct Constant final : public iLeaf<T>
 	/// Implementation of iLeaf
 	teq::Usage get_usage (void) const override
 	{
-		return teq::Immutable;
+		return teq::IMMUTABLE;
 	}
 
 	/// Return true if constant data values are all the same, otherwise false
