@@ -1,7 +1,7 @@
 #ifndef QUERY_PARSE_HPP
 #define QUERY_PARSE_HPP
 
-#include "experimental/query/query.pb.h"
+#include "query/query.pb.h"
 
 namespace query
 {

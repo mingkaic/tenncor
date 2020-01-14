@@ -1,9 +1,9 @@
 #ifndef QUERY_HPP
 #define QUERY_HPP
 
-#include "experimental/query/search/sindex.hpp"
+#include "query/search/sindex.hpp"
 
-#include "experimental/query/parse.hpp"
+#include "query/parse.hpp"
 
 namespace query
 {
@@ -23,8 +23,8 @@ static inline bool equals (double scalar, const teq::iLeaf* leaf)
 
 static inline bool equals (const Variable& var, const teq::iLeaf* leaf)
 {
-    return (false == var.has_label() || var.label() == leaf->to_string()) &&
-        (false == var.has_dtype() || var.dtype() == leaf->type_label()) &&
+    return (Variable::kLabel != var.nullable_label_case() || var.label() == leaf->to_string()) &&
+        (Variable::kDtype != var.nullable_dtype_case() || var.dtype() == leaf->type_label()) &&
         (0 == var.shape_size() || to_shape(var.shape()).compatible_after(leaf->shape(), 0));
 }
 
@@ -36,33 +36,31 @@ struct Query
     {
         Node cond;
         json_parse(cond, condition);
-
-        const search::OpTrieT::TrieNodeT* tri = sindex_.root();
-        constraint(results, tri, cond);
+        constraint(results, sindex_.root(), cond);
     }
 
 private:
     bool equals (const Attribute& pba, const marsh::iObject* attr)
     {
         bool match = false;
-        switch (pba.type())
+        switch (pba.attr_case())
         {
-            case Attribute::INT:
+            case Attribute::kInum:
                 if (auto num = dynamic_cast<const marsh::iNumber*>(attr))
                 {
                     match = pba.inum() == num->to_int64();
                 }
                 break;
-            case Attribute::DOUBLE:
+            case Attribute::kDnum:
                 if (auto num = dynamic_cast<const marsh::iNumber*>(attr))
                 {
                     match = pba.dnum() == num->to_float64();
                 }
                 break;
-            case Attribute::INT_ARR:
+            case Attribute::kIarr:
                 if (auto narr = dynamic_cast<const marsh::iArray*>(attr))
                 {
-                    const auto& arr = pba.iarr();
+                    const auto& arr = pba.iarr().values();
                     if (arr.size() == narr->size())
                     {
                         match = true;
@@ -76,10 +74,10 @@ private:
                     }
                 }
                 break;
-            case Attribute::DOUBLE_ARR:
+            case Attribute::kDarr:
                 if (auto narr = dynamic_cast<const marsh::iArray*>(attr))
                 {
-                    const auto& arr = pba.darr();
+                    const auto& arr = pba.darr().values();
                     if (arr.size() == narr->size())
                     {
                         match = true;
@@ -93,10 +91,10 @@ private:
                     }
                 }
                 break;
-            case Attribute::STRING:
+            case Attribute::kStr:
                 match = pba.str() == attr->to_string();
                 break;
-            case Attribute::NODE:
+            case Attribute::kNode:
             {
                 if (auto tens = dynamic_cast<const teq::TensorObj*>(attr))
                 {
@@ -106,12 +104,13 @@ private:
                 }
             }
                 break;
-            case Attribute::LAYER:
+            case Attribute::kLayer:
             {
                 if (auto lay = dynamic_cast<const teq::LayerObj*>(attr))
                 {
                     const Layer& layer = pba.layer();
-                    if (layer.name() == lay->get_opname())
+                    match = Layer::kName == layer.nullable_name_case() || layer.name() == lay->get_opname();
+                    if (match && layer.has_input())
                     {
                         teq::TensSetT results;
                         constraint(results, sindex_.root(), layer.input());
@@ -135,9 +134,9 @@ private:
             results.clear();
             return;
         }
-        switch (cond.type())
+        switch (cond.val_case())
         {
-            case Node::CONSTANT:
+            case Node::ValCase::kCst:
             {
                 if (false == tri->leaf_.has_value())
                 {
@@ -160,7 +159,7 @@ private:
                 }
             }
                 break;
-            case Node::VARIABLE:
+            case Node::ValCase::kVar:
             {
                 if (false == tri->leaf_.has_value())
                 {
@@ -183,20 +182,22 @@ private:
                 }
             }
                 break;
-            case Node::OPERATOR:
+            case Node::ValCase::kOp:
             {
                 const Operator& op = cond.op();
                 const auto& attrs = op.attrs();
                 if (attrs.size() > 0)
                 {
-                    if (false == tri->leaf_.has_value() ||
-                        tri->leaf_->attrs_.empty())
+                    auto lookahead = search::OpTrieT::next(
+                        tri, PathNode{0, egen::get_op(op.opname())});
+                    if (false == lookahead->leaf_.has_value() ||
+                        lookahead->leaf_->attrs_.empty())
                     {
                         results.clear();
                         return;
                     }
                     teq::FuncMapT<teq::TensSetT> attr_matches;
-                    for (const auto& apair : tri->leaf_->attrs_)
+                    for (const auto& apair : lookahead->leaf_->attrs_)
                     {
                         teq::iFunctor* iattr = apair.first;
                         std::unordered_set<std::string> need_keys;
@@ -247,7 +248,18 @@ private:
             }
                 break;
             default:
-                logs::fatal("cannot process unset graph node");
+                search::possible_paths(
+                    [&results](const search::PathListT& path, const search::PathVal& val)
+                    {
+                        for (const auto& lpair : val.leaves_)
+                        {
+                            results.insert(lpair.second.begin(), lpair.second.end());
+                        }
+                        for (const auto& apair : val.attrs_)
+                        {
+                            results.insert(apair.second.begin(), apair.second.end());
+                        }
+                    }, tri);
         }
     }
 
@@ -259,18 +271,7 @@ private:
         const auto& args = op.args();
         if (args.empty())
         {
-            search::possible_paths(
-                [&](const search::PathListT& path, const search::PathVal& val)
-                {
-                    for (const auto& lpair : val.leaves_)
-                    {
-                        results.insert(lpair.second.begin(), lpair.second.end());
-                    }
-                    for (const auto& apair : val.attrs_)
-                    {
-                        results.insert(apair.second.begin(), apair.second.end());
-                    }
-                }, tri);
+            constraint(results, tri, Node());
             return;
         }
         constraint(results, search::OpTrieT::next(

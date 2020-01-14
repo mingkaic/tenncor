@@ -2,7 +2,7 @@
 
 #include "logs/logs.hpp"
 
-#include "experimental/query/parse.hpp"
+#include "query/parse.hpp"
 
 #ifdef QUERY_PARSE_HPP
 

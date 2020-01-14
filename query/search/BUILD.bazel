@@ -37,12 +37,12 @@ cc_library(
 
 cc_test(
     name = "test",
-    srcs = ["//experimental/query/search:test_srcs"],
+    srcs = ["//query/search:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
         "//eteq:eteq",
         "//testutil:tutil",
-        "//experimental/query/search:search",
+        "//query/search:search",
     ],
     linkstatic = True,
 )

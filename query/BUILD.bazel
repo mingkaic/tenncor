@@ -32,8 +32,8 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//experimental/query:query_cc_proto",
-        "//experimental/query/search:search",
+        "//query:query_cc_proto",
+        "//query/search:search",
     ],
     visibility = ["//visibility:public"],
 )
@@ -45,19 +45,19 @@ proto_library(
 
 cpp_proto_library(
     name = "query_cc_proto",
-    deps = ["//experimental/query:query_proto"],
+    deps = ["//query:query_proto"],
 )
 
 ######### TEST #########
 
 cc_test(
     name = "test",
-    srcs = ["//experimental/query:test_srcs"],
+    srcs = ["//query:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
         "//eteq:eteq",
         "//testutil:tutil",
-        "//experimental/query:query",
+        "//query:query",
     ],
     linkstatic = True,
 )

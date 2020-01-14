@@ -8,7 +8,7 @@
 
 #include "gtest/gtest.h"
 
-#include "experimental/query/search/trie.hpp"
+#include "query/search/trie.hpp"
 
 
 const int nalphabet = 'z' - 'a' + 1;

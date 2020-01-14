@@ -1,4 +1,4 @@
-#include "experimental/query/search/sindex.hpp"
+#include "query/search/sindex.hpp"
 
 #ifdef SEARCH_SINDEX_HPP
 

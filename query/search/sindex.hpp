@@ -10,7 +10,7 @@
 
 #include "eigen/generated/opcode.hpp"
 
-#include "experimental/query/search/trie.hpp"
+#include "query/search/trie.hpp"
 
 namespace query
 {

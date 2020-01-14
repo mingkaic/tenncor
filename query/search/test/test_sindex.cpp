@@ -7,7 +7,7 @@
 #include "eteq/generated/api.hpp"
 #include "eteq/derive.hpp"
 
-#include "experimental/query/search/sindex.hpp"
+#include "query/search/sindex.hpp"
 
 
 TEST(SINDEX, GraphPathPrefix)
