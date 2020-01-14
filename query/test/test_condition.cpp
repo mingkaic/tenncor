@@ -100,81 +100,30 @@ TEST(CONDITION, Query)
 
 	query::search::OpTrieT itable;
 	query::search::populate_itable(itable, {dw, db, dstate, err});
-    query::Query q(itable);
-
-	auto print_ss =
-		[](std::stringstream& ss,
-			const query::search::PathListT& path,
-			const query::search::PathVal& val)
-		{
-			for (const auto& node : path)
-			{
-				ss << egen::name_op(node.op_) << ":" << node.idx_ << ",";
-			}
-			ASSERT_TRUE(
-				0 < val.leaves_.size() ||
-				0 < val.attrs_.size());
-			if (val.leaves_.size() > 0)
-			{
-				std::vector<std::string> leaves;
-				leaves.reserve(val.leaves_.size());
-				for (auto& lpair : val.leaves_)
-				{
-					leaves.push_back(lpair.first->to_string());
-				}
-				std::sort(leaves.begin(), leaves.end());
-				ss << "leaves:[" << fmts::join(",", leaves.begin(), leaves.end()) << "]";
-			}
-			if (val.attrs_.size() > 0)
-			{
-				std::vector<std::string> attrs;
-				attrs.reserve(val.attrs_.size());
-				for (auto& apair : val.attrs_)
-				{
-					auto attrkeys = apair.first->ls_attrs();
-					std::sort(attrkeys.begin(), attrkeys.end());
-					attrs.push_back(
-						fmts::to_string(attrkeys.begin(), attrkeys.end()));
-				}
-				std::sort(attrs.begin(), attrs.end());
-				ss << "attrs:[" << fmts::join(",", attrs.begin(), attrs.end()) << "]";
-			}
-			ss << "\n";
-		};
-	std::stringstream ss;
-	query::PathNodesT keys = {
-		query::PathNode{1, egen::POW},
-	};
-	ASSERT_TRUE(itable.contains_prefix(keys));
-	query::search::possible_paths(
-		[&](const query::search::PathListT& path,
-			const query::search::PathVal& val)
-		{
-			print_ss(ss, path, val);
-		}, itable, keys);
+	query::Query q(itable);
 
 	// match subgraph by structure ending with an unknown variable and unknown functor
 	{
-    std::stringstream inss;
-    inss <<
-        "{"
-        "  \"op\":{"
-        "    \"opname\":\"SUB\","
-        "    \"args\":["
-        "      {"
-        "        \"var\":{}"
-        "      },"
-        "      {"
-        "        \"op\":{"
-        "          \"opname\":\"GROUP_CONCAT\""
-        "        }"
-        "      }"
-        "    ]"
-        "  }"
-        "}";
-    teq::TensSetT results;
-    q.where(results, inss);
-    ASSERT_EQ(1, results.size());
+	std::stringstream inss;
+	inss <<
+		"{"
+		"  \"op\":{"
+		"    \"opname\":\"SUB\","
+		"    \"args\":["
+		"      {"
+		"        \"var\":{}"
+		"      },"
+		"      {"
+		"        \"op\":{"
+		"          \"opname\":\"GROUP_CONCAT\""
+		"        }"
+		"      }"
+		"    ]"
+		"  }"
+		"}";
+	teq::TensSetT results;
+	q.where(results, inss);
+	ASSERT_EQ(1, results.size());
 	teq::iTensor* res = *results.begin();
 	EXPECT_GRAPHEQ(
 		" (SUB[5\\3\\1\\1\\1\\1\\1\\1])\n"
@@ -244,49 +193,49 @@ TEST(CONDITION, Query)
 
 	// mismatching an otherwise structural matching subgraph with a mislabelled variable
 	{
-    std::stringstream inss;
-    inss <<
-        "{"
-        "  \"op\":{"
-        "    \"opname\":\"SUB\","
-        "    \"args\":["
-        "      {"
-        "        \"var\":{"
-        "          \"label\":\"megatron\""
-        "        }"
-        "      },"
-        "      {"
-        "        \"op\":{"
-        "          \"opname\":\"GROUP_CONCAT\""
-        "        }"
-        "      }"
-        "    ]"
-        "  }"
-        "}";
-    teq::TensSetT results;
-    q.where(results, inss);
-    EXPECT_EQ(0, results.size());
+	std::stringstream inss;
+	inss <<
+		"{"
+		"  \"op\":{"
+		"    \"opname\":\"SUB\","
+		"    \"args\":["
+		"      {"
+		"        \"var\":{"
+		"          \"label\":\"megatron\""
+		"        }"
+		"      },"
+		"      {"
+		"        \"op\":{"
+		"          \"opname\":\"GROUP_CONCAT\""
+		"        }"
+		"      }"
+		"    ]"
+		"  }"
+		"}";
+	teq::TensSetT results;
+	q.where(results, inss);
+	EXPECT_EQ(0, results.size());
 	}
 
 	// matching a subgraph by a labelled variable
 	{
-    std::stringstream inss;
-    inss <<
-        "{"
-        "  \"op\":{"
-        "    \"opname\":\"EXTEND\","
-        "    \"args\":["
-        "      {"
-        "        \"var\":{"
-        "          \"label\":\"init_state\""
-        "        }"
-        "      }"
-        "    ]"
-        "  }"
-        "}";
-    teq::TensSetT results;
-    q.where(results, inss);
-    ASSERT_EQ(1, results.size());
+	std::stringstream inss;
+	inss <<
+		"{"
+		"  \"op\":{"
+		"    \"opname\":\"EXTEND\","
+		"    \"args\":["
+		"      {"
+		"        \"var\":{"
+		"          \"label\":\"init_state\""
+		"        }"
+		"      }"
+		"    ]"
+		"  }"
+		"}";
+	teq::TensSetT results;
+	q.where(results, inss);
+	ASSERT_EQ(1, results.size());
 	teq::iTensor* res = *results.begin();
 	EXPECT_GRAPHEQ(
 		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
@@ -295,29 +244,29 @@ TEST(CONDITION, Query)
 
 	// matching a subgraph by an ambiguous argument and a constant
 	{
-    std::stringstream inss;
-    inss <<
-        "{"
-        "  \"op\":{"
-        "    \"opname\":\"POW\","
-        "    \"args\":["
-        "      {},"
-        "      {"
-        "        \"op\":{"
-        "          \"opname\":\"EXTEND\","
+	std::stringstream inss;
+	inss <<
+		"{"
+		"  \"op\":{"
+		"    \"opname\":\"POW\","
+		"    \"args\":["
+		"      {},"
+		"      {"
+		"        \"op\":{"
+		"          \"opname\":\"EXTEND\","
 		"          \"args\":["
-        "            {"
-        "              \"cst\":2"
-        "            }"
+		"            {"
+		"              \"cst\":2"
+		"            }"
 		"          ]"
-        "        }"
-        "      }"
-        "    ]"
-        "  }"
-        "}";
-    teq::TensSetT results;
-    q.where(results, inss);
-    ASSERT_EQ(1, results.size());
+		"        }"
+		"      }"
+		"    ]"
+		"  }"
+		"}";
+	teq::TensSetT results;
+	q.where(results, inss);
+	ASSERT_EQ(1, results.size());
 	teq::iTensor* res = *results.begin();
 	EXPECT_GRAPHEQ(
 		"(POW[5\\3\\1\\1\\1\\1\\1\\1])\n"
@@ -390,15 +339,15 @@ TEST(CONDITION, Query)
 
 	// matching a subgraph by an attribute
 	{
-    std::stringstream inss;
-    inss <<
-        "{"
-        "  \"op\":{"
-        "    \"opname\":\"EXTEND\","
+	std::stringstream inss;
+	inss <<
+		"{"
+		"  \"op\":{"
+		"    \"opname\":\"EXTEND\","
 		"    \"attrs\":{"
-        "      \"tensor\":{"
+		"      \"tensor\":{"
 		"        \"node\":{"
-        "          \"op\":{"
+		"          \"op\":{"
 		"            \"opname\":\"MATMUL\","
 		"            \"args\":["
 		"              {"
@@ -419,13 +368,13 @@ TEST(CONDITION, Query)
 		"            ]"
 		"          }"
 		"        }"
-        "      }"
+		"      }"
 		"    }"
-        "  }"
-        "}";
-    teq::TensSetT results;
-    q.where(results, inss);
-    ASSERT_EQ(3, results.size());
+		"  }"
+		"}";
+	teq::TensSetT results;
+	q.where(results, inss);
+	ASSERT_EQ(3, results.size());
 	teq::iTensor* res = *results.begin();
 	EXPECT_GRAPHEQ(
 		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"

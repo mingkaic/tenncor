@@ -135,6 +135,7 @@ py_binary(
         "//eteq:eteq_py",
         "//layr:layr_py",
         "//dbg:psess_py",
+        "//query:query_py",
     ],
     data = ["//:models", "//cfg:optimizations"],
 )

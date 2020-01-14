@@ -16,7 +16,7 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(print, m)
 {
-	m.doc() = "print teq equation graphs to stream";
+	m.doc() = "print teq graphs to stream";
 
 	m
 		// ==== to stdout functions ====

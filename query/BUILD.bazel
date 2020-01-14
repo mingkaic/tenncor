@@ -1,5 +1,6 @@
 licenses(["notice"])
 
+load("//third_party/drake_rules:pybind.bzl", "pybind_library")
 load(
     "@com_github_stackb_rules_proto//cpp:cpp_proto_library.bzl",
     "cpp_proto_library"
@@ -46,6 +47,16 @@ proto_library(
 cpp_proto_library(
     name = "query_cc_proto",
     deps = ["//query:query_proto"],
+)
+
+pybind_library(
+    name = "query_py",
+    cc_srcs = ["//query:python/query.cpp"],
+    cc_deps = [
+        "//eteq:eteq",
+        "//query:query",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########

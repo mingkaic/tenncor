@@ -11,7 +11,7 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(psess, m)
 {
-	m.doc() = "dbg teq equation graphs using interactive grpc session";
+	m.doc() = "dbg teq graphs using interactive grpc session";
 
 	py::class_<dbg::iPlugin> plugin(m, "Plugin");
 

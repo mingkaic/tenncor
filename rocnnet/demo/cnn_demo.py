@@ -22,6 +22,7 @@ import eteq.tenncor as tc
 import eteq.eteq as eteq
 import layr.layr as layr
 import dbg.psess as ps
+import query.query as q
 
 import tensorflow_datasets as tfds
 import numpy as np
@@ -135,11 +136,14 @@ def main(args):
         testout,
     ])
 
+    query_targets = []
     def error_wrapper(T, Y):
         layer_roots = layr.find_layer_roots([Y])
         for lroots in layer_roots:
             inspector.add(lroots)
-        return cross_entropy_loss(T, Y)
+        err = cross_entropy_loss(T, Y)
+        query_targets.append(err)
+        return err
 
     raw_inshape[0] = nbatch
     train_inshape = raw_inshape
@@ -152,6 +156,35 @@ def main(args):
         err_func=error_wrapper)
     inspector.add(normalized)
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+
+    qs = q.Statement(query_targets)
+    qs.where("""{{
+        "op": {{
+            "opname": "ADD",
+            "args": [{{
+                "op": {{
+                    "opname": "PERMUTE",
+                    "args": [{{
+                        "op": {{
+                            "opname": "CONV",
+                            "args": [{{
+                                "op": {{
+                                    "opname": "PAD",
+                                    "attrs": {{
+                                        "dimension_pairs": {{
+                                            "iarr": {{
+                                                "values": [0,0,0,0,0,0,15,15]
+                                            }}
+                                        }}
+                                    }}
+                                }}
+                            }}]
+                        }}
+                    }}]
+                }}
+            }}]
+        }}
+    }}""")
 
     # train
     for i, data in enumerate(cifar):
