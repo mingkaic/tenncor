@@ -15,7 +15,6 @@ P5 = "get to it eventually"
       (or GRU veriants in https://arxiv.org/pdf/1901.03860.pdf)
 
 >>>> aux project >>>>
-   - implement TEQ query/structure identification
    - train convolutional nn demo
 
 >>> bugs >>>

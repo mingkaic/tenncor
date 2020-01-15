@@ -63,11 +63,11 @@ PYBIND11_MODULE(psess, m)
 	inspector
 		.def(py::init())
 		.def("add",
-			[](stats::Inspector& self, eteq::ETensor<PybindT> inspect)
+			[](stats::Inspector& self, eteq::ETensor<PybindT> inspect, std::string label)
 			{
 				if (auto f = dynamic_cast<teq::iFunctor*>(inspect.get()))
 				{
-					self.insps_.emplace(f);
+					self.insps_.emplace(f, label);
 				}
-			});
+			}, py::arg("target"), py::arg("label") = "");
 }

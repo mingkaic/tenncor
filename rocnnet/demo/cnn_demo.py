@@ -35,10 +35,11 @@ cifar_name = 'cifar10'
 assert cifar_name in tfds.list_builders()
 
 def cross_entropy_loss(T, Y):
-    epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in eteq
-    leftY = Y + epsilon
-    rightT = 1 - Y + epsilon
-    return -(T * tc.log(leftY) + (1-T) * tc.log(rightT))
+    # epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in eteq
+    # leftY = Y + epsilon
+    # rightT = 1 - Y + epsilon
+    # return -(T * tc.log(leftY) + (1-T) * tc.log(rightT))
+    return tc.reduce_mean(tc.pow(T - Y, 2.))
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -95,13 +96,13 @@ def main(args):
         layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
             inshape=eteq.Shape([1, 32, 32, 16])), # outputs [nbatch, 16, 16, 16]
         layr.conv([5, 5], 16, 20,
-            weight_init=layr.norm_xavier_init(0.5),
+            weight_init=layr.norm_xavier_init(0.3),
             zero_padding=[2, 2]), # outputs [nbatch, 16, 16, 20]
         layr.bind(tc.relu),
         layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
             inshape=eteq.Shape([1, 16, 16, 20])), # outputs [nbatch, 8, 8, 20]
         layr.conv([5, 5], 20, 20,
-            weight_init=layr.norm_xavier_init(0.5),
+            weight_init=layr.norm_xavier_init(0.1),
             zero_padding=[2, 2]), # outputs [nbatch, 8, 8, 20]
         layr.bind(tc.relu),
         layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
@@ -138,9 +139,7 @@ def main(args):
 
     query_targets = []
     def error_wrapper(T, Y):
-        layer_roots = layr.find_layer_roots([Y])
-        for lroots in layer_roots:
-            inspector.add(lroots)
+        inspector.add(Y, 'output')
         err = cross_entropy_loss(T, Y)
         query_targets.append(err)
         return err
@@ -154,37 +153,71 @@ def main(args):
     train = layr.sgd_train(model, sess,
         normalized, train_output, layr.get_adagrad(0.01),
         err_func=error_wrapper)
-    inspector.add(normalized)
+    inspector.add(normalized, "normalized_input")
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     qs = q.Statement(query_targets)
-    qs.where("""{{
-        "op": {{
-            "opname": "ADD",
-            "args": [{{
-                "op": {{
-                    "opname": "PERMUTE",
-                    "args": [{{
-                        "op": {{
-                            "opname": "CONV",
-                            "args": [{{
-                                "op": {{
-                                    "opname": "PAD",
-                                    "attrs": {{
-                                        "dimension_pairs": {{
-                                            "iarr": {{
-                                                "values": [0,0,0,0,0,0,15,15]
-                                            }}
-                                        }}
-                                    }}
-                                }}
-                            }}]
-                        }}
-                    }}]
-                }}
+    conv_res = qs.find("""{"op": {
+        "opname": "ADD",
+        "args": [{"op": {
+            "opname": "PERMUTE",
+            "args": [{"op": {
+                "opname": "CONV",
+                "args": [
+                    {},
+                    {"op": {
+                        "opname": "REVERSE",
+                        "args": [{"var": {
+                            "shape": [16, 3, 5, 5]
+                        }}]
+                    }}
+                ]
             }}]
-        }}
+        }}]
     }}""")
+    conv_res2 = qs.find("""{"op": {
+        "opname": "ADD",
+        "args": [{"op": {
+            "opname": "PERMUTE",
+            "args": [{"op": {
+                "opname": "CONV",
+                "args": [
+                    {},
+                    {"op": {
+                        "opname": "REVERSE",
+                        "args": [{"var": {
+                            "shape": [20, 16, 5, 5]
+                        }}]
+                    }}
+                ]
+            }}]
+        }}]
+    }}""")
+    conv_res3 = qs.find("""{"op": {
+        "opname": "ADD",
+        "args": [{"op": {
+            "opname": "PERMUTE",
+            "args": [{"op": {
+                "opname": "CONV",
+                "args": [
+                    {},
+                    {"op": {
+                        "opname": "REVERSE",
+                        "args": [{"var": {
+                            "shape": [20, 20, 5, 5]
+                        }}]
+                    }}
+                ]
+            }}]
+        }}]
+    }}""")
+    assert(
+        len(conv_res) == 1 and
+        len(conv_res2) == 1 and
+        len(conv_res3) == 1)
+    inspector.add(conv_res[0], "first_conv")
+    inspector.add(conv_res2[0], "second_conv")
+    inspector.add(conv_res3[0], "third_conv")
 
     # train
     for i, data in enumerate(cifar):

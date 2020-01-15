@@ -11,7 +11,7 @@ namespace stats
 {
 
 template <typename T>
-void inspect_helper (T* data, teq::Shape shape)
+void inspect_helper (T* data, teq::Shape shape, std::string label)
 {
 	if (nullptr == data)
 	{
@@ -22,12 +22,14 @@ void inspect_helper (T* data, teq::Shape shape)
 	T min = *std::min_element(data, data + n);
 	T max = *std::max_element(data, data + n);
 	// using logs is slow af (tolerable) (todo: upgrade to formatter whenever c++2a is supported)
-	logs::infof("min: %s, max: %s",
+	logs::infof("(%s) => min: %s, max: %s",
+		label.c_str(),
 		fmts::to_string(min).c_str(),
 		fmts::to_string(max).c_str());
 }
 
-#define INSPECTOR_SELECT(T)inspect_helper((T*) func->data(), func->shape());
+#define INSPECTOR_SELECT(T)\
+inspect_helper((T*) func->data(), func->shape(), label);
 
 struct Inspector final : public dbg::iPlugin
 {
@@ -35,15 +37,16 @@ struct Inspector final : public dbg::iPlugin
 	{
 		for (auto func : targets)
 		{
-			if (estd::has(this->insps_, func))
+			if (estd::has(insps_, func))
 			{
+				std::string label = insps_.at(func);
 				auto dtype = (egen::_GENERATED_DTYPE) func->type_code();
 				TYPE_LOOKUP(INSPECTOR_SELECT, dtype)
 			}
 		}
 	}
 
-	std::unordered_set<teq::iFunctor*> insps_;
+	std::unordered_map<teq::iFunctor*,std::string> insps_;
 };
 
 #undef INSPECTOR_SELECT
