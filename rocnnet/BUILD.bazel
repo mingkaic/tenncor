@@ -139,3 +139,13 @@ py_binary(
     ],
     data = ["//:models", "//cfg:optimizations"],
 )
+
+py_binary(
+    name = "w2v_demo",
+    srcs = ["demo/w2v_demo.py"],
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
+    data = ["//:models", "//cfg:optimizations"],
+)

@@ -3,6 +3,9 @@
 import numpy as np
 from collections import defaultdict
 
+import eteq.tenncor as tc
+import eteq.eteq as eteq
+
 text = "natural language processing and machine learning is fun and exciting"
 
 # Note the .lower() as upper and lowercase does not matter in our implementation
@@ -63,18 +66,11 @@ training_data, word_index, index_word = generate_training_data(corpus)
 
 class Model:
     def __init__(self, getW1, getW2):
-        self.w1 = np.array(getW1)
-        self.w2 = np.array(getW2)
+        self.w1 = eteq.variable(np.array(getW1), 'w1')
+        self.w2 = eteq.variable(np.array(getW2), 'w2')
 
-    def forward_pass(self, x):
-        # x is one-hot vector for target word, shape - 9x1
-        # Run through first matrix (w1) to get hidden layer - 10x9 dot 9x1 gives us 10x1
-        h = np.dot(self.w1.T, x)
-        # Dot product hidden layer with second matrix (w2) - 9x10 dot 10x1 gives us 9x1
-        u = np.dot(self.w2.T, h)
-        # Run 1x9 through softmax to force each element to range of [0, 1] - 1x8
-        y_c = self.softmax(u)
-        return y_c, h, u
+    def forward(self, x):
+        return tc.softmax(tc.matmul(tc.matmul(x, self.w1), self.w2))
 
     def backprop(self, e, h, x):
         # https://docs.scipy.org/doc/numpy-1.15.1/reference/generated/numpy.outer.html
@@ -89,10 +85,6 @@ class Model:
         self.w1 = self.w1 - (lr * dl_dw1)
         self.w2 = self.w2 - (lr * dl_dw2)
 
-    def softmax(self, x):
-        e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum(axis=0)
-
 # training
 # Initialising weight matrices
 # Both s1 and s2 should be randomly initialised but for this demo, we pre-determine the arrays (getW1 and getW2)
@@ -103,6 +95,18 @@ model = Model(
     np.random.uniform(-1, 1, (len(word_index), n)),
     np.random.uniform(-1, 1, (n, len(word_index))))
 
+sess = eteq.Session()
+
+winput = eteq.variable(np.random.rand(len(word_index)) * 2 - 1, 'input')
+woutput = eteq.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'output')
+y_pred = model.forward(winput)
+err = tc.reduce_sum(tc.pow(tc.extend(y_pred, [1, 2 * window]) - woutput, 2.))
+dw1 = eteq.derive(err, model.w1)
+dw2 = eteq.derive(err, model.w2)
+u1 = model.w1 - dw1 * lr
+u2 = model.w2 - dw2 * lr
+sess.track([u1, u2, err])
+
 # Cycle through each epoch
 for i in range(epochs):
     # Intialise loss to 0
@@ -111,31 +115,20 @@ for i in range(epochs):
     # Cycle through each training sample
     # w_t = vector for target word, w_c = vectors for context words
     for w_t, w_c in training_data:
-        # Forward pass - Pass in vector for target word (w_t) to get:
-        # 1. predicted y using softmax (y_pred) 2. matrix of hidden layer (h) 3. output layer before softmax (u)
-        y_pred, h, u = model.forward_pass(w_t)
-
-        # Calculate error
-        # 1. For a target word, calculate difference between y_pred and each of the context words
-        # 2. Sum up the differences using np.sum to give us the error for this particular target word
-        EI = np.sum([np.subtract(y_pred, word) for word in w_c], axis=0)
-
-        # Backpropagation
-        # We use SGD to backpropagate errors - calculate loss on the output layer
-        model.backprop(EI, h, w_t)
-
-        # Calculate loss
-        # There are 2 parts to the loss function
-        # Part 1: -ve sum of all the output +
-        # Part 2: length of context words * log of sum for all elements (exponential-ed) in the output layer before softmax (u)
-        # Note: word.index(1) returns the index in the context word vector with value 1
-        # Note: u[word.index(1)] returns the value of the output layer before softmax
-        loss += -np.sum([u[word.index(1)] for word in w_c]) + len(w_c) * np.log(np.sum(np.exp(u)))
+        wcdata = np.array(w_c)
+        for j in range(2 * window - wcdata.shape[0]):
+            wcdata = np.concatenate((wcdata, y_pred.get().reshape(1, len(word_index))), 0)
+        winput.assign(np.array(w_t))
+        woutput.assign(wcdata)
+        sess.update_target([u1, u2, err])
+        model.w1.assign(u1.get())
+        model.w2.assign(u2.get())
+        loss += err.get()
     print('Epoch:', i, "Loss:", loss)
 
 def word_vec(word):
     w_index = word_index[word]
-    v_w = model.w1[w_index]
+    v_w = model.w1.get()[w_index]
     return v_w
 
 print(word_vec("machine"))
@@ -146,7 +139,7 @@ def vec_sim(word, top_n):
 
     for i in range(len(word_index)):
         # Find the similary score for each word in vocab
-        v_w2 = model.w1[i]
+        v_w2 = model.w1.get()[i]
         theta_sum = np.dot(v_w1, v_w2)
         theta_den = np.linalg.norm(v_w1) * np.linalg.norm(v_w2)
         theta = theta_sum / theta_den
