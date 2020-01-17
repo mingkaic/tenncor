@@ -11,7 +11,6 @@
 #include "teq/itensor.hpp"
 
 #include "eigen/generated/dtype.hpp"
-#include "eigen/eigen.hpp"
 
 #include "eteq/variable.hpp"
 

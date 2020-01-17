@@ -60,7 +60,7 @@ static void NAME(benchmark::State& state)\
 		std::vector<T> convdata(data.begin(), data.end());\
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
 		eteq::ETensor<T> out = FUNC(var);\
-		teq::Session session;\
+		auto session = eigen::get_session();\
 		session.track({out});\
 		state.ResumeTiming();\
 		session.update();\
@@ -82,7 +82,7 @@ static void NAME(benchmark::State& state)\
 		std::vector<T> convdata(data.begin(), data.end());\
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
 		eteq::ETensor<T> out = FUNC(var);\
-		teq::Session session;\
+		auto session = eigen::get_session();\
 		session.track({out});\
 		state.ResumeTiming();\
 		session.update();\
@@ -134,7 +134,7 @@ static void NAME(benchmark::State& state)\
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
 		eteq::EVariable<T> var2 = eteq::make_variable<T>(convdata2.data(), shape, "var2");\
 		eteq::ETensor<T> out = FUNC(var, var2);\
-		teq::Session session;\
+		auto session = eigen::get_session();\
 		session.track({out});\
 		state.ResumeTiming();\
 		session.update();\
@@ -192,7 +192,7 @@ static void BM_Matmul(benchmark::State& state)
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), leftshape, "var");
 		eteq::EVariable<T> var2 = eteq::make_variable<T>(convdata2.data(), rightshape, "var2");
 		eteq::ETensor<T> out = tenncor::matmul(var, var2);
-		teq::Session session;
+		auto session = eigen::get_session();
 		session.track({out});
 		state.ResumeTiming();
 		session.update();
@@ -234,7 +234,7 @@ static void BM_MatmulComplex(benchmark::State& state)
 	eteq::ETensor<int32_t> da = eteq::derive(dest, a);
 	eteq::ETensor<int32_t> db = eteq::derive(dest, b);
 	eteq::ETensor<int32_t> dc = eteq::derive(dest, c);
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track({da, db, dc});
 
 	for (auto _ : state)
@@ -289,7 +289,7 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	auto db0 = eteq::derive(err, bias0);
 	auto dw1 = eteq::derive(err, weight1);
 	auto db1 = eteq::derive(err, bias1);
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track({dw0, db0, dw1, db1});
 
 	for (auto _ : state)
@@ -356,7 +356,7 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	teq::TensptrsT roots = {dw0, db0, dw1, db1};
 	opt::optimize(roots, rules);
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track({dw0, db0, dw1, db1});
 
 	for (auto _ : state)

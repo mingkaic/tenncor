@@ -6,4 +6,4 @@
 /// Collectively include all teq header files
 ///
 
-#include "teq/session.hpp"
+#include "teq/isession.hpp"

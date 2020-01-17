@@ -1,5 +1,7 @@
 #include "teq/ileaf.hpp"
 
+#include "teq/mock/device.hpp"
+
 #ifndef TEQ_MOCK_LEAF_HPP
 #define TEQ_MOCK_LEAF_HPP
 
@@ -7,13 +9,13 @@ struct MockLeaf : public teq::iLeaf
 {
 	MockLeaf (void) : usage_(teq::IMMUTABLE) {}
 
-	MockLeaf (teq::Shape shape, std::string label = "", bool cst = true) : 
+	MockLeaf (teq::Shape shape, std::string label = "", bool cst = true) :
 		shape_(shape), label_(label),
 		usage_(cst ? teq::IMMUTABLE : teq::VARUSAGE) {}
 
 	MockLeaf (std::vector<double> data, teq::Shape shape,
 		std::string label = "", bool cst = true) :
-		data_(data), shape_(shape), label_(label),
+		ref_(data), shape_(shape), label_(label),
 		usage_(cst ? teq::IMMUTABLE : teq::VARUSAGE) {}
 
 	virtual ~MockLeaf (void) = default;
@@ -28,14 +30,14 @@ struct MockLeaf : public teq::iLeaf
 		return label_;
 	}
 
-	void* data (void) override
+	teq::iDeviceRef& device (void) override
 	{
-		return data_.data();
+		return ref_;
 	}
 
-	const void* data (void) const override
+	const teq::iDeviceRef& device (void) const override
 	{
-		return data_.data();
+		return ref_;
 	}
 
 	size_t type_code (void) const override
@@ -50,7 +52,7 @@ struct MockLeaf : public teq::iLeaf
 
 	size_t nbytes (void) const override
 	{
-		return data_.size() * sizeof(double);
+		return ref_.data_.size() * sizeof(double);
 	}
 
 	teq::Usage get_usage (void) const override
@@ -63,7 +65,7 @@ struct MockLeaf : public teq::iLeaf
 		return new MockLeaf(*this);
 	}
 
-	std::vector<double> data_;
+	MockDeviceRef ref_;
 
 	teq::Shape shape_;
 

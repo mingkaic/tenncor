@@ -33,16 +33,16 @@ py_binary(
     data = ["//cfg:optimizations"],
 )
 
-py_binary(
-    name = "comparison_mlp_grad_pll",
-    srcs = ["comparison/comparison_mlp_grad_pll.py"],
-    deps = [
-        "//eteq:eteq_py",
-        "//layr:layr_py",
-        "//ccur:ccur_py",
-    ],
-    data = ["//cfg:optimizations"],
-)
+# py_binary(
+#     name = "comparison_mlp_grad_pll",
+#     srcs = ["comparison/comparison_mlp_grad_pll.py"],
+#     deps = [
+#         "//eteq:eteq_py",
+#         "//layr:layr_py",
+#         "//ccur:ccur_py",
+#     ],
+#     data = ["//cfg:optimizations"],
+# )
 
 ######### DEMOS #########
 

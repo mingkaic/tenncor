@@ -8,7 +8,8 @@
 ///
 // todo: make this generated
 
-#include "eigen/eigen.hpp"
+#include "eigen/generated/dtype.hpp"
+#include "eigen/device.hpp"
 #include "eigen/random.hpp"
 #include "eigen/packattr.hpp"
 
@@ -65,7 +66,7 @@ return in.sum(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is sum
 template <typename T>
-EigenptrT<T> reduce_sum (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT reduce_sum (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	std::set<teq::RankT> ranks;
 	Packer<std::set<teq::RankT>>().unpack(ranks, attrib);
@@ -86,7 +87,7 @@ return in.prod(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is prod
 template <typename T>
-EigenptrT<T> reduce_prod (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT reduce_prod (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	std::set<teq::RankT> ranks;
 	Packer<std::set<teq::RankT>>().unpack(ranks, attrib);
@@ -107,7 +108,7 @@ return in.minimum(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is min
 template <typename T>
-EigenptrT<T> reduce_min (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT reduce_min (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	std::set<teq::RankT> ranks;
 	Packer<std::set<teq::RankT>>().unpack(ranks, attrib);
@@ -128,7 +129,7 @@ return in.maximum(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is max
 template <typename T>
-EigenptrT<T> reduce_max (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT reduce_max (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	std::set<teq::RankT> ranks;
 	Packer<std::set<teq::RankT>>().unpack(ranks, attrib);
@@ -142,7 +143,7 @@ EigenptrT<T> reduce_max (teq::Shape outshape, const teq::iTensor& in, const mars
 
 /// Return Eigen data object that argmax in tensor at return_dim
 template <typename T>
-EigenptrT<T> argmax (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT argmax (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	teq::RankT return_dim;
 	Packer<teq::RankT>().unpack(return_dim, attrib);
@@ -183,7 +184,7 @@ EigenptrT<T> argmax (teq::Shape outshape, const teq::iTensor& in, const marsh::i
 
 /// Return Eigen data object representing data broadcast across dimensions
 template <typename T>
-EigenptrT<T> extend (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT extend (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	teq::Shape inshape = in.shape();
 	std::vector<teq::DimT> bcast = unpack_extend(inshape, attrib);
@@ -203,7 +204,7 @@ EigenptrT<T> extend (teq::Shape outshape, const teq::iTensor& in, const marsh::i
 
 /// Return Eigen data object representing transpose and permutation
 template <typename T>
-EigenptrT<T> permute (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT permute (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	std::vector<teq::RankT> order;
 	Packer<std::vector<teq::RankT>>().unpack(order, attrib);
@@ -244,7 +245,7 @@ EigenptrT<T> permute (teq::Shape outshape, const teq::iTensor& in, const marsh::
 
 /// Return Eigen data object that reshapes
 template <typename T>
-EigenptrT<T> reshape (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT reshape (teq::Shape outshape, const teq::iTensor& in)
 {
 	return make_eigentensor<T,TensMapT<T>,TensMapT<T>>(
 		shape_convert(outshape), make_tensmap((T*) in.data(), in.shape()),
@@ -253,7 +254,7 @@ EigenptrT<T> reshape (teq::Shape outshape, const teq::iTensor& in)
 
 /// Return Eigen data object representing data slicing of dimensions
 template <typename T>
-EigenptrT<T> slice (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT slice (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	PairVecT<teq::DimT> encoding;
 	Packer<PairVecT<teq::DimT>>().unpack(encoding, attrib);
@@ -298,7 +299,7 @@ EigenptrT<T> slice (teq::Shape outshape, const teq::iTensor& in, const marsh::iA
 }
 
 template <typename T>
-EigenptrT<T> group_concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh::iAttributed& attrib)
+EigenptrT group_concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh::iAttributed& attrib)
 {
 	assert(group.size() > 1);
 	teq::RankT dimension;
@@ -327,7 +328,7 @@ EigenptrT<T> group_concat (teq::Shape outshape, const teq::TensptrsT& group, con
 }
 
 template <typename T>
-EigenptrT<T> group_sum (teq::Shape outshape, const teq::TensptrsT& group)
+EigenptrT group_sum (teq::Shape outshape, const teq::TensptrsT& group)
 {
 	assert(group.size() > 2);
 	std::vector<TensMapT<T>> args;
@@ -349,7 +350,7 @@ EigenptrT<T> group_sum (teq::Shape outshape, const teq::TensptrsT& group)
 }
 
 template <typename T>
-EigenptrT<T> group_prod (teq::Shape outshape, const teq::TensptrsT& group)
+EigenptrT group_prod (teq::Shape outshape, const teq::TensptrsT& group)
 {
 	assert(group.size() > 2);
 	std::vector<TensMapT<T>> args;
@@ -372,7 +373,7 @@ EigenptrT<T> group_prod (teq::Shape outshape, const teq::TensptrsT& group)
 
 /// Return Eigen data object representing data zero padding
 template <typename T>
-EigenptrT<T> pad (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT pad (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	PairVecT<teq::DimT> encoding;
 	Packer<PairVecT<teq::DimT>>().unpack(encoding, attrib);
@@ -397,7 +398,7 @@ EigenptrT<T> pad (teq::Shape outshape, const teq::iTensor& in, const marsh::iAtt
 
 /// Return Eigen data object representing strided view of in
 template <typename T>
-EigenptrT<T> stride (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT stride (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	std::vector<teq::DimT> c;
 	Packer<std::vector<teq::DimT>>().unpack(c, attrib);
@@ -422,7 +423,7 @@ EigenptrT<T> stride (teq::Shape outshape, const teq::iTensor& in, const marsh::i
 /// specific increments across dimensions
 /// This function is the reverse of stride
 template <typename T>
-EigenptrT<T> scatter (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT scatter (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	std::vector<teq::DimT> dims;
 	Packer<std::vector<teq::DimT>>().unpack(dims, attrib);
@@ -440,7 +441,7 @@ EigenptrT<T> scatter (teq::Shape outshape, const teq::iTensor& in, const marsh::
 }
 
 template <typename T>
-EigenptrT<T> reverse (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+EigenptrT reverse (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	std::set<teq::RankT> dims;
 	Packer<std::set<teq::RankT>>().unpack(dims, attrib);
@@ -464,7 +465,7 @@ EigenptrT<T> reverse (teq::Shape outshape, const teq::iTensor& in, const marsh::
 }
 
 template <typename T>
-EigenptrT<T> concat (teq::Shape outshape, const teq::iTensor& left, const teq::iTensor& right, const marsh::iAttributed& attrib)
+EigenptrT concat (teq::Shape outshape, const teq::iTensor& left, const teq::iTensor& right, const marsh::iAttributed& attrib)
 {
 	teq::RankT axis;
 	Packer<teq::RankT>().unpack(axis, attrib);
@@ -485,7 +486,7 @@ EigenptrT<T> concat (teq::Shape outshape, const teq::iTensor& left, const teq::i
 /// Given reference to output array, and input vector ref,
 /// make output elements take absolute value of inputs
 template <typename T>
-EigenptrT<T> abs (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT abs (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
@@ -512,7 +513,7 @@ EigenptrT<T> abs (teq::Shape outshape, const teq::iTensor& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take negatives of inputs
 template <typename T>
-EigenptrT<T> neg (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT neg (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
@@ -539,7 +540,7 @@ EigenptrT<T> neg (teq::Shape outshape, const teq::iTensor& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take sine of inputs
 template <typename T>
-EigenptrT<T> sin (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT sin (teq::Shape outshape, const teq::iTensor& in)
 {
 #ifdef __cpp_if_constexpr
 	if constexpr(!std::is_integral<T>::value)
@@ -575,7 +576,7 @@ EigenptrT<T> sin (teq::Shape outshape, const teq::iTensor& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take cosine of inputs
 template <typename T>
-EigenptrT<T> cos (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT cos (teq::Shape outshape, const teq::iTensor& in)
 {
 #ifdef __cpp_if_constexpr
 	if constexpr(!std::is_integral<T>::value)
@@ -611,7 +612,7 @@ EigenptrT<T> cos (teq::Shape outshape, const teq::iTensor& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take tangent of inputs
 template <typename T>
-EigenptrT<T> tan (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT tan (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
@@ -642,7 +643,7 @@ EigenptrT<T> tan (teq::Shape outshape, const teq::iTensor& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take exponent of inputs
 template <typename T>
-EigenptrT<T> exp (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT exp (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
@@ -669,7 +670,7 @@ EigenptrT<T> exp (teq::Shape outshape, const teq::iTensor& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take natural log of inputs
 template <typename T>
-EigenptrT<T> log (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT log (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
@@ -696,7 +697,7 @@ EigenptrT<T> log (teq::Shape outshape, const teq::iTensor& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take square root of inputs
 template <typename T>
-EigenptrT<T> sqrt (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT sqrt (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
@@ -723,7 +724,7 @@ EigenptrT<T> sqrt (teq::Shape outshape, const teq::iTensor& in)
 /// Given reference to output array, and input vector ref,
 /// make output elements take rounded values of inputs
 template <typename T>
-EigenptrT<T> round (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT round (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
@@ -748,7 +749,7 @@ EigenptrT<T> round (teq::Shape outshape, const teq::iTensor& in)
 }
 
 template <typename T>
-EigenptrT<T> sigmoid (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT sigmoid (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
@@ -773,7 +774,7 @@ EigenptrT<T> sigmoid (teq::Shape outshape, const teq::iTensor& in)
 }
 
 template <typename T>
-EigenptrT<T> tanh (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT tanh (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
@@ -798,7 +799,7 @@ EigenptrT<T> tanh (teq::Shape outshape, const teq::iTensor& in)
 }
 
 template <typename T>
-EigenptrT<T> square (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT square (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
@@ -823,7 +824,7 @@ EigenptrT<T> square (teq::Shape outshape, const teq::iTensor& in)
 }
 
 template <typename T>
-EigenptrT<T> cube (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT cube (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
@@ -851,7 +852,7 @@ EigenptrT<T> cube (teq::Shape outshape, const teq::iTensor& in)
 /// same index apply std::pow operator
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> pow (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT pow (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -890,7 +891,7 @@ EigenptrT<T> pow (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 }
 
 template <typename T>
-EigenptrT<T> add (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT add (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -922,7 +923,7 @@ EigenptrT<T> add (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 /// same index subtract
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> sub (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT sub (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -951,7 +952,7 @@ EigenptrT<T> sub (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 }
 
 template <typename T>
-EigenptrT<T> mul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT mul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -983,7 +984,7 @@ EigenptrT<T> mul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 /// same index divide
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> div (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT div (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -1015,7 +1016,7 @@ EigenptrT<T> div (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 /// same index apply == operator
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> eq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT eq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -1057,7 +1058,7 @@ EigenptrT<T> eq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor&
 /// same index apply != operator
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> neq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT neq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -1099,7 +1100,7 @@ EigenptrT<T> neq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 /// same index apply < operator
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> lt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT lt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -1141,7 +1142,7 @@ EigenptrT<T> lt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor&
 /// same index apply > operator
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> gt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT gt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -1182,7 +1183,7 @@ EigenptrT<T> gt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor&
 /// Given arguments, for every mapped index i in range [0:max_nelems],
 /// take the minimum all elements for all arguments
 template <typename T>
-EigenptrT<T> min (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT min (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -1213,7 +1214,7 @@ EigenptrT<T> min (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 /// Given arguments, for every mapped index i in range [0:max_nelems],
 /// take the maximum all elements for all arguments
 template <typename T>
-EigenptrT<T> max (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT max (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -1245,7 +1246,7 @@ EigenptrT<T> max (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 /// same index apply std::uniform_distributon function
 /// Only accept 2 arguments
 template <typename T>
-EigenptrT<T> rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
@@ -1279,7 +1280,7 @@ EigenptrT<T> rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq
 /// apply corresponding then value if condition is non-zero
 /// otherwise apply otherwise value
 template <typename T>
-EigenptrT<T> select (teq::Shape outshape, const teq::iTensor& condition,
+EigenptrT select (teq::Shape outshape, const teq::iTensor& condition,
 	const teq::iTensor& then, const teq::iTensor& otherwise)
 {
 	if (is_2d(outshape))
@@ -1324,7 +1325,7 @@ return args[1].contract(args[0], internal::dim_copy<N>(ARR)).reshape(outdims); }
 /// Only applies to 2-d tensors
 /// Apply matrix multiplication of a and b
 template <typename T>
-EigenptrT<T> matmul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b, const marsh::iAttributed& attrib)
+EigenptrT matmul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b, const marsh::iAttributed& attrib)
 {
 	PairVecT<teq::RankT> dims;
 	Packer<PairVecT<teq::RankT>>().unpack(dims, attrib);
@@ -1357,7 +1358,7 @@ EigenptrT<T> matmul (teq::Shape outshape, const teq::iTensor& a, const teq::iTen
 
 /// Apply convolution of kernel across input
 template <typename T>
-EigenptrT<T> convolution (teq::Shape outshape, const teq::iTensor& input,
+EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 	const teq::iTensor& kernel, const marsh::iAttributed& attrib)
 {
 	std::vector<teq::RankT> order;

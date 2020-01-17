@@ -12,8 +12,8 @@
 #include "teq/traveler.hpp"
 #include "teq/ifunctor.hpp"
 
-#ifndef TEQ_SESSION_HPP
-#define TEQ_SESSION_HPP
+#ifndef TEQ_ISESSION_HPP
+#define TEQ_ISESSION_HPP
 
 namespace teq
 {
@@ -45,10 +45,19 @@ struct iSession
 
 using FuncListT = std::list<iFunctor*>;
 
+struct iDevice
+{
+	virtual ~iDevice (void) = default;
+
+	virtual void calc (iDeviceRef& ref) = 0;
+};
+
 /// iSession implementation that tracks subgraphs by ordering operable functors
 /// in a vector such that parents are visited after children
 struct Session : public iSession
 {
+	Session (iDevice& device) : device_(&device) {}
+
 	virtual ~Session (void) = default;
 
 	/// Implementation of iSession
@@ -155,15 +164,21 @@ struct Session : public iSession
 	FuncsT ops_;
 
 protected:
-	virtual void calc_reqfuncs (FuncListT& reqs)
+	virtual void process_reqs (FuncListT& reqs) {}
+
+private:
+	void calc_reqfuncs (FuncListT& reqs)
 	{
 		for (auto& op : reqs)
 		{
-			op->calc();
+			device_->calc(op->device());
 		}
+		process_reqs(reqs);
 	}
+
+	iDevice* device_;
 };
 
 }
 
-#endif // TEQ_SESSION_HPP
+#endif // TEQ_ISESSION_HPP

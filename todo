@@ -16,9 +16,12 @@ P5 = "get to it eventually"
 
 >>>> aux project >>>>
    - train convolutional nn demo
+   - refactor session to take on Device interface
+   - make eigen device configurable
+   - select and integrate some other CUDA-supported LinAlgebra libraries
 
 >>> bugs >>>
-   - eteq extension to change shape according to optimized attributes
+   - eteq extension to change shape according to optimized attributes (replace opt with query)
 
 === transparency/code readability ===
 P2 - generate value-range graph to detect erroneous operators
@@ -72,8 +75,6 @@ P3 - test rocnnet, and trainer (or subgraph equivalent)
 
 run-time performance:
 P3 - improve ccur module
-P2 - make eigen device configurable
-P4 - implement GPU settings
 P4 - improve session implementation
 P4 - investigate remote sessions for distributed processing
 

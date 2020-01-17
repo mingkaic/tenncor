@@ -273,7 +273,7 @@ TEST(CONNECT, TanhRNN)
 	auto dstate = eteq::derive(err, eteq::ETensor<double>(istate));
 
 	teq::TensptrsT roots = {dw, db, dstate};
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -423,7 +423,7 @@ TEST(CONNECT, DenseTanhRNN)
 	auto db0 = eteq::derive(err, eteq::ETensor<double>(bias0));
 
 	teq::TensptrsT roots = {dw1, db1, dstate, dw0, db0};
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -644,7 +644,7 @@ TEST(CONNECT, TanhRNNFull)
 		dw1, db1, dstate,
 		dw2, db2,
 	};
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -882,7 +882,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		dw1, db1, dstate,
 		dw2, db2,
 	};
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -1373,7 +1373,7 @@ TEST(CONNECT, TanhRNNTraining)
 		}
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(to_track);
 
 	{

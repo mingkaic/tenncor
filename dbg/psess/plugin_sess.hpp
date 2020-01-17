@@ -1,4 +1,4 @@
-#include "teq/session.hpp"
+#include "teq/isession.hpp"
 
 #ifndef DBG_PLUGIN_SESS_HPP
 #define DBG_PLUGIN_SESS_HPP
@@ -18,18 +18,16 @@ using PluginRefT = std::reference_wrapper<iPlugin>;
 
 struct PluginSession final : public teq::Session
 {
+	PluginSession (teq::iDevice& device) : teq::Session(device) {}
+
 	std::vector<PluginRefT> plugins_;
 
 private:
-	void calc_reqfuncs (teq::FuncListT& reqs) override
+	void process_reqs (teq::FuncListT& reqs) override
 	{
-		for (auto& op : reqs)
-		{
-			op->calc();
-		}
 		for (iPlugin& plugin : plugins_)
 		{
-			plugin.process(tracked_, reqs);
+			plugin.process(this->tracked_, reqs);
 		}
 	}
 };

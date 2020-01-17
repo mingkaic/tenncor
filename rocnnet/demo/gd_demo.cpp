@@ -129,7 +129,7 @@ int main (int argc, const char** argv)
 			return layr::sgd<PybindT>(leaves, 0.9); // learning rate = 0.9
 		};
 	emit::Emitter emitter("localhost:50051");
-	dbg::PluginSession sess;
+	dbg::PluginSession sess(eigen::default_device());
 	sess.plugins_.push_back(emitter);
 	{
 

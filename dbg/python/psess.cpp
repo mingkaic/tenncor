@@ -21,7 +21,7 @@ PYBIND11_MODULE(psess, m)
 	py::class_<dbg::PluginSession> session(m, "PluginSess", isess);
 
 	session
-		.def(py::init())
+		.def(py::init([]{ return dbg::PluginSession(eigen::default_device()); }))
 		.def("add_plugin",
 			[](dbg::PluginSession& self, dbg::iPlugin& plugin)
 			{

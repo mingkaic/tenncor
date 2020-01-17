@@ -40,7 +40,7 @@ struct Constant final : public iLeaf<T>
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return teq::const_encode<T>(this->data_.data(), this->shape_);
+		return teq::const_encode<T>((T*) this->device().data(), this->shape_);
 	}
 
 	/// Implementation of iLeaf

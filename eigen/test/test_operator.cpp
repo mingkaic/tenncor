@@ -12,7 +12,7 @@
 
 
 static void test_reduce (
-	std::function<eigen::EigenptrT<double>(teq::Shape,
+	std::function<eigen::EigenptrT(teq::Shape,
 		const teq::iTensor&,const marsh::Maps& attr)> red,
 	std::function<double(double,double)> agg)
 {
@@ -23,7 +23,7 @@ static void test_reduce (
 	MockLeaf edge(std::vector<double>{2, 3, 4, 5, 6, 7}, teq::Shape({3, 2}));
 	auto r = red(teq::Shape({3}), edge, mvalues);
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 	EXPECT_EQ(agg(2, 5), raw[0]);
 	EXPECT_EQ(agg(3, 6), raw[1]);
@@ -63,7 +63,7 @@ TEST(OPERATOR, ArgMax)
 	MockLeaf edge(std::vector<double>{2, 8, 4, 5, 6, 7}, teq::Shape({3, 2}));
 	auto r = eigen::argmax<double>(teq::Shape({3}), edge, mvalues);
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 	EXPECT_EQ(1, raw[0]);
 	EXPECT_EQ(0, raw[1]);
@@ -75,7 +75,7 @@ TEST(OPERATOR, ArgMax)
 	MockLeaf edge2(std::vector<double>{2, 8, 4, 5, 9, 7}, teq::Shape({3, 2}));
 	auto r2 = eigen::argmax<double>(teq::Shape({1}), edge2, mvalues2);
 
-	double* raw2 = r2->get_ptr();
+	double* raw2 = (double*) r2->data();
 	r2->assign();
 	EXPECT_EQ(4, raw2[0]);
 }
@@ -90,7 +90,7 @@ TEST(OPERATOR, Extend)
 	MockLeaf edge(std::vector<double>{2, 8, 4, 5, 6, 7}, teq::Shape({3, 1, 2}));
 	auto r = eigen::extend<double>(outshape, edge, mvalues);
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 
 	std::vector<double> expect_raw = {
@@ -113,7 +113,7 @@ TEST(OPERATOR, Permute)
 		MockLeaf edge(std::vector<double>{2, 8, 4, 5, 6, 7, 1, 0, 9, 11, 10, 12}, teq::Shape({2, 2, 3}));
 		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
-		double* raw = r->get_ptr();
+		double* raw = (double*) r->data();
 		r->assign();
 
 		std::vector<double> expect_raw = {
@@ -132,7 +132,7 @@ TEST(OPERATOR, Permute)
 		MockLeaf edge(std::vector<double>{2, 8, 4, 5, 6, 7}, teq::Shape({2, 3}));
 		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
-		double* raw = r->get_ptr();
+		double* raw = (double*) r->data();
 		r->assign();
 
 		std::vector<double> expect_raw = {2, 4, 6, 8, 5, 7};
@@ -148,7 +148,7 @@ TEST(OPERATOR, Reshape)
 	MockLeaf edge(std::vector<double>{2, 8, 4, 5, 6, 7}, teq::Shape({2, 1, 3}));
 	auto r = eigen::reshape<double>(outshape, edge);
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 
 	std::vector<double> expect_raw = {
@@ -171,7 +171,7 @@ TEST(OPERATOR, Slice)
 		teq::Shape outshape({2, 1});
 		auto r = eigen::slice<double>(outshape, edge, mvalues);
 
-		double* raw = r->get_ptr();
+		double* raw = (double*) r->data();
 		r->assign();
 
 		std::vector<double> expect_raw = {6, 7};
@@ -187,7 +187,7 @@ TEST(OPERATOR, Slice)
 		teq::Shape outshape({3, 1});
 		auto r = eigen::slice<double>(outshape, edge, mvalues);
 
-		double* raw = r->get_ptr();
+		double* raw = (double*) r->data();
 		r->assign();
 
 		std::vector<double> expect_raw = {5, 6, 7};
@@ -209,7 +209,7 @@ TEST(OPERATOR, GroupConcat)
 		std::vector<double>{1, 0, 3, 9}, teq::Shape({1, 4}));
 	auto r = eigen::group_concat<double>(outshape, teq::TensptrsT{edgea, edgeb}, mvalues);
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 
 	std::vector<double> expect_raw = {2, 1, 8, 0, 4, 3, 5, 9};
@@ -229,7 +229,7 @@ TEST(OPERATOR, GroupSum)
 		std::vector<double>{4.2, 1, 7.1, 1, 2, 1.1}, teq::Shape({2, 3}));
 	auto r = eigen::group_sum<double>(outshape, teq::TensptrsT{edgea, edgeb, edgec});
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 
 	std::vector<double> expect_raw = {7.2, 9, 14.1, 15, 18, 19.1};
@@ -249,7 +249,7 @@ TEST(OPERATOR, GroupProd)
 		std::vector<double>{4, 1, 7, 1, 2, 1}, teq::Shape({2, 3}));
 	auto r = eigen::group_prod<double>(outshape, teq::TensptrsT{edgea, edgeb, edgec});
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 
 	std::vector<double> expect_raw = {8, 0, 84, 45, 120, 77};
@@ -269,7 +269,7 @@ TEST(OPERATOR, Pad)
 		std::vector<double>{2, 8, 4, 5, 6, 7}, teq::Shape({2, 3}));
 	auto r = eigen::pad<double>(outshape, edge, mvalues);
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 
 	std::vector<double> expect_raw = {
@@ -292,7 +292,7 @@ TEST(OPERATOR, Stride)
 		std::vector<double>{2, 8, 4, 5, 6, 7}, teq::Shape({2, 3}));
 	auto r = eigen::stride<double>(outshape, edge, mvalues);
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 
 	std::vector<double> expect_raw = {
@@ -313,7 +313,7 @@ TEST(OPERATOR, Scatter)
 		std::vector<double>{2, 8, 4, 5}, teq::Shape({2, 2}));
 	auto r = eigen::scatter<double>(outshape, edge, mvalues);
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 
 	std::vector<double> expect_raw = {
@@ -335,7 +335,7 @@ TEST(OPERATOR, Reverse)
 	MockLeaf edge(std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
 	auto r = eigen::reverse<double>(outshape, edge, mvalues);
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 
 	std::vector<double> expect_raw = {
@@ -356,7 +356,7 @@ TEST(OPERATOR, Concat)
 	MockLeaf edgeb(std::vector<double>{1, 0, 3}, teq::Shape({1, 3}));
 	auto r = eigen::concat<double>(outshape, edgea, edgeb, mvalues);
 
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 
 	std::vector<double> expect_raw = {
@@ -386,7 +386,7 @@ TEST(OPERATOR, Concat)
 
 
 static void elementary_unary (
-	std::function<eigen::EigenptrT<double>(teq::Shape,const teq::iTensor&)> f,
+	std::function<eigen::EigenptrT(teq::Shape,const teq::iTensor&)> f,
 	std::function<double(double)> unary,
 	std::vector<double> invec = {-2, 8, -4, -5, 7, 6})
 {
@@ -398,7 +398,7 @@ static void elementary_unary (
 		MockLeaf edge(invec, shape);
 		auto r = f(shape, edge);
 
-		double* raw = r->get_ptr();
+		double* raw = (double*) r->data();
 		r->assign();
 
 		std::vector<double> got_raw(raw, raw + shape.n_elems());
@@ -409,7 +409,7 @@ static void elementary_unary (
 		MockLeaf edge(invec, shape);
 		auto r = f(shape, edge);
 
-		double* raw = r->get_ptr();
+		double* raw = (double*) r->data();
 		r->assign();
 
 		std::vector<double> got_raw(raw, raw + shape.n_elems());
@@ -517,7 +517,7 @@ TEST(OPERATOR, Convolution)
 	MockLeaf kernel(std::vector<double>{0.3, 0.6}, teq::Shape({2}));
 
 	auto r = eigen::convolution<double>(outshape, image, kernel, mvalues);
-	double* raw = r->get_ptr();
+	double* raw = (double*) r->data();
 	r->assign();
 
 	std::vector<double> expect_raw = {

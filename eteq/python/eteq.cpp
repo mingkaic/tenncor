@@ -2,7 +2,7 @@
 
 #include "pyutils/convert.hpp"
 
-#include "teq/session.hpp"
+#include "teq/isession.hpp"
 
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/derive.hpp"
@@ -193,7 +193,7 @@ PYBIND11_MODULE(eteq, m)
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
-		.def(py::init());
+		.def(py::init(&eigen::get_session));
 
 	// optimization rules
 	py::class_<opt::CversionCtx> rules(m, "OptRules");

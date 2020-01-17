@@ -44,14 +44,14 @@ struct Variable final : public iLeaf<T>
 
 	Variable<T>& operator = (Variable<T>&& other) = delete;
 
-	void assign (eigen::TensMapT<T>& input)
+	void assign (const eigen::TensMapT<T>& input)
 	{
-		this->data_ = input;
+		this->ref_.data_ = input;
 	}
 
-	void assign (eigen::TensorT<T>& input)
+	void assign (const eigen::TensorT<T>& input)
 	{
-		this->data_ = input;
+		this->ref_.data_ = input;
 	}
 
 	/// Assign void pointer of specified data type enum and shape
@@ -64,7 +64,7 @@ struct Variable final : public iLeaf<T>
 		}
 		std::vector<T> data;
 		egen::type_convert(data, input, dtype, shape.n_elems());
-		this->data_ = eigen::make_tensmap<T>(data.data(), shape);
+		this->assign(eigen::make_tensmap<T>(data.data(), shape));
 	}
 
 	void assign (const teq::iTensor& tens)

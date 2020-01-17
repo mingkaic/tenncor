@@ -245,7 +245,7 @@ teq::TensptrT constant_func (teq::FuncptrT& func, opt::ParentReplF replacer)
 	return opt::constant_func(func, replacer,
 		[](teq::FuncptrT func)
 		{
-			teq::Session sess;
+			auto sess = eigen::get_session();
 			sess.track({func});
 			sess.update_target({func.get()});
 			T* data = (T*) func->data();
@@ -256,7 +256,7 @@ teq::TensptrT constant_func (teq::FuncptrT& func, opt::ParentReplF replacer)
 template <typename T>
 void constant_funcs (teq::TensptrsT& roots)
 {
-	teq::Session sess;
+	auto sess = eigen::get_session();
 	sess.track(roots);
 	opt::constant_funcs(roots,
 		[&sess](teq::FuncptrT func)

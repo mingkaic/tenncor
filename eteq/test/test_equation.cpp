@@ -6,7 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "teq/session.hpp"
+#include "teq/isession.hpp"
 
 #include "eteq/generated/api.hpp"
 #include "eteq/derive.hpp"
@@ -79,7 +79,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -294,7 +294,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -516,7 +516,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -654,7 +654,7 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -779,7 +779,7 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -908,7 +908,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
