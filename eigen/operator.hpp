@@ -282,7 +282,7 @@ EigenptrT slice (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttr
 		// SINCE tensor is column major, index of last dimension denote
 		// the number of batches before start of output slice
 		// (a batch defined as the subtensor of shape shape[:lastdim])
-		return std::make_shared<EigenRef<T>>(
+		return std::make_shared<PtrRef<T>>(
 			(T*) in.data() + index * batchsize);
 	}
 	DimensionsT outdims = shape_convert(outshape);
@@ -316,7 +316,7 @@ EigenptrT group_concat (teq::Shape outshape, const teq::TensptrsT& group, const 
 	auto it = outshape.begin();
 	std::copy(it, it + dimension, reshaped.begin());
 	std::copy(it + dimension + 1, outshape.end(), reshaped.begin() + dimension);
-	return std::make_shared<EigenAssignTens<T,std::vector<TensMapT<T>>>>(
+	return std::make_shared<TensAssign<T,std::vector<TensMapT<T>>>>(
 		0, shape_convert(outshape), args,
 		[dimension,reshaped](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
@@ -338,7 +338,7 @@ EigenptrT group_sum (teq::Shape outshape, const teq::TensptrsT& group)
 		{
 			return make_tensmap((T*) arg->data(), arg->shape());
 		});
-	return std::make_shared<EigenAssignTens<T,std::vector<TensMapT<T>>>>(
+	return std::make_shared<TensAssign<T,std::vector<TensMapT<T>>>>(
 		0, shape_convert(outshape), args,
 		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
@@ -360,7 +360,7 @@ EigenptrT group_prod (teq::Shape outshape, const teq::TensptrsT& group)
 		{
 			return make_tensmap((T*) arg->data(), arg->shape());
 		});
-	return std::make_shared<EigenAssignTens<T,std::vector<TensMapT<T>>>>(
+	return std::make_shared<TensAssign<T,std::vector<TensMapT<T>>>>(
 		1, shape_convert(outshape), args,
 		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
@@ -432,7 +432,7 @@ EigenptrT scatter (teq::Shape outshape, const teq::iTensor& in, const marsh::iAt
 	std::fill(incrs.begin(), incrs.end(), 1);
 	std::copy(dims.begin(), dims.begin() +
 		std::min((size_t) teq::rank_cap, dims.size()), incrs.begin());
-	return std::make_shared<EigenAssignTens<T,TensMapT<T>>>(
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(
 		0, shape_convert(outshape), make_tensmap((T*) in.data(), in.shape()),
 		[incrs](TensorT<T>& out, const TensMapT<T>& in)
 		{

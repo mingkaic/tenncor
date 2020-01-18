@@ -68,9 +68,9 @@ private:
 			children[i] = trailed_.at(child.get());
 		}
 
-		trailed_.emplace(&func, Functor<T>::get(
+		trailed_.emplace(&func, make_funcattr<T>(
 			(egen::_GENERATED_OPCODE) func.get_opcode().code_,
-			children, std::move(dup_attrs)));
+			children, dup_attrs));
 	}
 
 	teq::PathFinder pfinder_;

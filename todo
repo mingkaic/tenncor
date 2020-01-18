@@ -16,8 +16,6 @@ P5 = "get to it eventually"
 
 >>>> aux project >>>>
    - train convolutional nn demo
-   - refactor session to take on Device interface
-   - make eigen device configurable
    - select and integrate some other CUDA-supported LinAlgebra libraries
 
 >>> bugs >>>

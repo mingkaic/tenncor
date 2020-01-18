@@ -855,7 +855,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 	auto output = layer.connect(in);
 
 	double epsilon = 1e-5;
-    auto common = output + epsilon;
+	auto common = output + epsilon;
 	auto err = tenncor::reduce_mean(-(out * tenncor::log(common) + (1. - out) * tenncor::log(1. - common)));
 
 	auto contents = layer.get_storage();
@@ -970,9 +970,9 @@ TEST(CONNECT, TanhRNNTraining)
 	teq::Shape out_shape({outdim, nseq});
 
 	double lmbd = 0.5;
-    double learning_rate = 0.05;
-    double momentum_term = 0.80;
-    double eps = 1e-6;
+	double learning_rate = 0.05;
+	double momentum_term = 0.80;
+	double eps = 1e-6;
 
 	teq::Shape w0_shape({hidden_dim, indim});
 	teq::Shape b0_shape({hidden_dim});
@@ -1281,7 +1281,7 @@ TEST(CONNECT, TanhRNNTraining)
 	auto output = layer.connect(in);
 
 	double epsilon = 1e-5;
-    auto common = output + epsilon;
+	auto common = output + epsilon;
 	auto err = tenncor::reduce_mean(-(out * tenncor::log(common) + (1. - out) * tenncor::log(1. - common)));
 
 	auto contents = layer.get_storage();

@@ -228,6 +228,9 @@ PYBIND11_MODULE(layr, m)
 				return layr::link<PybindT>(layers, input);
 			})
 
+		// ==== error functions ====
+		.def("sqr_diff", &layr::sqr_diff<PybindT>)
+
 		// ==== layer training ====
 		.def("sgd_train", &trainer::sgd<PybindT>,
 			py::arg("model"), py::arg("sess"),

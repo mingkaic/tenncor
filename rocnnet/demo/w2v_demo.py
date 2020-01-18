@@ -5,6 +5,7 @@ from collections import defaultdict
 
 import eteq.tenncor as tc
 import eteq.eteq as eteq
+import layr.layr as layr
 
 text = "natural language processing and machine learning is fun and exciting"
 
@@ -64,48 +65,37 @@ def generate_training_data(corpus):
 
 training_data, word_index, index_word = generate_training_data(corpus)
 
-class Model:
-    def __init__(self, getW1, getW2):
-        self.w1 = eteq.variable(np.array(getW1), 'w1')
-        self.w2 = eteq.variable(np.array(getW2), 'w2')
-
-    def forward(self, x):
-        return tc.softmax(tc.matmul(tc.matmul(x, self.w1), self.w2))
-
-    def backprop(self, e, h, x):
-        # https://docs.scipy.org/doc/numpy-1.15.1/reference/generated/numpy.outer.html
-        # Column vector EI represents row-wise sum of prediction errors across each context word for the current center word
-        # Going backwards, we need to take derivative of E with respect of w2
-        # h - shape 10x1, e - shape 9x1, dl_dw2 - shape 10x9
-        dl_dw2 = np.outer(h, e)
-        # x - shape 1x8, w2 - 5x8, e.T - 8x1
-        # x - 1x8, np.dot() - 5x1, dl_dw1 - 8x5
-        dl_dw1 = np.outer(x, np.dot(self.w2, e.T))
-        # Update weights
-        self.w1 = self.w1 - (lr * dl_dw1)
-        self.w2 = self.w2 - (lr * dl_dw2)
-
 # training
 # Initialising weight matrices
 # Both s1 and s2 should be randomly initialised but for this demo, we pre-determine the arrays (getW1 and getW2)
 # getW1 - shape (9x10) and getW2 - shape (10x9)
 np.random.seed(0)
 
-model = Model(
-    np.random.uniform(-1, 1, (len(word_index), n)),
-    np.random.uniform(-1, 1, (n, len(word_index))))
+def embedding_init(shape, label):
+    return eteq.variable(np.random.uniform(
+        -1, 1, tuple(shape.as_list())), label)
+
+nword = len(word_index)
+embedding = layr.dense([nword], [n],
+    weight_init=embedding_init, bias_init=None)
+model = layr.link([
+    embedding,
+    layr.dense([n], [nword],
+        weight_init=embedding_init, bias_init=None),
+    layr.bind(tc.softmax),
+])
+w1 = embedding.get_storage()[0]
 
 sess = eteq.Session()
 
 winput = eteq.variable(np.random.rand(len(word_index)) * 2 - 1, 'input')
 woutput = eteq.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'output')
-y_pred = model.forward(winput)
-err = tc.reduce_sum(tc.pow(tc.extend(y_pred, [1, 2 * window]) - woutput, 2.))
-dw1 = eteq.derive(err, model.w1)
-dw2 = eteq.derive(err, model.w2)
-u1 = model.w1 - dw1 * lr
-u2 = model.w2 - dw2 * lr
-sess.track([u1, u2, err])
+
+y_pred = model.connect(winput)
+sess.track([y_pred])
+train = layr.sgd_train(model, sess, winput, woutput, layr.get_sgd(lr),
+    err_func=lambda ex, out: tc.reduce_sum(tc.pow(tc.extend(out, [1, 2 * window]) - ex, 2.)))
+# eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
 # Cycle through each epoch
 for i in range(epochs):
@@ -116,19 +106,17 @@ for i in range(epochs):
     # w_t = vector for target word, w_c = vectors for context words
     for w_t, w_c in training_data:
         wcdata = np.array(w_c)
+        sess.update_target([y_pred])
         for j in range(2 * window - wcdata.shape[0]):
             wcdata = np.concatenate((wcdata, y_pred.get().reshape(1, len(word_index))), 0)
         winput.assign(np.array(w_t))
         woutput.assign(wcdata)
-        sess.update_target([u1, u2, err])
-        model.w1.assign(u1.get())
-        model.w2.assign(u2.get())
-        loss += err.get()
+        loss += train().as_numpy()
     print('Epoch:', i, "Loss:", loss)
 
 def word_vec(word):
     w_index = word_index[word]
-    v_w = model.w1.get()[w_index]
+    v_w = w1.get()[w_index]
     return v_w
 
 print(word_vec("machine"))
@@ -139,7 +127,7 @@ def vec_sim(word, top_n):
 
     for i in range(len(word_index)):
         # Find the similary score for each word in vocab
-        v_w2 = model.w1.get()[i]
+        v_w2 = w1.get()[i]
         theta_sum = np.dot(v_w1, v_w2)
         theta_den = np.linalg.norm(v_w1) * np.linalg.norm(v_w2)
         theta = theta_sum / theta_den
