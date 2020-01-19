@@ -6,8 +6,6 @@
 /// Typed tensor pointer transport object
 ///
 
-#include "estd/estd.hpp"
-
 #include "eigen/generated/dtype.hpp"
 
 #include "eteq/variable.hpp"

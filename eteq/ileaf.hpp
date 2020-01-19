@@ -6,8 +6,6 @@
 /// Define interfaces and building blocks for an equation graph
 ///
 
-#include "teq/ileaf.hpp"
-
 #include "eigen/device.hpp"
 
 #ifndef ETEQ_ILEAF_HPP

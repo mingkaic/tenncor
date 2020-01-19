@@ -15,7 +15,6 @@
 
 #include "estd/triebig.hpp"
 
-#include "teq/ifunctor.hpp"
 #include "teq/traveler.hpp"
 
 #include "eigen/generated/opcode.hpp"

@@ -6,7 +6,6 @@
 
 #include "teq/teq.hpp"
 
-#include "dbg/print/teq.hpp"
 #include "dbg/print/teq_csv.hpp"
 
 #include "eteq/generated/pyapi.hpp"

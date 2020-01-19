@@ -6,8 +6,6 @@
 /// Draw an equation graph as an ascii tree
 ///
 
-#include <unordered_map>
-
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
 

@@ -6,10 +6,6 @@
 /// Define error approximation algorithms and variable assignment utilities
 ///
 
-#include <unordered_map>
-
-#include "teq/isession.hpp"
-
 #include "eteq/generated/api.hpp"
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/make.hpp"

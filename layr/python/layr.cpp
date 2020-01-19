@@ -1,21 +1,12 @@
 #include <fstream>
 #include <sstream>
 
-#include "pybind11/pybind11.h"
-#include "pybind11/numpy.h"
 #include "pybind11/stl.h"
 #include "pybind11/functional.h"
 
 #include "pyutils/convert.hpp"
 
-#include "eteq/generated/pyapi.hpp"
-
-#include "layr/init.hpp"
-#include "layr/approx.hpp"
-#include "layr/api.hpp"
-
 #include "layr/trainer/sgd.hpp"
-#include "layr/trainer/rbm.hpp"
 #include "layr/trainer/dqn.hpp"
 #include "layr/trainer/dbn.hpp"
 

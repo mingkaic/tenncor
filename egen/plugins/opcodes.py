@@ -191,7 +191,7 @@ class OpcodesPlugin:
         generated_files[_src_file] = FileRep(
             build_template(_source_template, module,
                 opcodes['params'], opcodes['opcalls']),
-            user_includes=['"estd/estd.hpp"'],
+            user_includes=['"estd/contain.hpp"'],
             internal_refs=[_hdr_file])
 
         return generated_files

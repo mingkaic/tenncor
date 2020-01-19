@@ -9,7 +9,6 @@
 #include <list>
 
 #include "teq/traveler.hpp"
-#include "teq/ifunctor.hpp"
 
 #include "onnx/marshal.hpp"
 

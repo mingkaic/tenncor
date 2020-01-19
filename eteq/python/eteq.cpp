@@ -2,11 +2,8 @@
 
 #include "pyutils/convert.hpp"
 
-#include "teq/isession.hpp"
-
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/derive.hpp"
-#include "eteq/make.hpp"
 #include "eteq/layer.hpp"
 #include "eteq/optimize.hpp"
 

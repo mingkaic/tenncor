@@ -3,7 +3,6 @@
 
 #include "eteq/generated/pyapi.hpp"
 
-#include "dbg/psess/plugin_sess.hpp"
 // #include "dbg/psess/emit/emitter.hpp"
 #include "dbg/psess/stats/inspect.hpp"
 

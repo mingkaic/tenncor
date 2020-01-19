@@ -6,17 +6,9 @@
 /// Draw an equation graph edges in CSV format
 ///
 
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
 
-#include "marsh/objs.hpp"
-
-#include "teq/ileaf.hpp"
-#include "teq/ifunctor.hpp"
 #include "teq/traveler.hpp"
-
-#include "estd/estd.hpp"
 
 #include "dbg/print/teq.hpp"
 

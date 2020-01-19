@@ -1,5 +1,3 @@
-#include "teq/ifunctor.hpp"
-
 #include "eigen/generated/dtype.hpp"
 
 #include "dbg/psess/plugin_sess.hpp"
