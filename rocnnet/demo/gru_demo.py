@@ -9,7 +9,7 @@ import eteq.tenncor as tc
 import eteq.eteq as eteq
 import layr.layr as layr
 
-prog_description = 'Demo gru'
+prog_description = 'Demo gru model'
 
 def one_encode(indices, vocab_size):
     encoding = []

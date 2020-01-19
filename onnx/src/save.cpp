@@ -33,7 +33,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 		marshal_annotation(*pb_annotation, leaf);
 		teq::Shape shape = leaf.shape();
 
-		if (teq::Placeholder == usage)
+		if (teq::PLACEHOLDER == usage)
 		{
 			ValueInfoProto* pb_place = pb_graph_.add_input();
 			pb_place->set_name(id);
@@ -47,7 +47,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 				dims->Add()->set_dim_value(d);
 			}
 		}
-		else // Immutable or Variable
+		else // IMMUTABLE or Variable
 		{
 			TensorProto* pb_tens = pb_graph_.add_initializer();
 			pb_tens->set_name(id);

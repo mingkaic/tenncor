@@ -3,15 +3,10 @@
 /// eteq
 ///
 /// Purpose:
-/// Typed Tensor pointer transport object
+/// Typed tensor pointer transport object
 ///
 
-#include "estd/estd.hpp"
-
-#include "teq/itensor.hpp"
-
 #include "eigen/generated/dtype.hpp"
-#include "eigen/eigen.hpp"
 
 #include "eteq/variable.hpp"
 

@@ -40,7 +40,8 @@ TEST(DENSE, Connection)
 
 TEST(CONV, Connection)
 {
-	auto conv = layr::conv<float>({6, 5}, 4, 3);
+	auto conv = layr::conv<float>({6, 5}, 4, 3,
+		layr::unif_xavier_init<float>(1), layr::zero_init<float>());
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({4, 10, 9, 2}), "x");
@@ -272,7 +273,7 @@ TEST(CONNECT, TanhRNN)
 	auto dstate = eteq::derive(err, eteq::ETensor<double>(istate));
 
 	teq::TensptrsT roots = {dw, db, dstate};
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -422,7 +423,7 @@ TEST(CONNECT, DenseTanhRNN)
 	auto db0 = eteq::derive(err, eteq::ETensor<double>(bias0));
 
 	teq::TensptrsT roots = {dw1, db1, dstate, dw0, db0};
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -643,7 +644,7 @@ TEST(CONNECT, TanhRNNFull)
 		dw1, db1, dstate,
 		dw2, db2,
 	};
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -854,7 +855,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 	auto output = layer.connect(in);
 
 	double epsilon = 1e-5;
-    auto common = output + epsilon;
+	auto common = output + epsilon;
 	auto err = tenncor::reduce_mean(-(out * tenncor::log(common) + (1. - out) * tenncor::log(1. - common)));
 
 	auto contents = layer.get_storage();
@@ -881,7 +882,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		dw1, db1, dstate,
 		dw2, db2,
 	};
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -969,9 +970,9 @@ TEST(CONNECT, TanhRNNTraining)
 	teq::Shape out_shape({outdim, nseq});
 
 	double lmbd = 0.5;
-    double learning_rate = 0.05;
-    double momentum_term = 0.80;
-    double eps = 1e-6;
+	double learning_rate = 0.05;
+	double momentum_term = 0.80;
+	double eps = 1e-6;
 
 	teq::Shape w0_shape({hidden_dim, indim});
 	teq::Shape b0_shape({hidden_dim});
@@ -1280,7 +1281,7 @@ TEST(CONNECT, TanhRNNTraining)
 	auto output = layer.connect(in);
 
 	double epsilon = 1e-5;
-    auto common = output + epsilon;
+	auto common = output + epsilon;
 	auto err = tenncor::reduce_mean(-(out * tenncor::log(common) + (1. - out) * tenncor::log(1. - common)));
 
 	auto contents = layer.get_storage();
@@ -1372,7 +1373,7 @@ TEST(CONNECT, TanhRNNTraining)
 		}
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(to_track);
 
 	{

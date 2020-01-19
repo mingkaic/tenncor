@@ -16,10 +16,10 @@ namespace teq
 
 enum Usage
 {
-	Unknown = 0,
-	Immutable,
-	Variable,
-	Placeholder,
+	UNKNOWN_USAGE = 0,
+	IMMUTABLE,
+	VARUSAGE,
+	PLACEHOLDER,
 };
 
 /// Leaf of the graph commonly representing the variable in an equation
@@ -44,6 +44,9 @@ struct iLeaf : public iTensor
 
 /// Leaf smart pointer
 using LeafptrT = std::shared_ptr<iLeaf>;
+
+template <typename T>
+using LeafMapT = std::unordered_map<iLeaf*,T>;
 
 static const size_t label_limit = 5;
 

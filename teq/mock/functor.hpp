@@ -19,7 +19,7 @@ struct MockFunctor : public teq::iFunctor
 	MockFunctor (teq::TensptrsT children) :
 		MockFunctor(children, {}, teq::Opcode()) {}
 
-	MockFunctor (const MockFunctor& other) : updated_(other.updated_),
+	MockFunctor (const MockFunctor& other) :
 		children_(other.children_), opcode_(other.opcode_), data_(other.data_) {}
 
 	virtual ~MockFunctor (void) = default;
@@ -64,19 +64,14 @@ struct MockFunctor : public teq::iFunctor
 		children_[index] = arg;
 	}
 
-	void calc(void) override
+	teq::iDeviceRef& device (void) override
 	{
-		updated_ = true;
+		return data_.ref_;
 	}
 
-	void* data (void) override
+	const teq::iDeviceRef& device (void) const override
 	{
-		return data_.data();
-	}
-
-	const void* data (void) const override
-	{
-		return data_.data();
+		return data_.ref_;
 	}
 
 	teq::Shape shape (void) const override

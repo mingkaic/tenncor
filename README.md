@@ -31,19 +31,23 @@ This module is implements basic operations for Tenncor's TEQ Tensor objects gene
 
 Additionally, ETEQ also defines data format and (de)serialization methods required by PBM.
 
-### [OPT (OPTimizer)](opt/README_OPT.md)
-
-This module specifies graph optimization through TEQ's visitor pattern.
-
 ### [ONNX (ONNX marshaller)](onnx/README_ONNX.md)
 
 This module marshals any TEQ graph, but requires data serialization functors when saving and loading.
 
+### [MARSH (MARSHable objects)](marsh/README_MARSH.md)
+
+This module defines marshable objects used as attribute values
+
 ## Supplemental Components
 
-### [CCUR (ConCURrent session)](ccur/README_CCUR.md)
+### [OPT (OPTimizer)](opt/README_OPT.md)
 
-This module implements session that updates graph nodes concurrently
+This module specifies graph optimization through TEQ's visitor pattern.
+
+### [QUERY](query/README_QUERY.md)
+
+This module looks up TEQ subgraphs according to structural pattern, attributes, variable shapes or labels
 
 ### [LAYR (LAYeR models)](layr/README_LAYR.md)
 
@@ -57,9 +61,18 @@ This module is contains debug libraries for TEQ Graphs.
 
 High-level diagram available: https://drive.google.com/file/d/1PrsFa7Duj4Whlu_m0lmFr5JGikGnU3gC/view?usp=sharing
 
-## Tools and utility
+## Generators
 
-- DBG (DeBuGger)
+### GEN
+
+This is a generic generator for creating files from dictionary of objects and extensible plugins
+
+### EGEN
+
+This is the generator for EIGEN/ETEQ module. Generated files include:
+- opcode: which defines OPERATION enum, operator metadata, switch case macros, and Eigen operator creation
+- dtype: which defines DATA TYPE enum, type metadata, and switch case macros
+- api, and pyapi: which defines APIs in C++ and python (through Pybind11)
 
 ## Building
 

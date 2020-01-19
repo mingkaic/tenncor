@@ -1,6 +1,10 @@
 licenses(["notice"])
 
 load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+load(
+    "@com_github_stackb_rules_proto//cpp:cpp_grpc_library.bzl",
+    "cpp_grpc_library"
+)
 
 package(
     default_visibility = ["//visibility:public"],
@@ -9,32 +13,100 @@ package(
 filegroup(
     name = "srcs",
     srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
+        "*.py",
+        "**/*.hpp",
+        "**/*.cpp",
     ]) + ["BUILD.bazel"],
 )
 
 ######### LIBRARY #########
 
 cc_library(
-    name = "stream_out",
-    hdrs = glob(["stream/*.hpp"]),
-    srcs = glob(["stream/*.cpp"]),
+    name = "print",
+    hdrs = glob(["print/*.hpp"]),
+    srcs = glob(["print/*.cpp"]),
     copts = ["-std=c++17"],
     deps = ["//teq:teq"],
 )
 
+cc_library(
+    name = "psess",
+    hdrs = glob([
+        "psess/*.hpp",
+        "psess/**/*.hpp",
+    ]),
+    srcs = glob(["**/src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//teq:teq",
+    ],
+)
+
+cc_library(
+    name = "emit_plugin",
+    hdrs = glob([
+        "psess/emit/*.hpp",
+    ]),
+    srcs = glob(["**/src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//eteq:eteq",
+        "//dbg:psess",
+        "//dbg:gemitter_cc_proto",
+        "@boost//:uuid",
+        "@com_github_mingkaic_cppkg//jobs:jobs",
+    ],
+)
+
+cc_library(
+    name = "stats_plugin",
+    hdrs = glob([
+        "psess/emit/*.hpp",
+    ]),
+    srcs = glob(["**/src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//eigen:eigen",
+        "//dbg:psess",
+    ],
+)
+
+proto_library(
+    name = "gemitter_proto",
+    srcs = ["psess/emit/gemitter.proto"],
+    deps = ["@com_github_onnx_onnx//:onnx_proto"],
+)
+
+cpp_grpc_library(
+    name = "gemitter_cc_proto",
+    deps = ["//dbg:gemitter_proto"],
+    with_grpc = True,
+)
+
 pybind_library(
-    name = "stream_dbg_py",
-    cc_srcs = ["//dbg:python/stream.cpp"],
+    name = "print_py",
+    cc_srcs = ["python/print.cpp"],
     cc_deps = [
-        "//dbg:stream_out",
+        "//dbg:print",
         "//eteq:eteq",
     ],
 )
 
-py_library(
-    name = "stream_wrapper",
-    srcs = glob(["*.py"]),
-    deps = ["//dbg:stream_dbg_py"],
+pybind_library(
+    name = "psess_py",
+    cc_srcs = ["python/psess.cpp"],
+    cc_deps = [
+        # "//dbg:emit_plugin",
+        "//dbg:stats_plugin",
+        "//eteq:eteq",
+    ],
+    py_deps = ["//eteq:eteq_py"],
+)
+
+######### TEST #########
+
+cc_binary(
+    name = "mockserver",
+    srcs = ["psess/emit/mock/mockserver.cpp"],
+    deps = ["//dbg:gemitter_cc_proto"],
 )

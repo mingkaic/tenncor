@@ -12,7 +12,7 @@
 
 #include "exam/exam.hpp"
 
-#include "dbg/stream/teq.hpp"
+#include "dbg/print/teq.hpp"
 
 #include "eteq/eteq.hpp"
 

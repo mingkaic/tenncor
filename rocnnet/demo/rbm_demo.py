@@ -13,7 +13,7 @@ import eteq.tenncor as tc
 import eteq.eteq as eteq
 import layr.layr as layr
 
-prog_description = 'Demo rbm_trainer'
+prog_description = 'Demo rbm trainer'
 
 def mse_errfunc(x, visible_sample_):
     return tc.reduce_mean(tc.square(x - visible_sample_))

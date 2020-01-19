@@ -4,8 +4,6 @@ COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*'
 
 CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
 
-CCUR_TEST := //ccur:test
-
 EIGEN_TEST := //eigen:test
 
 ETEQ_CTEST := //eteq:ctest
@@ -14,9 +12,11 @@ LAYR_TEST := //layr:test
 
 MARSH_TEST := //marsh:test
 
+ONNX_TEST := //onnx:test
+
 OPT_TEST := //opt/...
 
-ONNX_TEST := //onnx:test
+QUERY_TEST := //query:test
 
 TEQ_TEST := //teq:test
 
@@ -121,12 +121,8 @@ cov_genhtml: coverage.info
 
 
 coverage:
-	$(CCOVER) $(TEQ_TEST) $(ONNX_TEST) $(OPT_TEST) $(EIGEN_TEST) $(ETEQ_CTEST) $(CCUR_TEST) $(LAYR_TEST)
+	$(CCOVER) $(EIGEN_TEST) $(ETEQ_CTEST) $(LAYR_TEST) $(ONNX_TEST) $(OPT_TEST) $(QUERY_TEST) $(TEQ_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
-
-cover_ccur:
-	$(CCOVER) $(CCUR_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
 
 cover_eigen:
 	$(CCOVER) $(EIGEN_TEST)
@@ -144,13 +140,17 @@ cover_marsh:
 	$(CCOVER) $(MARSH_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
 
+cover_onnx:
+	$(CCOVER) $(ONNX_TEST)
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' -o coverage.info
+
 cover_opt:
 	$(CCOVER) $(OPT_TEST)
 	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'eigen/*' 'eteq/*' -o coverage.info
 
-cover_onnx:
-	$(CCOVER) $(ONNX_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' -o coverage.info
+cover_query:
+	$(CCOVER) $(QUERY_TEST)
+	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'opt/*' 'eigen/*' -o coverage.info
 
 cover_teq:
 	$(CCOVER) $(TEQ_TEST)
@@ -159,21 +159,23 @@ cover_teq:
 
 lcov: coverage cov_clean
 
-lcov_ccur: cover_ccur cov_clean
+lcov_eigen: cover_eigen cov_clean
 
 lcov_eteq: cover_eteq cov_clean
 
 lcov_layr: cover_layr cov_clean
 
+lcov_onnx: cover_onnx cov_clean
+
 lcov_opt: cover_opt cov_clean
 
-lcov_onnx: cover_onnx cov_clean
+lcov_query: cover_query cov_clean
 
 lcov_teq: cover_teq cov_clean
 
 
 .PHONY: print_vars rocnnet_py_build rocnnet_py_export cov_clean cov_genhtml
-.PHONY: coverage cover_ccur cover_eigen cover_eteq cover_layr cover_opt cover_onnx cover_teq
-.PHONY: lcov lcov_ccur lcov_eteq lcov_layr lcov_opt lcov_onnx lcov_teq
+.PHONY: coverage cover_eigen cover_eigen cover_eteq cover_layr cover_opt cover_onnx cover_teq
+.PHONY: lcov lcov_eigen lcov_eteq lcov_layr lcov_opt lcov_onnx lcov_query lcov_teq
 .PHONY: onnx2json onnx_test_o2j eteq_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
 .PHONY: json2onnx onnx_test_j2o eteq_test_j2o gd_model_j2o rbm_model_j2o dqn_model_j2o dbn_model_j2o rnn_model_j2o lstm_model_j2o gru_model_j2o

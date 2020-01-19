@@ -7,5 +7,5 @@
 ///
 
 #include "eteq/derive.hpp"
-#include "eteq/serialize.hpp"
 #include "eteq/optimize.hpp"
+#include "eteq/layer.hpp"

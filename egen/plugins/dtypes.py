@@ -232,7 +232,7 @@ class DTypesPlugin:
 
         generated_files[_src_file] = FileRep(
             build_template(_source_template, module, dtypes),
-            user_includes=['"estd/estd.hpp"'],
+            user_includes=['"estd/contain.hpp"'],
             internal_refs=[_hdr_file])
 
         return generated_files

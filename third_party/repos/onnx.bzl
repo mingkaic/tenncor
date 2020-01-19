@@ -5,6 +5,8 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+licenses(["notice"]) # MIT
+
 proto_library(
     name = "onnx_proto",
     srcs = ["onnx/onnx.proto"],

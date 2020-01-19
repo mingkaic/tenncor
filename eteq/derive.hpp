@@ -39,6 +39,30 @@ ETensor<T> reduce_grad (teq::Shape shape,
 	return tenncor::extend(bwd, bcast);
 }
 
+static inline std::vector<teq::RankT> reorder_permute (
+	std::vector<teq::RankT> order)
+{
+	std::array<bool,teq::rank_cap> visited;
+	std::fill(visited.begin(), visited.end(), false);
+	for (teq::RankT i = 0, n = order.size(); i < n; ++i)
+	{
+		visited[order[i]] = true;
+	}
+	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+	{
+		if (false == visited[i])
+		{
+			order.push_back(i);
+		}
+	}
+	std::vector<teq::RankT> reorder(teq::rank_cap);
+	for (size_t i = 0; i < teq::rank_cap; ++i)
+	{
+		reorder[order[i]] = i;
+	}
+	return reorder;
+}
+
 /// ETEQ implementation of TEQ's Backward Propagation Builder
 template <typename T>
 struct DerivativeFuncs final : public teq::iDerivativeFuncs
@@ -105,6 +129,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::CONV:
 			case egen::CONCAT:
 			case egen::GROUP_CONCAT:
+			case egen::MATMUL:
 				out = make_constant_scalar<T>(1, args[arg_idx]->shape());
 				break;
 			case egen::MUL:
@@ -165,101 +190,6 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::REDUCE_MAX:
 			case egen::REDUCE_MIN:
 				out = reduce_grad(args.front()->shape(), ETensor<T>(op), op) == ETensor<T>(args.front());
-				break;
-			case egen::MATMUL:
-			{
-				ETensor<T> lhs = ETensor<T>(args[0]);
-				ETensor<T> rhs = ETensor<T>(args[1]);
-
-				eigen::PairVecT<teq::RankT> dims;
-				eigen::Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, *op);
-
-				std::vector<teq::DimT> llist = teq::narrow_shape(lhs->shape());
-				std::vector<teq::DimT> rlist = teq::narrow_shape(rhs->shape());
-				std::array<bool,teq::rank_cap> avisit;
-				std::array<bool,teq::rank_cap> bvisit;
-				std::fill(avisit.begin(), avisit.end(), false);
-				std::fill(bvisit.begin(), bvisit.end(), false);
-				for (auto coms : dims)
-				{
-					teq::RankT ldim = coms.first;
-					teq::RankT rdim = coms.second;
-					avisit[ldim] = true;
-					bvisit[rdim] = true;
-					// append 1s for mapped common dimensions
-					if (ldim > llist.size())
-					{
-						llist.insert(llist.end(), ldim - llist.size(), 1);
-					}
-					if (rdim > rlist.size())
-					{
-						rlist.insert(rlist.end(), rdim - rlist.size(), 1);
-					}
-				}
-				std::vector<teq::RankT> lcommon, luncommon, rcommon, runcommon;
-				for (teq::RankT i = 0, n = llist.size(); i < n; ++i)
-				{
-					(avisit[i] ? &lcommon : &luncommon)->push_back(i);
-				}
-				for (teq::RankT i = 0, n = rlist.size(); i < n; ++i)
-				{
-					(bvisit[i] ? &rcommon : &runcommon)->push_back(i);
-				}
-
-				// desired shape as follows:
-				// uncommon dimensions go in front ordered by <right uncommon><left uncommon><common>
-				ETensor<T> ext;
-				std::vector<teq::RankT> permlist;
-				if (0 == arg_idx)
-				{
-					// extend rhs to fit before reduce summation to op:
-					// rshape contains: <right uncommon + common>, so extend with <left uncommon>
-					// <right uncommon + common><left uncommon> permute to desired shape
-
-					std::vector<teq::DimT> luncom_dims;
-					luncom_dims.reserve(luncommon.size());
-					std::transform(luncommon.begin(), luncommon.end(),
-						std::back_inserter(luncom_dims),
-						[&llist](teq::RankT i)
-						{
-							return llist.at(i);
-						});
-					teq::RankT roffset = rlist.size();
-					ext = tenncor::extend(rhs, roffset, luncom_dims);
-					permlist = runcommon;
-					permlist.reserve(luncommon.size());
-					for (teq::RankT i = 0, n = luncommon.size(); i < n; ++i)
-					{
-						permlist.push_back(i + roffset);
-					}
-					permlist.insert(permlist.end(), rcommon.begin(), rcommon.end());
-				}
-				else
-				{
-					// extend rhs to fit before reduce summation to op:
-					// lshape contains: <left uncommon + common>, so extend with <right uncommon>
-					// <left uncommon + common><right uncommon> permute to desired shape
-
-					std::vector<teq::DimT> runcom_dims;
-					runcom_dims.reserve(runcommon.size());
-					std::transform(runcommon.begin(), runcommon.end(),
-						std::back_inserter(runcom_dims),
-						[&rlist](teq::RankT i)
-						{
-							return rlist.at(i);
-						});
-					teq::RankT loffset = llist.size();
-					ext = tenncor::extend(lhs, loffset, runcom_dims);
-					permlist.reserve(runcommon.size());
-					for (teq::RankT i = 0, n = runcommon.size(); i < n; ++i)
-					{
-						permlist.push_back(i + loffset);
-					}
-					permlist.insert(permlist.end(), luncommon.begin(), luncommon.end());
-					permlist.insert(permlist.end(), lcommon.begin(), lcommon.end());
-				}
-				out = tenncor::permute(ext, permlist);
-			}
 				break;
 			case egen::ARGMAX:
 				logs::fatalf("cannot derive %s", opcode.name_.c_str());
@@ -340,27 +270,8 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				std::vector<teq::RankT> order;
 				eigen::Packer<std::vector<teq::RankT>>().unpack(order, *op);
 
-				bool visited[teq::rank_cap];
-				std::fill(visited, visited + teq::rank_cap, false);
-				for (teq::RankT i = 0, n = order.size(); i < n; ++i)
-				{
-					visited[order[i]] = true;
-				}
-				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
-				{
-					if (false == visited[i])
-					{
-						order.push_back(i);
-					}
-				}
-
-				std::vector<teq::RankT> reorder(teq::rank_cap);
-				for (size_t i = 0; i < teq::rank_cap; ++i)
-				{
-					reorder[order[i]] = i;
-				}
 				out = ETensor<T>(local_der) * tenncor::permute(
-					ETensor<T>(supcomp_grad), reorder);
+					ETensor<T>(supcomp_grad), reorder_permute(order));
 			}
 				break;
 			case egen::RESHAPE:
@@ -376,101 +287,89 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				eigen::PairVecT<teq::RankT> dims;
 				eigen::Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, *op);
 
-				std::vector<teq::DimT> llist = teq::narrow_shape(args[0]->shape());
-				std::vector<teq::DimT> rlist = teq::narrow_shape(args[1]->shape());
-				std::array<bool,teq::rank_cap> avisit;
-				std::array<bool,teq::rank_cap> bvisit;
-				std::fill(avisit.begin(), avisit.end(), false);
-				std::fill(bvisit.begin(), bvisit.end(), false);
+				// Given dimension u = dims,
+
+				// ext(dC, Vb[u])[Vb[^u], Va[^u], Vb[u]] @ ext(B, Va[u])[Vb, Va[u]] =>
+				// _A[Va[u], Va[^u]] => permute(_A) => dA[Va]
+
+				// ext(A, Vb[u])[Va, Vb[u]] @ ext(dC, Va[u])[Vb[^u], Va[^u], Va[u]] =>
+				// _B[Vb[^u], Vb[u]] => permute(_B) => dB[Vb]
+
+				std::array<bool,teq::rank_cap> lvisit;
+				std::array<bool,teq::rank_cap> rvisit;
+				std::fill(lvisit.begin(), lvisit.end(), false);
+				std::fill(rvisit.begin(), rvisit.end(), false);
+				// supcomp has <rucom_ranks, lucom_ranks>
+				// where rucom_ranks are visited right ranks
+				// and lucom_ranks are visited left ranks
+				std::vector<teq::RankT>
+				lucom_ranks, rucom_ranks, lcom_ranks, rcom_ranks;
+				lcom_ranks.reserve(dims.size());
+				rcom_ranks.reserve(dims.size());
+				lucom_ranks.reserve(teq::rank_cap - dims.size());
+				rucom_ranks.reserve(teq::rank_cap - dims.size());
 				for (auto coms : dims)
 				{
-					teq::RankT ldim = coms.first;
-					teq::RankT rdim = coms.second;
-					avisit[ldim] = true;
-					bvisit[rdim] = true;
-					// append 1s for mapped common dimensions
-					if (ldim > llist.size())
+					lvisit[coms.first] = true;
+					rvisit[coms.second] = true;
+					lcom_ranks.push_back(coms.first);
+					rcom_ranks.push_back(coms.second);
+				}
+				for (teq::RankT i = 0,
+					n = teq::narrow_shape(args[0]->shape()).size(); i < n; ++i)
+				{
+					if (false == lvisit[i])
 					{
-						llist.insert(llist.end(), ldim - llist.size(), 1);
-					}
-					if (rdim > rlist.size())
-					{
-						rlist.insert(rlist.end(), rdim - rlist.size(), 1);
+						lucom_ranks.push_back(i);
 					}
 				}
-				std::vector<teq::RankT> lcommon, luncommon, rcommon, runcommon;
-				for (teq::RankT i = 0, n = llist.size(); i < n; ++i)
+				for (teq::RankT i = 0,
+					n = teq::narrow_shape(args[1]->shape()).size(); i < n; ++i)
 				{
-					(avisit[i] ? &lcommon : &luncommon)->push_back(i);
-				}
-				for (teq::RankT i = 0, n = rlist.size(); i < n; ++i)
-				{
-					(bvisit[i] ? &rcommon : &runcommon)->push_back(i);
+					if (false == rvisit[i])
+					{
+						rucom_ranks.push_back(i);
+					}
 				}
 
-				std::vector<teq::DimT> extlist;
-				if (0 == arg_idx)
+				// left = supcomp_grad
+				eteq::ETensor<T> right;
+				std::vector<teq::RankT> order;
+				eigen::PairVecT<teq::RankT> grad_dims;
+				if (arg_idx == 0)
 				{
-					extlist.reserve(lcommon.size());
-					for (teq::RankT l : lcommon)
+					right = args[1];
+					for (teq::RankT i = 0, n = rucom_ranks.size(); i < n; ++i)
 					{
-						extlist.push_back(llist.at(l));
+						grad_dims.push_back({i, rucom_ranks[i]});
 					}
+					// convolution output has shape <lucom, lcom>
+					order = lcom_ranks;
+					order.insert(order.end(), lucom_ranks.begin(), lucom_ranks.end());
+					// reverse order such that convolution output permutes to args[0]->shape()
+					order = reorder_permute(order);
 				}
 				else
 				{
-					extlist.reserve(rcommon.size());
-					for (teq::RankT r : rcommon)
+					right = args[0];
+					for (teq::RankT i = 0, n = lucom_ranks.size(); i < n; ++i)
 					{
-						extlist.push_back(rlist.at(r));
+						grad_dims.push_back({rucom_ranks.size() + i, lucom_ranks[i]});
 					}
+					// convolution output has shape <rcom, rucom>
+					order = rcom_ranks;
+					order.insert(order.end(), rucom_ranks.begin(), rucom_ranks.end());
+					// reverse order such that convolution output permutes to args[1]->shape()
+					order = reorder_permute(order);
 				}
-
-				// desired shape as follows:
-				// uncommon dimensions go in front ordered by <supcomp_grad shape><common of arg_idx>
-				// <supcomp_grad shape> = <right uncommon><left uncommon>
-				auto ext = tenncor::extend(ETensor<T>(supcomp_grad),
-					luncommon.size() + runcommon.size(), extlist);
-
-				// todo: apply dims
-				teq::RankT arg_rank;
-				std::vector<teq::RankT> fwdperm;
-				if (0 == arg_idx)
+				if (grad_dims.empty())
 				{
-					// currently: <right uncommon><left uncommon><left common>
-					// permute such that shape = <left shape><uncommon right>
-					arg_rank = llist.size();
-					for (teq::RankT i = 0, n = runcommon.size(); i < n; ++i)
-					{
-						fwdperm.push_back(arg_rank + i);
-					}
-					fwdperm.insert(fwdperm.end(), luncommon.begin(), luncommon.end());
-					fwdperm.insert(fwdperm.end(), lcommon.begin(), lcommon.end());
+					grad_dims.push_back({
+						teq::narrow_shape(supcomp_grad->shape()).size(),
+						teq::narrow_shape(right->shape()).size()});
 				}
-				else
-				{
-					// currently: <right uncommon><left uncommon><right common>
-					// permute such that shape = <right shape><uncommon left>
-					arg_rank = rlist.size();
-					fwdperm = runcommon;
-					for (teq::RankT i = 0, n = luncommon.size(); i < n; ++i)
-					{
-						fwdperm.push_back(arg_rank + i);
-					}
-					fwdperm.insert(fwdperm.end(), rcommon.begin(), rcommon.end());
-				}
-				// reverse fwdperm
-				size_t nperms = fwdperm.size();
-				std::vector<teq::RankT> permlist(nperms);
-				for (size_t i = 0; i < nperms; ++i)
-				{
-					permlist[fwdperm[i]] = i;
-				}
-
-				// reduce <uncommon not arg_idx> such that shape = <arg_idx shape>
-				out = tenncor::reduce_sum(
-					tenncor::permute(ETensor<T>(local_der) * ext, permlist),
-					arg_rank, teq::rank_cap - arg_rank);
+				out = tenncor::permute(tenncor::contract(
+					eteq::ETensor<T>(supcomp_grad), right, grad_dims), order);
 			}
 				break;
 			case egen::CONV:
@@ -548,7 +447,8 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				teq::Shape oshape = op->shape();
 				eigen::PairVecT<teq::DimT> extents;
 				extents.reserve(teq::rank_cap);
-				for (size_t i = 0; i < teq::rank_cap; ++i)
+				for (size_t i = 0; i < std::min(paddings.size(),
+					(size_t) teq::rank_cap); ++i)
 				{
 					teq::DimT offset = paddings[i].first;
 					extents.push_back({offset,
@@ -658,15 +558,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 	teq::TensptrT add (teq::TensptrsT elems) const override
 	{
 		assert(elems.size() > 0);
-		ETensorsT<T> etens(elems.begin(), elems.end());
-		// todo: use group sum when it works
-		// return tenncor::sum(etens);
-		ETensor<T> acc(etens.front());
-		for (size_t i = 1, n = etens.size(); i < n; ++i)
-		{
-			acc = acc + etens[i];
-		}
-		return acc;
+		return tenncor::sum(ETensorsT<T>(elems.begin(), elems.end()));
 	}
 };
 

@@ -7,7 +7,6 @@
 ///
 
 #include "eteq/etens.hpp"
-#include "eteq/ileaf.hpp"
 
 #ifndef ETEQ_CONSTANT_HPP
 #define ETEQ_CONSTANT_HPP
@@ -40,13 +39,13 @@ struct Constant final : public iLeaf<T>
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return teq::const_encode<T>(this->data_.data(), this->shape_);
+		return teq::const_encode<T>((T*) this->device().data(), this->shape_);
 	}
 
 	/// Implementation of iLeaf
 	teq::Usage get_usage (void) const override
 	{
-		return teq::Immutable;
+		return teq::IMMUTABLE;
 	}
 
 	/// Return true if constant data values are all the same, otherwise false

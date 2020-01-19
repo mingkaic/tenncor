@@ -33,6 +33,17 @@ struct iTraveler
 	virtual void visit (iFunctor& func) = 0;
 };
 
+struct iDeviceRef
+{
+	virtual ~iDeviceRef (void) = default;
+
+	/// Return pointer to internal data
+	virtual void* data (void) = 0;
+
+	/// Return const pointer to internal data
+	virtual const void* data (void) const = 0;
+};
+
 /// Interface of traversible and differentiable nodes with shape information
 struct iTensor
 {
@@ -43,14 +54,26 @@ struct iTensor
 		return this->clone_impl();
 	}
 
+	// Keep around for debugging purposes
+	void* data (void)
+	{
+		return device().data();
+	}
+
+	// Keep around for debugging purposes
+	const void* data (void) const
+	{
+		return device().data();
+	}
+
 	/// Obtain concrete information on either leaf or functor implementations
 	virtual void accept (iTraveler& visiter) = 0;
 
-	/// Return pointer to internal data
-	virtual void* data (void) = 0;
+	/// Return device reference to this tensor, device references
+	/// belongs to session and hold the data associated with this node
+	virtual iDeviceRef& device (void) = 0;
 
-	/// Return const pointer to internal data
-	virtual const void* data (void) const = 0;
+	virtual const iDeviceRef& device (void) const = 0;
 
 	/// Return the shape of the data
 	virtual Shape shape (void) const = 0;

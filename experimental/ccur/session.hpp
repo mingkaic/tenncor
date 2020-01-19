@@ -11,7 +11,7 @@
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio/post.hpp>
 
-#include "teq/session.hpp"
+#include "teq/isession.hpp"
 
 #include "ccur/partition.hpp"
 

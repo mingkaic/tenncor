@@ -1,6 +1,6 @@
 #include <unordered_map>
 
-#include "estd/estd.hpp"
+#include "estd/contain.hpp"
 
 #include "teq/ileaf.hpp"
 
@@ -10,20 +10,20 @@ namespace teq
 {
 
 static const std::unordered_map<std::string,Usage> named_usages = {
-	{"constant", Immutable},
-	{"variable", Variable},
-	{"placeholder", Placeholder},
+	{"constant", IMMUTABLE},
+	{"variable", VARUSAGE},
+	{"placeholder", PLACEHOLDER},
 };
 
 static const std::unordered_map<Usage,std::string> usage_names = {
-	{Immutable, "constant"},
-	{Variable, "variable"},
-	{Placeholder, "placeholder"},
+	{IMMUTABLE, "constant"},
+	{VARUSAGE, "variable"},
+	{PLACEHOLDER, "placeholder"},
 };
 
 Usage get_named_usage (std::string name)
 {
-	return estd::try_get(named_usages, name, Unknown);
+	return estd::try_get(named_usages, name, UNKNOWN_USAGE);
 }
 
 std::string get_usage_name (Usage usage)

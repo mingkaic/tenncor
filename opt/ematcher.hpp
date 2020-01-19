@@ -1,5 +1,3 @@
-#include <unordered_map>
-
 #include "marsh/objs.hpp"
 
 #include "teq/ileaf.hpp"
@@ -59,7 +57,7 @@ struct ScalarEMatcher final : public iEdgeMatcher
 	{
 		CandsT out;
 		auto leaf = dynamic_cast<teq::iLeaf*>(child.get());
-		if (nullptr != leaf && teq::Immutable == leaf->get_usage())
+		if (nullptr != leaf && teq::IMMUTABLE == leaf->get_usage())
 		{
 			teq::Shape shape = leaf->shape();
 			std::vector<double> d(shape.n_elems(), scalar_);

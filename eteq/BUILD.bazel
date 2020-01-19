@@ -109,7 +109,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//eteq:eteq",
-        "//dbg:stream_out",
+        "//dbg:print",
         "//utils:utils",
         "//testutil:tutil",
         "@gtest//:gtest",

@@ -1,4 +1,3 @@
-#include "layr/approx.hpp"
 #include "layr/trainer/trainer.hpp"
 
 #ifndef TRAINER_RBM_HPP

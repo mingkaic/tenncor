@@ -1,5 +1,3 @@
-#include "marsh/objs.hpp"
-
 #include "teq/teq.hpp"
 
 #ifndef EIGEN_PACKATTR_HPP
@@ -7,8 +5,6 @@
 
 namespace eigen
 {
-
-const std::string commutative_attr = "commutative";
 
 template <typename T>
 using PairVecT = std::vector<std::pair<T,T>>;

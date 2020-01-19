@@ -24,13 +24,13 @@ static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 	CAST* ptr = cdata.data();
 	teq::TensptrT out;
 	switch (usage) {
-	case teq::Immutable:
+	case teq::IMMUTABLE:
 		out = teq::TensptrT(Constant<CAST>::get(ptr, shape));
 		break;
-	case teq::Variable:
+	case teq::VARUSAGE:
 		out = teq::TensptrT(Variable<CAST>::get(ptr, shape, label, usage));
 		break;
-	case teq::Placeholder:
+	case teq::PLACEHOLDER:
 	{
 		std::vector<CAST> z(shape.n_elems(), 0);
 		out = teq::TensptrT(Variable<CAST>::get(z.data(), shape, label, usage));

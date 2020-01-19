@@ -36,7 +36,7 @@ teq::TensptrsT load_graph (TensptrIdT& identified_tens,
 		}
 		pb_ten.set_data_type(tens_type.elem_type());
 		identified_tens.insert({unmarshaler.unmarsh_leaf(
-			pb_ten, teq::Placeholder, name), id});
+			pb_ten, teq::PLACEHOLDER, name), id});
 	}
 
 	const auto& pb_tens = pb_graph.initializer();
@@ -48,7 +48,7 @@ teq::TensptrsT load_graph (TensptrIdT& identified_tens,
 			continue; // allow previously defined ids
 		}
 		std::string name;
-		teq::Usage usage = teq::Unknown;
+		teq::Usage usage = teq::UNKNOWN_USAGE;
 		if (estd::has(annotations, id))
 		{
 			AnnotationsT& ans = annotations[id];

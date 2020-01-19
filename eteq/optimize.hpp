@@ -154,7 +154,7 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_leaf (teq::iLeaf& leaf) override
 	{
-		if (teq::Immutable == leaf.get_usage())
+		if (teq::IMMUTABLE == leaf.get_usage())
 		{
 			std::string label = leaf.shape().to_string() + "|";
 			T* data = (T*) leaf.data();
@@ -178,7 +178,8 @@ private:
 			child->accept(*this);
 			hshs.push_back(boost::uuids::to_string(hashes_.at(child.get())));
 		}
-		if (nullptr != func.get_attr(eigen::commutative_attr))
+		if (egen::is_commutative(
+			(egen::_GENERATED_OPCODE) func.get_opcode().code_))
 		{
 			std::sort(hshs.begin(), hshs.end());
 		}
@@ -244,7 +245,7 @@ teq::TensptrT constant_func (teq::FuncptrT& func, opt::ParentReplF replacer)
 	return opt::constant_func(func, replacer,
 		[](teq::FuncptrT func)
 		{
-			teq::Session sess;
+			auto sess = eigen::get_session();
 			sess.track({func});
 			sess.update_target({func.get()});
 			T* data = (T*) func->data();
@@ -255,7 +256,7 @@ teq::TensptrT constant_func (teq::FuncptrT& func, opt::ParentReplF replacer)
 template <typename T>
 void constant_funcs (teq::TensptrsT& roots)
 {
-	teq::Session sess;
+	auto sess = eigen::get_session();
 	sess.track(roots);
 	opt::constant_funcs(roots,
 		[&sess](teq::FuncptrT func)

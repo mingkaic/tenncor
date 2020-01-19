@@ -2,7 +2,7 @@
 
 #include "exam/exam.hpp"
 
-#include "dbg/stream/teq.hpp"
+#include "dbg/print/teq.hpp"
 
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
@@ -12,6 +12,9 @@
 
 namespace tutil
 {
+
+std::string compare_graph (std::istream& expectstr, teq::iTensor* root,
+	bool showshape = true, LabelsMapT labels = {});
 
 std::string compare_graph (std::istream& expectstr, teq::TensptrT root,
 	bool showshape = true, LabelsMapT labels = {});

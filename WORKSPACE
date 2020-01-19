@@ -2,7 +2,7 @@ workspace(name = "com_github_mingkaic_tenncor")
 
 # === import external dependencies ===
 
-load("//:third_party/all.bzl", "dependencies")
+load("//third_party:all.bzl", "dependencies")
 dependencies()
 
 # == flex + bison rules ==
@@ -18,7 +18,7 @@ bison_register_toolchains()
 load("@com_github_mingkaic_cppkg//:gtest.bzl", "gtest_repository")
 gtest_repository(name = "gtest")
 
-load("//third_party/repos:benchmark.bzl", "benchmark_repository")
+load("//third_party:repos/benchmark.bzl", "benchmark_repository")
 benchmark_repository()
 
 load("@com_github_mingkaic_cppkg//:cppkg.bzl", "dependencies")

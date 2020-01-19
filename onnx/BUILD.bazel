@@ -67,7 +67,7 @@ cc_test(
     deps = [
         "//onnx:onnx",
         "//teq:mock_teq",
-        "//dbg:stream_out",
+        "//dbg:print",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
