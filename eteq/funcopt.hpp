@@ -97,6 +97,12 @@ struct FuncOpt<egen::SLICE> final
 			(size_t) teq::rank_cap); i < n && redundant; ++i)
 		{
 			auto& exts = extents[i];
+			if (exts.second == 0)
+			{
+				logs::fatalf("cannot create slice with 0 dimension at "
+					"index %d (extents=%s)", i,
+					eigen::to_string(extents).c_str());
+			}
 			redundant = redundant && exts.first == 0 &&
 				exts.second > shape.at(i);
 		}

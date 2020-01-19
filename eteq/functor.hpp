@@ -6,9 +6,6 @@
 /// Eigen functor implementation of operable func
 ///
 
-#include "teq/ifunctor.hpp"
-
-#include "eigen/generated/opcode.hpp"
 #include "eigen/packattr.hpp"
 
 #include "eteq/etens.hpp"
@@ -164,34 +161,24 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 		}
 	}
 
-	/// Implementation of iFunctor
-	void calc (void) override
+	/// Implementation of iTensor
+	teq::iDeviceRef& device (void) override
 	{
 		if (false == has_data())
 		{
 			initialize();
 		}
-		out_->assign();
+		return *ref_;
 	}
 
-	/// Implementation of iData
-	void* data (void) override
+	/// Implementation of iTensor
+	const teq::iDeviceRef& device (void) const override
 	{
 		if (false == has_data())
 		{
-			initialize();
+			logs::fatal("cannot get device of uninitialized functor");
 		}
-		return out_->get_ptr();
-	}
-
-	/// Implementation of iData
-	const void* data (void) const override
-	{
-		if (false == has_data())
-		{
-			logs::fatal("cannot get data of uninitialized functor");
-		}
-		return out_->get_ptr();
+		return *ref_;
 	}
 
 	/// Implementation of iData
@@ -214,7 +201,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 
 	bool has_data (void) const
 	{
-		return nullptr != out_;
+		return nullptr != ref_;
 	}
 
 	/// Removes internal Eigen data object
@@ -226,7 +213,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 			{
 				parent->uninitialize();
 			}
-			out_ = nullptr;
+			ref_ = nullptr;
 		}
 	}
 
@@ -234,7 +221,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 	void initialize (void)
 	{
 		egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-			out_, shape_, children_, *this);
+			ref_, shape_, children_, *this);
 	}
 
 private:
@@ -286,7 +273,7 @@ private:
 #endif // SKIP_INIT
 	}
 
-	eigen::EigenptrT<T> out_ = nullptr;
+	eigen::EigenptrT ref_ = nullptr;
 
 	/// Operation encoding
 	teq::Opcode opcode_;

@@ -6,7 +6,6 @@
 /// Define common traveler implementations
 ///
 
-#include "estd/estd.hpp"
 #include "estd/range.hpp"
 
 #include "teq/ileaf.hpp"

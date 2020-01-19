@@ -9,7 +9,7 @@ import eteq.tenncor as tc
 import eteq.eteq as eteq
 import layr.layr as layr
 
-prog_description = 'Demo lstm'
+prog_description = 'Demo lstm model'
 
 def loss(pred, label):
     return tc.pow(pred - label, 2)

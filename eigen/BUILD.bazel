@@ -93,7 +93,7 @@ cc_test(
     deps = [
         "//eigen:eigen",
         "//teq:mock_teq",
-        "//dbg:stream_out",
+        "//dbg:print",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",

@@ -9,7 +9,10 @@
 #include "teq/mock/leaf.hpp"
 #include "teq/mock/functor.hpp"
 
-#include "teq/session.hpp"
+#include "teq/isession.hpp"
+
+
+static MockDevice mdevice;
 
 
 TEST(SESSION, Track)
@@ -26,7 +29,7 @@ TEST(SESSION, Track)
 	teq::TensptrT target2(new MockFunctor(teq::TensptrsT{x, d}));
 
 	// this tests if session can track be called multiple times
-	teq::Session session;
+	teq::Session session(mdevice);
 	session.track({target});
 	EXPECT_EQ(1, session.get_tracked().size());
 
@@ -72,10 +75,10 @@ TEST(SESSION, Update)
 	// |   `-- b
 	// `-- c
 
-	ASSERT_FALSE(target->updated_);
-	ASSERT_FALSE(x->updated_);
+	ASSERT_FALSE(target->data_.ref_.updated_);
+	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session;
+	teq::Session session(mdevice);
 	session.track({target});
 	EXPECT_EQ(1, session.get_tracked().size());
 	session.update();
@@ -87,8 +90,8 @@ TEST(SESSION, Update)
 	// |   `-- b
 	// `-- c
 
-	EXPECT_TRUE(target->updated_);
-	EXPECT_TRUE(x->updated_);
+	EXPECT_TRUE(target->data_.ref_.updated_);
+	EXPECT_TRUE(x->data_.ref_.updated_);
 }
 
 
@@ -113,11 +116,11 @@ TEST(SESSION, UpdateIgnore)
 	// |   `-- c
 	// `-- d
 
-	ASSERT_FALSE(target->updated_);
-	ASSERT_FALSE(y->updated_);
-	ASSERT_FALSE(x->updated_);
+	ASSERT_FALSE(target->data_.ref_.updated_);
+	ASSERT_FALSE(y->data_.ref_.updated_);
+	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session;
+	teq::Session session(mdevice);
 	session.track({target});
 	EXPECT_EQ(1, session.get_tracked().size());
 	session.update({y.get()});
@@ -131,11 +134,11 @@ TEST(SESSION, UpdateIgnore)
 	// |   `-- c
 	// `-- d
 
-	EXPECT_TRUE(target->updated_);
-	EXPECT_FALSE(x->updated_);
-	EXPECT_FALSE(y->updated_);
+	EXPECT_TRUE(target->data_.ref_.updated_);
+	EXPECT_FALSE(x->data_.ref_.updated_);
+	EXPECT_FALSE(y->data_.ref_.updated_);
 
-	target->updated_ = x->updated_ = y->updated_ = false;
+	target->data_.ref_.updated_ = x->data_.ref_.updated_ = y->data_.ref_.updated_ = false;
 
 	session.update({x.get()});
 
@@ -148,9 +151,9 @@ TEST(SESSION, UpdateIgnore)
 	// |   `-- c
 	// `-- d
 
-	EXPECT_TRUE(target->updated_);
-	EXPECT_TRUE(y->updated_);
-	EXPECT_FALSE(x->updated_);
+	EXPECT_TRUE(target->data_.ref_.updated_);
+	EXPECT_TRUE(y->data_.ref_.updated_);
+	EXPECT_FALSE(x->data_.ref_.updated_);
 }
 
 
@@ -177,12 +180,12 @@ TEST(SESSION, UpdateIgnoreCommonDesc)
 	//     |   `-- a
 	//     `-- b
 
-	ASSERT_FALSE(target->updated_);
-	ASSERT_FALSE(y->updated_);
-	ASSERT_FALSE(x->updated_);
-	ASSERT_FALSE(u->updated_);
+	ASSERT_FALSE(target->data_.ref_.updated_);
+	ASSERT_FALSE(y->data_.ref_.updated_);
+	ASSERT_FALSE(x->data_.ref_.updated_);
+	ASSERT_FALSE(u->data_.ref_.updated_);
 
-	teq::Session session;
+	teq::Session session(mdevice);
 	session.track({target});
 	EXPECT_EQ(1, session.get_tracked().size());
 	session.update({y.get()});
@@ -198,10 +201,10 @@ TEST(SESSION, UpdateIgnoreCommonDesc)
 	//     |   `-- a
 	//     `-- b
 
-	EXPECT_TRUE(target->updated_);
-	EXPECT_FALSE(y->updated_);
-	EXPECT_TRUE(x->updated_);
-	EXPECT_TRUE(u->updated_);
+	EXPECT_TRUE(target->data_.ref_.updated_);
+	EXPECT_FALSE(y->data_.ref_.updated_);
+	EXPECT_TRUE(x->data_.ref_.updated_);
+	EXPECT_TRUE(u->data_.ref_.updated_);
 }
 
 
@@ -222,10 +225,10 @@ TEST(SESSION, TargetedUpdate)
 	// |   `-- b
 	// `-- c
 
-	ASSERT_FALSE(target->updated_);
-	ASSERT_FALSE(x->updated_);
+	ASSERT_FALSE(target->data_.ref_.updated_);
+	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session;
+	teq::Session session(mdevice);
 	session.track({target});
 	EXPECT_EQ(1, session.get_tracked().size());
 	session.update_target(teq::TensSetT{x.get()});
@@ -237,8 +240,8 @@ TEST(SESSION, TargetedUpdate)
 	// |   `-- b
 	// `-- c
 
-	EXPECT_FALSE(target->updated_);
-	EXPECT_TRUE(x->updated_);
+	EXPECT_FALSE(target->data_.ref_.updated_);
+	EXPECT_TRUE(x->data_.ref_.updated_);
 
 }
 
@@ -264,11 +267,11 @@ TEST(SESSION, TargetedUpdateIgnore)
 	// |   `-- c
 	// `-- d
 
-	ASSERT_FALSE(target->updated_);
-	ASSERT_FALSE(y->updated_);
-	ASSERT_FALSE(x->updated_);
+	ASSERT_FALSE(target->data_.ref_.updated_);
+	ASSERT_FALSE(y->data_.ref_.updated_);
+	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session;
+	teq::Session session(mdevice);
 	session.track({target});
 	EXPECT_EQ(1, session.get_tracked().size());
 	session.update_target({y.get()}, {x.get()});
@@ -282,9 +285,9 @@ TEST(SESSION, TargetedUpdateIgnore)
 	// |   `-- c
 	// `-- d
 
-	EXPECT_FALSE(target->updated_);
-	EXPECT_TRUE(y->updated_);
-	EXPECT_FALSE(x->updated_);
+	EXPECT_FALSE(target->data_.ref_.updated_);
+	EXPECT_TRUE(y->data_.ref_.updated_);
+	EXPECT_FALSE(x->data_.ref_.updated_);
 }
 
 
@@ -315,13 +318,13 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 	// |       `-- b
 	// `-- d
 
-	ASSERT_FALSE(target->updated_);
-	ASSERT_FALSE(z->updated_);
-	ASSERT_FALSE(y->updated_);
-	ASSERT_FALSE(x->updated_);
-	ASSERT_FALSE(u->updated_);
+	ASSERT_FALSE(target->data_.ref_.updated_);
+	ASSERT_FALSE(z->data_.ref_.updated_);
+	ASSERT_FALSE(y->data_.ref_.updated_);
+	ASSERT_FALSE(x->data_.ref_.updated_);
+	ASSERT_FALSE(u->data_.ref_.updated_);
 
-	teq::Session session;
+	teq::Session session(mdevice);
 	session.track({target});
 	EXPECT_EQ(1, session.get_tracked().size());
 	session.update_target({z.get()}, {y.get()});
@@ -339,11 +342,11 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 	// |       `-- b
 	// `-- d
 
-	EXPECT_FALSE(target->updated_);
-	EXPECT_TRUE(z->updated_);
-	EXPECT_FALSE(y->updated_);
-	EXPECT_TRUE(x->updated_);
-	EXPECT_TRUE(u->updated_);
+	EXPECT_FALSE(target->data_.ref_.updated_);
+	EXPECT_TRUE(z->data_.ref_.updated_);
+	EXPECT_FALSE(y->data_.ref_.updated_);
+	EXPECT_TRUE(x->data_.ref_.updated_);
+	EXPECT_TRUE(u->data_.ref_.updated_);
 }
 
 
@@ -362,18 +365,18 @@ TEST(SESSION, Clear)
 	auto z = std::make_shared<MockFunctor>(teq::TensptrsT{y, x});
 	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d});
 
-	teq::Session session;
+	teq::Session session(mdevice);
 	session.track({target});
 	EXPECT_EQ(1, session.get_tracked().size());
 	session.clear();
 	EXPECT_EQ(0, session.get_tracked().size());
 	session.update();
 
-	EXPECT_FALSE(target->updated_);
-	EXPECT_FALSE(z->updated_);
-	EXPECT_FALSE(y->updated_);
-	EXPECT_FALSE(x->updated_);
-	EXPECT_FALSE(u->updated_);
+	EXPECT_FALSE(target->data_.ref_.updated_);
+	EXPECT_FALSE(z->data_.ref_.updated_);
+	EXPECT_FALSE(y->data_.ref_.updated_);
+	EXPECT_FALSE(x->data_.ref_.updated_);
+	EXPECT_FALSE(u->data_.ref_.updated_);
 }
 
 

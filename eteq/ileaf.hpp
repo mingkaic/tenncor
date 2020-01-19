@@ -6,10 +6,7 @@
 /// Define interfaces and building blocks for an equation graph
 ///
 
-#include "teq/ileaf.hpp"
-
-#include "eigen/generated/dtype.hpp"
-#include "eigen/eigen.hpp"
+#include "eigen/device.hpp"
 
 #ifndef ETEQ_ILEAF_HPP
 #define ETEQ_ILEAF_HPP
@@ -34,31 +31,31 @@ struct iLeaf : public teq::iLeaf
 		return shape_;
 	}
 
-	/// Implementation of iData
-	void* data (void) override
+	/// Implementation of iTensor
+	teq::iDeviceRef& device (void) override
 	{
-		return data_.data();
+		return ref_;
 	}
 
-	/// Implementation of iData
-	const void* data (void) const override
+	/// Implementation of iTensor
+	const teq::iDeviceRef& device (void) const override
 	{
-		return data_.data();
+		return ref_;
 	}
 
-	/// Implementation of iData
+	/// Implementation of iTensor
 	size_t type_code (void) const override
 	{
 		return egen::get_type<T>();
 	}
 
-	/// Implementation of iData
+	/// Implementation of iTensor
 	std::string type_label (void) const override
 	{
 		return egen::name_type(egen::get_type<T>());
 	}
 
-	/// Implementation of iData
+	/// Implementation of iTensor
 	size_t nbytes (void) const override
 	{
 		return sizeof(T) * shape_.n_elems();
@@ -66,11 +63,10 @@ struct iLeaf : public teq::iLeaf
 
 protected:
 	iLeaf (T* data, teq::Shape shape) :
-		data_(eigen::make_tensmap(data, shape)),
-		shape_(shape) {}
+		ref_(data, shape), shape_(shape) {}
 
 	/// Data Source
-	eigen::TensorT<T> data_;
+	eigen::SrcRef<T> ref_;
 
 	/// Shape utility to avoid excessive conversion between data_.dimensions()
 	teq::Shape shape_;

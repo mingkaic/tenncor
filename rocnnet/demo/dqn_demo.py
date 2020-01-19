@@ -9,7 +9,7 @@ import eteq.tenncor as tc
 import eteq.eteq as eteq
 import layr.layr as layr
 
-prog_description = 'Demo dqn_trainer'
+prog_description = 'Demo dqn trainer'
 
 def batch_generate(n, batchsize):
     return np.random.rand(n * batchsize)

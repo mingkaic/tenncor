@@ -125,7 +125,7 @@ TEST(PARTITION, Kpartition)
 	ASSERT_EQ(2, groups.size());
 	long ng0 = groups[0].size();
 	long ng1 = groups[1].size();
-	EXPECT_LE(1, std::abs(ng0 - ng1));
+	EXPECT_GE(1, std::abs(ng0 - ng1));
 }
 
 

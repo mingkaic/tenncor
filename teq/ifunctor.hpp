@@ -50,12 +50,16 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 
 	/// Update child at specified index
 	virtual void update_child (TensptrT arg, size_t index) = 0;
-
-	/// Perform function calculations
-	virtual void calc (void) = 0;
 };
 
 using FuncptrT = std::shared_ptr<iFunctor>;
+
+using FuncsT = std::vector<iFunctor*>;
+
+using FuncSetT = std::unordered_set<iFunctor*>;
+
+template <typename T>
+using FuncMapT = std::unordered_map<iFunctor*,T>;
 
 }
 

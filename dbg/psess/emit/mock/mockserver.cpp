@@ -1,6 +1,6 @@
 #include <grpcpp/grpcpp.h>
 
-#include "dbg/emit/gemitter.grpc.pb.h"
+#include "dbg/psess/emit/gemitter.grpc.pb.h"
 
 struct GraphEmitterImpl final : public gemitter::GraphEmitter::Service
 {

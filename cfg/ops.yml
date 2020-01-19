@@ -1,49 +1,102 @@
 opcode:
   operator_path: eigen/operator.hpp
-  params: eigen::EigenptrT<T>& out, teq::Shape outshape, const teq::TensptrsT& in, const marsh::iAttributed& attrib
+  params: eigen::EigenptrT& out, teq::Shape outshape, const teq::TensptrsT& in, const marsh::iAttributed& attrib
   opcalls:
-    ABS: out = eigen::abs<T>(outshape, *in[0]);
-    NEG: out = eigen::neg<T>(outshape, *in[0]);
-    SIN: out = eigen::sin<T>(outshape, *in[0]);
-    COS: out = eigen::cos<T>(outshape, *in[0]);
-    TAN: out = eigen::tan<T>(outshape, *in[0]);
-    EXP: out = eigen::exp<T>(outshape, *in[0]);
-    LOG: out = eigen::log<T>(outshape, *in[0]);
-    SQRT: out = eigen::sqrt<T>(outshape, *in[0]);
-    ROUND: out = eigen::round<T>(outshape, *in[0]);
-    SIGMOID: out = eigen::sigmoid<T>(outshape, *in[0]);
-    TANH: out = eigen::tanh<T>(outshape, *in[0]);
-    SQUARE: out = eigen::square<T>(outshape, *in[0]);
-    CUBE: out = eigen::cube<T>(outshape, *in[0]);
-    POW: out = eigen::pow<T>(outshape, *in[0], *in[1]);
-    ADD: out = eigen::add<T>(outshape, *in[0], *in[1]);
-    SUB: out = eigen::sub<T>(outshape, *in[0], *in[1]);
-    MUL: out = eigen::mul<T>(outshape, *in[0], *in[1]);
-    DIV: out = eigen::div<T>(outshape, *in[0], *in[1]);
-    MIN: out = eigen::min<T>(outshape, *in[0], *in[1]);
-    MAX: out = eigen::max<T>(outshape, *in[0], *in[1]);
-    EQ: out = eigen::eq<T>(outshape, *in[0], *in[1]);
-    NEQ: out = eigen::neq<T>(outshape, *in[0], *in[1]);
-    LT: out = eigen::lt<T>(outshape, *in[0], *in[1]);
-    GT: out = eigen::gt<T>(outshape, *in[0], *in[1]);
-    RAND_UNIF: out = eigen::rand_uniform<T>(outshape, *in[0], *in[1]);
-    REVERSE: out = eigen::reverse<T>(outshape, *in[0], attrib);
-    REDUCE_SUM: out = eigen::reduce_sum<T>(outshape, *in[0], attrib);
-    REDUCE_PROD: out = eigen::reduce_prod<T>(outshape, *in[0], attrib);
-    REDUCE_MIN: out = eigen::reduce_min<T>(outshape, *in[0], attrib);
-    REDUCE_MAX: out = eigen::reduce_max<T>(outshape, *in[0], attrib);
-    ARGMAX: out = eigen::argmax<T>(outshape, *in[0], attrib);
-    PERMUTE: out = eigen::permute<T>(outshape, *in[0], attrib);
-    EXTEND: out = eigen::extend<T>(outshape, *in[0], attrib);
-    RESHAPE: out = eigen::reshape<T>(outshape, *in[0]);
-    MATMUL: out = eigen::matmul<T>(outshape, *in[0], *in[1], attrib);
-    CONV: out = eigen::convolution<T>(outshape, *in[0], *in[1], attrib);
-    SLICE: out = eigen::slice<T>(outshape, *in[0], attrib);
-    PAD: out = eigen::pad<T>(outshape, *in[0], attrib);
-    STRIDE: out = eigen::stride<T>(outshape, *in[0], attrib);
-    SCATTER: out = eigen::scatter<T>(outshape, *in[0], attrib);
-    SELECT: out = eigen::select<T>(outshape, *in[0], *in[1], *in[2]);
-    CONCAT: out = eigen::concat<T>(outshape, *in[0], *in[1], attrib);
-    GROUP_CONCAT: out = eigen::group_concat<T>(outshape, in, attrib);
-    GROUP_SUM: out = eigen::group_sum<T>(outshape, in);
-    GROUP_PROD: out = eigen::group_prod<T>(outshape, in);
+    ABS:
+      stmt: out = eigen::abs<T>(outshape, *in[0]);
+    NEG:
+      stmt: out = eigen::neg<T>(outshape, *in[0]);
+    SIN:
+      stmt: out = eigen::sin<T>(outshape, *in[0]);
+    COS:
+      stmt: out = eigen::cos<T>(outshape, *in[0]);
+    TAN:
+      stmt: out = eigen::tan<T>(outshape, *in[0]);
+    EXP:
+      stmt: out = eigen::exp<T>(outshape, *in[0]);
+    LOG:
+      stmt: out = eigen::log<T>(outshape, *in[0]);
+    SQRT:
+      stmt: out = eigen::sqrt<T>(outshape, *in[0]);
+    ROUND:
+      stmt: out = eigen::round<T>(outshape, *in[0]);
+    SIGMOID:
+      stmt: out = eigen::sigmoid<T>(outshape, *in[0]);
+    TANH:
+      stmt: out = eigen::tanh<T>(outshape, *in[0]);
+    SQUARE:
+      stmt: out = eigen::square<T>(outshape, *in[0]);
+    CUBE:
+      stmt: out = eigen::cube<T>(outshape, *in[0]);
+    RAND_UNIF:
+      stmt: out = eigen::rand_uniform<T>(outshape, *in[0], *in[1]);
+    REVERSE:
+      stmt: out = eigen::reverse<T>(outshape, *in[0], attrib);
+    REDUCE_SUM:
+      stmt: out = eigen::reduce_sum<T>(outshape, *in[0], attrib);
+    REDUCE_PROD:
+      stmt: out = eigen::reduce_prod<T>(outshape, *in[0], attrib);
+    REDUCE_MIN:
+      stmt: out = eigen::reduce_min<T>(outshape, *in[0], attrib);
+    REDUCE_MAX:
+      stmt: out = eigen::reduce_max<T>(outshape, *in[0], attrib);
+    ARGMAX:
+      stmt: out = eigen::argmax<T>(outshape, *in[0], attrib);
+    PERMUTE:
+      stmt: out = eigen::permute<T>(outshape, *in[0], attrib);
+    EXTEND:
+      stmt: out = eigen::extend<T>(outshape, *in[0], attrib);
+    RESHAPE:
+      stmt: out = eigen::reshape<T>(outshape, *in[0]);
+    SLICE:
+      stmt: out = eigen::slice<T>(outshape, *in[0], attrib);
+    PAD:
+      stmt: out = eigen::pad<T>(outshape, *in[0], attrib);
+    STRIDE:
+      stmt: out = eigen::stride<T>(outshape, *in[0], attrib);
+    SCATTER:
+      stmt: out = eigen::scatter<T>(outshape, *in[0], attrib);
+    POW:
+      stmt: out = eigen::pow<T>(outshape, *in[0], *in[1]);
+    ADD:
+      stmt: out = eigen::add<T>(outshape, *in[0], *in[1]);
+      commutative: True
+    SUB:
+      stmt: out = eigen::sub<T>(outshape, *in[0], *in[1]);
+    MUL:
+      stmt: out = eigen::mul<T>(outshape, *in[0], *in[1]);
+      commutative: True
+    DIV:
+      stmt: out = eigen::div<T>(outshape, *in[0], *in[1]);
+    MIN:
+      stmt: out = eigen::min<T>(outshape, *in[0], *in[1]);
+      commutative: True
+    MAX:
+      stmt: out = eigen::max<T>(outshape, *in[0], *in[1]);
+      commutative: True
+    EQ:
+      stmt: out = eigen::eq<T>(outshape, *in[0], *in[1]);
+      commutative: True
+    NEQ:
+      stmt: out = eigen::neq<T>(outshape, *in[0], *in[1]);
+      commutative: True
+    LT:
+      stmt: out = eigen::lt<T>(outshape, *in[0], *in[1]);
+    GT:
+      stmt: out = eigen::gt<T>(outshape, *in[0], *in[1]);
+    MATMUL:
+      stmt: out = eigen::matmul<T>(outshape, *in[0], *in[1], attrib);
+    CONV:
+      stmt: out = eigen::convolution<T>(outshape, *in[0], *in[1], attrib);
+    SELECT:
+      stmt: out = eigen::select<T>(outshape, *in[0], *in[1], *in[2]);
+    CONCAT:
+      stmt: out = eigen::concat<T>(outshape, *in[0], *in[1], attrib);
+    GROUP_CONCAT:
+      stmt: out = eigen::group_concat<T>(outshape, in, attrib);
+    GROUP_SUM:
+      stmt: out = eigen::group_sum<T>(outshape, in);
+      commutative: True
+    GROUP_PROD:
+      stmt: out = eigen::group_prod<T>(outshape, in);
+      commutative: True

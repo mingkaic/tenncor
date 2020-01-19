@@ -1,21 +1,12 @@
 #include <fstream>
 #include <sstream>
 
-#include "pybind11/pybind11.h"
-#include "pybind11/numpy.h"
 #include "pybind11/stl.h"
 #include "pybind11/functional.h"
 
 #include "pyutils/convert.hpp"
 
-#include "eteq/generated/pyapi.hpp"
-
-#include "layr/init.hpp"
-#include "layr/approx.hpp"
-#include "layr/api.hpp"
-
 #include "layr/trainer/sgd.hpp"
-#include "layr/trainer/rbm.hpp"
 #include "layr/trainer/dqn.hpp"
 #include "layr/trainer/dbn.hpp"
 
@@ -191,6 +182,8 @@ PYBIND11_MODULE(layr, m)
 			py::arg("dims") = eigen::PairVecT<teq::RankT>{{0, 1}})
 		.def("conv", &layr::conv<PybindT>,
 			py::arg("filter_hw"), py::arg("in_ncol"), py::arg("out_ncol"),
+			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
+			py::arg("bias_init") = layr::zero_init<PybindT>(),
 			py::arg("zero_padding") = std::pair<teq::DimT,teq::DimT>{0, 0})
 		.def("rnn", &layr::rnn<PybindT>,
 			py::arg("indim"), py::arg("hidden_dim"), py::arg("activation"), py::arg("nseq"),
@@ -214,7 +207,20 @@ PYBIND11_MODULE(layr, m)
 
 		.def("bind", &layr::bind<PybindT>,
 			py::arg("unary"), py::arg("inshape") = teq::Shape())
-		.def("link", &layr::link<PybindT>)
+		.def("link",
+			[](const std::vector<eteq::ELayer<PybindT>>& layers)
+			{
+				return layr::link<PybindT>(layers);
+			})
+		.def("link",
+			[](const std::vector<eteq::ELayer<PybindT>>& layers,
+				const eteq::ETensor<PybindT>& input)
+			{
+				return layr::link<PybindT>(layers, input);
+			})
+
+		// ==== error functions ====
+		.def("sqr_diff", &layr::sqr_diff<PybindT>)
 
 		// ==== layer training ====
 		.def("sgd_train", &trainer::sgd<PybindT>,

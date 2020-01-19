@@ -555,7 +555,7 @@ private:
 	void visit_leaf (teq::iLeaf& leaf) override
 	{
 		if (egen::get_type<T>() == leaf.type_code() &&
-			teq::Immutable == leaf.get_usage())
+			teq::IMMUTABLE == leaf.get_usage())
 		{
 			auto data = (T*) leaf.data();
 			teq::NElemT n = leaf.shape().n_elems();

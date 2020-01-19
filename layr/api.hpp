@@ -34,6 +34,7 @@ eteq::ELayer<T> dense (teq::Shape inshape, std::vector<teq::DimT> hidden_dims,
 	layr::InitF<T> weight_init, layr::InitF<T> bias_init,
 	eigen::PairVecT<teq::RankT> dims = {{0, 1}})
 {
+	assert(weight_init);
 	eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0, inshape, input_label));
 	eteq::EVariable<T> weight = weight_init(gen_rshape(
 		hidden_dims, inshape, dims), weight_label);
@@ -50,14 +51,20 @@ eteq::ELayer<T> dense (teq::Shape inshape, std::vector<teq::DimT> hidden_dims,
 template <typename T>
 eteq::ELayer<T> conv (std::pair<teq::DimT,teq::DimT> filter_hw,
 	teq::DimT in_ncol, teq::DimT out_ncol,
+	layr::InitF<T> weight_init, layr::InitF<T> bias_init,
 	std::pair<teq::DimT,teq::DimT> zero_padding = {0, 0})
 {
+	assert(weight_init);
 	// image must be in form [in, iwidth, iheight, batch]
-	eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0,
-		teq::Shape({in_ncol, filter_hw.second, filter_hw.first, 1}), input_label));
-	eteq::EVariable<T> weight = unif_xavier_init<T>(1)(teq::Shape({out_ncol,
+	eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0, teq::Shape({
+		in_ncol, filter_hw.second, filter_hw.first, 1}), input_label));
+	eteq::EVariable<T> weight = weight_init(teq::Shape({out_ncol,
 		in_ncol, filter_hw.second, filter_hw.first}), weight_label);
-	eteq::EVariable<T> bias = zero_init<T>()(teq::Shape({out_ncol}), bias_label);
+	eteq::EVariable<T> bias;
+	if (bias_init)
+	{
+		bias = bias_init(teq::Shape({out_ncol}), bias_label);
+	}
 	auto output = tenncor::layer::conv(input, weight, bias, zero_padding);
 	auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
 	return eteq::ELayer<T>(f, input);
@@ -199,6 +206,31 @@ eteq::ELayer<T> bind (UnaryF<T> unary, teq::Shape inshape = teq::Shape())
 }
 
 template <typename T>
+eteq::ELayer<T> link (const std::vector<eteq::ELayer<T>>& layers,
+	const eteq::ETensor<T>& input)
+{
+	if (layers.empty())
+	{
+		logs::fatal("cannot link no layers");
+	}
+	auto output = input;
+	for (size_t i = 0, n = layers.size(); i < n; ++i)
+	{
+		auto& lay = layers[i];
+		if (lay.input().get() == input.get())
+		{
+			output = eteq::ETensor<T>(lay.root());
+		}
+		else
+		{
+			output = lay.connect(output);
+		}
+	}
+	return eteq::ELayer<T>(std::static_pointer_cast<
+		teq::iFunctor>(teq::TensptrT(output)), input);
+}
+
+template <typename T>
 eteq::ELayer<T> link (const std::vector<eteq::ELayer<T>>& layers)
 {
 	if (layers.empty())
@@ -206,13 +238,7 @@ eteq::ELayer<T> link (const std::vector<eteq::ELayer<T>>& layers)
 		logs::fatal("cannot link no layers");
 	}
 	eteq::ETensor<T> input = layers.front().input();
-	teq::FuncptrT output = layers.front().root();
-	for (size_t i = 1, n = layers.size(); i < n; ++i)
-	{
-		output = std::static_pointer_cast<teq::iFunctor>(
-			(teq::TensptrT) layers[i].connect(eteq::ETensor<T>(output)));
-	}
-	return eteq::ELayer<T>(output, input);
+	return link<T>(layers, input);
 }
 
 }

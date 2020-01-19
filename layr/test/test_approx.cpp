@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "dbg/stream/teq_csv.hpp"
+#include "dbg/print/teq_csv.hpp"
 
 #include "testutil/tutil.hpp"
 
@@ -109,7 +109,7 @@ TEST(APPROX, GroupAssign)
 		eteq::ETensor<PybindT>(err)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon());
 
-	teq::Session sess;
+	auto sess = eigen::get_session();
 	teq::TensptrsT track_batch;
 	for (layr::AssignsT<PybindT>& assigns : groups)
 	{
@@ -176,7 +176,7 @@ TEST(APPROX, PreUpdateGroupAssign)
 		eteq::ETensor<PybindT>(err)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon());
 
-	teq::Session sess;
+	auto sess = eigen::get_session();
 	teq::TensptrsT track_batch;
 	for (layr::AssignsT<PybindT>& assigns : groups)
 	{

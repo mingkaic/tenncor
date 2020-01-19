@@ -7,7 +7,7 @@
 namespace tutil
 {
 
-std::string compare_graph (std::istream& expectstr, teq::TensptrT root,
+std::string compare_graph (std::istream& expectstr, teq::iTensor* root,
 	bool showshape, LabelsMapT labels)
 {
 	PrettyEquation artist;
@@ -35,6 +35,12 @@ std::string compare_graph (std::istream& expectstr, teq::TensptrT root,
 		}
 	}
 	return diff::diff_msg(expects, gots);
+}
+
+std::string compare_graph (std::istream& expectstr, teq::TensptrT root,
+	bool showshape, LabelsMapT labels)
+{
+	return compare_graph(expectstr, root.get(), showshape, labels);
 }
 
 }

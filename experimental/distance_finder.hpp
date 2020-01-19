@@ -44,12 +44,6 @@ struct DistanceFinder final : public teq::iTraveler
 		}
 	}
 
-	/// Implementation of iTraveler
-	void visit (teq::Placeholder& placeholder) override
-	{
-		//
-	}
-
 	EdgeDistanceMapT distances_;
 };
 

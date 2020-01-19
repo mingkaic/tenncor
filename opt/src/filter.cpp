@@ -29,7 +29,7 @@ void remove_duplicates (teq::TensptrsT& roots, EqualF equals)
 		{
 			auto leaf = std::static_pointer_cast<teq::iLeaf>(
 				owners.at(tens).lock());
-			if (teq::Immutable == leaf->get_usage())
+			if (teq::IMMUTABLE == leaf->get_usage())
 			{
 				csts.push_back(leaf);
 			}
@@ -124,7 +124,7 @@ teq::TensptrT constant_func (teq::FuncptrT& func,
 		[&](teq::TensptrT ctens)
 		{
 			auto leaf = dynamic_cast<teq::iLeaf*>(ctens.get());
-			return nullptr != leaf && teq::Immutable == leaf->get_usage();
+			return nullptr != leaf && teq::IMMUTABLE == leaf->get_usage();
 		}))
 	{
 		teq::TensptrT converted = calc_func(func);
@@ -161,7 +161,7 @@ void constant_funcs (teq::TensptrsT& roots, CalcCvsF calc_func)
 			functors.push_back(std::static_pointer_cast<teq::iFunctor>(
 				owners.at(gpair.first).lock()));
 		}
-		else if (teq::Immutable == static_cast<teq::iLeaf*>(
+		else if (teq::IMMUTABLE == static_cast<teq::iLeaf*>(
 			gpair.first)->get_usage())
 		{
 			constants.emplace(gpair.first);

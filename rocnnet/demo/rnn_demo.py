@@ -12,16 +12,16 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-prog_description = 'Demo rnn_trainer'
+prog_description = 'Demo rnn model'
 
-def cross_entropy_loss(Y, T):
+def cross_entropy_loss(T, Y):
     epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in eteq
     leftY = Y + epsilon
     rightT = 1 - Y + epsilon
     return -(T * tc.log(leftY) + (1-T) * tc.log(rightT))
 
 def loss(T, Y):
-    return tc.reduce_mean(cross_entropy_loss(Y, T))
+    return tc.reduce_mean(cross_entropy_loss(T, Y))
 
 def create_dataset(nb_samples, sequence_len):
     """Create a dataset for binary addition and

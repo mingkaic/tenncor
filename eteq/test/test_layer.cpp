@@ -8,7 +8,7 @@
 
 #include "testutil/tutil.hpp"
 
-#include "teq/session.hpp"
+#include "teq/isession.hpp"
 
 #include "eteq/generated/api.hpp"
 #include "eteq/serialize.hpp"

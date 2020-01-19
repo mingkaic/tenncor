@@ -53,7 +53,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//layr:layr",
-        "//dbg:stream_out",
+        "//dbg:print",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",
     ],

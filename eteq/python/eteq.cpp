@@ -2,11 +2,8 @@
 
 #include "pyutils/convert.hpp"
 
-#include "teq/session.hpp"
-
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/derive.hpp"
-#include "eteq/make.hpp"
 #include "eteq/layer.hpp"
 #include "eteq/optimize.hpp"
 
@@ -69,6 +66,11 @@ PYBIND11_MODULE(eteq, m)
 
 	etens
 		.def(py::init<teq::TensptrT>())
+		.def("__str__",
+			[](eteq::ETensor<PybindT>& self)
+			{
+				return self->to_string();
+			})
 		.def("shape",
 			[](eteq::ETensor<PybindT>& self)
 			{
@@ -97,11 +99,6 @@ PYBIND11_MODULE(eteq, m)
 			py::arg("shape"),
 			py::arg("scalar") = 0,
 			py::arg("label") = "")
-		.def("__str__",
-			[](eteq::EVariable<PybindT>& self)
-			{
-				return self->to_string();
-			})
 		.def("assign",
 			[](eteq::EVariable<PybindT>& self, py::array data)
 			{
@@ -193,7 +190,7 @@ PYBIND11_MODULE(eteq, m)
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
-		.def(py::init());
+		.def(py::init(&eigen::get_session));
 
 	// optimization rules
 	py::class_<opt::CversionCtx> rules(m, "OptRules");

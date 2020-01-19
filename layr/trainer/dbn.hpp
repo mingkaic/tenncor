@@ -17,7 +17,9 @@ struct DBNTrainer final
 		T train_lr = 0.1, size_t cdk = 10,
 		T l2_reg = 0., T lr_scaling = 0.95) :
 		nlayers_(rbms.size()),
-		batch_size_(batch_size)
+		batch_size_(batch_size),
+		pretrain_sess_(eigen::default_device()),
+		train_sess_(eigen::default_device())
 	{
 		input_size_ = rbms.front().fwd_.input()->shape().at(0);
 		output_size_ = dense.root()->shape().at(0);

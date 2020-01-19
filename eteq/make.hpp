@@ -1,9 +1,5 @@
-#include "eigen/packattr.hpp"
-
 #include "eteq/constant.hpp"
-#include "eteq/variable.hpp"
 #include "eteq/functor.hpp"
-#include "eteq/funcopt.hpp"
 
 #ifndef ETEQ_MAKE_HPP
 #define ETEQ_MAKE_HPP
@@ -73,17 +69,14 @@ ETensor<T> make_constant (T* data, teq::Shape shape)
 #define CHOOSE_FUNCOPT(OPCODE)\
 redundant = FuncOpt<OPCODE>().is_redundant(attrs, shapes);
 
-/// Return functor node given opcode and node arguments
-template <typename T, typename ...ARGS>
-ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
-	const teq::TensptrsT& children, ARGS... vargs)
+template <typename T>
+ETensor<T> make_funcattr (egen::_GENERATED_OPCODE opcode,
+	const teq::TensptrsT& children, marsh::Maps& attrs)
 {
 	if (children.empty())
 	{
 		logs::fatalf("cannot %s without arguments", egen::name_op(opcode).c_str());
 	}
-	marsh::Maps attrs;
-	eigen::pack_attr(attrs, vargs...);
 
 	teq::ShapesT shapes;
 	shapes.reserve(children.size());
@@ -104,6 +97,17 @@ ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
 }
 
 #undef CHOOSE_FUNCOPT
+
+/// Return functor node given opcode and node arguments
+template <typename T, typename ...ARGS>
+ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
+	const teq::TensptrsT& children, ARGS... vargs)
+{
+	marsh::Maps attrs;
+	eigen::pack_attr(attrs, vargs...);
+
+	return make_funcattr<T>(opcode, children, attrs);
+}
 
 template <typename T>
 ETensor<T> make_layer (std::string layername,

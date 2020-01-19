@@ -6,7 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "teq/session.hpp"
+#include "teq/isession.hpp"
 
 #include "eteq/generated/api.hpp"
 #include "eteq/derive.hpp"
@@ -43,12 +43,12 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 	};
 	std::vector<float> expect_ga = {
 		245250818048, 287692324864, 309372977152,
-		386310078464, 453162401792, 487312949248,
+		386310111232, 453162434560, 487312982016,
 	};
 	std::vector<float> expect_gb = {
-		38305898496, 72401903616, 78513586176, 74675994624,
-		44697542656, 84482736128, 91614191616, 87136280576,
-		80860676096, 152834621440, 165735874560, 157635035136,
+		38305894400, 72401903616, 78513586176, 74675994624,
+		44697538560, 84482736128, 91614191616, 87136288768,
+		80860676096, 152834621440, 165735874560, 157635051520,
 	};
 	std::vector<float> expect_gc = {
 		112505257984, 278567649280,
@@ -79,7 +79,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -294,7 +294,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -516,7 +516,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -654,7 +654,7 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -779,7 +779,7 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 
@@ -908,7 +908,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	teq::Session session;
+	auto session = eigen::get_session();
 	session.track(roots);
 	session.update();
 

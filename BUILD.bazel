@@ -9,13 +9,14 @@ package(
 filegroup(
     name = "srcs",
     srcs = [
-        "//ccur:srcs",
+        # "//ccur:srcs",
         "//dbg:srcs",
         "//eteq:srcs",
         "//layr:srcs",
         "//opt:srcs",
         "//onnx:srcs",
         "//perf:srcs",
+        "//query:srcs",
         "//teq:srcs",
         "//rocnnet:srcs",
         "BUILD.bazel",
