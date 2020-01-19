@@ -33,8 +33,9 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
+        "//eigen:eigen",
         "//query:query_cc_proto",
-        "//query/search:search",
+        "@boost//:functional",
     ],
     visibility = ["//visibility:public"],
 )

@@ -6,7 +6,6 @@
 /// Implement algorithm that applies conversion rules to graph roots
 ///
 
-#include "teq/ifunctor.hpp"
 #include "teq/traveler.hpp"
 
 #include "opt/matcher.hpp"

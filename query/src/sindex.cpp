@@ -1,4 +1,4 @@
-#include "query/search/sindex.hpp"
+#include "query/sindex.hpp"
 
 #ifdef SEARCH_SINDEX_HPP
 
@@ -108,7 +108,7 @@ void populate_itable (OpTrieT& itable, teq::TensptrsT roots)
 }
 
 static void possible_paths_helper (const PathCbF& cb,
-	PathListT& buffer, const OpTrieT::TrieNodeT* node)
+	PathListT& buffer, const OpTrieT::NodeT* node)
 {
 	assert(nullptr != node);
 	if (node->leaf_.has_value())
@@ -120,17 +120,17 @@ static void possible_paths_helper (const PathCbF& cb,
 		return;
 	}
 	buffer.push_back(PathNode{});
-	std::vector<std::pair<PathNode,const OpTrieT::TrieNodeT*>> cpairs(
+	std::vector<std::pair<PathNode,const OpTrieT::NodeT*>> cpairs(
 		node->children_.begin(), node->children_.end());
 	std::sort(cpairs.begin(), cpairs.end(),
-		[](std::pair<PathNode,const OpTrieT::TrieNodeT*>& a,
-			std::pair<PathNode,const OpTrieT::TrieNodeT*>& b)
+		[](std::pair<PathNode,const OpTrieT::NodeT*>& a,
+			std::pair<PathNode,const OpTrieT::NodeT*>& b)
 		{
 			return a.first < b.first;
 		});
 	for (const auto& cpair : cpairs)
 	{
-		const OpTrieT::TrieNodeT* next = cpair.second;
+		const OpTrieT::NodeT* next = cpair.second;
 		buffer.back() = cpair.first;
 		possible_paths_helper(cb, buffer, next);
 	}
@@ -138,7 +138,7 @@ static void possible_paths_helper (const PathCbF& cb,
 }
 
 void possible_paths (const PathCbF& cb,
-	const OpTrieT::TrieNodeT* node)
+	const OpTrieT::NodeT* node)
 {
 	if (node)
 	{

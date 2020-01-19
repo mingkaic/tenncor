@@ -10,7 +10,6 @@
 #include <list>
 
 #include "teq/traveler.hpp"
-#include "teq/ifunctor.hpp"
 
 #ifndef TEQ_ISESSION_HPP
 #define TEQ_ISESSION_HPP

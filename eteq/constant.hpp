@@ -7,7 +7,6 @@
 ///
 
 #include "eteq/etens.hpp"
-#include "eteq/ileaf.hpp"
 
 #ifndef ETEQ_CONSTANT_HPP
 #define ETEQ_CONSTANT_HPP

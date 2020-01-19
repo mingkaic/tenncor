@@ -1,6 +1,5 @@
 #include "estd/cast.hpp"
 
-#include "eteq/functor.hpp"
 #include "eteq/serialize.hpp"
 
 #ifndef ETEQ_LAYER_HPP

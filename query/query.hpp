@@ -1,7 +1,15 @@
+//
+/// query.hpp
+/// query
+///
+/// Purpose:
+/// Define subgraph filtering functionality
+///
+
 #ifndef QUERY_HPP
 #define QUERY_HPP
 
-#include "query/search/sindex.hpp"
+#include "query/sindex.hpp"
 
 #include "query/parse.hpp"
 
@@ -127,7 +135,7 @@ private:
 
 	// Return true if there's at least one result
 	void constraint (teq::TensSetT& results,
-		const search::OpTrieT::TrieNodeT* tri, const Node& cond) // todo: add filter_out mechanism instead of allocing a subresult at every branch
+		const search::OpTrieT::NodeT* tri, const Node& cond) // todo: add filter_out mechanism instead of allocing a subresult at every branch
 	{
 		if (nullptr == tri)
 		{
@@ -188,8 +196,8 @@ private:
 				const auto& attrs = op.attrs();
 				if (attrs.size() > 0)
 				{
-					auto lookahead = search::OpTrieT::next(
-						tri, PathNode{0, egen::get_op(op.opname())});
+					auto lookahead = static_cast<const search::OpTrieT::NodeT*>(
+						tri->next(PathNode{0, egen::get_op(op.opname())}));
 					if (false == lookahead->leaf_.has_value() ||
 						lookahead->leaf_->attrs_.empty())
 					{
@@ -265,7 +273,7 @@ private:
 
 	// Return true if there's at least one result
 	void iterate_condition (teq::TensSetT& results,
-		const search::OpTrieT::TrieNodeT* tri, const Operator& op)
+		const search::OpTrieT::NodeT* tri, const Operator& op)
 	{
 		egen::_GENERATED_OPCODE opcode = egen::get_op(op.opname());
 		const auto& args = op.args();
@@ -274,13 +282,13 @@ private:
 			constraint(results, tri, Node());
 			return;
 		}
-		constraint(results, search::OpTrieT::next(
-			tri, PathNode{0, opcode}), args[0]);
+		constraint(results, static_cast<const search::OpTrieT::NodeT*>(
+			tri->next(PathNode{0, opcode})), args[0]);
 		teq::TensSetT subresults;
 		for (size_t i = 1, n = args.size(); i < n && false == results.empty(); ++i)
 		{
-			constraint(subresults, search::OpTrieT::next(
-				tri, PathNode{i, opcode}), args[i]);
+			constraint(subresults, static_cast<const search::OpTrieT::NodeT*>(
+				tri->next(PathNode{i, opcode})), args[i]);
 			// final result is an intersect of all subresults
 			for (auto it = results.begin(), et = results.end();
 				it != et;)

@@ -1,9 +1,5 @@
-#include "eigen/packattr.hpp"
-
 #include "eteq/constant.hpp"
-#include "eteq/variable.hpp"
 #include "eteq/functor.hpp"
-#include "eteq/funcopt.hpp"
 
 #ifndef ETEQ_MAKE_HPP
 #define ETEQ_MAKE_HPP

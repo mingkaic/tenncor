@@ -6,11 +6,7 @@
 /// Eigen functor implementation of operable func
 ///
 
-#include "teq/ifunctor.hpp"
-
-#include "eigen/generated/opcode.hpp"
 #include "eigen/packattr.hpp"
-#include "eigen/device.hpp"
 
 #include "eteq/etens.hpp"
 #include "eteq/shaper.hpp"

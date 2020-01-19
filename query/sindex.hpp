@@ -1,3 +1,11 @@
+//
+/// sindex.hpp
+/// search
+///
+/// Purpose:
+/// Define OPCODE path tries
+///
+
 #ifndef SEARCH_SINDEX_HPP
 #define SEARCH_SINDEX_HPP
 
@@ -5,12 +13,12 @@
 
 #include <boost/functional/hash.hpp>
 
+#include "estd/triebig.hpp"
+
 #include "teq/ifunctor.hpp"
 #include "teq/traveler.hpp"
 
 #include "eigen/generated/opcode.hpp"
-
-#include "query/search/trie.hpp"
 
 namespace query
 {
@@ -74,7 +82,8 @@ struct PathVal final
 // size of PathVal value per leaf is proportional to length of max Path
 // Realistically, number of edges of an operational graph
 
-using OpTrieT = estd::Trie<PathNodesT,PathVal,PathNodeHasher>;
+using OpTrieT = estd::Trie<PathNodesT,
+	estd::TrieBigNode<PathNode,PathVal,PathNodeHasher>>;
 
 /// Populate index table of graph structure
 void populate_itable (OpTrieT& itable, teq::TensptrsT roots);
@@ -82,7 +91,7 @@ void populate_itable (OpTrieT& itable, teq::TensptrsT roots);
 using PathCbF = std::function<void(const PathListT&,const PathVal&)>;
 
 void possible_paths (const PathCbF& cb,
-	const OpTrieT::TrieNodeT* node);
+	const OpTrieT::NodeT* node);
 
 void possible_paths (const PathCbF& cb,
 	const OpTrieT& itable, const PathNodesT& path);
