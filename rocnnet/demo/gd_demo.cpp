@@ -113,12 +113,12 @@ int main (int argc, const char** argv)
 			throw std::exception();
 		}
 		trained_model = eteq::load_layers<PybindT>(pb_model)[0];
-		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());
+		teq::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
 	catch (...)
 	{
-		logs::warnf("model failed to loaded from file `%s`", loadpath.c_str());
+		teq::warnf("model failed to loaded from file `%s`", loadpath.c_str());
 	}
 
 	uint8_t n_batch = 3;
@@ -230,13 +230,13 @@ int main (int argc, const char** argv)
 			eteq::save_layers<PybindT>(pb_model, {model});
 			if (pb_model.SerializeToOstream(&savestr))
 			{
-				logs::infof("successfully saved model to `%s`", savepath.c_str());
+				teq::infof("successfully saved model to `%s`", savepath.c_str());
 			}
 			savestr.close();
 		}
 		else
 		{
-			logs::warnf("failed to save model to `%s`", savepath.c_str());
+			teq::warnf("failed to save model to `%s`", savepath.c_str());
 		}
 	}
 

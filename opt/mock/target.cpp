@@ -26,7 +26,7 @@ opt::TargptrT build_mock_target (::TreeNode* target)
 		}
 			break;
 		default:
-			logs::fatalf("building unknown target %d", target->type_);
+			teq::fatalf("building unknown target %d", target->type_);
 	}
 	return out;
 }

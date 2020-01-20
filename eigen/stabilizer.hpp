@@ -539,7 +539,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 		}
 			break;
 		default:
-			logs::fatalf("Unknown op %s", opcode.name_.c_str());
+			teq::fatalf("Unknown op %s", opcode.name_.c_str());
 	}
 	return outrange;
 }

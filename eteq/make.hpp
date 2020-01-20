@@ -75,7 +75,7 @@ ETensor<T> make_funcattr (egen::_GENERATED_OPCODE opcode,
 {
 	if (children.empty())
 	{
-		logs::fatalf("cannot %s without arguments", egen::name_op(opcode).c_str());
+		teq::fatalf("cannot %s without arguments", egen::name_op(opcode).c_str());
 	}
 
 	teq::ShapesT shapes;

@@ -108,7 +108,7 @@ static bool validate_matcher_helper (const ::Functor* matcher, bool& used_comm)
 		if (used_comm)
 		{
 			// two or more commutatives in a matcher graph
-			logs::debug("matcher graph cannot contain "
+			teq::debug("matcher graph cannot contain "
 				"more than one commutative functor");
 			return false;
 		}
@@ -118,14 +118,14 @@ static bool validate_matcher_helper (const ::Functor* matcher, bool& used_comm)
 			if (nargs != 1)
 			{
 				// only have ONE argument
-				logs::debug("commutative variadic matcher "
+				teq::debug("commutative variadic matcher "
 					"cannot have multiple arguments");
 				return false;
 			}
 			if (child_varg)
 			{
 				// functor argument cannot hold variadic arguments
-				logs::debug("commutative variadic matcher cannot "
+				teq::debug("commutative variadic matcher cannot "
 					"have an argument with variadic arguments");
 				return false;
 			}
@@ -147,7 +147,7 @@ static std::string parse_matcher (
 {
 	if (NULL == matcher)
 	{
-		logs::fatal("cannot parse null matcher");
+		teq::fatal("cannot parse null matcher");
 	}
 
 	auto& cmatchers = out[std::string(matcher->name_)];
@@ -181,7 +181,7 @@ static std::string parse_matcher (
 					parse_matcher(out, child->val_.functor_)));
 				break;
 			default:
-				logs::fatalf("unknown matcher argument of type %d", child->type_);
+				teq::fatalf("unknown matcher argument of type %d", child->type_);
 		}
 	}
 	return outmatcher->get_fid();
@@ -192,7 +192,7 @@ static CversionCtx process_cversions (
 {
 	if (nullptr == cversions && CONVERSION != cversions->type_)
 	{
-		logs::fatal("rule parser did not produced conversions");
+		teq::fatal("rule parser did not produced conversions");
 	}
 	CversionCtx out;
 	for (auto it = cversions->head_; it != NULL; it = it->next_)
@@ -200,7 +200,7 @@ static CversionCtx process_cversions (
 		auto cversion = (::Conversion*) it->val_;
 		if (NULL == cversion)
 		{
-			logs::fatal("cannot parse null conversion");
+			teq::fatal("cannot parse null conversion");
 		}
 		if (validate_matcher(cversion->matcher_))
 		{
@@ -219,7 +219,7 @@ CversionCtx parse (std::string content, BuildTargetF parse_target)
 	int status = ::parse_str(&cversions, content.c_str());
 	if (status != 0)
 	{
-		logs::errorf("failed to parse content %s: got %d status",
+		teq::errorf("failed to parse content %s: got %d status",
 			content.c_str(), status);
 		return CversionCtx();
 	}
@@ -232,13 +232,13 @@ CversionCtx parse_file (std::string filename, BuildTargetF parse_target)
 	FILE* file = std::fopen(filename.c_str(), "r");
 	if (nullptr == file)
 	{
-		logs::errorf("failed to open file %s", filename.c_str());
+		teq::errorf("failed to open file %s", filename.c_str());
 		return CversionCtx();
 	}
 	int status = ::parse_file(&cversions, file);
 	if (status != 0)
 	{
-		logs::errorf("failed to parse file %s: got %d status",
+		teq::errorf("failed to parse file %s: got %d status",
 			filename.c_str(), status);
 		return CversionCtx();
 	}

@@ -53,7 +53,7 @@ void arr2shapedarr (teq::ShapedArr<T>& out, py::array& data)
 				}
 					break;
 				default:
-					logs::fatalf("unsupported float type with %d bytes", tbytes);
+					teq::fatalf("unsupported float type with %d bytes", tbytes);
 			}
 			break;
 		case 'i':
@@ -84,11 +84,11 @@ void arr2shapedarr (teq::ShapedArr<T>& out, py::array& data)
 				}
 					break;
 				default:
-					logs::fatalf("unsupported integer type with %d bytes", tbytes);
+					teq::fatalf("unsupported integer type with %d bytes", tbytes);
 			}
 			break;
 		default:
-			logs::fatalf("unknown dtype %c", kind);
+			teq::fatalf("unknown dtype %c", kind);
 	}
 }
 

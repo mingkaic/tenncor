@@ -46,7 +46,7 @@ inline std::array<T,N> dim_copy (std::vector<T> d)
 }
 
 #define _ARRAY_SWITCH(ARR, CASE)switch (ARR.size()) {\
-	case 0: logs::fatal("missing dimensions");\
+	case 0: teq::fatal("missing dimensions");\
 	case 1: CASE(ARR,1)\
 	case 2: CASE(ARR,2)\
 	case 3: CASE(ARR,3)\
@@ -1372,7 +1372,7 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 		teq::RankT d = order[i];
 		if (visited[d])
 		{
-			logs::fatalf("convolution does not support repeated kernel "
+			teq::fatalf("convolution does not support repeated kernel "
 				"dimensions: %s", fmts::to_string(
 					order.begin(), order.end()).c_str());
 		}
@@ -1383,7 +1383,7 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 	{
 		if (kshape.at(i) > 1)
 		{
-			logs::fatalf("given kernel shape %s, unspecified "
+			teq::fatalf("given kernel shape %s, unspecified "
 				"non-singular kernel dimension %d is undefined",
 					kshape.to_string().c_str(), i);
 		}

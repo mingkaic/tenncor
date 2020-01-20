@@ -128,7 +128,7 @@ private:
 			}
 				break;
 			default:
-				logs::fatal("cannot compare unknown attribute");
+				teq::fatal("cannot compare unknown attribute");
 		}
 		return match;
 	}

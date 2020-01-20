@@ -59,7 +59,7 @@ struct Variable final : public iLeaf<T>
 	{
 		if (false == shape.compatible_after(this->shape_, 0))
 		{
-			logs::fatalf("assigning data shaped %s to tensor %s",
+			teq::fatalf("assigning data shaped %s to tensor %s",
 				shape.to_string().c_str(), this->shape_.to_string().c_str());
 		}
 		std::vector<T> data;

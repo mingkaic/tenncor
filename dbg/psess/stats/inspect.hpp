@@ -13,14 +13,14 @@ void inspect_helper (T* data, teq::Shape shape, std::string label)
 {
 	if (nullptr == data)
 	{
-		logs::errorf("cannot inspect null data of shape %s",
+		teq::errorf("cannot inspect null data of shape %s",
 			shape.to_string().c_str());
 	}
 	size_t n = shape.n_elems();
 	T min = *std::min_element(data, data + n);
 	T max = *std::max_element(data, data + n);
 	// using logs is slow af (tolerable) (todo: upgrade to formatter whenever c++2a is supported)
-	logs::infof("(%s) => min: %s, max: %s",
+	teq::infof("(%s) => min: %s, max: %s",
 		label.c_str(),
 		fmts::to_string(min).c_str(),
 		fmts::to_string(max).c_str());

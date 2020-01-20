@@ -274,12 +274,12 @@ PYBIND11_MODULE(layr, m)
 				std::ifstream input(filename);
 				if (false == input.is_open())
 				{
-					logs::fatalf("file %s not found", filename.c_str());
+					teq::fatalf("file %s not found", filename.c_str());
 				}
 				onnx::ModelProto pb_model;
 				if (false == pb_model.ParseFromIstream(&input))
 				{
-					logs::fatalf("failed to parse onnx from %s",
+					teq::fatalf("failed to parse onnx from %s",
 						filename.c_str());
 				}
 				auto layers = eteq::load_layers<PybindT>(pb_model);
@@ -292,7 +292,7 @@ PYBIND11_MODULE(layr, m)
 				std::ofstream output(filename);
 				if (false == output.is_open())
 				{
-					logs::fatalf("file %s not found", filename.c_str());
+					teq::fatalf("file %s not found", filename.c_str());
 				}
 				onnx::ModelProto pb_model;
 				eteq::save_layers<PybindT>(pb_model, models);

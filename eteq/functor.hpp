@@ -32,7 +32,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 	{
 		if (children.empty())
 		{
-			logs::fatalf("cannot perform `%s` without arguments",
+			teq::fatalf("cannot perform `%s` without arguments",
 				egen::name_op(opcode).c_str());
 		}
 
@@ -43,7 +43,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 		{
 			if (tcode != child->type_code())
 			{
-				logs::fatalf("incompatible tensor types %s and %s: "
+				teq::fatalf("incompatible tensor types %s and %s: "
 					"cross-type functors not supported yet",
 					egen::name_type(tcode).c_str(),
 					child->type_label().c_str());
@@ -133,7 +133,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 	{
 		if (index >= children_.size())
 		{
-			logs::fatalf("cannot modify argument %d "
+			teq::fatalf("cannot modify argument %d "
 				"when there are only %d arguments",
 				index, children_.size());
 		}
@@ -148,7 +148,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 			teq::Shape curshape = children_[index]->shape();
 			if (false == nexshape.compatible_after(curshape, 0))
 			{
-				logs::fatalf("cannot update child %d to argument with "
+				teq::fatalf("cannot update child %d to argument with "
 					"incompatible shape %s (requires shape %s)",
 					index, nexshape.to_string().c_str(),
 					curshape.to_string().c_str());
@@ -176,7 +176,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 	{
 		if (false == has_data())
 		{
-			logs::fatal("cannot get device of uninitialized functor");
+			teq::fatal("cannot get device of uninitialized functor");
 		}
 		return *ref_;
 	}

@@ -23,7 +23,7 @@ int main (int argc, const char** argv)
 		return 1;
 	}
 
-	logs::get_logger().set_log_level(logs::INFO);
+	teq::get_logger().set_log_level(teq::INFO);
 
 	std::ifstream readstr(readpath);
 	if (readstr.is_open())
@@ -31,7 +31,7 @@ int main (int argc, const char** argv)
 		weights::OpWeights ops;
 		if (false == ops.ParseFromIstream(&readstr))
 		{
-			logs::fatalf("failed to parse from istream when read file %s",
+			teq::fatalf("failed to parse from istream when read file %s",
 				readpath.c_str());
 		}
 		std::string jsonstr;
@@ -41,7 +41,7 @@ int main (int argc, const char** argv)
 			google::protobuf::util::MessageToJsonString(
 				ops, &jsonstr, options))
 		{
-			logs::fatal("failed to parse op weights");
+			teq::fatal("failed to parse op weights");
 		}
 
 		std::ofstream writestr(writepath);
@@ -60,7 +60,7 @@ int main (int argc, const char** argv)
 	}
 	else
 	{
-		logs::warnf("failed to read file `%s`", readpath.c_str());
+		teq::warnf("failed to read file `%s`", readpath.c_str());
 	}
 
 	return 0;

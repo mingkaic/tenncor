@@ -32,7 +32,7 @@ struct ReduceOpt
 		bool redundant = ranks.empty();
 		if (redundant)
 		{
-			logs::debugf("reducing with no significant dimensions... "
+			teq::debugf("reducing with no significant dimensions... "
 				"treating as identity: (dims=%s, shape=%s)",
 				fmts::to_string(ranks.begin(), ranks.end()).c_str(),
 				shapes.front().to_string().c_str());
@@ -76,7 +76,7 @@ struct FuncOpt<egen::ARGMAX> final
 		bool redundant = shape.at(return_dim) == 1;
 		if (redundant)
 		{
-			logs::debugf("argreducing with no significant dimensions... "
+			teq::debugf("argreducing with no significant dimensions... "
 				"treating as identity: (return_dim=%d, shape=%s)",
 				(int) return_dim, shape.to_string().c_str());
 		}
@@ -99,7 +99,7 @@ struct FuncOpt<egen::SLICE> final
 			auto& exts = extents[i];
 			if (exts.second == 0)
 			{
-				logs::fatalf("cannot create slice with 0 dimension at "
+				teq::fatalf("cannot create slice with 0 dimension at "
 					"index %d (extents=%s)", i,
 					eigen::to_string(extents).c_str());
 			}
@@ -108,7 +108,7 @@ struct FuncOpt<egen::SLICE> final
 		}
 		if (redundant)
 		{
-			logs::debugf("slice parameter covers whole tensor... "
+			teq::debugf("slice parameter covers whole tensor... "
 				"treating as identity: (extents=%s)",
 				eigen::to_string(extents).c_str());
 		}
@@ -130,7 +130,7 @@ struct FuncOpt<egen::PAD> final
 			});
 		if (redundant)
 		{
-			logs::debugf("padding are all zero... "
+			teq::debugf("padding are all zero... "
 				"treating as identity: (paddings=%s)",
 				eigen::to_string(paddings).c_str());
 		}
@@ -148,7 +148,7 @@ struct FuncOpt<egen::SCATTER> final
 		bool redundant = shapes.front().compatible_after(outshape, 0);
 		if (redundant)
 		{
-			logs::debugf("scattering produces the same shape %s",
+			teq::debugf("scattering produces the same shape %s",
 				outshape.to_string().c_str());
 		}
 		return redundant;
@@ -170,7 +170,7 @@ struct FuncOpt<egen::PERMUTE> final
 		}
 		if (redundant)
 		{
-			logs::debug("permuting with same "
+			teq::debug("permuting with same "
 				"dimensions ... treating as identity");
 		}
 		return redundant;
@@ -190,7 +190,7 @@ struct FuncOpt<egen::EXTEND> final
 			[](teq::DimT d) { return 1 == d; }));
 		if (redundant)
 		{
-			logs::debug("extending with nothing... treating as identity");
+			teq::debug("extending with nothing... treating as identity");
 		}
 		return redundant;
 	}
@@ -204,7 +204,7 @@ struct FuncOpt<egen::GROUP_CONCAT> final
 		bool redundant = shapes.size() == 1;
 		if (redundant)
 		{
-			logs::debug("concatenating a single node... treating as identity");
+			teq::debug("concatenating a single node... treating as identity");
 		}
 		return redundant;
 	}
@@ -220,7 +220,7 @@ struct FuncOpt<egen::RESHAPE> final
 		bool redundant = outshape.compatible_after(shapes.front(), 0);
 		if (redundant)
 		{
-			logs::debugf("outshape of reshape is the same shape as inshape "
+			teq::debugf("outshape of reshape is the same shape as inshape "
 				"%s... treating as identity", outshape.to_string().c_str());
 		}
 		return redundant;

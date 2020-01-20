@@ -45,7 +45,7 @@ void remove_duplicates (teq::TensptrsT& roots, EqualF equals)
 	// remove equivalent nodes
 	if (csts.size() > 0)
 	{
-		logs::debug("removing immutable duplicates");
+		teq::debug("removing immutable duplicates");
 		std::sort(csts.begin(), csts.end(),
 			[](teq::LeafptrT a, teq::LeafptrT b)
 			{
@@ -57,7 +57,7 @@ void remove_duplicates (teq::TensptrsT& roots, EqualF equals)
 			if (equals(cmp, csts[i]))
 			{
 				// remove duplicate
-				logs::debugf("replacing %s", csts[i]->to_string().c_str());
+				teq::debugf("replacing %s", csts[i]->to_string().c_str());
 				// remove equivalent node
 				replace_parents(pfinder, cmp, csts[i].get());
 				auto it = rindices.find(csts[i].get());
@@ -78,7 +78,7 @@ void remove_duplicates (teq::TensptrsT& roots, EqualF equals)
 
 	if (functors.size() > 0)
 	{
-		logs::debug("removing functor duplicates");
+		teq::debug("removing functor duplicates");
 		std::sort(functors.begin(), functors.end(),
 			[&stat](teq::FuncptrT a, teq::FuncptrT b)
 			{
@@ -95,7 +95,7 @@ void remove_duplicates (teq::TensptrsT& roots, EqualF equals)
 		{
 			if (equals(cmp, functors[i]))
 			{
-				logs::debugf("replacing functor %s",
+				teq::debugf("replacing functor %s",
 					functors[i]->to_string().c_str());
 				// remove equivalent node
 				replace_parents(pfinder, cmp, functors[i].get());

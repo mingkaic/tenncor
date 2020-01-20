@@ -211,7 +211,7 @@ eteq::ELayer<T> link (const std::vector<eteq::ELayer<T>>& layers,
 {
 	if (layers.empty())
 	{
-		logs::fatal("cannot link no layers");
+		teq::fatal("cannot link no layers");
 	}
 	auto output = input;
 	for (size_t i = 0, n = layers.size(); i < n; ++i)
@@ -235,7 +235,7 @@ eteq::ELayer<T> link (const std::vector<eteq::ELayer<T>>& layers)
 {
 	if (layers.empty())
 	{
-		logs::fatal("cannot link no layers");
+		teq::fatal("cannot link no layers");
 	}
 	eteq::ETensor<T> input = layers.front().input();
 	return link<T>(layers, input);

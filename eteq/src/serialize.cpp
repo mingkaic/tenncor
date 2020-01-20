@@ -37,7 +37,7 @@ static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 	}
 		break;
 	default:
-		logs::fatal("cannot unpack leaf of unknown usage");
+		teq::fatal("cannot unpack leaf of unknown usage");
 	}
 	return out;
 }
@@ -130,7 +130,7 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 					&onnx::TensorProto::add_int64_data);
 				break;
 			default:
-				logs::fatalf("unknown onnx type %d (aka %s)",
+				teq::fatalf("unknown onnx type %d (aka %s)",
 					onnx_type, code_name.c_str());
 		}
 	}
@@ -189,7 +189,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 // 				break;
 // #endif
 			default:
-				logs::fatalf("unknown onnx type %d", onnx_type);
+				teq::fatalf("unknown onnx type %d", onnx_type);
 		}
 		return out;
 	}
@@ -199,7 +199,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 	{
 		if (children.empty())
 		{
-			logs::fatalf("cannot generate func %s without args", opname.c_str());
+			teq::fatalf("cannot generate func %s without args", opname.c_str());
 		}
 		egen::_GENERATED_OPCODE opcode = egen::get_op(opname);
 		size_t gencode = children.front()->type_code();

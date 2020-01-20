@@ -25,7 +25,7 @@ struct iMatcher
 	{
 		if (::KV_PAIR != attrs.type_)
 		{
-			logs::fatalf("passing attributes by %d typed list", attrs.type_);
+			teq::fatalf("passing attributes by %d typed list", attrs.type_);
 		}
 		for (auto it = attrs.head_; nullptr != it; it = it->next_)
 		{

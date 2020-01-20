@@ -192,10 +192,10 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				out = reduce_grad(args.front()->shape(), ETensor<T>(op), op) == ETensor<T>(args.front());
 				break;
 			case egen::ARGMAX:
-				logs::fatalf("cannot derive %s", opcode.name_.c_str());
+				teq::fatalf("cannot derive %s", opcode.name_.c_str());
 				break;
 			default:
-				logs::fatalf("Unknown op %s", opcode.name_.c_str());
+				teq::fatalf("Unknown op %s", opcode.name_.c_str());
 		}
 		return (teq::TensptrT) out;
 	}
@@ -534,10 +534,10 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			}
 				break;
 			case egen::ARGMAX:
-				logs::fatalf("cannot derive %s", opcode.name_.c_str());
+				teq::fatalf("cannot derive %s", opcode.name_.c_str());
 				break;
 			default:
-				logs::fatalf("Unknown op %s", opcode.name_.c_str());
+				teq::fatalf("Unknown op %s", opcode.name_.c_str());
 		}
 		return (teq::TensptrT) out;
 	}

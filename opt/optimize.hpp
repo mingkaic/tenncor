@@ -55,10 +55,10 @@ struct CversionCtx
 					{
 						if (cands.size() > 1)
 						{
-							logs::warn("ambiguous matcher results: more than 1 candidate");
+							teq::warn("ambiguous matcher results: more than 1 candidate");
 							// todo: dump these candidates
 						}
-						logs::debugf("applying conversion `%s`", dbg_msgs_.at(fid).c_str());
+						teq::debugf("applying conversion `%s`", dbg_msgs_.at(fid).c_str());
 						return targets_.at(fid)->convert(f->shape(), cands[0]);
 					}
 				}

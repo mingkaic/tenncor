@@ -6,6 +6,12 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
+P2 - centralize global context structures
+P2 - create global context for setting local logger
+   - implement reliable training harness
+      - periodically caching data
+      - save environment state + historic record
+      - recover environment state + model
    - implement embedding
    - upgrade layr to allow restructuring recurrent structure sequence length
    - fix gru demo to run optimally
@@ -25,8 +31,6 @@ P5 = "get to it eventually"
 P2 - generate value-range graph to detect erroneous operators
       - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node
       - this graph can help developers quickly identifies unstable nodes
-P2 - centralize global context structures
-P2 - create global context for setting local logger
 P2 - provide graph-setup time summary when failing to match shapes (re-use experimental/locator)
 P2 - implement debug option that locates nodes by some attr/parent-child relationship/etc.
 P3 - implement custom logger that displays location of nearest node on fatal errors

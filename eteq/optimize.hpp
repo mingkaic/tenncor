@@ -56,7 +56,7 @@ struct FuncTarget final : public opt::iTarget
 	{
 		if (::KV_PAIR != attrs.type_)
 		{
-			logs::fatalf("passing attributes by %d typed list", attrs.type_);
+			teq::fatalf("passing attributes by %d typed list", attrs.type_);
 		}
 		for (auto it = attrs.head_; nullptr != it; it = it->next_)
 		{
@@ -126,7 +126,7 @@ opt::TargptrT build_target (::TreeNode* target)
 		}
 			break;
 		default:
-			logs::fatalf("building unknown target %d", target->type_);
+			teq::fatalf("building unknown target %d", target->type_);
 	}
 	return out;
 }

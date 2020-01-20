@@ -88,7 +88,7 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 {
 	if (nullptr == io.visible_)
 	{
-		logs::fatal("cannot call cd_grad_approx with null visible");
+		teq::fatal("cannot call cd_grad_approx with null visible");
 	}
 	if (nullptr == io.hidden_)
 	{

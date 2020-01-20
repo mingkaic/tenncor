@@ -21,7 +21,7 @@ struct Emitter final : public dbg::iPlugin
 		ClientConfig client_cfg = ClientConfig()) :
 		client_(channel, client_cfg)
 	{
-		logs::infof("created session: %s", sess_id_.c_str());
+		teq::infof("created session: %s", sess_id_.c_str());
 	}
 
 	Emitter (std::string host,

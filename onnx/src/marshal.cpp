@@ -57,7 +57,7 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 			});
 		if (strs.size() > 0 && ints.size() > 0 && floats.size() > 0)
 		{
-			logs::fatal("onnx does not support hetero-typed arrays");
+			teq::fatal("onnx does not support hetero-typed arrays");
 		}
 		if (strs.size() > 0)
 		{
@@ -88,7 +88,7 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 
 	void marshal (const marsh::Maps& mm) override
 	{
-		logs::fatal("onnx does not support map attributes");
+		teq::fatal("onnx does not support map attributes");
 	}
 
 	void marshal (const teq::TensorObj& tens) override
@@ -226,12 +226,12 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 				}
 				else
 				{
-					logs::warnf("unknown graph attribute %s",
+					teq::warnf("unknown graph attribute %s",
 						attr_name.c_str());
 				}
 				continue;
 			default:
-				logs::fatalf("unknown onnx attribute type of %s",
+				teq::fatalf("unknown onnx attribute type of %s",
 					attr_name.c_str());
 		}
 		out.add_attr(attr_name, marsh::ObjptrT(val));
