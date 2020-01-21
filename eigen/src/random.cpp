@@ -5,7 +5,7 @@
 namespace eigen
 {
 
-EngineT& get_engine (void)
+EngineT& default_engine (void)
 {
 	static EngineT engine;
 	return engine;

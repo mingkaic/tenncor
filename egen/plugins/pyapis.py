@@ -29,6 +29,8 @@ namespace pyegen
 //>>> modname
 PYBIND11_MODULE({modname}, m_{modname})
 {{
+	LOG_INIT(logs::DefLogger);
+
     m_{modname}.doc() = "pybind for {modname} api";
 
     //>>> modname
@@ -310,6 +312,7 @@ class PyAPIsPlugin:
                     '"pybind11/pybind11.h"',
                     '"pybind11/stl.h"',
                     '"pybind11/operators.h"',
+                    '"teq/config.hpp"',
                 ],
                 internal_refs=[_hdr_file, api_header])
 

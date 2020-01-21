@@ -1,6 +1,6 @@
 #include <google/protobuf/util/json_util.h>
 
-#include "logs/logs.hpp"
+#include "teq/logs.hpp"
 
 #include "query/parse.hpp"
 

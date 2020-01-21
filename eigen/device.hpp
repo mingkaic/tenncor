@@ -1,12 +1,15 @@
-#include "teq/isession.hpp"
-
-#include "eigen/eigen.hpp"
-
 #ifndef EIGEN_DEVICE_HPP
 #define EIGEN_DEVICE_HPP
 
+#include "teq/isession.hpp"
+#include "teq/config.hpp"
+
+#include "eigen/eigen.hpp"
+
 namespace eigen
 {
+
+const std::string device_key = "device";
 
 struct iEigen : public teq::iDeviceRef
 {
@@ -213,8 +216,16 @@ inline Device& default_device (void)
 
 inline teq::Session get_session (void)
 {
-	return teq::Session(default_device());
+	auto device = static_cast<teq::iDevice*>(
+		config::global_config.get_obj(device_key));
+	if (nullptr == device)
+	{
+		device = &default_device();
+	}
+	return teq::Session(*device);
 }
+
+#define DEVICE_INIT(DEVICE_TYPE)::config::global_config.add_entry<DEVICE_TYPE>(eigen::device_key)
 
 }
 

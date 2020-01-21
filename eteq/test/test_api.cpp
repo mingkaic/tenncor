@@ -79,7 +79,7 @@ static bool freivald (MatVecT a, MatVecT b, MatVecT c)
 		// generate r of len b[0].size() or c[0].size()
 		std::vector<int32_t> r(bdim);
 		std::uniform_int_distribution<int> dist{0, 1};
-		std::generate(r.begin(), r.end(), [&] { return dist(eigen::get_engine()); });
+		std::generate(r.begin(), r.end(), [&] { return dist(eigen::default_engine()); });
 
 		// p = matmul(a, matmul(b, r)) - matmul(c, r)
 		std::vector<int32_t> br; // matmul(b, r)

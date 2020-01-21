@@ -19,7 +19,7 @@
 static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
 	// Specify the engine and distribution.
-	std::mt19937 mersenne_engine(eigen::get_engine()());
+	std::mt19937 mersenne_engine(eigen::default_engine()());
 	std::uniform_real_distribution<float> dist(0, 1);
 
 	auto gen = std::bind(dist, mersenne_engine);
@@ -43,6 +43,7 @@ static teq::ShapedArr<PybindT> avgevry2 (teq::ShapedArr<PybindT>& in)
 int main (int argc, const char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
+	LOG_INIT(logs::DefLogger);
 
 	bool seed;
 	size_t seedval;
@@ -81,7 +82,7 @@ int main (int argc, const char** argv)
 	if (seed)
 	{
 		std::cout << "seeding " << seedval << '\n';
-		eigen::get_engine().seed(seedval);
+		eigen::default_engine().seed(seedval);
 	}
 
 	uint8_t n_in = 10;

@@ -6,6 +6,8 @@
 
 #include "pyutils/convert.hpp"
 
+#include "teq/logs.hpp"
+
 #include "layr/trainer/sgd.hpp"
 #include "layr/trainer/dqn.hpp"
 #include "layr/trainer/dbn.hpp"
@@ -14,6 +16,8 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(layr, m)
 {
+	LOG_INIT(logs::DefLogger);
+
 	m.doc() = "layer api";
 
 	// === supports ===

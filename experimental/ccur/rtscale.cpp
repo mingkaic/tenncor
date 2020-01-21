@@ -26,6 +26,8 @@ double softplus (double x)
 
 int main (int argc, const char** argv)
 {
+	LOG_INIT(logs::DefLogger);
+
 	std::string writepath;
 	flag::FlagSet flags("rt_anubis");
 	flags.add_flags()

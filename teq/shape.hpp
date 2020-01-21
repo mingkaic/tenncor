@@ -11,7 +11,7 @@
 #include <numeric>
 #include <vector>
 
-#include "logs/logs.hpp"
+#include "teq/logs.hpp"
 
 #ifndef TEQ_SHAPE_HPP
 #define TEQ_SHAPE_HPP

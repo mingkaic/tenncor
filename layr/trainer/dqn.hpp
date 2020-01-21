@@ -62,7 +62,7 @@ struct DQNTrainer final
 		layr::UnaryF<T> gradprocess = layr::UnaryF<T>()) :
 		sess_(&sess), params_(param),
 		source_model_(model), target_model_(model.deep_clone()),
-		get_random_(eigen::unif_gen<T>(0, 1))
+		get_random_(eigen::Randomizer().unif_gen<T>(0, 1))
 	{
 		teq::DimT indim = model.input()->shape().at(0);
 		teq::DimT outdim = model.root()->shape().at(0);
@@ -285,7 +285,7 @@ private:
 	{
 		std::vector<size_t> indices(params_.experiences_.size());
 		std::iota(indices.begin(), indices.end(), 0);
-		std::shuffle(indices.begin(), indices.end(), eigen::get_engine());
+		std::shuffle(indices.begin(), indices.end(), eigen::default_engine());
 		std::vector<ExpBatch<T>> res;
 		for (size_t i = 0; i < params_.mini_batch_size_; i++)
 		{

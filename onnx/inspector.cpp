@@ -24,11 +24,11 @@ void write_json (std::string writepath, const std::string& jsonstr)
 				google::protobuf::util::JsonStringToMessage(
 					jsonstr, &model, options))
 			{
-				teq::fatal("failed to parse json model");
+				logs::fatal("failed to parse json model");
 			}
 			if (false == model.SerializeToOstream(&writestr))
 			{
-				teq::fatalf("failed to serialize protobuf to %s",
+				logs::fatalf("failed to serialize protobuf to %s",
 					writepath.c_str());
 			}
 			writestr.close();
@@ -66,7 +66,7 @@ int main (int argc, const char** argv)
 		return 1;
 	}
 
-	teq::get_logger().set_log_level(teq::INFO);
+	logs::get_logger().set_log_level("info");
 
 	std::ifstream readstr(readpath);
 	if (readstr.is_open())
@@ -77,7 +77,7 @@ int main (int argc, const char** argv)
 			onnx::ModelProto model;
 			if (false == model.ParseFromIstream(&readstr))
 			{
-				teq::fatalf("failed to parse from istream when read file %s",
+				logs::fatalf("failed to parse from istream when read file %s",
 					readpath.c_str());
 			}
 			google::protobuf::util::JsonPrintOptions options;
@@ -87,7 +87,7 @@ int main (int argc, const char** argv)
 				google::protobuf::util::MessageToJsonString(
 					model, &jsonstr, options))
 			{
-				teq::fatal("failed to parse onnx model");
+				logs::fatal("failed to parse onnx model");
 			}
 		}
 		else
@@ -103,7 +103,7 @@ int main (int argc, const char** argv)
 	}
 	else
 	{
-		teq::warnf("failed to read file `%s`", readpath.c_str());
+		logs::warnf("failed to read file `%s`", readpath.c_str());
 	}
 
 	return 0;

@@ -4,6 +4,7 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
+#include "teq/logs.hpp"
 #include "teq/teq.hpp"
 
 #include "dbg/print/teq_csv.hpp"
@@ -15,6 +16,8 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(print, m)
 {
+	LOG_INIT(logs::DefLogger);
+
 	m.doc() = "print teq graphs to stream";
 
 	m

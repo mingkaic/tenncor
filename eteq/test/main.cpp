@@ -5,10 +5,12 @@
 
 #include "exam/exam.hpp"
 
+#include "teq/logs.hpp"
+
 int main (int argc, char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
-	set_logger(std::static_pointer_cast<logs::iLogger>(exam::tlogger));
+	LOG_INIT(exam::TestLogger);
 
 	::testing::InitGoogleTest(&argc, argv);
 	int ret = RUN_ALL_TESTS();

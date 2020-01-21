@@ -1,6 +1,8 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
+#include "teq/logs.hpp"
+
 #include "eteq/generated/pyapi.hpp"
 
 // #include "dbg/psess/emit/emitter.hpp"
@@ -10,6 +12,8 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(psess, m)
 {
+	LOG_INIT(logs::DefLogger);
+
 	m.doc() = "dbg teq graphs using interactive grpc session";
 
 	py::class_<dbg::iPlugin> plugin(m, "Plugin");

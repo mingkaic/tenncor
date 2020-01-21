@@ -1259,8 +1259,11 @@ EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::i
 				make_matmap((T*) b.data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
+				Randomizer rand;
 				return args[0].binaryExpr(args[1],
-					std::function<T(const T&,const T&)>(unif<T>));
+					std::function<T(const T&,const T&)>(
+						[rand](const T& a, const T& b)
+						{ return rand.unif<T>(a, b); }));
 			});
 	}
 	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
@@ -1271,8 +1274,11 @@ EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::i
 			make_tensmap((T*) b.data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
+			Randomizer rand;
 			return args[0].binaryExpr(args[1],
-				std::function<T(const T&,const T&)>(unif<T>));
+				std::function<T(const T&,const T&)>(
+					[rand](const T& a, const T& b)
+					{ return rand.unif<T>(a, b); }));
 		});
 }
 

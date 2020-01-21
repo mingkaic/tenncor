@@ -3,6 +3,8 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
+#include "teq/logs.hpp"
+
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/etens.hpp"
 
@@ -24,6 +26,8 @@ struct Statement final
 
 PYBIND11_MODULE(query, m)
 {
+	LOG_INIT(logs::DefLogger);
+
 	m.doc() = "query teq graphs";
 
 	py::class_<pyquery::Statement> stmt(m, "Statement");

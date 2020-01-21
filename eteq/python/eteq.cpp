@@ -1,5 +1,7 @@
 #include "pybind11/stl.h"
 
+#include "teq/logs.hpp"
+
 #include "pyutils/convert.hpp"
 
 #include "eteq/generated/pyapi.hpp"
@@ -26,6 +28,8 @@ py::array typedata_to_array (teq::iTensor& tens, py::dtype dtype)
 
 PYBIND11_MODULE(eteq, m)
 {
+	LOG_INIT(logs::DefLogger);
+
 	m.doc() = "eteq variables";
 
 	// ==== data and shape ====
@@ -250,7 +254,7 @@ PYBIND11_MODULE(eteq, m)
 		.def("seed",
 			[](size_t seed)
 			{
-				eigen::get_engine().seed(seed);
+				eigen::default_engine().seed(seed);
 			},
 			"Seed internal RNG")
 

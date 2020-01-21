@@ -1,15 +1,13 @@
-#include "teq/config.hpp"
+#include "teq/logs.hpp"
 
-#ifdef CONFIG_CONFIG_HPP
+#ifdef TEQ_LOGS_HPP
 
-namespace config
+namespace teq
 {
-
-estd::ConfigMap global_config;
 
 #define LOG_DEFN(LOG_LEVEL){\
 	auto logger = static_cast<logs::iLogger*>(\
-		global_config.get_obj(logger_key));\
+		config::global_config.get_obj(logger_key));\
 	if (nullptr == logger)\
 	{\
 		logs::error("failed to log: " + msg);\
@@ -22,7 +20,7 @@ estd::ConfigMap global_config;
 std::string get_log_level (void)
 {
 	auto logger = static_cast<logs::iLogger*>(
-		global_config.get_obj(logger_key));
+		config::global_config.get_obj(logger_key));
 	if (nullptr == logger)
 	{
 		logs::error("failed to get log level");
@@ -34,7 +32,7 @@ std::string get_log_level (void)
 void set_log_level (const std::string& log_level)
 {
 	auto logger = static_cast<logs::iLogger*>(
-		global_config.get_obj(logger_key));
+		config::global_config.get_obj(logger_key));
 	if (nullptr == logger)
 	{
 		logs::error("failed to set log level");

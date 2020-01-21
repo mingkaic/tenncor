@@ -7,6 +7,13 @@ extern "C" {
 }
 
 
+int main (int argc, char** argv)
+{
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
+}
+
+
 static const char* sample_cfg = "cfg/optimizations.rules";
 
 
@@ -452,9 +459,3 @@ TEST(LIST, PtrListClear)
 	::ptrlist_free(NULL, NULL);
 }
 
-
-int main (int argc, char** argv)
-{
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
-}
