@@ -8,6 +8,8 @@
 
 #include "teq/logs.hpp"
 
+#include "eigen/device.hpp"
+
 #include "layr/trainer/sgd.hpp"
 #include "layr/trainer/dqn.hpp"
 #include "layr/trainer/dbn.hpp"
@@ -17,6 +19,8 @@ namespace py = pybind11;
 PYBIND11_MODULE(layr, m)
 {
 	LOG_INIT(logs::DefLogger);
+	DEVICE_INIT(eigen::Device);
+	RANDOM_INIT;
 
 	m.doc() = "layer api";
 

@@ -4,6 +4,9 @@
 
 #include "pyutils/convert.hpp"
 
+#include "eigen/device.hpp"
+#include "eigen/random.hpp"
+
 #include "eteq/generated/pyapi.hpp"
 #include "eteq/derive.hpp"
 #include "eteq/layer.hpp"
@@ -29,6 +32,8 @@ py::array typedata_to_array (teq::iTensor& tens, py::dtype dtype)
 PYBIND11_MODULE(eteq, m)
 {
 	LOG_INIT(logs::DefLogger);
+	DEVICE_INIT(eigen::Device);
+	RANDOM_INIT;
 
 	m.doc() = "eteq variables";
 

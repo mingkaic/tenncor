@@ -69,7 +69,7 @@ private:
 				if (auto narr = dynamic_cast<const marsh::iArray*>(attr))
 				{
 					const auto& arr = pba.iarr().values();
-					if (arr.size() == narr->size())
+					if ((size_t) arr.size() == narr->size())
 					{
 						match = true;
 						narr->foreach(
@@ -86,7 +86,7 @@ private:
 				if (auto narr = dynamic_cast<const marsh::iArray*>(attr))
 				{
 					const auto& arr = pba.darr().values();
-					if (arr.size() == narr->size())
+					if ((size_t) arr.size() == narr->size())
 					{
 						match = true;
 						narr->foreach(

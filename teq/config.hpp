@@ -1,4 +1,5 @@
 #ifndef CONFIG_CONFIG_HPP
+#define CONFIG_CONFIG_HPP
 
 #include "estd/config.hpp"
 

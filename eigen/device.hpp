@@ -9,8 +9,6 @@
 namespace eigen
 {
 
-const std::string device_key = "device";
-
 struct iEigen : public teq::iDeviceRef
 {
 	virtual void assign (void) = 0;
@@ -217,15 +215,13 @@ inline Device& default_device (void)
 inline teq::Session get_session (void)
 {
 	auto device = static_cast<teq::iDevice*>(
-		config::global_config.get_obj(device_key));
+		config::global_config.get_obj(teq::device_key));
 	if (nullptr == device)
 	{
 		device = &default_device();
 	}
 	return teq::Session(*device);
 }
-
-#define DEVICE_INIT(DEVICE_TYPE)::config::global_config.add_entry<DEVICE_TYPE>(eigen::device_key)
 
 }
 
