@@ -37,6 +37,7 @@ struct Randomizer final
 		// fallback to default engine
 		if (nullptr == engine_)
 		{
+			logs::error("missing random engine in global config");
 			engine_ = &default_engine();
 		}
 	}

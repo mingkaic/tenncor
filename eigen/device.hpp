@@ -218,6 +218,7 @@ inline teq::Session get_session (void)
 		config::global_config.get_obj(teq::device_key));
 	if (nullptr == device)
 	{
+		logs::error("missing device in global config");
 		device = &default_device();
 	}
 	return teq::Session(*device);

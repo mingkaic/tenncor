@@ -256,12 +256,6 @@ PYBIND11_MODULE(eteq, m)
 		// ==== other stuff ====
 		.def("derive", &eteq::derive<PybindT>,
 			"Return derivative of first tensor with respect to second tensor (deprecated)")
-		.def("seed",
-			[](size_t seed)
-			{
-				eigen::default_engine().seed(seed);
-			},
-			"Seed internal RNG")
 
 		// ==== optimization ====
 		.def("parse_optrules", &eteq::parse_file<PybindT>,
@@ -271,5 +265,48 @@ PYBIND11_MODULE(eteq, m)
 			[](teq::iSession& sess, opt::CversionCtx rules)
 			{
 				eteq::optimize<PybindT>(sess, rules);
-			});
+			})
+
+		// // ==== configmap ====
+		// .def("set_log_level",
+		// 	[](const std::string& level)
+		// 	{
+		// 		auto logger = static_cast<logs::iLogger*>(
+		// 			config::global_config.get_obj(teq::logger_key));
+		// 		if (nullptr == logger)
+		// 		{
+		// 			logs::error("missing logger in global config");
+		// 			logs::get_logger().set_log_level(level);
+		// 			return;
+		// 		}
+		// 		if (logger->supports_level(level))
+		// 		{
+		// 			logger->set_log_level(level);
+		// 		}
+		// 	})
+		// .def("get_log_level",
+		// 	[]
+		// 	{
+		// 		auto logger = static_cast<logs::iLogger*>(
+		// 			config::global_config.get_obj(teq::logger_key));
+		// 		if (nullptr == logger)
+		// 		{
+		// 			logs::error("missing logger in global config");
+		// 			return logs::get_logger().get_log_level();
+		// 		}
+		// 		return logger->get_log_level();
+		// 	})
+		.def("seed",
+			[](size_t seed)
+			{
+		// 		auto engine = static_cast<eigen::EngineT*>(
+		// 			config::global_config.get_obj(eigen::rengine_key));
+		// 		if (nullptr == engine)
+		// 		{
+		// 			logs::error("missing random engine in global config");
+		// 			engine = &eigen::default_engine();
+		// 		}
+		// 		engine->seed(seed);
+			},
+			"Seed internal RNG");
 }

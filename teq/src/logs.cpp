@@ -23,8 +23,8 @@ std::string get_log_level (void)
 		config::global_config.get_obj(logger_key));
 	if (nullptr == logger)
 	{
-		logs::error("failed to get log level");
-		return "fatal";
+		logs::error("missing logger in global config");
+		return logs::get_logger().get_log_level();
 	}
 	return logger->get_log_level();
 }
@@ -35,7 +35,8 @@ void set_log_level (const std::string& log_level)
 		config::global_config.get_obj(logger_key));
 	if (nullptr == logger)
 	{
-		logs::error("failed to set log level");
+		logs::error("missing logger in global config");
+		logs::get_logger().set_log_level(log_level);
 		return;
 	}
 	if (logger->supports_level(log_level))
