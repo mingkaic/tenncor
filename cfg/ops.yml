@@ -100,3 +100,13 @@ opcode:
     GROUP_PROD:
       stmt: out = eigen::group_prod<T>(outshape, in);
       commutative: True
+    ASSIGN:
+      stmt: out = eigen::assign<T>(*in[0], *in[1]);
+    ASSIGN_ADD:
+      stmt: out = eigen::assign_add<T>(*in[0], *in[1]);
+    ASSIGN_SUB:
+      stmt: out = eigen::assign_sub<T>(*in[0], *in[1]);
+    ASSIGN_MUL:
+      stmt: out = eigen::assign_mul<T>(*in[0], *in[1]);
+    ASSIGN_DIV:
+      stmt: out = eigen::assign_div<T>(*in[0], *in[1]);

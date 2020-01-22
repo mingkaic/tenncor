@@ -316,7 +316,7 @@ EigenptrT group_concat (teq::Shape outshape, const teq::TensptrsT& group, const 
 	auto it = outshape.begin();
 	std::copy(it, it + dimension, reshaped.begin());
 	std::copy(it + dimension + 1, outshape.end(), reshaped.begin() + dimension);
-	return std::make_shared<TensAssign<T,std::vector<TensMapT<T>>>>(
+	return std::make_shared<TensAccum<T,std::vector<TensMapT<T>>>>(
 		0, shape_convert(outshape), args,
 		[dimension,reshaped](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
@@ -338,7 +338,7 @@ EigenptrT group_sum (teq::Shape outshape, const teq::TensptrsT& group)
 		{
 			return make_tensmap((T*) arg->data(), arg->shape());
 		});
-	return std::make_shared<TensAssign<T,std::vector<TensMapT<T>>>>(
+	return std::make_shared<TensAccum<T,std::vector<TensMapT<T>>>>(
 		0, shape_convert(outshape), args,
 		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
@@ -360,7 +360,7 @@ EigenptrT group_prod (teq::Shape outshape, const teq::TensptrsT& group)
 		{
 			return make_tensmap((T*) arg->data(), arg->shape());
 		});
-	return std::make_shared<TensAssign<T,std::vector<TensMapT<T>>>>(
+	return std::make_shared<TensAccum<T,std::vector<TensMapT<T>>>>(
 		1, shape_convert(outshape), args,
 		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
 		{
@@ -432,7 +432,7 @@ EigenptrT scatter (teq::Shape outshape, const teq::iTensor& in, const marsh::iAt
 	std::fill(incrs.begin(), incrs.end(), 1);
 	std::copy(dims.begin(), dims.begin() +
 		std::min((size_t) teq::rank_cap, dims.size()), incrs.begin());
-	return std::make_shared<TensAssign<T,TensMapT<T>>>(
+	return std::make_shared<TensAccum<T,TensMapT<T>>>(
 		0, shape_convert(outshape), make_tensmap((T*) in.data(), in.shape()),
 		[incrs](TensorT<T>& out, const TensMapT<T>& in)
 		{
@@ -1416,6 +1416,66 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 }
 
 #undef _ARRAY_SWITCH
+
+template <typename T>
+EigenptrT assign (teq::iTensor& target, const teq::iTensor& source)
+{
+	auto src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,const TensMapT<T>>>(src,
+		make_tensmap((T*) source.data(), source.shape()),
+		[](TensorT<T>& target, const TensMapT<T>& src)
+		{
+			target = src;
+		});
+}
+
+template <typename T>
+EigenptrT assign_add (teq::iTensor& target, const teq::iTensor& source)
+{
+	auto src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,const TensMapT<T>>>(src,
+		make_tensmap((T*) source.data(), source.shape()),
+		[](TensorT<T>& target, const TensMapT<T>& src)
+		{
+			target += src;
+		});
+}
+
+template <typename T>
+EigenptrT assign_sub (teq::iTensor& target, const teq::iTensor& source)
+{
+	auto src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,const TensMapT<T>>>(src,
+		make_tensmap((T*) source.data(), source.shape()),
+		[](TensorT<T>& target, const TensMapT<T>& src)
+		{
+			target -= src;
+		});
+}
+
+template <typename T>
+EigenptrT assign_mul (teq::iTensor& target, const teq::iTensor& source)
+{
+	auto src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,const TensMapT<T>>>(src,
+		make_tensmap((T*) source.data(), source.shape()),
+		[](TensorT<T>& target, const TensMapT<T>& src)
+		{
+			target *= src;
+		});
+}
+
+template <typename T>
+EigenptrT assign_div (teq::iTensor& target, const teq::iTensor& source)
+{
+	auto src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,const TensMapT<T>>>(src,
+		make_tensmap((T*) source.data(), source.shape()),
+		[](TensorT<T>& target, const TensMapT<T>& src)
+		{
+			target /= src;
+		});
+}
 
 }
 

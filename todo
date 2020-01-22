@@ -6,12 +6,12 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-P2 - make global context configurable through python
+   - implement assign operator as a eteq node
+   - rework sgd/other training setup to use assign functors
    - implement reliable training harness
       - periodically caching data
       - save environment state + historic record
       - recover environment state + model
-   - implement embedding
    - upgrade layr to allow restructuring recurrent structure sequence length
    - fix gru demo to run optimally
    - improve grader/optimization rule according to rnn, lstm, gru
@@ -22,6 +22,8 @@ P2 - make global context configurable through python
 >>>> aux project >>>> (preferrable to ensure smooth completion of inprogress tasks)
    - train convolutional nn demo
    - select and integrate some other CUDA-supported LinAlgebra libraries
+   - make global context configurable through python
+   - generalize functor observables to ensure safe device ref for assigns
 
 >>> bugs >>>
    - eteq extension to change shape according to optimized attributes (replace opt with query)

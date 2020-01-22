@@ -27,7 +27,7 @@ std::vector<teq::DimT> unpack_extend (
 	teq::Shape inshape, const marsh::iAttributed& attrib)
 {
 	std::vector<teq::DimT> bcast;
-	eigen::Packer<std::vector<teq::DimT>> dimpacker;
+	Packer<std::vector<teq::DimT>> dimpacker;
 	if (nullptr != attrib.get_attr(dimpacker.get_key()))
 	{
 		dimpacker.unpack(bcast, attrib);
@@ -35,7 +35,7 @@ std::vector<teq::DimT> unpack_extend (
 	else
 	{
 		teq::TensptrT tens;
-		eigen::Packer<teq::TensptrT>().unpack(tens, attrib);
+		Packer<teq::TensptrT>().unpack(tens, attrib);
 		auto target = tens->shape();
 		for (teq::RankT i = 0; i < teq::rank_cap; ++i)
 		{

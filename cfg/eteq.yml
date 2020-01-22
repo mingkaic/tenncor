@@ -6,6 +6,56 @@ api:
   namespaces:
     tenncor:
       - template: typename T
+        name: assign
+        args:
+        - dtype: const eteq::EVariable<T>&
+          name: target
+        - dtype: const eteq::ETensor<T>&
+          name: source
+        out:
+          type: eteq::ETensor<T>
+          val: return teq::TensptrT(eteq::Assign<T>::get(::egen::ASSIGN,target,teq::TensptrsT{source}));
+      - template: typename T
+        name: assign_add
+        args:
+        - dtype: const eteq::EVariable<T>&
+          name: target
+        - dtype: const eteq::ETensor<T>&
+          name: source
+        out:
+          type: eteq::ETensor<T>
+          val: return teq::TensptrT(eteq::Assign<T>::get(::egen::ASSIGN_ADD,target,teq::TensptrsT{source}));
+      - template: typename T
+        name: assign_sub
+        args:
+        - dtype: const eteq::EVariable<T>&
+          name: target
+        - dtype: const eteq::ETensor<T>&
+          name: source
+        out:
+          type: eteq::ETensor<T>
+          val: return teq::TensptrT(eteq::Assign<T>::get(::egen::ASSIGN_SUB,target,teq::TensptrsT{source}));
+      - template: typename T
+        name: assign_mul
+        args:
+        - dtype: const eteq::EVariable<T>&
+          name: target
+        - dtype: const eteq::ETensor<T>&
+          name: source
+        out:
+          type: eteq::ETensor<T>
+          val: return teq::TensptrT(eteq::Assign<T>::get(::egen::ASSIGN_MUL,target,teq::TensptrsT{source}));
+      - template: typename T
+        name: assign_div
+        args:
+        - dtype: const eteq::EVariable<T>&
+          name: target
+        - dtype: const eteq::ETensor<T>&
+          name: source
+        out:
+          type: eteq::ETensor<T>
+          val: return teq::TensptrT(eteq::Assign<T>::get(::egen::ASSIGN_DIV,target,teq::TensptrsT{source}));
+      - template: typename T
         name: abs
         args:
         - dtype: const eteq::ETensor<T>&

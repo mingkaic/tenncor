@@ -6,6 +6,17 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
+######### LIBRARY #########
+
+py_library(
+    name = "extenncor",
+    srcs = glob(["extenncor/*.py"]),
+    deps = [
+        "//eteq:eteq_py",
+        "//layr:layr_py",
+    ],
+)
+
 ######### COMPARISONS #########
 
 py_binary(
@@ -144,8 +155,7 @@ py_binary(
     name = "w2v_demo",
     srcs = ["demo/w2v_demo.py"],
     deps = [
-        "//eteq:eteq_py",
-        "//layr:layr_py",
+        "//rocnnet:extenncor",
     ],
     data = ["//:models", "//cfg:optimizations"],
 )

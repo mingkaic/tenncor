@@ -7,7 +7,10 @@ import eteq.tenncor as tc
 import eteq.eteq as eteq
 import layr.layr as layr
 
+from rocnnet.extenncor.embed import make_embedding
+
 text = "natural language processing and machine learning is fun and exciting"
+np.random.seed(0)
 
 # Note the .lower() as upper and lowercase does not matter in our implementation
 # [['natural', 'language', 'processing', 'and', 'machine', 'learning', 'is', 'fun', 'and', 'exciting']]
@@ -69,22 +72,8 @@ training_data, word_index, index_word = generate_training_data(corpus)
 # Initialising weight matrices
 # Both s1 and s2 should be randomly initialised but for this demo, we pre-determine the arrays (getW1 and getW2)
 # getW1 - shape (9x10) and getW2 - shape (10x9)
-np.random.seed(0)
 
-def embedding_init(shape, label):
-    return eteq.variable(np.random.uniform(
-        -1, 1, tuple(shape.as_list())), label)
-
-nword = len(word_index)
-embedding = layr.dense([nword], [n],
-    weight_init=embedding_init, bias_init=None)
-model = layr.link([
-    embedding,
-    layr.dense([n], [nword],
-        weight_init=embedding_init, bias_init=None),
-    layr.bind(tc.softmax),
-])
-w1 = embedding.get_storage()[0]
+w1, model = make_embedding(len(word_index), n)
 
 sess = eteq.Session()
 

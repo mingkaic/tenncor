@@ -21,7 +21,7 @@ template <typename T>
 struct SrcRef final : public iEigen
 {
 	SrcRef (T* data, teq::Shape shape) :
-		data_(eigen::make_tensmap(data, shape)) {}
+		data_(make_tensmap(data, shape)) {}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override
@@ -39,7 +39,7 @@ struct SrcRef final : public iEigen
 	void assign (void) override {}
 
 	/// Data Source
-	eigen::TensorT<T> data_;
+	TensorT<T> data_;
 };
 
 template <typename T>
@@ -65,12 +65,45 @@ struct PtrRef final : public iEigen
 	T* ref_;
 };
 
-/// Implementation of iEigen that assigns TensorMap to Tensor object
-/// using some custom assignment
 template <typename T, typename EigenArgs>
 struct TensAssign final : public iEigen
 {
-	TensAssign (T init_value, DimensionsT dims, EigenArgs args,
+	TensAssign (SrcRef<T>& target, EigenArgs args,
+		std::function<void(TensorT<T>&,EigenArgs&)> assign) :
+		target_(&target.data_), args_(args), assign_(assign) {}
+
+	/// Implementation of iDeviceRef
+	void* data (void) override
+	{
+		return target_->data();
+	}
+
+	/// Implementation of iDeviceRef
+	const void* data (void) const override
+	{
+		return target_->data();
+	}
+
+	/// Implementation of iEigen
+	void assign (void) override
+	{
+		assign_(*target_, args_);
+	}
+
+	TensorT<T>* target_;
+
+	/// Assignment arguments
+	EigenArgs args_;
+
+	std::function<void(TensorT<T>&,EigenArgs&)> assign_;
+};
+
+/// Implementation of iEigen that assigns TensorMap to Tensor object
+/// using some custom assignment
+template <typename T, typename EigenArgs>
+struct TensAccum final : public iEigen
+{
+	TensAccum (T init_value, DimensionsT dims, EigenArgs args,
 		std::function<void(TensorT<T>&,const EigenArgs&)> assign) :
 		args_(args), assign_(assign), data_(dims), init_(init_value) {}
 

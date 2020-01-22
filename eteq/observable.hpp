@@ -6,23 +6,27 @@
 namespace eteq
 {
 
-template <typename SUB>
 struct Observable
 {
 	virtual ~Observable (void) = default;
 
-	void subscribe (SUB sub)
+	void subscribe (Observable* sub)
 	{
 		subs_.emplace(sub);
 	}
 
-	void unsubscribe (SUB sub)
+	void unsubscribe (Observable* sub)
 	{
 		subs_.erase(sub);
 	}
 
+	virtual bool has_data (void) const = 0;
+
+	/// Removes internal data object
+	virtual void uninitialize (void) = 0;
+
 protected:
-	std::unordered_set<SUB> subs_;
+	std::unordered_set<Observable*> subs_;
 };
 
 }

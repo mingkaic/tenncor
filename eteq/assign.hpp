@@ -1,32 +1,19 @@
-//
-/// functor.hpp
-/// eteq
-///
-/// Purpose:
-/// Eigen functor implementation of operable func
-///
 
 #include "eteq/etens.hpp"
 #include "eteq/shaper.hpp"
 #include "eteq/observable.hpp"
 
-#ifndef ETEQ_FUNCTOR_HPP
-#define ETEQ_FUNCTOR_HPP
+#ifndef ETEQ_ASSIGN_HPP
+#define ETEQ_ASSIGN_HPP
 
 namespace eteq
 {
 
-#define CHOOSE_PARSER(OPCODE)\
-outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
-
-/// Functor implementation of operable functor of Eigen operators
 template <typename T>
-struct Functor final : public teq::iFunctor, public Observable
+struct Assign final : public teq::iFunctor, public Observable
 {
-	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
-	/// Return nullptr if functor is redundant
-	static Functor<T>* get (egen::_GENERATED_OPCODE opcode,
-		teq::TensptrsT children, marsh::Maps&& attrs)
+	static Assign<T>* get (egen::_GENERATED_OPCODE opcode,
+		eteq::VarptrT<T> target, teq::TensptrsT children)
 	{
 		if (children.empty())
 		{
@@ -34,28 +21,10 @@ struct Functor final : public teq::iFunctor, public Observable
 				egen::name_op(opcode).c_str());
 		}
 
-		teq::ShapesT shapes;
-		shapes.reserve(children.size());
-		egen::_GENERATED_DTYPE tcode = egen::get_type<T>();
-		for (teq::TensptrT child : children)
-		{
-			if (tcode != child->type_code())
-			{
-				teq::fatalf("incompatible tensor types %s and %s: "
-					"cross-type functors not supported yet",
-					egen::name_type(tcode).c_str(),
-					child->type_label().c_str());
-			}
-			shapes.push_back(child->shape());
-		}
-
-		teq::Shape outshape;
-		OPCODE_LOOKUP(CHOOSE_PARSER, opcode)
-		return new Functor<T>(
-			opcode, outshape, children, std::move(attrs));
+		return new Assign<T>(opcode, target, children);
 	}
 
-	~Functor (void)
+	~Assign (void)
 	{
 		for (teq::TensptrT child : children_)
 		{
@@ -66,22 +35,22 @@ struct Functor final : public teq::iFunctor, public Observable
 		}
 	}
 
-	/// Return deep copy of this Functor
-	Functor<T>* clone (void) const
+	/// Return deep copy of this Assign
+	Assign<T>* clone (void) const
 	{
-		return static_cast<Functor<T>*>(clone_impl());
+		return static_cast<Assign<T>*>(clone_impl());
 	}
 
-	Functor (Functor<T>&& other) = delete;
+	Assign (Assign<T>&& other) = delete;
 
-	Functor<T>& operator = (const Functor<T>& other) = delete;
+	Assign<T>& operator = (const Assign<T>& other) = delete;
 
-	Functor<T>& operator = (Functor<T>&& other) = delete;
+	Assign<T>& operator = (Assign<T>&& other) = delete;
 
 	/// Implementation of iTensor
 	teq::Shape shape (void) const override
 	{
-		return shape_;
+		return target_->shape();
 	}
 
 	/// Implementation of iTensor
@@ -123,7 +92,9 @@ struct Functor final : public teq::iFunctor, public Observable
 	/// Implementation of iFunctor
 	teq::TensptrsT get_children (void) const override
 	{
-		return children_;
+		teq::TensptrsT out = {target_};
+		out.insert(out.end(), children_.begin(), children_.end());
+		return out;
 	}
 
 	/// Implementation of iFunctor
@@ -174,7 +145,7 @@ struct Functor final : public teq::iFunctor, public Observable
 	{
 		if (false == has_data())
 		{
-			teq::fatal("cannot get device of uninitialized functor");
+			teq::fatal("cannot get device of uninitialized Assign");
 		}
 		return *ref_;
 	}
@@ -194,7 +165,7 @@ struct Functor final : public teq::iFunctor, public Observable
 	/// Implementation of iData
 	size_t nbytes (void) const override
 	{
-		return sizeof(T) * shape_.n_elems();
+		return sizeof(T) * shape().n_elems();
 	}
 
 	/// Implementation of Observable
@@ -220,21 +191,21 @@ struct Functor final : public teq::iFunctor, public Observable
 	void initialize (void)
 	{
 		egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-			ref_, shape_, children_, *this);
+			ref_, shape(), get_children(), *this);
 	}
 
 private:
-	Functor (egen::_GENERATED_OPCODE opcode, teq::Shape shape,
-		teq::TensptrsT children, marsh::Maps&& attrs) :
+	Assign (egen::_GENERATED_OPCODE opcode, eteq::VarptrT<T> target,
+		teq::TensptrsT children) :
 		opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
-		shape_(shape), children_(children), attrs_(std::move(attrs))
+		target_(target), children_(children)
 	{
 		common_init();
 	}
 
-	Functor (const Functor<T>& other) :
+	Assign (const Assign<T>& other) :
 		opcode_(other.opcode_),
-		shape_(other.shape_),
+		target_(other.target_),
 		children_(other.children_)
 	{
 		std::unique_ptr<marsh::Maps> mattr(other.attrs_.clone());
@@ -244,7 +215,7 @@ private:
 
 	teq::iTensor* clone_impl (void) const override
 	{
-		return new Functor<T>(*this);
+		return new Assign<T>(*this);
 	}
 
 	void common_init (void)
@@ -278,7 +249,7 @@ private:
 	teq::Opcode opcode_;
 
 	/// Shape info built at construction time according to arguments
-	teq::Shape shape_;
+	eteq::VarptrT<T> target_;
 
 	/// Tensor arguments (and children)
 	teq::TensptrsT children_;
@@ -286,16 +257,6 @@ private:
 	marsh::Maps attrs_;
 };
 
-#undef CHOOSE_PARSER
-
-template <typename T>
-using FuncptrT = std::shared_ptr<Functor<T>>;
-
-/// Return functor node given opcode and node arguments
-template <typename T, typename ...ARGS>
-ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
-	const teq::TensptrsT& children, ARGS... vargs);
-
 }
 
-#endif // ETEQ_FUNCTOR_HPP
+#endif // ETEQ_ASSIGN_HPP
