@@ -21,7 +21,7 @@ outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
 
 /// Functor implementation of operable functor of Eigen operators
 template <typename T>
-struct Functor final : public teq::iFunctor, public Observable
+struct Functor final : public Observable
 {
 	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
 	/// Return nullptr if functor is redundant

@@ -338,7 +338,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				}
 
 				// left = supcomp_grad
-				eteq::ETensor<T> right;
+				ETensor<T> right;
 				std::vector<teq::RankT> order;
 				eigen::PairVecT<teq::RankT> grad_dims;
 				if (arg_idx == 0)
@@ -374,7 +374,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						teq::narrow_shape(right->shape()).size()});
 				}
 				out = tenncor::permute(tenncor::contract(
-					eteq::ETensor<T>(supcomp_grad), right, grad_dims), order);
+					ETensor<T>(supcomp_grad), right, grad_dims), order);
 			}
 				break;
 			case egen::CONV:

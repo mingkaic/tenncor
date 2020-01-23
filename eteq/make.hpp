@@ -3,6 +3,7 @@
 #include "eteq/constant.hpp"
 #include "eteq/assign.hpp"
 #include "eteq/functor.hpp"
+#include "eteq/depend.hpp"
 
 #ifndef ETEQ_MAKE_HPP
 #define ETEQ_MAKE_HPP
@@ -119,6 +120,19 @@ ETensor<T> make_layer (std::string layername,
 	output->add_attr(teq::layer_key,
 		std::make_unique<teq::LayerObj>(layername, input));
 	return ETensor<T>(output);
+}
+
+template <typename T>
+ETensor<T> make_depends (ETensor<T> dependee, const ETensorsT<T>& dependencies)
+{
+	if (auto dep = std::dynamic_pointer_cast<Observable>(
+		(teq::TensptrT) dependee))
+	{
+		return ETensor<T>(teq::TensptrT(Depends<T>::get(dep, dependencies)));
+	}
+	teq::warnf("cannot link non-observable %s to dependencies",
+		dependee->to_string().c_str());
+	return dependee;
 }
 
 }

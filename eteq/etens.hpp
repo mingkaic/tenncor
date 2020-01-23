@@ -25,6 +25,26 @@ struct ETensor
 
 	virtual ~ETensor (void) = default;
 
+	friend bool operator == (const ETensor<T>& l, const std::nullptr_t&)
+	{
+		return l.get() == nullptr;
+	}
+
+	friend bool operator == (const std::nullptr_t&, const ETensor<T>& r)
+	{
+		return nullptr == r.get();
+	}
+
+	friend bool operator != (const ETensor<T>& l, const std::nullptr_t&)
+	{
+		return l.get() != nullptr;
+	}
+
+	friend bool operator != (const std::nullptr_t&, const ETensor<T>& r)
+	{
+		return nullptr != r.get();
+	}
+
 	operator teq::TensptrT() const
 	{
 		return tens_;
@@ -61,7 +81,7 @@ struct EVariable final : public ETensor<T>
 		return std::static_pointer_cast<Variable<T>>(teq::TensptrT(*this));
 	}
 
-	eteq::Variable<T>* operator-> () const
+	Variable<T>* operator-> () const
 	{
 		return static_cast<Variable<T>*>(this->get());
 	}
@@ -84,30 +104,6 @@ teq::TensptrsT to_tensors (const ETensorsT<T>& etensors)
 	return tensors;
 }
 
-}
-
-template <typename T>
-bool operator == (const eteq::ETensor<T>& l, const std::nullptr_t&)
-{
-	return l.get() == nullptr;
-}
-
-template <typename T>
-bool operator == (const std::nullptr_t&, const eteq::ETensor<T>& r)
-{
-	return nullptr == r.get();
-}
-
-template <typename T>
-bool operator != (const eteq::ETensor<T>& l, const std::nullptr_t&)
-{
-	return l.get() != nullptr;
-}
-
-template <typename T>
-bool operator != (const std::nullptr_t&, const eteq::ETensor<T>& r)
-{
-	return nullptr != r.get();
 }
 
 #endif // ETEQ_ETENS_HPP

@@ -1,12 +1,14 @@
-#include <unordered_set>
-
 #ifndef ETEQ_OBSERVABLE_HPP
 #define ETEQ_OBSERVABLE_HPP
+
+#include <unordered_set>
+
+#include "teq/ifunctor.hpp"
 
 namespace eteq
 {
 
-struct Observable
+struct Observable : public teq::iFunctor
 {
 	virtual ~Observable (void) = default;
 
@@ -28,6 +30,8 @@ struct Observable
 protected:
 	std::unordered_set<Observable*> subs_;
 };
+
+using ObsptrT = std::shared_ptr<Observable>;
 
 }
 

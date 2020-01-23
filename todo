@@ -6,7 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - implement assign operator as a eteq node
    - rework sgd/other training setup to use assign functors
    - implement reliable training harness
       - periodically caching data
@@ -21,6 +20,7 @@ P5 = "get to it eventually"
 
 >>>> aux project >>>> (preferrable to ensure smooth completion of inprogress tasks)
    - train convolutional nn demo
+   - implement sparse embedding using eigen sparse matrix
    - select and integrate some other CUDA-supported LinAlgebra libraries
    - make global context configurable through python
    - generalize functor observables to ensure safe device ref for assigns

@@ -10,10 +10,10 @@ namespace eteq
 {
 
 template <typename T>
-struct Assign final : public teq::iFunctor, public Observable
+struct Assign final : public Observable
 {
 	static Assign<T>* get (egen::_GENERATED_OPCODE opcode,
-		eteq::VarptrT<T> target, teq::TensptrsT children)
+		VarptrT<T> target, teq::TensptrsT children)
 	{
 		if (children.empty())
 		{
@@ -195,7 +195,7 @@ struct Assign final : public teq::iFunctor, public Observable
 	}
 
 private:
-	Assign (egen::_GENERATED_OPCODE opcode, eteq::VarptrT<T> target,
+	Assign (egen::_GENERATED_OPCODE opcode, VarptrT<T> target,
 		teq::TensptrsT children) :
 		opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
 		target_(target), children_(children)
@@ -249,7 +249,7 @@ private:
 	teq::Opcode opcode_;
 
 	/// Shape info built at construction time according to arguments
-	eteq::VarptrT<T> target_;
+	VarptrT<T> target_;
 
 	/// Tensor arguments (and children)
 	teq::TensptrsT children_;

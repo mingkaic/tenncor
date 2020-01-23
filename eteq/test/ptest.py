@@ -344,6 +344,34 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             self._common_assign(shape, tc.assign, lambda t, s: s)
 
+    def test_assign_add(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_assign(shape, tc.assign_add, lambda t, s: t + s)
+
+    def test_assign_sub(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_assign(shape, tc.assign_sub, lambda t, s: t - s)
+
+    def test_assign_mul(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_assign(shape, tc.assign_mul, lambda t, s: t * s)
+
+    def test_assign_div(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_assign(shape, tc.assign_div, lambda t, s: t / s)
+
     def test_abs(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
