@@ -547,6 +547,69 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 }
 
 
+TEST(API, Assign)
+{
+	// tensor operation
+	std::vector<teq::DimT> slist = {2, 3, 4};
+	std::vector<double> data = {
+		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
+		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
+	};
+	std::vector<double> data2 = {
+		22, 15, 74, 38, 61, 95, 62, 81, 99, 76, 7, 22,
+		56, 50, 19, 13, 12, 10, 31, 40, 60, 54, 6, 83
+	};
+	teq::Shape shape(slist);
+	teq::NElemT n = shape.n_elems();
+	assert(data.size() == n);
+	assert(data2.size() == n);
+
+	eteq::EVariable<double> target1 = eteq::make_variable<double>(data.data(), shape);
+	eteq::EVariable<double> target2 = eteq::make_variable<double>(data.data(), shape);
+	eteq::ETensor<double> src = eteq::make_constant<double>(data2.data(), shape);
+
+	auto ass1 = tenncor::assign(target1, src);
+	auto ass2 = tenncor::assign(target2, -src);
+
+	eigen::default_device().calc(ass1->device());
+	eigen::default_device().calc(ass1->device()); // idempotency check
+	{
+		auto gotshape = target1->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		auto gotshape2 = ass1->shape();
+		ASSERT_ARREQ(shape, gotshape2);
+	}
+	double* optr = (double*) target1->data();
+	double* aptr = (double*) ass1->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(data2[i], optr[i]);
+		EXPECT_DOUBLE_EQ(data2[i], aptr[i]);
+	}
+
+	auto session = eigen::get_session();
+	session.track({ass2});
+	session.update();
+	session.update(); // idempotency check
+	{
+		auto gotshape = target2->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		auto gotshape2 = ass2->shape();
+		ASSERT_ARREQ(shape, gotshape2);
+	}
+	double* optr2 = (double*) target2->data();
+	double* aptr2 = (double*) ass2->data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(-data2[i], optr2[i]);
+		EXPECT_DOUBLE_EQ(-data2[i], aptr2[i]);
+	}
+
+	EXPECT_FATAL(eteq::derive(ass1, src), "cannot derive ASSIGN");
+	EXPECT_FATAL(eteq::derive(ass2, src), "cannot derive ASSIGN");
+}
+
+
 TEST(API, Abs)
 {
 	unary_elementary(

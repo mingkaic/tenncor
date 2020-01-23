@@ -1420,10 +1420,10 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 template <typename T>
 EigenptrT assign (teq::iTensor& target, const teq::iTensor& source)
 {
-	auto src = static_cast<SrcRef<T>&>(target.device());
-	return std::make_shared<TensAssign<T,const TensMapT<T>>>(src,
+	SrcRef<T>& tar = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(tar,
 		make_tensmap((T*) source.data(), source.shape()),
-		[](TensorT<T>& target, const TensMapT<T>& src)
+		[](TensorT<T>& target, TensMapT<T>& src)
 		{
 			target = src;
 		});
@@ -1432,10 +1432,10 @@ EigenptrT assign (teq::iTensor& target, const teq::iTensor& source)
 template <typename T>
 EigenptrT assign_add (teq::iTensor& target, const teq::iTensor& source)
 {
-	auto src = static_cast<SrcRef<T>&>(target.device());
-	return std::make_shared<TensAssign<T,const TensMapT<T>>>(src,
+	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
 		make_tensmap((T*) source.data(), source.shape()),
-		[](TensorT<T>& target, const TensMapT<T>& src)
+		[](TensorT<T>& target, TensMapT<T>& src)
 		{
 			target += src;
 		});
@@ -1444,10 +1444,10 @@ EigenptrT assign_add (teq::iTensor& target, const teq::iTensor& source)
 template <typename T>
 EigenptrT assign_sub (teq::iTensor& target, const teq::iTensor& source)
 {
-	auto src = static_cast<SrcRef<T>&>(target.device());
-	return std::make_shared<TensAssign<T,const TensMapT<T>>>(src,
+	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
 		make_tensmap((T*) source.data(), source.shape()),
-		[](TensorT<T>& target, const TensMapT<T>& src)
+		[](TensorT<T>& target, TensMapT<T>& src)
 		{
 			target -= src;
 		});
@@ -1456,10 +1456,10 @@ EigenptrT assign_sub (teq::iTensor& target, const teq::iTensor& source)
 template <typename T>
 EigenptrT assign_mul (teq::iTensor& target, const teq::iTensor& source)
 {
-	auto src = static_cast<SrcRef<T>&>(target.device());
-	return std::make_shared<TensAssign<T,const TensMapT<T>>>(src,
+	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
 		make_tensmap((T*) source.data(), source.shape()),
-		[](TensorT<T>& target, const TensMapT<T>& src)
+		[](TensorT<T>& target, TensMapT<T>& src)
 		{
 			target *= src;
 		});
@@ -1468,10 +1468,10 @@ EigenptrT assign_mul (teq::iTensor& target, const teq::iTensor& source)
 template <typename T>
 EigenptrT assign_div (teq::iTensor& target, const teq::iTensor& source)
 {
-	auto src = static_cast<SrcRef<T>&>(target.device());
-	return std::make_shared<TensAssign<T,const TensMapT<T>>>(src,
+	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
 		make_tensmap((T*) source.data(), source.shape()),
-		[](TensorT<T>& target, const TensMapT<T>& src)
+		[](TensorT<T>& target, TensMapT<T>& src)
 		{
 			target /= src;
 		});

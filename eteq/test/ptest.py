@@ -42,6 +42,26 @@ class EADTest(unittest.TestCase):
         msg = 'vastly diff arrays:\n{}\n{}'.format(arr1, arr2)
         self.assertTrue(np.allclose(arr1, arr2, atol=1e-05), msg)
 
+    def _common_assign(self, shape, api, real):
+        data = np.random.rand(*shape) * 34
+        data2 = np.random.rand(*shape) * 13
+        var = eteq.variable(data, 'var_target')
+        var2 = eteq.variable(data, 'var_target2')
+        src = eteq.variable(data2, 'var_source')
+
+        ass1 = api(var, src)
+        ass2 = api(var2, tc.neg(src))
+
+        sess = eteq.Session()
+        sess.track([ass1, ass2])
+        sess.update()
+
+        expect_a1 = real(data, data2)
+        expect_a2 = real(data, -data2)
+
+        self._array_close(expect_a1, ass1.get())
+        self._array_close(expect_a2, ass2.get())
+
     def _common_unary(self, shape, api, real, derive):
         data = np.random.rand(*shape) * 34
         var = eteq.variable(data, 'var')
@@ -316,6 +336,13 @@ class EADTest(unittest.TestCase):
             self.assertEqual(shape, padding + list(out0.shape))
             self._array_eq(data1, out1)
             self._array_eq(data0, out0)
+
+    def test_assign(self):
+        shapes = [[3, 4, 5]]
+        if 'elementary.shape' in _test_data:
+            shapes += _test_data['elementary.shape']
+        for shape in shapes:
+            self._common_assign(shape, tc.assign, lambda t, s: s)
 
     def test_abs(self):
         shapes = [[3, 4, 5]]

@@ -191,6 +191,11 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::REDUCE_MIN:
 				out = reduce_grad(args.front()->shape(), ETensor<T>(op), op) == ETensor<T>(args.front());
 				break;
+			case egen::ASSIGN:
+			case egen::ASSIGN_ADD:
+			case egen::ASSIGN_SUB:
+			case egen::ASSIGN_MUL:
+			case egen::ASSIGN_DIV:
 			case egen::ARGMAX:
 				teq::fatalf("cannot derive %s", opcode.name_.c_str());
 				break;
@@ -533,6 +538,11 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				out = tenncor::if_then_else(condition, then, otherwise);
 			}
 				break;
+			case egen::ASSIGN:
+			case egen::ASSIGN_ADD:
+			case egen::ASSIGN_SUB:
+			case egen::ASSIGN_MUL:
+			case egen::ASSIGN_DIV:
 			case egen::ARGMAX:
 				teq::fatalf("cannot derive %s", opcode.name_.c_str());
 				break;
