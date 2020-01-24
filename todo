@@ -6,7 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - rework sgd/other training setup to use assign functors
    - implement reliable training harness
       - periodically caching data
       - save environment state + historic record
@@ -26,6 +25,7 @@ P5 = "get to it eventually"
    - generalize functor observables to ensure safe device ref for assigns
 
 >>> bugs >>>
+   - optimizer fails for assign operators
    - eteq extension to change shape according to optimized attributes (replace opt with query)
 
 === transparency/code readability ===

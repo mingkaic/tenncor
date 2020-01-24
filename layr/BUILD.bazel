@@ -52,6 +52,7 @@ cc_test(
     srcs = ["//layr:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        "//query:query",
         "//layr:layr",
         "//dbg:print",
         "//testutil:tutil",

@@ -58,15 +58,16 @@ struct DBNTrainer final
 
 			CDChainIO io(rx, ry);
 			layr::VarErrsT<T> varerrs = cd_grad_approx(io, rbm, cdk); // todo: add persistent option
-			layr::AssignsT<T> assigns;
+			teq::TensSetT assigns;
 			for (auto varerr : varerrs)
 			{
 				// if var is a weight or bias add assign with learning rate
 				// otherwise assign directly
-				auto next_var = estd::has(to_learn, varerr.first.get()) ?
-					varerr.first + pretrain_lr * varerr.second : varerr.second;
-				assigns.push_back(layr::VarAssign<T>{varerr.first, next_var});
-				to_track.push_back(next_var);
+				auto assign = estd::has(to_learn, varerr.first.get()) ?
+					tenncor::assign_add(varerr.first, pretrain_lr * varerr.second) :
+					tenncor::assign(varerr.first, varerr.second);
+				assigns.emplace(assign.get());
+				to_track.push_back(assign);
 			}
 			rupdates_.push_back(assigns);
 
@@ -95,25 +96,30 @@ struct DBNTrainer final
 		auto bshape = b->shape();
 		auto tlr_placeholder = eteq::make_variable_scalar<T>(
 			train_lr, teq::Shape(), "learning_rate");
-		auto dw = eteq::ETensor<T>(w) +
+		auto dw =
 			tenncor::extend(tlr_placeholder, 0,
 				std::vector<teq::DimT>(wshape.begin(), wshape.end())) *
 			l2_regularized;
-		auto db = eteq::ETensor<T>(b) +
+		auto db =
 			tenncor::extend(tlr_placeholder, 0,
 				std::vector<teq::DimT>(bshape.begin(), bshape.end())) *
 			tenncor::reduce_mean_1d(diff, 1);
 		auto dtrain_lr = tlr_placeholder * lr_scaling;
 
-		tupdates_ = {
-			layr::AssignsT<T>{layr::VarAssign<T>{w, dw}, layr::VarAssign<T>{b, db}},
-			layr::AssignsT<T>{layr::VarAssign<T>{tlr_placeholder, dtrain_lr}},
-		};
+		tupdate_ = tenncor::depends(tenncor::assign(tlr_placeholder, dtrain_lr),
+		eteq::ETensorsT<T>{
+			tenncor::assign_add(eteq::EVariable<T>(w), dw),
+			tenncor::assign_add(eteq::EVariable<T>(b), db),
+		});
 		tcost_ = -tenncor::reduce_mean(
 			tenncor::reduce_sum_1d(trainy_ * tenncor::log(final_out) +
 			((T) 1 - trainy_) * tenncor::log((T) 1 - final_out), 0));
 
-		train_sess_.track({sample_pipes_.back(), dw, db, dtrain_lr, tcost_});
+		train_sess_.track({
+			(teq::TensptrT) sample_pipes_.back(),
+			(teq::TensptrT) tupdate_,
+			(teq::TensptrT) tcost_,
+		});
 	}
 
 	void pretrain (teq::ShapedArr<T>& train_in, size_t nepochs = 100,
@@ -131,12 +137,7 @@ struct DBNTrainer final
 			for (size_t epoch = 0; epoch < nepochs; ++epoch)
 			{
 				// train rbm layers (reconstruction)
-				layr::assign_groups_preupdate<T>({updates},
-					[&](teq::TensSetT& sources)
-					{
-						pretrain_sess_.update_target(sources, {to_ignore});
-					});
-
+				pretrain_sess_.update_target(updates, {to_ignore});
 				if (logger)
 				{
 					logger(epoch, i);
@@ -167,12 +168,7 @@ struct DBNTrainer final
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)
 		{
 			// train log layer
-			layr::assign_groups_preupdate(tupdates_,
-				[&](teq::TensSetT& sources)
-				{
-					train_sess_.update_target(sources, {to_ignore});
-				});
-
+			train_sess_.update_target({tupdate_.get()}, {to_ignore});
 			if (logger)
 			{
 				logger(epoch);
@@ -207,13 +203,13 @@ struct DBNTrainer final
 
 	eteq::EVariable<T> trainy_;
 
-	std::vector<eteq::ETensor<T>> sample_pipes_;
+	eteq::ETensorsT<T> sample_pipes_;
 
-	layr::AssignGroupsT<T> rupdates_;
+	std::vector<teq::TensSetT> rupdates_;
 
-	layr::AssignGroupsT<T> tupdates_;
+	eteq::ETensor<T> tupdate_;
 
-	std::vector<eteq::ETensor<T>> rcosts_;
+	eteq::ETensorsT<T> rcosts_;
 
 	eteq::ETensor<T> tcost_;
 

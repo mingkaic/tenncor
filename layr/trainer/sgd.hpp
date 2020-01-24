@@ -28,26 +28,22 @@ TrainErrF<T> sgd (const eteq::ELayer<T>& model, teq::iSession& sess,
 	}
 	auto updates = update(vars);
 
-	teq::TensptrsT track_batch = {
-		train_out,
-		error,
-	};
-	for (layr::AssignsT<T>& assigns : updates)
-	{
-		for (layr::VarAssign<T>& assign : assigns)
-		{
-			track_batch.push_back(assign.source_);
-		}
-	}
+	teq::TensptrsT track_batch(updates.begin(), updates.end());
+	track_batch.push_back(train_out);
+	track_batch.push_back(error);
 	sess.track(track_batch);
 
-	return [&sess, updates, error](void)
+	teq::TensSetT update_tens;
+	std::transform(updates.begin(), updates.end(),
+		std::inserter(update_tens, update_tens.end()),
+		[](eteq::ETensor<T> etens)
+		{
+			return etens.get();
+		});
+
+	return [&sess, update_tens, error](void)
 	{
-		layr::assign_groups_preupdate<T>(updates,
-			[&](teq::TensSetT& sources)
-			{
-				sess.update_target(sources);
-			});
+		sess.update_target(update_tens);
 		sess.update_target({error.get()});
 		T* data = (T*) error->data();
 		teq::Shape shape = error->shape();

@@ -44,6 +44,8 @@ int main (int argc, const char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 	LOG_INIT(logs::DefLogger);
+	DEVICE_INIT(eigen::Device);
+	RANDOM_INIT;
 
 	bool seed;
 	size_t seedval;

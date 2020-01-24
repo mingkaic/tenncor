@@ -23,25 +23,6 @@ using VarErrT = std::pair<eteq::EVariable<T>,eteq::ETensor<T>>;
 template <typename T>
 using VarErrsT = std::vector<VarErrT<T>>;
 
-/// Variable and error approximation assignment encapsulation
-template <typename T>
-struct VarAssign
-{
-	/// Variable to assign to
-	eteq::VarptrT<T> target_;
-
-	/// Variable update as to minimize the error in future iterations
-	eteq::ETensor<T> source_;
-};
-
-/// One batch of assignments
-template <typename T>
-using AssignsT = std::vector<VarAssign<T>>;
-
-/// All batches of assignments
-template <typename T>
-using AssignGroupsT = std::vector<AssignsT<T>>;
-
 /// Function that returns the error between two nodes,
 /// left node contains expected values, right contains resulting values
 template <typename T>
@@ -50,7 +31,7 @@ using ErrorF = std::function<eteq::ETensor<T>(eteq::ETensor<T>,eteq::ETensor<T>)
 /// Function that approximate error of sources
 /// given a vector of variables and its corresponding errors
 template <typename T>
-using ApproxF = std::function<AssignGroupsT<T>(const VarErrsT<T>&)>;
+using ApproxF = std::function<eteq::ETensorsT<T>(const VarErrsT<T>&)>;
 
 /// Function that runs before or after variable assignment
 /// to calculate approximation graphs
@@ -73,45 +54,41 @@ eteq::ETensor<T> sqr_diff (eteq::ETensor<T> expect, eteq::ETensor<T> got)
 ///
 /// where η is the learning rate
 template <typename T>
-AssignGroupsT<T> sgd (const VarErrsT<T>& assocs,
-	T learning_rate = 0.5)
+eteq::ETensorsT<T> sgd (const VarErrsT<T>& assocs, T learning_rate = 0.5)
 {
-	AssignsT<T> assignments;
-	assignments.reserve(assocs.size());
+	eteq::ETensorsT<T> assigns;
+	assigns.reserve(assocs.size());
 	std::transform(assocs.begin(), assocs.end(),
-	std::back_inserter(assignments),
+	std::back_inserter(assigns),
 	[&](VarErrT<T> verrs)
 	{
-		return VarAssign<T>{verrs.first,
-			verrs.first - verrs.second * learning_rate};
+		return tenncor::assign_sub(
+			verrs.first, verrs.second * learning_rate);
 	});
-	return {assignments};
+	return assigns;
 }
 
 template <typename T>
-AssignGroupsT<T> adagrad (const VarErrsT<T>& assocs,
-	T learning_rate = 0.5,
+eteq::ETensorsT<T> adagrad (const VarErrsT<T>& assocs, T learning_rate = 0.5,
 	T epsilon = std::numeric_limits<T>::epsilon())
 {
-	// assign momentums before leaves
-	size_t nassocs = assocs.size();
-	AssignsT<T> momentums;
-	AssignsT<T> leaves;
-	momentums.reserve(nassocs);
-	leaves.reserve(nassocs);
-	for (size_t i = 0; i < nassocs; ++i)
+	eteq::ETensorsT<T> assigns;
+	assigns.reserve(assocs.size());
+	std::transform(assocs.begin(), assocs.end(),
+	std::back_inserter(assigns),
+	[&](VarErrT<T> verrs)
 	{
+		auto& grad = verrs.second;
 		eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
-			1, assocs[i].second, "momentum");
+			1, grad, "momentum");
+		auto umom = tenncor::assign_add(momentum, tenncor::square(grad));
 
-		auto next_momentum = momentum +
-			tenncor::square(assocs[i].second);
-		auto leaf_next = assocs[i].first - assocs[i].second * learning_rate /
-			(tenncor::sqrt(momentum) + epsilon);
-		momentums.push_back(VarAssign<T>{momentum, next_momentum});
-		leaves.push_back(VarAssign<T>{assocs[i].first, leaf_next});
-	}
-	return {momentums, leaves};
+		// assign momentums before leaves
+		return tenncor::assign_sub(
+			verrs.first, grad * learning_rate /
+			(tenncor::sqrt(umom) + epsilon));
+	});
+	return assigns;
 }
 
 /// Return all batches of variable assignments of
@@ -127,67 +104,28 @@ AssignGroupsT<T> adagrad (const VarErrsT<T>& assocs,
 /// and χ is discount_factor
 /// initial momentum is 1
 template <typename T>
-AssignGroupsT<T> rms_momentum (const VarErrsT<T>& assocs,
-	T learning_rate = 0.5,
-	T discount_factor = 0.99,
+eteq::ETensorsT<T> rms_momentum (const VarErrsT<T>& assocs,
+	T learning_rate = 0.5, T discount_factor = 0.99,
 	T epsilon = std::numeric_limits<T>::epsilon())
 {
-	// assign momentums before leaves
-	size_t nassocs = assocs.size();
-	AssignsT<T> momentums;
-	AssignsT<T> leaves;
-	momentums.reserve(nassocs);
-	leaves.reserve(nassocs);
-	for (size_t i = 0; i < nassocs; ++i)
+	eteq::ETensorsT<T> assigns;
+	assigns.reserve(assocs.size());
+	std::transform(assocs.begin(), assocs.end(),
+	std::back_inserter(assigns),
+	[&](VarErrT<T> verrs)
 	{
+		auto& grad = verrs.second;
 		eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
-			1, assocs[i].second, "momentum");
+			1, grad, "momentum");
+		auto umom = tenncor::assign(momentum, discount_factor * momentum +
+			(T(1) - discount_factor) * tenncor::square(grad));
 
-		auto momentum_next = discount_factor * momentum +
-			((T) 1 - discount_factor) * tenncor::square(assocs[i].second);
-		auto leaf_next = assocs[i].first - assocs[i].second * learning_rate /
-			(tenncor::sqrt(momentum) + epsilon);
-		momentums.push_back(VarAssign<T>{momentum, momentum_next});
-		leaves.push_back(VarAssign<T>{assocs[i].first, leaf_next});
-	}
-	return {momentums, leaves};
-}
-
-/// Apply all batches of assignments with update_step applied after each batch
-template <typename T>
-void assign_groups (
-	const AssignGroupsT<T>& groups, UpdateStepF update_step)
-{
-	for (const AssignsT<T>& group : groups)
-	{
-		teq::TensSetT updated_var;
-		for (const VarAssign<T>& assign : group)
-		{
-			updated_var.emplace(assign.target_.get());
-			assign.target_->assign(*assign.source_);
-		}
-		update_step(updated_var);
-	}
-}
-
-/// Apply all batches of assignments with update_step applied before each batch
-template <typename T>
-void assign_groups_preupdate (
-	const AssignGroupsT<T>& groups, UpdateStepF update_step)
-{
-	for (const AssignsT<T>& group : groups)
-	{
-		teq::TensSetT sources;
-		for (const VarAssign<T>& assign : group)
-		{
-			sources.emplace(assign.source_.get());
-		}
-		update_step(sources);
-		for (const VarAssign<T>& assign : group)
-		{
-			assign.target_->assign(*assign.source_);
-		}
-	}
+		// assign momentums before leaves
+		return tenncor::assign_sub(
+			verrs.first, grad * learning_rate /
+			(tenncor::sqrt(umom) + epsilon));
+	});
+	return assigns;
 }
 
 }

@@ -122,19 +122,6 @@ ETensor<T> make_layer (std::string layername,
 	return ETensor<T>(output);
 }
 
-template <typename T>
-ETensor<T> make_depends (ETensor<T> dependee, const ETensorsT<T>& dependencies)
-{
-	if (auto dep = std::dynamic_pointer_cast<Observable>(
-		(teq::TensptrT) dependee))
-	{
-		return ETensor<T>(teq::TensptrT(Depends<T>::get(dep, dependencies)));
-	}
-	teq::warnf("cannot link non-observable %s to dependencies",
-		dependee->to_string().c_str());
-	return dependee;
-}
-
 }
 
 #endif // ETEQ_MAKE_HPP

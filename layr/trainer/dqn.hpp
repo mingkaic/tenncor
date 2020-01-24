@@ -101,9 +101,7 @@ struct DQNTrainer final
 		assert(nvars == target_vars.size());
 
 		layr::VarErrsT<T> source_errs;
-		layr::AssignsT<T> target_assigns;
 		source_errs.reserve(nvars);
-		target_assigns.reserve(nvars);
 		for (size_t i = 0; i < nvars; ++i)
 		{
 			// updates for source network
@@ -115,23 +113,20 @@ struct DQNTrainer final
 				error = gradprocess(error);
 			}
 			source_errs.push_back({source_var, error});
-
-			// updates for target network
-			auto target_var = target_vars[i];
-			auto diff = eteq::ETensor<T>(target_var) - eteq::ETensor<T>(source_var);
-			auto target_next = eteq::ETensor<T>(target_var) - params_.target_update_rate_ * diff;
-			target_assigns.push_back(layr::VarAssign<T>{target_var, target_next});
 		}
-		updates_ = update(source_errs);
-		updates_.push_back(target_assigns);
+		auto src_updates = update(source_errs);
 
 		teq::TensptrsT track_batch = {prediction_error_, train_out_, output_};
-		for (layr::AssignsT<T>& assigns : updates_)
+		track_batch.reserve(nvars + 3);
+		for (size_t i = 0; i < nvars; ++i)
 		{
-			for (layr::VarAssign<T>& assign : assigns)
-			{
-				track_batch.push_back(assign.source_);
-			}
+			// updates for target network
+			eteq::EVariable<T> target_var = target_vars[i];
+			auto diff = target_var - src_updates[i];
+			auto assign = tenncor::assign_sub(target_var,
+				params_.target_update_rate_ * diff);
+			track_batch.push_back(assign);
+			updates_.emplace(assign.get());
 		}
 		sess_->track(track_batch);
 	}
@@ -230,12 +225,7 @@ struct DQNTrainer final
 			next_output_mask_->assign(new_states_mask.data(), next_output_mask_->shape());
 			reward_->assign(rewards.data(), reward_->shape());
 
-			sess_->update();
-			assign_groups(updates_,
-				[this](teq::TensSetT& updated)
-				{
-					this->sess_->update();
-				});
+			sess_->update_target(updates_);
 			params_.iteration_++;
 		}
 		params_.ntrain_called_++;
@@ -266,7 +256,7 @@ struct DQNTrainer final
 	eteq::ETensor<T> train_out_;
 
 	// === updates && optimizer ===
-	layr::AssignGroupsT<T>  updates_;
+	teq::TensSetT  updates_;
 
 	teq::iSession* sess_;
 

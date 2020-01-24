@@ -39,27 +39,28 @@ eteq::ETensor<T> gibbs_hvh (
 //
 // where η is the learning rate, and χ is discount_factor
 template <typename T>
-layr::AssignGroupsT<T> bbernoulli_approx (const layr::VarErrsT<T>& assocs,
+eteq::ETensorsT<T> bbernoulli_approx (const layr::VarErrsT<T>& assocs,
 	T learning_rate, T discount_factor)
 {
 	// assign momentums before leaves
-	size_t nassocs = assocs.size();
-	layr::AssignsT<T> assigns;
-	assigns.reserve(nassocs * 2);
-	for (size_t i = 0; i < nassocs; ++i)
+	eteq::ETensorsT<T> assigns;
+	assigns.reserve(assocs.size());
+	std::transform(assocs.begin(), assocs.end(),
+	std::back_inserter(assigns),
+	[&](layr::VarErrT<T> verrs)
 	{
-		auto err = assocs[i].second;
-		auto momentum = eteq::make_variable_like<T>(0, err, "momentum");
-
+		auto err = verrs.second;
 		auto slist = teq::narrow_shape(err->shape());
 		teq::DimT shape_factor = slist.empty() ? 1 : slist.back();
+
+		auto momentum = eteq::make_variable_like<T>(0, err, "momentum");
 		auto momentum_next = discount_factor * momentum +
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
-		auto leaf_next = assocs[i].first + momentum_next;
-		assigns.push_back(layr::VarAssign<T>{momentum, momentum_next});
-		assigns.push_back(layr::VarAssign<T>{assocs[i].first, leaf_next});
-	}
-	return {assigns};
+
+		return tenncor::assign_add(verrs.first,
+			tenncor::assign(momentum, momentum_next));
+	});
+	return assigns;
 }
 
 template <typename T>
@@ -151,31 +152,26 @@ TrainErrF<T> rbm (const layr::RBMLayer<T>& model, teq::iSession& sess,
 	layr::VarErrsT<T> varerrs = cd_grad_approx<T>(chain_io, model, cdk);
 	auto updates = bbernoulli_approx<T>(varerrs, learning_rate, discount_factor);
 
-	teq::TensptrsT to_track;
-	to_track.reserve(updates.size() + 1);
+	teq::TensptrsT to_track(updates.begin(), updates.end());
 	eteq::ETensor<T> error;
 	if (err_func)
 	{
 		error = err_func(chain_io.visible_, chain_io.visible_mean_);
 		to_track.push_back(error);
 	}
-
-	for (auto& assigns : updates)
-	{
-		for (auto& assign : assigns)
-		{
-			to_track.push_back(assign.source_);
-		}
-	}
 	sess.track(to_track);
 
-	return [&sess, updates, error]
+	teq::TensSetT update_tens;
+	std::transform(updates.begin(), updates.end(),
+		std::inserter(update_tens, update_tens.end()),
+		[](eteq::ETensor<T> etens)
+		{
+			return etens.get();
+		});
+
+	return [&sess, update_tens, error]
 	{
-		layr::assign_groups_preupdate<T>(updates,
-			[&](teq::TensSetT& sources)
-			{
-				sess.update_target(sources);
-			});
+		sess.update_target(update_tens);
 		if (nullptr == error)
 		{
 			return teq::ShapedArr<T>{teq::Shape(),std::vector<T>{-1}};

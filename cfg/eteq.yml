@@ -6,6 +6,25 @@ api:
   namespaces:
     tenncor:
       - template: typename T
+        name: depends
+        args:
+        - dtype: const eteq::ETensor<T>&
+          name: dependee
+        - dtype: const eteq::ETensorsT<T>&
+          name: dependencies
+        out:
+          type: eteq::ETensor<T>
+          val: |
+              //
+                  if (auto dep = std::dynamic_pointer_cast<eteq::Observable>(
+                    (teq::TensptrT) dependee))
+                  {
+                      return eteq::ETensor<T>(teq::TensptrT(eteq::Depends<T>::get(dep, dependencies)));
+                  }
+                  teq::warnf("cannot link non-observable %s to dependencies",
+                      dependee->to_string().c_str());
+                  return dependee;
+      - template: typename T
         name: assign
         args:
         - dtype: const eteq::EVariable<T>&

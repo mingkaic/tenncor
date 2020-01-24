@@ -60,27 +60,32 @@ def make_rms_prop(learning_rate, momentum_term, lmbd, eps):
     def rms_prop(grads):
         targets = [target for target, _ in grads]
         gs = [grad for _, grad in grads]
-        momentum = [eteq.variable_like(0, target, label='momentum_' + str(target)) for target in targets]
-        mvavg_sqr = [eteq.variable_like(0, target, label='mving_avg_' + str(target)) for target in targets]
+        momentums = [eteq.variable_like(0, target, label='momentum_' + str(target)) for target in targets]
+        mvavg_sqrs = [eteq.variable_like(0, target, label='mving_avg_' + str(target)) for target in targets]
 
-        # group 1
-        momentum_tmp = [mom * momentum_term for mom in momentum]
-        group1 = [layr.VarAssign(target, target + source) for target, source in zip(targets, momentum_tmp)]
+        momentum_tmps = [momentum * momentum_term for momentum in momentums]
+        target_incrs = [tc.assign_add(target, momentum_tmp)
+            for target, momentum_tmp in zip(targets, momentum_tmps)]
 
-        # group 2
-        group2 = [layr.VarAssign(target, lmbd * target + (1-lmbd) * tc.pow(grad, 2))
-            for target, grad in zip(mvavg_sqr, gs)]
+        # trail grads as increment in grads operation
+        tincr_mapping = list(zip(targets, target_incrs))
+        grad_deps = [eteq.trail(grad, tincr_mapping)for grad in gs]
 
-        # group 3
-        pgrad_norm_nodes = [(learning_rate * grad) / (tc.sqrt(mvsqr) + eps)
-            for grad, mvsqr in zip(gs, mvavg_sqr)]
+        # update moving average, dependent on target incr
+        umvavg_sqrs = [tc.assign(mvavg_sqr,
+            lmbd * mvavg_sqr + (1-lmbd) * tc.pow(grad_dep, 2))
+            for mvavg_sqr, grad_dep in zip(mvavg_sqrs, grad_deps)]
 
-        group3 = [layr.VarAssign(target, momentum_tmp_node - pgrad_norm_node)
-            for target, momentum_tmp_node, pgrad_norm_node in zip(momentum, momentum_tmp, pgrad_norm_nodes)]
+        # norms, dependent on target incr and update moving average
+        pgrad_norms = [(learning_rate * grad_dep) / (tc.sqrt(mvsqr) + eps)
+            for grad_dep, mvsqr in zip(grad_deps, umvavg_sqrs)]
 
-        group3 += [layr.VarAssign(target, target - pgrad_norm) for target, pgrad_norm in zip(targets, pgrad_norm_nodes)]
+        assigns = [tc.assign(momentum, momentum_tmp - pgrad_norm)
+            for momentum, momentum_tmp, pgrad_norm in zip(momentums, momentum_tmps, pgrad_norms)]
 
-        return [group1, group2, group3]
+        assigns += [tc.assign_sub(target, pgrad_norm) for target, pgrad_norm in zip(targets, pgrad_norms)]
+
+        return assigns
 
     return rms_prop
 
@@ -191,7 +196,7 @@ def main(args):
         trained_out,
         pretrained_out,
     ])
-    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+    # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     train_invar.assign(train_input[0:n_batch,:,:])
     train_exout.assign(train_output[0:n_batch,:,:])

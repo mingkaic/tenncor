@@ -84,7 +84,7 @@ def main(args):
     trainer = layr.sgd_train(model, sess, test_inputs, test_outputs,
         layr.get_sgd(learning_rate=0.1),
         err_func=lstm_loss)
-    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+    # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     start = time.time()
     for cur_iter in range(args.n_train):

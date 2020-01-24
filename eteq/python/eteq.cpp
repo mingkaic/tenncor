@@ -17,6 +17,10 @@ namespace py = pybind11;
 namespace pyead
 {
 
+using ETensT = eteq::ETensor<PybindT>;
+
+using ETensPairT = std::pair<ETensT,ETensT>;
+
 template <typename T>
 py::array typedata_to_array (teq::iTensor& tens, py::dtype dtype)
 {
@@ -70,18 +74,18 @@ PYBIND11_MODULE(eteq, m)
 			});
 
 	// ==== etens ====
-	auto etens = (py::class_<eteq::ETensor<PybindT>>)
+	auto etens = (py::class_<pyead::ETensT>)
 		py::module::import("eteq.tenncor").attr("ETensor");
 
 	etens
 		.def(py::init<teq::TensptrT>())
 		.def("__str__",
-			[](eteq::ETensor<PybindT>& self)
+			[](pyead::ETensT& self)
 			{
 				return self->to_string();
 			})
 		.def("shape",
-			[](eteq::ETensor<PybindT>& self)
+			[](pyead::ETensT& self)
 			{
 				teq::Shape shape = self->shape();
 				auto pshape = pyutils::c2pshape(shape);
@@ -90,14 +94,14 @@ PYBIND11_MODULE(eteq, m)
 			},
 			"Return this instance's shape")
 		.def("get",
-			[](eteq::ETensor<PybindT>& self)
+			[](pyead::ETensT& self)
 			{
 				return pyead::typedata_to_array<PybindT>(
 					*self, py::dtype::of<PybindT>());
 			});
 
 	// ==== variable ====
-	py::class_<eteq::EVariable<PybindT>,eteq::ETensor<PybindT>> evar(m, "EVariable");
+	py::class_<eteq::EVariable<PybindT>,pyead::ETensT> evar(m, "EVariable");
 
 	evar
 		.def(py::init(
@@ -122,7 +126,7 @@ PYBIND11_MODULE(eteq, m)
 
 	elayer
 		.def(py::init(
-			[](eteq::ETensor<PybindT> root, eteq::ETensor<PybindT> input)
+			[](pyead::ETensT root, pyead::ETensT input)
 			{
 				return eteq::ELayer<PybindT>(
 					estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root), input);
@@ -138,9 +142,9 @@ PYBIND11_MODULE(eteq, m)
 				return estores;
 			})
 		.def("root",
-			[](eteq::ELayer<PybindT>& self) -> eteq::ETensor<PybindT>
+			[](eteq::ELayer<PybindT>& self) -> pyead::ETensT
 			{
-				return eteq::ETensor<PybindT>(self.root());
+				return pyead::ETensT(self.root());
 			})
 		.def("input", &eteq::ELayer<PybindT>::input);
 
@@ -156,7 +160,7 @@ PYBIND11_MODULE(eteq, m)
 				troots.reserve(roots.size());
 				std::transform(roots.begin(), roots.end(),
 					std::back_inserter(troots),
-					[](eteq::ETensor<PybindT>& etens)
+					[](pyead::ETensT& etens)
 					{
 						return etens;
 					});
@@ -164,29 +168,29 @@ PYBIND11_MODULE(eteq, m)
 			})
 		.def("update",
 			[](teq::iSession* self,
-				std::vector<eteq::ETensor<PybindT>> ignored)
+				std::vector<pyead::ETensT> ignored)
 			{
 				teq::TensSetT ignored_set;
-				for (eteq::ETensor<PybindT>& etens : ignored)
+				for (pyead::ETensT& etens : ignored)
 				{
 					ignored_set.emplace(etens.get());
 				}
 				self->update(ignored_set);
 			},
 			"Calculate every etens in the graph given list of nodes to ignore",
-			py::arg("ignored") = std::vector<eteq::ETensor<PybindT>>{})
+			py::arg("ignored") = std::vector<pyead::ETensT>{})
 		.def("update_target",
 			[](teq::iSession* self,
-				std::vector<eteq::ETensor<PybindT>> targeted,
-				std::vector<eteq::ETensor<PybindT>> ignored)
+				std::vector<pyead::ETensT> targeted,
+				std::vector<pyead::ETensT> ignored)
 			{
 				teq::TensSetT targeted_set;
 				teq::TensSetT ignored_set;
-				for (eteq::ETensor<PybindT>& etens : targeted)
+				for (pyead::ETensT& etens : targeted)
 				{
 					targeted_set.emplace(etens.get());
 				}
-				for (eteq::ETensor<PybindT>& etens : ignored)
+				for (pyead::ETensT& etens : ignored)
 				{
 					ignored_set.emplace(etens.get());
 				}
@@ -194,7 +198,7 @@ PYBIND11_MODULE(eteq, m)
 			},
 			"Calculate etens relevant to targets in the graph given list of nodes to ignore",
 			py::arg("targeted"),
-			py::arg("ignored") = std::vector<eteq::ETensor<PybindT>>{})
+			py::arg("ignored") = std::vector<pyead::ETensT>{})
 		.def("get_tracked", &teq::iSession::get_tracked);
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
@@ -233,7 +237,7 @@ PYBIND11_MODULE(eteq, m)
 			py::arg("slist"),
 			py::arg("label") = "")
 		.def("variable_like",
-			[](PybindT scalar, eteq::ETensor<PybindT> like, std::string label)
+			[](PybindT scalar, pyead::ETensT like, std::string label)
 			{
 				return eteq::make_variable_like<PybindT>(
 					scalar, (teq::TensptrT) like, label);
@@ -255,7 +259,18 @@ PYBIND11_MODULE(eteq, m)
 
 		// ==== other stuff ====
 		.def("derive", &eteq::derive<PybindT>,
-			"Return derivative of first tensor with respect to second tensor (deprecated)")
+			"Return derivative of first tensor with respect to second tensor")
+
+		.def("trail", [](const pyead::ETensT& root,
+			const std::vector<pyead::ETensPairT>& inps)
+			{
+				teq::TensMapT<teq::TensptrT> inputs;
+				for (const auto& inp : inps)
+				{
+					inputs.emplace(inp.first.get(), inp.second);
+				}
+				return eteq::trail<PybindT>(root, inputs);
+			})
 
 		// ==== optimization ====
 		.def("parse_optrules", &eteq::parse_file<PybindT>,

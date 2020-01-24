@@ -632,7 +632,7 @@ TEST(API, Depends)
 	eteq::ETensor<double> b = eteq::make_constant<double>(data2.data(), shape);
 	auto c = a + b;
 
-	auto ass = eteq::make_depends(tenncor::assign(target, b), {c});
+	auto ass = tenncor::depends(tenncor::assign(target, b), {c});
 
 	auto session = eigen::get_session();
 	session.track({ass});
