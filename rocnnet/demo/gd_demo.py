@@ -80,9 +80,9 @@ def main(args):
     show_every_n = 500
     train_input = eteq.EVariable([n_batch, ninput])
     train_output = eteq.EVariable([n_batch, noutput])
-    train = layr.sgd_train(model, sess,
-        train_input, train_output,
+    train_err = layr.sgd_train(model, train_input, train_output,
         layr.get_sgd(0.9))
+    sess.track([train_err])
 
     testin = eteq.EVariable([ninput], label='testin')
     tin = testin
@@ -97,9 +97,9 @@ def main(args):
         batch, batch_out = batch_generate(ninput, n_batch)
         train_input.assign(batch.reshape(n_batch, ninput))
         train_output.assign(batch_out.reshape(n_batch, noutput))
-        trained_err = train()
+        sess.update_target([train_err])
         if i % show_every_n == show_every_n - 1:
-            err = trained_err.as_numpy()
+            err = train_err.get()
             print('training {}\ntraining error:\n{}'
                 .format(i + 1, err))
 

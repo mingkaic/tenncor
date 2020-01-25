@@ -16,12 +16,9 @@
 namespace layr
 {
 
-template <typename T>
-using VarErrT = std::pair<eteq::EVariable<T>,eteq::ETensor<T>>;
-
 /// Ordered association between variable and error
 template <typename T>
-using VarErrsT = std::vector<VarErrT<T>>;
+using VarMapT = std::unordered_map<eteq::VarptrT<T>,eteq::ETensor<T>>;
 
 /// Function that returns the error between two nodes,
 /// left node contains expected values, right contains resulting values
@@ -31,7 +28,7 @@ using ErrorF = std::function<eteq::ETensor<T>(eteq::ETensor<T>,eteq::ETensor<T>)
 /// Function that approximate error of sources
 /// given a vector of variables and its corresponding errors
 template <typename T>
-using ApproxF = std::function<eteq::ETensorsT<T>(const VarErrsT<T>&)>;
+using ApproxF = std::function<VarMapT<T>(const VarMapT<T>&)>;
 
 /// Function that runs before or after variable assignment
 /// to calculate approximation graphs
@@ -54,41 +51,35 @@ eteq::ETensor<T> sqr_diff (eteq::ETensor<T> expect, eteq::ETensor<T> got)
 ///
 /// where η is the learning rate
 template <typename T>
-eteq::ETensorsT<T> sgd (const VarErrsT<T>& assocs, T learning_rate = 0.5)
+VarMapT<T> sgd (const VarMapT<T>& assocs, T learning_rate = 0.5)
 {
-	eteq::ETensorsT<T> assigns;
-	assigns.reserve(assocs.size());
-	std::transform(assocs.begin(), assocs.end(),
-	std::back_inserter(assigns),
-	[&](VarErrT<T> verrs)
+	VarMapT<T> out;
+	for (const auto& assoc : assocs)
 	{
-		return tenncor::assign_sub(
-			verrs.first, verrs.second * learning_rate);
-	});
-	return assigns;
+		out.emplace(assoc.first, tenncor::assign_sub(
+			eteq::EVariable<T>(assoc.first), assoc.second * learning_rate));
+	}
+	return out;
 }
 
 template <typename T>
-eteq::ETensorsT<T> adagrad (const VarErrsT<T>& assocs, T learning_rate = 0.5,
+VarMapT<T> adagrad (const VarMapT<T>& assocs, T learning_rate = 0.5,
 	T epsilon = std::numeric_limits<T>::epsilon())
 {
-	eteq::ETensorsT<T> assigns;
-	assigns.reserve(assocs.size());
-	std::transform(assocs.begin(), assocs.end(),
-	std::back_inserter(assigns),
-	[&](VarErrT<T> verrs)
+	VarMapT<T> out;
+	for (const auto& assoc : assocs)
 	{
-		auto& grad = verrs.second;
 		eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
-			1, grad, "momentum");
-		auto umom = tenncor::assign_add(momentum, tenncor::square(grad));
+			1, assoc.second, "momentum");
+		auto update = tenncor::assign_add(momentum,
+			tenncor::square(assoc.second));
 
 		// assign momentums before leaves
-		return tenncor::assign_sub(
-			verrs.first, grad * learning_rate /
-			(tenncor::sqrt(umom) + epsilon));
-	});
-	return assigns;
+		out.emplace(assoc.first, tenncor::assign_sub(
+			eteq::EVariable<T>(assoc.first), assoc.second * learning_rate /
+			(tenncor::sqrt(update) + epsilon)));
+	}
+	return out;
 }
 
 /// Return all batches of variable assignments of
@@ -104,28 +95,24 @@ eteq::ETensorsT<T> adagrad (const VarErrsT<T>& assocs, T learning_rate = 0.5,
 /// and χ is discount_factor
 /// initial momentum is 1
 template <typename T>
-eteq::ETensorsT<T> rms_momentum (const VarErrsT<T>& assocs,
+VarMapT<T> rms_momentum (const VarMapT<T>& assocs,
 	T learning_rate = 0.5, T discount_factor = 0.99,
 	T epsilon = std::numeric_limits<T>::epsilon())
 {
-	eteq::ETensorsT<T> assigns;
-	assigns.reserve(assocs.size());
-	std::transform(assocs.begin(), assocs.end(),
-	std::back_inserter(assigns),
-	[&](VarErrT<T> verrs)
+	VarMapT<T> out;
+	for (const auto& assoc : assocs)
 	{
-		auto& grad = verrs.second;
 		eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
-			1, grad, "momentum");
-		auto umom = tenncor::assign(momentum, discount_factor * momentum +
-			(T(1) - discount_factor) * tenncor::square(grad));
+			1, assoc.second, "momentum");
+		auto update = tenncor::assign(momentum, discount_factor * momentum +
+			(T(1) - discount_factor) * tenncor::square(assoc.second));
 
 		// assign momentums before leaves
-		return tenncor::assign_sub(
-			verrs.first, grad * learning_rate /
-			(tenncor::sqrt(umom) + epsilon));
-	});
-	return assigns;
+		out.emplace(assoc.first, tenncor::assign_sub(
+			eteq::EVariable<T>(assoc.first), assoc.second * learning_rate /
+			(tenncor::sqrt(update) + epsilon)));
+	}
+	return out;
 }
 
 }

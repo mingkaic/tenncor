@@ -82,8 +82,9 @@ woutput = eteq.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'ou
 
 y_pred = model.connect(winput)
 sess.track([y_pred])
-train = layr.sgd_train(model, sess, winput, woutput, layr.get_sgd(lr),
+train_err = layr.sgd_train(model, winput, woutput, layr.get_sgd(lr),
     err_func=lambda ex, out: tc.reduce_sum(tc.pow(tc.extend(out, [1, 2 * window]) - ex, 2.)))
+sess.track([train_err])
 # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
 # Cycle through each epoch
@@ -100,7 +101,8 @@ for i in range(epochs):
             wcdata = np.concatenate((wcdata, y_pred.get().reshape(1, len(word_index))), 0)
         winput.assign(np.array(w_t))
         woutput.assign(wcdata)
-        loss += train().as_numpy()
+        sess.update_target([train_err])
+        loss += train_err.get()
     print('Epoch:', i, "Loss:", loss)
 
 def word_vec(word):

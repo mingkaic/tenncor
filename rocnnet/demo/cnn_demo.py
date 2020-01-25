@@ -150,9 +150,9 @@ def main(args):
     train_input = eteq.EVariable(train_inshape, label="trainin")
     train_output = eteq.EVariable(train_outshape, label="trainout")
     normalized = train_input / 255. - 0.5
-    train = layr.sgd_train(model, sess,
-        normalized, train_output, layr.get_adagrad(0.01),
-        err_func=error_wrapper)
+    train_err = layr.sgd_train(model, normalized, train_output,
+        layr.get_adagrad(0.01), err_func=error_wrapper)
+    sess.track([train_err])
     inspector.add(normalized, "normalized_input")
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
@@ -228,7 +228,8 @@ def main(args):
         train_input.assign(data['image'].astype(np.float))
         train_output.assign(labels.astype(np.float))
         for j in range(nepochs):
-            trained_err = train()
+            sess.update_target([train_err])
+            trained_err = train_err.get()
             print('done epoch {}'.format(j))
             if j % show_every_n == show_every_n - 1:
                 guess_err = trained_err.as_numpy()

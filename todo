@@ -6,6 +6,7 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
+   - refactor trainer to only use nodes and sessions, then save sessions
    - implement reliable training harness
       - periodically caching data
       - save environment state + historic record
@@ -18,15 +19,12 @@ P5 = "get to it eventually"
       (or GRU veriants in https://arxiv.org/pdf/1901.03860.pdf)
 
 >>>> aux project >>>> (preferrable to ensure smooth completion of inprogress tasks)
+   - implement new optimizer using query
    - train convolutional nn demo
    - implement sparse embedding using eigen sparse matrix
    - select and integrate some other CUDA-supported LinAlgebra libraries
    - make global context configurable through python
    - generalize functor observables to ensure safe device ref for assigns
-
->>> bugs >>>
-   - optimizer fails for assign operators
-   - eteq extension to change shape according to optimized attributes (replace opt with query)
 
 === transparency/code readability ===
    - refactor derivative to merge local_derivative AND chain_rule

@@ -100,8 +100,7 @@ struct DQNTrainer final
 		size_t nvars = source_vars.size();
 		assert(nvars == target_vars.size());
 
-		layr::VarErrsT<T> source_errs;
-		source_errs.reserve(nvars);
+		layr::VarMapT<T> source_errs;
 		for (size_t i = 0; i < nvars; ++i)
 		{
 			// updates for source network
@@ -112,7 +111,7 @@ struct DQNTrainer final
 			{
 				error = gradprocess(error);
 			}
-			source_errs.push_back({source_var, error});
+			source_errs.emplace(eteq::EVariable<T>(source_var), error);
 		}
 		auto src_updates = update(source_errs);
 
@@ -122,7 +121,7 @@ struct DQNTrainer final
 		{
 			// updates for target network
 			eteq::EVariable<T> target_var = target_vars[i];
-			auto diff = target_var - src_updates[i];
+			auto diff = target_var - src_updates[source_vars[i]];
 			auto assign = tenncor::assign_sub(target_var,
 				params_.target_update_rate_ * diff);
 			track_batch.push_back(assign);

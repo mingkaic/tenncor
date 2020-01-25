@@ -123,10 +123,11 @@ def main(args):
 
     train_inps = eteq.EVariable([seq_length, vocab_size], 0)
     train_output = eteq.EVariable([seq_length, vocab_size], 0)
-    trainer = layr.sgd_train(model, sess, train_inps, train_output,
+    train_err = layr.sgd_train(model, train_inps, train_output,
         update=layr.get_adagrad(learning_rate=learning_rate, epsilon=1e-8),
         err_func=encoded_loss)
-    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+    sess.track([train_err])
+    # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     smooth_loss = -np.log(1.0/vocab_size)*seq_length
     p = 0
@@ -150,7 +151,8 @@ def main(args):
         # Get gradients for current oldModel based on input and target sequences
         train_inps.assign(encoded_inp)
         train_output.assign(encoded_out)
-        loss = trainer().as_numpy()
+        sess.update_target([train_err])
+        loss = train_err.get()
 
         smooth_loss = smooth_loss * 0.999 + loss * 0.001
 

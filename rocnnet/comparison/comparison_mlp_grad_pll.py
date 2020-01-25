@@ -154,8 +154,8 @@ for matrix_dim in matrix_dims:
 
     train_input = eteq.EVariable([batch_size, n_in])
     train_output = eteq.EVariable([batch_size, n_out])
-    trainer = layr.sgd_train(brain, sess,
-        train_input, train_output, layr.get_sgd(learning_rate))
+    train_err = layr.sgd_train(brain, train_input, train_output, layr.get_sgd(learning_rate))
+    sess.track([train_err])
 
     # tensorflow mlp
     tf_brain = MLP([n_in], [matrix_dim, n_out], [tf.sigmoid, tf.sigmoid], scope='brain_' + str(matrix_dim))
@@ -209,7 +209,7 @@ for matrix_dim in matrix_dims:
     start = time.time()
     train_input.assign(test_batch)
     train_output.assign(test_batch_out)
-    trainer()
+    sess.update_target([train_err])
     eteq_dur = time.time() - start
 
     start = time.time()

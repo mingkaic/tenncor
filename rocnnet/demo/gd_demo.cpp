@@ -127,7 +127,7 @@ int main (int argc, const char** argv)
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
 	layr::ApproxF<PybindT> approx =
-		[](const layr::VarErrsT<PybindT>& leaves)
+		[](const layr::VarMapT<PybindT>& leaves)
 		{
 			return layr::sgd<PybindT>(leaves, 0.9); // learning rate = 0.9
 		};
@@ -148,9 +148,10 @@ int main (int argc, const char** argv)
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
-	auto train = trainer::sgd(model, sess,
+	auto train_err = trainer::sgd(model,
 		eteq::ETensor<PybindT>(train_input),
 		eteq::ETensor<PybindT>(train_output), approx);
+	sess.track({train_err});
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");
@@ -170,13 +171,15 @@ int main (int argc, const char** argv)
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
 		train_input->assign(batch);
 		train_output->assign(batch_out);
-		auto err = train();
+		sess.update_target({train_err.get()});
 		if (i % show_every_n == show_every_n - 1)
 		{
-			float ferr = std::accumulate(err.data_.begin(), err.data_.end(), 0.f);
+			PybindT* data = (PybindT*) train_err->data();
+			PybindT* data_end = data + train_err->shape().n_elems();
+			float ferr = std::accumulate(data, data_end, 0.f);
 			std::cout << "training " << i + 1 << '\n';
-			std::cout << "trained error: " << fmts::to_string(
-				err.data_.begin(), err.data_.end()) << "~" << ferr << '\n';
+			std::cout << "trained error: "
+				<< fmts::to_string(data, data_end) << "~" << ferr << '\n';
 		}
 	}
 	duration = (std::clock() - start) / (float) CLOCKS_PER_SEC;

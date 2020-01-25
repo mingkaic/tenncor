@@ -81,14 +81,15 @@ def main(args):
     err = tc.reduce_sum(loss(tc.transpose(tc.slice(hiddens, 0, 1, 0)), test_outputs))
     sess.track([untrained, hiddens, pretrained, err])
 
-    trainer = layr.sgd_train(model, sess, test_inputs, test_outputs,
+    train_err = layr.sgd_train(model, test_inputs, test_outputs,
         layr.get_sgd(learning_rate=0.1),
         err_func=lstm_loss)
+    sess.track([train_err])
     # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     start = time.time()
     for cur_iter in range(args.n_train):
-        trainer()
+        sess.update_target([train_err])
 
         sess.update_target([hiddens, err])
         print("iter {}: y_pred = {}, loss: {}".format(

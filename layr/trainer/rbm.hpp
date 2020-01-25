@@ -39,15 +39,12 @@ eteq::ETensor<T> gibbs_hvh (
 //
 // where η is the learning rate, and χ is discount_factor
 template <typename T>
-eteq::ETensorsT<T> bbernoulli_approx (const layr::VarErrsT<T>& assocs,
+layr::VarMapT<T> bbernoulli_approx (const layr::VarMapT<T>& assocs,
 	T learning_rate, T discount_factor)
 {
 	// assign momentums before leaves
-	eteq::ETensorsT<T> assigns;
-	assigns.reserve(assocs.size());
-	std::transform(assocs.begin(), assocs.end(),
-	std::back_inserter(assigns),
-	[&](layr::VarErrT<T> verrs)
+	layr::VarMapT<T> assigns;
+	for (const auto& verrs : assocs)
 	{
 		auto err = verrs.second;
 		auto slist = teq::narrow_shape(err->shape());
@@ -57,9 +54,10 @@ eteq::ETensorsT<T> bbernoulli_approx (const layr::VarErrsT<T>& assocs,
 		auto momentum_next = discount_factor * momentum +
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
 
-		return tenncor::assign_add(verrs.first,
-			tenncor::assign(momentum, momentum_next));
-	});
+		assigns.emplace(verrs.first,
+			tenncor::assign_add(eteq::EVariable<T>(verrs.first),
+				tenncor::assign(momentum, momentum_next)));
+	}
 	return assigns;
 }
 
@@ -83,7 +81,7 @@ struct CDChainIO final
 /// Contrastive divergence error approximation instead of
 /// using backprop calculated gradient
 template <typename T>
-layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
+layr::VarMapT<T> cd_grad_approx (CDChainIO<T>& io,
 	const layr::RBMLayer<T>& model, size_t cdk = 1,
 	eteq::VarptrT<T> persistent = nullptr)
 {
@@ -120,7 +118,7 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 	auto grad_w =
 		tenncor::matmul(tenncor::transpose(io.visible_), io.hidden_) -
 		tenncor::matmul(tenncor::transpose(io.visible_mean_), io.hidden_mean_);
-	layr::VarErrsT<T> varerrs = {
+	layr::VarMapT<T> varerrs = {
 		{vars[layr::weight_label], grad_w},
 	};
 
@@ -129,16 +127,16 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 	if (estd::has(vars, hid_key))
 	{
 		auto grad_hb = tenncor::reduce_mean_1d(io.hidden_ - io.hidden_mean_, 1);
-		varerrs.push_back({vars[hid_key], grad_hb});
+		varerrs.emplace(eteq::EVariable<T>(vars[hid_key]), grad_hb);
 	}
 	if (estd::has(vars, vis_key))
 	{
 		auto grad_vb = tenncor::reduce_mean_1d(io.visible_ - io.visible_mean_, 1);
-		varerrs.push_back({vars[vis_key], grad_vb});
+		varerrs.emplace(eteq::EVariable<T>(vars[vis_key]), grad_vb);
 	}
 	if (nullptr != persistent)
 	{
-		varerrs.push_back({persistent, gibbs_hvh(model, chain_it)});
+		varerrs.emplace(eteq::EVariable<T>(persistent), gibbs_hvh(model, chain_it));
 	}
 	return varerrs;
 }
@@ -149,10 +147,17 @@ TrainErrF<T> rbm (const layr::RBMLayer<T>& model, teq::iSession& sess,
 	layr::ErrorF<T> err_func = layr::ErrorF<T>(), size_t cdk = 1)
 {
 	CDChainIO<T> chain_io(visible);
-	layr::VarErrsT<T> varerrs = cd_grad_approx<T>(chain_io, model, cdk);
+	layr::VarMapT<T> varerrs = cd_grad_approx<T>(chain_io, model, cdk);
 	auto updates = bbernoulli_approx<T>(varerrs, learning_rate, discount_factor);
 
-	teq::TensptrsT to_track(updates.begin(), updates.end());
+	teq::TensptrsT to_track;
+	teq::TensSetT update_tens;
+	to_track.reserve(updates.size());
+	for (auto& update : updates)
+	{
+		to_track.push_back(update.second);
+		update_tens.emplace(update.second.get());
+	}
 	eteq::ETensor<T> error;
 	if (err_func)
 	{
@@ -160,14 +165,6 @@ TrainErrF<T> rbm (const layr::RBMLayer<T>& model, teq::iSession& sess,
 		to_track.push_back(error);
 	}
 	sess.track(to_track);
-
-	teq::TensSetT update_tens;
-	std::transform(updates.begin(), updates.end(),
-		std::inserter(update_tens, update_tens.end()),
-		[](eteq::ETensor<T> etens)
-		{
-			return etens.get();
-		});
 
 	return [&sess, update_tens, error]
 	{

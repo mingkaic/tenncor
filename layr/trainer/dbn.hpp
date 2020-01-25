@@ -57,15 +57,15 @@ struct DBNTrainer final
 			}
 
 			CDChainIO io(rx, ry);
-			layr::VarErrsT<T> varerrs = cd_grad_approx(io, rbm, cdk); // todo: add persistent option
+			layr::VarMapT<T> varerrs = cd_grad_approx(io, rbm, cdk); // todo: add persistent option
 			teq::TensSetT assigns;
 			for (auto varerr : varerrs)
 			{
 				// if var is a weight or bias add assign with learning rate
 				// otherwise assign directly
 				auto assign = estd::has(to_learn, varerr.first.get()) ?
-					tenncor::assign_add(varerr.first, pretrain_lr * varerr.second) :
-					tenncor::assign(varerr.first, varerr.second);
+					tenncor::assign_add(eteq::EVariable<T>(varerr.first), pretrain_lr * varerr.second) :
+					tenncor::assign(eteq::EVariable<T>(varerr.first), varerr.second);
 				assigns.emplace(assign.get());
 				to_track.push_back(assign);
 			}

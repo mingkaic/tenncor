@@ -80,10 +80,11 @@ def make_rms_prop(learning_rate, momentum_term, lmbd, eps):
         pgrad_norms = [(learning_rate * grad_dep) / (tc.sqrt(mvsqr) + eps)
             for grad_dep, mvsqr in zip(grad_deps, umvavg_sqrs)]
 
-        assigns = [tc.assign(momentum, momentum_tmp - pgrad_norm)
+        assigns = [(momentum, tc.assign(momentum, momentum_tmp - pgrad_norm))
             for momentum, momentum_tmp, pgrad_norm in zip(momentums, momentum_tmps, pgrad_norms)]
 
-        assigns += [tc.assign_sub(target, pgrad_norm) for target, pgrad_norm in zip(targets, pgrad_norms)]
+        assigns += [(target, tc.assign_sub(target, pgrad_norm))
+            for target, pgrad_norm in zip(targets, pgrad_norms)]
 
         return assigns
 
@@ -182,9 +183,10 @@ def main(args):
     error = loss(toutput, model.connect(tinput))
     sess.track([error])
 
-    train = layr.sgd_train(model, sess, tinput, toutput,
+    train_err = layr.sgd_train(model, tinput, toutput,
         make_rms_prop(learning_rate, momentum_term, lmbd, eps),
         err_func=loss)
+    sess.track([train_err])
 
     test_invar = eteq.EVariable([n_test, sequence_len, ninput])
     tin = tc.permute(test_invar, [0, 2, 1])
@@ -211,7 +213,7 @@ def main(args):
             train_invar.assign(xbatch)
             train_exout.assign(tbatch)
 
-            train()
+            sess.update_target([train_err])
 
             # Add loss to list to plot
             sess.update_target([error])

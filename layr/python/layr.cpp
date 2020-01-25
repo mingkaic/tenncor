@@ -16,6 +16,45 @@
 
 namespace py = pybind11;
 
+namespace pylayr
+{
+
+using VPairT = std::pair<eteq::EVariable<PybindT>,eteq::ETensor<PybindT>>;
+
+using VPairsT = std::vector<VPairT>;
+
+using ApproxF = std::function<VPairsT(const VPairsT&)>;
+
+layr::VarMapT<PybindT> convert (const VPairsT& op)
+{
+	layr::VarMapT<PybindT> out;
+	for (auto& o : op)
+	{
+		out.emplace(o.first, o.second);
+	}
+	return out;
+}
+
+VPairsT convert (const layr::VarMapT<PybindT>& op)
+{
+	VPairsT out;
+	for (auto& o : op)
+	{
+		out.push_back({eteq::EVariable<PybindT>(o.first), o.second});
+	}
+	return out;
+}
+
+layr::ApproxF<PybindT> convert (ApproxF f)
+{
+	return [f](const layr::VarMapT<PybindT>& vs)
+	{
+		return convert(f(convert(vs)));
+	};
+}
+
+}
+
 PYBIND11_MODULE(layr, m)
 {
 	LOG_INIT(logs::DefLogger);
@@ -72,9 +111,13 @@ PYBIND11_MODULE(layr, m)
 	// ==== DQN trainer ====
 	py::class_<trainer::DQNTrainer<PybindT>> dqntrainer(m, "DQNTrainer");
 	dqntrainer
-		.def(py::init<eteq::ELayer<PybindT>&,teq::iSession&,
-			layr::ApproxF<PybindT>,trainer::DQNInfo<PybindT>,
-			layr::UnaryF<PybindT>>(),
+		.def(py::init([](eteq::ELayer<PybindT>& model, teq::iSession& sess,
+				pylayr::ApproxF update, trainer::DQNInfo<PybindT> param,
+				layr::UnaryF<PybindT> gradprocess)
+			{
+				return trainer::DQNTrainer<PybindT>(model, sess,
+					pylayr::convert(update), param, gradprocess);
+			}),
 			py::arg("model"), py::arg("sess"),
 			py::arg("update"), py::arg("param"),
 			py::arg("gradprocess") = layr::UnaryF<PybindT>())
@@ -218,9 +261,16 @@ PYBIND11_MODULE(layr, m)
 		.def("sqr_diff", &layr::sqr_diff<PybindT>)
 
 		// ==== layer training ====
-		.def("sgd_train", &trainer::sgd<PybindT>,
-			py::arg("model"), py::arg("sess"),
-			py::arg("train_in"), py::arg("expect_out"), py::arg("update"),
+		.def("sgd_train", [](
+				const eteq::ELayer<PybindT>& model, eteq::ETensor<PybindT> train_in,
+				eteq::ETensor<PybindT> expect_out, pylayr::ApproxF update,
+				layr::ErrorF<PybindT> err_func, layr::UnaryF<PybindT> proc_grad)
+			{
+				return trainer::sgd<PybindT>(model, train_in, expect_out,
+					pylayr::convert(update), err_func, proc_grad);
+			},
+			py::arg("model"), py::arg("train_in"),
+			py::arg("expect_out"), py::arg("update"),
 			py::arg("err_func") = layr::ErrorF<PybindT>(layr::sqr_diff<PybindT>),
 			py::arg("proc_grad") = layr::UnaryF<PybindT>())
 		.def("rbm_train", &trainer::rbm<PybindT>,
@@ -231,31 +281,34 @@ PYBIND11_MODULE(layr, m)
 
 		// ==== optimizations ====
 		.def("get_sgd",
-			[](PybindT learning_rate) -> layr::ApproxF<PybindT>
+			[](PybindT learning_rate) -> pylayr::ApproxF
 			{
-				return [=](const layr::VarErrsT<PybindT>& leaves)
+				return [=](const pylayr::VPairsT& leaves)
 				{
-					return layr::sgd(leaves, learning_rate);
+					return pylayr::convert(layr::sgd(
+						pylayr::convert(leaves), learning_rate));
 				};
 			},
 			py::arg("learning_rate") = 0.5)
 		.def("get_adagrad",
-			[](PybindT learning_rate, PybindT epsilon) -> layr::ApproxF<PybindT>
+			[](PybindT learning_rate, PybindT epsilon) -> pylayr::ApproxF
 			{
-				return [=](const layr::VarErrsT<PybindT>& leaves)
+				return [=](const pylayr::VPairsT& leaves)
 				{
-					return layr::adagrad<PybindT>(leaves, learning_rate, epsilon);
+					return pylayr::convert(layr::adagrad(
+						pylayr::convert(leaves), learning_rate, epsilon));
 				};
 			},
 			py::arg("learning_rate") = 0.5,
 			py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon())
 		.def("get_rms_momentum",
-			[](PybindT learning_rate, PybindT discount_factor, PybindT epsilon) -> layr::ApproxF<PybindT>
+			[](PybindT learning_rate, PybindT discount_factor, PybindT epsilon) -> pylayr::ApproxF
 			{
-				return [=](const layr::VarErrsT<PybindT>& leaves)
+				return [=](const pylayr::VPairsT& leaves)
 				{
-					return layr::rms_momentum<PybindT>(leaves, learning_rate,
-						discount_factor, epsilon);
+					return pylayr::convert(layr::rms_momentum(
+						pylayr::convert(leaves), learning_rate,
+						discount_factor, epsilon));
 				};
 			},
 			py::arg("learning_rate") = 0.5,
@@ -292,5 +345,15 @@ PYBIND11_MODULE(layr, m)
 				onnx::ModelProto pb_model;
 				eteq::save_layers<PybindT>(pb_model, models);
 				return pb_model.SerializeToOstream(&output);
+			})
+		.def("load_session_file",
+			[](teq::iSession& sess, std::string filename)
+			{
+				//
+			})
+		.def("save_session_file",
+			[](std::string filename, const teq::iSession& sess)
+			{
+				//
 			});
 }
