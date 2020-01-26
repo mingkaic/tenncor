@@ -2,12 +2,19 @@
 #ifndef DISABLE_TEST_SINDEX_HPP
 
 
+#include <fstream>
+
 #include "gtest/gtest.h"
+
+#include "dbg/print/search.hpp"
 
 #include "eteq/generated/api.hpp"
 #include "eteq/derive.hpp"
 
 #include "query/sindex.hpp"
+
+
+const std::string testdir = "models/test";
 
 
 TEST(SINDEX, GraphPathPrefix)
@@ -66,15 +73,15 @@ TEST(SINDEX, GraphPathPrefix)
 	};
 
 	eteq::EVariable<double> in =
-		eteq::make_variable<double>(in_data.data(), in_shape);
+		eteq::make_variable<double>(in_data.data(), in_shape, "in");
 	eteq::EVariable<double> weight =
-		eteq::make_variable<double>(weight_data.data(), weight_shape);
+		eteq::make_variable<double>(weight_data.data(), weight_shape, "weight");
 	eteq::EVariable<double> bias =
-		eteq::make_variable<double>(bias_data.data(), bias_shape);
+		eteq::make_variable<double>(bias_data.data(), bias_shape, "bias");
 	eteq::EVariable<double> istate =
-		eteq::make_variable<double>(state_data.data(), state_shape);
+		eteq::make_variable<double>(state_data.data(), state_shape, "state");
 	eteq::EVariable<double> out =
-		eteq::make_variable<double>(out_data.data(), out_shape);
+		eteq::make_variable<double>(out_data.data(), out_shape, "out");
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
@@ -117,6 +124,36 @@ TEST(SINDEX, GraphPathPrefix)
 		query::PathNode{0, egen::TANH},
 		query::PathNode{0, egen::ADD},
 	}));
+
+	std::stringstream ss;
+	visualize(ss, itable);
+
+	std::string expect;
+	std::string got;
+	std::string line;
+	{
+		std::ifstream fs(testdir + "/query.txt");
+		ASSERT_TRUE(fs.is_open());
+		while (std::getline(fs, line))
+		{
+			fmts::trim(line);
+			if (line.size() > 0)
+			{
+				expect += line + '\n';
+			}
+		}
+	}
+
+	while (std::getline(ss, line))
+	{
+		fmts::trim(line);
+		if (line.size() > 0)
+		{
+			got += line + '\n';
+		}
+	}
+
+	EXPECT_STREQ(expect.c_str(), got.c_str());
 }
 
 

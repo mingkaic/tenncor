@@ -88,10 +88,11 @@ def main(args):
     # ds = tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=n_batch)
 
     train_input = eteq.EVariable([n_batch, n_visible])
-    train = layr.rbm_train(model, sess, train_input,
+    train_err = layr.rbm_train(model, train_input,
         learning_rate=learning_rate,
         discount_factor=momentum,
         err_func=mse_errfunc)
+    sess.track([train_err])
 
     x = eteq.scalar_variable(0, [1, n_visible])
     genx = tc.sigmoid(model.backward_connect(
@@ -107,7 +108,7 @@ def main(args):
 
     image = random.choice(mnist_images)
     sess.track([genx, trained_genx, untrained_genx])
-    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+    # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
     n_epoches = 30
     shuffle = True
@@ -146,8 +147,8 @@ def main(args):
         for b in r_batches:
             batch_x = mnist_images[b * n_batch:(b + 1) * n_batch]
             train_input.assign(batch_x)
-            err = train().as_numpy()
-            epoch_errs.append(err)
+            sess.update_target([train_err])
+            epoch_errs.append(train_err.get())
 
         epoch_errs = np.array(epoch_errs)
         if verbose:

@@ -274,9 +274,9 @@ PYBIND11_MODULE(layr, m)
 			py::arg("err_func") = layr::ErrorF<PybindT>(layr::sqr_diff<PybindT>),
 			py::arg("proc_grad") = layr::UnaryF<PybindT>())
 		.def("rbm_train", &trainer::rbm<PybindT>,
-			py::arg("rbm_model"), py::arg("sess"), py::arg("visible"),
+			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
-			py::arg("err_func") = layr::ErrorF<PybindT>(),
+			py::arg("err_func") = layr::ErrorF<PybindT>(layr::sqr_diff<PybindT>),
 			py::arg("cdk") = 1)
 
 		// ==== optimizations ====

@@ -6,7 +6,8 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - refactor trainer to only use nodes and sessions, then save sessions
+   - implement new optimizer using query
+   - save sessions
    - implement reliable training harness
       - periodically caching data
       - save environment state + historic record
@@ -19,7 +20,6 @@ P5 = "get to it eventually"
       (or GRU veriants in https://arxiv.org/pdf/1901.03860.pdf)
 
 >>>> aux project >>>> (preferrable to ensure smooth completion of inprogress tasks)
-   - implement new optimizer using query
    - train convolutional nn demo
    - implement sparse embedding using eigen sparse matrix
    - select and integrate some other CUDA-supported LinAlgebra libraries
@@ -53,6 +53,7 @@ P4 - implement reduce_prod gradient using Eigen cumprod
       generalize tensor attribute to include control information
 
 === usage ===
+   - separate dbn and dqn setup and training
 P2 - demo A3C
    - implement models concerning visual and audio processing, and semantic data processing
    - separate supervised and unsupervised trainers (since they have different statefulness)

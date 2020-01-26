@@ -85,10 +85,9 @@ def main(args):
     sess.track([train_err])
 
     testin = eteq.EVariable([ninput], label='testin')
-    tin = testin
-    untrained_out = untrained.connect(tin)
-    trained_out = model.connect(tin)
-    pretrained_out = trained.connect(tin)
+    untrained_out = untrained.connect(testin)
+    trained_out = model.connect(testin)
+    pretrained_out = trained.connect(testin)
     sess.track([untrained_out, trained_out, pretrained_out])
     eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 

@@ -142,44 +142,23 @@ layr::VarMapT<T> cd_grad_approx (CDChainIO<T>& io,
 }
 
 template <typename T>
-TrainErrF<T> rbm (const layr::RBMLayer<T>& model, teq::iSession& sess,
+eteq::ETensor<T> rbm (const layr::RBMLayer<T>& model,
 	eteq::ETensor<T> visible, T learning_rate, T discount_factor,
-	layr::ErrorF<T> err_func = layr::ErrorF<T>(), size_t cdk = 1)
+	layr::ErrorF<T> err_func = layr::sqr_diff<T>, size_t cdk = 1)
 {
 	CDChainIO<T> chain_io(visible);
 	layr::VarMapT<T> varerrs = cd_grad_approx<T>(chain_io, model, cdk);
 	auto updates = bbernoulli_approx<T>(varerrs, learning_rate, discount_factor);
-
-	teq::TensptrsT to_track;
-	teq::TensSetT update_tens;
-	to_track.reserve(updates.size());
+	teq::TensMapT<teq::TensptrT> umap;
+	eteq::ETensorsT<T> deps;
+	deps.reserve(updates.size());
 	for (auto& update : updates)
 	{
-		to_track.push_back(update.second);
-		update_tens.emplace(update.second.get());
+		umap.emplace(update.first.get(), update.second);
+		deps.push_back(update.second);
 	}
-	eteq::ETensor<T> error;
-	if (err_func)
-	{
-		error = err_func(chain_io.visible_, chain_io.visible_mean_);
-		to_track.push_back(error);
-	}
-	sess.track(to_track);
-
-	return [&sess, update_tens, error]
-	{
-		sess.update_target(update_tens);
-		if (nullptr == error)
-		{
-			return teq::ShapedArr<T>{teq::Shape(),std::vector<T>{-1}};
-		}
-		sess.update_target({error.get()});
-		T* data = (T*) error->data();
-		teq::Shape shape = error->shape();
-		return teq::ShapedArr<T>{shape,
-			std::vector<T>(data, data + shape.n_elems()),
-		};
-	};
+	eteq::ETensor<T> error = err_func(chain_io.visible_, chain_io.visible_mean_);
+	return tenncor::depends(eteq::trail(error, umap), deps);
 }
 
 }
