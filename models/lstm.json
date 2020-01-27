@@ -65856,7 +65856,7 @@
           "_r0"
          ],
          "name": "_r0",
-         "opType": "GROUP_CONCAT",
+         "opType": "CONCAT",
          "domain": "",
          "attribute": [
           {

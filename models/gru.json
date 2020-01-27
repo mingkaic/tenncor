@@ -52413,7 +52413,7 @@
           "558"
          ],
          "name": "558",
-         "opType": "GROUP_CONCAT",
+         "opType": "CONCAT",
          "domain": "",
          "attribute": [
           {

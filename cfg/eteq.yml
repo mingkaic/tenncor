@@ -657,7 +657,7 @@ api:
           name: axis
         out:
           type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::GROUP_CONCAT,eteq::to_tensors(args),axis);
+          val: return eteq::make_functor<T>(::egen::CONCAT,eteq::to_tensors(args),axis);
       - description: Return extended arg so that output shape matches like tensor exactly
         template: typename T
         name: extend_like
@@ -1170,7 +1170,7 @@ api:
                       default:
                           break;
                   }
-                  return eteq::make_functor<T>(::egen::GROUP_SUM, eteq::to_tensors(args));
+                  return eteq::make_functor<T>(::egen::ADD, eteq::to_tensors(args));
       - template: typename T
         name: prod
         args:
@@ -1192,7 +1192,7 @@ api:
                       default:
                           break;
                   }
-                  return eteq::make_functor<T>(::egen::GROUP_PROD, eteq::to_tensors(args));
+                  return eteq::make_functor<T>(::egen::MUL, eteq::to_tensors(args));
       - template: typename T
         name: softmax
         args:

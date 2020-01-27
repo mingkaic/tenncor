@@ -59,12 +59,12 @@ opcode:
     POW:
       stmt: out = eigen::pow<T>(outshape, *in[0], *in[1]);
     ADD:
-      stmt: out = eigen::add<T>(outshape, *in[0], *in[1]);
+      stmt: out = eigen::add<T>(outshape, in);
       commutative: True
     SUB:
       stmt: out = eigen::sub<T>(outshape, *in[0], *in[1]);
     MUL:
-      stmt: out = eigen::mul<T>(outshape, *in[0], *in[1]);
+      stmt: out = eigen::mul<T>(outshape, in);
       commutative: True
     DIV:
       stmt: out = eigen::div<T>(outshape, *in[0], *in[1]);
@@ -91,15 +91,7 @@ opcode:
     SELECT:
       stmt: out = eigen::select<T>(outshape, *in[0], *in[1], *in[2]);
     CONCAT:
-      stmt: out = eigen::concat<T>(outshape, *in[0], *in[1], attrib);
-    GROUP_CONCAT:
-      stmt: out = eigen::group_concat<T>(outshape, in, attrib);
-    GROUP_SUM:
-      stmt: out = eigen::group_sum<T>(outshape, in);
-      commutative: True
-    GROUP_PROD:
-      stmt: out = eigen::group_prod<T>(outshape, in);
-      commutative: True
+      stmt: out = eigen::concat<T>(outshape, in, attrib);
     ASSIGN:
       stmt: out = eigen::assign<T>(*in[0], *in[1]);
     ASSIGN_ADD:

@@ -197,7 +197,7 @@ TEST(OPERATOR, Slice)
 }
 
 
-TEST(OPERATOR, GroupConcat)
+TEST(OPERATOR, MultiConcat)
 {
 	marsh::Maps mvalues;
 	eigen::Packer<teq::RankT>().pack(mvalues, 0);
@@ -207,7 +207,7 @@ TEST(OPERATOR, GroupConcat)
 		std::vector<double>{2, 8, 4, 5}, teq::Shape({1, 4}));
 	auto edgeb = std::make_shared<MockLeaf>(
 		std::vector<double>{1, 0, 3, 9}, teq::Shape({1, 4}));
-	auto r = eigen::group_concat<double>(outshape, teq::TensptrsT{edgea, edgeb}, mvalues);
+	auto r = eigen::concat<double>(outshape, teq::TensptrsT{edgea, edgeb}, mvalues);
 
 	double* raw = (double*) r->data();
 	r->assign();
@@ -218,7 +218,7 @@ TEST(OPERATOR, GroupConcat)
 }
 
 
-TEST(OPERATOR, GroupSum)
+TEST(OPERATOR, MultiAdd)
 {
 	teq::Shape outshape({2, 3});
 	auto edgea = std::make_shared<MockLeaf>(
@@ -227,7 +227,7 @@ TEST(OPERATOR, GroupSum)
 		std::vector<double>{1, 0, 3, 9, 10, 11}, teq::Shape({2, 3}));
 	auto edgec = std::make_shared<MockLeaf>(
 		std::vector<double>{4.2, 1, 7.1, 1, 2, 1.1}, teq::Shape({2, 3}));
-	auto r = eigen::group_sum<double>(outshape, teq::TensptrsT{edgea, edgeb, edgec});
+	auto r = eigen::add<double>(outshape, teq::TensptrsT{edgea, edgeb, edgec});
 
 	double* raw = (double*) r->data();
 	r->assign();
@@ -238,7 +238,7 @@ TEST(OPERATOR, GroupSum)
 }
 
 
-TEST(OPERATOR, GroupProd)
+TEST(OPERATOR, MultiMul)
 {
 	teq::Shape outshape({2, 3});
 	auto edgea = std::make_shared<MockLeaf>(
@@ -247,7 +247,7 @@ TEST(OPERATOR, GroupProd)
 		std::vector<double>{1, 0, 3, 9, 10, 11}, teq::Shape({2, 3}));
 	auto edgec = std::make_shared<MockLeaf>(
 		std::vector<double>{4, 1, 7, 1, 2, 1}, teq::Shape({2, 3}));
-	auto r = eigen::group_prod<double>(outshape, teq::TensptrsT{edgea, edgeb, edgec});
+	auto r = eigen::mul<double>(outshape, teq::TensptrsT{edgea, edgeb, edgec});
 
 	double* raw = (double*) r->data();
 	r->assign();
@@ -352,9 +352,11 @@ TEST(OPERATOR, Concat)
 	eigen::Packer<teq::RankT>().pack(mvalues, 0);
 
 	teq::Shape outshape({3, 3});
-	MockLeaf edgea(std::vector<double>{2, 8, 4, 5, 7, 6}, teq::Shape({2, 3}));
-	MockLeaf edgeb(std::vector<double>{1, 0, 3}, teq::Shape({1, 3}));
-	auto r = eigen::concat<double>(outshape, edgea, edgeb, mvalues);
+	auto edgea = std::make_shared<MockLeaf>(
+		std::vector<double>{2, 8, 4, 5, 7, 6}, teq::Shape({2, 3}));
+	auto edgeb = std::make_shared<MockLeaf>(
+		std::vector<double>{1, 0, 3}, teq::Shape({1, 3}));
+	auto r = eigen::concat<double>(outshape, teq::TensptrsT{edgea, edgeb}, mvalues);
 
 	double* raw = (double*) r->data();
 	r->assign();

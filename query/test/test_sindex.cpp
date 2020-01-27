@@ -110,23 +110,27 @@ TEST(SINDEX, GraphPathPrefix)
 	EXPECT_FALSE(itable.contains_prefix(query::PathNodesT{
 		query::PathNode{0, egen::POW},
 		query::PathNode{0, egen::SUB},
-		query::PathNode{0, egen::GROUP_CONCAT},
+		query::PathNode{0, egen::CONCAT},
 	}));
 	EXPECT_TRUE(itable.contains_prefix(query::PathNodesT{
 		query::PathNode{0, egen::POW},
 		query::PathNode{1, egen::SUB},
-		query::PathNode{0, egen::GROUP_CONCAT},
+		query::PathNode{0, egen::CONCAT},
 	}));
 	EXPECT_TRUE(itable.contains_prefix(query::PathNodesT{
 		query::PathNode{0, egen::POW},
 		query::PathNode{1, egen::SUB},
-		query::PathNode{1, egen::GROUP_CONCAT},
+		query::PathNode{1, egen::CONCAT},
 		query::PathNode{0, egen::TANH},
 		query::PathNode{0, egen::ADD},
 	}));
 
 	std::stringstream ss;
 	visualize(ss, itable);
+	{
+		std::ofstream out("/tmp/query.txt");
+		out << ss.str() << std::endl;
+	}
 
 	std::string expect;
 	std::string got;
@@ -295,61 +299,61 @@ TEST(SINDEX, GraphPathPossibles)
 			print_ss(ss, path, val);
 		}, itable, keys);
 	const char* expect_ss =
-		"GROUP_CONCAT:0,attrs:[[layer\\rank]]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
-		"GROUP_CONCAT:0,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
-		"GROUP_CONCAT:1,attrs:[[layer\\rank]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
-		"GROUP_CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
-		"GROUP_CONCAT:2,attrs:[[layer\\rank]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
-		"GROUP_CONCAT:2,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n";
+		"CONCAT:0,attrs:[[layer\\rank]]\n"
+		"CONCAT:0,TANH:0,ADD:0,attrs:[[layer]]\n"
+		"CONCAT:0,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
+		"CONCAT:0,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
+		"CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
+		"CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
+		"CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
+		"CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
+		"CONCAT:0,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
+		"CONCAT:1,attrs:[[layer\\rank]]\n"
+		"CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
+		"CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
+		"CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
+		"CONCAT:2,attrs:[[layer\\rank]]\n"
+		"CONCAT:2,TANH:0,ADD:0,attrs:[[layer]]\n"
+		"CONCAT:2,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
+		"CONCAT:2,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n";
 	EXPECT_STREQ(expect_ss, ss.str().c_str());
 
 	std::stringstream ss2;
 	query::PathNodesT keys2 = {
 		query::PathNode{0, egen::POW},
 		query::PathNode{1, egen::SUB},
-		query::PathNode{0, egen::GROUP_CONCAT},
+		query::PathNode{0, egen::CONCAT},
 	};
 	ASSERT_TRUE(itable.contains_prefix(keys2));
 	query::search::possible_paths(

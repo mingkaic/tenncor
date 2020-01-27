@@ -2998,7 +2998,7 @@
           "53"
          ],
          "name": "53",
-         "opType": "GROUP_CONCAT",
+         "opType": "CONCAT",
          "domain": "",
          "attribute": [
           {

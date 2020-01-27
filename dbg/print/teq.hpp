@@ -21,7 +21,7 @@ using LabelsMapT = teq::TensMapT<std::string>;
 struct PrettyEquation final
 {
 	PrettyEquation (void) : drawer_(
-		[](teq::iTensor*& root) -> std::vector<teq::iTensor*>
+		[](teq::iTensor*& root, size_t depth) -> std::vector<teq::iTensor*>
 		{
 			if (auto f = dynamic_cast<teq::iFunctor*>(root))
 			{

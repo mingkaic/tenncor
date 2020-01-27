@@ -295,7 +295,6 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 		}
 			break;
 		case egen::CONCAT:
-		case egen::GROUP_CONCAT:
 		{
 			std::vector<T> lbounds, ubounds;
 			lbounds.reserve(ranges.size());
@@ -314,7 +313,6 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 			outrange = pow_range(ranges);
 			break;
 		case egen::ADD:
-		case egen::GROUP_SUM:
 			outrange = std::accumulate(ranges.begin(), ranges.end(),
 				estd::NumRange<T>(),
 				[](estd::NumRange<T> a, estd::NumRange<T> b)
@@ -330,7 +328,6 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 				ranges[0].upper_ - ranges[1].lower_);
 			break;
 		case egen::MUL:
-		case egen::GROUP_PROD:
 			outrange = std::accumulate(ranges.begin(), ranges.end(),
 				estd::NumRange<T>(1, 1),
 				[](estd::NumRange<T> a, estd::NumRange<T> b)

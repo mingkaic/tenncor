@@ -120,7 +120,6 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::PERMUTE:
 			case egen::RESHAPE:
 			case egen::ADD:
-			case egen::GROUP_SUM:
 			case egen::SLICE:
 			case egen::PAD:
 			case egen::STRIDE:
@@ -128,12 +127,10 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::REVERSE:
 			case egen::CONV:
 			case egen::CONCAT:
-			case egen::GROUP_CONCAT:
 			case egen::MATMUL:
 				out = make_constant_scalar<T>(1, args[arg_idx]->shape());
 				break;
 			case egen::MUL:
-			case egen::GROUP_PROD:
 			{
 				ETensorsT<T> nodes;
 				size_t nargs = args.size();
@@ -227,7 +224,6 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::SIGMOID:
 			case egen::TANH:
 			case egen::ADD:
-			case egen::GROUP_SUM:
 			case egen::MUL:
 			case egen::MAX:
 			case egen::MIN:
@@ -469,24 +465,24 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				teq::Shape cshape = children[arg_idx]->shape();
 				teq::RankT axis;
 				eigen::Packer<teq::RankT>().unpack(axis, *op);
-				teq::DimT offset = 0;
-				teq::DimT extent = cshape.at(axis);
-				if (arg_idx)
+				if (children.size() > 2)
 				{
-					teq::Shape first_shape = children[0]->shape();
-
-					offset = first_shape.at(axis);
+					out = ETensor<T>(local_der) *
+						tenncor::slice(ETensor<T>(supcomp_grad), arg_idx, 1, axis);
 				}
-				out = ETensor<T>(local_der) *
-					tenncor::slice(ETensor<T>(supcomp_grad), offset, extent, axis);
-			}
-				break;
-			case egen::GROUP_CONCAT: // todo: combine concat and group_concat
-			{
-				teq::RankT axis;
-				eigen::Packer<teq::RankT>().unpack(axis, *op);
-				out = ETensor<T>(local_der) *
-					tenncor::slice(ETensor<T>(supcomp_grad), arg_idx, 1, axis);
+				else
+				{
+					teq::DimT offset = 0;
+					teq::DimT extent = cshape.at(axis);
+					if (arg_idx)
+					{
+						teq::Shape first_shape = children[0]->shape();
+
+						offset = first_shape.at(axis);
+					}
+					out = ETensor<T>(local_der) *
+						tenncor::slice(ETensor<T>(supcomp_grad), offset, extent, axis);
+				}
 			}
 				break;
 			case egen::STRIDE:

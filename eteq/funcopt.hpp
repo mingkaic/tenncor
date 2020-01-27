@@ -197,7 +197,7 @@ struct FuncOpt<egen::EXTEND> final
 };
 
 template <>
-struct FuncOpt<egen::GROUP_CONCAT> final
+struct FuncOpt<egen::CONCAT> final
 {
 	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
 	{

@@ -5,14 +5,20 @@
 
 #include "dbg/print/tree.hpp"
 
-void visualize (std::ostream& out, const query::search::OpTrieT& otrie)
+void visualize (std::ostream& out, const query::search::OpTrieT& otrie,
+	size_t ndepth = std::numeric_limits<size_t>::max())
 {
 	auto root = otrie.root();
 	std::unordered_map<const query::search::OpTrieT::NodeT*,std::string>
 	labels = {{root, "<ROOT>"}};
 	PrettyTree<const query::search::OpTrieT::NodeT*> drawer(
-		[&labels](const query::search::OpTrieT::NodeT*& root)
+		[&labels, ndepth](const query::search::OpTrieT::NodeT*& root, size_t depth)
 		{
+			std::vector<const query::search::OpTrieT::NodeT*> out;
+			if (depth >= ndepth)
+			{
+				return out;
+			}
 			auto& children = root->children_;
 			query::PathNodesT keys;
 			keys.reserve(children.size());
@@ -29,7 +35,6 @@ void visualize (std::ostream& out, const query::search::OpTrieT& otrie)
 					}
 					return egen::name_op(l.op_) < egen::name_op(r.op_);
 				});
-			std::vector<const query::search::OpTrieT::NodeT*> out;
 			out.reserve(keys.size());
 			for (auto& key : keys)
 			{

@@ -345,7 +345,20 @@ struct ShapeParser<egen::CONCAT> final
 	{
 		teq::RankT axis;
 		eigen::Packer<teq::RankT>().unpack(axis, attrs);
-
+		if (shapes.size() > 2)
+		{
+			if (std::any_of(shapes.begin(), shapes.end(),
+				[axis](teq::Shape shape)
+				{ return shape.at(axis) != 1; }))
+			{
+				teq::fatal("cannot group concat shapes "
+					"with dimension that is not one");
+			}
+			teq::Shape initshape = shapes.front();
+			std::vector<teq::DimT> slist(initshape.begin(), initshape.end());
+			slist[axis] = shapes.size();
+			return teq::Shape(slist);
+		}
 		teq::Shape leftshape = shapes[0];
 		teq::Shape rightshape = shapes[1];
 		std::vector<teq::DimT> slist(leftshape.begin(), leftshape.end());
@@ -357,28 +370,6 @@ struct ShapeParser<egen::CONCAT> final
 		{
 			slist[axis] += rightshape.at(axis);
 		}
-		return teq::Shape(slist);
-	}
-};
-
-template <>
-struct ShapeParser<egen::GROUP_CONCAT> final
-{
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
-	{
-		teq::RankT axis;
-		eigen::Packer<teq::RankT>().unpack(axis, attrs);
-
-		if (std::any_of(shapes.begin(), shapes.end(),
-			[axis](teq::Shape shape)
-			{ return shape.at(axis) != 1; }))
-		{
-			teq::fatal("cannot group concat shapes "
-				"with dimension that is not one");
-		}
-		teq::Shape initshape = shapes.front();
-		std::vector<teq::DimT> slist(initshape.begin(), initshape.end());
-		slist[axis] = shapes.size();
 		return teq::Shape(slist);
 	}
 };
