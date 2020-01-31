@@ -1,0 +1,53 @@
+# licenses(["notice"])
+
+# load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+
+# package(
+#     default_visibility = ["//visibility:public"],
+# )
+
+# filegroup(
+#     name = "srcs",
+#     srcs = glob([
+#         "*.hpp",
+#         "src/*.cpp",
+#     ]) + ["BUILD.bazel"],
+# )
+
+# filegroup(
+#     name = "test_srcs",
+#     srcs = glob([
+#         "test/*.hpp",
+#         "test/*.cpp",
+#     ]),
+#     visibility = ["//visibility:private"],
+# )
+
+# ######### LIBRARY #########
+
+# cc_library(
+#     name = "opt",
+#     hdrs = glob(["*.hpp"]),
+#     srcs = glob(["src/*.cpp"]),
+#     copts = ["-std=c++17"],
+#     deps = [
+#         "//query:query",
+#         "//dbg:print",
+#         "//eteq:eteq",
+#     ],
+# )
+
+# ######### TEST #########
+
+# cc_test(
+#     name = "test",
+#     srcs = ["//experimental/opt:test_srcs"],
+#     copts = ["-std=c++17"],
+#     deps = [
+#         "//experimental/opt:opt",
+#         "//eteq:eteq",
+#         "@gtest//:gtest",
+#         "@com_github_mingkaic_cppkg//exam:exam",
+#     ],
+#     linkstatic = True,
+# )

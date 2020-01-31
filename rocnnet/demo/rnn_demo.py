@@ -23,6 +23,11 @@ def cross_entropy_loss(T, Y):
 def loss(T, Y):
     return tc.reduce_mean(cross_entropy_loss(T, Y))
 
+def weight_init(shape, label):
+    slist = shape.as_list()
+    a = np.sqrt(6.0 / np.sum(slist))
+    return eteq.variable(np.array(np.random.uniform(-a, a, slist)), label)
+
 def create_dataset(nb_samples, sequence_len):
     """Create a dataset for binary addition and
     return as input, targets."""
@@ -50,11 +55,6 @@ def create_dataset(nb_samples, sequence_len):
         T[i,:,0] = list(
             reversed([int(b) for b in format_str.format(nb1+nb2)]))
     return X, T
-
-def weight_init(shape, label):
-    slist = shape.as_list()
-    a = np.sqrt(6.0 / np.sum(slist))
-    return eteq.variable(np.array(np.random.uniform(-a, a, slist)), label)
 
 def make_rms_prop(learning_rate, momentum_term, lmbd, eps):
     def rms_prop(grads):
@@ -140,16 +140,6 @@ def main(args):
     momentum_term = 0.80
     eps = 1e-6
 
-    # create training samples
-    train_input, train_output = create_dataset(n_train, sequence_len)
-    print(f'train_input tensor shape: {train_input.shape}')
-    print(f'train_output tensor shape: {train_output.shape}')
-
-    # keep this here to get nice weights
-    layr.dense([3], [2], weight_init)
-    layr.dense([3], [3], weight_init)
-    layr.dense([1], [3], weight_init)
-
     # model parameters
     nunits = 3  # Number of states in the recurrent layer
     ninput = 2
@@ -179,14 +169,15 @@ def main(args):
     train_exout = eteq.EVariable([n_batch, sequence_len, noutput])
     tinput = tc.permute(train_invar, [0, 2, 1])
     toutput = tc.permute(train_exout, [0, 2, 1])
-
-    error = loss(toutput, model.connect(tinput))
-    sess.track([error])
-
     train_err = layr.sgd_train(model, tinput, toutput,
         make_rms_prop(learning_rate, momentum_term, lmbd, eps),
         err_func=loss)
     sess.track([train_err])
+
+    # create training samples
+    train_input, train_output = create_dataset(n_train, sequence_len)
+    print(f'train_input tensor shape: {train_input.shape}')
+    print(f'train_output tensor shape: {train_output.shape}')
 
     test_invar = eteq.EVariable([n_test, sequence_len, ninput])
     tin = tc.permute(test_invar, [0, 2, 1])
@@ -200,24 +191,18 @@ def main(args):
     ])
     # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
 
-    train_invar.assign(train_input[0:n_batch,:,:])
-    train_exout.assign(train_output[0:n_batch,:,:])
-    sess.update_target([error])
-    ls_of_loss = [error.get()]
+    ls_of_loss = []
     start = time.time()
     for i in range(5):
         for j in range(n_train // n_batch):
             xbatch = train_input[j:j+n_batch,:,:]
             tbatch = train_output[j:j+n_batch,:,:]
-
             train_invar.assign(xbatch)
             train_exout.assign(tbatch)
 
             sess.update_target([train_err])
-
             # Add loss to list to plot
-            sess.update_target([error])
-            ls_of_loss.append(error.get())
+            ls_of_loss.append(train_err.get())
     print('training time: {} seconds'.format(time.time() - start))
 
     # Plot the loss over the iterations
@@ -226,7 +211,7 @@ def main(args):
     plt.xlabel('minibatch iteration')
     plt.ylabel('$\\xi$', fontsize=15)
     plt.title('Loss over backprop iteration')
-    plt.xlim(0, 100)
+    plt.xlim(0, 99)
     fig.subplots_adjust(bottom=0.2)
     plt.show()
 

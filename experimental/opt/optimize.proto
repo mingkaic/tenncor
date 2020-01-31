@@ -1,13 +1,14 @@
 syntax = "proto3";
 
-package query;
+package opt;
 
 message Node {
     oneof val {
         double cst = 1;
         Variable var = 2;
         Operator op = 3;
-        string symb = 4;
+        string any = 4;
+        string variadic = 5;
     }
 }
 
@@ -30,11 +31,11 @@ message Operator {
 }
 
 message IntArray {
-    repeated int64 values = 1;
+    repeated int64 values = 4;
 }
 
 message DoubleArray {
-    repeated double values = 1;
+    repeated double values = 5;
 }
 
 message Attribute {
@@ -55,4 +56,13 @@ message Layer {
         string name = 2;
     }
     Node input = 3;
+}
+
+message Conversion {
+    repeated Node srcs = 1;
+    Node dest = 2;
+}
+
+message Optimization {
+    repeated Conversion conversions = 1;
 }

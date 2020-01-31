@@ -250,7 +250,7 @@ TEST(CONDITION, Query)
 		"  \"op\":{"
 		"    \"opname\":\"POW\","
 		"    \"args\":["
-		"      {},"
+		"      {\"symb\":\"*\"},"
 		"      {"
 		"        \"op\":{"
 		"          \"opname\":\"EXTEND\","

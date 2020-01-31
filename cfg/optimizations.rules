@@ -45,12 +45,12 @@ comm MUL(X,SQUARE(X)) => CUBE(X);
 comm ADD(X,NEG(Y)) => SUB(X,Y);
 
 // group operations
-DIV(comm GROUP_PROD(X,..Y),X) => GROUP_PROD(..Y);
-// comm GROUP_PROD(DIV(X,Y),Y,..Z) => GROUP_PROD(X,..Z);
+DIV(comm MUL(X,..Y),X) => MUL(..Y);
+// comm MUL(DIV(X,Y),Y,..Z) => MUL(X,..Z);
 
 // comm ADD(X,NEG(X),..Y) => ADD(..Y);
-// comm GROUP_PROD(X,X,X,..Y) => GROUP_PROD(CUBE(X),..Y);
-// comm GROUP_PROD(X,X,..Y) => GROUP_PROD(SQUARE(X),..Y);
-// comm GROUP_PROD(X,SQUARE(X),..Y) => GROUP_PROD(CUBE(X),..Y);
+// comm MUL(X,X,X,..Y) => MUL(CUBE(X),..Y);
+// comm MUL(X,X,..Y) => MUL(SQUARE(X),..Y);
+// comm MUL(X,SQUARE(X),..Y) => MUL(CUBE(X),..Y);
 
 // comm ADD(X,NEG(Y),..Z) => ADD(SUB(X,Y),..Z);

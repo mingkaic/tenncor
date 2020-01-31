@@ -255,19 +255,11 @@ private:
 				}
 			}
 				break;
+			case Node::ValCase::kSymb:
+				any_condition(results, tri);
+				break;
 			default:
-				search::possible_paths(
-					[&results](const search::PathListT& path, const search::PathVal& val)
-					{
-						for (const auto& lpair : val.leaves_)
-						{
-							results.insert(lpair.second.begin(), lpair.second.end());
-						}
-						for (const auto& apair : val.attrs_)
-						{
-							results.insert(apair.second.begin(), apair.second.end());
-						}
-					}, tri);
+				teq::fatal("cannot constraint unknown node");
 		}
 	}
 
@@ -279,7 +271,7 @@ private:
 		const auto& args = op.args();
 		if (args.empty())
 		{
-			constraint(results, tri, Node());
+			any_condition(results, tri);
 			return;
 		}
 		constraint(results, static_cast<const search::OpTrieT::NodeT*>(
@@ -304,6 +296,23 @@ private:
 			}
 			subresults.clear();
 		}
+	}
+
+	void any_condition (teq::TensSetT& results,
+		const search::OpTrieT::NodeT* tri)
+	{
+		search::possible_paths(
+			[&results](const search::PathListT& path, const search::PathVal& val)
+			{
+				for (const auto& lpair : val.leaves_)
+				{
+					results.insert(lpair.second.begin(), lpair.second.end());
+				}
+				for (const auto& apair : val.attrs_)
+				{
+					results.insert(apair.second.begin(), apair.second.end());
+				}
+			}, tri);
 	}
 
 	search::OpTrieT& sindex_;

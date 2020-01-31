@@ -29,6 +29,7 @@ def sample(sess, inp, prob, seed_ix, n):
         inp.assign(x.T)
         sess.update_target([prob])
         p = prob.get()
+        p /= p.sum() # normalize
 
         # Choose next char according to the distribution
         ix = np.random.choice(range(p.shape[0]), p=p.ravel())
