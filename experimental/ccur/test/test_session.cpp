@@ -186,7 +186,7 @@ TEST(SESSION, Update)
 		auto gotshape = dw0->shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
-	double* gw0ptr = (double*) dw0->data();
+	double* gw0ptr = (double*) dw0->device().data();
 	for (size_t i = 0, n = weight0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
@@ -195,7 +195,7 @@ TEST(SESSION, Update)
 		auto gotshape = db0->shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
-	double* gb0ptr = (double*) db0->data();
+	double* gb0ptr = (double*) db0->device().data();
 	for (size_t i = 0, n = bias0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
@@ -205,7 +205,7 @@ TEST(SESSION, Update)
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
 
-	double* gw1ptr = (double*) dw1->data();
+	double* gw1ptr = (double*) dw1->device().data();
 	for (size_t i = 0, n = weight1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
@@ -214,7 +214,7 @@ TEST(SESSION, Update)
 		auto gotshape = db1->shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
-	double* gb1ptr = (double*) db1->data();
+	double* gb1ptr = (double*) db1->device().data();
 	for (size_t i = 0, n = bias1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb1[i], gb1ptr[i]);

@@ -153,6 +153,16 @@ void possible_paths (const PathCbF& cb,
 	possible_paths(cb, itable.match_prefix(path));
 }
 
+teq::iTensor* walk (teq::iTensor* root, PathListT& path)
+{
+	for (auto& node : path)
+	{
+		root = static_cast<teq::iFunctor*>(root)->
+			get_children().at(node.idx_).get();
+	}
+	return root;
+}
+
 }
 
 }

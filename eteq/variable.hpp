@@ -69,7 +69,7 @@ struct Variable final : public iLeaf<T>
 
 	void assign (const teq::iTensor& tens)
 	{
-		const void* input = tens.data();
+		const void* input = tens.device().data();
 		teq::Shape inshape = tens.shape();
 		egen::_GENERATED_DTYPE dtype =
 			(egen::_GENERATED_DTYPE) tens.type_code();

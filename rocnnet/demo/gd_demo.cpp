@@ -174,7 +174,7 @@ int main (int argc, const char** argv)
 		sess.update_target({train_err.get()});
 		if (i % show_every_n == show_every_n - 1)
 		{
-			PybindT* data = (PybindT*) train_err->data();
+			PybindT* data = (PybindT*) train_err->device().data();
 			PybindT* data_end = data + train_err->shape().n_elems();
 			float ferr = std::accumulate(data, data_end, 0.f);
 			std::cout << "training " << i + 1 << '\n';
@@ -192,9 +192,9 @@ int main (int argc, const char** argv)
 	float trained_err = 0;
 	float pretrained_err = 0;
 
-	float* untrained_res = (PybindT*) untrained_out->data();
-	float* trained_res = (PybindT*) out->data();
-	float* pretrained_res = (PybindT*) trained_out->data();
+	float* untrained_res = (PybindT*) untrained_out->device().data();
+	float* trained_res = (PybindT*) out->device().data();
+	float* pretrained_res = (PybindT*) trained_out->device().data();
 	for (size_t i = 0; i < n_test; i++)
 	{
 		if (i % show_every_n == show_every_n - 1)

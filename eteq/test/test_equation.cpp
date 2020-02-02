@@ -87,7 +87,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		auto gotshape = da->shape();
 		ASSERT_ARREQ(ashape, gotshape);
 	}
-	float* gaptr = (float*) da->data();
+	float* gaptr = (float*) da->device().data();
 	for (size_t i = 0, n = ashape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_ga[i], gaptr[i]);
@@ -97,7 +97,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		auto gotshape = db->shape();
 		ASSERT_ARREQ(bshape, gotshape);
 	}
-	float* gbptr = (float*) db->data();
+	float* gbptr = (float*) db->device().data();
 	for (size_t i = 0, n = bshape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_gb[i], gbptr[i]);
@@ -107,7 +107,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		auto gotshape = dc->shape();
 		ASSERT_ARREQ(cshape, gotshape);
 	}
-	float* gcptr = (float*) dc->data();
+	float* gcptr = (float*) dc->device().data();
 	for (size_t i = 0, n = cshape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_gc[i], gcptr[i]);
@@ -302,7 +302,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		auto gotshape = dw0->shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
-	double* gw0ptr = (double*) dw0->data();
+	double* gw0ptr = (double*) dw0->device().data();
 	for (size_t i = 0, n = weight0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
@@ -312,7 +312,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		auto gotshape = db0->shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
-	double* gb0ptr = (double*) db0->data();
+	double* gb0ptr = (double*) db0->device().data();
 	for (size_t i = 0, n = bias0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
@@ -322,7 +322,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		auto gotshape = dw1->shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
-	double* gw1ptr = (double*) dw1->data();
+	double* gw1ptr = (double*) dw1->device().data();
 	for (size_t i = 0, n = weight1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
@@ -332,7 +332,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		auto gotshape = db1->shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
-	double* gb1ptr = (double*) db1->data();
+	double* gb1ptr = (double*) db1->device().data();
 	for (size_t i = 0, n = bias1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb1[i], gb1ptr[i]);
@@ -524,7 +524,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		auto gotshape = dw0->shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
-	double* gw0ptr = (double*) dw0->data();
+	double* gw0ptr = (double*) dw0->device().data();
 	for (size_t i = 0, n = weight0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
@@ -534,7 +534,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		auto gotshape = db0->shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
-	double* gb0ptr = (double*) db0->data();
+	double* gb0ptr = (double*) db0->device().data();
 	for (size_t i = 0, n = bias0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
@@ -544,7 +544,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		auto gotshape = dw1->shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
-	double* gw1ptr = (double*) dw1->data();
+	double* gw1ptr = (double*) dw1->device().data();
 	for (size_t i = 0, n = weight1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
@@ -554,7 +554,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		auto gotshape = db1->shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
-	double* gb1ptr = (double*) db1->data();
+	double* gb1ptr = (double*) db1->device().data();
 	for (size_t i = 0, n = bias1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb1[i], gb1ptr[i]);
@@ -662,7 +662,7 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 		auto gotshape = dw->shape();
 		ASSERT_ARREQ(weight_shape, gotshape);
 	}
-	double* gwptr = (double*) dw->data();
+	double* gwptr = (double*) dw->device().data();
 	for (size_t i = 0, n = weight_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw[i], gwptr[i]);
@@ -672,7 +672,7 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 		auto gotshape = db->shape();
 		ASSERT_ARREQ(bias_shape, gotshape);
 	}
-	double* gbptr = (double*) db->data();
+	double* gbptr = (double*) db->device().data();
 	for (size_t i = 0, n = bias_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb[i], gbptr[i]);
@@ -682,7 +682,7 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 		auto gotshape = dstate->shape();
 		ASSERT_ARREQ(state_shape, gotshape);
 	}
-	double* gstateptr = (double*) dstate->data();
+	double* gstateptr = (double*) dstate->device().data();
 	for (size_t i = 0, n = state_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gstate[i], gstateptr[i]);
@@ -787,7 +787,7 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		auto gotshape = dw->shape();
 		ASSERT_ARREQ(weight_shape, gotshape);
 	}
-	double* gwptr = (double*) dw->data();
+	double* gwptr = (double*) dw->device().data();
 	for (size_t i = 0, n = weight_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw[i], gwptr[i]);
@@ -797,7 +797,7 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		auto gotshape = db->shape();
 		ASSERT_ARREQ(bias_shape, gotshape);
 	}
-	double* gbptr = (double*) db->data();
+	double* gbptr = (double*) db->device().data();
 	for (size_t i = 0, n = bias_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb[i], gbptr[i]);
@@ -807,7 +807,7 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		auto gotshape = dstate->shape();
 		ASSERT_ARREQ(state_shape, gotshape);
 	}
-	double* gstateptr = (double*) dstate->data();
+	double* gstateptr = (double*) dstate->device().data();
 	for (size_t i = 0, n = state_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gstate[i], gstateptr[i]);
@@ -916,7 +916,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		auto gotshape = dw->shape();
 		ASSERT_ARREQ(weight_shape, gotshape);
 	}
-	double* gwptr = (double*) dw->data();
+	double* gwptr = (double*) dw->device().data();
 	for (size_t i = 0, n = weight_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw[i], gwptr[i]);
@@ -926,7 +926,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		auto gotshape = db->shape();
 		ASSERT_ARREQ(bias_shape, gotshape);
 	}
-	double* gbptr = (double*) db->data();
+	double* gbptr = (double*) db->device().data();
 	for (size_t i = 0, n = bias_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb[i], gbptr[i]);
@@ -936,7 +936,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		auto gotshape = dstate->shape();
 		ASSERT_ARREQ(state_shape, gotshape);
 	}
-	double* gstateptr = (double*) dstate->data();
+	double* gstateptr = (double*) dstate->device().data();
 	for (size_t i = 0, n = state_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gstate[i], gstateptr[i]);

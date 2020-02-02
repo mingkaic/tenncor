@@ -554,7 +554,7 @@ private:
 		if (egen::get_type<T>() == leaf.type_code() &&
 			teq::IMMUTABLE == leaf.get_usage())
 		{
-			auto data = (T*) leaf.data();
+			auto data = (T*) leaf.device().data();
 			teq::NElemT n = leaf.shape().n_elems();
 			ranges_.emplace(&leaf, estd::NumRange<T>(
 				*std::min_element(data, data + n),

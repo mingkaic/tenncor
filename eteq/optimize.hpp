@@ -157,7 +157,7 @@ private:
 		if (teq::IMMUTABLE == leaf.get_usage())
 		{
 			std::string label = leaf.shape().to_string() + "|";
-			T* data = (T*) leaf.data();
+			T* data = (T*) leaf.device().data();
 			label += fmts::to_string(data, data + leaf.shape().n_elems());
 			encode_label(&leaf, label);
 		}
@@ -248,7 +248,7 @@ teq::TensptrT constant_func (teq::FuncptrT& func, opt::ParentReplF replacer)
 			auto sess = eigen::get_session();
 			sess.track({func});
 			sess.update_target({func.get()});
-			T* data = (T*) func->data();
+			T* data = (T*) func->device().data();
 			return make_constant(data, func->shape());
 		});
 }
@@ -262,7 +262,7 @@ void constant_funcs (teq::TensptrsT& roots)
 		[&sess](teq::FuncptrT func)
 		{
 			sess.update_target({func.get()});
-			T* data = (T*) func->data();
+			T* data = (T*) func->device().data();
 			return make_constant(data, func->shape());
 		});
 }

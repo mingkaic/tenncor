@@ -1,66 +1,12 @@
 syntax = "proto3";
 
+import "query/query.proto";
+
 package opt;
 
-message Node {
-    oneof val {
-        double cst = 1;
-        Variable var = 2;
-        Operator op = 3;
-        string any = 4;
-        string variadic = 5;
-    }
-}
-
-message Variable {
-    oneof nullable_label {
-        bool label_nil = 1;
-        string label = 2;
-    }
-    oneof nullable_dtype {
-        bool dtype_nil = 3;
-        string dtype = 4;
-    }
-    repeated uint32 shape = 5;
-}
-
-message Operator {
-    string opname = 1;
-    map<string,Attribute> attrs = 2;
-    repeated Node args = 3;
-}
-
-message IntArray {
-    repeated int64 values = 4;
-}
-
-message DoubleArray {
-    repeated double values = 5;
-}
-
-message Attribute {
-    oneof attr {
-        int64 inum = 1;
-        double dnum = 2;
-        IntArray iarr = 3;
-        DoubleArray darr = 4;
-        string str = 5;
-        Node node = 6;
-        Layer layer = 7;
-    }
-}
-
-message Layer {
-    oneof nullable_name {
-        bool name_nil = 1;
-        string name = 2;
-    }
-    Node input = 3;
-}
-
 message Conversion {
-    repeated Node srcs = 1;
-    Node dest = 2;
+    repeated query.Node srcs = 1;
+    query.Node dest = 2;
 }
 
 message Optimization {

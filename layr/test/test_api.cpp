@@ -285,7 +285,7 @@ TEST(CONNECT, TanhRNN)
 		auto gotshape = dw->shape();
 		ASSERT_ARREQ(weight_shape, gotshape);
 	}
-	double* gwptr = (double*) dw->data();
+	double* gwptr = (double*) dw->device().data();
 	for (size_t i = 0, n = weight_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw[i], gwptr[i]);
@@ -295,7 +295,7 @@ TEST(CONNECT, TanhRNN)
 		auto gotshape = db->shape();
 		ASSERT_ARREQ(bias_shape, gotshape);
 	}
-	double* gbptr = (double*) db->data();
+	double* gbptr = (double*) db->device().data();
 	for (size_t i = 0, n = bias_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb[i], gbptr[i]);
@@ -305,7 +305,7 @@ TEST(CONNECT, TanhRNN)
 		auto gotshape = dstate->shape();
 		ASSERT_ARREQ(state_shape, gotshape);
 	}
-	double* gstateptr = (double*) dstate->data();
+	double* gstateptr = (double*) dstate->device().data();
 	for (size_t i = 0, n = state_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gstate[i], gstateptr[i]);
@@ -437,7 +437,7 @@ TEST(CONNECT, DenseTanhRNN)
 		auto gotshape = dw1->shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
-	double* gw1ptr = (double*) dw1->data();
+	double* gw1ptr = (double*) dw1->device().data();
 	for (size_t i = 0, n = weight1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
@@ -447,7 +447,7 @@ TEST(CONNECT, DenseTanhRNN)
 		auto gotshape = db1->shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
-	double* gb1ptr = (double*) db1->data();
+	double* gb1ptr = (double*) db1->device().data();
 	for (size_t i = 0, n = bias1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb[i], gb1ptr[i]);
@@ -457,7 +457,7 @@ TEST(CONNECT, DenseTanhRNN)
 		auto gotshape = dstate->shape();
 		ASSERT_ARREQ(state_shape, gotshape);
 	}
-	double* gstateptr = (double*) dstate->data();
+	double* gstateptr = (double*) dstate->device().data();
 	for (size_t i = 0, n = state_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gstate[i], gstateptr[i]);
@@ -467,7 +467,7 @@ TEST(CONNECT, DenseTanhRNN)
 		auto gotshape = dw0->shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
-	double* gw0ptr = (double*) dw0->data();
+	double* gw0ptr = (double*) dw0->device().data();
 	for (size_t i = 0, n = weight0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
@@ -477,7 +477,7 @@ TEST(CONNECT, DenseTanhRNN)
 		auto gotshape = db0->shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
-	double* gb0ptr = (double*) db0->data();
+	double* gb0ptr = (double*) db0->device().data();
 	for (size_t i = 0, n = bias0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
@@ -652,7 +652,7 @@ TEST(CONNECT, TanhRNNFull)
 		auto gotshape = dw0->shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
-	double* gw0ptr = (double*) dw0->data();
+	double* gw0ptr = (double*) dw0->device().data();
 	for (size_t i = 0, n = weight0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
@@ -662,7 +662,7 @@ TEST(CONNECT, TanhRNNFull)
 		auto gotshape = db0->shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
-	double* gb0ptr = (double*) db0->data();
+	double* gb0ptr = (double*) db0->device().data();
 	for (size_t i = 0, n = bias0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
@@ -672,7 +672,7 @@ TEST(CONNECT, TanhRNNFull)
 		auto gotshape = dw1->shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
-	double* gw1ptr = (double*) dw1->data();
+	double* gw1ptr = (double*) dw1->device().data();
 	for (size_t i = 0, n = weight1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
@@ -682,7 +682,7 @@ TEST(CONNECT, TanhRNNFull)
 		auto gotshape = db1->shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
-	double* gb1ptr = (double*) db1->data();
+	double* gb1ptr = (double*) db1->device().data();
 	for (size_t i = 0, n = bias1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb1[i], gb1ptr[i]);
@@ -692,7 +692,7 @@ TEST(CONNECT, TanhRNNFull)
 		auto gotshape = dstate->shape();
 		ASSERT_ARREQ(state_shape, gotshape);
 	}
-	double* gstateptr = (double*) dstate->data();
+	double* gstateptr = (double*) dstate->device().data();
 	for (size_t i = 0, n = state_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gstate[i], gstateptr[i]);
@@ -702,7 +702,7 @@ TEST(CONNECT, TanhRNNFull)
 		auto gotshape = dw2->shape();
 		ASSERT_ARREQ(w2_shape, gotshape);
 	}
-	double* gw2ptr = (double*) dw2->data();
+	double* gw2ptr = (double*) dw2->device().data();
 	for (size_t i = 0, n = w2_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw2[i], gw2ptr[i]);
@@ -712,7 +712,7 @@ TEST(CONNECT, TanhRNNFull)
 		auto gotshape = db2->shape();
 		ASSERT_ARREQ(b2_shape, gotshape);
 	}
-	double* gb2ptr = (double*) db2->data();
+	double* gb2ptr = (double*) db2->device().data();
 	for (size_t i = 0, n = b2_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb2[i], gb2ptr[i]);
@@ -890,7 +890,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		auto gotshape = dw0->shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
-	double* gw0ptr = (double*) dw0->data();
+	double* gw0ptr = (double*) dw0->device().data();
 	for (size_t i = 0, n = weight0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
@@ -900,7 +900,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		auto gotshape = db0->shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
-	double* gb0ptr = (double*) db0->data();
+	double* gb0ptr = (double*) db0->device().data();
 	for (size_t i = 0, n = bias0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
@@ -910,7 +910,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		auto gotshape = dw1->shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
-	double* gw1ptr = (double*) dw1->data();
+	double* gw1ptr = (double*) dw1->device().data();
 	for (size_t i = 0, n = weight1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
@@ -920,7 +920,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		auto gotshape = db1->shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
-	double* gb1ptr = (double*) db1->data();
+	double* gb1ptr = (double*) db1->device().data();
 	for (size_t i = 0, n = bias1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb1[i], gb1ptr[i]);
@@ -930,7 +930,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		auto gotshape = dstate->shape();
 		ASSERT_ARREQ(state_shape, gotshape);
 	}
-	double* gstateptr = (double*) dstate->data();
+	double* gstateptr = (double*) dstate->device().data();
 	for (size_t i = 0, n = state_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gstate[i], gstateptr[i]);
@@ -940,7 +940,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		auto gotshape = dw2->shape();
 		ASSERT_ARREQ(w2_shape, gotshape);
 	}
-	double* gw2ptr = (double*) dw2->data();
+	double* gw2ptr = (double*) dw2->device().data();
 	for (size_t i = 0, n = w2_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw2[i], gw2ptr[i]);
@@ -950,7 +950,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		auto gotshape = db2->shape();
 		ASSERT_ARREQ(b2_shape, gotshape);
 	}
-	double* gb2ptr = (double*) db2->data();
+	double* gb2ptr = (double*) db2->device().data();
 	for (size_t i = 0, n = b2_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb2[i], gb2ptr[i]);
@@ -1387,7 +1387,7 @@ TEST(CONNECT, TanhRNNTraining)
 		for (size_t i = 0; i < nroots; ++i)
 		{
 			auto left = roots[i];
-			double* ptr = (double*) left->data();
+			double* ptr = (double*) left->device().data();
 			ASSERT_NE(nullptr, ptr);
 			for (size_t j = 0, n = left->shape().n_elems(); j < n; ++j)
 			{
@@ -1412,7 +1412,7 @@ TEST(CONNECT, TanhRNNTraining)
 		for (size_t i = 0; i < nroots; ++i)
 		{
 			auto left = group1_left[i];
-			double* ptr = (double*) left->data();
+			double* ptr = (double*) left->device().data();
 			ASSERT_NE(nullptr, ptr);
 			for (size_t j = 0, n = left->shape().n_elems(); j < n; ++j)
 			{
@@ -1432,7 +1432,7 @@ TEST(CONNECT, TanhRNNTraining)
 		for (size_t i = 0; i < nroots; ++i)
 		{
 			auto left = roots[i];
-			double* ptr = (double*) left->data();
+			double* ptr = (double*) left->device().data();
 			ASSERT_NE(nullptr, ptr);
 			for (size_t j = 0, n = left->shape().n_elems(); j < n; ++j)
 			{
@@ -1457,7 +1457,7 @@ TEST(CONNECT, TanhRNNTraining)
 		for (size_t i = 0; i < nroots; ++i)
 		{
 			auto left = group2_left[i];
-			double* ptr = (double*) left->data();
+			double* ptr = (double*) left->device().data();
 			ASSERT_NE(nullptr, ptr);
 			for (size_t j = 0, n = left->shape().n_elems(); j < n; ++j)
 			{
@@ -1482,7 +1482,7 @@ TEST(CONNECT, TanhRNNTraining)
 		for (size_t i = 0, ng3 = group3_left.size(); i < ng3; ++i)
 		{
 			auto left = group3_left[i];
-			double* ptr = (double*) left->data();
+			double* ptr = (double*) left->device().data();
 			ASSERT_NE(nullptr, ptr);
 			for (size_t j = 0, n = left->shape().n_elems(); j < n; ++j)
 			{

@@ -27,7 +27,7 @@ void inspect_helper (T* data, teq::Shape shape, std::string label)
 }
 
 #define INSPECTOR_SELECT(T)\
-inspect_helper((T*) func->data(), func->shape(), label);
+inspect_helper((T*) func->device().data(), func->shape(), label);
 
 struct Inspector final : public dbg::iPlugin
 {

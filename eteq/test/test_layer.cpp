@@ -68,8 +68,8 @@ TEST(LAYER, DenseSerialization)
 		EXPECT_ARRHAS(contents, weight);
 		EXPECT_ARRHAS(contents, bias);
 
-		float* w = (float*) weight->data();
-		float* b = (float*) bias->data();
+		float* w = (float*) weight->device().data();
+		float* b = (float*) bias->device().data();
 		weight_data = std::vector<float>(w, w + weight->shape().n_elems());
 		bias_data = std::vector<float>(b, b + bias->shape().n_elems());
 		EXPECT_GRAPHEQ(

@@ -94,6 +94,8 @@ void possible_paths (const PathCbF& cb, const OpTrieT::NodeT* node);
 void possible_paths (const PathCbF& cb,
 	const OpTrieT& itable, const PathNodesT& path);
 
+teq::iTensor* walk (teq::iTensor* root, PathListT& path);
+
 }
 
 }

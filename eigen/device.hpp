@@ -65,11 +65,11 @@ struct PtrRef final : public iEigen
 	T* ref_;
 };
 
-template <typename T, typename EigenArgs>
+template <typename T, typename ARGS>
 struct TensAssign final : public iEigen
 {
-	TensAssign (SrcRef<T>& target, EigenArgs args,
-		std::function<void(TensorT<T>&,EigenArgs&)> assign) :
+	TensAssign (SrcRef<T>& target, ARGS args,
+		std::function<void(TensorT<T>&,ARGS&)> assign) :
 		target_(&target.data_), args_(args), assign_(assign) {}
 
 	/// Implementation of iDeviceRef
@@ -93,18 +93,18 @@ struct TensAssign final : public iEigen
 	TensorT<T>* target_;
 
 	/// Assignment arguments
-	EigenArgs args_;
+	ARGS args_;
 
-	std::function<void(TensorT<T>&,EigenArgs&)> assign_;
+	std::function<void(TensorT<T>&,ARGS&)> assign_;
 };
 
 /// Implementation of iEigen that assigns TensorMap to Tensor object
 /// using some custom assignment
-template <typename T, typename EigenArgs>
+template <typename T, typename ARGS>
 struct TensAccum final : public iEigen
 {
-	TensAccum (T init_value, DimensionsT dims, EigenArgs args,
-		std::function<void(TensorT<T>&,const EigenArgs&)> assign) :
+	TensAccum (T init_value, DimensionsT dims, ARGS args,
+		std::function<void(TensorT<T>&,const ARGS&)> assign) :
 		args_(args), assign_(assign), data_(dims), init_(init_value) {}
 
 	/// Implementation of iDeviceRef
@@ -127,10 +127,10 @@ struct TensAccum final : public iEigen
 	}
 
 	/// Tensor operator arguments
-	EigenArgs args_;
+	ARGS args_;
 
 	/// Tensor assignment
-	std::function<void(TensorT<T>&,const EigenArgs&)> assign_;
+	std::function<void(TensorT<T>&,const ARGS&)> assign_;
 
 	/// Output tensor data object
 	TensorT<T> data_;
@@ -139,11 +139,11 @@ struct TensAccum final : public iEigen
 };
 
 /// Implementation of iEigen that assigns Tensor operator to Tensor object
-template <typename T, typename EigenSource, typename EigenArgs>
+template <typename T, typename SRC, typename ARGS>
 struct TensOp final : public iEigen
 {
-	TensOp (DimensionsT dims, EigenArgs args,
-		std::function<EigenSource(EigenArgs&)> make_base) :
+	TensOp (DimensionsT dims, ARGS args,
+		std::function<SRC(ARGS&)> make_base) :
 		args_(args), tensorbase_(make_base(args_)), data_(dims) {}
 
 	/// Implementation of iDeviceRef
@@ -165,21 +165,21 @@ struct TensOp final : public iEigen
 	}
 
 	/// Tensor operator arguments
-	EigenArgs args_;
+	ARGS args_;
 
 	/// Tensor operator
-	EigenSource tensorbase_;
+	SRC tensorbase_;
 
 	/// Output tensor data object
 	TensorT<T> data_;
 };
 
 /// Implementation of iEigen that assigns Matrix operator to Matrix object
-template <typename T, typename EigenSource, typename EigenArgs>
+template <typename T, typename SRC, typename ARGS>
 struct MatOp final : public iEigen
 {
-	MatOp (DimensionsT dims, EigenArgs args,
-		std::function<EigenSource(EigenArgs&)> make_base) :
+	MatOp (DimensionsT dims, ARGS args,
+		std::function<SRC(ARGS&)> make_base) :
 		args_(args), matrixbase_(make_base(args_)),
 		data_(dims.at(1), dims.at(0)) {}
 
@@ -202,10 +202,10 @@ struct MatOp final : public iEigen
 	}
 
 	/// Matrix operator arguments
-	EigenArgs args_;
+	ARGS args_;
 
 	/// Matrix operator
-	EigenSource matrixbase_;
+	SRC matrixbase_;
 
 	/// Output matrix data object
 	MatrixT<T> data_;
@@ -213,21 +213,21 @@ struct MatOp final : public iEigen
 
 /// Return Eigen Tensor wrapper given output shape,
 /// and Eigen operator creation and arguments
-template <typename T, typename EigenSource, typename EigenArgs>
-inline EigenptrT make_eigentensor (DimensionsT dims, EigenArgs args,
-	std::function<EigenSource(EigenArgs&)> make_base)
+template <typename T, typename SRC, typename ARGS>
+inline EigenptrT make_eigentensor (DimensionsT dims, ARGS args,
+	std::function<SRC(ARGS&)> make_base)
 {
-	return std::make_shared<TensOp<T,EigenSource,EigenArgs>>(
+	return std::make_shared<TensOp<T,SRC,ARGS>>(
 		dims, args, make_base);
 }
 
 /// Return Eigen Matrix wrapper given output shape,
 /// and Eigen operator creation and arguments
-template <typename T, typename EigenSource, typename EigenArgs>
-inline EigenptrT make_eigenmatrix (DimensionsT dims, EigenArgs args,
-	std::function<EigenSource(EigenArgs&)> make_base)
+template <typename T, typename SRC, typename ARGS>
+inline EigenptrT make_eigenmatrix (DimensionsT dims, ARGS args,
+	std::function<SRC(ARGS&)> make_base)
 {
-	return std::make_shared<MatOp<T,EigenSource,EigenArgs>>(
+	return std::make_shared<MatOp<T,SRC,ARGS>>(
 		dims, args, make_base);
 }
 

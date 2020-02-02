@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_CONDITION_HPP
+#ifndef DISABLE_QUERY_HPP
 
 
 #include "gtest/gtest.h"
@@ -14,7 +14,7 @@
 #include "query/query.hpp"
 
 
-TEST(CONDITION, Query)
+TEST(QUERY, Query)
 {
 
 	teq::Shape in_shape({5, 3});
@@ -121,10 +121,9 @@ TEST(CONDITION, Query)
 		"    ]"
 		"  }"
 		"}";
-	teq::TensSetT results;
-	q.where(results, inss);
+	query::QResultsT results;
+	q.where(inss).exec(results);
 	ASSERT_EQ(1, results.size());
-	teq::iTensor* res = *results.begin();
 	EXPECT_GRAPHEQ(
 		" (SUB[5\\3\\1\\1\\1\\1\\1\\1])\n"
 		" `--(variable:output[5\\3\\1\\1\\1\\1\\1\\1])\n"
@@ -188,7 +187,7 @@ TEST(CONDITION, Query)
 		"             |   |               `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n"
 		"             |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
 		"             `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
-		"                 `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", res);
+		"                 `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results.front().root_);
 	}
 
 	// mismatching an otherwise structural matching subgraph with a mislabelled variable
@@ -212,8 +211,8 @@ TEST(CONDITION, Query)
 		"    ]"
 		"  }"
 		"}";
-	teq::TensSetT results;
-	q.where(results, inss);
+	query::QResultsT results;
+	q.where(inss).exec(results);
 	EXPECT_EQ(0, results.size());
 	}
 
@@ -233,13 +232,12 @@ TEST(CONDITION, Query)
 		"    ]"
 		"  }"
 		"}";
-	teq::TensSetT results;
-	q.where(results, inss);
+	query::QResultsT results;
+	q.where(inss).exec(results);
 	ASSERT_EQ(1, results.size());
-	teq::iTensor* res = *results.begin();
 	EXPECT_GRAPHEQ(
 		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
-		" `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n", res);
+		" `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n", results.front().root_);
 	}
 
 	// matching a subgraph by an ambiguous argument and a constant
@@ -250,7 +248,7 @@ TEST(CONDITION, Query)
 		"  \"op\":{"
 		"    \"opname\":\"POW\","
 		"    \"args\":["
-		"      {\"symb\":\"*\"},"
+		"      {\"symb\":\"\"},"
 		"      {"
 		"        \"op\":{"
 		"          \"opname\":\"EXTEND\","
@@ -264,10 +262,9 @@ TEST(CONDITION, Query)
 		"    ]"
 		"  }"
 		"}";
-	teq::TensSetT results;
-	q.where(results, inss);
+	query::QResultsT results;
+	q.where(inss).exec(results);
 	ASSERT_EQ(1, results.size());
-	teq::iTensor* res = *results.begin();
 	EXPECT_GRAPHEQ(
 		"(POW[5\\3\\1\\1\\1\\1\\1\\1])\n"
 		" `--(SUB[5\\3\\1\\1\\1\\1\\1\\1])\n"
@@ -334,7 +331,7 @@ TEST(CONDITION, Query)
 		" |               `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
 		" |                   `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n"
 		" `--(EXTEND[5\\3\\1\\1\\1\\1\\1\\1])\n"
-		"     `--(constant:2[1\\1\\1\\1\\1\\1\\1\\1])", res);
+		"     `--(constant:2[1\\1\\1\\1\\1\\1\\1\\1])", results.front().root_);
 	}
 
 	// matching a subgraph by an attribute
@@ -372,15 +369,203 @@ TEST(CONDITION, Query)
 		"    }"
 		"  }"
 		"}";
-	teq::TensSetT results;
-	q.where(results, inss);
+	query::QResultsT results;
+	q.where(inss).exec(results);
 	ASSERT_EQ(3, results.size());
-	teq::iTensor* res = *results.begin();
+
 	EXPECT_GRAPHEQ(
 		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
-		" `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", res);
+		" `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[0].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[1].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[2].root_);
+	}
+
+	// multimatch subgraphs by an ambiguous argument
+	{
+	std::stringstream inss;
+	inss <<
+		"{"
+		"  \"op\":{"
+		"    \"opname\":\"CONCAT\","
+		"    \"args\":["
+		"      {"
+		"        \"op\":{"
+		"          \"opname\":\"SLICE\""
+		"        }"
+		"      },"
+		"      {\"symb\":\"\"}"
+		"    ]"
+		"  }"
+		"}";
+	query::QResultsT results;
+	q.where(inss).exec(results);
+	ASSERT_EQ(3, results.size());
+
+	EXPECT_GRAPHEQ(
+		"(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		" `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n", results[0].root_);
+
+	EXPECT_GRAPHEQ(
+		"(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		" `--(TANH[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(ADD[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(MATMUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   `--(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |       `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"             `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[1].root_);
+
+	EXPECT_GRAPHEQ(
+		"(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		" `--(TANH[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(ADD[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(MATMUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   `--(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   `--(TANH[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |       `--(ADD[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           `--(MATMUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   `--(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   |   `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   |   |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   |   `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   |       `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |               `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"             `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[2].root_);
+	}
+
+	// multimatch subgraphs by an ambiguous argument
+	{
+	std::stringstream inss;
+	inss <<
+		"{"
+		"  \"op\":{"
+		"    \"opname\":\"CONCAT\","
+		"    \"args\":["
+		"      {"
+		"        \"op\":{"
+		"          \"opname\":\"SLICE\""
+		"        }"
+		"      },"
+		"      {\"symb\":\"a\"}"
+		"    ]"
+		"  }"
+		"}";
+	query::QResultsT results;
+	q.select("a").where(inss).exec(results);
+	ASSERT_EQ(3, results.size());
+
+	EXPECT_GRAPHEQ(
+		"(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		" `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n", results[0].root_);
+	ASSERT_HAS(results[0].symbs_, "a");
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n", results[0].symbs_["a"]);
+
+	EXPECT_GRAPHEQ(
+		"(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		" `--(TANH[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(ADD[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(MATMUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   `--(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |       `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"             `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[1].root_);
+	ASSERT_HAS(results[1].symbs_, "a");
+	EXPECT_GRAPHEQ(
+		"(TANH[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(ADD[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(MATMUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   `--(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |   `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |   |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |   `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |       `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[1].symbs_["a"]);
+
+	EXPECT_GRAPHEQ(
+		"(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		" `--(TANH[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(ADD[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(MATMUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   `--(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |   `--(TANH[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |       `--(ADD[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           `--(MATMUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   `--(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   |   `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   |   |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   |   `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   |       `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |           `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   |               `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"             `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[2].root_);
+	ASSERT_HAS(results[2].symbs_, "a");
+	EXPECT_GRAPHEQ(
+		"(TANH[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(ADD[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(MATMUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   `--(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |   `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |   |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |   `--(TANH[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |       `--(ADD[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |           `--(MATMUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |           |   `--(CONCAT[10\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |           |   |   `--(SLICE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |           |   |   |   `--(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |           |   |   `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |           |   |       `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |           |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |           `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |               `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[2].symbs_["a"]);
+
 	}
 }
 
 
-#endif // DISABLE_CONDITION_HPP
+#endif // DISABLE_QUERY_HPP

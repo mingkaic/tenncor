@@ -6,6 +6,7 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
+   - cleanup query logic so it's readable
    - implement new optimizer using query
    - save sessions
    - implement reliable training harness

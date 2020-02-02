@@ -98,7 +98,7 @@ TEST(OPTIMIZE, Optimize)
 	auto db = eteq::derive(err, bias);
 	auto dstate = eteq::derive(err, istate);
 
-    opt::optimize({dw, db, dstate});
+	opt::optimize({dw, db, dstate});
 }
 
 

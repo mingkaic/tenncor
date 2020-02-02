@@ -109,18 +109,18 @@ TEST(APPROX, GroupAssign)
 	// = 0 - 1 * 0.5 / sqrt(1) = -0.5
 	std::stringstream ss;
 	ss << "{\"var\":{\"label\":\"momentum\"}}";
-	teq::TensSetT results;
+	query::QResultsT results;
 	query::search::OpTrieT itable;
 	query::search::populate_itable(itable, {groups.begin()->second});
-	query::Query(itable).where(results, ss);
+	query::Query(itable).where(ss).exec(results);
 
 	PybindT* o = (PybindT*) static_cast<eteq::Variable<PybindT>*>(
-		*results.begin())->data();
+		results.front().root_)->device().data();
 	std::vector<PybindT> expecto(shape.n_elems(), 0.64);
 	std::vector<PybindT> ovec(o, o + shape.n_elems());
 	EXPECT_VECEQ(expecto, ovec);
 
-	PybindT* d = (PybindT*) leaf->data();
+	PybindT* d = (PybindT*) leaf->device().data();
 	PybindT exdval = -0.625;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{

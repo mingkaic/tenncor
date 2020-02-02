@@ -43,7 +43,7 @@ static const int FREIVALD_N = 10;
 static MatVecT create_2d (eteq::ETensor<int32_t> data,
 	std::pair<teq::RankT,teq::RankT> dims = {0, 1})
 {
-	int32_t* ptr = (int32_t*) data->data();
+	int32_t* ptr = (int32_t*) data->device().data();
 	teq::DimT C = data->shape().at(dims.first);
 	teq::DimT R = data->shape().at(dims.second);
 	MatVecT res;
@@ -159,7 +159,7 @@ static void unary_generic (UnaryOpF<double> op,
 
 	auto gotshape = gsrc->shape();
 	ASSERT_ARREQ(shape, gotshape);
-	double* goptr = (double*) gsrc->data();
+	double* goptr = (double*) gsrc->device().data();
 	bwverify(goptr, data);
 }
 
@@ -183,7 +183,7 @@ static void unar_elem (std::vector<double> data,
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* optr = (double*) dest->data();
+	double* optr = (double*) dest->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(fwd(data[i]), optr[i]);
@@ -200,7 +200,7 @@ static void unar_elem (std::vector<double> data,
 		auto gotshape = gsrc->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr = (double*) gsrc->data();
+	double* goptr = (double*) gsrc->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i]), goptr[i]);
@@ -254,7 +254,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* optr = (double*) dest->data();
+	double* optr = (double*) dest->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(fwd(data[i], data2[i]), optr[i]);
@@ -271,12 +271,12 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		auto gotshape = crhs->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* lptr = (double*) clhs->data();
+	double* lptr = (double*) clhs->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(fwd(data[i], cst), lptr[i]);
 	}
-	double* rptr = (double*) crhs->data();
+	double* rptr = (double*) crhs->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(fwd(cst, data2[i]), rptr[i]);
@@ -291,7 +291,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		auto gotshape = gsame->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr = (double*) gsame->data();
+	double* goptr = (double*) gsame->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1., 1.), goptr[i]);
@@ -305,7 +305,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		auto gotshape = gleft->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr2 = (double*) gleft->data();
+	double* goptr2 = (double*) gleft->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 1., 0.), goptr2[i]);
@@ -319,7 +319,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		auto gotshape = gright->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr3 = (double*) gright->data();
+	double* goptr3 = (double*) gright->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 0., 1.), goptr3[i]);
@@ -387,7 +387,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	int32_t* optr = (int32_t*) dest->data();
+	int32_t* optr = (int32_t*) dest->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(fwd(data[i], data2[i]), optr[i]);
@@ -404,12 +404,12 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		auto gotshape = crhs->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	int32_t* lptr = (int32_t*) clhs->data();
+	int32_t* lptr = (int32_t*) clhs->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(fwd(data[i], cst), lptr[i]);
 	}
-	int32_t* rptr = (int32_t*) crhs->data();
+	int32_t* rptr = (int32_t*) crhs->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(fwd(cst, data2[i]), rptr[i]);
@@ -424,7 +424,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		auto gotshape = gsame->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	int32_t* goptr = (int32_t*) gsame->data();
+	int32_t* goptr = (int32_t*) gsame->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(bwd(data[i], data[i], 1., 1.), goptr[i]);
@@ -438,7 +438,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		auto gotshape = gleft->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	int32_t* goptr2 = (int32_t*) gleft->data();
+	int32_t* goptr2 = (int32_t*) gleft->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(bwd(data[i], data2[i], 1., 0.), goptr2[i]);
@@ -452,7 +452,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		auto gotshape = gright->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	int32_t* goptr3 = (int32_t*) gright->data();
+	int32_t* goptr3 = (int32_t*) gright->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(bwd(data[i], data2[i], 0., 1.), goptr3[i]);
@@ -520,7 +520,7 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* optr = (double*) dest->data();
+	double* optr = (double*) dest->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		double expect = calc_expect(i);
@@ -537,7 +537,7 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 			auto gotshape = gsrc->shape();
 			ASSERT_ARREQ(shape, gotshape);
 		}
-		double* goptr = (double*) gsrc->data();
+		double* goptr = (double*) gsrc->device().data();
 		for (size_t j = 0; j < n; ++j)
 		{
 			double expect = calc_grad(i, j);
@@ -579,8 +579,8 @@ TEST(API, Assign)
 		auto gotshape2 = ass1->shape();
 		ASSERT_ARREQ(shape, gotshape2);
 	}
-	double* optr = (double*) target1->data();
-	double* aptr = (double*) ass1->data();
+	double* optr = (double*) target1->device().data();
+	double* aptr = (double*) ass1->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(data2[i], optr[i]);
@@ -597,8 +597,8 @@ TEST(API, Assign)
 		auto gotshape2 = ass2->shape();
 		ASSERT_ARREQ(shape, gotshape2);
 	}
-	double* optr2 = (double*) target2->data();
-	double* aptr2 = (double*) ass2->data();
+	double* optr2 = (double*) target2->device().data();
+	double* aptr2 = (double*) ass2->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(-data2[i], optr2[i]);
@@ -642,8 +642,8 @@ TEST(API, Depends)
 		ASSERT_ARREQ(shape, gotshape);
 		auto gotshape2 = ass->shape();
 		ASSERT_ARREQ(shape, gotshape2);
-		double* optr = (double*) target->data();
-		double* aptr = (double*) ass->data();
+		double* optr = (double*) target->device().data();
+		double* aptr = (double*) ass->device().data();
 		for (size_t i = 0; i < n; ++i)
 		{
 			EXPECT_DOUBLE_EQ(data2[i], optr[i]);
@@ -653,7 +653,7 @@ TEST(API, Depends)
 	{
 		auto gotshape = c->shape();
 		ASSERT_ARREQ(shape, gotshape);
-		double* cptr = (double*) c->data();
+		double* cptr = (double*) c->device().data();
 		for (size_t i = 0; i < n; ++i)
 		{
 			EXPECT_DOUBLE_EQ(data[i] + data2[i], cptr[i]);
@@ -1036,7 +1036,7 @@ TEST(API, Select)
 			auto gotshape = dest->shape();
 			ASSERT_ARREQ(shape, gotshape);
 		}
-		double* optr = (double*) dest->data();
+		double* optr = (double*) dest->device().data();
 		for (size_t i = 0; i < n; ++i)
 		{
 			double expect = (bool) cond[i] ? data[i] : data2[i];
@@ -1056,7 +1056,7 @@ TEST(API, Select)
 			auto gotshape = gleft->shape();
 			ASSERT_ARREQ(shape, gotshape);
 		}
-		double* goptr = (double*) gleft->data();
+		double* goptr = (double*) gleft->device().data();
 		for (size_t i = 0; i < n; ++i)
 		{
 			EXPECT_DOUBLE_EQ(cond[i], goptr[i]);
@@ -1070,7 +1070,7 @@ TEST(API, Select)
 			auto gotshape = gright->shape();
 			ASSERT_ARREQ(shape, gotshape);
 		}
-		double* goptr2 = (double*) gright->data();
+		double* goptr2 = (double*) gright->device().data();
 		for (size_t i = 0; i < n; ++i)
 		{
 			EXPECT_DOUBLE_EQ((0==cond[i]), goptr2[i]);
@@ -1113,7 +1113,7 @@ TEST(API, Slice)
 	eigen::default_device().calc(dtens->device()); // idempotency check
 	auto gotshape = dest->shape();
 	ASSERT_ARREQ(exshape, gotshape);
-	double* optr = (double*) dest->data();
+	double* optr = (double*) dest->device().data();
 	std::vector<double> gotdata(optr, optr + gotshape.n_elems());
 	EXPECT_VECEQ(exdata, gotdata);
 
@@ -1130,7 +1130,7 @@ TEST(API, Slice)
 	session.update(); // idempotency check
 	auto gotshape2 = g->shape();
 	ASSERT_ARREQ(shape, gotshape2);
-	double* goptr = (double*) g->data();
+	double* goptr = (double*) g->device().data();
 	std::vector<double> gotdata2(goptr, goptr + gotshape2.n_elems());
 	EXPECT_VECEQ(exdata2, gotdata2);
 }
@@ -1239,7 +1239,7 @@ TEST(API, NElems)
 		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>&)
 		{
 			ASSERT_EQ(1, out->shape().n_elems());
-			double got = *((double*) out->data());
+			double got = *((double*) out->device().data());
 
 			EXPECT_EQ(shape.n_elems(), got);
 		},
@@ -1261,7 +1261,7 @@ TEST(API, NDims)
 		[dim](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>&)
 		{
 			ASSERT_EQ(1, out->shape().n_elems());
-			double got = *((double*) out->data());
+			double got = *((double*) out->device().data());
 
 			EXPECT_EQ(shape.at(dim), got);
 		},
@@ -1285,7 +1285,7 @@ TEST(API, Rsum)
 			{
 				ASSERT_EQ(1, n);
 			}
-			double got = *((double*) out->data());
+			double got = *((double*) out->device().data());
 
 			double expect = std::accumulate(data.begin(), data.end(), 0.);
 			EXPECT_DOUBLE_EQ(expect, got);
@@ -1308,7 +1308,7 @@ TEST(API, Rsum)
 
 			teq::CoordT coord;
 			teq::DimT d = shape.at(1);
-			double* got = (double*) out->data();
+			double* got = (double*) out->device().data();
 			for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 			{
 				coord = teq::coordinate(gotshape, i);
@@ -1359,7 +1359,7 @@ TEST(API, Rprod)
 		{
 			ASSERT_EQ(1, n);
 		}
-		int32_t got = *((int32_t*) dest->data());
+		int32_t got = *((int32_t*) dest->device().data());
 
 		int32_t expect = std::accumulate(data.begin(), data.end(), 1, std::multiplies<int32_t>());
 		EXPECT_EQ(expect, got);
@@ -1377,7 +1377,7 @@ TEST(API, Rprod)
 
 		teq::CoordT coord;
 		teq::DimT d = shape.at(1);
-		int32_t* got = (int32_t*) dest2->data();
+		int32_t* got = (int32_t*) dest2->device().data();
 		for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 		{
 			coord = teq::coordinate(gotshape, i);
@@ -1401,7 +1401,7 @@ TEST(API, Rprod)
 
 	auto gotshape = gsrc->shape();
 	ASSERT_ARREQ(shape, gotshape);
-	int32_t* goptr = (int32_t*) gsrc->data();
+	int32_t* goptr = (int32_t*) gsrc->device().data();
 	{
 		size_t n = data.size();
 		std::vector<int32_t> left(n, 1);
@@ -1430,7 +1430,7 @@ TEST(API, Rprod)
 	};
 	auto gotshape2 = gsrc2->shape();
 	ASSERT_ARREQ(shape, gotshape2);
-	int32_t* goptr2 = (int32_t*) gsrc2->data();
+	int32_t* goptr2 = (int32_t*) gsrc2->device().data();
 	{
 		for (size_t i = 0, n = ex_grad.size(); i < n; ++i)
 		{
@@ -1448,7 +1448,7 @@ TEST(API, Rmin)
 		{
 			size_t n = out->shape().n_elems();
 			ASSERT_EQ(1, n);
-			double got = *((double*) out->data());
+			double got = *((double*) out->device().data());
 
 			double expect = *(std::min_element(data.begin(), data.end()));
 			EXPECT_DOUBLE_EQ(expect, got);
@@ -1479,7 +1479,7 @@ TEST(API, Rmin)
 
 			teq::CoordT coord;
 			teq::DimT d = shape.at(1);
-			double* got = (double*) out->data();
+			double* got = (double*) out->device().data();
 			for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 			{
 				coord = teq::coordinate(gotshape, i);
@@ -1530,7 +1530,7 @@ TEST(API, Rmax)
 		{
 			size_t n = out->shape().n_elems();
 			ASSERT_EQ(1, n);
-			double got = *((double*) out->data());
+			double got = *((double*) out->device().data());
 
 			double expect = *(std::max_element(data.begin(), data.end()));
 			EXPECT_DOUBLE_EQ(expect, got);
@@ -1561,7 +1561,7 @@ TEST(API, Rmax)
 
 			teq::CoordT coord;
 			teq::DimT d = shape.at(1);
-			double* got = (double*) out->data();
+			double* got = (double*) out->device().data();
 			for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 			{
 				coord = teq::coordinate(gotshape, i);
@@ -1624,7 +1624,7 @@ TEST(API, Permute)
 	eigen::default_device().calc(dtens->device()); // idempotency check
 	size_t n = dest->shape().n_elems();
 	ASSERT_EQ(nelem, n);
-	double* got = (double*) dest->data();
+	double* got = (double*) dest->device().data();
 	teq::CoordT coord, temp;
 	for (size_t i = 0; i < n; ++i)
 	{
@@ -1647,7 +1647,7 @@ TEST(API, Permute)
 		auto gotshape = gsrc->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr = (double*) gsrc->data();
+	double* goptr = (double*) gsrc->device().data();
 	for (size_t i = 0, n = data.size(); i < n; ++i)
 	{
 		EXPECT_EQ(1, goptr[i]);
@@ -1678,7 +1678,7 @@ TEST(API, Extend)
 	EXPECT_ARREQ(expect_shape, extshape);
 	size_t n = extshape.n_elems();
 	ASSERT_EQ(nelem * ext_nelem, n);
-	double* got = (double*) dest->data();
+	double* got = (double*) dest->device().data();
 	for (size_t i = 0; i < nelem; ++i)
 	{
 		for (size_t j = 0; j < ext_nelem; ++j)
@@ -1697,7 +1697,7 @@ TEST(API, Extend)
 		auto gotshape = gsrc->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr = (double*) gsrc->data();
+	double* goptr = (double*) gsrc->device().data();
 	for (size_t i = 0, n = data.size(); i < n; ++i)
 	{
 		EXPECT_EQ(ext_nelem, goptr[i]);
@@ -1749,7 +1749,7 @@ TEST(API, Matmul)
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(2, gotshape.at(1));
-	int32_t* optr = (int32_t*) dest->data();
+	int32_t* optr = (int32_t*) dest->device().data();
 	ASSERT_NE(nullptr, optr);
 
 	MatVecT dda = create_2d(a);
@@ -1775,7 +1775,7 @@ TEST(API, Matmul)
 	teq::Shape gashape = gleft->shape();
 	{
 		ASSERT_ARREQ(ashape, gashape);
-		int32_t* ga = (int32_t*) gleft->data();
+		int32_t* ga = (int32_t*) gleft->device().data();
 		ASSERT_NE(nullptr, ga);
 		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
 		ASSERT_VECEQ(expect_ga, ga_data);
@@ -1788,7 +1788,7 @@ TEST(API, Matmul)
 	teq::Shape gbshape = gright->shape();
 	{
 		ASSERT_ARREQ(bshape, gbshape);
-		int32_t* gb = (int32_t*) gright->data();
+		int32_t* gb = (int32_t*) gright->device().data();
 		ASSERT_NE(nullptr, gb);
 		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
 		ASSERT_VECEQ(expect_gb, gb_data);
@@ -1841,7 +1841,7 @@ TEST(API, Contract)
 	EXPECT_EQ(1, gotshape.at(1));
 	EXPECT_EQ(1, gotshape.at(2));
 	EXPECT_EQ(2, gotshape.at(3));
-	int32_t* optr = (int32_t*) dest->data();
+	int32_t* optr = (int32_t*) dest->device().data();
 	ASSERT_NE(nullptr, optr);
 
 	MatVecT dda = create_2d(a, {0, 2});
@@ -1867,7 +1867,7 @@ TEST(API, Contract)
 	teq::Shape gashape = gleft->shape();
 	{
 		ASSERT_ARREQ(ashape, gashape);
-		int32_t* ga = (int32_t*) gleft->data();
+		int32_t* ga = (int32_t*) gleft->device().data();
 		ASSERT_NE(nullptr, ga);
 		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
 		ASSERT_VECEQ(expect_ga, ga_data);
@@ -1880,7 +1880,7 @@ TEST(API, Contract)
 	teq::Shape gbshape = gright->shape();
 	{
 		ASSERT_ARREQ(bshape, gbshape);
-		int32_t* gb = (int32_t*) gright->data();
+		int32_t* gb = (int32_t*) gright->device().data();
 		ASSERT_NE(nullptr, gb);
 		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
 		ASSERT_VECEQ(expect_gb, gb_data);
@@ -1906,7 +1906,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* optr = (double*) dest->data();
+	double* optr = (double*) dest->device().data();
 	size_t nelems = dest->shape().n_elems();
 	for (size_t i = 0; i < nelems; ++i)
 	{
@@ -1924,7 +1924,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 		auto gotshape = gleft->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr2 = (double*) gleft->data();
+	double* goptr2 = (double*) gleft->device().data();
 	EXPECT_DOUBLE_EQ(0, goptr2[0]);
 
 	eteq::ETensor<double> gright = eteq::derive(dest, src);
@@ -1935,7 +1935,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 		auto gotshape = gright->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr3 = (double*) gright->data();
+	double* goptr3 = (double*) gright->device().data();
 	EXPECT_DOUBLE_EQ(0, goptr3[0]);
 }
 
@@ -2021,7 +2021,7 @@ TEST(API, Convolution)
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(expectslist, gotshape);
 
-		double* optr = (double*) dest->data();
+		double* optr = (double*) dest->device().data();
 		ASSERT_NE(nullptr, optr);
 		std::vector<double> outdata(optr, optr + gotshape.n_elems());
 		ASSERT_VECEQ(expect_out, outdata);
@@ -2037,7 +2037,7 @@ TEST(API, Convolution)
 	{
 		auto gashape = gleft->shape();
 		ASSERT_ARREQ(shape, gashape);
-		double* ga = (double*) gleft->data();
+		double* ga = (double*) gleft->device().data();
 		std::vector<double> ga_data(ga, ga + gashape.n_elems());
 		ASSERT_VECEQ(expect_ga, ga_data);
 	}
@@ -2050,7 +2050,7 @@ TEST(API, Convolution)
 	{
 		auto gbshape = gright->shape();
 		ASSERT_ARREQ(kshape, gbshape);
-		double* gb = (double*) gright->data();
+		double* gb = (double*) gright->device().data();
 		std::vector<double> gb_data(gb, gb + gbshape.n_elems());
 		ASSERT_VECEQ(expect_gb, gb_data);
 	}

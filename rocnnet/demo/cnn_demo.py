@@ -164,7 +164,7 @@ def main(args):
             "args": [{"op": {
                 "opname": "CONV",
                 "args": [
-                    {"symb": "*"},
+                    {"symb": ""},
                     {"op": {
                         "opname": "REVERSE",
                         "args": [{"var": {
@@ -182,7 +182,7 @@ def main(args):
             "args": [{"op": {
                 "opname": "CONV",
                 "args": [
-                    {"symb": "*"},
+                    {"symb": ""},
                     {"op": {
                         "opname": "REVERSE",
                         "args": [{"var": {
@@ -200,7 +200,7 @@ def main(args):
             "args": [{"op": {
                 "opname": "CONV",
                 "args": [
-                    {"symb": "*"},
+                    {"symb": ""},
                     {"op": {
                         "opname": "REVERSE",
                         "args": [{"var": {

@@ -81,7 +81,7 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 
 	void marsh_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf) const override
 	{
-		char* data = (char*) leaf.data();
+		char* data = (char*) leaf.device().data();
 		size_t nelems = leaf.shape().n_elems();
 		auto type_code = (egen::_GENERATED_DTYPE) leaf.type_code();
 		auto code_name = egen::name_type(type_code);

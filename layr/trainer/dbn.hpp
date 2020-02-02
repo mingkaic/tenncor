@@ -181,14 +181,14 @@ struct DBNTrainer final
 		auto rcost = rcosts_[layer];
 		pretrain_sess_.update_target(
 			{rcost.get()}, {sample_pipes_[layer].get()});
-		return *((T*) rcost->data());
+		return *((T*) rcost->device().data());
 	}
 
 	T training_cost (void)
 	{
 		train_sess_.update_target(
 			{tcost_.get()}, {sample_pipes_.back().get()});
-		return *((T*) tcost_->data());
+		return *((T*) tcost_->device().data());
 	}
 
 	size_t nlayers_;

@@ -141,7 +141,7 @@ struct DQNTrainer final
 		}
 		input_->assign(input);
 		sess_->update();
-		T* dptr = (T*) output_->data();
+		T* dptr = (T*) output_->device().data();
 		uint8_t max_i = 0;
 		for (uint8_t i = 1, n = output_->shape().n_elems(); i < n; ++i)
 		{

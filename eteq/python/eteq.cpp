@@ -28,7 +28,7 @@ py::array typedata_to_array (teq::iTensor& tens, py::dtype dtype)
 	auto pshape = pyutils::c2pshape(tens.shape());
 	return py::array(dtype,
 		py::array::ShapeContainer(pshape.begin(), pshape.end()),
-		tens.data());
+		tens.device().data());
 }
 
 }

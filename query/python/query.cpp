@@ -46,18 +46,19 @@ PYBIND11_MODULE(query, m)
 		.def("find",
 			[](pyquery::Statement& self, std::string condition)
 			{
-				teq::TensSetT results;
+				query::QResultsT results;
 				std::stringstream ss;
 				ss << condition;
-				query::Query(*self.sindex_).where(results, ss);
+				query::Query(*self.sindex_).where(ss).exec(results);
 				teq::OwnerMapT owners = teq::track_owners(self.tracked_);
 				eteq::ETensorsT<PybindT> eresults;
 				eresults.reserve(results.size());
 				std::transform(results.begin(), results.end(),
 					std::back_inserter(eresults),
-					[&](teq::iTensor* result)
+					[&](query::QueryResult& result)
 					{
-						return eteq::ETensor<PybindT>(owners.at(result).lock());
+						return eteq::ETensor<PybindT>(
+							owners.at(result.root_).lock());
 					});
 				return eresults;
 			});
