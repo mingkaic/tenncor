@@ -43,6 +43,8 @@ struct Stats final
 
 using StatsMapT = teq::TensMapT<Stats>;
 
+using TxConsumeF = std::function<void(StatsMapT&,const StatsMapT&)>;
+
 inline void merge_stats (StatsMapT& out,
 	const teq::TensSetT& candidates, const Stats& stats)
 {
@@ -55,6 +57,48 @@ inline void merge_stats (StatsMapT& out,
 		else
 		{
 			out.emplace(cand, stats);
+		}
+	}
+}
+
+inline void bind_stats (StatsMapT& out,
+	const teq::TensSetT& candidates, const Stats& stats)
+{
+	std::transform(candidates.begin(), candidates.end(),
+		std::inserter(out, out.end()),
+		[&](teq::iTensor* tens)
+		{
+			return std::pair<teq::iTensor*,Stats>{tens, stats};
+		});
+}
+
+inline void union_stats (StatsMapT& out, const StatsMapT& other)
+{
+	for (auto& opair : other)
+	{
+		if (estd::has(out, opair.first))
+		{
+			out[opair.first].merge(opair.second);
+		}
+		else
+		{
+			out.emplace(opair);
+		}
+	}
+}
+
+inline void intersect_stats (StatsMapT& out, const StatsMapT& other)
+{
+	for (auto it = out.begin(), et = out.end(); it != et;)
+	{
+		if (estd::has(other, it->first))
+		{
+			it->second.merge(other.at(it->first));
+			++it;
+		}
+		else
+		{
+			it = out.erase(it);
 		}
 	}
 }

@@ -66,14 +66,18 @@ struct PathNodeHasher final
 	}
 };
 
+using LSetMapT = teq::LeafMapT<teq::TensSetT>;
+
+using FSetMapT = teq::FuncMapT<teq::TensSetT>;
+
 // path root R to leaf L key maps to mapping different mappings
 struct PathVal final
 {
 	// Maps reachable leaf L -> set of path roots R
-	teq::LeafMapT<teq::TensSetT> leaves_;
+	LSetMapT leaves_;
 
 	// Maps reachable attributable functor F -> set of path roots R
-	teq::FuncMapT<teq::TensSetT> attrs_;
+	FSetMapT attrs_;
 };
 
 // Rationality:
@@ -93,8 +97,6 @@ void possible_paths (const PathCbF& cb, const OpTrieT::NodeT* node);
 
 void possible_paths (const PathCbF& cb,
 	const OpTrieT& itable, const PathNodesT& path);
-
-teq::iTensor* walk (teq::iTensor* root, PathListT& path);
 
 }
 

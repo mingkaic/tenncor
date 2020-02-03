@@ -35,7 +35,6 @@ cc_library(
     deps = [
         "//eigen:eigen",
         "//query:query_cc_proto",
-        "@com_github_mingkaic_cppkg//jobs:jobs",
         "@boost//:functional",
     ],
     visibility = ["//visibility:public"],
