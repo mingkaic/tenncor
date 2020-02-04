@@ -68,51 +68,51 @@ template <typename T>
 struct DerivativeFuncs final : public teq::iDerivativeFuncs
 {
 	/// Implementation of iDerivativeFuncs
-	teq::TensptrT local_derivative (teq::FuncptrT op,
-		size_t arg_idx) const override
+	teq::TensptrT lderive (teq::FuncptrT op,
+		teq::TensptrT supgrad, size_t arg_idx) const override
 	{
 		auto args = op->get_children();
-		ETensor<T> out;
+		ETensor<T> local_der;
 		teq::Opcode opcode = op->get_opcode();
-		switch ((egen::_GENERATED_OPCODE) opcode.code_)
+		switch (opcode.code_)
 		{
 			case egen::ABS:
-				out = ETensor<T>(args.front()) / ETensor<T>(op);
+				local_der = ETensor<T>(args.front()) / ETensor<T>(op);
 				break;
 			case egen::NEG:
-				out = make_constant_scalar<T>(
+				local_der = make_constant_scalar<T>(
 					-1, args.front()->shape());
 				break;
 			case egen::SIN:
-				out = tenncor::cos(ETensor<T>(args.front()));
+				local_der = tenncor::cos(ETensor<T>(args.front()));
 				break;
 			case egen::COS:
-				out = -tenncor::sin(ETensor<T>(args.front()));
+				local_der = -tenncor::sin(ETensor<T>(args.front()));
 				break;
 			case egen::TAN:
-				out = (T) 1 / tenncor::pow(
+				local_der = (T) 1 / tenncor::pow(
 					tenncor::cos(ETensor<T>(args.front())), (T) 2);
 				break;
 			case egen::EXP:
-				out = ETensor<T>(op);
+				local_der = ETensor<T>(op);
 				break;
 			case egen::LOG:
-				out = (T) 1 / ETensor<T>(args.front());
+				local_der = (T) 1 / ETensor<T>(args.front());
 				break;
 			case egen::SQRT:
-				out = (T) 1 / ((T) 2 * ETensor<T>(op));
+				local_der = (T) 1 / ((T) 2 * ETensor<T>(op));
 				break;
 			case egen::SQUARE:
-				out = (T) 2 * ETensor<T>(args.front());
+				local_der = (T) 2 * ETensor<T>(args.front());
 				break;
 			case egen::CUBE:
-				out = (T) 3 * tenncor::square(ETensor<T>(args.front()));
+				local_der = (T) 3 * tenncor::square(ETensor<T>(args.front()));
 				break;
 			case egen::SIGMOID:
-				out = ETensor<T>(op) * ((T) 1 - ETensor<T>(op));
+				local_der = ETensor<T>(op) * ((T) 1 - ETensor<T>(op));
 				break;
 			case egen::TANH:
-				out = (T) 1 - tenncor::square(ETensor<T>(op));
+				local_der = (T) 1 - tenncor::square(ETensor<T>(op));
 				break;
 			case egen::ROUND:
 			case egen::REDUCE_SUM:
@@ -128,7 +128,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::CONV:
 			case egen::CONCAT:
 			case egen::MATMUL:
-				out = make_constant_scalar<T>(1, args[arg_idx]->shape());
+				local_der = make_constant_scalar<T>(1, args[arg_idx]->shape());
 				break;
 			case egen::MUL:
 			{
@@ -142,15 +142,15 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						nodes.push_back(ETensor<T>(args[i]));
 					}
 				}
-				out = tenncor::prod(nodes);
+				local_der = tenncor::prod(nodes);
 			}
 				break;
 			case egen::MAX:
 			case egen::MIN:
-				out = ETensor<T>(op) == ETensor<T>(args[arg_idx]);
+				local_der = ETensor<T>(op) == ETensor<T>(args[arg_idx]);
 				break;
 			case egen::POW:
-				out = arg_idx==0 ?
+				local_der = arg_idx==0 ?
 					ETensor<T>(args[1]) *
 					tenncor::pow(
 						ETensor<T>(args[0]),
@@ -160,13 +160,13 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						ETensor<T>(op);
 				break;
 			case egen::SUB:
-				out = make_constant_scalar<T>(arg_idx == 0 ?
+				local_der = make_constant_scalar<T>(arg_idx == 0 ?
 					1 : -1, args[0]->shape());
 				break;
 			case egen::DIV:
 			{
 				auto denom = ETensor<T>(args[1]);
-				out = arg_idx==0 ?
+				local_der = arg_idx==0 ?
 					(T) 1 / denom :
 					-ETensor<T>(args[0]) / denom / denom;
 			}
@@ -177,16 +177,16 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::LT:
 			case egen::RAND_UNIF:
 			case egen::SELECT:
-				out = make_constant_scalar<T>(0, args.front()->shape());
+				local_der = make_constant_scalar<T>(0, args.front()->shape());
 				break;
 			case egen::REDUCE_PROD: // todo: prevent divide by zero
-				out =
+				local_der =
 					reduce_grad(args.front()->shape(), ETensor<T>(op), op) /
 					ETensor<T>(args.front());
 				break;
 			case egen::REDUCE_MAX:
 			case egen::REDUCE_MIN:
-				out = reduce_grad(args.front()->shape(), ETensor<T>(op), op) == ETensor<T>(args.front());
+				local_der = reduce_grad(args.front()->shape(), ETensor<T>(op), op) == ETensor<T>(args.front());
 				break;
 			case egen::ASSIGN:
 			case egen::ASSIGN_ADD:
@@ -199,15 +199,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			default:
 				teq::fatalf("Unknown op %s", opcode.name_.c_str());
 		}
-		return (teq::TensptrT) out;
-	}
-
-	/// Implementation of iDerivativeFuncs
-	teq::TensptrT chain_rule (teq::FuncptrT op, const teq::TensptrT& local_der,
-		teq::TensptrT supcomp_grad, size_t arg_idx) const override
-	{
 		ETensor<T> out;
-		teq::Opcode opcode = op->get_opcode();
 		switch (opcode.code_)
 		{
 			case egen::ABS:
@@ -235,7 +227,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::GT:
 			case egen::LT:
 			case egen::RAND_UNIF:
-				out = ETensor<T>(local_der) * ETensor<T>(supcomp_grad);
+				out = ETensor<T>(local_der) * ETensor<T>(supgrad);
 				break;
 			case egen::REDUCE_MAX:
 			case egen::REDUCE_MIN:
@@ -243,7 +235,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::REDUCE_SUM:
 				out = ETensor<T>(local_der) * reduce_grad(
 					op->get_children().front()->shape(),
-					ETensor<T>(supcomp_grad), op);
+					ETensor<T>(supgrad), op);
 				break;
 			case egen::EXTEND:
 			{
@@ -263,7 +255,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						dims.emplace(i);
 					}
 				}
-				out = ETensor<T>(local_der) * tenncor::reduce_sum(ETensor<T>(supcomp_grad), dims);
+				out = ETensor<T>(local_der) * tenncor::reduce_sum(ETensor<T>(supgrad), dims);
 			}
 				break;
 			case egen::PERMUTE:
@@ -272,13 +264,13 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				eigen::Packer<std::vector<teq::RankT>>().unpack(order, *op);
 
 				out = ETensor<T>(local_der) * tenncor::permute(
-					ETensor<T>(supcomp_grad), reorder_permute(order));
+					ETensor<T>(supgrad), reorder_permute(order));
 			}
 				break;
 			case egen::RESHAPE:
 			{
 				out = ETensor<T>(local_der) * tenncor::reshape(
-					ETensor<T>(supcomp_grad),
+					ETensor<T>(supgrad),
 					op->get_children().front()->shape());
 			}
 				break;
@@ -333,7 +325,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 					}
 				}
 
-				// left = supcomp_grad
+				// left = supgrad
 				ETensor<T> right;
 				std::vector<teq::RankT> order;
 				eigen::PairVecT<teq::RankT> grad_dims;
@@ -366,11 +358,11 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				if (grad_dims.empty())
 				{
 					grad_dims.push_back({
-						teq::narrow_shape(supcomp_grad->shape()).size(),
+						teq::narrow_shape(supgrad->shape()).size(),
 						teq::narrow_shape(right->shape()).size()});
 				}
 				out = tenncor::permute(tenncor::contract(
-					ETensor<T>(supcomp_grad), right, grad_dims), order);
+					ETensor<T>(supgrad), right, grad_dims), order);
 			}
 				break;
 			case egen::CONV:
@@ -401,7 +393,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 					std::vector<teq::RankT> revdims(ndims);
 					std::iota(revdims.begin(), revdims.end(), 0);
 					out = tenncor::convolution(tenncor::pad(
-						ETensor<T>(supcomp_grad), paddings),
+						ETensor<T>(supgrad), paddings),
 						tenncor::reverse(
 							ETensor<T>(args[1]),
 							std::set<teq::RankT>(revdims.begin(), revdims.end())), dims);
@@ -414,7 +406,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 					out = tenncor::permute(
 						tenncor::convolution(
 							ETensor<T>(args[0]),
-							ETensor<T>(supcomp_grad),
+							ETensor<T>(supgrad),
 							indices), dims);
 				}
 			}
@@ -437,7 +429,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 					paddings.push_back({offset, cshape.at(i) - (offset + extent)});
 				}
 				out = ETensor<T>(local_der) *
-					tenncor::pad(ETensor<T>(supcomp_grad), paddings);
+					tenncor::pad(ETensor<T>(supgrad), paddings);
 			}
 				break;
 			case egen::PAD:
@@ -456,7 +448,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						oshape.at(i) - paddings[i].second - offset});
 				}
 				out = ETensor<T>(local_der) *
-					tenncor::slice(ETensor<T>(supcomp_grad), extents);
+					tenncor::slice(ETensor<T>(supgrad), extents);
 			}
 				break;
 			case egen::CONCAT:
@@ -468,7 +460,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				if (children.size() > 2)
 				{
 					out = ETensor<T>(local_der) *
-						tenncor::slice(ETensor<T>(supcomp_grad), arg_idx, 1, axis);
+						tenncor::slice(ETensor<T>(supgrad), arg_idx, 1, axis);
 				}
 				else
 				{
@@ -481,7 +473,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						offset = first_shape.at(axis);
 					}
 					out = ETensor<T>(local_der) *
-						tenncor::slice(ETensor<T>(supcomp_grad), offset, extent, axis);
+						tenncor::slice(ETensor<T>(supgrad), offset, extent, axis);
 				}
 			}
 				break;
@@ -492,7 +484,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 
 				teq::Shape origshape = op->get_children()[0]->shape();
 				out = ETensor<T>(local_der) * tenncor::scatter(
-					ETensor<T>(supcomp_grad), origshape, incrs);
+					ETensor<T>(supgrad), origshape, incrs);
 			}
 				break;
 			case egen::SCATTER:
@@ -505,7 +497,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 					std::back_inserter(strides));
 				out = ETensor<T>(local_der) *
-					tenncor::stride(ETensor<T>(supcomp_grad), strides);
+					tenncor::stride(ETensor<T>(supgrad), strides);
 			}
 				break;
 			case egen::REVERSE:
@@ -513,7 +505,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				std::set<teq::RankT> dims;
 				eigen::Packer<std::set<teq::RankT>>().unpack(dims, *op);
 
-				out = ETensor<T>(local_der) * tenncor::reverse(ETensor<T>(supcomp_grad), dims);
+				out = ETensor<T>(local_der) * tenncor::reverse(ETensor<T>(supgrad), dims);
 			}
 				break;
 			case egen::SELECT:
@@ -525,7 +517,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				}
 				auto condition = ETensor<T>(
 					op->get_children()[0]);
-				auto then = ETensor<T>(supcomp_grad);
+				auto then = ETensor<T>(supgrad);
 				auto otherwise = make_constant_scalar<T>(0, op->shape());
 				if (1 < arg_idx)
 				{

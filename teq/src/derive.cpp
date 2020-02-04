@@ -82,9 +82,8 @@ TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs)
 			for (size_t i : nexts)
 			{
 				assert(i < nchildren);
-				auto local = funcs.local_derivative(parent_ptr, i);
-				auto grad_step = funcs.chain_rule(parent_ptr, local, bwd, i);
-				grads[children[i].get()].push_back(grad_step);
+				grads[children[i].get()].push_back(
+					funcs.lderive(parent_ptr, bwd, i));
 			}
 		}
 	}

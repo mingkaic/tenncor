@@ -28,31 +28,51 @@ message Node {
         double cst = 1;
         Variable var = 2;
         Operator op = 3;
+        string symb = 4;
     }
 }
 
 message Variable {
-    string label = 1;
-    string dtype = 2;
-    repeated uint32 shape = 3;
+    oneof nullable_label {
+        bool label_nil = 1;
+        string label = 2;
+    }
+    oneof nullable_dtype {
+        bool dtype_nil = 3;
+        string dtype = 4;
+    }
+    repeated uint32 shape = 5;
 }
 
 message Operator {
     string opname = 1;
     map<string,Attribute> attrs = 2;
     repeated Node args = 3;
+
+    oneof nullable_capture {
+        bool capture_nil = 4;
+        string capture = 5;
+    }
 }
 
 message Attribute {
     oneof val {
         int inum = 1;
         double dnum = 2;
-        repeated int inums = 3;
-        repeated double dnums = 4;
+        IntArray inums = 3;
+        DoubleArray dnums = 4;
         string str = 5;
         Node node = 6;
         Layer layer = 7;
     }
+}
+
+message IntArray {
+    repeated int64 values = 1;
+}
+
+message DoubleArray {
+    repeated double values = 1;
 }
 
 message Layer {
@@ -87,15 +107,17 @@ auto root = tenncor::sigmoid(tenncor::exp(var2) + tenncor::matmul(-var, cst)) + 
 The following parameters:
 
 ```
-condition = `{
+condition = `{"op":{
     "opname": "ADD",
     "args": [
-        {},
+        {
+            "symb": "",
+        },
         {
             "opname": "MATMUL"
         }
     ]
-}`
+}}`
 depth = 2
 ```
 
@@ -136,9 +158,9 @@ yields:
 The following parameter:
 
 ```
-condition = `{
+condition = `{"op":{
     "opname": "ADD"
-}`
+}}`
 depth = 1
 ```
 

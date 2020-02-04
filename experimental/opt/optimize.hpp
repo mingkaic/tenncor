@@ -1,9 +1,9 @@
 #ifndef EXPERIMENTAL_OPT_OPTIMIZE_HPP
 #define EXPERIMENTAL_OPT_OPTIMIZE_HPP
 
-#include "dbg/print/search.hpp"
+#include "dbg/print/teq.hpp"
 
-#include "query/sindex.hpp"
+#include "experimental/opt/parse.hpp"
 
 namespace opt
 {
@@ -123,20 +123,49 @@ void leaf_triemap(
 	}
 }
 
-template <typename T>
-void optimize (const eteq::ETensorsT<T>& roots, )
+struct GraphInfo final
 {
-	if (roots.empty())
+	GraphInfo (const query::search::OpTrieT& trie,
+		const teq::OwnerMapT& owner) : query_(trie), owner_(owner) {}
+
+	teq::TensptrsT find (const query::Node& condition)
 	{
-		return;
+		query::QResultsT results;
+		q.where(std::make_shared<query::Node>(pba.node())).exec(results);
+		teq::TensptrsT outs;
+		outs.reserve(results.size());
+		std::transform(results.begin(), results.end(),
+			std::back_inserter(outs),
+			[this](const query::QueryResult& result)
+			{
+				return owner_.at(result.root_).lock();
+			});
+		return outs;
 	}
 
-	// model entire graph using trie
-	query::search::OpTrieT sindex;
-	query::search::populate_itable(sindex,
-		teq::TensptrsT(roots.begin(), roots.end()));
+	query::Query query_;
 
+	teq::OwnerMapT owner_;
+};
 
+template <typename T>
+void optimize (GraphInfo& graph, const OptRulesT& rules)
+{
+size_t i = 0;
+	for (const OptRule& rule : rules)
+	{
+		query::Query q = graph.query_;
+		rule.matcher_(q);
+		query::QResultsT results;
+		q.exec(results);
+		for (query::QueryResult& result : results)
+		{
+std::cout << "converting " << ++i << ":";
+PrettyEquation().print(std::cout, result.root_);
+		}
+std::cout << std::endl;
+++i;
+	}
 
 	// OpnodeT* sroot = sindex.root();
 	// std::unordered_map<OpnodeT*,OpnodeT*> reverse_trie;
@@ -152,16 +181,6 @@ void optimize (const eteq::ETensorsT<T>& roots, )
 	// 	std::inserter(rset, rset.end()),
 	// 	[](teq::TensptrT tens) { return tens.get(); });
 	// filter_path(sroot, rset);
-
-	std::stringstream ss;
-	visualize(ss, sindex, 3);
-for (auto root : roots)
-{
-std::cout << root->to_string() << std::endl;
-}
-std::cout << ss.str() << std::endl;
-}
-
 }
 
 #endif // EXPERIMENTAL_OPT_OPTIMIZE_HPP

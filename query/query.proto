@@ -2,41 +2,55 @@ syntax = "proto3";
 
 package query;
 
+// Union of matchable nodes
 message Node {
     oneof val {
+        // match by scalar constant value
         double cst = 1;
+        // match by variable node
         Variable var = 2;
+        // match by functor node
         Operator op = 3;
+
+        // match by some selectable symbol that can match anything
         string symb = 4;
     }
 }
 
+// Match variables
 message Variable {
+    // optionally match by label
     oneof nullable_label {
         bool label_nil = 1;
         string label = 2;
     }
+    // optionally match by dtype specified in cfg/mintype.yml or fulltype.yml
     oneof nullable_dtype {
         bool dtype_nil = 3;
         string dtype = 4;
     }
+    // optionally match by shape
     repeated uint32 shape = 5;
 }
 
+// Match functors
 message Operator {
+    // manditory opname
     string opname = 1;
+    // optionally match by attributes,
+    // values can be kept empty to match key only
     map<string,Attribute> attrs = 2;
+    // optionally match by subgraphs
     repeated Node args = 3;
+
+    // capture field allows users to select operator nodes by some symbol
+    oneof nullable_capture {
+        bool capture_nil = 4;
+        string capture = 5;
+    }
 }
 
-message IntArray {
-    repeated int64 values = 1;
-}
-
-message DoubleArray {
-    repeated double values = 1;
-}
-
+// Union of matchable attribute values
 message Attribute {
     oneof attr {
         int64 inum = 1;
@@ -47,6 +61,14 @@ message Attribute {
         Node node = 6;
         Layer layer = 7;
     }
+}
+
+message IntArray {
+    repeated int64 values = 1;
+}
+
+message DoubleArray {
+    repeated double values = 1;
 }
 
 message Layer {

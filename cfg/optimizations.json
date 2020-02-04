@@ -418,52 +418,5 @@
             }]
         }
     }
-},
-{
-    "srcs":[{
-        "op":{
-            "opname":"MUL",
-            "args":[{
-                "op":{
-                    "opname":"DIV",
-                    "args":[{
-                        "symb":"X"
-                    },{
-                        "symb":"Y"
-                    }]
-                }
-            },{
-                "symb":"Y"
-            },{
-                "symb":"...A"
-            }]
-        }
-    },{
-        "op":{
-            "opname":"DIV",
-            "args":[{
-                "op":{
-                    "opname":"MUL",
-                    "args":[{
-                        "symb":"X"
-                    },{
-                        "symb":"Y"
-                    }]
-                }
-            },{
-                "symb":"Y"
-            },{
-                "symb":"...A"
-            }]
-        }
-    }],
-    "dest":{
-        "opname":"MUL",
-        "args":[{
-            "symb":"X"
-        },{
-            "symb":"...A"
-        }]
-    }
 }]
 }

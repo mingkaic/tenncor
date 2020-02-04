@@ -15,6 +15,101 @@
 const std::string testdir = "models/test";
 
 
+template <typename T>
+struct ScalarTarget final : public opt::iTarget
+{
+	ScalarTarget (double scalar) : scalar_(scalar) {}
+
+	teq::TensptrT convert (const teq::Shape& outshape,
+		const query::SymbMapT& candidates) const override
+	{
+		return eteq::make_constant_scalar<T>(scalar_, outshape);
+	}
+
+	double scalar_;
+};
+
+
+template <typename T>
+struct SymbolTarget final : public opt::iTarget
+{
+	SymbolTarget (const std::string& symb, const opt::GraphInfo& graph) :
+		symb_(symb), graph_(&graph) {}
+
+	teq::TensptrT convert (const teq::Shape& outshape,
+		const query::SymbMapT& candidates) const override
+	{
+		return graph_->owner_.at(candidates.at(symb_)).lock();
+	}
+
+	std::string symb_;
+
+	const opt::GraphInfo* graph_;
+};
+
+
+template <typename T>
+struct FunctorTarget final : public opt::iTarget
+{
+	FunctorTarget (const std::string& opname, opt::TargptrsT args,
+		marsh::Maps&& attr) : opname_(opname), targs_(args),
+		attr_(std::move(attr)) {}
+
+	teq::TensptrT convert (const teq::Shape& outshape,
+		const query::SymbMapT& candidates) const override
+	{
+		marsh::Maps* attrcpy = attr_.clone();
+		teq::TensptrsT args;
+		std::transform(targs_.begin(), targs_.end(),
+			std::back_inserter(args)
+			[&](opt::TargptrT target)
+			{
+				return target->convert(, candidates);
+			});
+		return eteq::make_funcattr<T>(egen::get_op(opname_), args, *attrcpy);
+	}
+
+	std::string opname_;
+
+	opt::TargptrsT targs_;
+
+	marsh::Maps attr_;
+};
+
+
+template <typename T>
+struct TargFactory final : public opt::iTargetFactory
+{
+	TargFactory (const opt::GraphInfo& graphinfo) :
+		ginfo(&graphinfo) {}
+
+	opt::TargptrT make_scalar (double scalar) const override
+	{
+		return std::make_shared<ScalarTarget<T>>(scalar);
+	}
+
+	opt::TargptrT make_symbol (std::string symbol) const override
+	{
+		return std::make_shared<SymbolTarget<T>>(symbol);
+	}
+
+	opt::TargptrT make_functor (std::string opname,
+		const google::protobuf::Map<std::string,opt::Attribute>& attrs,
+		const opt::TargptrsT& args) const override
+	{
+		marsh::Maps attrmap;
+		for (const auto& attrpair : attrs)
+		{
+			attrmap.add_attr(attrpair.first,
+				opt::parse(attrpair.second, ginfo));
+		}
+		return std::make_shared<FunctorTarget>(op, args, std::move(attrmap));
+	}
+
+	const opt::GraphInfo* ginfo;
+};
+
+
 TEST(OPTIMIZE, Optimize)
 {
 	teq::Shape in_shape({5, 3});
@@ -98,7 +193,18 @@ TEST(OPTIMIZE, Optimize)
 	auto db = eteq::derive(err, bias);
 	auto dstate = eteq::derive(err, istate);
 
-	opt::optimize({dw, db, dstate});
+	teq::TensptrsT roots = {dw, db, dstate};
+	query::search::OpTrieT sindex;
+	query::search::populate_itable(sindex, roots);
+	teq::OwnerMapT owner = teq::track_owners(roots);
+	opt::GraphInfo graph(sindex, owner);
+
+	TargFactory impl_factory(graph);
+
+	opt::OptRulesT rules;
+	std::ifstream rulefile("cfg/optimizagtions.json");
+	opt::json_parse(rules, rulefile, impl_factory);
+	opt::optimize(graph, rules);
 }
 
 

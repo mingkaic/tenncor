@@ -9,6 +9,8 @@
 #ifndef QUERY_HPP
 #define QUERY_HPP
 
+#include <optional>
+
 #include "query/sindex.hpp"
 #include "query/stats.hpp"
 #include "query/parse.hpp"
@@ -27,26 +29,60 @@ struct QueryResult final
 
 using QResultsT = std::vector<QueryResult>;
 
+using PathsT = std::vector<PathNodesT>;
+
+inline teq::iTensor* walk (teq::iTensor* root, const PathNodesT& path)
+{
+	for (const PathNode& node : path)
+	{
+		root = static_cast<teq::iFunctor*>(root)->
+			get_children().at(node.idx_).get();
+	}
+	return root;
+}
+
 // Information kept throughout searching
 struct Transaction final
 {
 	Transaction (void) = default;
-
-	Transaction (const teq::TensSetT& blacklist) :
-		blacklist_(blacklist) {}
 
 	void fail (void)
 	{
 		results_.clear();
 	}
 
+	// return valid symbol map, if paths from src to symbols do not conflict
+	std::optional<SymbMapT> selection (teq::iTensor* src) const
+	{
+		SymbMapT out;
+		for (auto& pathpair : captures_)
+		{
+			std::string symb = pathpair.first;
+			const PathsT& paths = pathpair.second;
+			if (paths.empty())
+			{
+				return std::optional<SymbMapT>();
+			}
+			teq::iTensor* srep = walk(src, paths.front());
+			for (auto it = paths.begin() + 1, et = paths.end(); it != et; ++it)
+			{
+				if (srep != walk(src, *it))
+				{
+					teq::warnf("symbol %s has conflicting matches",
+						symb.c_str());
+				}
+			}
+			// associate srep with symb
+			out.emplace(symb, srep);
+		}
+		return out;
+	}
+
 	StatsMapT results_;
 
-	teq::TensSetT blacklist_;
-
-	teq::TensMapT<SymbMapT> symbs_;
-
 	std::unordered_set<std::string> selections_;
+
+	std::unordered_map<std::string,PathsT> captures_;
 };
 
 // Information changing with each iteration
@@ -60,8 +96,15 @@ struct SearchIterator final
 		const search::OpTrieT::NodeT* trinode, TxConsumeF consume) :
 		pathnode_(path), trinode_(trinode), consume_(consume) {}
 
-	SearchIterator* next (const PathNode& node,
-		TxConsumeF consume = union_stats)
+	SearchIterator* next (const PathNode& node)
+	{
+		next_ = std::make_shared<SearchIterator>(node,
+			static_cast<const search::OpTrieT::NodeT*>(
+				trinode_->next(node)), consume_);
+		return next_.get();
+	}
+
+	SearchIterator* next (const PathNode& node, TxConsumeF consume)
 	{
 		next_ = std::make_shared<SearchIterator>(node,
 			static_cast<const search::OpTrieT::NodeT*>(
@@ -106,6 +149,11 @@ struct SearchList final
 		return last_->trinode_;
 	}
 
+	void consume (Transaction& ctx, const StatsMapT& stats) const
+	{
+		last_->consume_(ctx.results_, stats);
+	}
+
 	size_t size (void) const
 	{
 		return size_;
@@ -135,7 +183,7 @@ void match_condition (Transaction& ctx, SearchList path, T cond)
 			nomatch = false;
 			StatsMapT smap;
 			bind_stats(smap, lpair.second, stats);
-			path.last_->consume_(ctx.results_, smap);
+			path.consume(ctx, smap);
 		}
 	}
 	if (nomatch)
@@ -144,18 +192,19 @@ void match_condition (Transaction& ctx, SearchList path, T cond)
 	}
 }
 
-inline teq::iTensor* walk (teq::iTensor* root, const SearchList& path)
+PathNodesT pathify (const SearchList& list)
 {
-	for (auto it = path.begin_, et = path.last_->next_.get();
+	PathNodesT path;
+	path.reserve(list.size());
+	for (auto it = list.begin_, et = list.last_->next_.get();
 		it != et; it = it->next_.get())
 	{
 		if (it->pathnode_.op_ != egen::BAD_OP)
 		{
-			root = static_cast<teq::iFunctor*>(root)->
-				get_children().at(it->pathnode_.idx_).get();
+			path.push_back(it->pathnode_);
 		}
 	}
-	return root;
+	return path;
 }
 
 void any_condition (Transaction& ctx,
@@ -185,27 +234,9 @@ void any_condition (Transaction& ctx,
 	// for each subresult travel through path
 	if (estd::has(ctx.selections_, symb))
 	{
-		for (auto& subresult : subresults)
-		{
-			teq::iTensor* tri_rep = walk(subresult.first, path);
-			// associate tri_rep with symb
-			auto& symb_map = ctx.symbs_[subresult.first];
-			if (estd::has(symb_map, symb) && symb_map[symb] != tri_rep)
-			{
-				ctx.blacklist_.emplace(subresult.first);
-			}
-			symb_map.emplace(symb, tri_rep);
-		}
+		ctx.captures_[symb].push_back(pathify(path));
 	}
-	if (ctx.results_.empty())
-	{
-		path.last_->consume_ = union_stats;
-	}
-	else
-	{
-		path.last_->consume_ = intersect_stats;
-	}
-	path.last_->consume_(ctx.results_, subresults);
+	path.consume(ctx, subresults);
 }
 
 void lookfor (Transaction& ctx, const SearchList& path,
@@ -222,22 +253,28 @@ void iterate_condition (Transaction& ctx,
 		any_condition(ctx, path.next(PathNode{0, opcode}));
 		return;
 	}
-	lookfor(ctx, path.next(PathNode{0, opcode}), args[0]);
+	StatsMapT results;
+	lookfor(ctx, path.next(PathNode{0, opcode},
+		[&results](StatsMapT& out, const StatsMapT& other)
+		{
+			results = other;
+		}), args[0]);
 	for (size_t i = 1, n = args.size();
-		i < n && false == ctx.results_.empty(); ++i)
+		i < n && false == results.empty(); ++i)
 	{
-		Transaction subctx(ctx.blacklist_);
-		subctx.selections_ = ctx.selections_;
-		lookfor(subctx, path.next(PathNode{i, opcode}), args[i]);
-		ctx.blacklist_ = subctx.blacklist_;
-		ctx.symbs_ = subctx.symbs_;
-		// final result is an intersect of all subresults
-		intersect_stats(ctx.results_, subctx.results_);
+		StatsMapT subresults;
+		lookfor(ctx, path.next(PathNode{i, opcode},
+			[&subresults](StatsMapT& out, const StatsMapT& other)
+			{
+				subresults = other;
+			}), args[i]);
+		intersect_stats(results, subresults);
 	}
+	path.consume(ctx, results);
 }
 
 void match_attrs (search::FSetMapT& out,
-	const google::protobuf::Map<std::string,Attribute >& targets,
+	const google::protobuf::Map<std::string,Attribute>& targets,
 	const search::OpTrieT::NodeT* trie_root,
 	const search::OpTrieT::NodeT* node)
 {
@@ -275,7 +312,7 @@ void match_attrs (search::FSetMapT& out,
 
 // Return true if there's at least one result
 void lookfor (Transaction& ctx, const SearchList& path,
-	const Node& cond) // todo: add filter_out mechanism instead of allocing a subresult at every branch
+	const Node& cond)
 {
 	auto& tri = path.last_trie();
 	if (nullptr == tri)
@@ -311,34 +348,42 @@ void lookfor (Transaction& ctx, const SearchList& path,
 				}
 				// match the rest of the condition subgraph from trie root
 				// in order to filter for matching attributable functors
-				Transaction subctx(ctx.blacklist_);
-				subctx.selections_ = ctx.selections_;
+				StatsMapT attr_results;
+				TxConsumeF orig_consume = path.last_->consume_;
 				path.last_trie() = path.front_trie();
-				iterate_condition(subctx, path, op);
-				ctx.blacklist_ = subctx.blacklist_;
-				ctx.symbs_ = subctx.symbs_;
-				// get attr_matches[subresults intersection attr_matches.keys]
-				if (subctx.results_.empty())
+				path.last_->consume_ =
+				[&attr_results, &attr_matches](StatsMapT& out, const StatsMapT& other)
+				{
+					for (const auto& apair : other)
+					{
+						auto f = dynamic_cast<teq::iFunctor*>(apair.first);
+						if (estd::has(attr_matches, f))
+						{
+							for (auto target_root : attr_matches.at(f))
+							{
+								attr_results.emplace(target_root, apair.second);
+							}
+						}
+					}
+				};
+				iterate_condition(ctx, path, op);
+				if (attr_results.empty())
 				{
 					ctx.fail();
 				}
-				StatsMapT subresults;
-				for (const auto& apair : attr_matches)
+				else
 				{
-					if (estd::has(subctx.results_, apair.first))
-					{
-						for (auto croot : apair.second)
-						{
-							subresults.emplace(croot,
-								subctx.results_[apair.first]);
-						}
-					}
+					orig_consume(ctx.results_, attr_results);
 				}
-				union_stats(ctx.results_, subresults);
 			}
 			else
 			{
 				iterate_condition(ctx, path, op);
+			}
+			if (Operator::kCapture == op.nullable_capture_case() &&
+				estd::has(ctx.selections_, op.capture()))
+			{
+				ctx.captures_[op.capture()].push_back(pathify(path));
 			}
 		}
 			break;
@@ -349,7 +394,7 @@ void lookfor (Transaction& ctx, const SearchList& path,
 
 struct Query
 {
-	Query (search::OpTrieT& sindex) : from_(&sindex) {}
+	Query (const search::OpTrieT& sindex) : from_(&sindex) {}
 
 	// Return query with <existing symbol(s)> AND <symb>
 	Query select (const std::string& symb)
@@ -404,12 +449,11 @@ struct Query
 					order[batch_pair.first] = std::max(
 						order[batch_pair.first], batch_pair.second);
 				}
-				else
+				else if (std::optional<SymbMapT> symbs =
+					ctx.selection(batch_pair.first))
 				{
 					results.push_back(QueryResult{
-						batch_pair.first,
-						ctx.symbs_[batch_pair.first],
-					});
+						batch_pair.first, *symbs});
 					order.emplace(batch_pair);
 				}
 			}
@@ -426,12 +470,12 @@ struct Query
 	}
 
 private:
-	Query (search::OpTrieT* from,
+	Query (const search::OpTrieT* from,
 		const std::unordered_set<std::string>& selections,
 		const std::unordered_set<ConditionT>& conditions) :
 		from_(from), selections_(selections), conditions_(conditions) {}
 
-	search::OpTrieT* from_;
+	const search::OpTrieT* from_;
 
 	std::unordered_set<std::string> selections_;
 
