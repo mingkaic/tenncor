@@ -25,8 +25,7 @@ struct iTarget
 {
 	virtual ~iTarget (void) = default;
 
-	virtual TargetResult convert (const teq::Shape& outshape,
-		const query::SymbMapT& candidates) const = 0;
+	virtual TargetResult convert (const query::SymbMapT& candidates) const = 0;
 };
 
 using TargptrT = std::shared_ptr<iTarget>;
