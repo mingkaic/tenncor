@@ -127,10 +127,10 @@ TEST(SINDEX, GraphPathPrefix)
 
 	std::stringstream ss;
 	visualize(ss, itable);
-	{
-		std::ofstream out("/tmp/query.txt");
-		out << ss.str() << std::endl;
-	}
+	// {
+	// 	std::ofstream out("/tmp/query.txt");
+	// 	out << ss.str() << std::endl;
+	// }
 
 	std::string expect;
 	std::string got;

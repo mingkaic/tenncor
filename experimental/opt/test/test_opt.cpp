@@ -20,10 +20,13 @@ struct ScalarTarget final : public opt::iTarget
 {
 	ScalarTarget (double scalar) : scalar_(scalar) {}
 
-	teq::TensptrT convert (const teq::Shape& outshape,
+	TargetResult convert (const teq::Shape& outshape,
 		const query::SymbMapT& candidates) const override
 	{
-		return eteq::make_constant_scalar<T>(scalar_, outshape);
+		return TargetResult{
+			scalar_,
+			false
+		};
 	}
 
 	double scalar_;
@@ -36,10 +39,13 @@ struct SymbolTarget final : public opt::iTarget
 	SymbolTarget (const std::string& symb, const opt::GraphInfo& graph) :
 		symb_(symb), graph_(&graph) {}
 
-	teq::TensptrT convert (const teq::Shape& outshape,
+	TargetResult convert (const teq::Shape& outshape,
 		const query::SymbMapT& candidates) const override
 	{
-		return graph_->owner_.at(candidates.at(symb_)).lock();
+		return TargetResult{
+			graph_->owner_.at(candidates.at(symb_)).lock(),
+			true
+		};
 	}
 
 	std::string symb_;
@@ -55,17 +61,25 @@ struct FunctorTarget final : public opt::iTarget
 		marsh::Maps&& attr) : opname_(opname), targs_(args),
 		attr_(std::move(attr)) {}
 
-	teq::TensptrT convert (const teq::Shape& outshape,
+	TargetResult convert (const teq::Shape& outshape,
 		const query::SymbMapT& candidates) const override
 	{
 		marsh::Maps* attrcpy = attr_.clone();
 		teq::TensptrsT args;
-		std::transform(targs_.begin(), targs_.end(),
-			std::back_inserter(args)
-			[&](opt::TargptrT target)
-			{
-				return target->convert(, candidates);
-			});
+		std::vector<TargetResult> results;
+		args.reserve(args_.size());
+		results.reserve(args_.size());
+		for (opt::TargptrT target : args_)
+		{
+			results.push_back(target->convert(candidates));
+		}
+		// test-case:
+		// reduce_sum(scalar)
+		// extend(scalar)
+		// mul(scalar, scalar2)
+		// matmul(scalar, scalar2)
+		// matmul(shape([2, 3]), scalar2)
+		// matmul(shape([2, 3]), shape([4, 2]))
 		return eteq::make_funcattr<T>(egen::get_op(opname_), args, *attrcpy);
 	}
 
@@ -101,7 +115,7 @@ struct TargFactory final : public opt::iTargetFactory
 		for (const auto& attrpair : attrs)
 		{
 			attrmap.add_attr(attrpair.first,
-				opt::parse(attrpair.second, ginfo));
+				opt::parse(attrpair.second, *ginfo));
 		}
 		return std::make_shared<FunctorTarget>(op, args, std::move(attrmap));
 	}

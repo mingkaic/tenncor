@@ -397,7 +397,7 @@ struct Query
 	Query (const search::OpTrieT& sindex) : from_(&sindex) {}
 
 	// Return query with <existing symbol(s)> AND <symb>
-	Query select (const std::string& symb)
+	Query select (const std::string& symb) const
 	{
 		// empty symbol denotes selecting roots, which is selected by default
 		if (symb.empty())
@@ -413,7 +413,7 @@ struct Query
 	}
 
 	// Return query with <existing condition> OR <condition>
-	Query where (const ConditionT& condition)
+	Query where (const ConditionT& condition) const
 	{
 		auto new_conditions = conditions_;
 		new_conditions.emplace(condition);
@@ -423,7 +423,7 @@ struct Query
 			new_conditions);
 	}
 
-	Query where (std::istream& condition)
+	Query where (std::istream& condition) const
 	{
 		auto cond = std::make_shared<Node>();
 		json_parse(*cond, condition);
@@ -432,7 +432,7 @@ struct Query
 
 	// set depth_asc to true if max-distance from condition roots
 	// to leaf/symbol and sum paths is sorted by min-max
-	void exec (QResultsT& results, bool depth_asc = true)
+	void exec (QResultsT& results, bool depth_asc = true) const
 	{
 		StatsMapT order;
 		auto root = from_->root();

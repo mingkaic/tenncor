@@ -12,7 +12,8 @@ struct ShapeParser final
 {
 	/// Return output shape if operator is not redundant
 	/// given specified attributes and input shapes
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		if (shapes.empty())
 		{
@@ -37,7 +38,8 @@ struct ReducePacker
 {
 	virtual ~ReducePacker (void) = default;
 
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		std::set<teq::RankT> ranks;
 		eigen::Packer<std::set<teq::RankT>>().unpack(ranks, attrs);
@@ -78,7 +80,8 @@ struct ShapeParser<egen::REDUCE_MAX> final : private ReducePacker
 template <>
 struct ShapeParser<egen::ARGMAX> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		teq::RankT return_dim;
 		eigen::Packer<teq::RankT>().unpack(return_dim, attrs);
@@ -92,7 +95,8 @@ struct ShapeParser<egen::ARGMAX> final
 template <>
 struct ShapeParser<egen::SLICE> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		eigen::PairVecT<teq::DimT> extents;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, attrs);
@@ -114,7 +118,8 @@ struct ShapeParser<egen::SLICE> final
 template <>
 struct ShapeParser<egen::PAD> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		eigen::PairVecT<teq::DimT> paddings;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(paddings, attrs);
@@ -135,7 +140,8 @@ struct ShapeParser<egen::PAD> final
 template <>
 struct ShapeParser<egen::STRIDE> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		std::vector<teq::DimT> incrs;
 		eigen::Packer<std::vector<teq::DimT>>().unpack(incrs, attrs);
@@ -159,7 +165,8 @@ struct ShapeParser<egen::STRIDE> final
 template <>
 struct ShapeParser<egen::SCATTER> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
@@ -170,7 +177,8 @@ struct ShapeParser<egen::SCATTER> final
 template <>
 struct ShapeParser<egen::MATMUL> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		eigen::PairVecT<teq::RankT> ranks;
 		eigen::Packer<eigen::PairVecT<teq::RankT>>().unpack(ranks, attrs);
@@ -223,7 +231,8 @@ struct ShapeParser<egen::MATMUL> final
 template <>
 struct ShapeParser<egen::CONV> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		std::vector<teq::RankT> ranks;
 		eigen::Packer<std::vector<teq::RankT>>().unpack(ranks, attrs);
@@ -267,7 +276,8 @@ struct ShapeParser<egen::CONV> final
 template <>
 struct ShapeParser<egen::REVERSE> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		return shapes.front();
 	}
@@ -276,7 +286,8 @@ struct ShapeParser<egen::REVERSE> final
 template <>
 struct ShapeParser<egen::PERMUTE> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		std::vector<teq::RankT> order;
 		eigen::Packer<std::vector<teq::RankT>>().unpack(order, attrs);
@@ -313,7 +324,8 @@ struct ShapeParser<egen::PERMUTE> final
 template <>
 struct ShapeParser<egen::EXTEND> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> bcast = eigen::unpack_extend(shape, attrs);
@@ -341,7 +353,8 @@ struct ShapeParser<egen::EXTEND> final
 template <>
 struct ShapeParser<egen::CONCAT> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		teq::RankT axis;
 		eigen::Packer<teq::RankT>().unpack(axis, attrs);
@@ -377,7 +390,8 @@ struct ShapeParser<egen::CONCAT> final
 template <>
 struct ShapeParser<egen::RESHAPE> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);

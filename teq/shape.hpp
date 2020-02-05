@@ -87,7 +87,7 @@ struct Shape final
 	{
 		if (rank_cap <= idx)
 		{
-			teq::fatalf("cannot access out of bounds index %d", idx);
+			fatalf("cannot access out of bounds index %d", idx);
 		}
 		return dims_.at(idx);
 	}
@@ -160,7 +160,7 @@ private:
 				return d == 0;
 			}))
 		{
-			teq::fatalf("cannot create shape with vector containing zero: %s",
+			fatalf("cannot create shape with vector containing zero: %s",
 				fmts::to_string(dims.begin(), dims.end()).c_str());
 		}
 		RankT rank = std::min((size_t) rank_cap, dims.size());

@@ -11,11 +11,21 @@
 namespace opt
 {
 
+struct TargetResult final
+{
+	union Result
+	{
+		teq::TensptrT tens_;
+		double scalar_;
+	} result_;
+	bool is_tens_;
+};
+
 struct iTarget
 {
 	virtual ~iTarget (void) = default;
 
-	virtual teq::TensptrT convert (const teq::Shape& outshape,
+	virtual TargetResult convert (const teq::Shape& outshape,
 		const query::SymbMapT& candidates) const = 0;
 };
 

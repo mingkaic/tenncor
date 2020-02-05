@@ -5,11 +5,10 @@
 #include <google/protobuf/util/json_util.h>
 
 #include "experimental/opt/target.hpp"
+#include "experimental/opt/rule.hpp"
 
 namespace opt
 {
-
-using MatcherF = std::function<void(query::Query& q)>;
 
 void find_symbols (std::unordered_set<std::string>& out,
 	const query::Node& cond)
@@ -29,15 +28,6 @@ void find_symbols (std::unordered_set<std::string>& out,
 			break;
 	}
 }
-
-struct OptRule final
-{
-	MatcherF matcher_;
-
-	TargptrT target_;
-};
-
-using OptRulesT = std::vector<OptRule>;
 
 void parse_optimization (OptRulesT& rules,
 	const Optimization& pb_opt, const iTargetFactory& tfactory)
@@ -83,35 +73,35 @@ void json_parse (OptRulesT& rules,
 	parse_optimization(rules, optimization, tfactory);
 }
 
-marsh::iObject* parse (const query::Attribute& pba, const opt::GraphInfo* graphinfo)
+marsh::iObject* parse (const query::Attribute& pba, const opt::GraphInfo& graphinfo)
 {
 	marsh::iObject* out = nullptr;
 	switch (pba.attr_case())
 	{
-		case Attribute::kInum:
-			out = new marsh::Number<int64_t>(attr.inum());
+		case query::Attribute::kInum:
+			out = new marsh::Number<int64_t>(pba.inum());
 			break;
-		case Attribute::kDnum:
-			out = new marsh::Number<double>(attr.dnum());
+		case query::Attribute::kDnum:
+			out = new marsh::Number<double>(pba.dnum());
 			break;
-		case Attribute::kIarr:
+		case query::Attribute::kIarr:
 		{
 			const auto& arr = pba.iarr().values();
 			out = new marsh::NumArray<int64_t>(
 				std::vector<int64_t>(arr.begin(), arr.end()));
 		}
 			break;
-		case Attribute::kDarr:
+		case query::Attribute::kDarr:
 		{
 			const auto& arr = pba.darr().values();
 			out = new marsh::NumArray<double>(
-				std::vector<int64_t>(arr.begin(), arr.end()));
+				std::vector<double>(arr.begin(), arr.end()));
 		}
 			break;
-		case Attribute::kStr:
-			out = new marsh::String(attr->to_string());
+		case query::Attribute::kStr:
+			out = new marsh::String(pba.str());
 			break;
-		case Attribute::kNode:
+		case query::Attribute::kNode:
 		{
 			auto results = graphinfo.find(pba.node());
 			if (results.size() > 0)
@@ -121,9 +111,9 @@ marsh::iObject* parse (const query::Attribute& pba, const opt::GraphInfo* graphi
 			out = new teq::TensorObj(results.front());
 		}
 			break;
-		case Attribute::kLayer:
+		case query::Attribute::kLayer:
 		{
-			const Layer& layer = pba.layer();
+			const query::Layer& layer = pba.layer();
 			if (false == layer.has_input() ||
 				query::Layer::kNameNil == layer.nullable_name_case())
 			{

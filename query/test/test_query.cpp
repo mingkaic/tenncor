@@ -16,7 +16,6 @@
 
 TEST(QUERY, Query)
 {
-
 	teq::Shape in_shape({5, 3});
 	teq::Shape weight_shape({5, 10});
 	teq::Shape bias_shape({5});

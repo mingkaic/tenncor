@@ -21,8 +21,8 @@ struct iDerivativeFuncs
 	/// X is the ith argument of F, and supgrad be defined as dG/dF
 	/// where G is some super-functor using F
 	/// Return derivative G wrt to arg x by applying chain rule
-	virtual teq::TensptrT lderive (teq::FuncptrT op,
-		teq::TensptrT supgrad, size_t i) const = 0;
+	virtual TensptrT lderive (FuncptrT op,
+		TensptrT supgrad, size_t i) const = 0;
 
 	/// Return tensor representing 1 constant
 	virtual TensptrT get_const_one (Shape shape) const = 0;
