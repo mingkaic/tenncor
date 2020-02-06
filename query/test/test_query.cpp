@@ -14,7 +14,7 @@
 #include "query/query.hpp"
 
 
-TEST(QUERY, Query)
+static teq::TensptrsT rnn_setup (void)
 {
 	teq::Shape in_shape({5, 3});
 	teq::Shape weight_shape({5, 10});
@@ -97,12 +97,19 @@ TEST(QUERY, Query)
 	auto db = eteq::derive(err, bias);
 	auto dstate = eteq::derive(err, istate);
 
+	return teq::TensptrsT{dw, db, dstate, err};
+}
+
+
+// match subgraph by structure ending with an unknown variable and unknown functor
+TEST(QUERY, Unknowns)
+{
+	auto rnn_roots = rnn_setup();
+
 	query::search::OpTrieT itable;
-	query::search::populate_itable(itable, {dw, db, dstate, err});
+	query::search::populate_itable(itable, rnn_roots);
 	query::Query q(itable);
 
-	// match subgraph by structure ending with an unknown variable and unknown functor
-	{
 	std::stringstream inss;
 	inss <<
 		"{"
@@ -110,7 +117,7 @@ TEST(QUERY, Query)
 		"    \"opname\":\"SUB\","
 		"    \"args\":["
 		"      {"
-		"        \"var\":{}"
+		"        \"leaf\":{}"
 		"      },"
 		"      {"
 		"        \"op\":{"
@@ -187,10 +194,18 @@ TEST(QUERY, Query)
 		"             |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
 		"             `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
 		"                 `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results.front().root_);
-	}
+}
 
-	// mismatching an otherwise structural matching subgraph with a mislabelled variable
-	{
+
+// mismatching an otherwise structural matching subgraph with a mislabelled variable
+TEST(QUERY, MisLabelledVariable)
+{
+	auto rnn_roots = rnn_setup();
+
+	query::search::OpTrieT itable;
+	query::search::populate_itable(itable, rnn_roots);
+	query::Query q(itable);
+
 	std::stringstream inss;
 	inss <<
 		"{"
@@ -198,7 +213,7 @@ TEST(QUERY, Query)
 		"    \"opname\":\"SUB\","
 		"    \"args\":["
 		"      {"
-		"        \"var\":{"
+		"        \"leaf\":{"
 		"          \"label\":\"megatron\""
 		"        }"
 		"      },"
@@ -213,10 +228,18 @@ TEST(QUERY, Query)
 	query::QResultsT results;
 	q.where(inss).exec(results);
 	EXPECT_EQ(0, results.size());
-	}
+}
 
-	// matching a subgraph by a labelled variable
-	{
+
+// matching a subgraph by a labelled variable
+TEST(QUERY, LabelledVariable)
+{
+	auto rnn_roots = rnn_setup();
+
+	query::search::OpTrieT itable;
+	query::search::populate_itable(itable, rnn_roots);
+	query::Query q(itable);
+
 	std::stringstream inss;
 	inss <<
 		"{"
@@ -224,7 +247,7 @@ TEST(QUERY, Query)
 		"    \"opname\":\"EXTEND\","
 		"    \"args\":["
 		"      {"
-		"        \"var\":{"
+		"        \"leaf\":{"
 		"          \"label\":\"init_state\""
 		"        }"
 		"      }"
@@ -237,10 +260,18 @@ TEST(QUERY, Query)
 	EXPECT_GRAPHEQ(
 		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
 		" `--(variable:init_state[5\\1\\1\\1\\1\\1\\1\\1])\n", results.front().root_);
-	}
+}
 
-	// matching a subgraph by an ambiguous argument and a constant
-	{
+
+// matching a subgraph by an ambiguous argument and a constant
+TEST(QUERY, Scalar)
+{
+	auto rnn_roots = rnn_setup();
+
+	query::search::OpTrieT itable;
+	query::search::populate_itable(itable, rnn_roots);
+	query::Query q(itable);
+
 	std::stringstream inss;
 	inss <<
 		"{"
@@ -331,10 +362,18 @@ TEST(QUERY, Query)
 		" |                   `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n"
 		" `--(EXTEND[5\\3\\1\\1\\1\\1\\1\\1])\n"
 		"     `--(constant:2[1\\1\\1\\1\\1\\1\\1\\1])", results.front().root_);
-	}
+}
 
-	// matching a subgraph by an attribute
-	{
+
+// matching a subgraph by an attribute
+TEST(QUERY, Attribute)
+{
+	auto rnn_roots = rnn_setup();
+
+	query::search::OpTrieT itable;
+	query::search::populate_itable(itable, rnn_roots);
+	query::Query q(itable);
+
 	std::stringstream inss;
 	inss <<
 		"{"
@@ -354,7 +393,7 @@ TEST(QUERY, Query)
 		"                      \"op\":{"
 		"                        \"opname\":\"SLICE\","
 		"                        \"args\":["
-		"                          {\"var\":{\"label\":\"input\"}}"
+		"                          {\"leaf\":{\"label\":\"input\"}}"
 		"                        ]"
 		"                      }"
 		"                    }"
@@ -383,10 +422,18 @@ TEST(QUERY, Query)
 	EXPECT_GRAPHEQ(
 		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
 		" `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[2].root_);
-	}
+}
 
-	// multimatch subgraphs by an ambiguous argument
-	{
+
+// multimatch subgraphs by an ambiguous argument
+TEST(QUERY, AmbiguousArguments)
+{
+	auto rnn_roots = rnn_setup();
+
+	query::search::OpTrieT itable;
+	query::search::populate_itable(itable, rnn_roots);
+	query::Query q(itable);
+
 	std::stringstream inss;
 	inss <<
 		"{"
@@ -453,10 +500,18 @@ TEST(QUERY, Query)
 		"         |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
 		"         `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
 		"             `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[2].root_);
-	}
+}
 
-	// multimatch and capture subgraphs by an ambiguous argument
-	{
+
+// multimatch and capture subgraphs by an ambiguous argument
+TEST(QUERY, AmbiguousArgumentsCapture)
+{
+	auto rnn_roots = rnn_setup();
+
+	query::search::OpTrieT itable;
+	query::search::populate_itable(itable, rnn_roots);
+	query::Query q(itable);
+
 	std::stringstream inss;
 	inss <<
 		"{"
@@ -562,10 +617,18 @@ TEST(QUERY, Query)
 		"     |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
 		"     `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
 		"         `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[2].symbs_["a"]);
-	}
+}
 
-	// capture operators
-	{
+
+// capture operators
+TEST(QUERY, OperatorCapture)
+{
+	auto rnn_roots = rnn_setup();
+
+	query::search::OpTrieT itable;
+	query::search::populate_itable(itable, rnn_roots);
+	query::Query q(itable);
+
 	std::stringstream inss;
 	inss <<
 		"{"
@@ -665,7 +728,119 @@ TEST(QUERY, Query)
 		"     |   `--(variable:weight[5\\10\\1\\1\\1\\1\\1\\1])\n"
 		"     `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
 		"         `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])\n", results[1].symbs_["a"]);
-	}
+}
+
+
+// no match on conflicting symbs
+TEST(QUERY, ConflictingSymbs)
+{
+	auto rnn_roots = rnn_setup();
+
+	query::search::OpTrieT itable;
+	query::search::populate_itable(itable, rnn_roots);
+	query::Query q(itable);
+
+	std::stringstream inss;
+	inss <<
+		"{\n"
+		"  \"op\":{\n"
+		"    \"opname\":\"MUL\",\n"
+		"    \"args\":[{\n"
+		"      \"op\":{\n"
+		"        \"opname\":\"MUL\",\n"
+		"        \"args\":[{\n"
+		"          \"symb\":\"a\"\n"
+		"        },{\n"
+		"          \"symb\":\"a\"\n"
+		"        }]\n"
+		"      }\n"
+		"    },{\n"
+		"      \"symb\":\"a\"\n"
+		"    }]\n"
+		"  }\n"
+		"}";
+	query::QResultsT results;
+	q.select("a").where(inss).exec(results);
+	ASSERT_EQ(0, results.size());
+}
+
+
+// match by leaf usage
+TEST(QUERY, LeafUsage)
+{
+	auto rnn_roots = rnn_setup();
+
+	query::search::OpTrieT itable;
+	query::search::populate_itable(itable, rnn_roots);
+	query::Query q(itable);
+
+	std::stringstream inss;
+	inss <<
+		"{\n"
+		"  \"op\":{\n"
+		"    \"opname\":\"EXTEND\",\n"
+		"    \"args\":[{\n"
+		"      \"leaf\":{\n"
+		"        \"usage\":\"constant\"\n"
+		"      }\n"
+		"    }]\n"
+		"  }\n"
+		"}";
+	query::QResultsT results;
+	q.where(inss).exec(results);
+	ASSERT_EQ(13, results.size());
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[0].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[1].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[2].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[3].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[4].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[5].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[6].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[7].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[8].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[9].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[10].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n", results[11].root_);
+
+	EXPECT_GRAPHEQ(
+		"(EXTEND[5\\3\\1\\1\\1\\1\\1\\1])\n"
+		" `--(constant:2[1\\1\\1\\1\\1\\1\\1\\1])\n", results[12].root_);
 }
 
 

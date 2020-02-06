@@ -8,7 +8,7 @@ message Node {
         // match by scalar constant value
         double cst = 1;
         // match by variable node
-        Variable var = 2;
+        Leaf leaf = 2;
         // match by functor node
         Operator op = 3;
 
@@ -18,7 +18,7 @@ message Node {
 }
 
 // Match variables
-message Variable {
+message Leaf {
     // optionally match by label
     oneof nullable_label {
         bool label_nil = 1;
@@ -31,6 +31,11 @@ message Variable {
     }
     // optionally match by shape
     repeated uint32 shape = 5;
+
+    oneof nullable_usage {
+        bool usage_nil = 6;
+        string usage = 7;
+    }
 }
 
 // Match functors

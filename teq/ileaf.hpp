@@ -45,6 +45,8 @@ struct iLeaf : public iTensor
 /// Leaf smart pointer
 using LeafptrT = std::shared_ptr<iLeaf>;
 
+using LeafsT = std::vector<iLeaf*>;
+
 template <typename T>
 using LeafMapT = std::unordered_map<iLeaf*,T>;
 

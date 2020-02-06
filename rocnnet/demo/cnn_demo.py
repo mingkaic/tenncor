@@ -167,7 +167,7 @@ def main(args):
                     {"symb": ""},
                     {"op": {
                         "opname": "REVERSE",
-                        "args": [{"var": {
+                        "args": [{"leaf": {
                             "shape": [16, 3, 5, 5]
                         }}]
                     }}
@@ -185,7 +185,7 @@ def main(args):
                     {"symb": ""},
                     {"op": {
                         "opname": "REVERSE",
-                        "args": [{"var": {
+                        "args": [{"leaf": {
                             "shape": [20, 16, 5, 5]
                         }}]
                     }}
@@ -203,7 +203,7 @@ def main(args):
                     {"symb": ""},
                     {"op": {
                         "opname": "REVERSE",
-                        "args": [{"var": {
+                        "args": [{"leaf": {
                             "shape": [20, 20, 5, 5]
                         }}]
                     }}

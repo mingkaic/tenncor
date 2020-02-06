@@ -55,15 +55,18 @@ cpp_proto_library(
 
 ######### TEST #########
 
-# cc_test(
-#     name = "test",
-#     srcs = ["//experimental/opt:test_srcs"],
-#     copts = ["-std=c++17"],
-#     deps = [
-#         "//experimental/opt:opt",
-#         "//eteq:eteq",
-#         "@gtest//:gtest",
-#         "@com_github_mingkaic_cppkg//exam:exam",
-#     ],
-#     linkstatic = True,
-# )
+cc_test(
+    name = "test",
+    srcs = ["//experimental/opt:test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//experimental/opt:opt",
+        "//eteq:eteq",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    data = [
+        "//cfg:optimizations",
+    ],
+    linkstatic = True,
+)

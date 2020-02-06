@@ -4,9 +4,28 @@ import "query/query.proto";
 
 package opt;
 
+message TargetNode {
+    oneof val {
+        Scalar cst = 1;
+        TargOp op = 2;
+        string symb = 3;
+    }
+}
+
+message Scalar {
+    double value = 1;
+    string shape = 2;
+}
+
+message TargOp {
+    string opname = 1;
+    map<string,query.Attribute> attrs = 2;
+    repeated TargetNode args = 3;
+}
+
 message Conversion {
     repeated query.Node srcs = 1;
-    query.Node dest = 2;
+    TargetNode dest = 2;
 }
 
 message Optimization {

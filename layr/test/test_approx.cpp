@@ -108,7 +108,7 @@ TEST(APPROX, GroupAssign)
 	// leaf - 1 * err / sqrt(momentum)
 	// = 0 - 1 * 0.5 / sqrt(1) = -0.5
 	std::stringstream ss;
-	ss << "{\"var\":{\"label\":\"momentum\"}}";
+	ss << "{\"leaf\":{\"label\":\"momentum\"}}";
 	query::QResultsT results;
 	query::search::OpTrieT itable;
 	query::search::populate_itable(itable, {groups.begin()->second});

@@ -7,6 +7,17 @@
 namespace opt
 {
 
+using MatcherF = std::function<void(query::Query& q)>;
+
+struct OptRule final
+{
+	MatcherF matcher_;
+
+	TargptrT target_;
+};
+
+using OptRulesT = std::vector<OptRule>;
+
 struct GraphInfo final
 {
 	GraphInfo (const query::search::OpTrieT& trie,
@@ -31,17 +42,6 @@ struct GraphInfo final
 
 	teq::OwnerMapT owner_;
 };
-
-using MatcherF = std::function<void(query::Query& q)>;
-
-struct OptRule final
-{
-	MatcherF matcher_;
-
-	TargptrT target_;
-};
-
-using OptRulesT = std::vector<OptRule>;
 
 }
 

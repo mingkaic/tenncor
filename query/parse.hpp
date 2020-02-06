@@ -32,11 +32,17 @@ inline bool equals (double scalar, const teq::iLeaf* leaf)
 		leaf->to_string() == fmts::to_string(scalar);
 }
 
-inline bool equals (const Variable& var, const teq::iLeaf* leaf)
+inline bool equals (const Leaf& var, const teq::iLeaf* leaf)
 {
-	return (Variable::kLabel != var.nullable_label_case() || var.label() == leaf->to_string()) &&
-		(Variable::kDtype != var.nullable_dtype_case() || var.dtype() == leaf->type_label()) &&
-		(0 == var.shape_size() || to_shape(var.shape()).compatible_after(leaf->shape(), 0));
+	return
+		(Leaf::kLabel != var.nullable_label_case() ||
+			var.label() == leaf->to_string()) &&
+		(Leaf::kDtype != var.nullable_dtype_case() ||
+			var.dtype() == leaf->type_label()) &&
+		(Leaf::kUsage != var.nullable_usage_case() ||
+			var.usage() == teq::get_usage_name(leaf->get_usage())) &&
+		(0 == var.shape_size() ||
+			to_shape(var.shape()).compatible_after(leaf->shape(), 0));
 }
 
 inline bool equals (const Attribute& pba, const marsh::iObject* attr,

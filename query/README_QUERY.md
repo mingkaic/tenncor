@@ -26,13 +26,13 @@ The condition object has the following schema (protobuf):
 message Node {
     oneof node {
         double cst = 1;
-        Variable var = 2;
+        Leaf var = 2;
         Operator op = 3;
         string symb = 4;
     }
 }
 
-message Variable {
+message Leaf {
     oneof nullable_label {
         bool label_nil = 1;
         string label = 2;

@@ -2,6 +2,8 @@
 #ifndef DISABLE_TEST_OPT_HPP
 
 
+#include <fstream>
+
 #include "gtest/gtest.h"
 
 #include "dbg/print/search.hpp"
@@ -18,14 +20,18 @@ const std::string testdir = "models/test";
 template <typename T>
 struct ScalarTarget final : public opt::iTarget
 {
-	ScalarTarget (double scalar) : scalar_(scalar) {}
+	ScalarTarget (double scalar, const std::string& sshape) :
+		scalar_(scalar), symb_(sshape) {}
 
-	TargetResult convert (const query::SymbMapT& candidates) const override
+	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
-		return TargetResult{scalar_, false};
+		return eteq::make_constant_scalar(scalar_,
+			candidates.at(symb_)->shape());
 	}
 
 	double scalar_;
+
+	std::string symb_;
 };
 
 
@@ -35,10 +41,9 @@ struct SymbolTarget final : public opt::iTarget
 	SymbolTarget (const std::string& symb, const opt::GraphInfo& graph) :
 		symb_(symb), graph_(&graph) {}
 
-	TargetResult convert (const query::SymbMapT& candidates) const override
+	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
-		return TargetResult{graph_->owner_.at(
-			candidates.at(symb_)).lock(), true};
+		return graph_->owner_.at(candidates.at(symb_)).lock();
 	}
 
 	std::string symb_;
@@ -50,60 +55,30 @@ struct SymbolTarget final : public opt::iTarget
 template <typename T>
 struct FunctorTarget final : public opt::iTarget
 {
-	FunctorTarget (const std::string& opname, opt::TargptrsT args,
+	FunctorTarget (const std::string& opname, const opt::TargptrsT& args,
 		marsh::Maps&& attr) : opname_(opname), targs_(args),
 		attr_(std::move(attr)) {}
 
-	TargetResult convert (const query::SymbMapT& candidates) const override
+	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
 		marsh::Maps* attrcpy = attr_.clone();
-		std::vector<TargetResult> results;
-		results.reserve(args_.size());
-		bool all_scalar = true, all_tens = true;
-		for (opt::TargptrT target : args_)
-		{
-			auto result = target->convert(candidates);
-			all_scalar = all_scalar && !result.is_tens_;
-			all_tens = all_tens && result.is_tens_;
-			results.push_back(result);
-		}
 		teq::TensptrsT args;
-		args.reserve(args_.size());
-		if (all_tens)
+		args.reserve(targs_.size());
+		for (opt::TargptrT target : targs_)
 		{
-			for (auto& result : results)
-			{
-				args.push_back(result.tens_);
-			}
-			return TargetResult{eteq::make_funcattr<T>(
-				egen::get_op(opname_), args, *attrcpy), true};
+			args.push_back(target->convert(candidates));
 		}
-		else if (all_scalar)
-		{
-			for (auto& result : results)
-			{
-				args.push_back(eteq::make_constant_scalar(result.scalar_, teq::Shape()));
-			}
-			auto out = eteq::make_funcattr<T>(egen::get_op(opname_), args, *attrcpy);
-			auto& device = static_cast<eigen::iEigen&>(out->device());
-			device.assign();
-			T* data = (T*) device.data();
-			return TargetResult{data[0], false};
-		}
-		// mixed arguments
-		teq::TensptrT out;
-		// todo: implement
-		return TargetResult{out, true};
-		// testcase:
-		// reduce_sum(scalar)
-		// extend(scalar)
-		// mul(scalar, scalar2)
-		// matmul(scalar, scalar2)
-		// add(shape([2, 3]), scalar2)
-		// add(scalar, shape([2, 3]))
-		// matmul(shape([2, 3]), scalar2)
-		// matmul(shape([2, 3]), shape([4, 2]))
+		return eteq::make_funcattr<T>(egen::get_op(opname_), args, *attrcpy);
 	}
+	// testcase:
+	// reduce_sum(scalar)
+	// extend(scalar)
+	// mul(scalar, scalar2)
+	// matmul(scalar, scalar2)
+	// add(shape([2, 3]), scalar2)
+	// add(scalar, shape([2, 3]))
+	// matmul(shape([2, 3]), scalar2)
+	// matmul(shape([2, 3]), shape([4, 2]))
 
 	std::string opname_;
 
@@ -114,35 +89,36 @@ struct FunctorTarget final : public opt::iTarget
 
 
 template <typename T>
-struct TargFactory final : public opt::iTargetFactory
+struct TargetFactory final : public opt::iTargetFactory
 {
-	TargFactory (const opt::GraphInfo& graphinfo) :
-		ginfo(&graphinfo) {}
+	TargetFactory (const opt::GraphInfo& graphinfo) :
+		ginfo_(&graphinfo) {}
 
-	opt::TargptrT make_scalar (double scalar) const override
+	opt::TargptrT make_scalar (double scalar,
+		std::string sshape) const override
 	{
-		return std::make_shared<ScalarTarget<T>>(scalar);
+		return std::make_shared<ScalarTarget<T>>(scalar, sshape);
 	}
 
 	opt::TargptrT make_symbol (std::string symbol) const override
 	{
-		return std::make_shared<SymbolTarget<T>>(symbol);
+		return std::make_shared<SymbolTarget<T>>(symbol, *ginfo_);
 	}
 
 	opt::TargptrT make_functor (std::string opname,
-		const google::protobuf::Map<std::string,opt::Attribute>& attrs,
+		const google::protobuf::Map<std::string,query::Attribute>& attrs,
 		const opt::TargptrsT& args) const override
 	{
 		marsh::Maps attrmap;
 		for (const auto& attrpair : attrs)
 		{
 			attrmap.add_attr(attrpair.first,
-				opt::parse(attrpair.second, *ginfo));
+				marsh::ObjptrT(opt::parse(attrpair.second, *ginfo_)));
 		}
-		return std::make_shared<FunctorTarget>(op, args, std::move(attrmap));
+		return std::make_shared<FunctorTarget<T>>(opname, args, std::move(attrmap));
 	}
 
-	const opt::GraphInfo* ginfo;
+	const opt::GraphInfo* ginfo_;
 };
 
 
@@ -235,10 +211,10 @@ TEST(OPTIMIZE, Optimize)
 	teq::OwnerMapT owner = teq::track_owners(roots);
 	opt::GraphInfo graph(sindex, owner);
 
-	TargFactory impl_factory(graph);
+	TargetFactory<double> impl_factory(graph);
 
 	opt::OptRulesT rules;
-	std::ifstream rulefile("cfg/optimizagtions.json");
+	std::ifstream rulefile("cfg/optimizations.json");
 	opt::json_parse(rules, rulefile, impl_factory);
 	opt::optimize(graph, rules);
 }

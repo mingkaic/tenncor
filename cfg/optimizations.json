@@ -255,6 +255,7 @@
 {
     "srcs":[{
         "op":{
+            "capture":"root",
             "opname":"MUL",
             "args":[{
                 "symb":"X"
@@ -264,6 +265,7 @@
         }
     },{
         "op":{
+            "capture":"root",
             "opname":"POW",
             "args":[{
                 "cst":0
@@ -273,6 +275,7 @@
         }
     },{
         "op":{
+            "capture":"root",
             "opname":"DIV",
             "args":[{
                 "cst":0
@@ -282,6 +285,7 @@
         }
     },{
         "op":{
+            "capture":"root",
             "opname":"ADD",
             "args":[{
                 "op":{
@@ -296,7 +300,10 @@
         }
     }],
     "dest":{
-        "cst":0
+        "cst":{
+            "value":0,
+            "shape":"root"
+        }
     }
 },
 {
