@@ -1,5 +1,5 @@
-#ifndef EXPERIMENTAL_OPT_OPTIMIZE_HPP
-#define EXPERIMENTAL_OPT_OPTIMIZE_HPP
+#ifndef EXPERIMENTAL_OPT_APPLY_HPP
+#define EXPERIMENTAL_OPT_APPLY_HPP
 
 #include "experimental/opt/parse.hpp"
 
@@ -10,4 +10,4 @@ void optimize (GraphInfo& graph, const OptRulesT& rules);
 
 }
 
-#endif // EXPERIMENTAL_OPT_OPTIMIZE_HPP
+#endif // EXPERIMENTAL_OPT_APPLY_HPP

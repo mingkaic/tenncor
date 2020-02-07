@@ -15,26 +15,6 @@
 #include "query/stats.hpp"
 #include "query/parse.hpp"
 
-namespace estd
-{
-
-template <typename MAPPABLE>
-using KeyT = typename MAPPABLE::key_type;
-
-template <typename MAPPABLE>
-std::vector<KeyT<MAPPABLE>> get_keys (const MAPPABLE& m)
-{
-	std::vector<KeyT<MAPPABLE>> keys;
-	keys.reserve(m.size());
-	for (const auto& e : m)
-	{
-		keys.push_back(e.first);
-	}
-	return keys;
-}
-
-}
-
 namespace query
 {
 

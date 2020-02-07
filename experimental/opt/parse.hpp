@@ -6,6 +6,7 @@
 
 #include "experimental/opt/target.hpp"
 #include "experimental/opt/rule.hpp"
+#include "experimental/opt/graph.hpp"
 
 namespace opt
 {

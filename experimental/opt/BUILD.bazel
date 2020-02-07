@@ -37,7 +37,16 @@ cc_library(
     deps = [
         "//experimental/opt:opt_cc_proto",
         "//query:query",
-        "//dbg:print",
+    ],
+)
+
+cc_library(
+    name = "eteq",
+    hdrs = glob(["eteq/*.hpp"]),
+    srcs = glob(["eteq/src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//experimental/opt:opt",
         "//eteq:eteq",
     ],
 )
@@ -60,10 +69,10 @@ cc_test(
     srcs = ["//experimental/opt:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//experimental/opt:opt",
-        "//eteq:eteq",
+        "//dbg:print",
+        "//experimental/opt:eteq",
+        "//testutil:tutil",
         "@gtest//:gtest",
-        "@com_github_mingkaic_cppkg//exam:exam",
     ],
     data = [
         "//cfg:optimizations",

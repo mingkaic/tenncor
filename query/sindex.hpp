@@ -27,6 +27,7 @@ struct PathNode final
 	friend bool operator == (const PathNode& a, const PathNode& b)
 	{
 		bool codeq = a.op_ == b.op_;
+		// todo: stop paths at commutative operators
 		if (egen::is_commutative(a.op_) && codeq)
 		{
 			// ignore idx
@@ -88,8 +89,84 @@ struct PathVal final
 using OpTrieT = estd::Trie<PathNodesT,
 	estd::TrieBigNode<PathNode,PathVal,PathNodeHasher>>;
 
+using PathListsT = std::vector<PathListT>;
+
+struct PathInfo final
+{
+	teq::LeafMapT<PathListsT> leaves_;
+
+	teq::FuncMapT<PathListsT> attrs_;
+};
+
+using PathInfoT = teq::LeafMapT<PathListsT>;
+
+using OpPathMapT = std::unordered_map<teq::iTensor*,PathInfo>;
+
+struct OpPathBuilder final : public teq::iTraveler
+{
+	/// Implementation of iTraveler
+	void visit (teq::iLeaf& leaf) override
+	{
+		if (false == estd::has(paths_, &leaf))
+		{
+			paths_[&leaf].leaves_[&leaf].push_back(PathListT{});
+		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (teq::iFunctor& func) override
+	{
+		if (false == estd::has(paths_, &func))
+		{
+			egen::_GENERATED_OPCODE fop =
+				(egen::_GENERATED_OPCODE) func.get_opcode().code_;
+			bool is_comm = egen::is_commutative(fop);
+			auto children = func.get_children();
+			PathInfo& finfo = paths_[&func];
+			for (size_t i = 0, n = children.size(); i < n; ++i)
+			{
+				PathNode node{is_comm ? 0 : i, fop};
+				auto child = children[i];
+				child->accept(*this);
+				// child is a functor with path info
+				PathInfo& cinfo = paths_[child.get()];
+				for (std::pair<teq::iLeaf*,PathListsT>
+					pathpair : cinfo.leaves_)
+				{
+					for (PathListT& path : pathpair.second)
+					{
+						path.push_front(node);
+					}
+					PathListsT& lentries = finfo.leaves_[pathpair.first];
+					lentries.insert(lentries.end(),
+						pathpair.second.begin(), pathpair.second.end());
+				}
+				for (std::pair<teq::iFunctor*,PathListsT>
+					pathpair : cinfo.attrs_)
+				{
+					for (PathListT& path : pathpair.second)
+					{
+						path.push_front(node);
+					}
+					PathListsT& lentries = finfo.attrs_[pathpair.first];
+					lentries.insert(lentries.end(),
+						pathpair.second.begin(), pathpair.second.end());
+				}
+				if (func.ls_attrs().size() > 0)
+				{
+					finfo.attrs_[&func].push_back(PathListT{node});
+				}
+			}
+		}
+	}
+
+	OpPathMapT paths_;
+};
+
+void populate_itable (OpTrieT& itable, const OpPathMapT& opmap);
+
 /// Populate index table of graph structure
-void populate_itable (OpTrieT& itable, teq::TensptrsT roots);
+void populate_itable (OpTrieT& itable, const teq::TensptrsT& roots);
 
 using PathCbF = std::function<void(const PathListT&,const PathVal&)>;
 
