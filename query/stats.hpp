@@ -5,68 +5,135 @@
 namespace query
 {
 
+using TensDepthT = std::pair<const teq::iTensor*,size_t>;
+
+using TensDepthsT = std::vector<TensDepthT>;
+
 struct Stats final
 {
 	friend bool operator == (const Stats& a, const Stats& b)
 	{
-		return a.depth_ == b.depth_ &&
-			a.path_total_ == b.path_total_ &&
-			a.base_str() == b.base_str();
+		// return a.depth_ == b.depth_ &&
+		// 	a.path_total_ == b.path_total_ &&
+		// 	a.to_string() == b.to_string();
+		auto& ad = a.depths_;
+		auto& bd = b.depths_;
+		return ad.size() != bd.size() &&
+			std::equal(ad.begin(), ad.end(), bd.begin(),
+			[](const TensDepthT& l, const TensDepthT& r)
+			{
+				return l.first == r.first && l.second == r.second;
+			});
 	}
 
 	friend bool operator < (const Stats& a, const Stats& b)
 	{
-		if (a.depth_ == b.depth_)
+		size_t ad = a.maxdepth();
+		size_t bd = b.maxdepth();
+		if (ad == bd)
 		{
-			if (a.path_total_ == b.path_total_)
+			if (a.depths_.size() == b.depths_.size())
 			{
-				return a.base_str() < b.base_str();
+				return a.to_string() < b.to_string();
 			}
-			return a.path_total_ < b.path_total_;
+			return a.depths_.size() < b.depths_.size();
 		}
-		return a.depth_ < b.depth_;
+		return ad < bd;
 	}
 
 	friend bool operator > (const Stats& a, const Stats& b)
 	{
-		if (a.depth_ == b.depth_)
+		size_t ad = a.maxdepth();
+		size_t bd = b.maxdepth();
+		if (ad == bd)
 		{
-			if (a.path_total_ == b.path_total_)
+			if (a.depths_.size() == b.depths_.size())
 			{
-				return a.base_str() > b.base_str();
+				return a.to_string() > b.to_string();
 			}
-			return a.path_total_ > b.path_total_;
+			return a.depths_.size() > b.depths_.size();
 		}
-		return a.depth_ > b.depth_;
+		return ad > bd;
+	}
+
+	Stats (void) = default;
+
+	Stats (const teq::iTensor* base, size_t depth)
+	{
+		depths_.push_back(TensDepthT{base, depth});
 	}
 
 	void merge (const Stats& other)
 	{
-		depth_ = std::max(depth_, other.depth_);
-		path_total_ += other.path_total_;
-		bases_.insert(bases_.end(),
-			other.bases_.begin(), other.bases_.end());
+		depths_.insert(depths_.end(),
+			other.depths_.begin(), other.depths_.end());
 	}
 
-	std::string base_str (void) const
+	std::string to_string (void) const
 	{
 		std::vector<std::string> reps;
-		reps.reserve(bases_.size());
-		std::transform(bases_.begin(), bases_.end(),
+		reps.reserve(depths_.size());
+		std::transform(depths_.begin(), depths_.end(),
 			std::back_inserter(reps),
-			[](const teq::iTensor* base)
-			{ return base->to_string() + base->shape().to_string(); });
+			[](const TensDepthT& depth)
+			{
+				const teq::iTensor* tens = depth.first;
+				return tens->to_string() + tens->shape().to_string() +
+					":" + fmts::to_string(depth.second);
+			});
 		return fmts::to_string(reps.begin(), reps.end());
 	}
 
-	size_t depth_;
+	size_t maxdepth (void) const
+	{
+		if (depths_.empty())
+		{
+			return 0;
+		}
+		size_t out = depths_.begin()->second;
+		for (auto it = depths_.begin() + 1, et = depths_.end(); it != et; ++it)
+		{
+			out = std::max(out, it->second);
+		}
+		return out;
+	}
 
-	size_t path_total_;
-
-	teq::CTensT bases_;
+	TensDepthsT depths_;
 };
 
 using StatsMapT = teq::TensMapT<Stats>;
+
+struct GraphStats final : public teq::iTraveler
+{
+	/// Implementation of iTraveler
+	void visit (teq::iLeaf& leaf) override
+	{
+		if (false == estd::has(stats_, &leaf))
+		{
+			stats_.emplace(&leaf, Stats(&leaf, 0));
+		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (teq::iFunctor& func) override
+	{
+		if (false == estd::has(stats_, &func))
+		{
+			auto children = func.get_children();
+			for (auto child : children)
+			{
+				child->accept(*this);
+				for (TensDepthT& depth : stats_.at(child.get()).depths_)
+				{
+					stats_[&func].depths_.push_back(
+						{depth.first, depth.second + 1});
+				}
+			}
+		}
+	}
+
+	StatsMapT stats_;
+};
 
 using TxConsumeF = std::function<void(StatsMapT&,const StatsMapT&)>;
 
@@ -78,7 +145,7 @@ inline void bind_stats (StatsMapT& out, const teq::TensSetT& candidates,
 		[&](teq::iTensor* root)
 		{
 			return std::pair<teq::iTensor*,Stats>{root,
-				Stats{pathlen, pathlen, teq::CTensT{base}}};
+				Stats(base, pathlen)};
 		});
 }
 

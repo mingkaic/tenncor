@@ -60,7 +60,32 @@ void visualize (std::ostream& out, const query::search::OpTrieT& otrie,
 						leaves.push_back(ls.first->to_string());
 					}
 					std::sort(leaves.begin(), leaves.end());
-					out << ",leaves:" << fmts::to_string(leaves.begin(), leaves.end());
+					out << ",leaves:[" << fmts::join(",", leaves.begin(), leaves.end()) << "]";
+				}
+				if (val.attrs_.size() > 0)
+				{
+					std::vector<std::string> attrs;
+					attrs.reserve(val.attrs_.size());
+					for (auto& apair : val.attrs_)
+					{
+						auto attrkeys = apair.first->ls_attrs();
+						std::sort(attrkeys.begin(), attrkeys.end());
+						attrs.push_back(
+							fmts::to_string(attrkeys.begin(), attrkeys.end()));
+					}
+					std::sort(attrs.begin(), attrs.end());
+					out << ",attrs:[" << fmts::join(",", attrs.begin(), attrs.end()) << "]";
+				}
+				if (val.comms_.size() > 0)
+				{
+					std::vector<std::string> comms;
+					comms.reserve(val.comms_.size());
+					for (auto& cpair : val.comms_)
+					{
+						comms.push_back(cpair.first->to_string());
+					}
+					std::sort(comms.begin(), comms.end());
+					out << ",comms:[" << fmts::join(",", comms.begin(), comms.end()) << "]";
 				}
 			}
 		});

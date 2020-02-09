@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_TEST_SINDEX_HPP
+#ifndef DISABLE_SINDEX_TEST
 
 
 #include <fstream>
@@ -118,6 +118,12 @@ TEST(SINDEX, GraphPathPrefix)
 		query::PathNode{0, egen::CONCAT},
 	}));
 	EXPECT_TRUE(itable.contains_prefix(query::PathNodesT{
+		query::PathNode{0, egen::POW},
+		query::PathNode{1, egen::SUB},
+		query::PathNode{1, egen::CONCAT},
+		query::PathNode{0, egen::TANH},
+	}));
+	EXPECT_FALSE(itable.contains_prefix(query::PathNodesT{
 		query::PathNode{0, egen::POW},
 		query::PathNode{1, egen::SUB},
 		query::PathNode{1, egen::CONCAT},
@@ -252,13 +258,17 @@ TEST(SINDEX, GraphPathPossibles)
 			const query::search::PathListT& path,
 			const query::search::PathVal& val)
 		{
+			std::vector<std::string> pathname;
 			for (const auto& node : path)
 			{
-				ss << egen::name_op(node.op_) << ":" << node.idx_ << ",";
+				pathname.push_back(egen::name_op(node.op_) + ":" + fmts::to_string(node.idx_));
 			}
+			ss << fmts::join(",", pathname.begin(), pathname.end());
+			bool line_started = path.size() > 0;
 			ASSERT_TRUE(
 				0 < val.leaves_.size() ||
-				0 < val.attrs_.size());
+				0 < val.attrs_.size() ||
+				0 < val.comms_.size());
 			if (val.leaves_.size() > 0)
 			{
 				std::vector<std::string> leaves;
@@ -268,6 +278,11 @@ TEST(SINDEX, GraphPathPossibles)
 					leaves.push_back(lpair.first->to_string());
 				}
 				std::sort(leaves.begin(), leaves.end());
+				if (line_started)
+				{
+					ss << ",";
+				}
+				line_started = true;
 				ss << "leaves:[" << fmts::join(",", leaves.begin(), leaves.end()) << "]";
 			}
 			if (val.attrs_.size() > 0)
@@ -282,10 +297,32 @@ TEST(SINDEX, GraphPathPossibles)
 						fmts::to_string(attrkeys.begin(), attrkeys.end()));
 				}
 				std::sort(attrs.begin(), attrs.end());
+				if (line_started)
+				{
+					ss << ",";
+				}
+				line_started = true;
 				ss << "attrs:[" << fmts::join(",", attrs.begin(), attrs.end()) << "]";
+			}
+			if (val.comms_.size() > 0)
+			{
+				std::vector<std::string> comms;
+				comms.reserve(val.comms_.size());
+				for (auto& cpair : val.comms_)
+				{
+					comms.push_back(cpair.first->to_string());
+				}
+				std::sort(comms.begin(), comms.end());
+				if (line_started)
+				{
+					ss << ",";
+				}
+				line_started = true;
+				ss << "comms:[" << fmts::join(",", comms.begin(), comms.end()) << "]";
 			}
 			ss << "\n";
 		};
+
 	std::stringstream ss;
 	query::PathNodesT keys = {
 		query::PathNode{0, egen::POW},
@@ -300,53 +337,11 @@ TEST(SINDEX, GraphPathPossibles)
 		}, itable, keys);
 	const char* expect_ss =
 		"CONCAT:0,attrs:[[layer\\rank]]\n"
-		"CONCAT:0,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"CONCAT:0,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"CONCAT:0,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"CONCAT:0,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
-		"CONCAT:0,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
+		"CONCAT:0,TANH:0,comms:[ADD]\n"
 		"CONCAT:1,attrs:[[layer\\rank]]\n"
-		"CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
-		"CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
+		"CONCAT:1,TANH:0,comms:[ADD]\n"
 		"CONCAT:2,attrs:[[layer\\rank]]\n"
-		"CONCAT:2,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"CONCAT:2,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,attrs:[[layer]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:0,CONCAT:1,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n"
-		"CONCAT:2,TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n";
+		"CONCAT:2,TANH:0,comms:[ADD]\n";
 	EXPECT_STREQ(expect_ss, ss.str().c_str());
 
 	std::stringstream ss2;
@@ -364,14 +359,7 @@ TEST(SINDEX, GraphPathPossibles)
 		}, itable, keys2);
 	const char* expect_ss2 =
 		"attrs:[[layer\\rank]]\n"
-		"TANH:0,ADD:0,attrs:[[layer]]\n"
-		"TANH:0,ADD:0,EXTEND:0,leaves:[bias]attrs:[[tensor]]\n"
-		"TANH:0,ADD:0,MATMUL:0,attrs:[[rank_pairs]]\n"
-		"TANH:0,ADD:0,MATMUL:0,CONCAT:0,attrs:[[rank]]\n"
-		"TANH:0,ADD:0,MATMUL:0,CONCAT:0,SLICE:0,leaves:[input]attrs:[[dimension_pairs]]\n"
-		"TANH:0,ADD:0,MATMUL:0,CONCAT:1,attrs:[[rank]]\n"
-		"TANH:0,ADD:0,MATMUL:0,CONCAT:1,EXTEND:0,leaves:[init_state]attrs:[[tensor]]\n"
-		"TANH:0,ADD:0,MATMUL:1,leaves:[weight]attrs:[[rank_pairs]]\n";
+		"TANH:0,comms:[ADD]\n";
 	EXPECT_STREQ(expect_ss2, ss2.str().c_str());
 
 	std::stringstream leaf_ss;
@@ -388,7 +376,62 @@ TEST(SINDEX, GraphPathPossibles)
 		}, itable, leaf_keys);
 	const char* expect_ss_leaf = "leaves:[output]\n";
 	EXPECT_STREQ(expect_ss_leaf, leaf_ss.str().c_str());
+
+	std::stringstream ss3;
+	query::PathNodesT keys3 = {
+		query::PathNode{0, egen::EXTEND},
+	};
+	ASSERT_TRUE(itable.contains_prefix(keys3));
+	query::search::possible_paths(
+		[&](const query::search::PathListT& path,
+			const query::search::PathVal& val)
+		{
+			print_ss(ss3, path, val);
+		}, itable, keys3);
+	const char* expect_ss3 =
+		"leaves:[1,1,1,1,1,1,1,1,1,1,1,1,2,bias,init_state],attrs:[[tensor],[tensor],[tensor],[tensor],[tensor],[tensor],[tensor],[tensor],[tensor],[tensor],[tensor],[tensor],[tensor],[tensor],[tensor],[tensor],[tensor]]\n";
+	EXPECT_STREQ(expect_ss3, ss3.str().c_str());
+
+	std::stringstream ss4;
+	query::PathNodesT keys4 = {
+		query::PathNode{0, egen::MATMUL},
+	};
+	ASSERT_TRUE(itable.contains_prefix(keys4));
+	query::search::possible_paths(
+		[&](const query::search::PathListT& path,
+			const query::search::PathVal& val)
+		{
+			print_ss(ss4, path, val);
+		}, itable, keys4);
+	const char* expect_ss4 =
+		"attrs:[[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs]],comms:[MUL,MUL,MUL,MUL,MUL,MUL,MUL,MUL]\n"
+		"CONCAT:0,attrs:[[rank],[rank],[rank]]\n"
+		"CONCAT:0,SLICE:0,leaves:[input],attrs:[[dimension_pairs],[dimension_pairs],[dimension_pairs]]\n"
+		"CONCAT:1,attrs:[[rank],[rank],[rank]]\n"
+		"CONCAT:1,EXTEND:0,leaves:[init_state],attrs:[[tensor]]\n"
+		"CONCAT:1,TANH:0,comms:[ADD,ADD]\n";
+	EXPECT_STREQ(expect_ss4, ss4.str().c_str());
+
+	std::stringstream ss5;
+	query::PathNodesT keys5 = {
+		query::PathNode{1, egen::MATMUL},
+	};
+	ASSERT_TRUE(itable.contains_prefix(keys5));
+	query::search::possible_paths(
+		[&](const query::search::PathListT& path,
+			const query::search::PathVal& val)
+		{
+			print_ss(ss5, path, val);
+		}, itable, keys5);
+	const char* expect_ss5 =
+		"leaves:[weight],attrs:[[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs],[rank_pairs]]\n"
+		"CONCAT:0,attrs:[[rank],[rank],[rank]]\n"
+		"CONCAT:0,SLICE:0,leaves:[input],attrs:[[dimension_pairs],[dimension_pairs],[dimension_pairs]]\n"
+		"CONCAT:1,attrs:[[rank],[rank],[rank]]\n"
+		"CONCAT:1,EXTEND:0,leaves:[init_state],attrs:[[tensor]]\n"
+		"CONCAT:1,TANH:0,comms:[ADD,ADD]\n";
+	EXPECT_STREQ(expect_ss5, ss5.str().c_str());
 }
 
 
-#endif // DISABLE_TEST_SINDEX_HPP
+#endif // DISABLE_SINDEX_TEST

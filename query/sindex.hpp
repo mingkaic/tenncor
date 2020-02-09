@@ -19,6 +19,8 @@
 
 #include "eigen/generated/opcode.hpp"
 
+#include "query/stats.hpp"
+
 namespace query
 {
 
@@ -26,14 +28,7 @@ struct PathNode final
 {
 	friend bool operator == (const PathNode& a, const PathNode& b)
 	{
-		bool codeq = a.op_ == b.op_;
-		// todo: stop paths at commutative operators
-		if (egen::is_commutative(a.op_) && codeq)
-		{
-			// ignore idx
-			return true;
-		}
-		return a.idx_ == b.idx_ && codeq;
+		return a.idx_ == b.idx_ && a.op_ == b.op_;
 	}
 
 	friend bool operator < (const PathNode& a, const PathNode& b)
@@ -69,7 +64,14 @@ struct PathNodeHasher final
 
 using LSetMapT = teq::LeafMapT<teq::TensSetT>;
 
-using FSetMapT = teq::FuncMapT<teq::TensSetT>;
+struct FuncVal final
+{
+	teq::TensSetT roots_;
+
+	Stats stats_;
+};
+
+using FSetMapT = teq::FuncMapT<FuncVal>;
 
 // path root R to leaf L key maps to mapping different mappings
 struct PathVal final
@@ -79,6 +81,9 @@ struct PathVal final
 
 	// Maps reachable attributable functor F -> set of path roots R
 	FSetMapT attrs_;
+
+	// Maps reachable commutative functor F -> set of path roots R
+	FSetMapT comms_;
 };
 
 // Rationality:
@@ -96,6 +101,8 @@ struct PathInfo final
 	teq::LeafMapT<PathListsT> leaves_;
 
 	teq::FuncMapT<PathListsT> attrs_;
+
+	teq::FuncMapT<PathListsT> comms_;
 };
 
 using PathInfoT = teq::LeafMapT<PathListsT>;
@@ -120,18 +127,25 @@ struct OpPathBuilder final : public teq::iTraveler
 		{
 			egen::_GENERATED_OPCODE fop =
 				(egen::_GENERATED_OPCODE) func.get_opcode().code_;
-			bool is_comm = egen::is_commutative(fop);
-			auto children = func.get_children();
 			PathInfo& finfo = paths_[&func];
+			auto children = func.get_children();
+			if (egen::is_commutative(fop))
+			{
+				paths_[&func].comms_[&func].push_back(PathListT{});
+				for (auto& child : children)
+				{
+					child->accept(*this);
+				}
+				return;
+			}
 			for (size_t i = 0, n = children.size(); i < n; ++i)
 			{
-				PathNode node{is_comm ? 0 : i, fop};
+				PathNode node{i, fop};
 				auto child = children[i];
 				child->accept(*this);
 				// child is a functor with path info
 				PathInfo& cinfo = paths_[child.get()];
-				for (std::pair<teq::iLeaf*,PathListsT>
-					pathpair : cinfo.leaves_)
+				for (auto pathpair : cinfo.leaves_)
 				{
 					for (PathListT& path : pathpair.second)
 					{
@@ -141,8 +155,7 @@ struct OpPathBuilder final : public teq::iTraveler
 					lentries.insert(lentries.end(),
 						pathpair.second.begin(), pathpair.second.end());
 				}
-				for (std::pair<teq::iFunctor*,PathListsT>
-					pathpair : cinfo.attrs_)
+				for (auto pathpair : cinfo.attrs_)
 				{
 					for (PathListT& path : pathpair.second)
 					{
@@ -151,6 +164,16 @@ struct OpPathBuilder final : public teq::iTraveler
 					PathListsT& lentries = finfo.attrs_[pathpair.first];
 					lentries.insert(lentries.end(),
 						pathpair.second.begin(), pathpair.second.end());
+				}
+				for (auto compair : cinfo.comms_)
+				{
+					for (PathListT& path : compair.second)
+					{
+						path.push_front(node);
+					}
+					PathListsT& centries = finfo.comms_[compair.first];
+					centries.insert(centries.end(),
+						compair.second.begin(), compair.second.end());
 				}
 				if (func.ls_attrs().size() > 0)
 				{

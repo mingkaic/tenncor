@@ -35,8 +35,17 @@ inline teq::iTensor* walk (teq::iTensor* root, const PathNodesT& path)
 {
 	for (const PathNode& node : path)
 	{
-		root = static_cast<teq::iFunctor*>(root)->
-			get_children().at(node.idx_).get();
+		auto f = dynamic_cast<teq::iFunctor*>(root);
+		if (nullptr == f)
+		{
+			return nullptr;
+		}
+		auto children = f->get_children();
+		if (node.idx_ >= children.size())
+		{
+			return nullptr;
+		}
+		root = children.at(node.idx_).get();
 	}
 	return root;
 }
@@ -270,21 +279,23 @@ struct Query
 		std::sort(results.begin(), results.end(),
 			[&](QueryResult& a, QueryResult& b)
 			{
-				if (order[a.root_] == order[b.root_])
+				std::string astr = a.root_->to_string() + ":" +
+					a.root_->shape().to_string();
+				std::string bstr = b.root_->to_string() + ":" +
+					b.root_->shape().to_string();
+				if (astr == bstr)
 				{
-					std::string ashape = a.root_->shape().to_string();
-					std::string bshape = b.root_->shape().to_string();
 					if (depth_asc)
 					{
-						return ashape < bshape;
+						return order[a.root_] < order[b.root_];
 					}
-					return ashape > bshape;
+					return order[a.root_] > order[b.root_];
 				}
 				if (depth_asc)
 				{
-					return order[a.root_] < order[b.root_];
+					return astr < bstr;
 				}
-				return order[a.root_] > order[b.root_];
+				return astr > bstr;
 			});
 	}
 

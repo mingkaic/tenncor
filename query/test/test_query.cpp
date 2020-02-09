@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_QUERY_HPP
+#ifndef DISABLE_QUERY_TEST
 
 
 #include "gtest/gtest.h"
@@ -1117,12 +1117,11 @@ TEST(QUERY, CommutativeMismatcher)
 		"}";
 	query::QResultsT results;
 	q.where(inss).exec(results);
-	// ASSERT_EQ(0, results.size());
-	ASSERT_EQ(3, results.size());
-
-	EXPECT_GRAPHEQ(
-		"", results[0].root_);
+	ASSERT_EQ(0, results.size());
 }
 
 
-#endif // DISABLE_QUERY_HPP
+// match commutative with attributes
+
+
+#endif // DISABLE_QUERY_TEST

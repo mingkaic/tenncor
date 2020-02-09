@@ -39,7 +39,29 @@ static void any_condition (Transaction& ctx,
 			for (const auto& apair : val.attrs_)
 			{
 				StatsMapT smap;
-				bind_stats(smap, apair.second, apair.first, depth);
+				auto attr = apair.second;
+				for (teq::iTensor* root : attr.roots_)
+				{
+					for (auto& spair : attr.stats_.depths_)
+					{
+						spair.second += depth;
+					}
+					smap.emplace(root, attr.stats_);
+				}
+				union_stats(subresults, smap);
+			}
+			for (const auto& cpair : val.comms_)
+			{
+				StatsMapT smap;
+				auto comm = cpair.second;
+				for (teq::iTensor* root : comm.roots_)
+				{
+					for (auto& spair : comm.stats_.depths_)
+					{
+						spair.second += depth;
+					}
+					smap.emplace(root, comm.stats_);
+				}
 				union_stats(subresults, smap);
 			}
 		}, path.last_trie());
@@ -51,11 +73,113 @@ static void any_condition (Transaction& ctx,
 	path.consume(ctx, subresults);
 }
 
+static void comms_matches (Transaction& ctx,
+	const SearchList& path, const Operator& op)
+{
+	egen::_GENERATED_OPCODE opcode = egen::get_op(op.opname());
+	auto tri = path.last_trie();
+	if (false == tri->leaf_.has_value() || tri->leaf_->comms_.empty())
+	{
+		ctx.fail();
+		return;
+	}
+	const auto& args = op.args();
+	const search::FSetMapT& comms = tri->leaf_->comms_;
+	teq::FuncSetT comset;
+	for (const auto& comm : comms)
+	{
+		teq::iFunctor* cf = comm.first;
+		if (cf->to_string() == op.opname())
+		{
+			comset.emplace(cf);
+		}
+	}
+	if (args.empty())
+	{
+		StatsMapT subresult;
+		for (auto& cf : comset)
+		{
+			StatsMapT smap;
+			auto& comm = comms.at(cf);
+			for (teq::iTensor* root : comm.roots_)
+			{
+				smap.emplace(root, comm.stats_);
+			}
+			union_stats(subresult, smap);
+		}
+		path.consume(ctx, subresult);
+		return;
+	}
+	StatsMapT subresults;
+	teq::TensMapT<std::unordered_set<size_t>> indices;
+	for (size_t i = 0, n = args.size(); i < n; ++i)
+	{
+		const Node& cond = args[i];
+		auto nextpath = path.next(PathNode{i, opcode});
+		nextpath.last_trie() = nextpath.front_trie();
+		nextpath.last_->consume_ =
+		[&](StatsMapT& out, const StatsMapT& other)
+		{
+			for (const auto& o : other)
+			{
+				subresults.emplace(o);
+				indices[o.first].emplace(i);
+			}
+		};
+		lookfor(ctx, nextpath, cond);
+	}
+
+	StatsMapT results;
+	for (auto& cf : comset)
+	{
+		auto children = cf->get_children();
+		std::vector<size_t> matches(args.size(), 0);
+		for (teq::TensptrT child : children)
+		{
+			if (estd::has(indices, child.get()))
+			{
+				for (size_t index : indices[child.get()])
+				{
+					++matches[index];
+				}
+			}
+		}
+		// # of matches >= # needed matches -> take cf
+		if (std::all_of(matches.begin(), matches.end(),
+			[](size_t i) { return i > 0; }))
+		{
+			Stats stats;
+			for (teq::TensptrT child : children)
+			{
+				stats.merge(subresults.at(child.get()));
+			}
+			for (teq::iTensor* root : comms.at(cf).roots_)
+			{
+				results.emplace(root, stats);
+			}
+		}
+	}
+	if (results.empty())
+	{
+		ctx.fail();
+	}
+	else
+	{
+		path.consume(ctx, results);
+	}
+}
+
 // Return true if there's at least one result
 static void iterate_condition (Transaction& ctx,
 	const SearchList& path, const Operator& op)
 {
 	egen::_GENERATED_OPCODE opcode = egen::get_op(op.opname());
+	if (egen::is_commutative(opcode))
+	{
+		// trie can't handle commutative operators, so handle manually
+		comms_matches(ctx, path, op);
+		return;
+	}
 	const auto& args = op.args();
 	if (args.empty())
 	{
@@ -167,7 +291,7 @@ void lookfor (Transaction& ctx, const SearchList& path,
 						auto f = dynamic_cast<teq::iFunctor*>(apair.first);
 						if (estd::has(attr_matches, f))
 						{
-							for (auto target_root : attr_matches.at(f))
+							for (auto target_root : attr_matches.at(f).roots_)
 							{
 								attr_results.emplace(target_root, apair.second);
 							}

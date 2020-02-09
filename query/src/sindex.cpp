@@ -10,6 +10,7 @@ namespace search
 
 void populate_itable (OpTrieT& itable, const OpPathMapT& opmap)
 {
+	GraphStats stater;
 	for (auto& pathpair : opmap)
 	{
 		const PathInfo& info = pathpair.second;
@@ -27,10 +28,42 @@ void populate_itable (OpTrieT& itable, const OpPathMapT& opmap)
 		{
 			auto attr = attrpair.first;
 			auto& paths = attrpair.second;
+
+			attr->accept(stater);
+			Stats& astat = stater.stats_.at(attr);
 			for (auto& path : paths)
 			{
-				itable.emplace(PathNodesT(path.begin(), path.end()),
-					PathVal()).attrs_[attr].emplace(pathpair.first);
+				auto& attrs = itable.emplace(PathNodesT(
+					path.begin(), path.end()), PathVal()).attrs_;
+				if (estd::has(attrs, attr))
+				{
+					attrs[attr].roots_.emplace(pathpair.first);
+				}
+				else
+				{
+					attrs.emplace(attr, FuncVal{{pathpair.first}, astat});
+				}
+			}
+		}
+		for (auto& commpair : info.comms_)
+		{
+			auto comm = commpair.first;
+			auto& paths = commpair.second;
+
+			comm->accept(stater);
+			Stats& cstat = stater.stats_.at(comm);
+			for (auto& path : paths)
+			{
+				auto& comms = itable.emplace(PathNodesT(
+					path.begin(), path.end()), PathVal()).comms_;
+				if (estd::has(comms, comm))
+				{
+					comms[comm].roots_.emplace(pathpair.first);
+				}
+				else
+				{
+					comms.emplace(comm, FuncVal{{pathpair.first}, cstat});
+				}
 			}
 		}
 	}

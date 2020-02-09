@@ -69,6 +69,7 @@ struct GraphStat final : public iTraveler
 		graphsize_.emplace(&leaf, estd::NumRange<size_t>());
 	}
 
+	/// Implementation of iTraveler
 	void visit (iFunctor& func) override
 	{
 		if (estd::has(graphsize_, &func))
@@ -84,7 +85,8 @@ struct GraphStat final : public iTraveler
 		for (TensptrT child : children)
 		{
 			child->accept(*this);
-			estd::NumRange<size_t> range = estd::must_getf(graphsize_, child.get(),
+			estd::NumRange<size_t> range =
+				estd::must_getf(graphsize_, child.get(),
 				"GraphStat failed to visit child `%s` of functor `%s`",
 					child->to_string().c_str(), func.to_string().c_str());
 			max_heights.push_back(range.upper_);
