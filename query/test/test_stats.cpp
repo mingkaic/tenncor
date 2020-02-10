@@ -11,9 +11,9 @@
 
 TEST(STATS, Compare)
 {
-	auto smol = eteq::make_constant_scalar<double>(1, teq::Shape({5, 1}));
-	auto med = eteq::make_constant_scalar<double>(2, teq::Shape({5, 1}));
-	auto big = eteq::make_constant_scalar<double>(2, teq::Shape({5, 2}));
+	eteq::ETensor<double> smol = eteq::make_constant_scalar<double>(1, teq::Shape({5, 1}));
+	eteq::ETensor<double> med = eteq::make_constant_scalar<double>(2, teq::Shape({5, 1}));
+	eteq::ETensor<double> big = eteq::make_constant_scalar<double>(2, teq::Shape({5, 2}));
 	query::Stats a(smol.get(), 1);
 	query::Stats b(med.get(), 1);
 	query::Stats c(big.get(), 1);

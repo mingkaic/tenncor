@@ -138,10 +138,16 @@ static void comms_matches (Transaction& ctx,
 		{
 			if (estd::has(indices, child.get()))
 			{
+				assert(estd::has(subresults, child.get()));
 				for (size_t index : indices[child.get()])
 				{
 					++matches[index];
 				}
+			}
+			else
+			{
+				std::fill(matches.begin(), matches.end(), 0);
+				break;
 			}
 		}
 		// # of matches >= # needed matches -> take cf
