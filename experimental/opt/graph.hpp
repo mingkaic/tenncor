@@ -50,12 +50,11 @@ struct GraphInfo final
 
 	void replace (const teq::TensMapT<teq::TensptrT>& converts)
 	{
-		teq::ParentMapT pmap;
 		for (const auto& convert : converts)
 		{
 			teq::iTensor* src = convert.first;
 			teq::TensptrT target = convert.second;
-			if (estd::get(pmap, parents_, src))
+			if (estd::has(parents_, src))
 			{
 				// for ancestors of src, clean pbuilder_.paths_ info
 				std::queue<teq::iTensor*> q;
@@ -64,8 +63,9 @@ struct GraphInfo final
 				{
 					teq::iTensor* parent = q.front();
 					pbuilder_.paths_.erase(parent);
-					if (estd::get(pmap, parents_, parent))
+					if (estd::has(parents_, parent))
 					{
+						teq::ParentMapT& pmap = parents_.at(parent);
 						for (auto& ppair : pmap)
 						{
 							q.push(ppair.first);
@@ -76,6 +76,7 @@ struct GraphInfo final
 
 				// update parents_
 				teq::ParentMapT& tmap = parents_[target.get()];
+				teq::ParentMapT& pmap = parents_.at(src);
 				for (auto& ppair : pmap)
 				{
 					auto f = static_cast<teq::iFunctor*>(ppair.first);
