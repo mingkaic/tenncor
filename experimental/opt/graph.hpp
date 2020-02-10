@@ -50,10 +50,19 @@ struct GraphInfo final
 
 	void replace (const teq::TensMapT<teq::TensptrT>& converts)
 	{
+		teq::TensMapT<teq::TensSetT> clean_children;
 		for (const auto& convert : converts)
 		{
 			teq::iTensor* src = convert.first;
 			teq::TensptrT target = convert.second;
+			if (auto f = dynamic_cast<teq::iFunctor*>(src))
+			{
+				auto children = f->get_children();
+				for (auto child : children)
+				{
+					clean_children[child.get()].emplace(src);
+				}
+			}
 			if (estd::has(parents_, src))
 			{
 				// for ancestors of src, clean pbuilder_.paths_ info
@@ -89,20 +98,15 @@ struct GraphInfo final
 			}
 		}
 		// cleanup parents_
-		for (const auto& convert : converts)
+		for (auto childpair : clean_children)
 		{
-			// stop src children from referencing src
-			teq::iTensor* src = convert.first;
-			if (auto f = dynamic_cast<teq::iFunctor*>(src))
+			for (teq::iTensor* src : childpair.second)
 			{
-				auto children = f->get_children();
-				for (teq::TensptrT child : children)
-				{
-					parents_[child.get()].erase(src);
-				}
+				// remove src children references in parents_
+				parents_[childpair.first].erase(src);
+				// remove src references in parents_
+				parents_.erase(src);
 			}
-			// remove src references in parents_
-			parents_.erase(src);
 		}
 		// update pbuilder_
 		for (auto root : roots_)
