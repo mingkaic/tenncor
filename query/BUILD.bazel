@@ -68,6 +68,7 @@ cc_test(
     srcs = ["//query:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        "//teq:mock_teq",
         "//dbg:print",
         "//eteq:eteq",
         "//testutil:tutil",

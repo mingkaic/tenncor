@@ -2,17 +2,23 @@
 #ifndef EXPERIMENTAL_OPT_GRAPH_HPP
 #define EXPERIMENTAL_OPT_GRAPH_HPP
 
-#include <queue>
+#include <list>
 
 #include "query/query.hpp"
 
 namespace opt
 {
 
+// Map of tensors to shared pointers
+// to actually own tensors to avoid early deletion
+using OwnersT = teq::TensMapT<teq::TensptrT>;
+
+OwnersT convert_ownermap (const teq::OwnerMapT& omap);
+
 struct GraphInfo final
 {
 	GraphInfo (teq::TensptrsT roots) :
-		owners_(teq::track_owners(roots))
+		owners_(convert_ownermap(teq::track_owners(roots)))
 	{
 		teq::ParentFinder pfinder;
 		for (auto root : roots)
@@ -43,7 +49,7 @@ struct GraphInfo final
 			std::back_inserter(outs),
 			[this](const query::QueryResult& result)
 			{
-				return owners_.at(result.root_).lock();
+				return owners_.at(result.root_);
 			});
 		return outs;
 	}
@@ -66,21 +72,26 @@ struct GraphInfo final
 			if (estd::has(parents_, src))
 			{
 				// for ancestors of src, clean pbuilder_.paths_ info
-				std::queue<teq::iTensor*> q;
-				q.push(src);
+				std::list<teq::iTensor*> q = {src};
+				teq::TensSetT clean_pars;
 				while (false == q.empty())
 				{
 					teq::iTensor* parent = q.front();
+					q.pop_front();
 					pbuilder_.paths_.erase(parent);
 					if (estd::has(parents_, parent))
 					{
 						teq::ParentMapT& pmap = parents_.at(parent);
 						for (auto& ppair : pmap)
 						{
-							q.push(ppair.first);
+							if (false == estd::has(
+								clean_pars, ppair.first))
+							{
+								q.push_back(ppair.first);
+								clean_pars.emplace(ppair.first);
+							}
 						}
 					}
-					q.pop();
 				}
 
 				// update parents_
@@ -96,6 +107,10 @@ struct GraphInfo final
 					tmap.emplace(ppair);
 				}
 			}
+
+			// update owners and track changes regarding target
+			owners_.emplace(target.get(), target);
+			changes_[src] = target;
 		}
 		// cleanup parents_
 		for (auto childpair : clean_children)
@@ -111,6 +126,10 @@ struct GraphInfo final
 		// update pbuilder_
 		for (auto root : roots_)
 		{
+			if (estd::has(changes_, root))
+			{
+				root = changes_.at(root).get();
+			}
 			root->accept(pbuilder_);
 		}
 		// update sindex_
@@ -120,12 +139,14 @@ struct GraphInfo final
 
 	teq::TensT roots_;
 
-	teq::OwnerMapT owners_;
+	OwnersT owners_; // todo: cleanup everything properly instead of keeping dangling leaves
 
 	// sindex_ built from pbuilder_.paths_
 	query::search::OpTrieT sindex_;
 
 	teq::TensMapT<teq::ParentMapT> parents_;
+
+	teq::TensMapT<teq::TensptrT> changes_;
 
 private:
 	query::search::OpPathBuilder pbuilder_;

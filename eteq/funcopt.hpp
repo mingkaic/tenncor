@@ -21,6 +21,35 @@ struct FuncOpt final
 	}
 };
 
+struct NnaryOpt
+{
+	virtual ~NnaryOpt (void) = default;
+
+	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	{
+		bool redundant = shapes.size() < 2;
+		if (redundant)
+		{
+			// assuming empty args is handled before
+			teq::debug("redundantly performing nnary op on a single arg... "
+				"treating as identity");
+		}
+		return redundant;
+	}
+};
+
+template <>
+struct FuncOpt<egen::ADD> final : private NnaryOpt
+{
+	using NnaryOpt::is_redundant;
+};
+
+template <>
+struct FuncOpt<egen::MUL> final : private NnaryOpt
+{
+	using NnaryOpt::is_redundant;
+};
+
 struct ReduceOpt
 {
 	virtual ~ReduceOpt (void) = default;

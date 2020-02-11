@@ -5,8 +5,9 @@
 namespace opt
 {
 
-void optimize (GraphInfo& graph, const OptRulesT& rules)
+bool optimize (GraphInfo& graph, const OptRulesT& rules)
 {
+	bool converted = false;
 	for (const OptRule& rule : rules)
 	{
 		query::QResultsT results;
@@ -15,6 +16,7 @@ void optimize (GraphInfo& graph, const OptRulesT& rules)
 		q.exec(results);
 		if (results.size() > 0)
 		{
+			converted = true;
 			teq::TensMapT<teq::TensptrT> converts;
 			for (query::QueryResult& result : results)
 			{
@@ -24,6 +26,7 @@ void optimize (GraphInfo& graph, const OptRulesT& rules)
 			graph.replace(converts);
 		}
 	}
+	return converted;
 }
 
 }

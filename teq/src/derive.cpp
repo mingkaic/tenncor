@@ -40,7 +40,9 @@ TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs)
 	// using pathfinder, breadth first traverse from this to wrt
 	OwnerMapT owners = track_owners({root});
 	GraphStat stat;
+	GraphIndex indexer;
 	root->accept(stat);
+	root->accept(indexer);
 
 	std::list<iFunctor*> parents; // todo: make parent order not dependent on sorting algorithm by sorting by order visited
 	std::transform(roadmap.begin(), roadmap.end(),
@@ -56,7 +58,13 @@ TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs)
 			size_t bheight = stat.graphsize_[b].upper_;
 			if (aheight == bheight) // make traversal more deterministic
 			{
-				return a->to_string() > b->to_string();
+				std::string astr = a->to_string();
+				std::string bstr = b->to_string();
+				if (astr == bstr)
+				{
+					return indexer.at(a) > indexer.at(b);
+				}
+				return astr > bstr;
 			}
 			return aheight > bheight;
 		});

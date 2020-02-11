@@ -50,7 +50,7 @@ struct ConstantTarget final : public opt::iTarget
 	{
 		auto root = candidates.at("root");
 		teq::Session sess = eigen::get_session();
-		sess.track({graph_->owners_.at(root).lock()});
+		sess.track({graph_->owners_.at(root)});
 		sess.update_target({root});
 		T* data = (T*) root->device().data();
 		return make_constant(data, root->shape());

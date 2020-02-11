@@ -19,7 +19,7 @@
 
 #include "eigen/generated/opcode.hpp"
 
-#include "query/stats.hpp"
+#include "query/position.hpp"
 
 namespace query
 {
@@ -68,7 +68,7 @@ struct FuncVal final
 {
 	teq::TensSetT roots_;
 
-	Stats stats_;
+	TensPosition positions_;
 };
 
 using FSetMapT = teq::FuncMapT<FuncVal>;

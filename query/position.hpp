@@ -1,6 +1,8 @@
 
-#ifndef QUERY_STATS_HPP
-#define QUERY_STATS_HPP
+#ifndef TEQ_STATS_HPP
+#define TEQ_STATS_HPP
+
+#include "teq/itensor.hpp"
 
 namespace query
 {
@@ -9,9 +11,9 @@ using TensDepthT = std::pair<const teq::iTensor*,size_t>;
 
 using TensDepthsT = std::vector<TensDepthT>;
 
-struct Stats final
+struct TensPosition final
 {
-	friend bool operator == (const Stats& a, const Stats& b)
+	friend bool operator == (const TensPosition& a, const TensPosition& b)
 	{
 		// return a.depth_ == b.depth_ &&
 		// 	a.path_total_ == b.path_total_ &&
@@ -26,7 +28,7 @@ struct Stats final
 			});
 	}
 
-	friend bool operator < (const Stats& a, const Stats& b)
+	friend bool operator < (const TensPosition& a, const TensPosition& b)
 	{
 		size_t ad = a.maxdepth();
 		size_t bd = b.maxdepth();
@@ -41,7 +43,7 @@ struct Stats final
 		return ad < bd;
 	}
 
-	friend bool operator > (const Stats& a, const Stats& b)
+	friend bool operator > (const TensPosition& a, const TensPosition& b)
 	{
 		size_t ad = a.maxdepth();
 		size_t bd = b.maxdepth();
@@ -56,14 +58,14 @@ struct Stats final
 		return ad > bd;
 	}
 
-	Stats (void) = default;
+	TensPosition (void) = default;
 
-	Stats (const teq::iTensor* base, size_t depth)
+	TensPosition (const teq::iTensor* base, size_t depth)
 	{
 		depths_.push_back(TensDepthT{base, depth});
 	}
 
-	void merge (const Stats& other)
+	void merge (const TensPosition& other)
 	{
 		depths_.insert(depths_.end(),
 			other.depths_.begin(), other.depths_.end());
@@ -101,55 +103,58 @@ struct Stats final
 	TensDepthsT depths_;
 };
 
-using StatsMapT = teq::TensMapT<Stats>;
+using PosMapT = teq::TensMapT<TensPosition>;
 
-struct GraphStats final : public teq::iTraveler
+struct GraphPosition final : public teq::iTraveler
 {
 	/// Implementation of iTraveler
 	void visit (teq::iLeaf& leaf) override
 	{
-		if (false == estd::has(stats_, &leaf))
-		{
-			stats_.emplace(&leaf, Stats(&leaf, 0));
-		}
+		positions_.emplace(&leaf, TensPosition(&leaf, 0));
 	}
 
 	/// Implementation of iTraveler
 	void visit (teq::iFunctor& func) override
 	{
-		if (false == estd::has(stats_, &func))
+		if (estd::has(positions_, &func))
 		{
-			auto children = func.get_children();
-			for (auto child : children)
+			return;
+		}
+		auto children = func.get_children();
+		auto& depths = positions_[&func].depths_;
+		for (auto child : children)
+		{
+			child->accept(*this);
+			for (TensDepthT& depth : positions_.at(child.get()).depths_)
 			{
-				child->accept(*this);
-				for (TensDepthT& depth : stats_.at(child.get()).depths_)
-				{
-					stats_[&func].depths_.push_back(
-						{depth.first, depth.second + 1});
-				}
+				depths.push_back({depth.first, depth.second + 1});
 			}
 		}
 	}
 
-	StatsMapT stats_;
+	const TensPosition& at (teq::iTensor* tens) const
+	{
+		return positions_.at(tens);
+	}
+
+	PosMapT positions_;
 };
 
-using TxConsumeF = std::function<void(StatsMapT&,const StatsMapT&)>;
+using TxConsumeF = std::function<void(PosMapT&,const PosMapT&)>;
 
-inline void bind_stats (StatsMapT& out, const teq::TensSetT& candidates,
+inline void bind_position (PosMapT& out, const teq::TensSetT& candidates,
 	const teq::iTensor* base, size_t pathlen)
 {
 	std::transform(candidates.begin(), candidates.end(),
 		std::inserter(out, out.end()),
 		[&](teq::iTensor* root)
 		{
-			return std::pair<teq::iTensor*,Stats>{root,
-				Stats(base, pathlen)};
+			return std::pair<teq::iTensor*,TensPosition>{root,
+				TensPosition(base, pathlen)};
 		});
 }
 
-inline void union_stats (StatsMapT& out, const StatsMapT& other)
+inline void union_position (PosMapT& out, const PosMapT& other)
 {
 	for (auto& opair : other)
 	{
@@ -164,7 +169,7 @@ inline void union_stats (StatsMapT& out, const StatsMapT& other)
 	}
 }
 
-inline void intersect_stats (StatsMapT& out, const StatsMapT& other)
+inline void intersect_position (PosMapT& out, const PosMapT& other)
 {
 	for (auto it = out.begin(), et = out.end(); it != et;)
 	{
@@ -182,4 +187,4 @@ inline void intersect_stats (StatsMapT& out, const StatsMapT& other)
 
 }
 
-#endif // QUERY_STATS_HPP
+#endif // TEQ_STATS_HPP

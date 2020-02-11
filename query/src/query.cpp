@@ -23,7 +23,7 @@ static PathNodesT pathify (const SearchList& list)
 static void any_condition (Transaction& ctx,
 	const SearchList& path, const std::string& symb = "")
 {
-	StatsMapT subresults;
+	PosMapT subresults;
 	size_t tri_depth = path.size();
 	search::possible_paths(
 		[&subresults, tri_depth](
@@ -32,37 +32,37 @@ static void any_condition (Transaction& ctx,
 			size_t depth = tri_depth + path.size();
 			for (const auto& lpair : val.leaves_)
 			{
-				StatsMapT smap;
-				bind_stats(smap, lpair.second, lpair.first, depth);
-				union_stats(subresults, smap);
+				PosMapT smap;
+				bind_position(smap, lpair.second, lpair.first, depth);
+				union_position(subresults, smap);
 			}
 			for (const auto& apair : val.attrs_)
 			{
-				StatsMapT smap;
+				PosMapT smap;
 				auto attr = apair.second;
 				for (teq::iTensor* root : attr.roots_)
 				{
-					for (auto& spair : attr.stats_.depths_)
+					for (auto& spair : attr.positions_.depths_)
 					{
 						spair.second += depth;
 					}
-					smap.emplace(root, attr.stats_);
+					smap.emplace(root, attr.positions_);
 				}
-				union_stats(subresults, smap);
+				union_position(subresults, smap);
 			}
 			for (const auto& cpair : val.comms_)
 			{
-				StatsMapT smap;
+				PosMapT smap;
 				auto comm = cpair.second;
 				for (teq::iTensor* root : comm.roots_)
 				{
-					for (auto& spair : comm.stats_.depths_)
+					for (auto& spair : comm.positions_.depths_)
 					{
 						spair.second += depth;
 					}
-					smap.emplace(root, comm.stats_);
+					smap.emplace(root, comm.positions_);
 				}
-				union_stats(subresults, smap);
+				union_position(subresults, smap);
 			}
 		}, path.last_trie());
 	// for each subresult travel through path
@@ -96,21 +96,21 @@ static void comms_matches (Transaction& ctx,
 	}
 	if (args.empty())
 	{
-		StatsMapT subresult;
+		PosMapT subresult;
 		for (auto& cf : comset)
 		{
-			StatsMapT smap;
+			PosMapT smap;
 			auto& comm = comms.at(cf);
 			for (teq::iTensor* root : comm.roots_)
 			{
-				smap.emplace(root, comm.stats_);
+				smap.emplace(root, comm.positions_);
 			}
-			union_stats(subresult, smap);
+			union_position(subresult, smap);
 		}
 		path.consume(ctx, subresult);
 		return;
 	}
-	StatsMapT subresults;
+	PosMapT subresults;
 	teq::TensMapT<std::unordered_set<size_t>> indices;
 	for (size_t i = 0, n = args.size(); i < n; ++i)
 	{
@@ -118,7 +118,7 @@ static void comms_matches (Transaction& ctx,
 		auto nextpath = path.next(PathNode{i, opcode});
 		nextpath.last_trie() = nextpath.front_trie();
 		nextpath.last_->consume_ =
-		[&](StatsMapT& out, const StatsMapT& other)
+		[&](PosMapT& out, const PosMapT& other)
 		{
 			for (const auto& o : other)
 			{
@@ -129,7 +129,7 @@ static void comms_matches (Transaction& ctx,
 		lookfor(ctx, nextpath, cond);
 	}
 
-	StatsMapT results;
+	PosMapT results;
 	for (auto& cf : comset)
 	{
 		auto children = cf->get_children();
@@ -154,7 +154,7 @@ static void comms_matches (Transaction& ctx,
 		if (std::all_of(matches.begin(), matches.end(),
 			[](size_t i) { return i > 0; }))
 		{
-			Stats stats;
+			TensPosition stats;
 			for (teq::TensptrT child : children)
 			{
 				stats.merge(subresults.at(child.get()));
@@ -192,22 +192,22 @@ static void iterate_condition (Transaction& ctx,
 		any_condition(ctx, path.next(PathNode{0, opcode}));
 		return;
 	}
-	StatsMapT results;
+	PosMapT results;
 	lookfor(ctx, path.next(PathNode{0, opcode},
-		[&results](StatsMapT& out, const StatsMapT& other)
+		[&results](PosMapT& out, const PosMapT& other)
 		{
-			union_stats(results, other);
+			union_position(results, other);
 		}), args[0]);
 	for (size_t i = 1, n = args.size();
 		i < n && false == results.empty(); ++i)
 	{
-		StatsMapT subresults;
+		PosMapT subresults;
 		lookfor(ctx, path.next(PathNode{i, opcode},
-			[&subresults](StatsMapT& out, const StatsMapT& other)
+			[&subresults](PosMapT& out, const PosMapT& other)
 			{
-				union_stats(subresults, other);
+				union_position(subresults, other);
 			}), args[i]);
-		intersect_stats(results, subresults);
+		intersect_position(results, subresults);
 	}
 	path.consume(ctx, results);
 }
@@ -286,11 +286,11 @@ void lookfor (Transaction& ctx, const SearchList& path,
 				}
 				// match the rest of the condition subgraph from trie root
 				// in order to filter for matching attributable functors
-				StatsMapT attr_results;
+				PosMapT attr_results;
 				TxConsumeF orig_consume = path.last_->consume_;
 				path.last_trie() = path.front_trie();
 				path.last_->consume_ =
-				[&attr_results, &attr_matches](StatsMapT& out, const StatsMapT& other)
+				[&attr_results, &attr_matches](PosMapT& out, const PosMapT& other)
 				{
 					for (const auto& apair : other)
 					{

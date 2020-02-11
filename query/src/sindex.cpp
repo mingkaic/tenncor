@@ -10,7 +10,7 @@ namespace search
 
 void populate_itable (OpTrieT& itable, const OpPathMapT& opmap)
 {
-	GraphStats stater;
+	GraphPosition stater;
 	for (auto& pathpair : opmap)
 	{
 		const PathInfo& info = pathpair.second;
@@ -30,7 +30,7 @@ void populate_itable (OpTrieT& itable, const OpPathMapT& opmap)
 			auto& paths = attrpair.second;
 
 			attr->accept(stater);
-			Stats& astat = stater.stats_.at(attr);
+			TensPosition& astat = stater.positions_.at(attr);
 			for (auto& path : paths)
 			{
 				auto& attrs = itable.emplace(PathNodesT(
@@ -51,7 +51,7 @@ void populate_itable (OpTrieT& itable, const OpPathMapT& opmap)
 			auto& paths = commpair.second;
 
 			comm->accept(stater);
-			Stats& cstat = stater.stats_.at(comm);
+			TensPosition& cstat = stater.positions_.at(comm);
 			for (auto& path : paths)
 			{
 				auto& comms = itable.emplace(PathNodesT(

@@ -35,7 +35,7 @@ struct SymbolTarget final : public opt::iTarget
 
 	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
-		return graph_->owners_.at(candidates.at(symb_)).lock();
+		return graph_->owners_.at(candidates.at(symb_));
 	}
 
 	std::string symb_;

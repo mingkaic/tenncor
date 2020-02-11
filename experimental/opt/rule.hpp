@@ -4,6 +4,8 @@
 
 #include "query/query.hpp"
 
+#include "experimental/opt/target.hpp"
+
 namespace opt
 {
 

@@ -12,7 +12,7 @@
 #include <optional>
 
 #include "query/sindex.hpp"
-#include "query/stats.hpp"
+#include "query/position.hpp"
 #include "query/parse.hpp"
 
 namespace query
@@ -86,7 +86,7 @@ struct Transaction final
 		return out;
 	}
 
-	StatsMapT results_;
+	PosMapT results_;
 
 	std::unordered_set<std::string> selections_;
 
@@ -98,7 +98,7 @@ struct SearchIterator final
 {
 	SearchIterator (const search::OpTrieT::NodeT* trinode) :
 		pathnode_(PathNode{0, egen::BAD_OP}),
-		trinode_(trinode), consume_(union_stats) {}
+		trinode_(trinode), consume_(union_position) {}
 
 	SearchIterator (const PathNode& path,
 		const search::OpTrieT::NodeT* trinode, TxConsumeF consume) :
@@ -157,7 +157,7 @@ struct SearchList final
 		return last_->trinode_;
 	}
 
-	void consume (Transaction& ctx, const StatsMapT& stats) const
+	void consume (Transaction& ctx, const PosMapT& stats) const
 	{
 		last_->consume_(ctx.results_, stats);
 	}
@@ -195,8 +195,8 @@ void match_condition (Transaction& ctx, SearchList path, T cond)
 		if (equals(cond, leaf))
 		{
 			nomatch = false;
-			StatsMapT smap;
-			bind_stats(smap, leaves.at(leaf), leaf, path.size());
+			PosMapT smap;
+			bind_position(smap, leaves.at(leaf), leaf, path.size());
 			path.consume(ctx, smap);
 		}
 	}
@@ -252,7 +252,7 @@ struct Query
 	// to leaf/symbol and sum paths is sorted by min-max
 	void exec (QResultsT& results, bool depth_asc = true) const
 	{
-		StatsMapT order;
+		PosMapT order;
 		auto root = from_->root();
 		for (auto cond : conditions_)
 		{
