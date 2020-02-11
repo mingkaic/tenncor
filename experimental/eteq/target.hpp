@@ -26,7 +26,6 @@ struct ScalarTarget final : public opt::iTarget
 	std::string symb_;
 };
 
-
 template <typename T>
 struct SymbolTarget final : public opt::iTarget
 {
@@ -42,7 +41,6 @@ struct SymbolTarget final : public opt::iTarget
 
 	const opt::GraphInfo* graph_;
 };
-
 
 template <typename T>
 struct FunctorTarget final : public opt::iTarget
@@ -78,7 +76,6 @@ struct FunctorTarget final : public opt::iTarget
 
 	marsh::Maps attr_;
 };
-
 
 template <typename T>
 struct TargetFactory final : public opt::iTargetFactory
