@@ -26,6 +26,8 @@ _GENERATED_OPCODE get_op (std::string name);
 
 bool is_commutative (_GENERATED_OPCODE code);
 
+bool is_commutative (const std::string& name);
+
 template <typename T>
 void typed_exec (_GENERATED_OPCODE opcode, {params})
 {{
@@ -103,6 +105,15 @@ _GENERATED_OPCODE get_op (std::string name)
 bool is_commutative (_GENERATED_OPCODE code)
 {{
     return estd::has(commutatives, code);
+}}
+
+bool is_commutative (const std::string& name)
+{{
+    if (estd::has(name2code, name))
+    {{
+        return is_commutative(name2code.at(name));
+    }}
+    return false;
 }}
 
 }}

@@ -28,12 +28,12 @@ struct PathNode final
 {
 	friend bool operator == (const PathNode& a, const PathNode& b)
 	{
-		return a.idx_ == b.idx_ && a.op_ == b.op_;
+		return a.idx_ == b.idx_ && a.opname_ == b.opname_;
 	}
 
 	friend bool operator < (const PathNode& a, const PathNode& b)
 	{
-		if (egen::name_op(a.op_) < egen::name_op(b.op_))
+		if (a.opname_ < b.opname_)
 		{
 			return true;
 		}
@@ -42,7 +42,7 @@ struct PathNode final
 
 	size_t idx_;
 
-	egen::_GENERATED_OPCODE op_;
+	std::string opname_;
 };
 
 using PathNodesT = std::vector<PathNode>;
@@ -56,8 +56,8 @@ struct PathNodeHasher final
 {
 	size_t operator() (const PathNode& node) const
 	{
-		size_t seed = egen::is_commutative(node.op_) ? 0 : node.idx_;
-		boost::hash_combine(seed, node.op_);
+		size_t seed = egen::is_commutative(node.opname_) ? 0 : node.idx_;
+		boost::hash_combine(seed, node.opname_);
 		return seed;
 	}
 };
@@ -125,8 +125,7 @@ struct OpPathBuilder final : public teq::iTraveler
 	{
 		if (false == estd::has(paths_, &func))
 		{
-			egen::_GENERATED_OPCODE fop =
-				(egen::_GENERATED_OPCODE) func.get_opcode().code_;
+			std::string fop = func.get_opcode().name_;
 			PathInfo& finfo = paths_[&func];
 			auto children = func.get_children();
 			if (egen::is_commutative(fop))

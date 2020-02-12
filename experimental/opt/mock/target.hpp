@@ -10,7 +10,8 @@ const std::string tfactory_delim = ":";
 
 struct MockTarget final : public opt::iTarget
 {
-    MockTarget (teq::TensptrT tag) : tag_(tag) {}
+    MockTarget (teq::TensptrT tag, const opt::TargptrsT& targs = {}) :
+        tag_(tag), targs_(targs) {}
 
     teq::TensptrT convert (const query::SymbMapT& candidates) const override
     {
@@ -18,6 +19,8 @@ struct MockTarget final : public opt::iTarget
     }
 
     teq::TensptrT tag_;
+
+    opt::TargptrsT targs_;
 };
 
 struct MockTargetFactory final : public opt::iTargetFactory
@@ -30,6 +33,7 @@ struct MockTargetFactory final : public opt::iTargetFactory
 		return std::make_shared<MockTarget>(
             std::make_shared<MockLeaf>(teq::Shape(),
             fmts::to_string(scalar) +
+            tfactory_delim + sshape +
             tfactory_delim + fmts::to_string(index_++)));
 	}
 
@@ -46,10 +50,10 @@ struct MockTargetFactory final : public opt::iTargetFactory
 	{
 		return std::make_shared<MockTarget>(
             std::make_shared<MockLeaf>(teq::Shape(),
-            opname + tfactory_delim + fmts::to_string(index_++)));
+            opname + tfactory_delim + fmts::to_string(index_++)), args);
 	}
 
-    size_t index_;
+    mutable size_t index_;
 };
 
 #endif // OPT_MOCK_TARGET_HPP

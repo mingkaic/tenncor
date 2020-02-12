@@ -12,7 +12,7 @@ static PathNodesT pathify (const SearchList& list)
 	for (auto it = list.begin_, et = list.last_->next_.get();
 		it != et; it = it->next_.get())
 	{
-		if (it->pathnode_.op_ != egen::BAD_OP)
+		if (it->pathnode_.opname_.size() > 0)
 		{
 			path.push_back(it->pathnode_);
 		}
@@ -76,7 +76,7 @@ static void any_condition (Transaction& ctx,
 static void comms_matches (Transaction& ctx,
 	const SearchList& path, const Operator& op)
 {
-	egen::_GENERATED_OPCODE opcode = egen::get_op(op.opname());
+	std::string opname = op.opname();
 	auto tri = path.last_trie();
 	if (false == tri->leaf_.has_value() || tri->leaf_->comms_.empty())
 	{
@@ -115,7 +115,7 @@ static void comms_matches (Transaction& ctx,
 	for (size_t i = 0, n = args.size(); i < n; ++i)
 	{
 		const Node& cond = args[i];
-		auto nextpath = path.next(PathNode{i, opcode});
+		auto nextpath = path.next(PathNode{i, opname});
 		nextpath.last_trie() = nextpath.front_trie();
 		nextpath.last_->consume_ =
 		[&](PosMapT& out, const PosMapT& other)
@@ -179,8 +179,8 @@ static void comms_matches (Transaction& ctx,
 static void iterate_condition (Transaction& ctx,
 	const SearchList& path, const Operator& op)
 {
-	egen::_GENERATED_OPCODE opcode = egen::get_op(op.opname());
-	if (egen::is_commutative(opcode))
+	std::string opname = op.opname();
+	if (egen::is_commutative(opname))
 	{
 		// trie can't handle commutative operators, so handle manually
 		comms_matches(ctx, path, op);
@@ -189,11 +189,11 @@ static void iterate_condition (Transaction& ctx,
 	const auto& args = op.args();
 	if (args.empty())
 	{
-		any_condition(ctx, path.next(PathNode{0, opcode}));
+		any_condition(ctx, path.next(PathNode{0, opname}));
 		return;
 	}
 	PosMapT results;
-	lookfor(ctx, path.next(PathNode{0, opcode},
+	lookfor(ctx, path.next(PathNode{0, opname},
 		[&results](PosMapT& out, const PosMapT& other)
 		{
 			union_position(results, other);
@@ -202,7 +202,7 @@ static void iterate_condition (Transaction& ctx,
 		i < n && false == results.empty(); ++i)
 	{
 		PosMapT subresults;
-		lookfor(ctx, path.next(PathNode{i, opcode},
+		lookfor(ctx, path.next(PathNode{i, opname},
 			[&subresults](PosMapT& out, const PosMapT& other)
 			{
 				union_position(subresults, other);
@@ -276,7 +276,7 @@ void lookfor (Transaction& ctx, const SearchList& path,
 			if (attrs.size() > 0)
 			{
 				auto lookahead = static_cast<const search::OpTrieT::NodeT*>(
-					tri->next(PathNode{0, egen::get_op(op.opname())}));
+					tri->next(PathNode{0, op.opname()}));
 				search::FSetMapT attr_matches;
 				match_attrs(attr_matches, attrs, path.front_trie(), lookahead);
 				if (attr_matches.empty())

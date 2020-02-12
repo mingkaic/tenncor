@@ -1121,6 +1121,25 @@ TEST(QUERY, CommutativeMismatcher)
 }
 
 
+// match just the leaf
+TEST(QUERY, LeafMatch)
+{
+	auto rnn_roots = rnn_setup();
+
+	query::search::OpTrieT itable;
+	query::search::populate_itable(itable, rnn_roots);
+	query::Query q(itable);
+
+	std::stringstream inss;
+	inss << "{\"leaf\":{\"label\":\"input\"}}";
+	query::QResultsT results;
+	q.where(inss).exec(results);
+	ASSERT_EQ(1, results.size());
+	EXPECT_GRAPHEQ("(variable:input[5\\3\\1\\1\\1\\1\\1\\1])\n",
+		results[0].root_);
+}
+
+
 // match commutative with attributes
 
 

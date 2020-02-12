@@ -29,18 +29,18 @@ void visualize (std::ostream& out, const query::search::OpTrieT& otrie,
 			std::sort(keys.begin(), keys.end(),
 				[](query::PathNode& l, query::PathNode& r)
 				{
-					if (l.op_ == r.op_)
+					if (l.opname_ == r.opname_)
 					{
 						return l.idx_ < r.idx_;
 					}
-					return egen::name_op(l.op_) < egen::name_op(r.op_);
+					return l.opname_ < r.opname_;
 				});
 			out.reserve(keys.size());
 			for (auto& key : keys)
 			{
 				auto& next = children.at(key);
 				out.push_back(next);
-				labels.emplace(next, egen::name_op(key.op_) +
+				labels.emplace(next, key.opname_ +
 					":" + fmts::to_string(key.idx_));
 			}
 			return out;

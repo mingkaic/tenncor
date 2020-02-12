@@ -97,7 +97,7 @@ struct Transaction final
 struct SearchIterator final
 {
 	SearchIterator (const search::OpTrieT::NodeT* trinode) :
-		pathnode_(PathNode{0, egen::BAD_OP}),
+		pathnode_(PathNode{0, ""}),
 		trinode_(trinode), consume_(union_position) {}
 
 	SearchIterator (const PathNode& path,

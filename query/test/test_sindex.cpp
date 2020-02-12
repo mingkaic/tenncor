@@ -104,31 +104,31 @@ TEST(SINDEX, GraphPathPrefix)
 	query::search::populate_itable(itable, {dw, db, dstate});
 
 	EXPECT_TRUE(itable.contains_prefix(query::PathNodesT{
-		query::PathNode{0, egen::POW},
-		query::PathNode{0, egen::SUB},
+		query::PathNode{0, "POW"},
+		query::PathNode{0, "SUB"},
 	}));
 	EXPECT_FALSE(itable.contains_prefix(query::PathNodesT{
-		query::PathNode{0, egen::POW},
-		query::PathNode{0, egen::SUB},
-		query::PathNode{0, egen::CONCAT},
+		query::PathNode{0, "POW"},
+		query::PathNode{0, "SUB"},
+		query::PathNode{0, "CONCAT"},
 	}));
 	EXPECT_TRUE(itable.contains_prefix(query::PathNodesT{
-		query::PathNode{0, egen::POW},
-		query::PathNode{1, egen::SUB},
-		query::PathNode{0, egen::CONCAT},
+		query::PathNode{0, "POW"},
+		query::PathNode{1, "SUB"},
+		query::PathNode{0, "CONCAT"},
 	}));
 	EXPECT_TRUE(itable.contains_prefix(query::PathNodesT{
-		query::PathNode{0, egen::POW},
-		query::PathNode{1, egen::SUB},
-		query::PathNode{1, egen::CONCAT},
-		query::PathNode{0, egen::TANH},
+		query::PathNode{0, "POW"},
+		query::PathNode{1, "SUB"},
+		query::PathNode{1, "CONCAT"},
+		query::PathNode{0, "TANH"},
 	}));
 	EXPECT_FALSE(itable.contains_prefix(query::PathNodesT{
-		query::PathNode{0, egen::POW},
-		query::PathNode{1, egen::SUB},
-		query::PathNode{1, egen::CONCAT},
-		query::PathNode{0, egen::TANH},
-		query::PathNode{0, egen::ADD},
+		query::PathNode{0, "POW"},
+		query::PathNode{1, "SUB"},
+		query::PathNode{1, "CONCAT"},
+		query::PathNode{0, "TANH"},
+		query::PathNode{0, "ADD"},
 	}));
 
 	std::stringstream ss;
@@ -261,7 +261,7 @@ TEST(SINDEX, GraphPathPossibles)
 			std::vector<std::string> pathname;
 			for (const auto& node : path)
 			{
-				pathname.push_back(egen::name_op(node.op_) + ":" + fmts::to_string(node.idx_));
+				pathname.push_back(node.opname_ + ":" + fmts::to_string(node.idx_));
 			}
 			ss << fmts::join(",", pathname.begin(), pathname.end());
 			bool line_started = path.size() > 0;
@@ -325,8 +325,8 @@ TEST(SINDEX, GraphPathPossibles)
 
 	std::stringstream ss;
 	query::PathNodesT keys = {
-		query::PathNode{0, egen::POW},
-		query::PathNode{1, egen::SUB},
+		query::PathNode{0, "POW"},
+		query::PathNode{1, "SUB"},
 	};
 	ASSERT_TRUE(itable.contains_prefix(keys));
 	query::search::possible_paths(
@@ -346,9 +346,9 @@ TEST(SINDEX, GraphPathPossibles)
 
 	std::stringstream ss2;
 	query::PathNodesT keys2 = {
-		query::PathNode{0, egen::POW},
-		query::PathNode{1, egen::SUB},
-		query::PathNode{0, egen::CONCAT},
+		query::PathNode{0, "POW"},
+		query::PathNode{1, "SUB"},
+		query::PathNode{0, "CONCAT"},
 	};
 	ASSERT_TRUE(itable.contains_prefix(keys2));
 	query::search::possible_paths(
@@ -364,8 +364,8 @@ TEST(SINDEX, GraphPathPossibles)
 
 	std::stringstream leaf_ss;
 	query::PathNodesT leaf_keys = { // leads to output leaf
-		query::PathNode{0, egen::POW},
-		query::PathNode{0, egen::SUB},
+		query::PathNode{0, "POW"},
+		query::PathNode{0, "SUB"},
 	};
 	ASSERT_TRUE(itable.contains_prefix(leaf_keys));
 	query::search::possible_paths(
@@ -379,7 +379,7 @@ TEST(SINDEX, GraphPathPossibles)
 
 	std::stringstream ss3;
 	query::PathNodesT keys3 = {
-		query::PathNode{0, egen::EXTEND},
+		query::PathNode{0, "EXTEND"},
 	};
 	ASSERT_TRUE(itable.contains_prefix(keys3));
 	query::search::possible_paths(
@@ -394,7 +394,7 @@ TEST(SINDEX, GraphPathPossibles)
 
 	std::stringstream ss4;
 	query::PathNodesT keys4 = {
-		query::PathNode{0, egen::MATMUL},
+		query::PathNode{0, "MATMUL"},
 	};
 	ASSERT_TRUE(itable.contains_prefix(keys4));
 	query::search::possible_paths(
@@ -414,7 +414,7 @@ TEST(SINDEX, GraphPathPossibles)
 
 	std::stringstream ss5;
 	query::PathNodesT keys5 = {
-		query::PathNode{1, egen::MATMUL},
+		query::PathNode{1, "MATMUL"},
 	};
 	ASSERT_TRUE(itable.contains_prefix(keys5));
 	query::search::possible_paths(
