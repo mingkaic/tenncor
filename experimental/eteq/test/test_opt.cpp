@@ -2,8 +2,6 @@
 #ifndef DISABLE_TEST_ETEQ_HPP
 
 
-#include <fstream>
-
 #include "gtest/gtest.h"
 
 #include "testutil/tutil.hpp"
@@ -13,11 +11,7 @@
 #include "eteq/generated/api.hpp"
 #include "eteq/derive.hpp"
 
-#include "experimental/opt/parse.hpp"
-#include "experimental/opt/apply.hpp"
-
-#include "experimental/eteq/cstrules.hpp"
-#include "experimental/eteq/target.hpp"
+#include "experimental/eteq/optimize.hpp"
 
 
 const std::string testdir = "models/test";
@@ -106,26 +100,10 @@ TEST(OPTIMIZE, Optimize)
 	auto db = eteq::derive(err, bias);
 	auto dstate = eteq::derive(err, istate);
 
-	teq::TensptrsT roots = {dw, db, dstate, err};
+	eteq::ETensorsT<double> roots = {dw, db, dstate, err};
 
-	opt::GraphInfo graph(roots);
-	eteq::TargetFactory<double> impl_factory(graph);
-	opt::OptRulesT rules;
-	eteq::generate_cstrules<double>(rules, graph); // populate with constant rules
 	std::ifstream rulefile("cfg/optimizations.json");
-	opt::json_parse(rules, rulefile, impl_factory);
-	bool converted = true;
-	while (converted)
-	{
-		converted = opt::optimize(graph, rules);
-	}
-	for (auto& root : roots)
-	{
-		if (estd::has(graph.changes_, root.get()))
-		{
-			root = graph.changes_.at(root.get());
-		}
-	}
+	eteq::optimize(roots, rulefile);
 
 	EXPECT_GRAPHEQ(
 		"(ADD[5\\10\\1\\1\\1\\1\\1\\1])\n"
