@@ -1,10 +1,5 @@
 # licenses(["notice"])
 
-# load(
-#     "@com_github_stackb_rules_proto//cpp:cpp_proto_library.bzl",
-#     "cpp_proto_library"
-# )
-
 # load("//third_party/drake_rules:pybind.bzl", "pybind_library")
 
 # package(
@@ -40,7 +35,7 @@
 #     srcs = ["//ccur:protos"],
 # )
 
-# cpp_proto_library(
+# cc_proto_library(
 #     name = "weight_cc_proto",
 #     deps = ["//ccur:weight_proto"],
 # )

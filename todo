@@ -6,9 +6,7 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - refactor query logic so it's readable (and optimize subresult filtering)
-   - implement etens scalar optimization
-   - implement new optimizer using query
+   - separate depends nodes before optimization
    - save sessions
    - implement reliable training harness
       - periodically caching data
@@ -21,14 +19,11 @@ P5 = "get to it eventually"
       (outlined in https://arxiv.org/pdf/1412.5567.pdf)
       (or GRU veriants in https://arxiv.org/pdf/1901.03860.pdf)
 
-   - query-based opt: cleanup graph properly instead of keeping dangling leaves after every conversion call
-
 >>>> aux project >>>> (preferrable to ensure smooth completion of inprogress tasks)
    - train convolutional nn demo
    - implement sparse embedding using eigen sparse matrix
    - select and integrate some other CUDA-supported LinAlgebra libraries
    - make global context configurable through python
-   - generalize functor observables to ensure safe device ref for assigns
 
 === transparency/code readability ===
    - refactor derivative to merge local_derivative AND chain_rule
@@ -46,6 +41,7 @@ P4 - add even more debugging tools
 P4 - conform to some bazel style/convention (or change to another build tool)
 P4 - investigate adopting more of boost in place of cppkg
 P5 - refactor, and rename variables to improve readability
+   - query-based opt: cleanup graph properly instead of keeping dangling leaves after every conversion call
 
 === feature ===
    - renable test for duplicate removal optimization filter

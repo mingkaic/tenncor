@@ -205,9 +205,6 @@ PYBIND11_MODULE(eteq, m)
 	session
 		.def(py::init(&eigen::get_session));
 
-	// optimization rules
-	py::class_<opt::CversionCtx> rules(m, "OptRules");
-
 	// ==== inline functions ====
 	m
 		// ==== constant creation ====
@@ -273,14 +270,14 @@ PYBIND11_MODULE(eteq, m)
 			})
 
 		// ==== optimization ====
-		.def("parse_optrules", &eteq::parse_file<PybindT>,
-			py::arg("filename") = "cfg/optimizations.rules",
-			"Optimize using rules for specified filename")
 		.def("optimize",
-			[](teq::iSession& sess, opt::CversionCtx rules)
+			[](teq::iSession& sess, std::string filename)
 			{
-				eteq::optimize<PybindT>(sess, rules);
-			})
+				eteq::optimize<PybindT>(sess, filename);
+			},
+			py::arg("sess"),
+			py::arg("filename") = "cfg/optimizations.json",
+			"Optimize using rules for specified filename")
 
 		// // ==== configmap ====
 		// .def("set_log_level",

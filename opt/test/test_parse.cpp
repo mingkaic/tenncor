@@ -12,9 +12,9 @@
 
 #include "dbg/print/search.hpp"
 
-#include "experimental/opt/parse.hpp"
+#include "opt/parse.hpp"
 
-#include "experimental/opt/mock/target.hpp"
+#include "opt/mock/target.hpp"
 
 
 const std::string testdir = "models/test";

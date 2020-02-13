@@ -1,6 +1,6 @@
 
-#ifndef EXPERIMENTAL_OPT_GRAPH_HPP
-#define EXPERIMENTAL_OPT_GRAPH_HPP
+#ifndef OPT_GRAPH_HPP
+#define OPT_GRAPH_HPP
 
 #include <list>
 
@@ -154,4 +154,4 @@ private:
 
 }
 
-#endif // EXPERIMENTAL_OPT_GRAPH_HPP
+#endif // OPT_GRAPH_HPP

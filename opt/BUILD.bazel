@@ -1,15 +1,15 @@
 licenses(["notice"])
 
+package(
+    default_visibility = ["//visibility:public"],
+)
+
 filegroup(
     name = "srcs",
     srcs = glob([
         "*.hpp",
         "src/*.cpp",
-    ]) + [
-        "BUILD.bazel",
-        "//opt/parse:srcs",
-    ],
-    visibility = ["//visibility:public"],
+    ]) + ["BUILD.bazel"],
 )
 
 filegroup(
@@ -18,6 +18,7 @@ filegroup(
         "test/*.hpp",
         "test/*.cpp",
     ]),
+    visibility = ["//visibility:private"],
 )
 
 ######### LIBRARY #########
@@ -28,12 +29,20 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//teq:teq",
-        "//opt/parse:parse",
-        "@boost//:functional",
-        "@boost//:uuid",
+        "//opt:opt_cc_proto",
+        "//query:query",
     ],
-    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "opt_proto",
+    srcs = ["optimize.proto"],
+    deps = ["//query:query_proto"],
+)
+
+cc_proto_library(
+    name = "opt_cc_proto",
+    deps = ["//opt:opt_proto"],
 )
 
 ######### TEST #########
@@ -41,12 +50,8 @@ cc_library(
 cc_library(
     name = "mock_opt",
     hdrs = glob(["mock/*.hpp"]),
-    srcs = glob(["mock/*.cpp"]),
     copts = ["-std=c++17"],
-    deps = [
-        "//opt:opt",
-        "//teq:mock_teq",
-    ],
+    deps = ["//opt:opt"],
     visibility = ["//visibility:public"],
 )
 
@@ -55,9 +60,14 @@ cc_test(
     srcs = ["//opt:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        "//dbg:print",
+        "//teq:mock_teq",
         "//opt:mock_opt",
         "//testutil:tutil",
+        "@gtest//:gtest",
     ],
-    data = ["//cfg:optimizations"],
+    data = [
+        "//cfg:optimizations",
+    ],
     linkstatic = True,
 )

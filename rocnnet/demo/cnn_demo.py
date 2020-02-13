@@ -154,7 +154,7 @@ def main(args):
         layr.get_adagrad(0.01), err_func=error_wrapper)
     sess.track([train_err])
     inspector.add(normalized, "normalized_input")
-    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.json"))
 
     qs = q.Statement(query_targets)
     conv_res = qs.find("""{"op": {

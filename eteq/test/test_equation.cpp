@@ -982,55 +982,60 @@ TEST(EQUATION, TanhRNNLayerConnect)
 
 TEST(EQUATION, OptimizedMatmulComplex)
 {
-	auto rules = eteq::parse_file<float>("cfg/optimizations.rules");
 	matmul_complex(
-		[&rules](teq::TensptrsT roots)
+		[](teq::TensptrsT roots)
 		{
-			eteq::optimize<float>(roots, rules);
+			std::ifstream file("cfg/optimizations.json");
+			eteq::ETensorsT<float> eroots(roots.begin(), roots.end());
+			eteq::optimize<float>(eroots, file);
 		});
 }
 
 
 TEST(EQUATION, OptimizedSlowSigmoidMLP)
 {
-	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
 	sigmoid_MLP_slow(
-		[&rules](teq::TensptrsT roots)
+		[](teq::TensptrsT roots)
 		{
-			eteq::optimize<double>(roots, rules);
+			std::ifstream file("cfg/optimizations.json");
+			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
+			eteq::optimize<double>(eroots, file);
 		});
 }
 
 
 TEST(EQUATION, OptimizedFastSigmoidMLP)
 {
-	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
 	sigmoid_MLP_fast(
-		[&rules](teq::TensptrsT roots)
+		[](teq::TensptrsT roots)
 		{
-			eteq::optimize<double>(roots, rules);
+			std::ifstream file("cfg/optimizations.json");
+			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
+			eteq::optimize<double>(eroots, file);
 		});
 }
 
 
 TEST(EQUATION, OptimizedTanhRNN)
 {
-	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
 	tanh_RNN(
-		[&rules](teq::TensptrsT roots)
+		[](teq::TensptrsT roots)
 		{
-			eteq::optimize<double>(roots, rules);
+			std::ifstream file("cfg/optimizations.json");
+			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
+			eteq::optimize<double>(eroots, file);
 		});
 }
 
 
 TEST(EQUATION, OptimizedTanhRNNLayer)
 {
-	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
 	tanh_RNN_layer(
-		[&rules](teq::TensptrsT roots)
+		[](teq::TensptrsT roots)
 		{
-			eteq::optimize<double>(roots, rules);
+			std::ifstream file("cfg/optimizations.json");
+			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
+			eteq::optimize<double>(eroots, file);
 		});
 }
 

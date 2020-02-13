@@ -1,3 +1,7 @@
+#include <google/protobuf/util/json_util.h>
+
+#include "opt/optimize.pb.h"
+
 #include "opt/parse.hpp"
 
 #ifdef OPT_PARSE_HPP
@@ -5,244 +9,171 @@
 namespace opt
 {
 
-static std::string to_string (const ::KeyVal* kv)
+static void find_symbols (std::unordered_set<std::string>& out,
+	const query::Node& cond)
 {
-	std::string out = std::string(kv->key_) + ":[";
-	auto it = kv->val_.head_;
-	if (nullptr != it)
+	switch (cond.val_case())
 	{
-		out += fmts::to_string(it->val_);
-		for (it = it->next_; it != nullptr; it = it->next_)
-		{
-			out += "," + fmts::to_string(it->val_);
-		}
-	}
-	out += "]";
-	return out;
-}
-
-static std::string to_string (const ::TreeNode* node);
-
-static std::string to_string (const ::Functor* functor)
-{
-	std::string comm_prefix;
-	if (functor->commutative_)
-	{
-		comm_prefix = "comm ";
-	}
-	std::string out = comm_prefix + std::string(functor->name_);
-	auto ait = functor->attrs_.head_;
-	if (nullptr != ait)
-	{
-		out += "={" + to_string((::KeyVal*) ait->val_);
-		for (ait = ait->next_; ait != nullptr; ait = ait->next_)
-		{
-			out += "," + to_string((::KeyVal*) ait->val_);
-		}
-		out += "}";
-	}
-	out += "(";
-	assert(::ARGUMENT == functor->args_.type_);
-	auto it = functor->args_.head_;
-	if (nullptr != it)
-	{
-		out += to_string((::TreeNode*) it->val_);
-		for (it = it->next_; nullptr != it; it = it->next_)
-		{
-			out += "," + to_string((::TreeNode*) it->val_);
-		}
-	}
-
-	std::string variadic(functor->variadic_);
-	if (variadic.size() > 0)
-	{
-		variadic = ",.." + variadic;
-	}
-	out += variadic + ")";
-	return out;
-}
-
-static std::string to_string (const ::TreeNode* node)
-{
-	std::string out;
-	switch (node->type_)
-	{
-		case ::TreeNode::SCALAR:
-			out = fmts::to_string(node->val_.scalar_);
+		case query::Node::ValCase::kSymb:
+			out.emplace(cond.symb());
 			break;
-		case ::TreeNode::ANY:
-			out = std::string(node->val_.any_);
-			break;
-		case ::TreeNode::FUNCTOR:
-			out = to_string(node->val_.functor_);
-			break;
-	}
-	return out;
-}
-
-static std::string to_string (const ::Conversion* cversion)
-{
-	return to_string(cversion->matcher_) + "=>" + to_string(cversion->target_);
-}
-
-static bool validate_matcher_helper (const ::Functor* matcher, bool& used_comm)
-{
-	bool child_varg = false;
-	size_t nargs = 0;
-	for (auto it = matcher->args_.head_; nullptr != it; it = it->next_, ++nargs)
-	{
-		auto child = (::TreeNode*) it->val_;
-		if (child->type_ == ::TreeNode::FUNCTOR)
+		case query::Node::ValCase::kOp:
 		{
-			auto nextfunc = child->val_.functor_;
-			child_varg = child_varg ||
-				std::string(matcher->variadic_).size() > 0;
-			if (false == validate_matcher_helper(nextfunc, used_comm))
+			const query::Operator& op = cond.op();
+			for (const query::Node& arg : op.args())
 			{
-				return false;
+				find_symbols(out, arg);
+			}
+			if (query::Operator::kCapture == op.nullable_capture_case())
+			{
+				out.emplace(op.capture());
 			}
 		}
+			break;
+		default:
+			break;
 	}
-	if (matcher->commutative_)
-	{
-		if (used_comm)
-		{
-			// two or more commutatives in a matcher graph
-			teq::debug("matcher graph cannot contain "
-				"more than one commutative functor");
-			return false;
-		}
-		if (std::string(matcher->variadic_).size() > 0)
-		{
-			// commutative AND variadic functions can:
-			if (nargs != 1)
-			{
-				// only have ONE argument
-				teq::debug("commutative variadic matcher "
-					"cannot have multiple arguments");
-				return false;
-			}
-			if (child_varg)
-			{
-				// functor argument cannot hold variadic arguments
-				teq::debug("commutative variadic matcher cannot "
-					"have an argument with variadic arguments");
-				return false;
-			}
-		}
-		used_comm = true;
-	}
-	return true;
 }
 
-static bool validate_matcher (const ::Functor* matcher)
+TargptrT parse_target (const TargetNode& root,
+	const iTargetFactory& builder)
 {
-	bool used_comm = false;
-	return validate_matcher_helper(matcher, used_comm);
-}
-
-static std::string parse_matcher (
-	std::unordered_map<std::string,MatchsT>& out,
-	const ::Functor* matcher)
-{
-	if (NULL == matcher)
+	TargptrT out;
+	switch (root.val_case())
 	{
-		teq::fatal("cannot parse null matcher");
-	}
-
-	auto& cmatchers = out[std::string(matcher->name_)];
-	MatchptrT outmatcher;
-	if (matcher->commutative_)
-	{
-		outmatcher = std::make_shared<CommutativeMatcher>(
-			matcher->attrs_, std::string(matcher->variadic_));
-	}
-	else
-	{
-		outmatcher = std::make_shared<OrderedMatcher>(
-			matcher->attrs_, std::string(matcher->variadic_));
-	}
-	cmatchers.push_back(outmatcher);
-
-	for (auto it = matcher->args_.head_; nullptr != it; it = it->next_)
-	{
-		auto child = (::TreeNode*) it->val_;
-		switch (child->type_)
+		case TargetNode::ValCase::kCst:
 		{
-			case ::TreeNode::SCALAR:
-				outmatcher->add_edge(new ScalarEMatcher(child->val_.scalar_));
-				break;
-			case ::TreeNode::ANY:
-				outmatcher->add_edge(new AnyEMatcher(
-					std::string(child->val_.any_)));
-				break;
-			case ::TreeNode::FUNCTOR:
-				outmatcher->add_edge(new FuncEMatcher(
-					parse_matcher(out, child->val_.functor_)));
-				break;
-			default:
-				teq::fatalf("unknown matcher argument of type %d", child->type_);
+			const Scalar& cst = root.cst();
+			out = builder.make_scalar(cst.value(), cst.shape());
 		}
-	}
-	return outmatcher->get_fid();
-}
-
-static CversionCtx process_cversions (
-	::PtrList* cversions, BuildTargetF parse_target)
-{
-	if (nullptr == cversions && CONVERSION != cversions->type_)
-	{
-		teq::fatal("rule parser did not produced conversions");
-	}
-	CversionCtx out;
-	for (auto it = cversions->head_; it != NULL; it = it->next_)
-	{
-		auto cversion = (::Conversion*) it->val_;
-		if (NULL == cversion)
+			break;
+		case TargetNode::ValCase::kSymb:
+			out = builder.make_symbol(root.symb());
+			break;
+		case TargetNode::ValCase::kOp:
 		{
-			teq::fatal("cannot parse null conversion");
+			const TargOp& pb_op = root.op();
+			const auto& pb_args = pb_op.args();
+			TargptrsT args;
+			args.reserve(pb_args.size());
+			std::transform(pb_args.begin(), pb_args.end(),
+				std::back_inserter(args),
+				[&](const TargetNode& pb_arg)
+				{
+					return parse_target(pb_arg, builder);
+				});
+			out = builder.make_functor(pb_op.opname(),
+				pb_op.attrs(), args);
 		}
-		if (validate_matcher(cversion->matcher_))
-		{
-			auto root_id = parse_matcher(out.matchers_, cversion->matcher_);
-			out.targets_.emplace(root_id, parse_target(cversion->target_));
-			out.dbg_msgs_.emplace(root_id, to_string(cversion));
-		}
+			break;
+		default:
+			teq::fatal("cannot parse unknown element");
 	}
-	::cversions_free(cversions);
 	return out;
 }
 
-CversionCtx parse (std::string content, BuildTargetF parse_target)
+void parse_optimization (OptRulesT& rules,
+	const Optimization& pb_opt, const iTargetFactory& tfactory)
 {
-	::PtrList* cversions = nullptr;
-	int status = ::parse_str(&cversions, content.c_str());
-	if (status != 0)
+	for (const Conversion& pb_conv : pb_opt.conversions())
 	{
-		teq::errorf("failed to parse content %s: got %d status",
-			content.c_str(), status);
-		return CversionCtx();
+		std::unordered_set<std::string> relevant_anys;
+		const auto& pb_srcs = pb_conv.srcs();
+		const TargetNode& pb_dest = pb_conv.dest();
+		for (const query::Node& pb_src : pb_srcs)
+		{
+			find_symbols(relevant_anys, pb_src);
+		}
+		MatcherF matcher = [pb_srcs, relevant_anys](query::Query& q)
+		{
+			for (std::string any : relevant_anys)
+			{
+				q = q.select(any);
+			}
+			for (const query::Node& pb_src : pb_srcs)
+			{
+				q = q.where(std::make_shared<query::Node>(pb_src));
+			}
+		};
+		TargptrT target = parse_target(pb_dest, tfactory);
+		rules.push_back(OptRule{matcher, target});
 	}
-	return process_cversions(cversions, parse_target);
 }
 
-CversionCtx parse_file (std::string filename, BuildTargetF parse_target)
+void json_parse (OptRulesT& rules,
+	std::istream& json_in, const iTargetFactory& tfactory)
 {
-	::PtrList* cversions = nullptr;
-	FILE* file = std::fopen(filename.c_str(), "r");
-	if (nullptr == file)
+	std::string jstr(std::istreambuf_iterator<char>(json_in), {});
+	google::protobuf::util::JsonParseOptions options;
+	options.ignore_unknown_fields = true;
+	Optimization optimization;
+	if (google::protobuf::util::Status::OK !=
+		google::protobuf::util::JsonStringToMessage(
+			jstr, &optimization, options))
 	{
-		teq::errorf("failed to open file %s", filename.c_str());
-		return CversionCtx();
+		teq::fatal("failed to parse json optimization");
 	}
-	int status = ::parse_file(&cversions, file);
-	if (status != 0)
+	parse_optimization(rules, optimization, tfactory);
+}
+
+marsh::iObject* parse (const query::Attribute& pba, const opt::GraphInfo& graphinfo)
+{
+	marsh::iObject* out = nullptr;
+	switch (pba.attr_case())
 	{
-		teq::errorf("failed to parse file %s: got %d status",
-			filename.c_str(), status);
-		return CversionCtx();
+		case query::Attribute::kInum:
+			out = new marsh::Number<int64_t>(pba.inum());
+			break;
+		case query::Attribute::kDnum:
+			out = new marsh::Number<double>(pba.dnum());
+			break;
+		case query::Attribute::kIarr:
+		{
+			const auto& arr = pba.iarr().values();
+			out = new marsh::NumArray<int64_t>(
+				std::vector<int64_t>(arr.begin(), arr.end()));
+		}
+			break;
+		case query::Attribute::kDarr:
+		{
+			const auto& arr = pba.darr().values();
+			out = new marsh::NumArray<double>(
+				std::vector<double>(arr.begin(), arr.end()));
+		}
+			break;
+		case query::Attribute::kStr:
+			out = new marsh::String(pba.str());
+			break;
+		case query::Attribute::kNode:
+		{
+			auto results = graphinfo.find(pba.node());
+			if (results.size() > 0)
+			{
+				teq::fatal("ambiguous node attribute");
+			}
+			out = new teq::TensorObj(results.front());
+		}
+			break;
+		case query::Attribute::kLayer:
+		{
+			const query::Layer& layer = pba.layer();
+			if (false == layer.has_input() ||
+				query::Layer::kNameNil == layer.nullable_name_case())
+			{
+				teq::fatal("cannot parse layer attribute unnamed or without input");
+			}
+			auto results = graphinfo.find(layer.input());
+			if (results.size() > 0)
+			{
+				teq::fatal("ambiguous layer attribute");
+			}
+			out = new teq::LayerObj(layer.name(), results.front());
+		}
+			break;
+		default:
+			teq::fatal("cannot parse unknown attribute");
 	}
-	return process_cversions(cversions, parse_target);
+	return out;
 }
 
 }

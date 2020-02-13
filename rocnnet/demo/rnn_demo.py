@@ -189,7 +189,7 @@ def main(args):
         trained_out,
         pretrained_out,
     ])
-    # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+    # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.json"))
 
     ls_of_loss = []
     start = time.time()

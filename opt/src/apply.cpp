@@ -1,6 +1,6 @@
-#include "experimental/opt/apply.hpp"
+#include "opt/apply.hpp"
 
-#ifdef EXPERIMENTAL_OPT_APPLY_HPP
+#ifdef OPT_APPLY_HPP
 
 namespace opt
 {

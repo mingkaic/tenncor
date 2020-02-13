@@ -1,10 +1,10 @@
 
-#ifndef EXPERIMENTAL_OPT_RULE_HPP
-#define EXPERIMENTAL_OPT_RULE_HPP
+#ifndef OPT_RULE_HPP
+#define OPT_RULE_HPP
 
 #include "query/query.hpp"
 
-#include "experimental/opt/target.hpp"
+#include "opt/target.hpp"
 
 namespace opt
 {
@@ -22,4 +22,4 @@ using OptRulesT = std::vector<OptRule>;
 
 }
 
-#endif // EXPERIMENTAL_OPT_RULE_HPP
+#endif // OPT_RULE_HPP

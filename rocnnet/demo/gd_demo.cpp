@@ -160,8 +160,7 @@ int main (int argc, const char** argv)
 	auto trained_out = trained_model.connect(eteq::ETensor<PybindT>(testin));
 	sess.track({untrained_out, out, trained_out});
 
-	auto rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
-	eteq::optimize<PybindT>(sess, rules);
+	eteq::optimize<PybindT>(sess, "cfg/optimizations.json");
 
 	// train mlp to output input
 	start = std::clock();

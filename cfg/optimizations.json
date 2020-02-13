@@ -213,7 +213,30 @@
         "op":{
             "opname":"DIV",
             "args":[{
-                "symb":"X"
+                "op":{
+                    "opname":"MUL",
+                    "args":[{
+                        "symb":"X"
+                    },{
+                        "symb":"Y"
+                    }]
+                }
+            },{
+                "symb":"Y"
+            }]
+        }
+    },{
+        "op":{
+            "opname":"MUL",
+            "args":[{
+                "op":{
+                    "opname":"DIV",
+                    "args":[{
+                        "symb":"X"
+                    },{
+                        "symb":"Y"
+                    }]
+                }
             },{
                 "symb":"Y"
             }]

@@ -1,8 +1,8 @@
-#ifndef EXPERIMENTAL_OPT_APPLY_HPP
-#define EXPERIMENTAL_OPT_APPLY_HPP
+#ifndef OPT_APPLY_HPP
+#define OPT_APPLY_HPP
 
-#include "experimental/opt/rule.hpp"
-#include "experimental/opt/graph.hpp"
+#include "opt/rule.hpp"
+#include "opt/graph.hpp"
 
 namespace opt
 {
@@ -15,4 +15,4 @@ bool optimize (GraphInfo& graph, const OptRulesT& rules);
 
 }
 
-#endif // EXPERIMENTAL_OPT_APPLY_HPP
+#endif // OPT_APPLY_HPP

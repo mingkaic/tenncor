@@ -1,12 +1,10 @@
 
-#ifndef EXPERIMENTAL_OPT_TARGET_HPP
-#define EXPERIMENTAL_OPT_TARGET_HPP
+#ifndef OPT_TARGET_HPP
+#define OPT_TARGET_HPP
 
 #include "teq/logs.hpp"
 
 #include "query/query.hpp"
-
-#include "experimental/opt/optimize.pb.h"
 
 namespace opt
 {
@@ -37,9 +35,6 @@ struct iTargetFactory
 		const TargptrsT& args) const = 0;
 };
 
-TargptrT parse_target (const TargetNode& root,
-	const iTargetFactory& builder);
-
 }
 
-#endif // EXPERIMENTAL_OPT_TARGET_HPP
+#endif // OPT_TARGET_HPP

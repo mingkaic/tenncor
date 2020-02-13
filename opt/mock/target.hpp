@@ -1,71 +1,59 @@
-#include "teq/mock/leaf.hpp"
-#include "teq/mock/functor.hpp"
 
-#include "opt/optimize.hpp"
+#include "teq/mock/leaf.hpp"
+
+#include "opt/target.hpp"
 
 #ifndef OPT_MOCK_TARGET_HPP
 #define OPT_MOCK_TARGET_HPP
 
-struct MockAny final : public opt::iTarget
+const std::string tfactory_delim = ":";
+
+struct MockTarget final : public opt::iTarget
 {
-	MockAny (std::string symbol) : symbol_(symbol) {}
+    MockTarget (teq::TensptrT tag, const opt::TargptrsT& targs = {}) :
+        tag_(tag), targs_(targs) {}
 
-	teq::TensptrT convert (teq::Shape outshape,
-		const opt::Candidate& candidate) const override
-	{
-		return estd::must_getf(candidate.anys_, symbol_,
-			"cannot find any symbol %s", symbol_.c_str());
-	}
+    teq::TensptrT convert (const query::SymbMapT& candidates) const override
+    {
+        return tag_;
+    }
 
-	std::string symbol_;
+    teq::TensptrT tag_;
+
+    opt::TargptrsT targs_;
 };
 
-struct MockCst final : public opt::iTarget
+struct MockTargetFactory final : public opt::iTargetFactory
 {
-	MockCst (double scalar) : scalar_(scalar) {}
+    MockTargetFactory (void) : index_(0) {}
 
-	teq::TensptrT convert (teq::Shape outshape,
-		const opt::Candidate& candidate) const override
+	opt::TargptrT make_scalar (double scalar,
+		std::string sshape) const override
 	{
-		return std::make_shared<MockLeaf>(std::vector<double>{},
-			outshape, fmts::to_string(scalar_));
+		return std::make_shared<MockTarget>(
+            std::make_shared<MockLeaf>(teq::Shape(),
+            fmts::to_string(scalar) +
+            tfactory_delim + sshape +
+            tfactory_delim + fmts::to_string(index_++)));
 	}
 
-	double scalar_;
-};
-
-struct MockFTarget final : public opt::iTarget
-{
-	MockFTarget (std::string opname, std::vector<opt::TargptrT> args,
-		std::string variadic) :
-		opname_(opname), args_(args), variadic_(variadic) {}
-
-	teq::TensptrT convert (teq::Shape outshape,
-		const opt::Candidate& candidate) const override
+	opt::TargptrT make_symbol (std::string symbol) const override
 	{
-		teq::TensptrsT args;
-		for (auto& targ : args_)
-		{
-			args.push_back(targ->convert(outshape, candidate));
-		}
-		if (variadic_.size() > 0)
-		{
-			auto& edges = candidate.variadic_.at(variadic_);
-			for (teq::TensptrT edge : edges)
-			{
-				args.push_back(edge);
-			}
-		}
-		return std::make_shared<MockFunctor>(args, teq::Opcode{opname_, 0});
+		return std::make_shared<MockTarget>(
+            std::make_shared<MockLeaf>(teq::Shape(),
+            symbol + tfactory_delim + fmts::to_string(index_++)));
 	}
 
-	std::string opname_;
+	opt::TargptrT make_functor (std::string opname,
+		const google::protobuf::Map<std::string,query::Attribute>& attrs,
+		const opt::TargptrsT& args) const override
+	{
+		return std::make_shared<MockTarget>(
+            std::make_shared<MockLeaf>(teq::Shape(),
+            opname + tfactory_delim + fmts::to_string(index_++)), args);
+	}
 
-	std::vector<opt::TargptrT> args_;
-
-	std::string variadic_;
+    mutable size_t index_;
 };
-
-opt::TargptrT build_mock_target (::TreeNode* target);
 
 #endif // OPT_MOCK_TARGET_HPP

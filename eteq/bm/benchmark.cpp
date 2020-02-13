@@ -351,13 +351,11 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	auto dw1 = eteq::derive(err, weight1);
 	auto db1 = eteq::derive(err, bias1);
 
-	// optimize
-	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
-	teq::TensptrsT roots = {dw0, db0, dw1, db1};
-	opt::optimize(roots, rules);
-
 	auto session = eigen::get_session();
 	session.track({dw0, db0, dw1, db1});
+
+	// optimize
+	eteq::optimize(session, "cfg/optimizations.json");
 
 	for (auto _ : state)
 	{

@@ -1,6 +1,6 @@
 
-#ifndef EXPERIMENTAL_ETEQ_OPT_CSTRULES_HPP
-#define EXPERIMENTAL_ETEQ_OPT_CSTRULES_HPP
+#ifndef ETEQ_OPT_CSTRULES_HPP
+#define ETEQ_OPT_CSTRULES_HPP
 
 // Define rules for identifying and merging operators with only constant arguments
 
@@ -31,9 +31,9 @@ Target operates on "root"
 
 #include "eigen/device.hpp"
 
-#include "experimental/opt/graph.hpp"
-#include "experimental/opt/rule.hpp"
-#include "experimental/opt/target.hpp"
+#include "opt/graph.hpp"
+#include "opt/rule.hpp"
+#include "opt/target.hpp"
 
 #include "eteq/make.hpp"
 
@@ -109,4 +109,4 @@ void generate_cstrules (opt::OptRulesT& rules, const opt::GraphInfo& graph)
 
 }
 
-#endif // EXPERIMENTAL_ETEQ_OPT_CSTRULES_HPP
+#endif // ETEQ_OPT_CSTRULES_HPP

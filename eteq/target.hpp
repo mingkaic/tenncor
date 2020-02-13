@@ -1,8 +1,8 @@
 
-#ifndef EXPERIMENTAL_ETEQ_OPT_TARGET_HPP
-#define EXPERIMENTAL_ETEQ_OPT_TARGET_HPP
+#ifndef ETEQ_OPT_TARGET_HPP
+#define ETEQ_OPT_TARGET_HPP
 
-#include "experimental/opt/parse.hpp"
+#include "opt/target.hpp"
 
 #include "eteq/make.hpp"
 
@@ -112,4 +112,4 @@ struct TargetFactory final : public opt::iTargetFactory
 
 }
 
-#endif // EXPERIMENTAL_ETEQ_OPT_TARGET_HPP
+#endif // ETEQ_OPT_TARGET_HPP
