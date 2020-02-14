@@ -19,7 +19,8 @@ api:
                   if (auto dep = std::dynamic_pointer_cast<eteq::Observable>(
                     (teq::TensptrT) dependee))
                   {
-                      return eteq::ETensor<T>(teq::TensptrT(eteq::Depends<T>::get(dep, dependencies)));
+                      return eteq::ETensor<T>(teq::TensptrT(eteq::Depends::get(dep,
+                          teq::TensptrsT(dependencies.begin(), dependencies.end()))));
                   }
                   teq::warnf("cannot link non-observable %s to dependencies",
                       dependee->to_string().c_str());

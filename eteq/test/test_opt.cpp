@@ -16,6 +16,41 @@
 const std::string testdir = "models/test";
 
 
+TEST(OPTIMIZE, Depends)
+{
+	// tensor operation
+	std::vector<teq::DimT> slist = {2, 3, 4};
+	std::vector<double> data = {
+		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
+		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
+	};
+	std::vector<double> data2 = {
+		22, 15, 74, 38, 61, 95, 62, 81, 99, 76, 7, 22,
+		56, 50, 19, 13, 12, 10, 31, 40, 60, 54, 6, 83
+	};
+	teq::Shape shape(slist);
+	teq::NElemT n = shape.n_elems();
+	assert(data.size() == n);
+	assert(data2.size() == n);
+
+	eteq::EVariable<double> target = eteq::make_variable<double>(data.data(), shape);
+	eteq::ETensor<double> a = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> b = eteq::make_constant<double>(data2.data(), shape);
+	auto c = a + b;
+	eteq::ETensor<double> d = eteq::make_constant_scalar<double>(4, shape);
+
+	auto ass = tenncor::depends(tenncor::assign(target, b * d), {c});
+
+	eteq::ETensorsT<double> roots = {ass};
+
+	std::ifstream rulefile("cfg/optimizations.json");
+	eteq::optimize(roots, rulefile);
+
+	EXPECT_GRAPHEQ(
+		"", roots[0]);
+}
+
+
 TEST(OPTIMIZE, Optimize)
 {
 	teq::Shape in_shape({5, 3});

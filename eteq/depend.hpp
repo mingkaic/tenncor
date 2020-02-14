@@ -9,18 +9,19 @@
 namespace eteq
 {
 
+const std::string depname = "DEPEND";
+
 // Proxy functor node that encapsulates operational dependency
-template <typename T>
 struct Depends final : public Observable
 {
-	static Depends<T>* get (ObsptrT dependee, const ETensorsT<T>& dependencies)
+	static Depends* get (ObsptrT dependee, const teq::TensptrsT& dependencies)
 	{
 		if (dependencies.empty())
 		{
 			teq::fatal("cannot depend on nothing");
 		}
 
-		return new Depends<T>(dependee, dependencies);
+		return new Depends(dependee, dependencies);
 	}
 
 	~Depends (void)
@@ -29,16 +30,16 @@ struct Depends final : public Observable
 	}
 
 	/// Return deep copy of this Depends
-	Depends<T>* clone (void) const
+	Depends* clone (void) const
 	{
-		return static_cast<Depends<T>*>(clone_impl());
+		return static_cast<Depends*>(clone_impl());
 	}
 
-	Depends (Depends<T>&& other) = delete;
+	Depends (Depends&& other) = delete;
 
-	Depends<T>& operator = (const Depends<T>& other) = delete;
+	Depends& operator = (const Depends& other) = delete;
 
-	Depends<T>& operator = (Depends<T>&& other) = delete;
+	Depends& operator = (Depends&& other) = delete;
 
 	/// Implementation of iTensor
 	teq::Shape shape (void) const override
@@ -93,7 +94,41 @@ struct Depends final : public Observable
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		dependee_->update_child(arg, index);
+		size_t ndependee = dependee_->get_children().size();
+		if (index < ndependee)
+		{
+			dependee_->update_child(arg, index);
+			return;
+		}
+		index = ndependee - index;
+		if (index >= dependencies_.size())
+		{
+			teq::fatalf("cannot modify dependency %d "
+				"when there are only %d dependencies",
+				index, dependencies_.size());
+		}
+		if (arg != dependencies_[index])
+		{
+			uninitialize();
+			if (auto f = dynamic_cast<Observable*>(dependencies_[index].get()))
+			{
+				f->unsubscribe(this);
+			}
+			teq::Shape nexshape = arg->shape();
+			teq::Shape curshape = dependencies_[index]->shape();
+			if (false == nexshape.compatible_after(curshape, 0))
+			{
+				teq::fatalf("cannot update child %d to argument with "
+					"incompatible shape %s (requires shape %s)",
+					index, nexshape.to_string().c_str(),
+					curshape.to_string().c_str());
+			}
+			dependencies_[index] = arg;
+			if (auto f = dynamic_cast<Observable*>(arg.get()))
+			{
+				f->subscribe(this);
+			}
+		}
 	}
 
 	/// Implementation of iTensor
@@ -145,14 +180,19 @@ struct Depends final : public Observable
 		}
 	}
 
+	ObsptrT get_deps (void) const
+	{
+		return dependee_;
+	}
+
 private:
-	Depends (ObsptrT dependee, const ETensorsT<T>& dependencies) :
+	Depends (ObsptrT dependee, const teq::TensptrsT& dependencies) :
 		dependee_(dependee), dependencies_(dependencies)
 	{
 		dependee_->subscribe(this);
 	}
 
-	Depends (const Depends<T>& other) :
+	Depends (const Depends& other) :
 		dependee_(other.dependee_),
 		dependencies_(other.dependencies_)
 	{
@@ -161,12 +201,12 @@ private:
 
 	teq::iTensor* clone_impl (void) const override
 	{
-		return new Depends<T>(*this);
+		return new Depends(*this);
 	}
 
 	ObsptrT dependee_;
 
-	ETensorsT<T> dependencies_;
+	teq::TensptrsT dependencies_;
 };
 
 }
