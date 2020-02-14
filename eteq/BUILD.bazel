@@ -80,6 +80,7 @@ cc_library(
         "//eigen:eigen",
         "//opt:opt",
         "//onnx:onnx",
+        "@boost//:uuid",
     ],
     visibility = ["//visibility:public"],
 )

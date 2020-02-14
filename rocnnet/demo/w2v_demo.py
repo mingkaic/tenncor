@@ -85,7 +85,7 @@ sess.track([y_pred])
 train_err = layr.sgd_train(model, winput, woutput, layr.get_sgd(lr),
     err_func=lambda ex, out: tc.reduce_sum(tc.pow(tc.extend(out, [1, 2 * window]) - ex, 2.)))
 sess.track([train_err])
-# eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.json"))
+# eteq.optimize(sess, "cfg/optimizations.json")
 
 # Cycle through each epoch
 for i in range(epochs):

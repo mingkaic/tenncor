@@ -208,11 +208,11 @@ struct Functor final : public Observable
 	{
 		if (has_data())
 		{
+			ref_ = nullptr;
 			for (auto& parent : this->subs_)
 			{
 				parent->uninitialize();
 			}
-			ref_ = nullptr;
 		}
 	}
 

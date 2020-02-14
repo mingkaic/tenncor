@@ -85,7 +85,7 @@ def main(args):
         layr.get_sgd(learning_rate=0.1),
         err_func=lstm_loss)
     sess.track([train_err])
-    # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.json"))
+    # eteq.optimize(sess, "cfg/optimizations.json")
 
     start = time.time()
     for cur_iter in range(args.n_train):

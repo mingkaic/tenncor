@@ -89,7 +89,7 @@ def main(args):
     trained_out = model.connect(testin)
     pretrained_out = trained.connect(testin)
     sess.track([untrained_out, trained_out, pretrained_out])
-    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.json"))
+    eteq.optimize(sess, "cfg/optimizations.json")
 
     start = time.time()
     for i in range(args.n_train):

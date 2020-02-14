@@ -128,7 +128,7 @@ def main(args):
         update=layr.get_adagrad(learning_rate=learning_rate, epsilon=1e-8),
         err_func=encoded_loss)
     sess.track([train_err])
-    # eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.json"))
+    # eteq.optimize(sess, "cfg/optimizations.json")
 
     smooth_loss = -np.log(1.0/vocab_size)*seq_length
     p = 0

@@ -135,7 +135,14 @@ struct Depends final : public Observable
 	/// Implementation of Observable
 	void uninitialize (void) override
 	{
-		dependee_->uninitialize();
+		if (dependee_->has_data())
+		{
+			dependee_->uninitialize();
+			for (auto& parent : this->subs_)
+			{
+				parent->uninitialize();
+			}
+		}
 	}
 
 private:

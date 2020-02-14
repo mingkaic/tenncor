@@ -109,7 +109,7 @@ def main(args):
         gradprocess = lambda x: tc.clip_by_l2norm(x, 5))
     pretrained_dqn = layr.DQNTrainer(trained, sess, bgd, param)
 
-    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.json"))
+    eteq.optimize(sess, "cfg/optimizations.json")
 
     err_msg = None
     err_queue_size = 10
