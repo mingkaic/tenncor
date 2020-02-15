@@ -54,18 +54,6 @@ struct iTensor
 		return this->clone_impl();
 	}
 
-	// // Keep around for debugging purposes
-	// void* data (void)
-	// {
-	// 	return device().data();
-	// }
-
-	// // Keep around for debugging purposes
-	// const void* data (void) const
-	// {
-	// 	return device().data();
-	// }
-
 	/// Obtain concrete information on either leaf or functor implementations
 	virtual void accept (iTraveler& visiter) = 0;
 
