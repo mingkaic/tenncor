@@ -660,7 +660,7 @@ TEST(API, Depends)
 		}
 	}
 
-	EXPECT_FATAL(eteq::derive(ass, a), "cannot derive ASSIGN");
+	EXPECT_FATAL(eteq::derive(ass, a), "Unknown op DEPEND");
 }
 
 

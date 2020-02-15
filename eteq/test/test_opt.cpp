@@ -47,7 +47,71 @@ TEST(OPTIMIZE, Depends)
 	eteq::optimize(roots, rulefile);
 
 	EXPECT_GRAPHEQ(
-		"", roots[0]);
+		"(DEPEND[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" `--(ASSIGN[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   `--(variable:[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   `--(constant:[88\\60\\296\\152\\244\\...][2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" `--(variable:[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" `--(constant:[88\\60\\296\\152\\244\\...][2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" `--(constant:[81\\25\\102\\48\\128\\...][2\\3\\4\\1\\1\\1\\1\\1])\n", roots[0]);
+}
+
+
+// ensure optimizing does not merge depend node and its arguments to confuse it for nnary operators
+TEST(OPTIMIZE, DependsNnary)
+{
+	// tensor operation
+	std::vector<teq::DimT> slist = {2, 3, 4};
+	std::vector<double> data = {
+		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
+		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
+	};
+	std::vector<double> data2 = {
+		22, 15, 74, 38, 61, 95, 62, 81, 99, 76, 7, 22,
+		56, 50, 19, 13, 12, 10, 31, 40, 60, 54, 6, 83
+	};
+	teq::Shape shape(slist);
+	teq::NElemT n = shape.n_elems();
+	assert(data.size() == n);
+	assert(data2.size() == n);
+
+	eteq::EVariable<double> target = eteq::make_variable<double>(data.data(), shape);
+	eteq::ETensor<double> a = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> b = eteq::make_constant<double>(data2.data(), shape);
+	auto c = a + b;
+	eteq::ETensor<double> d = eteq::make_constant_scalar<double>(4, shape);
+
+	auto add = tenncor::depends(tenncor::add(target, b * d), {c});
+
+	teq::Session sess = eigen::get_session();
+	sess.track({teq::TensptrT(add)});
+	sess.update_target({add.get()});
+	teq::Shape exshape = add->shape();
+	double* expect_data = (double*) add->device().data();
+	std::vector<double> evdata(expect_data, expect_data + exshape.n_elems());
+
+	eteq::ETensorsT<double> roots = {add};
+
+	std::ifstream rulefile("cfg/optimizations.json");
+	eteq::optimize(roots, rulefile);
+
+	EXPECT_GRAPHEQ(
+		"(DEPEND[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" `--(ADD[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   `--(variable:[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" |   `--(constant:[88\\60\\296\\152\\244\\...][2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" `--(variable:[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" `--(constant:[88\\60\\296\\152\\244\\...][2\\3\\4\\1\\1\\1\\1\\1])\n"
+		" `--(constant:[81\\25\\102\\48\\128\\...][2\\3\\4\\1\\1\\1\\1\\1])\n", roots[0]);
+
+	sess.track({teq::TensptrT(roots[0])});
+	sess.update_target({roots[0].get()});
+	teq::Shape gotshape = roots[0]->shape();
+	double* got_data = (double*) roots[0]->device().data();
+	std::vector<double> gvdata(got_data, got_data + gotshape.n_elems());
+
+	ASSERT_ARREQ(exshape, gotshape);
+	EXPECT_VECEQ(evdata, gvdata);
 }
 
 

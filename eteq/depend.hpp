@@ -50,43 +50,39 @@ struct Depends final : public Observable
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return dependee_->to_string();
+		return depname;
 	}
 
 	/// Implementation of iAttributed
 	std::vector<std::string> ls_attrs (void) const override
 	{
-		return dependee_->ls_attrs();
+		return {};
 	}
 
 	/// Implementation of iAttributed
 	const marsh::iObject* get_attr (std::string attr_name) const override
 	{
-		return dependee_->get_attr(attr_name);
+		return nullptr;
 	}
 
 	/// Implementation of iAttributed
-	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
-	{
-		dependee_->add_attr(attr_key, std::move(attr_val));
-	}
+	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override {}
 
 	/// Implementation of iAttributed
-	void rm_attr (std::string attr_key) override
-	{
-		dependee_->rm_attr(attr_key);
-	}
+	void rm_attr (std::string attr_key) override {}
 
 	/// Implementation of iFunctor
 	teq::Opcode get_opcode (void) const override
 	{
-		return dependee_->get_opcode();
+		return teq::Opcode{depname, egen::BAD_OP};
 	}
 
 	/// Implementation of iFunctor
 	teq::TensptrsT get_children (void) const override
 	{
-		teq::TensptrsT out = dependee_->get_children();
+		teq::TensptrsT out = {dependee_};
+		auto children = dependee_->get_children();
+		out.insert(out.end(), children.begin(), children.end());
 		out.insert(out.end(), dependencies_.begin(), dependencies_.end());
 		return out;
 	}
@@ -94,6 +90,11 @@ struct Depends final : public Observable
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
+		if (0 == index)
+		{
+			teq::fatal("cannot reassign dependee of depend (index 0)");
+		}
+		--index;
 		size_t ndependee = dependee_->get_children().size();
 		if (index < ndependee)
 		{
@@ -178,11 +179,6 @@ struct Depends final : public Observable
 				parent->uninitialize();
 			}
 		}
-	}
-
-	ObsptrT get_deps (void) const
-	{
-		return dependee_;
 	}
 
 private:

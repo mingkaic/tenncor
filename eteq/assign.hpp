@@ -100,6 +100,11 @@ struct Assign final : public Observable
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
+		if (0 == index)
+		{
+			teq::fatal("cannot reassign target of assignment (index 0)");
+		}
+		--index;
 		if (index >= children_.size())
 		{
 			teq::fatalf("cannot modify argument %d "
