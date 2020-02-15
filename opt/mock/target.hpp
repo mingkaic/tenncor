@@ -10,38 +10,38 @@ const std::string tfactory_delim = ":";
 
 struct MockTarget final : public opt::iTarget
 {
-    MockTarget (teq::TensptrT tag, const opt::TargptrsT& targs = {}) :
-        tag_(tag), targs_(targs) {}
+	MockTarget (teq::TensptrT tag, const opt::TargptrsT& targs = {}) :
+		tag_(tag), targs_(targs) {}
 
-    teq::TensptrT convert (const query::SymbMapT& candidates) const override
-    {
-        return tag_;
-    }
+	teq::TensptrT convert (const query::SymbMapT& candidates) const override
+	{
+		return tag_;
+	}
 
-    teq::TensptrT tag_;
+	teq::TensptrT tag_;
 
-    opt::TargptrsT targs_;
+	opt::TargptrsT targs_;
 };
 
 struct MockTargetFactory final : public opt::iTargetFactory
 {
-    MockTargetFactory (void) : index_(0) {}
+	MockTargetFactory (void) : index_(0) {}
 
 	opt::TargptrT make_scalar (double scalar,
 		std::string sshape) const override
 	{
 		return std::make_shared<MockTarget>(
-            std::make_shared<MockLeaf>(teq::Shape(),
-            fmts::to_string(scalar) +
-            tfactory_delim + sshape +
-            tfactory_delim + fmts::to_string(index_++)));
+			std::make_shared<MockLeaf>(teq::Shape(),
+			fmts::to_string(scalar) +
+			tfactory_delim + sshape +
+			tfactory_delim + fmts::to_string(index_++)));
 	}
 
 	opt::TargptrT make_symbol (std::string symbol) const override
 	{
 		return std::make_shared<MockTarget>(
-            std::make_shared<MockLeaf>(teq::Shape(),
-            symbol + tfactory_delim + fmts::to_string(index_++)));
+			std::make_shared<MockLeaf>(teq::Shape(),
+			symbol + tfactory_delim + fmts::to_string(index_++)));
 	}
 
 	opt::TargptrT make_functor (std::string opname,
@@ -49,11 +49,11 @@ struct MockTargetFactory final : public opt::iTargetFactory
 		const opt::TargptrsT& args) const override
 	{
 		return std::make_shared<MockTarget>(
-            std::make_shared<MockLeaf>(teq::Shape(),
-            opname + tfactory_delim + fmts::to_string(index_++)), args);
+			std::make_shared<MockLeaf>(teq::Shape(),
+			opname + tfactory_delim + fmts::to_string(index_++)), args);
 	}
 
-    mutable size_t index_;
+	mutable size_t index_;
 };
 
 #endif // OPT_MOCK_TARGET_HPP
