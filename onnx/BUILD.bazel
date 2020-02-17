@@ -23,11 +23,6 @@ filegroup(
 
 ######### LIBRARY #########
 
-cc_proto_library(
-    name = "onnx_cc_proto",
-    deps = ["@com_github_onnx_onnx//:onnx_proto"],
-)
-
 cc_library(
     name = "onnx",
     hdrs = glob(["*.hpp"]),
@@ -40,6 +35,12 @@ cc_library(
         "@boost//:bimap",
     ],
 )
+
+cc_proto_library(
+    name = "onnx_cc_proto",
+    deps = ["@com_github_onnx_onnx//:onnx_proto"],
+)
+
 ######### TOOLS #########
 
 cc_binary(
