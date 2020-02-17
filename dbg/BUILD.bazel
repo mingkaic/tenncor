@@ -42,21 +42,21 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "emit_plugin",
-    hdrs = glob([
-        "psess/emit/*.hpp",
-    ]),
-    srcs = glob(["**/src/*.cpp"]),
-    copts = ["-std=c++17"],
-    deps = [
-        "//eteq:eteq",
-        "//dbg:psess",
-        "//dbg:gemitter_cc_proto",
-        "@boost//:uuid",
-        "@com_github_mingkaic_cppkg//jobs:jobs",
-    ],
-)
+# cc_library(
+#     name = "emit_plugin",
+#     hdrs = glob([
+#         "psess/emit/*.hpp",
+#     ]),
+#     srcs = glob(["**/src/*.cpp"]),
+#     copts = ["-std=c++17"],
+#     deps = [
+#         "//eteq:eteq",
+#         "//dbg:psess",
+#         "//dbg:gemitter_cc_proto",
+#         "@boost//:uuid",
+#         "@com_github_mingkaic_cppkg//jobs:jobs",
+#     ],
+# )
 
 cc_library(
     name = "stats_plugin",
@@ -77,11 +77,11 @@ proto_library(
     deps = ["@com_github_onnx_onnx//:onnx_proto"],
 )
 
-cpp_grpc_library(
-    name = "gemitter_cc_proto",
-    deps = ["//dbg:gemitter_proto"],
-    with_grpc = True,
-)
+# cpp_grpc_library(
+#     name = "gemitter_cc_proto",
+#     deps = ["//dbg:gemitter_proto"],
+#     with_grpc = True,
+# )
 
 pybind_library(
     name = "print_py",
@@ -105,8 +105,8 @@ pybind_library(
 
 ######### TEST #########
 
-cc_binary(
-    name = "mockserver",
-    srcs = ["psess/emit/mock/mockserver.cpp"],
-    deps = ["//dbg:gemitter_cc_proto"],
-)
+# cc_binary(
+#     name = "mockserver",
+#     srcs = ["psess/emit/mock/mockserver.cpp"],
+#     deps = ["//dbg:gemitter_cc_proto"],
+# )
