@@ -1,6 +1,5 @@
 load("//third_party:repos/eigen.bzl", "eigen_repository")
 load("//third_party:repos/numpy.bzl", "numpy_repository")
-load("//third_party:repos/protobuf.bzl", "pb_rules_repository")
 load("//third_party:repos/grpc.bzl", "grpc_rules_repository")
 load("//third_party:repos/pybind11.bzl", "pybind11_repository")
 load("//third_party:repos/python.bzl", "python_repository")
@@ -17,9 +16,6 @@ def dependencies(excludes = []):
 
     if "com_github_pybind_pybind11" not in ignores:
         pybind11_repository()
-
-    if "com_github_stackb_rules_proto" not in ignores:
-        pb_rules_repository()
 
     if "com_github_eigenteam_eigen" not in ignores:
         eigen_repository()
