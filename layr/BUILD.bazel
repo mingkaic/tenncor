@@ -1,6 +1,6 @@
 licenses(["notice"])
 
-load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+load("//third_party:tools/pybind.bzl", "pybind_py_library")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -35,13 +35,14 @@ cc_library(
     deps = ["//eteq:eteq"],
 )
 
-pybind_library(
+pybind_py_library(
     name = "layr_py",
     cc_srcs = ["//layr:python/layr.cpp"],
     cc_deps = [
         "//layr:layr",
         "//pyutils:pyutils",
     ],
+    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )
 

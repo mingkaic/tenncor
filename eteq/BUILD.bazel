@@ -1,12 +1,13 @@
 licenses(["notice"])
 
-load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+load("//third_party:tools/pybind.bzl", "pybind_py_library")
 
 filegroup(
     name = "srcs",
     srcs = glob([
         "*.hpp",
         "src/*.cpp",
+        "python/*.cpp",
     ]) + ["BUILD.bazel"],
     visibility = ["//visibility:public"],
 )
@@ -85,20 +86,22 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
-pybind_library(
+pybind_py_library(
     name = "tenncor_py",
-    cc_srcs = [":generated/pyapi_tenncor.cpp"],
+    cc_srcs = ["//eteq:generated/pyapi_tenncor.cpp"],
     cc_deps = ["//eteq:eteq"],
+    copts = ["-std=c++17"],
 )
 
-pybind_library(
+pybind_py_library(
     name = "eteq_py",
-    cc_srcs = ["//eteq:python/eteq.cpp"],
+    cc_srcs = ["python/eteq.cpp"],
     cc_deps = [
         "//eteq:eteq",
         "//pyutils:pyutils",
     ],
     py_deps = ["//eteq:tenncor_py"],
+    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )
 

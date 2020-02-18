@@ -1,6 +1,7 @@
 licenses(["notice"])
 
-load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+load("//third_party:tools/pybind.bzl", "pybind_py_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
 
 package(
@@ -39,21 +40,21 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "emit_plugin",
-    hdrs = glob([
-        "psess/emit/*.hpp",
-    ]),
-    srcs = glob(["**/src/*.cpp"]),
-    copts = ["-std=c++17"],
-    deps = [
-        "//eteq:eteq",
-        "//dbg:psess",
-        "//dbg:gemitter_cc_grpc",
-        "@boost//:uuid",
-        "@com_github_mingkaic_cppkg//jobs:jobs",
-    ],
-)
+# cc_library(
+#     name = "emit_plugin",
+#     hdrs = glob([
+#         "psess/emit/*.hpp",
+#     ]),
+#     srcs = glob(["**/src/*.cpp"]),
+#     copts = ["-std=c++17"],
+#     deps = [
+#         "//eteq:eteq",
+#         "//dbg:psess",
+#         "//dbg:gemitter_cc_grpc",
+#         "@boost//:uuid",
+#         "@com_github_mingkaic_cppkg//jobs:jobs",
+#     ],
+# )
 
 cc_library(
     name = "stats_plugin",
@@ -79,23 +80,24 @@ cc_proto_library(
     deps = ["//dbg:gemitter_proto"],
 )
 
-cc_grpc_library(
-    name = "gemitter_cc_grpc",
-    srcs = ["//dbg:gemitter_proto"],
-    grpc_only = True,
-    deps = ["//dbg:gemitter_cc_proto"],
-)
+# cc_grpc_library(
+#     name = "gemitter_cc_grpc",
+#     srcs = ["//dbg:gemitter_proto"],
+#     grpc_only = True,
+#     deps = ["//dbg:gemitter_cc_proto"],
+# )
 
-pybind_library(
+pybind_py_library(
     name = "print_py",
     cc_srcs = ["python/print.cpp"],
     cc_deps = [
         "//dbg:print",
         "//eteq:eteq",
     ],
+    copts = ["-std=c++17"],
 )
 
-pybind_library(
+pybind_py_library(
     name = "psess_py",
     cc_srcs = ["python/psess.cpp"],
     cc_deps = [
@@ -104,12 +106,13 @@ pybind_library(
         "//eteq:eteq",
     ],
     py_deps = ["//eteq:eteq_py"],
+    copts = ["-std=c++17"],
 )
 
 ######### TEST #########
 
-cc_binary(
-    name = "mockserver",
-    srcs = ["psess/emit/mock/mockserver.cpp"],
-    deps = ["//dbg:gemitter_cc_grpc"],
-)
+# cc_binary(
+#     name = "mockserver",
+#     srcs = ["psess/emit/mock/mockserver.cpp"],
+#     deps = ["//dbg:gemitter_cc_grpc"],
+# )

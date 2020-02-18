@@ -1,6 +1,7 @@
 licenses(["notice"])
 
-load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+load("//third_party:tools/pybind.bzl", "pybind_py_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
 filegroup(
     name = "srcs",
@@ -45,15 +46,17 @@ proto_library(
 cc_proto_library(
     name = "query_cc_proto",
     deps = ["//query:query_proto"],
+    visibility = ["//visibility:public"],
 )
 
-pybind_library(
+pybind_py_library(
     name = "query_py",
     cc_srcs = ["//query:python/query.cpp"],
     cc_deps = [
         "//eteq:eteq",
         "//query:query",
     ],
+    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )
 

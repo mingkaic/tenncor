@@ -1,5 +1,7 @@
 licenses(["notice"])
 
+load("@com_github_pybind_bazel//:build_defs.bzl", "pybind_library")
+
 filegroup(
     name = "srcs",
     srcs = glob(["*.hpp", "src/*.cpp"]) + [
@@ -10,14 +12,11 @@ filegroup(
 
 ######### LIBRARY #########
 
-cc_library(
+pybind_library(
     name = "pyutils",
     hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
-    deps = [
-        "//teq:teq",
-        "@com_github_pybind_pybind11//:pybind11",
-    ],
+    deps = ["//teq:teq"],
     visibility = ["//visibility:public"],
 )

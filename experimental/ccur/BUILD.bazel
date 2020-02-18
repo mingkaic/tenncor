@@ -1,6 +1,7 @@
 # licenses(["notice"])
 
-# load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+# load("//third_party:tools/pybind.bzl", "pybind_py_library")
+# load("@rules_proto//proto:defs.bzl", "proto_library")
 
 # package(
 #     default_visibility = ["//visibility:public"],
@@ -51,13 +52,14 @@
 #     ],
 # )
 
-# pybind_library(
+# pybind_py_library(
 #     name = "ccur_py",
 #     cc_srcs = ["//ccur:python/ccur.cpp"],
 #     cc_deps = [
 #         "//ccur:ccur",
 #     ],
 #     py_deps = ["//eteq:eteq_py"],
+#     copts = ["-std=c++17"],
 #     visibility = ["//visibility:public"],
 # )
 
