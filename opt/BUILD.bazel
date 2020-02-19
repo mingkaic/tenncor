@@ -42,9 +42,19 @@ proto_library(
     deps = ["//query:query_proto"],
 )
 
-cc_proto_library(
-    name = "opt_cc_proto",
-    deps = ["//opt:opt_proto"],
+# cc_proto_library(
+#     name = "opt_cc_proto",
+#     deps = ["//opt:opt_proto"],
+# )
+
+cc_library(
+    name="opt_cc_proto",
+    hdrs=["optimize.pb.h"],
+    srcs=["optimize.pb.cc"],
+    deps = [
+        "//query:query_cc_proto",
+        "@com_google_protobuf_custom//:protobuf",
+    ],
 )
 
 ######### TEST #########

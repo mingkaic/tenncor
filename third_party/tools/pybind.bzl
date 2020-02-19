@@ -11,6 +11,7 @@ def pybind_py_library(name,
         py_srcs = [],
         py_deps = [],
         py_imports = [],
+        cc_linkopts = [],
         visibility = None,
         testonly = None,
         **kwargs):
@@ -22,7 +23,7 @@ def pybind_py_library(name,
             cc_so_name = name
 
     pybind_extension(cc_so_name, copts, features, tags,
-        deps=cc_deps, srcs=cc_srcs,
+        deps=cc_deps, srcs=cc_srcs, cc_linkopts=cc_linkopts,
         visibility=visibility, testonly=testonly, **kwargs)
 
     py_library_rule(

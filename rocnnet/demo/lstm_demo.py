@@ -85,7 +85,7 @@ def main(args):
         layr.get_sgd(learning_rate=0.1),
         err_func=lstm_loss)
     sess.track([train_err])
-    eteq.optimize(sess, "cfg/optimizations.json")
+    # eteq.optimize(sess, "cfg/optimizations.json")
 
     start = time.time()
     for cur_iter in range(args.n_train):
@@ -96,6 +96,7 @@ def main(args):
             cur_iter, hiddens.get().flatten(), err.get()))
 
     sess.update_target([untrained, hiddens, pretrained])
+    print("expecting = {}".format(np.array(y_list)))
     print("untrained_y_pred = {}".format(untrained.get().flatten()))
     print("trained_y_pred = {}".format(hiddens.get().flatten()))
     print("pretrained_y_pred = {}".format(pretrained.get().flatten()))

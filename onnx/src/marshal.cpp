@@ -247,7 +247,6 @@ teq::Shape unmarshal_shape (const TensorShapeProto& shape)
 	std::transform(dims.begin(), dims.end(), std::back_inserter(slist),
 		[](const TensorShapeProto::Dimension& dim)
 		{
-			assert(dim.has_dim_value());
 			return dim.dim_value();
 		});
 	return teq::Shape(slist);

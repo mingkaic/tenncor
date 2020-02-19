@@ -35,6 +35,19 @@ rocnnet_py_export: rocnnet_py_build
 	cp -f bazel-bin/eteq/*.so rocnnet/notebooks/eteq
 
 
+.PHONY: protoc
+protoc:
+	mkdir ./build
+	bazel build @com_google_protobuf_custom//:protoc
+	cp bazel-bin/external/com_google_protobuf_custom/protoc ./build
+
+.PHONY: gen_proto
+gen_proto: protoc
+	./build/protoc --cpp_out=. -I . onnx/onnx.proto
+	./build/protoc --cpp_out=. -I . query/query.proto
+	./build/protoc --cpp_out=. -I . opt/optimize.proto
+
+
 onnx2json: onnx_test_o2j eteq_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
 
 onnx_test_o2j: models/test/onnx.onnx

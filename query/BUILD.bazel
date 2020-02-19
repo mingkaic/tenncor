@@ -43,9 +43,16 @@ proto_library(
     visibility = ["//visibility:public"],
 )
 
-cc_proto_library(
-    name = "query_cc_proto",
-    deps = ["//query:query_proto"],
+# cc_proto_library(
+#     name = "query_cc_proto",
+#     deps = ["//query:query_proto"],
+# )
+
+cc_library(
+    name="query_cc_proto",
+    hdrs=["query.pb.h"],
+    srcs=["query.pb.cc"],
+    deps = ["@com_google_protobuf_custom//:protobuf"],
     visibility = ["//visibility:public"],
 )
 
