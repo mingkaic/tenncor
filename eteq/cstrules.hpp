@@ -50,7 +50,7 @@ struct ConstantTarget final : public opt::iTarget
 	{
 		auto root = candidates.at("root");
 		teq::Session sess = eigen::get_session();
-		sess.track({graph_->owners_.at(root)});
+		sess.track({graph_->get_owner(root)});
 		sess.update_target({root});
 		T* data = (T*) root->device().data();
 		return make_constant(data, root->shape());
@@ -81,9 +81,9 @@ template <typename T>
 void generate_cstrules (opt::OptRulesT& rules, const opt::GraphInfo& graph)
 {
 	std::unordered_map<std::string,std::unordered_set<size_t>> branches;
-	for (auto& owner : graph.owners_)
+	for (const auto& owner : graph.get_owners())
 	{
-		if (auto f = dynamic_cast<teq::iFunctor*>(owner.first))
+		if (auto f = dynamic_cast<const teq::iFunctor*>(owner.first))
 		{
 			branches[f->to_string()].emplace(f->get_children().size());
 		}

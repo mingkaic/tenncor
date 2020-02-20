@@ -34,7 +34,7 @@ struct SymbolTarget final : public opt::iTarget
 
 	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
-		return graph_->owners_.at(candidates.at(symb_));
+		return graph_->get_owner(candidates.at(symb_));
 	}
 
 	std::string symb_;
@@ -51,7 +51,7 @@ struct FunctorTarget final : public opt::iTarget
 
 	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
-		marsh::Maps* attrcpy = attr_.clone();
+		std::unique_ptr<marsh::Maps> attrcpy(attr_.clone());
 		teq::TensptrsT args;
 		args.reserve(targs_.size());
 		for (opt::TargptrT target : targs_)

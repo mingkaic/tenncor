@@ -17,7 +17,7 @@ namespace eteq
 using EqualF = std::function<bool(teq::TensptrT,teq::TensptrT)>;
 
 /// Delete and update equivalent functor and leaves
-void merge_dups (opt::GraphInfo& graph, EqualF equals);
+void merge_dups (opt::UnindexedGraph& graph, EqualF equals);
 
 template <typename T>
 struct Hasher final : public teq::iOnceTraveler
@@ -99,7 +99,7 @@ private:
 };
 
 template <typename T>
-void merge_dups (opt::GraphInfo& graph)
+void merge_dups (opt::UnindexedGraph& graph)
 {
 	Hasher<T> hasher;
 	for (auto& root : graph.roots_)

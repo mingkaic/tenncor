@@ -26,9 +26,10 @@ template <typename T>
 void optimize (eteq::ETensorsT<T>& roots, std::istream& rulestr)
 {
 	opt::OptRulesT rules;
-	opt::GraphInfo graph(teq::TensptrsT(roots.begin(), roots.end()));
-	merge_dups<T>(graph); // remove duplicates to reduce search space
+	opt::UnindexedGraph gbase(teq::TensptrsT(roots.begin(), roots.end()));
+	merge_dups<T>(gbase); // remove duplicates to reduce search space
 
+	opt::GraphInfo graph(gbase);
 	eteq::TargetFactory<T> impl_factory(graph);
 	eteq::generate_cstrules<T>(rules, graph); // populate with constant rules
 	opt::json_parse(rules, rulestr, impl_factory);
@@ -37,11 +38,13 @@ void optimize (eteq::ETensorsT<T>& roots, std::istream& rulestr)
 	{
 		converted = opt::optimize(graph, rules);
 	}
-	for (auto& root : roots)
+	// apply new roots
+	auto altered_roots = graph.get_roots();
+	for (size_t i = 0, n = roots.size(); i < n; ++i)
 	{
-		if (estd::has(graph.changes_, root.get()))
+		if (altered_roots[i] != roots[i].get())
 		{
-			root = graph.changes_.at(root.get());
+			roots[i] = graph.get_owner(altered_roots[i]);
 		}
 	}
 }

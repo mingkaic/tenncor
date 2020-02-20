@@ -25,6 +25,8 @@ P5 = "get to it eventually"
    - select and integrate some other CUDA-supported LinAlgebra libraries
    - make global context configurable through python
 
+   - rework graph modeling (in opt) to allow faster replace and find
+
 === transparency/code readability ===
    - refactor derivative to merge local_derivative AND chain_rule
 P2 - generate value-range graph to detect erroneous operators
