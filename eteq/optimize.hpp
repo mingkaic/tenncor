@@ -39,14 +39,8 @@ void optimize (eteq::ETensorsT<T>& roots, std::istream& rulestr)
 		converted = opt::optimize(graph, rules);
 	}
 	// apply new roots
-	auto altered_roots = graph.get_roots();
-	for (size_t i = 0, n = roots.size(); i < n; ++i)
-	{
-		if (altered_roots[i] != roots[i].get())
-		{
-			roots[i] = graph.get_owner(altered_roots[i]);
-		}
-	}
+	auto oroots = graph.get_roots();
+	roots = eteq::ETensorsT<T>(oroots.begin(), oroots.end());
 }
 
 /// Apply optimization to graph roots tracked by session

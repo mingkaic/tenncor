@@ -9,7 +9,7 @@ namespace eteq
 void merge_dups (opt::UnindexedGraph& graph, EqualF equals)
 {
 	teq::GraphStat stat;
-	for (teq::iTensor* root : graph.roots_)
+	for (teq::TensptrT root : graph.roots_)
 	{
 		root->accept(stat);
 	}

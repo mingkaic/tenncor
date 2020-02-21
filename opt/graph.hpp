@@ -18,21 +18,15 @@ OwnersT convert_ownermap (const teq::OwnerMapT& omap);
 struct UnindexedGraph final
 {
 	UnindexedGraph (teq::TensptrsT roots) :
+		roots_(roots),
 		owners_(convert_ownermap(teq::track_owners(roots)))
 	{
 		teq::ParentFinder pfinder;
-		for (auto root : roots)
+		for (auto root : roots_)
 		{
 			root->accept(pfinder);
 		}
 		parents_ = pfinder.parents_;
-		for (auto& parent : parents_)
-		{
-			if (parent.second.empty())
-			{
-				roots_.push_back(parent.first);
-			}
-		}
 	}
 
 	void replace (const teq::TensMapT<teq::TensptrT>& converts)
@@ -80,16 +74,16 @@ struct UnindexedGraph final
 				parents_.erase(src);
 			}
 		}
-		for (teq::iTensor*& root : roots_)
+		for (teq::TensptrT& root : roots_)
 		{
-			if (estd::has(converts, root))
+			if (estd::has(converts, root.get()))
 			{
-				root = converts.at(root).get();
+				root = converts.at(root.get());
 			}
 		}
 	}
 
-	teq::TensT roots_;
+	teq::TensptrsT roots_;
 
 	OwnersT owners_; // todo: cleanup everything properly instead of keeping dangling leaves
 
@@ -166,7 +160,7 @@ struct GraphInfo final
 		query::search::populate_itable(sindex_, pbuilder_.paths_);
 	}
 
-	teq::TensT get_roots (void) const
+	teq::TensptrsT get_roots (void) const
 	{
 		return base_.roots_;
 	}

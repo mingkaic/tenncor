@@ -115,7 +115,7 @@ TEST(OPTIMIZE, DependsNnary)
 }
 
 
-TEST(OPTIMIZE, Optimize)
+TEST(OPTIMIZE, RNNLayer)
 {
 	teq::Shape in_shape({5, 3});
 	teq::Shape weight_shape({5, 10});
