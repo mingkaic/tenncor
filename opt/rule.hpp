@@ -9,11 +9,9 @@
 namespace opt
 {
 
-using MatcherF = std::function<void(query::Query& q)>;
-
 struct OptRule final
 {
-	MatcherF matcher_;
+	google::protobuf::RepeatedPtrField<query::Node> match_srcs_;
 
 	TargptrT target_;
 };

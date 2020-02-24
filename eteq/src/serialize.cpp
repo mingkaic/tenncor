@@ -202,9 +202,9 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 			teq::fatalf("cannot generate func %s without args", opname.c_str());
 		}
 		egen::_GENERATED_OPCODE opcode = egen::get_op(opname);
-		size_t gencode = children.front()->type_code();
+		auto gencode = (egen::_GENERATED_DTYPE) children.front()->type_code();
 		teq::iFunctor* func = nullptr;
-		TYPE_LOOKUP(_OUT_GENFUNC, (egen::_GENERATED_DTYPE) gencode);
+		TYPE_LOOKUP(_OUT_GENFUNC, gencode);
 		return teq::TensptrT(func);
 	}
 

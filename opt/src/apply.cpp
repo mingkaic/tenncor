@@ -11,9 +11,11 @@ bool optimize (GraphInfo& graph, const OptRulesT& rules)
 	for (const OptRule& rule : rules)
 	{
 		query::QResultsT results;
-		query::Query q(graph.sindex_);
-		rule.matcher_(q);
-		q.exec(results);
+		for (auto& match_src : rule.match_srcs_)
+		{
+			auto res = graph.sindex_.match(match_src);
+			results.insert(results.end(), res.begin(), res.end());
+		}
 		if (results.size() > 0)
 		{
 			converted = true;

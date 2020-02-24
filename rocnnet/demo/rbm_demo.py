@@ -108,6 +108,7 @@ def main(args):
 
     image = random.choice(mnist_images)
     sess.track([genx, trained_genx, untrained_genx])
+
     eteq.optimize(sess, "cfg/optimizations.json")
 
     n_epoches = 30

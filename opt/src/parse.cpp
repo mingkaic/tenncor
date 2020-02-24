@@ -9,32 +9,6 @@
 namespace opt
 {
 
-static void find_symbols (std::unordered_set<std::string>& out,
-	const query::Node& cond)
-{
-	switch (cond.val_case())
-	{
-		case query::Node::ValCase::kSymb:
-			out.emplace(cond.symb());
-			break;
-		case query::Node::ValCase::kOp:
-		{
-			const query::Operator& op = cond.op();
-			for (const query::Node& arg : op.args())
-			{
-				find_symbols(out, arg);
-			}
-			if (query::Operator::kCapture == op.nullable_capture_case())
-			{
-				out.emplace(op.capture());
-			}
-		}
-			break;
-		default:
-			break;
-	}
-}
-
 TargptrT parse_target (const TargetNode& root,
 	const iTargetFactory& builder)
 {
@@ -77,26 +51,10 @@ void parse_optimization (OptRulesT& rules,
 {
 	for (const Conversion& pb_conv : pb_opt.conversions())
 	{
-		std::unordered_set<std::string> relevant_anys;
 		const auto& pb_srcs = pb_conv.srcs();
 		const TargetNode& pb_dest = pb_conv.dest();
-		for (const query::Node& pb_src : pb_srcs)
-		{
-			find_symbols(relevant_anys, pb_src);
-		}
-		MatcherF matcher = [pb_srcs, relevant_anys](query::Query& q)
-		{
-			for (std::string any : relevant_anys)
-			{
-				q = q.select(any);
-			}
-			for (const query::Node& pb_src : pb_srcs)
-			{
-				q = q.where(std::make_shared<query::Node>(pb_src));
-			}
-		};
 		TargptrT target = parse_target(pb_dest, tfactory);
-		rules.push_back(OptRule{matcher, target});
+		rules.push_back(OptRule{pb_srcs, target});
 	}
 }
 

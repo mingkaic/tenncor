@@ -60,10 +60,9 @@ struct ConstantTarget final : public opt::iTarget
 };
 
 // source graph for certain branching factor of certain operator
-static query::ConditionT get_cstsource (std::string opname, size_t nbranch)
+static void get_cstsource (query::Node& node, std::string opname, size_t nbranch)
 {
-	query::ConditionT node = std::make_shared<query::Node>();
-	query::Operator* op = node->mutable_op();
+	query::Operator* op = node.mutable_op();
 	op->set_opname(opname);
 	op->set_capture("root");
 	for (size_t i = 0; i < nbranch; ++i)
@@ -72,7 +71,6 @@ static query::ConditionT get_cstsource (std::string opname, size_t nbranch)
 		query::Leaf* leaf = arg->mutable_leaf();
 		leaf->set_usage(teq::get_usage_name(teq::Usage::IMMUTABLE));
 	}
-	return node;
 }
 
 // gather branching factor of all operators,
@@ -93,18 +91,16 @@ void generate_cstrules (opt::OptRulesT& rules, const opt::GraphInfo& graph)
 		// for some reason...
 		return;
 	}
-	rules.push_back(opt::OptRule{
-		[branches](query::Query& q)
+	google::protobuf::RepeatedPtrField<query::Node> srcs;
+	for (auto& branch : branches)
+	{
+		for (size_t bfactor : branch.second)
 		{
-			q = q.select("root");
-			for (auto& branch : branches)
-			{
-				for (size_t bfactor : branch.second)
-				{
-					q = q.where(get_cstsource(branch.first, bfactor));
-				}
-			}
-		}, std::make_shared<ConstantTarget<T>>(graph)});
+			query::Node* src = srcs.Add();
+			get_cstsource(*src, branch.first, bfactor);
+		}
+	}
+	rules.push_back(opt::OptRule{srcs, std::make_shared<ConstantTarget<T>>(graph)});
 }
 
 }

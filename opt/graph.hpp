@@ -15,9 +15,9 @@ using OwnersT = teq::TensMapT<teq::TensptrT>;
 
 OwnersT convert_ownermap (const teq::OwnerMapT& omap);
 
-struct UnindexedGraph final
+struct GraphInfo final
 {
-	UnindexedGraph (teq::TensptrsT roots) :
+	GraphInfo (teq::TensptrsT roots) :
 		roots_(roots),
 		owners_(convert_ownermap(teq::track_owners(roots)))
 	{
@@ -25,8 +25,23 @@ struct UnindexedGraph final
 		for (auto root : roots_)
 		{
 			root->accept(pfinder);
+			root->accept(sindex_);
 		}
 		parents_ = pfinder.parents_;
+	}
+
+	teq::TensptrsT find (const query::Node& condition) const
+	{
+		query::QResultsT results = sindex_.match(condition);
+		teq::TensptrsT outs;
+		outs.reserve(results.size());
+		std::transform(results.begin(), results.end(),
+			std::back_inserter(outs),
+			[this](const query::QueryResult& result)
+			{
+				return owners_.at(result.root_);
+			});
+		return outs;
 	}
 
 	void replace (const teq::TensMapT<teq::TensptrT>& converts)
@@ -62,6 +77,7 @@ struct UnindexedGraph final
 
 			// update owners and track changes regarding target
 			owners_.emplace(target.get(), target);
+			target->accept(sindex_);
 		}
 		// cleanup parents_
 		for (auto childpair : clean_children)
@@ -83,105 +99,29 @@ struct UnindexedGraph final
 		}
 	}
 
+	teq::TensptrsT get_roots (void) const
+	{
+		return roots_;
+	}
+
+	const OwnersT& get_owners (void) const
+	{
+		return owners_;
+	}
+
+	teq::TensptrT get_owner (teq::iTensor* ptr) const
+	{
+		return estd::try_get(owners_, ptr, nullptr);
+	}
+
+	// sindex_ built from pbuilder_.paths_
+	query::Query sindex_;
+
 	teq::TensptrsT roots_;
 
 	OwnersT owners_; // todo: cleanup everything properly instead of keeping dangling leaves
 
 	teq::TensMapT<teq::ParentMapT> parents_;
-};
-
-struct GraphInfo final
-{
-	GraphInfo (const UnindexedGraph& base) : base_(base)
-	{
-		for (auto root : base_.roots_)
-		{
-			root->accept(pbuilder_);
-		}
-		query::search::populate_itable(sindex_, pbuilder_.paths_);
-	}
-
-	teq::TensptrsT find (const query::Node& condition) const
-	{
-		query::QResultsT results;
-		query::Query(sindex_).where(
-			std::make_shared<query::Node>(condition)).exec(results);
-		teq::TensptrsT outs;
-		outs.reserve(results.size());
-		std::transform(results.begin(), results.end(),
-			std::back_inserter(outs),
-			[this](const query::QueryResult& result)
-			{
-				return base_.owners_.at(result.root_);
-			});
-		return outs;
-	}
-
-	void replace (const teq::TensMapT<teq::TensptrT>& converts)
-	{
-		teq::TensMapT<teq::TensSetT> clean_children;
-		for (const auto& convert : converts)
-		{
-			teq::iTensor* src = convert.first;
-			if (estd::has(base_.parents_, src))
-			{
-				// for ancestors of src, clean pbuilder_.paths_ info
-				std::list<teq::iTensor*> q = {src};
-				teq::TensSetT clean_pars;
-				while (false == q.empty())
-				{
-					teq::iTensor* parent = q.front();
-					q.pop_front();
-					pbuilder_.paths_.erase(parent);
-					if (estd::has(base_.parents_, parent))
-					{
-						teq::ParentMapT& pmap = base_.parents_.at(parent);
-						for (auto& ppair : pmap)
-						{
-							if (false == estd::has(
-								clean_pars, ppair.first))
-							{
-								q.push_back(ppair.first);
-								clean_pars.emplace(ppair.first);
-							}
-						}
-					}
-				}
-			}
-		}
-		base_.replace(converts);
-		// update pbuilder_
-		for (auto root : base_.roots_)
-		{
-			root->accept(pbuilder_);
-		}
-		// update sindex_
-		sindex_.clear();
-		query::search::populate_itable(sindex_, pbuilder_.paths_);
-	}
-
-	teq::TensptrsT get_roots (void) const
-	{
-		return base_.roots_;
-	}
-
-	const OwnersT& get_owners (void) const
-	{
-		return base_.owners_;
-	}
-
-	teq::TensptrT get_owner (teq::iTensor* ptr) const
-	{
-		return estd::try_get(base_.owners_, ptr, nullptr);
-	}
-
-	// sindex_ built from pbuilder_.paths_
-	query::search::OpTrieT sindex_;
-
-private:
-	UnindexedGraph base_;
-
-	query::search::OpPathBuilder pbuilder_;
 };
 
 }

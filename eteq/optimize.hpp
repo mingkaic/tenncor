@@ -26,10 +26,9 @@ template <typename T>
 void optimize (eteq::ETensorsT<T>& roots, std::istream& rulestr)
 {
 	opt::OptRulesT rules;
-	opt::UnindexedGraph gbase(teq::TensptrsT(roots.begin(), roots.end()));
-	merge_dups<T>(gbase); // remove duplicates to reduce search space
+	opt::GraphInfo graph(teq::TensptrsT(roots.begin(), roots.end()));
+	merge_dups<T>(graph); // remove duplicates to reduce search space
 
-	opt::GraphInfo graph(gbase);
 	eteq::TargetFactory<T> impl_factory(graph);
 	eteq::generate_cstrules<T>(rules, graph); // populate with constant rules
 	opt::json_parse(rules, rulestr, impl_factory);

@@ -59,7 +59,7 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 		{
 			teq::fatal("onnx does not support hetero-typed arrays");
 		}
-		if (strs.size() > 0)
+		if (arr.is_object())
 		{
 			out_->set_type(AttributeProto::STRINGS);
 			for (auto str : strs)
@@ -67,7 +67,7 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 				out_->add_strings(str);
 			}
 		}
-		else if (ints.size() > 0)
+		if (arr.is_integral())
 		{
 			out_->set_type(AttributeProto::INTS);
 			for (auto num : ints)
@@ -77,7 +77,6 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 		}
 		else
 		{
-			// by default, assume to be float array
 			out_->set_type(AttributeProto::FLOATS);
 			for (auto num : floats)
 			{

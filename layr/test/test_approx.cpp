@@ -11,6 +11,7 @@
 #include "eteq/make.hpp"
 
 #include "query/query.hpp"
+#include "query/parse.hpp"
 
 #include "layr/approx.hpp"
 
@@ -109,10 +110,11 @@ TEST(APPROX, GroupAssign)
 	// = 0 - 1 * 0.5 / sqrt(1) = -0.5
 	std::stringstream ss;
 	ss << "{\"leaf\":{\"label\":\"momentum\"}}";
-	query::QResultsT results;
-	query::search::OpTrieT itable;
-	query::search::populate_itable(itable, {groups.begin()->second});
-	query::Query(itable).where(ss).exec(results);
+	query::Query itable;
+	groups.begin()->second->accept(itable);
+	query::Node cond;
+	query::json_parse(cond, ss);
+	auto results = itable.match(cond);
 
 	PybindT* o = (PybindT*) static_cast<eteq::Variable<PybindT>*>(
 		results.front().root_)->device().data();

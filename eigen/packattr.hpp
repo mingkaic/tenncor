@@ -269,7 +269,11 @@ struct Packer<std::set<teq::RankT>>
 	void unpack (std::set<teq::RankT>& out, const marsh::iAttributed& attrib) const
 	{
 		auto attr = get_attr(*this, attrib);
+std::cout << attr->class_code() << std::endl;
+dynamic_cast<const marsh::iArray&>(*attr);
+std::cout << "here" << std::endl;
 		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+std::cout << "there" << std::endl;
 		auto& encoding = narr.contents_;
 		out = std::set<teq::RankT>(encoding.begin(), encoding.end());
 	}

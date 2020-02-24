@@ -6,7 +6,7 @@
 namespace eteq
 {
 
-void merge_dups (opt::UnindexedGraph& graph, EqualF equals)
+void merge_dups (opt::GraphInfo& graph, EqualF equals)
 {
 	teq::GraphStat stat;
 	for (teq::TensptrT root : graph.roots_)

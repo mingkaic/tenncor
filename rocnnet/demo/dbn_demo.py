@@ -117,6 +117,9 @@ def main(args):
     out = model.connect(var)
     trained_out = trained.connect(var)
     sess.track([untrained_out, out, trained_out])
+
+    eteq.optimize(sess, "cfg/optimizations.json")
+
     sess.update_target([untrained_out, out, trained_out])
     # since x is similar to first 3 rows of x, expect results simlar to first 3 rows of y [1, 0]
     print('untrained_out: ', untrained_out.get())
