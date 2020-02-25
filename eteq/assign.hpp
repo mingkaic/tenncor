@@ -222,7 +222,7 @@ struct Assign final : public Observable
 				f->must_initialize();
 			}
 		}
-		initialize();
+		assert(initialize());
 	}
 
 private:
