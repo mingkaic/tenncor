@@ -160,9 +160,9 @@ private:
 		if (auto f = dynamic_cast<teq::iFunctor*>(node))
 		{
 			std::string cop = cond.opname();
-			const auto& cargs = cond.args();
+			size_t ncargs = cond.args().size();
 			return f->get_opcode().name_ == cop &&
-				cargs.size() <= f->get_children().size() &&
+				ncargs <= f->get_children().size() &&
 				std::all_of(pb_attrs.begin(), pb_attrs.end(),
 					[&](const auto& pb_attr)
 					{

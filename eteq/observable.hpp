@@ -27,6 +27,14 @@ struct Observable : public teq::iFunctor
 	/// Removes internal data object
 	virtual void uninitialize (void) = 0;
 
+	/// Best effort internal data object initialization
+	/// Return true if initialized, otherwise false
+	/// Will not recursively initialize children
+	virtual bool initialize (void) = 0;
+
+	/// Do or die populate internal data object, will recurse
+	virtual void must_initialize (void) = 0;
+
 protected:
 	std::unordered_set<Observable*> subs_;
 };

@@ -17,7 +17,7 @@ struct ScalarTarget final : public opt::iTarget
 
 	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
-		return eteq::make_constant_scalar(scalar_,
+		return eteq::make_constant_scalar<T>(scalar_,
 			candidates.at(symb_)->shape());
 	}
 

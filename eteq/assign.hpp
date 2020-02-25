@@ -140,7 +140,7 @@ struct Assign final : public Observable
 	{
 		if (false == has_data())
 		{
-			initialize();
+			must_initialize();
 		}
 		return *ref_;
 	}
@@ -192,11 +192,37 @@ struct Assign final : public Observable
 		}
 	}
 
-	/// Populate internal Eigen data object
-	void initialize (void)
+	/// Implementation of Observable
+	bool initialize (void) override
 	{
-		egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-			ref_, shape(), get_children(), *this);
+		if (std::all_of(children_.begin(), children_.end(),
+			[](teq::TensptrT child)
+			{
+				if (auto f = dynamic_cast<Observable*>(child.get()))
+				{
+					return f->has_data();
+				}
+				return true;
+			}))
+		{
+			egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
+				ref_, shape(), get_children(), *this);
+		}
+		return has_data();
+	}
+
+	/// Implementation of Observable
+	void must_initialize (void) override
+	{
+		for (auto child : children_)
+		{
+			auto f = dynamic_cast<Observable*>(child.get());
+			if (nullptr != f && false == f->has_data())
+			{
+				f->must_initialize();
+			}
+		}
+		initialize();
 	}
 
 private:
@@ -233,18 +259,7 @@ private:
 			}
 		}
 #ifndef SKIP_INIT
-		if (std::all_of(children_.begin(), children_.end(),
-			[](teq::TensptrT child)
-			{
-				if (auto f = dynamic_cast<Observable*>(child.get()))
-				{
-					return f->has_data();
-				}
-				return true;
-			}))
-		{
-			initialize();
-		}
+		initialize();
 #endif // SKIP_INIT
 	}
 

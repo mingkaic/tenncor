@@ -53,7 +53,7 @@ struct ConstantTarget final : public opt::iTarget
 		sess.track({graph_->get_owner(root)});
 		sess.update_target({root});
 		T* data = (T*) root->device().data();
-		return make_constant(data, root->shape());
+		return make_constant<T>(data, root->shape());
 	}
 
 	const opt::GraphInfo* graph_;

@@ -42,15 +42,8 @@ static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 	return out;
 }
 
-template <typename T>
-static inline teq::TensptrT convert_func (std::string opname,
-	const teq::TensptrsT& children, marsh::Maps&& attrs)
-{
-	return Functor<T>::get(egen::get_op(opname), children, std::move(attrs));
-}
-
 #define _OUT_GENFUNC(realtype)\
-func = Functor<realtype>::get(opcode, children, std::move(attrs));
+func = make_funcattr<realtype>(opcode, children, attrs);
 
 #define _OUT_GENLAYR(realtype)\
 layer = make_layer<realtype>(opname, child, f);
@@ -203,9 +196,9 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 		}
 		egen::_GENERATED_OPCODE opcode = egen::get_op(opname);
 		auto gencode = (egen::_GENERATED_DTYPE) children.front()->type_code();
-		teq::iFunctor* func = nullptr;
+		teq::TensptrT func;
 		TYPE_LOOKUP(_OUT_GENFUNC, gencode);
-		return teq::TensptrT(func);
+		return func;
 	}
 
 	teq::TensptrT unmarsh_layr (std::string opname,

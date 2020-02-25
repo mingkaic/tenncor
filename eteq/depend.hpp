@@ -92,7 +92,26 @@ struct Depends final : public Observable
 	{
 		if (0 == index)
 		{
-			teq::fatal("cannot reassign dependee of depend (index 0)");
+			uninitialize();
+			auto obs = std::dynamic_pointer_cast<Observable>(arg);
+			if (nullptr == obs)
+			{
+				teq::fatal("cannot reassign non-observable dependee of depend (index 0)");
+			}
+
+			teq::Shape nexshape = obs->shape();
+			teq::Shape curshape = dependee_->shape();
+			if (false == nexshape.compatible_after(curshape, 0))
+			{
+				teq::fatalf("cannot update dependee to "
+					"incompatible shape %s (requires shape %s)",
+					nexshape.to_string().c_str(),
+					curshape.to_string().c_str());
+			}
+			dependee_->unsubscribe(this);
+			dependee_ = obs;
+			obs->subscribe(this);
+			return;
 		}
 		--index;
 		size_t ndependee = dependee_->get_children().size();
@@ -108,21 +127,22 @@ struct Depends final : public Observable
 				"when there are only %d dependencies",
 				index, dependencies_.size());
 		}
-		if (arg != dependencies_[index])
+		auto& cur = dependencies_[index];
+		if (arg != cur)
 		{
 			uninitialize();
-			if (auto f = dynamic_cast<Observable*>(dependencies_[index].get()))
-			{
-				f->unsubscribe(this);
-			}
 			teq::Shape nexshape = arg->shape();
-			teq::Shape curshape = dependencies_[index]->shape();
+			teq::Shape curshape = cur->shape();
 			if (false == nexshape.compatible_after(curshape, 0))
 			{
 				teq::fatalf("cannot update child %d to argument with "
 					"incompatible shape %s (requires shape %s)",
 					index, nexshape.to_string().c_str(),
 					curshape.to_string().c_str());
+			}
+			if (auto f = dynamic_cast<Observable*>(cur.get()))
+			{
+				f->unsubscribe(this);
 			}
 			dependencies_[index] = arg;
 			if (auto f = dynamic_cast<Observable*>(arg.get()))
@@ -179,6 +199,18 @@ struct Depends final : public Observable
 				parent->uninitialize();
 			}
 		}
+	}
+
+	/// Implementation of Observable
+	bool initialize (void) override
+	{
+		return dependee_->initialize();
+	}
+
+	/// Implementation of Observable
+	void must_initialize (void) override
+	{
+		dependee_->must_initialize();
 	}
 
 private:
