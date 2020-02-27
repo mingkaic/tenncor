@@ -3,10 +3,10 @@
 
 #include "teq/logs.hpp"
 
-#include "eteq/generated/pyapi.hpp"
-
 // #include "dbg/psess/emit/emitter.hpp"
 #include "dbg/psess/stats/inspect.hpp"
+
+#include "generated/pyapi.hpp"
 
 namespace py = pybind11;
 

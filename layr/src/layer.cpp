@@ -1,6 +1,6 @@
-#include "layr/api.hpp"
+#include "layr/layer.hpp"
 
-#ifdef LAYR_API_HPP
+#ifdef LAYR_LAYER_HPP
 
 namespace layr
 {

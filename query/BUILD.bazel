@@ -60,7 +60,7 @@ pybind_py_library(
     name = "query_py",
     cc_srcs = ["//query:python/query.cpp"],
     cc_deps = [
-        "//eteq:eteq",
+        "//:tenncor",
         "//query:query",
     ],
     copts = ["-std=c++17"],
@@ -76,7 +76,7 @@ cc_test(
     deps = [
         "//teq:mock_teq",
         "//dbg:print",
-        "//eteq:eteq",
+        "//:tenncor",
         "//testutil:tutil",
         "//query:query",
     ],

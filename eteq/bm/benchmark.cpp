@@ -3,8 +3,9 @@
 #include "benchmark/benchmark.h"
 
 #include "eteq/eteq.hpp"
-
 #include "eteq/optimize.hpp"
+
+#include "generated/api.hpp"
 
 
 static std::random_device rnd_device;

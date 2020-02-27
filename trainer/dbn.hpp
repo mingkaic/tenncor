@@ -1,4 +1,4 @@
-#include "layr/trainer/rbm.hpp"
+#include "trainer/rbm.hpp"
 
 #ifndef DBN_TRAINER_HPP
 #define DBN_TRAINER_HPP

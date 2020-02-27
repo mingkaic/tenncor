@@ -5,7 +5,6 @@
 
 #include "opt/graph.hpp"
 
-#include "eteq/generated/api.hpp"
 #include "eteq/make.hpp"
 
 #ifndef ETEQ_DUPLICATES_HPP

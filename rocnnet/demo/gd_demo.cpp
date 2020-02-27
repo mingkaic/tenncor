@@ -13,8 +13,8 @@
 #include "dbg/psess/plugin_sess.hpp"
 #include "dbg/psess/emit/emitter.hpp"
 
-#include "layr/api.hpp"
-#include "layr/trainer/sgd.hpp"
+#include "layr/layer.hpp"
+#include "trainer/sgd.hpp"
 
 static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {

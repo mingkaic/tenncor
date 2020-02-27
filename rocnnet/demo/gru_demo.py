@@ -5,9 +5,7 @@ import argparse
 
 import numpy as np
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-import layr.layr as layr
+import tenncor as tc
 
 prog_description = 'Demo gru model'
 
@@ -40,7 +38,7 @@ def sample(sess, inp, prob, seed_ix, n):
     return ixes
 
 def old_winit(shape, label):
-    return eteq.variable(np.random.uniform(-0.05, 0.05, shape.as_list()), label)
+    return tc.variable(np.random.uniform(-0.05, 0.05, shape.as_list()), label)
 
 def encoded_loss(encoded_expect, encoded_result):
     return tc.reduce_sum(-tc.log(tc.reduce_sum(encoded_result * encoded_expect, 0, 1)))
@@ -74,7 +72,7 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        eteq.seed(args.seedval)
+        tc.seed(args.seedval)
         np.random.seed(args.seedval)
     else:
         np.random.seed(seed=0)
@@ -94,42 +92,42 @@ def main(args):
 
     print_interval = 100
 
-    model = layr.link([
-        layr.gru(N, h_size, seq_length,
+    model = tc.link([
+        tc.layer.gru(N, h_size, seq_length,
             weight_init=old_winit,
-            bias_init=layr.zero_init()),
-        layr.dense([h_size], [o_size],
+            bias_init=tc.zero_init()),
+        tc.layer.dense([h_size], [o_size],
             weight_init=old_winit,
-            bias_init=layr.zero_init()),
-        layr.bind(lambda x: tc.softmax(x, 0, 1)),
+            bias_init=tc.zero_init()),
+        tc.bind(lambda x: tc.softmax(x, 0, 1)),
     ])
     untrained_model = model.deep_clone()
     pretrained_model = model.deep_clone()
     try:
         print('loading ' + args.load)
-        pretrained_model = layr.load_layers_file(args.load)[0]
+        pretrained_model = tc.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = eteq.Session()
+    sess = tc.Session()
 
-    sample_inp = eteq.EVariable([1, vocab_size], 0)
+    sample_inp = tc.EVariable([1, vocab_size], 0)
 
     trained_prob = tc.slice(model.connect(sample_inp), 0, 1, 1)
     untrained_prob = tc.slice(untrained_model.connect(sample_inp), 0, 1, 1)
     pretrained_prob = tc.slice(pretrained_model.connect(sample_inp), 0, 1, 1)
     sess.track([trained_prob, untrained_prob, pretrained_prob])
 
-    train_inps = eteq.EVariable([seq_length, vocab_size], 0)
-    train_output = eteq.EVariable([seq_length, vocab_size], 0)
-    train_err = layr.sgd_train(model, train_inps, train_output,
-        update=layr.get_adagrad(learning_rate=learning_rate, epsilon=1e-8),
+    train_inps = tc.EVariable([seq_length, vocab_size], 0)
+    train_output = tc.EVariable([seq_length, vocab_size], 0)
+    train_err = tc.sgd_train(model, train_inps, train_output,
+        update=lambda assocs: tc.approx.adagrad(assocs, learning_rate=learning_rate, epsilon=1e-8),
         err_func=encoded_loss)
     sess.track([train_err])
 
-    eteq.optimize(sess, "cfg/optimizations.json")
+    tc.optimize(sess, "cfg/optimizations.json")
 
     smooth_loss = -np.log(1.0/vocab_size)*seq_length
     p = 0
@@ -176,7 +174,7 @@ def main(args):
 
     try:
         print('saving')
-        if layr.save_layers_file(args.save, [model]):
+        if tc.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

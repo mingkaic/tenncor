@@ -3,6 +3,11 @@ api:
   includes:
   - '"eteq/make.hpp"'
   - '"eteq/layer.hpp"'
+  - '"layr/approx.hpp"'
+  - '"layr/init.hpp"'
+  - '"layr/layer.hpp"'
+  pybind_includes:
+  - '"python/tenncor.hpp"'
   namespaces:
     tenncor:
       - template: typename T
@@ -1188,8 +1193,6 @@ api:
                           logs::fatal("cannot prod without arguments");
                       case 1:
                           return args[0];
-                      case 2:
-                          return ::tenncor::mul(args[0], args[1]);
                       default:
                           break;
                   }
@@ -1432,7 +1435,6 @@ api:
                   // todo: tag this maybe?
                   return ::tenncor::max(eteq::ETensorsT<T>{
                       top_left, top_right, bot_left, bot_right});
-    tenncor::layer:
       - template: typename T
         name: dense
         args:
@@ -1451,7 +1453,7 @@ api:
           type: eteq::ETensor<T>
           val: |
               //
-                  auto output = tenncor::nn::fully_connect({input}, {weight}, bias, dims);
+                  auto output = ::tenncor::nn::fully_connect({input}, {weight}, bias, dims);
                   auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
                   return eteq::make_layer<T>("_DENSE_LAYER", input, f);
       - template: typename T
@@ -1472,7 +1474,7 @@ api:
           type: eteq::ETensor<T>
           val: |
               //
-                  auto output = tenncor::nn::conv2d(input, weight, bias, zero_padding);
+                  auto output = ::tenncor::nn::conv2d(input, weight, bias, zero_padding);
                   auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
                   return eteq::make_layer<T>("_CONV_LAYER", input, f);
       - template: typename T
@@ -1625,3 +1627,354 @@ api:
                   auto output = ::tenncor::concat(states, seq_dim);
                   auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
                   return eteq::make_layer<T>("_GRU_LAYER", input, f);
+    tenncor::layer:
+      - template: typename T
+        name: dense
+        args:
+        - dtype: const teq::Shape&
+          name: inshape
+        - dtype: const std::vector<teq::DimT>&
+          name: hidden_dims
+        - dtype: const layr::InitF<T>&
+          name: weight_init
+        - dtype: const layr::InitF<T>&
+          name: bias_init
+          default: layr::zero_init<T>()
+        - dtype: const eigen::PairVecT<teq::RankT>&
+          name: dims
+          default: "eigen::PairVecT<teq::RankT>{{0, 1}}"
+        out:
+          type: eteq::ELayer<T>
+          val: |
+              //
+                  assert(weight_init);
+                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0, inshape, layr::input_label));
+                  eteq::EVariable<T> weight = weight_init(layr::gen_rshape(
+                      hidden_dims, inshape, dims), layr::weight_label);
+                  eteq::EVariable<T> bias;
+                  if (bias_init)
+                  {
+                      bias = bias_init(teq::Shape(hidden_dims), layr::bias_label);
+                  }
+                  auto output = ::tenncor::nn::dense(input, weight, bias, dims);
+                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
+                  return eteq::ELayer<T>(f, input);
+      - template: typename T
+        name: conv
+        args:
+        - dtype: const std::pair<teq::DimT,teq::DimT>&
+          name: filter_hw
+        - dtype: teq::DimT
+          name: in_ncol
+        - dtype: teq::DimT
+          name: out_ncol
+        - dtype: const layr::InitF<T>&
+          name: weight_init
+        - dtype: const layr::InitF<T>&
+          name: bias_init
+          default: layr::zero_init<T>()
+        - dtype: const std::pair<teq::DimT,teq::DimT>&
+          name: zero_padding
+          default: "std::pair<teq::DimT,teq::DimT>{0, 0}"
+        out:
+          type: eteq::ELayer<T>
+          val: |
+              //
+                  assert(weight_init);
+                  // image must be in form [in, iwidth, iheight, batch]
+                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0, teq::Shape({
+                      in_ncol, filter_hw.second, filter_hw.first, 1}), layr::input_label));
+                  eteq::EVariable<T> weight = weight_init(teq::Shape({out_ncol,
+                      in_ncol, filter_hw.second, filter_hw.first}), layr::weight_label);
+                  eteq::EVariable<T> bias;
+                  if (bias_init)
+                  {
+                      bias = bias_init(teq::Shape({out_ncol}), layr::bias_label);
+                  }
+                  auto output = ::tenncor::nn::conv(input, weight, bias, zero_padding);
+                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
+                  return eteq::ELayer<T>(f, input);
+      - template: typename T
+        name: rnn
+        args:
+        - dtype: teq::DimT
+          name: indim
+        - dtype: teq::DimT
+          name: hidden_dim
+        - dtype: const layr::UnaryF<T>&
+          name: activation
+        - dtype: teq::DimT
+          name: nseq
+        - dtype: const layr::InitF<T>&
+          name: weight_init
+        - dtype: const layr::InitF<T>&
+          name: bias_init
+          default: layr::zero_init<T>()
+        - dtype: teq::RankT
+          name: seq_dim
+          default: "1"
+        out:
+          type: eteq::ELayer<T>
+          val: |
+              //
+                  // input needs to specify number of sequences,
+                  // since graph topography can't be traced
+                  std::vector<teq::DimT> inslist(teq::rank_cap, 1);
+                  inslist[0] = indim;
+                  inslist[seq_dim] = nseq;
+                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
+                      0, teq::Shape(inslist), layr::input_label));
+
+                  auto cell = dense<T>(teq::Shape({(teq::DimT) (hidden_dim + indim)}),
+                      {hidden_dim}, weight_init, bias_init);
+                  teq::TensptrT croot = activation(eteq::ETensor<T>(cell.root()));
+                  cell = eteq::ELayer<T>(std::static_pointer_cast<
+                      teq::iFunctor>(croot), cell.input());
+
+                  auto init_state = eteq::make_variable<T>(
+                      teq::Shape({hidden_dim}), "init_state");
+                  eteq::ETensor<T> state = ::tenncor::extend_like(init_state,
+                      ::tenncor::slice(input, 0, 1, seq_dim));
+
+                  auto output = ::tenncor::nn::rnn(input, state, cell, seq_dim);
+                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
+                  return eteq::ELayer<T>(f, input);
+      - template: typename T
+        name: lstm
+        args:
+        - dtype: teq::DimT
+          name: indim
+        - dtype: teq::DimT
+          name: hidden_dim
+        - dtype: teq::DimT
+          name: nseq
+        - dtype: const layr::InitF<T>&
+          name: weight_init
+        - dtype: const layr::InitF<T>&
+          name: bias_init
+          default: layr::zero_init<T>()
+        - dtype: teq::RankT
+          name: seq_dim
+          default: "1"
+        out:
+          type: eteq::ELayer<T>
+          val: |
+              //
+                  // input needs to specify number of sequences,
+                  // since graph topography can't be traced
+                  std::vector<teq::DimT> inslist(teq::rank_cap, 1);
+                  inslist[0] = indim;
+                  inslist[seq_dim] = nseq;
+                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
+                      0, teq::Shape(inslist), layr::input_label));
+
+                  teq::Shape inshape({(teq::DimT) (hidden_dim + indim)});
+                  std::vector<teq::DimT> hid_dims = {hidden_dim};
+                  auto ggate = dense<T>(inshape, hid_dims, weight_init, bias_init);
+                  auto forgate = dense<T>(inshape, hid_dims, weight_init, bias_init);
+                  auto ingate = dense<T>(inshape, hid_dims, weight_init, bias_init);
+                  auto outgate = dense<T>(inshape, hid_dims, weight_init, bias_init);
+
+                  teq::Shape stateshape({hidden_dim});
+                  auto state = eteq::make_constant_scalar<T>(0, stateshape);
+                  auto hidden = eteq::make_constant_scalar<T>(0, stateshape);
+
+                  auto output = ::tenncor::nn::lstm(input, state, hidden,
+                      ggate, forgate, ingate, outgate, seq_dim);
+                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
+                  return eteq::ELayer<T>(f, input);
+      - template: typename T
+        name: gru
+        args:
+        - dtype: teq::DimT
+          name: indim
+        - dtype: teq::DimT
+          name: hidden_dim
+        - dtype: teq::DimT
+          name: nseq
+        - dtype: const layr::InitF<T>&
+          name: weight_init
+        - dtype: const layr::InitF<T>&
+          name: bias_init
+          default: layr::zero_init<T>()
+        - dtype: teq::RankT
+          name: seq_dim
+          default: "1"
+        out:
+          type: eteq::ELayer<T>
+          val: |
+              //
+                  // input needs to specify number of sequences,
+                  // since graph topography can't be traced
+                  std::vector<teq::DimT> inslist(teq::rank_cap, 1);
+                  inslist[0] = indim;
+                  inslist[seq_dim] = nseq;
+                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
+                      0, teq::Shape(inslist), layr::input_label));
+
+                  teq::Shape inshape({(teq::DimT) (hidden_dim + indim)});
+                  std::vector<teq::DimT> hid_dims = {hidden_dim};
+                  auto ugate = dense<T>(inshape, hid_dims, weight_init, bias_init);
+                  auto rgate = dense<T>(inshape, hid_dims, weight_init, bias_init);
+                  auto hgate = dense<T>(inshape, hid_dims, weight_init, bias_init);
+
+                  auto state = eteq::make_constant_scalar<T>(0, teq::Shape({hidden_dim}));
+
+                  auto output = ::tenncor::nn::gru(input, state,
+                      ugate, rgate, hgate, seq_dim);
+                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
+                  return eteq::ELayer<T>(f, input);
+      - template: typename T
+        name: rbm
+        args:
+        - dtype: teq::DimT
+          name: nvisible
+        - dtype: teq::DimT
+          name: nhidden
+        - dtype: const layr::InitF<T>&
+          name: weight_init
+        - dtype: const layr::InitF<T>&
+          name: bias_init
+          default: layr::zero_init<T>()
+        out:
+          type: layr::RBMLayer<T>
+          val: |
+              //
+                  /// Returns forward builder, and assigns backward builder
+                  eteq::ETensor<T> fwdinput(eteq::make_variable_scalar<T>(
+                      0, teq::Shape({nvisible}), layr::input_label));
+                  eteq::ETensor<T> bwdinput(eteq::make_variable_scalar<T>(
+                      0, teq::Shape({nhidden}), layr::input_label));
+                  eteq::EVariable<T> weight = weight_init(
+                      teq::Shape({nhidden, nvisible}), layr::weight_label);
+                  eteq::EVariable<T> hbias;
+                  eteq::EVariable<T> vbias;
+                  if (bias_init)
+                  {
+                      hbias = bias_init(teq::Shape({nhidden}), "h" + layr::bias_label);
+                      vbias = bias_init(teq::Shape({nvisible}), "v" + layr::bias_label);
+                  }
+                  auto fwd = ::tenncor::nn::dense(fwdinput, weight, hbias, {{0, 1}});
+                  auto bwd = ::tenncor::nn::dense(
+                      bwdinput, ::tenncor::transpose(weight), vbias, {{0, 1}});
+                  auto ffwd = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) fwd);
+                  auto fbwd = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) bwd);
+                  return layr::RBMLayer<T>{eteq::ELayer<T>(ffwd, fwdinput), eteq::ELayer<T>(fbwd, bwdinput)};
+    tenncor::error:
+      - template: typename T
+        name: sqr_diff
+        args:
+        - dtype: const eteq::ETensor<T>&
+          name: expect
+        - dtype: const eteq::ETensor<T>&
+          name: got
+        out:
+          type: eteq::ETensor<T>
+          val: return ::tenncor::square(::tenncor::sub(expect, got));
+    tenncor::approx:
+      - template: typename T
+        name: sgd
+        args:
+        - dtype: const layr::VarMapT<T>&
+          name: assocs
+        - dtype: T
+          name: learning_rate
+          default: 0.5
+        out:
+          type: layr::VarMapT<T>
+          val: |
+              //
+                  /// Return all batches of variable assignments of
+                  /// stochastic gradient descent error approximation applied to
+                  /// particular variables-error associations
+                  ///
+                  /// Stochastic Gradient Descent Approximation
+                  /// for each (x, err) in leaves
+                  /// x_next ~ x_curr - eta * err,
+                  ///
+                  /// where eta is the learning rate
+                  layr::VarMapT<T> out;
+                  for (const auto& assoc : assocs)
+                  {
+                      out.emplace(assoc.first, ::tenncor::assign_sub(assoc.first,
+                          ::tenncor::mul(assoc.second, learning_rate)));
+                  }
+                  return out;
+      - template: typename T
+        name: adagrad
+        args:
+        - dtype: const layr::VarMapT<T>&
+          name: assocs
+        - dtype: T
+          name: learning_rate
+          default: 0.5
+        - dtype: T
+          name: epsilon
+          default: std::numeric_limits<T>::epsilon()
+        out:
+          type: layr::VarMapT<T>
+          val: |
+              //
+                  layr::VarMapT<T> out;
+                  for (const auto& assoc : assocs)
+                  {
+                      eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
+                          1, assoc.second, "momentum");
+                      auto update = ::tenncor::assign_add(momentum,
+                          ::tenncor::square(assoc.second));
+
+                      // assign momentums before leaves
+                      out.emplace(assoc.first, ::tenncor::assign_sub(assoc.first,
+                          ::tenncor::div(
+                              ::tenncor::mul(assoc.second, learning_rate),
+                              ::tenncor::add(tenncor::sqrt(update), epsilon))));
+                  }
+                  return out;
+      - template: typename T
+        name: rms_momentum
+        args:
+        - dtype: const layr::VarMapT<T>&
+          name: assocs
+        - dtype: T
+          name: learning_rate
+          default: 0.5
+        - dtype: T
+          name: discount_factor
+          default: 0.99
+        - dtype: T
+          name: epsilon
+          default: std::numeric_limits<T>::epsilon()
+        out:
+          type: layr::VarMapT<T>
+          val: |
+              //
+                  /// Return all batches of variable assignments of
+                  /// momentum-based rms error approximation applied to
+                  /// particular variables-error associations
+                  ///
+                  /// Momentum-based Root Mean Square Approximation
+                  /// for each (x, err) in leaves
+                  /// momentum_next ~ chi * momentum_cur + (1 - chi) * err ^ 2
+                  /// x_next ~ x_curr - (eta * err) / (sqrt(eps + momentum_next))
+                  ///
+                  /// where eta is the learning rate, eps is epsilon,
+                  /// and chi is discount_factor
+                  /// initial momentum is 1
+                  layr::VarMapT<T> out;
+                  for (const auto& assoc : assocs)
+                  {
+                      eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
+                          1, assoc.second, "momentum");
+                      auto update = ::tenncor::assign(momentum,
+                          ::tenncor::add(
+                              ::tenncor::mul(discount_factor, momentum),
+                              ::tenncor::mul(1-discount_factor,
+                                  ::tenncor::square(assoc.second))));
+
+                      // assign momentums before leaves
+                      out.emplace(assoc.first, ::tenncor::assign_sub(assoc.first,
+                          ::tenncor::div(
+                              ::tenncor::mul(assoc.second, learning_rate),
+                              ::tenncor::add(tenncor::sqrt(update), epsilon))));
+                  }
+                  return out;

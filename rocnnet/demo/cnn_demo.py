@@ -18,9 +18,7 @@ import sys
 import time
 import argparse
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-import layr.layr as layr
+import tenncor as tc
 import dbg.psess as ps
 import query.query as q
 
@@ -35,7 +33,7 @@ cifar_name = 'cifar10'
 assert cifar_name in tfds.list_builders()
 
 def cross_entropy_loss(T, Y):
-    # epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in eteq
+    # epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in tc
     # leftY = Y + epsilon
     # rightT = 1 - Y + epsilon
     # return -(T * tc.log(leftY) + (1-T) * tc.log(rightT))
@@ -68,7 +66,7 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        eteq.seed(args.seedval)
+        tc.seed(args.seedval)
         np.random.seed(args.seedval)
 
     nbatch = 4
@@ -88,38 +86,38 @@ def main(args):
     raw_inshape = [dim.value for dim in ds.output_shapes['image']]
 
     # construct CNN
-    model = layr.link([ # minimum input shape of [1, 32, 32, 3]
-        layr.conv([5, 5], 3, 16,
-            weight_init=layr.norm_xavier_init(0.5),
+    model = tc.link([ # minimum input shape of [1, 32, 32, 3]
+        tc.layer.conv([5, 5], 3, 16,
+            weight_init=tc.norm_xavier_init(0.5),
             zero_padding=[2, 2]), # outputs [nbatch, 32, 32, 16]
-        layr.bind(tc.relu),
-        layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
-            inshape=eteq.Shape([1, 32, 32, 16])), # outputs [nbatch, 16, 16, 16]
-        layr.conv([5, 5], 16, 20,
-            weight_init=layr.norm_xavier_init(0.3),
+        tc.bind(tc.relu),
+        tc.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
+            inshape=tc.Shape([1, 32, 32, 16])), # outputs [nbatch, 16, 16, 16]
+        tc.layer.conv([5, 5], 16, 20,
+            weight_init=tc.norm_xavier_init(0.3),
             zero_padding=[2, 2]), # outputs [nbatch, 16, 16, 20]
-        layr.bind(tc.relu),
-        layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
-            inshape=eteq.Shape([1, 16, 16, 20])), # outputs [nbatch, 8, 8, 20]
-        layr.conv([5, 5], 20, 20,
-            weight_init=layr.norm_xavier_init(0.1),
+        tc.bind(tc.relu),
+        tc.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
+            inshape=tc.Shape([1, 16, 16, 20])), # outputs [nbatch, 8, 8, 20]
+        tc.layer.conv([5, 5], 20, 20,
+            weight_init=tc.norm_xavier_init(0.1),
             zero_padding=[2, 2]), # outputs [nbatch, 8, 8, 20]
-        layr.bind(tc.relu),
-        layr.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
-            inshape=eteq.Shape([1, 8, 8, 20])), # outputs [nbatch, 4, 4, 20]
+        tc.bind(tc.relu),
+        tc.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
+            inshape=tc.Shape([1, 8, 8, 20])), # outputs [nbatch, 4, 4, 20]
 
-        layr.dense([20, 4, 4, 1], [10], # weight has shape [10, 4, 4, 20]
-            weight_init=layr.norm_xavier_init(0.5),
-            bias_init=layr.zero_init(),
+        tc.layer.dense([20, 4, 4, 1], [10], # weight has shape [10, 4, 4, 20]
+            weight_init=tc.norm_xavier_init(0.5),
+            bias_init=tc.zero_init(),
             dims=[[0, 1], [1, 2], [2, 3]]), # outputs [nbatch, 10]
-        layr.bind(lambda x: tc.softmax(x, 1, 1))
-    ], eteq.EVariable([1, 32, 32, 3], label='input'))
+        tc.bind(lambda x: tc.softmax(x, 1, 1))
+    ], tc.EVariable([1, 32, 32, 3], label='input'))
 
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = layr.load_layers_file(args.load)[0]
+        trained = tc.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
@@ -131,7 +129,7 @@ def main(args):
 
     raw_inshape[0] = 1
     test_inshape = raw_inshape
-    testin = eteq.EVariable(test_inshape, label="testin")
+    testin = tc.EVariable(test_inshape, label="testin")
     testout = model.connect(testin)
     sess.track([
         testout,
@@ -147,14 +145,14 @@ def main(args):
     raw_inshape[0] = nbatch
     train_inshape = raw_inshape
     train_outshape = [nbatch, 10]
-    train_input = eteq.EVariable(train_inshape, label="trainin")
-    train_output = eteq.EVariable(train_outshape, label="trainout")
+    train_input = tc.EVariable(train_inshape, label="trainin")
+    train_output = tc.EVariable(train_outshape, label="trainout")
     normalized = train_input / 255. - 0.5
-    train_err = layr.sgd_train(model, normalized, train_output,
-        layr.get_adagrad(0.01), err_func=error_wrapper)
+    train_err = tc.sgd_train(model, normalized, train_output,
+        tc.get_adagrad(0.01), err_func=error_wrapper)
     sess.track([train_err])
     inspector.add(normalized, "normalized_input")
-    eteq.optimize(sess, "cfg/optimizations.json")
+    tc.optimize(sess, "cfg/optimizations.json")
 
     qs = q.Statement(query_targets)
     conv_res = qs.find("""{"op": {
@@ -259,7 +257,7 @@ def main(args):
 
     try:
         print('saving')
-        if layr.save_layers_file(args.save, [model]):
+        if tc.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

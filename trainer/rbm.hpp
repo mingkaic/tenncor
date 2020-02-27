@@ -1,4 +1,4 @@
-#include "layr/trainer/trainer.hpp"
+#include "trainer/trainer.hpp"
 
 #ifndef TRAINER_RBM_HPP
 #define TRAINER_RBM_HPP
@@ -144,7 +144,7 @@ layr::VarMapT<T> cd_grad_approx (CDChainIO<T>& io,
 template <typename T>
 eteq::ETensor<T> rbm (const layr::RBMLayer<T>& model,
 	eteq::ETensor<T> visible, T learning_rate, T discount_factor,
-	layr::ErrorF<T> err_func = layr::sqr_diff<T>, size_t cdk = 1)
+	layr::ErrorF<T> err_func = tenncor::error::sqr_diff<T>, size_t cdk = 1)
 {
 	CDChainIO<T> chain_io(visible);
 	layr::VarMapT<T> varerrs = cd_grad_approx<T>(chain_io, model, cdk);

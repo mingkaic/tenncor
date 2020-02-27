@@ -76,6 +76,16 @@ struct EVariable final : public ETensor<T>
 
 	EVariable (VarptrT<T> vars) : ETensor<T>(vars) {}
 
+	friend bool operator == (const EVariable<T>& l, const EVariable<T>& r)
+	{
+		return l.get() == r.get();
+	}
+
+	friend bool operator != (const EVariable<T>& l, const EVariable<T>& r)
+	{
+		return l.get() != r.get();
+	}
+
 	operator VarptrT<T>() const
 	{
 		return std::static_pointer_cast<Variable<T>>(teq::TensptrT(*this));

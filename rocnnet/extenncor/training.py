@@ -2,9 +2,7 @@ import os.path
 
 import numpy as np
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-import layr.layr as layr
+import tenncor as tc
 
 cache_dir = '/tmp'
 
@@ -36,7 +34,7 @@ def cache(session, env):
     model_target = os.path.join(cache_dir, 'session.onnx')
     try:
         print('caching model')
-        if eteq.save_session_file(model_target, session):
+        if tc.save_session_file(model_target, session):
             print('successfully cached to {}'.format(model_target))
     except Exception as e:
         print(e)

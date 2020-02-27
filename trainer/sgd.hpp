@@ -1,4 +1,4 @@
-#include "layr/trainer/trainer.hpp"
+#include "trainer/trainer.hpp"
 
 #ifndef TRAINER_SGD_HPP
 #define TRAINER_SGD_HPP
@@ -9,7 +9,7 @@ namespace trainer
 template <typename T>
 eteq::ETensor<T> sgd (const eteq::ELayer<T>& model, eteq::ETensor<T> train_in,
 	eteq::ETensor<T> expect_out, layr::ApproxF<T> update,
-	layr::ErrorF<T> err_func = layr::sqr_diff<T>,
+	layr::ErrorF<T> err_func = tenncor::error::sqr_diff<T>,
 	layr::UnaryF<T> proc_grad = layr::UnaryF<T>())
 {
 	eteq::ETensor<T> train_out = model.connect(train_in);

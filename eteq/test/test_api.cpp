@@ -10,9 +10,10 @@
 
 #include "utils/coord.hpp"
 
-#include "eteq/generated/api.hpp"
 #include "eteq/make.hpp"
 #include "eteq/derive.hpp"
+
+#include "generated/api.hpp"
 
 
 using UnaryDblF = std::function<double(double)>;

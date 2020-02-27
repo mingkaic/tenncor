@@ -5,10 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-
-import layr.layr as layr
+import tenncor as tc
 
 matrix_dims = [
     24,
@@ -121,7 +118,7 @@ class MLP(object):
         return MLP(self.input_sizes, self.hiddens, nonlinearities, scope=scope,
                 given_layers=given_layers)
 
-eteq_durs = []
+tc_durs = []
 tf_durs = []
 
 for matrix_dim in matrix_dims:
@@ -130,20 +127,20 @@ for matrix_dim in matrix_dims:
     batch_size = 1
 
     # regular mlp
-    brain = layr.link([
-        layr.dense([n_in], [matrix_dim],
-            weight_init=layr.unif_xavier_init(),
-            bias_init=layr.zero_init()),
-        layr.bind(tc.sigmoid),
-        layr.dense([matrix_dim], [n_out],
-            weight_init=layr.unif_xavier_init(),
-            bias_init=layr.zero_init()),
-        layr.bind(tc.sigmoid),
+    brain = tc.link([
+        tc.dense([n_in], [matrix_dim],
+            weight_init=tc.unif_xavier_init(),
+            bias_init=tc.zero_init()),
+        tc.bind(tc.sigmoid),
+        tc.dense([matrix_dim], [n_out],
+            weight_init=tc.unif_xavier_init(),
+            bias_init=tc.zero_init()),
+        tc.bind(tc.sigmoid),
     ])
 
-    invar = eteq.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
+    invar = tc.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
     out = brain.connect(invar)
-    expected_out = eteq.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
+    expected_out = tc.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
     err = tc.square(expected_out - out)
 
     # tensorflow mlp
@@ -154,7 +151,7 @@ for matrix_dim in matrix_dims:
     tf_expected_out = tf.compat.v1.placeholder(tf.float32, [batch_size, n_out], name='tf_expected_out')
     tf_err = tf.square(tf_expected_out - tf_out)
 
-    sess = eteq.Session()
+    sess = tc.Session()
     sess.track([err])
 
     tfsess = tf.compat.v1.Session()
@@ -171,7 +168,7 @@ for matrix_dim in matrix_dims:
     expected_out.assign(test_batch_out)
     sess.update()
 
-    eteq_dur = time.time() - start
+    tc_dur = time.time() - start
 
     start = time.time()
 
@@ -182,12 +179,12 @@ for matrix_dim in matrix_dims:
 
     tf_dur = time.time() - start
 
-    eteq_durs.append(eteq_dur)
+    tc_durs.append(tc_dur)
     tf_durs.append(tf_dur)
 
-print('eteq durations: ', eteq_durs)
+print('tc durations: ', tc_durs)
 print('tf durations: ', tf_durs)
-ead_line = plt.plot(matrix_dims, eteq_durs, 'r--', label='eteq durations')
+ead_line = plt.plot(matrix_dims, tc_durs, 'r--', label='tc durations')
 tf_line = plt.plot(matrix_dims, tf_durs, 'b--', label='tf durations')
 plt.legend()
 plt.show()

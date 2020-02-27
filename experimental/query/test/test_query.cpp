@@ -8,10 +8,11 @@
 
 #include "testutil/tutil.hpp"
 
-#include "eteq/generated/api.hpp"
 #include "eteq/derive.hpp"
 
 #include "query/query.hpp"
+
+#include "generated/api.hpp"
 
 
 static teq::TensptrsT rnn_setup (void)

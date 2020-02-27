@@ -5,12 +5,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
+import tenncor as tc
+import tenncor as eteq
 
 import ccur.ccur as ccur
 
-import layr.layr as layr
+import tenncor as tc
 
 matrix_dims = [
     24,
@@ -136,15 +136,15 @@ for matrix_dim in matrix_dims:
     tfsess = tf.compat.v1.Session()
 
     # regular mlp
-    brain = layr.link([
-        layr.dense([n_in], [matrix_dim],
-            weight_init=layr.unif_xavier_init(),
-            bias_init=layr.zero_init()),
-        layr.bind(tc.sigmoid),
-        layr.dense([matrix_dim], [n_out],
-            weight_init=layr.unif_xavier_init(),
-            bias_init=layr.zero_init()),
-        layr.bind(tc.sigmoid),
+    brain = tc.link([
+        tc.dense([n_in], [matrix_dim],
+            weight_init=tc.unif_xavier_init(),
+            bias_init=tc.zero_init()),
+        tc.bind(tc.sigmoid),
+        tc.dense([matrix_dim], [n_out],
+            weight_init=tc.unif_xavier_init(),
+            bias_init=tc.zero_init()),
+        tc.bind(tc.sigmoid),
     ])
 
     invar = eteq.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
@@ -154,7 +154,7 @@ for matrix_dim in matrix_dims:
 
     train_input = eteq.EVariable([batch_size, n_in])
     train_output = eteq.EVariable([batch_size, n_out])
-    train_err = layr.sgd_train(brain, train_input, train_output, layr.get_sgd(learning_rate))
+    train_err = tc.sgd_train(brain, train_input, train_output, tc.approx.sgd(learning_rate))
     sess.track([train_err])
 
     # tensorflow mlp

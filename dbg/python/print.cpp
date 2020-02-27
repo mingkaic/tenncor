@@ -9,8 +9,9 @@
 
 #include "dbg/print/teq_csv.hpp"
 
-#include "eteq/generated/pyapi.hpp"
 #include "eteq/etens.hpp"
+
+#include "generated/pyapi.hpp"
 
 namespace py = pybind11;
 

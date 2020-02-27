@@ -92,7 +92,7 @@ pybind_py_library(
     cc_srcs = ["python/print.cpp"],
     cc_deps = [
         "//dbg:print",
-        "//eteq:eteq",
+        "//:tenncor",
     ],
     copts = ["-std=c++17"],
 )
@@ -103,9 +103,9 @@ pybind_py_library(
     cc_deps = [
         # "//dbg:emit_plugin",
         "//dbg:stats_plugin",
-        "//eteq:eteq",
+        "//:tenncor",
     ],
-    py_deps = ["//eteq:eteq_py"],
+    py_deps = ["//:tenncor_py"],
     copts = ["-std=c++17"],
 )
 

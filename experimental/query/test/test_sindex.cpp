@@ -8,11 +8,11 @@
 
 #include "dbg/print/search.hpp"
 
-#include "eteq/generated/api.hpp"
 #include "eteq/derive.hpp"
 
 #include "query/sindex.hpp"
 
+#include "generated/api.hpp"
 
 const std::string testdir = "models/test";
 

@@ -4,9 +4,7 @@ import argparse
 
 import numpy as np
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-import layr.layr as layr
+import tenncor as tc
 
 prog_description = 'Demo sgd trainer'
 
@@ -48,49 +46,49 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        eteq.seed(args.seedval)
+        tc.seed(args.seedval)
         np.random.seed(args.seedval)
 
     nunits = 9
     ninput = 10
     noutput = int(ninput / 2)
 
-    model = layr.link([
-        layr.dense([ninput], [nunits],
-            weight_init=layr.unif_xavier_init(),
-            bias_init=layr.zero_init()),
-        layr.bind(tc.sigmoid),
-        layr.dense([nunits], [noutput],
-            weight_init=layr.unif_xavier_init(),
-            bias_init=layr.zero_init()),
-        layr.bind(tc.sigmoid),
+    model = tc.link([
+        tc.layer.dense([ninput], [nunits],
+            weight_init=tc.unif_xavier_init(),
+            bias_init=tc.zero_init()),
+        tc.bind(tc.sigmoid),
+        tc.layer.dense([nunits], [noutput],
+            weight_init=tc.unif_xavier_init(),
+            bias_init=tc.zero_init()),
+        tc.bind(tc.sigmoid),
     ])
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = layr.load_layers_file(args.load)[0]
+        trained = tc.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = eteq.Session()
+    sess = tc.Session()
     n_batch = args.n_batch
     show_every_n = 500
-    train_input = eteq.EVariable([n_batch, ninput])
-    train_output = eteq.EVariable([n_batch, noutput])
-    train_err = layr.sgd_train(model, train_input, train_output,
-        layr.get_sgd(0.9))
+    train_input = tc.EVariable([n_batch, ninput])
+    train_output = tc.EVariable([n_batch, noutput])
+    train_err = tc.sgd_train(model, train_input, train_output,
+        lambda assocs: tc.approx.sgd(assocs, 0.9))
     sess.track([train_err])
 
-    testin = eteq.EVariable([ninput], label='testin')
+    testin = tc.EVariable([ninput], label='testin')
     untrained_out = untrained.connect(testin)
     trained_out = model.connect(testin)
     pretrained_out = trained.connect(testin)
     sess.track([untrained_out, trained_out, pretrained_out])
 
-    eteq.optimize(sess, "cfg/optimizations.json")
+    tc.optimize(sess, "cfg/optimizations.json")
 
     start = time.time()
     for i in range(args.n_train):
@@ -134,7 +132,7 @@ def main(args):
 
     try:
         print('saving')
-        if layr.save_layers_file(args.save, [model]):
+        if tc.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

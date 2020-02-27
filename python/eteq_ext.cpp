@@ -1,53 +1,17 @@
-#include "pybind11/stl.h"
+#include "python/eteq_ext.hpp"
 
-#include "teq/logs.hpp"
+#ifdef PYTHON_ETEQ_EXT_HPP
 
-#include "pyutils/convert.hpp"
-
-#include "eigen/device.hpp"
-#include "eigen/random.hpp"
-
-#include "eteq/generated/pyapi.hpp"
-#include "eteq/derive.hpp"
-#include "eteq/layer.hpp"
-#include "eteq/optimize.hpp"
-
-namespace py = pybind11;
-
-namespace pyead
+void eteq_ext (py::module& m)
 {
-
-using ETensT = eteq::ETensor<PybindT>;
-
-using ETensPairT = std::pair<ETensT,ETensT>;
-
-template <typename T>
-py::array typedata_to_array (teq::iTensor& tens, py::dtype dtype)
-{
-	assert(egen::get_type<PybindT>() == tens.type_code());
-	auto pshape = pyutils::c2pshape(tens.shape());
-	return py::array(dtype,
-		py::array::ShapeContainer(pshape.begin(), pshape.end()),
-		tens.device().data());
-}
-
-}
-
-PYBIND11_MODULE(eteq, m)
-{
-	LOG_INIT(logs::DefLogger);
-	DEVICE_INIT(eigen::Device);
-	RANDOM_INIT;
-
-	m.doc() = "eteq variables";
-
 	// ==== data and shape ====
 	py::class_<teq::Shape> shape(m, "Shape");
 	py::class_<teq::ShapedArr<PybindT>> sarr(m, "ShapedArr");
 
+	py::implicitly_convertible<py::list,teq::Shape>();
 	shape
 		.def(py::init(
-			[](std::vector<py::ssize_t> dims)
+			[](py::list dims)
 			{
 				return pyutils::p2cshape(dims);
 			}))
@@ -74,8 +38,7 @@ PYBIND11_MODULE(eteq, m)
 			});
 
 	// ==== etens ====
-	auto etens = (py::class_<pyead::ETensT>)
-		py::module::import("eteq.tenncor").attr("ETensor");
+	auto etens = (py::class_<pyead::ETensT>) m.attr("ETensor");
 
 	etens
 		.def(py::init<teq::TensptrT>())
@@ -105,7 +68,7 @@ PYBIND11_MODULE(eteq, m)
 
 	evar
 		.def(py::init(
-			[](std::vector<py::ssize_t> slist, PybindT scalar, std::string label)
+			[](py::list slist, PybindT scalar, std::string label)
 			{
 				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
 			}),
@@ -209,7 +172,7 @@ PYBIND11_MODULE(eteq, m)
 	m
 		// ==== constant creation ====
 		.def("scalar_constant",
-			[](PybindT scalar, std::vector<py::ssize_t> slist)
+			[](PybindT scalar, py::list slist)
 			{
 				return eteq::make_constant_scalar<PybindT>(scalar,
 					pyutils::p2cshape(slist));
@@ -225,7 +188,7 @@ PYBIND11_MODULE(eteq, m)
 
 		// ==== variable creation ====
 		.def("scalar_variable",
-			[](PybindT scalar, std::vector<py::ssize_t> slist, std::string label)
+			[](PybindT scalar, py::list slist, std::string label)
 			{
 				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
 			},
@@ -322,3 +285,5 @@ PYBIND11_MODULE(eteq, m)
 			},
 			"Seed internal RNG");
 }
+
+#endif

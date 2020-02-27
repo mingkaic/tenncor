@@ -1,29 +1,7 @@
-#include <fstream>
-#include <sstream>
-
-#include "pybind11/stl.h"
-#include "pybind11/functional.h"
-
-#include "pyutils/convert.hpp"
-
-#include "teq/logs.hpp"
-
-#include "eigen/device.hpp"
-
-#include "layr/trainer/sgd.hpp"
-#include "layr/trainer/dqn.hpp"
-#include "layr/trainer/dbn.hpp"
-
-namespace py = pybind11;
+#include "python/layr_ext.hpp"
 
 namespace pylayr
 {
-
-using VPairT = std::pair<eteq::EVariable<PybindT>,eteq::ETensor<PybindT>>;
-
-using VPairsT = std::vector<VPairT>;
-
-using ApproxF = std::function<VPairsT(const VPairsT&)>;
 
 layr::VarMapT<PybindT> convert (const VPairsT& op)
 {
@@ -55,14 +33,8 @@ layr::ApproxF<PybindT> convert (ApproxF f)
 
 }
 
-PYBIND11_MODULE(layr, m)
+void layr_ext(py::module& m)
 {
-	LOG_INIT(logs::DefLogger);
-	DEVICE_INIT(eigen::Device);
-	RANDOM_INIT;
-
-	m.doc() = "layer api";
-
 	// === supports ===
 	py::class_<trainer::DQNInfo<PybindT>> dqninfo(m, "DQNInfo");
 	dqninfo
@@ -112,11 +84,11 @@ PYBIND11_MODULE(layr, m)
 	py::class_<trainer::DQNTrainer<PybindT>> dqntrainer(m, "DQNTrainer");
 	dqntrainer
 		.def(py::init([](eteq::ELayer<PybindT>& model, teq::iSession& sess,
-				pylayr::ApproxF update, trainer::DQNInfo<PybindT> param,
+				layr::ApproxF<PybindT> update, trainer::DQNInfo<PybindT> param,
 				layr::UnaryF<PybindT> gradprocess)
 			{
 				return trainer::DQNTrainer<PybindT>(model, sess,
-					pylayr::convert(update), param, gradprocess);
+					update, param, gradprocess);
 			}),
 			py::arg("model"), py::arg("sess"),
 			py::arg("update"), py::arg("param"),
@@ -183,8 +155,7 @@ PYBIND11_MODULE(layr, m)
 	m
 		// ==== inits ====
 		.def("variable_from_init",
-			[](layr::InitF<PybindT> init, std::vector<py::ssize_t> slist,
-				std::string label)
+			[](layr::InitF<PybindT> init, py::list slist, std::string label)
 			{
 				return init(pyutils::p2cshape(slist), label);
 			},
@@ -206,43 +177,6 @@ PYBIND11_MODULE(layr, m)
 			py::arg("factor") = 1)
 
 		// ==== layer creation ====
-		.def("dense",
-			[](std::vector<teq::DimT> inslist, std::vector<teq::DimT> hidden_dims,
-				layr::InitF<PybindT> weight_init, layr::InitF<PybindT> bias_init,
-				eigen::PairVecT<teq::RankT> dims)
-			{
-				return layr::dense<PybindT>(teq::Shape(inslist), hidden_dims,
-					weight_init, bias_init, dims);
-			},
-			py::arg("inshape"), py::arg("hidden_dims"),
-			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
-			py::arg("bias_init") = layr::zero_init<PybindT>(),
-			py::arg("dims") = eigen::PairVecT<teq::RankT>{{0, 1}})
-		.def("conv", &layr::conv<PybindT>,
-			py::arg("filter_hw"), py::arg("in_ncol"), py::arg("out_ncol"),
-			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
-			py::arg("bias_init") = layr::zero_init<PybindT>(),
-			py::arg("zero_padding") = std::pair<teq::DimT,teq::DimT>{0, 0})
-		.def("rnn", &layr::rnn<PybindT>,
-			py::arg("indim"), py::arg("hidden_dim"), py::arg("activation"), py::arg("nseq"),
-			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
-			py::arg("bias_init") = layr::zero_init<PybindT>(),
-			py::arg("seq_dim") = 1)
-		.def("lstm", &layr::lstm<PybindT>,
-			py::arg("indim"), py::arg("hidden_dim"), py::arg("nseq"),
-			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
-			py::arg("bias_init") = layr::zero_init<PybindT>(),
-			py::arg("seq_dim") = 1)
-		.def("gru", &layr::gru<PybindT>,
-			py::arg("indim"), py::arg("hidden_dim"), py::arg("nseq"),
-			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
-			py::arg("bias_init") = layr::zero_init<PybindT>(),
-			py::arg("seq_dim") = 1)
-		.def("rbm", &layr::rbm<PybindT>,
-			py::arg("nvisible"), py::arg("nhidden"),
-			py::arg("weight_init") = layr::unif_xavier_init<PybindT>(1),
-			py::arg("bias_init") = layr::zero_init<PybindT>())
-
 		.def("bind", &layr::bind<PybindT>,
 			py::arg("unary"), py::arg("inshape") = teq::Shape())
 		.def("link",
@@ -257,63 +191,23 @@ PYBIND11_MODULE(layr, m)
 				return layr::link<PybindT>(layers, input);
 			})
 
-		// ==== error functions ====
-		.def("sqr_diff", &layr::sqr_diff<PybindT>)
-
 		// ==== layer training ====
 		.def("sgd_train", [](
 				const eteq::ELayer<PybindT>& model, eteq::ETensor<PybindT> train_in,
-				eteq::ETensor<PybindT> expect_out, pylayr::ApproxF update,
+				eteq::ETensor<PybindT> expect_out, layr::ApproxF<PybindT> update,
 				layr::ErrorF<PybindT> err_func, layr::UnaryF<PybindT> proc_grad)
 			{
-				return trainer::sgd<PybindT>(model, train_in, expect_out,
-					pylayr::convert(update), err_func, proc_grad);
+				return trainer::sgd<PybindT>(model, train_in, expect_out, update, err_func, proc_grad);
 			},
 			py::arg("model"), py::arg("train_in"),
 			py::arg("expect_out"), py::arg("update"),
-			py::arg("err_func") = layr::ErrorF<PybindT>(layr::sqr_diff<PybindT>),
+			py::arg("err_func") = layr::ErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>),
 			py::arg("proc_grad") = layr::UnaryF<PybindT>())
 		.def("rbm_train", &trainer::rbm<PybindT>,
 			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
-			py::arg("err_func") = layr::ErrorF<PybindT>(layr::sqr_diff<PybindT>),
+			py::arg("err_func") = layr::ErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>),
 			py::arg("cdk") = 1)
-
-		// ==== optimizations ====
-		.def("get_sgd",
-			[](PybindT learning_rate) -> pylayr::ApproxF
-			{
-				return [=](const pylayr::VPairsT& leaves)
-				{
-					return pylayr::convert(layr::sgd(
-						pylayr::convert(leaves), learning_rate));
-				};
-			},
-			py::arg("learning_rate") = 0.5)
-		.def("get_adagrad",
-			[](PybindT learning_rate, PybindT epsilon) -> pylayr::ApproxF
-			{
-				return [=](const pylayr::VPairsT& leaves)
-				{
-					return pylayr::convert(layr::adagrad(
-						pylayr::convert(leaves), learning_rate, epsilon));
-				};
-			},
-			py::arg("learning_rate") = 0.5,
-			py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon())
-		.def("get_rms_momentum",
-			[](PybindT learning_rate, PybindT discount_factor, PybindT epsilon) -> pylayr::ApproxF
-			{
-				return [=](const pylayr::VPairsT& leaves)
-				{
-					return pylayr::convert(layr::rms_momentum(
-						pylayr::convert(leaves), learning_rate,
-						discount_factor, epsilon));
-				};
-			},
-			py::arg("learning_rate") = 0.5,
-			py::arg("discount_factor") = 0.99,
-			py::arg("epsilon") = std::numeric_limits<PybindT>::epsilon())
 
 		// ==== serialization ====
 		.def("load_layers_file",

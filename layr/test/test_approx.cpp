@@ -15,6 +15,9 @@
 
 #include "layr/approx.hpp"
 
+#include "generated/api.hpp"
+#include "generated/pyapi.hpp"
+
 
 TEST(APPROX, StochasticGD)
 {
@@ -25,7 +28,7 @@ TEST(APPROX, StochasticGD)
 	auto root = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "root");
 
-	auto groups = layr::sgd<PybindT>(layr::VarMapT<PybindT>{{
+	auto groups = tenncor::approx::sgd<PybindT>(layr::VarMapT<PybindT>{{
 		eteq::VarptrT<PybindT>(leaf),
 		eteq::ETensor<PybindT>(root)}}, 0.67);
 	ASSERT_EQ(1, groups.size());
@@ -49,7 +52,7 @@ TEST(APPROX, RmsMomentum)
 	auto root = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "root");
 
-	auto groups = layr::rms_momentum<PybindT>(layr::VarMapT<PybindT>{{
+	auto groups = tenncor::approx::rms_momentum<PybindT>(layr::VarMapT<PybindT>{{
 		eteq::VarptrT<PybindT>(leaf),
 		eteq::ETensor<PybindT>(root)}}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon());
@@ -89,7 +92,7 @@ TEST(APPROX, GroupAssign)
 	auto leaf = eteq::make_variable_scalar<PybindT>(0, shape, "leaf");
 	auto err = eteq::make_variable_scalar<PybindT>(0.5, shape, "err");
 
-	layr::VarMapT<PybindT> groups = layr::rms_momentum<PybindT>(
+	layr::VarMapT<PybindT> groups = tenncor::approx::rms_momentum<PybindT>(
 		layr::VarMapT<PybindT>{{leaf, eteq::ETensor<PybindT>(err)}},
 		1, 0.52, std::numeric_limits<PybindT>::epsilon());
 

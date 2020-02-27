@@ -3,9 +3,7 @@
 import numpy as np
 from collections import defaultdict
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-import layr.layr as layr
+import tenncor as tc
 
 from rocnnet.extenncor.embed import make_embedding
 
@@ -75,18 +73,18 @@ training_data, word_index, index_word = generate_training_data(corpus)
 
 w1, model = make_embedding(len(word_index), n)
 
-sess = eteq.Session()
+sess = tc.Session()
 
-winput = eteq.variable(np.random.rand(len(word_index)) * 2 - 1, 'input')
-woutput = eteq.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'output')
+winput = tc.variable(np.random.rand(len(word_index)) * 2 - 1, 'input')
+woutput = tc.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'output')
 
 y_pred = model.connect(winput)
 sess.track([y_pred])
-train_err = layr.sgd_train(model, winput, woutput, layr.get_sgd(lr),
+train_err = tc.sgd_train(model, winput, woutput, lambda assocs: tc.approx.sgd(assocs, lr),
     err_func=lambda ex, out: tc.reduce_sum(tc.pow(tc.extend(out, [1, 2 * window]) - ex, 2.)))
 sess.track([train_err])
 
-eteq.optimize(sess, "cfg/optimizations.json")
+tc.optimize(sess, "cfg/optimizations.json")
 
 # Cycle through each epoch
 for i in range(epochs):

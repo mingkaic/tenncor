@@ -4,9 +4,8 @@ import functools
 import time
 import argparse
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-import layr.layr as layr
+import tenncor as tc
+import tenncor as tc
 
 import numpy as np
 import matplotlib
@@ -15,7 +14,7 @@ import matplotlib.pyplot as plt
 prog_description = 'Demo rnn model'
 
 def cross_entropy_loss(T, Y):
-    epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in eteq
+    epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in tc
     leftY = Y + epsilon
     rightT = 1 - Y + epsilon
     return -(T * tc.log(leftY) + (1-T) * tc.log(rightT))
@@ -26,7 +25,7 @@ def loss(T, Y):
 def weight_init(shape, label):
     slist = shape.as_list()
     a = np.sqrt(6.0 / np.sum(slist))
-    return eteq.variable(np.array(np.random.uniform(-a, a, slist)), label)
+    return tc.variable(np.array(np.random.uniform(-a, a, slist)), label)
 
 def create_dataset(nb_samples, sequence_len):
     """Create a dataset for binary addition and
@@ -56,39 +55,36 @@ def create_dataset(nb_samples, sequence_len):
             reversed([int(b) for b in format_str.format(nb1+nb2)]))
     return X, T
 
-def make_rms_prop(learning_rate, momentum_term, lmbd, eps):
-    def rms_prop(grads):
-        targets = [target for target, _ in grads]
-        gs = [grad for _, grad in grads]
-        momentums = [eteq.variable_like(0, target, label='momentum_' + str(target)) for target in targets]
-        mvavg_sqrs = [eteq.variable_like(0, target, label='mving_avg_' + str(target)) for target in targets]
+def make_rms_prop(grads, learning_rate, momentum_term, lmbd, eps):
+    targets = grads.keys()
+    gs = [grads[var] for var in grads]
+    momentums = [tc.variable_like(0, target, label='momentum_' + str(target)) for target in targets]
+    mvavg_sqrs = [tc.variable_like(0, target, label='mving_avg_' + str(target)) for target in targets]
 
-        momentum_tmps = [momentum * momentum_term for momentum in momentums]
-        target_incrs = [tc.assign_add(target, momentum_tmp)
-            for target, momentum_tmp in zip(targets, momentum_tmps)]
+    momentum_tmps = [momentum * momentum_term for momentum in momentums]
+    target_incrs = [tc.assign_add(target, momentum_tmp)
+        for target, momentum_tmp in zip(targets, momentum_tmps)]
 
-        # trail grads as increment in grads operation
-        tincr_mapping = list(zip(targets, target_incrs))
-        grad_deps = [eteq.trail(grad, tincr_mapping)for grad in gs]
+    # trail grads as increment in grads operation
+    tincr_mapping = list(zip(targets, target_incrs))
+    grad_deps = [tc.trail(grad, tincr_mapping)for grad in gs]
 
-        # update moving average, dependent on target incr
-        umvavg_sqrs = [tc.assign(mvavg_sqr,
-            lmbd * mvavg_sqr + (1-lmbd) * tc.pow(grad_dep, 2))
-            for mvavg_sqr, grad_dep in zip(mvavg_sqrs, grad_deps)]
+    # update moving average, dependent on target incr
+    umvavg_sqrs = [tc.assign(mvavg_sqr,
+        lmbd * mvavg_sqr + (1-lmbd) * tc.pow(grad_dep, 2))
+        for mvavg_sqr, grad_dep in zip(mvavg_sqrs, grad_deps)]
 
-        # norms, dependent on target incr and update moving average
-        pgrad_norms = [(learning_rate * grad_dep) / (tc.sqrt(mvsqr) + eps)
-            for grad_dep, mvsqr in zip(grad_deps, umvavg_sqrs)]
+    # norms, dependent on target incr and update moving average
+    pgrad_norms = [(learning_rate * grad_dep) / (tc.sqrt(mvsqr) + eps)
+        for grad_dep, mvsqr in zip(grad_deps, umvavg_sqrs)]
 
-        assigns = [(momentum, tc.assign(momentum, momentum_tmp - pgrad_norm))
-            for momentum, momentum_tmp, pgrad_norm in zip(momentums, momentum_tmps, pgrad_norms)]
+    assigns = [(momentum, tc.assign(momentum, momentum_tmp - pgrad_norm))
+        for momentum, momentum_tmp, pgrad_norm in zip(momentums, momentum_tmps, pgrad_norms)]
 
-        assigns += [(target, tc.assign_sub(target, pgrad_norm))
-            for target, pgrad_norm in zip(targets, pgrad_norms)]
+    assigns += [(target, tc.assign_sub(target, pgrad_norm))
+        for target, pgrad_norm in zip(targets, pgrad_norms)]
 
-        return assigns
-
-    return rms_prop
+    return dict(assigns)
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -123,7 +119,7 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        eteq.seed(args.seedval)
+        tc.seed(args.seedval)
         np.random.seed(args.seedval)
     else:
         np.random.seed(seed=1)
@@ -145,32 +141,32 @@ def main(args):
     ninput = 2
     noutput = 1
 
-    model = layr.link([
-        layr.dense([ninput], [nunits], weight_init),
-        layr.rnn(nunits, nunits, tc.tanh, sequence_len,
-            weight_init=weight_init, bias_init=layr.zero_init(),
+    model = tc.link([
+        tc.layer.dense([ninput], [nunits], weight_init),
+        tc.layer.rnn(nunits, nunits, tc.tanh, sequence_len,
+            weight_init=weight_init, bias_init=tc.zero_init(),
             seq_dim=2),
-        layr.dense([nunits], [noutput], weight_init),
-        layr.bind(tc.sigmoid),
+        tc.layer.dense([nunits], [noutput], weight_init),
+        tc.bind(tc.sigmoid),
     ])
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = layr.load_layers_file(args.load)[0]
+        trained = tc.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = eteq.Session()
+    sess = tc.Session()
 
-    train_invar = eteq.EVariable([n_batch, sequence_len, ninput])
-    train_exout = eteq.EVariable([n_batch, sequence_len, noutput])
+    train_invar = tc.EVariable([n_batch, sequence_len, ninput])
+    train_exout = tc.EVariable([n_batch, sequence_len, noutput])
     tinput = tc.permute(train_invar, [0, 2, 1])
     toutput = tc.permute(train_exout, [0, 2, 1])
-    train_err = layr.sgd_train(model, tinput, toutput,
-        make_rms_prop(learning_rate, momentum_term, lmbd, eps),
+    train_err = tc.sgd_train(model, tinput, toutput,
+        lambda assocs: make_rms_prop(assocs, learning_rate, momentum_term, lmbd, eps),
         err_func=loss)
     sess.track([train_err])
 
@@ -179,7 +175,7 @@ def main(args):
     print(f'train_input tensor shape: {train_input.shape}')
     print(f'train_output tensor shape: {train_output.shape}')
 
-    test_invar = eteq.EVariable([n_test, sequence_len, ninput])
+    test_invar = tc.EVariable([n_test, sequence_len, ninput])
     tin = tc.permute(test_invar, [0, 2, 1])
     untrained_out = tc.round(untrained.connect(tin))
     trained_out = tc.round(model.connect(tin))
@@ -190,7 +186,7 @@ def main(args):
         pretrained_out,
     ])
 
-    eteq.optimize(sess, "cfg/optimizations.json")
+    tc.optimize(sess, "cfg/optimizations.json")
 
     ls_of_loss = []
     start = time.time()
@@ -260,7 +256,7 @@ def main(args):
 
     try:
         print('saving')
-        if layr.save_layers_file(args.save, [model]):
+        if tc.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

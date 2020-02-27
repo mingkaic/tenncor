@@ -1,4 +1,4 @@
-#include "layr/trainer/trainer.hpp"
+#include "trainer/trainer.hpp"
 
 #ifndef DQN_TRAINER_HPP
 #define DQN_TRAINER_HPP

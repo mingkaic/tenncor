@@ -9,9 +9,7 @@ import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
 # import tensorflow_datasets as tfds
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-import layr.layr as layr
+import tenncor as tc
 
 prog_description = 'Demo rbm trainer'
 
@@ -54,7 +52,7 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        eteq.seed(args.seedval)
+        tc.seed(args.seedval)
         np.random.seed(args.seedval)
 
     if args.use_tqdm:
@@ -68,33 +66,33 @@ def main(args):
     learning_rate = 0.01
     momentum = 0.95
 
-    model = layr.rbm(n_visible, n_hidden,
-        weight_init=layr.unif_xavier_init(args.xavier_const),
-        bias_init=layr.zero_init())
+    model = tc.layer.rbm(n_visible, n_hidden,
+        weight_init=tc.unif_xavier_init(args.xavier_const),
+        bias_init=tc.zero_init())
 
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = layr.RBMLayer(*layr.load_layers_file(args.load))
+        trained = tc.RBMLayer(*tc.load_layers_file(args.load))
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = eteq.Session()
+    sess = tc.Session()
     n_batch = 10
 
     # ds = tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=n_batch)
 
-    train_input = eteq.EVariable([n_batch, n_visible])
-    train_err = layr.rbm_train(model, train_input,
+    train_input = tc.EVariable([n_batch, n_visible])
+    train_err = tc.rbm_train(model, train_input,
         learning_rate=learning_rate,
         discount_factor=momentum,
         err_func=mse_errfunc)
     sess.track([train_err])
 
-    x = eteq.scalar_variable(0, [1, n_visible])
+    x = tc.scalar_variable(0, [1, n_visible])
     genx = tc.sigmoid(model.backward_connect(
         tc.random.rand_binom_one(tc.sigmoid(model.connect(x)))))
 
@@ -109,7 +107,7 @@ def main(args):
     image = random.choice(mnist_images)
     sess.track([genx, trained_genx, untrained_genx])
 
-    eteq.optimize(sess, "cfg/optimizations.json")
+    tc.optimize(sess, "cfg/optimizations.json")
 
     n_epoches = 30
     shuffle = True
@@ -180,7 +178,7 @@ def main(args):
 
     try:
         print('saving')
-        if layr.save_layers_file(args.save, [model.fwd(), model.bwd()]):
+        if tc.save_layers_file(args.save, [model.fwd(), model.bwd()]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

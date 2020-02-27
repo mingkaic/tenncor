@@ -26,24 +26,10 @@ filegroup(
 
 cc_library(
     name = "layr",
-    hdrs = glob([
-        "*.hpp",
-        "trainer/*.hpp",
-    ]),
+    hdrs = glob(["*.hpp"]),
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = ["//eteq:eteq"],
-)
-
-pybind_py_library(
-    name = "layr_py",
-    cc_srcs = ["//layr:python/layr.cpp"],
-    cc_deps = [
-        "//layr:layr",
-        "//pyutils:pyutils",
-    ],
-    copts = ["-std=c++17"],
-    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########
@@ -53,8 +39,8 @@ cc_test(
     srcs = ["//layr:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        "//:tenncor",
         "//query:query",
-        "//layr:layr",
         "//dbg:print",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",

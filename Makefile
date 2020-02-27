@@ -27,12 +27,10 @@ print_vars:
 	@echo "CC: " $(CC)
 
 rocnnet_py_build:
-	bazel build --config $(CC)_eigen_optimal //eteq:eteq_py
-	bazel build --config $(CC)_eigen_optimal //layr:layr_py
+	bazel build --config $(CC)_eigen_optimal //:tenncor_py
 
 rocnnet_py_export: rocnnet_py_build
-	cp -f bazel-bin/layr/*.so rocnnet/notebooks/layr
-	cp -f bazel-bin/eteq/*.so rocnnet/notebooks/eteq
+	cp -f bazel-bin/*.so rocnnet/notebooks
 
 
 .PHONY: protoc

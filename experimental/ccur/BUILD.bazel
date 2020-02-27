@@ -58,7 +58,7 @@
 #     cc_deps = [
 #         "//ccur:ccur",
 #     ],
-#     py_deps = ["//eteq:eteq_py"],
+#     py_deps = ["//:tenncor_py"],
 #     copts = ["-std=c++17"],
 #     visibility = ["//visibility:public"],
 # )

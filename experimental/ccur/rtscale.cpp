@@ -7,10 +7,11 @@
 
 #include "eigen/generated/opcode.hpp"
 
-#include "eteq/generated/api.hpp"
 #include "eteq/make.hpp"
 
 #include "ccur/weights.pb.h"
+
+#include "generated/api.hpp"
 
 #define TIME(action)\
 std::chrono::high_resolution_clock::time_point start =\

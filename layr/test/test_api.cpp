@@ -6,15 +6,17 @@
 
 #include "testutil/tutil.hpp"
 
-#include "layr/api.hpp"
+#include "layr/layer.hpp"
+
+#include "generated/api.hpp"
 
 
 TEST(DENSE, Connection)
 {
 	teq::Shape shape({6});
 	teq::Shape shape2({7});
-	auto biased_dense = layr::dense<float>(shape, {5}, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
-	auto dense = layr::dense<float>(shape2, {6}, layr::unif_xavier_init<float>(3), layr::InitF<float>());
+	auto biased_dense = tenncor::layer::dense<float>(shape, {5}, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
+	auto dense = tenncor::layer::dense<float>(shape2, {6}, layr::unif_xavier_init<float>(3), layr::InitF<float>());
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({6, 2}), "x");
@@ -40,7 +42,7 @@ TEST(DENSE, Connection)
 
 TEST(CONV, Connection)
 {
-	auto conv = layr::conv<float>({6, 5}, 4, 3,
+	auto conv = tenncor::layer::conv<float>({6, 5}, 4, 3,
 		layr::unif_xavier_init<float>(1), layr::zero_init<float>());
 
 	auto x = eteq::make_variable_scalar<float>(
@@ -62,8 +64,8 @@ TEST(CONV, Connection)
 
 TEST(RBM, Connection)
 {
-	auto rrbm = layr::rbm<float>(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
-	auto nobias = layr::rbm<float>(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
+	auto rrbm = tenncor::layer::rbm<float>(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
+	auto nobias = tenncor::layer::rbm<float>(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<float>(0, teq::Shape({7, 2}), "x2");
@@ -87,8 +89,8 @@ TEST(RBM, Connection)
 
 TEST(RBM, BackwardConnection)
 {
-	auto rrbm = layr::rbm<float>(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
-	auto nobias = layr::rbm<float>(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
+	auto rrbm = tenncor::layer::rbm<float>(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
+	auto nobias = tenncor::layer::rbm<float>(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
 
 	auto y = eteq::make_variable_scalar<float>(0, teq::Shape({5, 2}), "y");
 	auto y2 = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "y2");
@@ -250,7 +252,7 @@ TEST(CONNECT, TanhRNN)
 	eteq::ETensor<double> out = eteq::ETensor<double>(
 		eteq::make_variable<double>(out_data.data(), out_shape));
 
-	auto layer = layr::rnn<double>(indim, hidden_dim, tenncor::tanh<double>, nseq,
+	auto layer = tenncor::layer::rnn<double>(indim, hidden_dim, tenncor::tanh<double>, nseq,
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(weight_data.data(), wshape, label);
@@ -385,7 +387,7 @@ TEST(CONNECT, DenseTanhRNN)
 	eteq::ETensor<double> out = eteq::ETensor<double>(
 		eteq::make_variable<double>(out_data.data(), out_shape));
 
-	auto indense = layr::dense<double>(teq::Shape({indim}), {hidden_dim},
+	auto indense = tenncor::layer::dense<double>(teq::Shape({indim}), {hidden_dim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w0_data.data(), wshape, label);
@@ -394,7 +396,7 @@ TEST(CONNECT, DenseTanhRNN)
 		{
 			return eteq::make_variable<double>(b0_data.data(), bshape, label);
 		});
-	auto rnn = layr::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
+	auto rnn = tenncor::layer::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w1_data.data(), wshape, label);
@@ -584,7 +586,7 @@ TEST(CONNECT, TanhRNNFull)
 	eteq::ETensor<double> out = eteq::ETensor<double>(
 		eteq::make_variable<double>(out_data.data(), out_shape));
 
-	auto indense = layr::dense<double>(teq::Shape({indim}), {hidden_dim},
+	auto indense = tenncor::layer::dense<double>(teq::Shape({indim}), {hidden_dim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w0_data.data(), wshape, label);
@@ -593,7 +595,7 @@ TEST(CONNECT, TanhRNNFull)
 		{
 			return eteq::make_variable<double>(b0_data.data(), bshape, label);
 		});
-	auto rnn = layr::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
+	auto rnn = tenncor::layer::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w1_data.data(), wshape, label);
@@ -602,7 +604,7 @@ TEST(CONNECT, TanhRNNFull)
 		{
 			return eteq::make_variable<double>(b1_data.data(), bshape, label);
 		}, seq_dim);
-	auto outdense = layr::dense<double>(teq::Shape({hidden_dim}), {outdim},
+	auto outdense = tenncor::layer::dense<double>(teq::Shape({hidden_dim}), {outdim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w2_data.data(), wshape, label);
@@ -819,7 +821,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 	eteq::ETensor<double> out = eteq::ETensor<double>(
 		eteq::make_variable<double>(out_data.data(), out_shape));
 
-	auto indense = layr::dense<double>(teq::Shape({indim}), {hidden_dim},
+	auto indense = tenncor::layer::dense<double>(teq::Shape({indim}), {hidden_dim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w0_data.data(), wshape, label);
@@ -828,7 +830,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		{
 			return eteq::make_variable<double>(b0_data.data(), bshape, label);
 		});
-	auto rnn = layr::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
+	auto rnn = tenncor::layer::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w1_data.data(), wshape, label);
@@ -837,7 +839,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		{
 			return eteq::make_variable<double>(b1_data.data(), bshape, label);
 		}, seq_dim);
-	auto outdense = layr::dense<double>(teq::Shape({hidden_dim}), {outdim},
+	auto outdense = tenncor::layer::dense<double>(teq::Shape({hidden_dim}), {outdim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w2_data.data(), wshape, label);
@@ -1245,7 +1247,7 @@ TEST(CONNECT, TanhRNNTraining)
 	eteq::ETensor<double> out = eteq::ETensor<double>(
 		eteq::make_variable<double>(out_data.data(), out_shape, "output"));
 
-	auto indense = layr::dense<double>(teq::Shape({indim}), {hidden_dim},
+	auto indense = tenncor::layer::dense<double>(teq::Shape({indim}), {hidden_dim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w0_data.data(), wshape, label);
@@ -1254,7 +1256,7 @@ TEST(CONNECT, TanhRNNTraining)
 		{
 			return eteq::make_variable<double>(b0_data.data(), bshape, label);
 		});
-	auto rnn = layr::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
+	auto rnn = tenncor::layer::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w1_data.data(), wshape, label);
@@ -1263,7 +1265,7 @@ TEST(CONNECT, TanhRNNTraining)
 		{
 			return eteq::make_variable<double>(b1_data.data(), bshape, label);
 		}, seq_dim);
-	auto outdense = layr::dense<double>(teq::Shape({hidden_dim}), {outdim},
+	auto outdense = tenncor::layer::dense<double>(teq::Shape({hidden_dim}), {outdim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w2_data.data(), wshape, label);

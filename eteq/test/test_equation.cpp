@@ -8,10 +8,10 @@
 
 #include "teq/isession.hpp"
 
-#include "eteq/generated/api.hpp"
 #include "eteq/derive.hpp"
-
 #include "eteq/optimize.hpp"
+
+#include "generated/api.hpp"
 
 
 using TensProcF = std::function<void(teq::TensptrsT&)>;
@@ -758,14 +758,14 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell_root = tenncor::tanh(tenncor::layer::dense(cell_in, weight, bias));
+	auto cell_root = tenncor::tanh(tenncor::nn::dense(cell_in, weight, bias));
 	auto cell_f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) cell_root);
 	eteq::ELayer<double> cell(cell_f, cell_in);
 
 	auto state = tenncor::extend_like(istate,
 		tenncor::slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor::layer::rnn(in, state, cell, seq_dim);
+	auto output = tenncor::nn::rnn(in, state, cell, seq_dim);
 
 	auto err = tenncor::pow(out - output, 2.);
 
@@ -883,7 +883,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell_root = tenncor::tanh(tenncor::layer::dense(cell_in, weight, bias));
+	auto cell_root = tenncor::tanh(tenncor::nn::dense(cell_in, weight, bias));
 	auto cell_f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) cell_root);
 	eteq::ELayer<double> cell(cell_f, cell_in);
 
@@ -891,7 +891,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		tenncor::slice(in, 0, 1, seq_dim));
 
 	eteq::ETensor<double> layer_in(eteq::make_variable_scalar<double>(0, teq::Shape({5, 3})));
-	auto layer_output = tenncor::layer::rnn(layer_in, state, cell, seq_dim);
+	auto layer_output = tenncor::nn::rnn(layer_in, state, cell, seq_dim);
 	eteq::ELayer<double> layer(std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) layer_output), layer_in);
 
 	auto output = layer.connect(in);

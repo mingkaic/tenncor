@@ -5,11 +5,12 @@
 
 #include "teq/logs.hpp"
 
-#include "eteq/generated/pyapi.hpp"
 #include "eteq/etens.hpp"
 
 #include "query/query.hpp"
 #include "query/parse.hpp"
+
+#include "generated/pyapi.hpp"
 
 namespace py = pybind11;
 

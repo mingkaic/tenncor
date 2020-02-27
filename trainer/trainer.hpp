@@ -1,7 +1,9 @@
 #include "eteq/derive.hpp"
 
-#include "layr/api.hpp"
+#include "layr/layer.hpp"
 #include "layr/approx.hpp"
+
+#include "generated/api.hpp"
 
 #ifndef TRAINER_HPP
 #define TRAINER_HPP
