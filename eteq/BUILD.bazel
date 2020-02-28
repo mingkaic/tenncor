@@ -5,7 +5,6 @@ filegroup(
     srcs = glob([
         "*.hpp",
         "src/*.cpp",
-        "python/*.cpp",
     ]) + ["BUILD.bazel"],
     visibility = ["//visibility:public"],
 )
