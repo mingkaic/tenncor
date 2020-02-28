@@ -520,7 +520,7 @@ api:
               //
                   if (args.empty())
                   {
-                      logs::fatal("cannot min without arguments");
+                      teq::fatal("cannot min without arguments");
                   }
                   eteq::ETensor<T> out = args[0];
                   for (size_t i = 1, n = args.size(); i < n; ++i)
@@ -569,7 +569,7 @@ api:
               //
                   if (args.empty())
                   {
-                      logs::fatal("cannot max without arguments");
+                      teq::fatal("cannot max without arguments");
                   }
                   eteq::ETensor<T> out = args[0];
                   for (size_t i = 1, n = args.size(); i < n; ++i)
@@ -747,7 +747,7 @@ api:
               //
                   if (offset >= teq::rank_cap)
                   {
-                      logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                      teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                           offset, teq::rank_cap);
                   }
                   std::vector<teq::RankT> dims(std::min(ndims,
@@ -773,7 +773,7 @@ api:
               //
                   if (offset >= teq::rank_cap)
                   {
-                      logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                      teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                           offset, teq::rank_cap);
                   }
                   std::vector<teq::RankT> dims(std::min(ndims,
@@ -799,7 +799,7 @@ api:
               //
                   if (offset >= teq::rank_cap)
                   {
-                      logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                      teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                           offset, teq::rank_cap);
                   }
                   std::vector<teq::RankT> dims(std::min(ndims,
@@ -825,7 +825,7 @@ api:
               //
                   if (offset >= teq::rank_cap)
                   {
-                      logs::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                      teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                           offset, teq::rank_cap);
                   }
                   std::vector<teq::RankT> dims(std::min(ndims,
@@ -1128,7 +1128,7 @@ api:
               //
                   if (minval > maxval)
                   {
-                      logs::fatal("min value is below max");
+                      teq::fatal("min value is below max");
                   }
                   auto lo = eteq::make_constant_like<T>(minval, arg);
                   auto hi = eteq::make_constant_like<T>(maxval, arg);
@@ -1148,7 +1148,7 @@ api:
                   // todo: allow l2norm offset and ndims to be configurable
                   if (upper == 0)
                   {
-                      logs::fatal("cannot clip_by_norm with a upper limit of 0");
+                      teq::fatal("cannot clip_by_norm with a upper limit of 0");
                   }
                   auto norm = ::tenncor::extend_like(
                       ::tenncor::reduce_l2norm(arg), arg);
@@ -1168,7 +1168,7 @@ api:
                   switch (nargs)
                   {
                       case 0:
-                          logs::fatal("cannot sum without arguments");
+                          teq::fatal("cannot sum without arguments");
                       case 1:
                           return args[0];
                       case 2:
@@ -1190,7 +1190,7 @@ api:
                   switch (nargs)
                   {
                       case 0:
-                          logs::fatal("cannot prod without arguments");
+                          teq::fatal("cannot prod without arguments");
                       case 1:
                           return args[0];
                       default:
@@ -1214,7 +1214,7 @@ api:
               //
                   if (offset + ndims > teq::rank_cap)
                   {
-                      logs::fatalf("cannot perform softmax on dimensions beyond %d",
+                      teq::fatalf("cannot perform softmax on dimensions beyond %d",
                           teq::rank_cap);
                   }
                   teq::Shape shape = arg->shape();
@@ -1297,7 +1297,7 @@ api:
                   size_t nlefts = lefts.size();
                   if (nlefts != rights.size())
                   {
-                      logs::fatalf(
+                      teq::fatalf(
                           "number of lefts (%d) must equal the number of rights (%d)",
                           nlefts, rights.size());
                   }
@@ -1500,12 +1500,12 @@ api:
                   teq::DimT nseq = inshape.at(seq_dim);
                   if (nseq == 0)
                   {
-                      logs::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
+                      teq::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
                           seq_dim, inshape.to_string().c_str());
                   }
                   if (seq_dim == 0)
                   {
-                      logs::fatal("spliting input across 0th dimension... "
+                      teq::fatal("spliting input across 0th dimension... "
                           "dense connection will not match");
                   }
                   eteq::ETensor<T> inslice;
@@ -1548,12 +1548,12 @@ api:
                   teq::DimT nseq = inshape.at(seq_dim);
                   if (nseq == 0)
                   {
-                      logs::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
+                      teq::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
                           seq_dim, inshape.to_string().c_str());
                   }
                   if (seq_dim == 0)
                   {
-                      logs::fatal("spliting input across 0th dimension... "
+                      teq::fatal("spliting input across 0th dimension... "
                           "dense connection will not match");
                   }
                   eteq::ETensor<T> inslice;
@@ -1602,12 +1602,12 @@ api:
                   teq::DimT nseq = inshape.at(seq_dim);
                   if (nseq == 0)
                   {
-                      logs::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
+                      teq::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
                           seq_dim, inshape.to_string().c_str());
                   }
                   if (seq_dim == 0)
                   {
-                      logs::fatal("spliting input across 0th dimension... "
+                      teq::fatal("spliting input across 0th dimension... "
                           "dense connection will not match");
                   }
                   eteq::ETensor<T> inslice;

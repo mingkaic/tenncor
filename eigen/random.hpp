@@ -13,6 +13,7 @@
 #include <functional>
 
 #include "teq/config.hpp"
+#include "teq/logs.hpp"
 
 namespace eigen
 {
@@ -37,7 +38,7 @@ struct Randomizer final
 		// fallback to default engine
 		if (nullptr == engine_)
 		{
-			logs::error("missing random engine in global config");
+			teq::error("missing random engine in global config");
 			engine_ = &default_engine();
 		}
 	}

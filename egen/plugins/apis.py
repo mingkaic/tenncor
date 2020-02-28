@@ -115,7 +115,7 @@ template <{template_args}>
 {{
     if ({null_check})
     {{
-        logs::fatal("cannot {funcname} with a null argument");
+        teq::fatal("cannot {funcname} with a null argument");
     }}
     {block}
 }}
@@ -164,7 +164,7 @@ _defn_tmp = '''
 {{
     if ({null_check})
     {{
-        logs::fatal("cannot {funcname} with a null argument");
+        teq::fatal("cannot {funcname} with a null argument");
     }}
     {block}
 }}

@@ -6,8 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - switch back to map-based sindexing instead of trie-based to solve memory issue
-   - fix optimization speed
    - save sessions
    - implement reliable training harness
       - periodically caching data

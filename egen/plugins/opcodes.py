@@ -36,7 +36,7 @@ void typed_exec (_GENERATED_OPCODE opcode, {params})
     {{
         //>>> ops
         {ops}
-        default: logs::fatal("unknown opcode");
+        default: teq::fatal("unknown opcode");
     }}
 }}
 
@@ -50,7 +50,7 @@ void typed_exec (_GENERATED_OPCODE opcode, {params})
 switch (OPCODE)\\
 {{\\
     {cases}\\
-    default: logs::fatal("executing bad op");\\
+    default: teq::fatal("executing bad op");\\
 }}
 //>>> ^ cases
 

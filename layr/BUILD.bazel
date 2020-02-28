@@ -1,7 +1,5 @@
 licenses(["notice"])
 
-load("//third_party:tools/pybind.bzl", "pybind_py_library")
-
 package(
     default_visibility = ["//visibility:public"],
 )

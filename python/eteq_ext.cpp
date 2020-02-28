@@ -250,7 +250,7 @@ void eteq_ext (py::module& m)
 		// 			config::global_config.get_obj(teq::logger_key));
 		// 		if (nullptr == logger)
 		// 		{
-		// 			logs::error("missing logger in global config");
+		// 			teq::error("missing logger in global config");
 		// 			logs::get_logger().set_log_level(level);
 		// 			return;
 		// 		}
@@ -266,7 +266,7 @@ void eteq_ext (py::module& m)
 		// 			config::global_config.get_obj(teq::logger_key));
 		// 		if (nullptr == logger)
 		// 		{
-		// 			logs::error("missing logger in global config");
+		// 			teq::error("missing logger in global config");
 		// 			return logs::get_logger().get_log_level();
 		// 		}
 		// 		return logger->get_log_level();
@@ -278,7 +278,7 @@ void eteq_ext (py::module& m)
 		// 			config::global_config.get_obj(eigen::rengine_key));
 		// 		if (nullptr == engine)
 		// 		{
-		// 			logs::error("missing random engine in global config");
+		// 			teq::error("missing random engine in global config");
 		// 			engine = &eigen::default_engine();
 		// 		}
 		// 		engine->seed(seed);

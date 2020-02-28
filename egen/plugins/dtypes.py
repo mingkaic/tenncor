@@ -53,7 +53,7 @@ void type_convert (std::vector<OUTTYPE>& out, const void* input,
         //>>> conversions
         {conversions}
         default:
-            logs::fatalf("invalid input type %s",
+            teq::fatalf("invalid input type %s",
                 name_type(intype).c_str());
     }}
 }}
@@ -67,7 +67,7 @@ void type_convert (std::vector<OUTTYPE>& out, const void* input,
 switch (DTYPE)\\
 {{\\
     {cases}\\
-    default: logs::fatal("executing bad type");\\
+    default: teq::fatal("executing bad type");\\
 }}
 //>>> ^ cases
 
@@ -119,7 +119,7 @@ uint8_t type_size (_GENERATED_DTYPE type)
     {{
         //>>> typesizes
         {typesizes}
-        default: logs::fatal("cannot get size of bad type");
+        default: teq::fatal("cannot get size of bad type");
     }}
     return 0;
 }}
@@ -227,7 +227,7 @@ class DTypesPlugin:
 
         generated_files[_hdr_file] = FileRep(
             build_template(_header_template, module, dtypes),
-            user_includes=['<string>', '"logs/logs.hpp"'],
+            user_includes=['<string>', '"teq/logs.hpp"'],
             internal_refs=[])
 
         generated_files[_src_file] = FileRep(

@@ -40,7 +40,7 @@ void merge_dups (opt::GraphInfo& graph, EqualF equals)
 	// remove equivalent nodes
 	if (csts.size() > 0)
 	{
-		logs::debug("removing immutable duplicates");
+		teq::debug("removing immutable duplicates");
 		std::sort(csts.begin(), csts.end(),
 			[](teq::LeafptrT a, teq::LeafptrT b)
 			{
@@ -63,7 +63,7 @@ void merge_dups (opt::GraphInfo& graph, EqualF equals)
 
 	if (functors.size() > 0)
 	{
-		logs::debug("removing functor duplicates");
+		teq::debug("removing functor duplicates");
 		std::sort(functors.begin(), functors.end(),
 			[&stat](teq::FuncptrT a, teq::FuncptrT b)
 			{
