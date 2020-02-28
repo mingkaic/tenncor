@@ -134,6 +134,10 @@ struct iArray : public iObject
 
 	virtual size_t size (void) const = 0;
 
+	virtual bool is_object (void) const = 0;
+
+	virtual bool is_integral (void) const = 0;
+
 	void accept (iMarshaler& marshaler) const override
 	{
 		marshaler.marshal(*this);
@@ -207,6 +211,16 @@ struct ObjArray final : public iArray
 		}
 	}
 
+	bool is_object (void) const override
+	{
+		return true;
+	}
+
+	bool is_integral (void) const override
+	{
+		return false;
+	}
+
 	std::vector<ObjptrT> contents_;
 
 private:
@@ -278,6 +292,16 @@ struct NumArray final : public iArray
 		{
 			consume(i, std::make_unique<Number<T>>(contents_[i]));
 		}
+	}
+
+	bool is_object (void) const override
+	{
+		return false;
+	}
+
+	bool is_integral (void) const override
+	{
+		return std::is_integral<T>::value;
 	}
 
 	std::vector<T> contents_;

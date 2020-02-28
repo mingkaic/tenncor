@@ -17,17 +17,12 @@ namespace teq
 /// Interface for defining required methods for derivation
 struct iDerivativeFuncs
 {
-	/// Let op be functor F with arguments args
-	/// Return derivative of F wrt args[arg_idx]
-	virtual TensptrT local_derivative (FuncptrT op, size_t arg_idx) const = 0;
-
-	/// Let op be functor F with arguments args, and
-	/// local_der is derivative of F wrt one of args (say x)
-	/// Let supcomp_grad be defined as dG/dF
+	/// Let op be functor F with arguments args,
+	/// X is the ith argument of F, and supgrad be defined as dG/dF
 	/// where G is some super-functor using F
 	/// Return derivative G wrt to arg x by applying chain rule
-	virtual TensptrT chain_rule (FuncptrT op, const TensptrT& local_der,
-		TensptrT supcomp_grad, size_t arg_idx) const = 0;
+	virtual TensptrT lderive (FuncptrT op,
+		TensptrT supgrad, size_t i) const = 0;
 
 	/// Return tensor representing 1 constant
 	virtual TensptrT get_const_one (Shape shape) const = 0;

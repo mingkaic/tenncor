@@ -514,7 +514,7 @@ TEST(STABILIZER, GroupConcat)
 	teq::Shape shape({2, 3, 4});
 	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a, a}, teq::Opcode{"", egen::GROUP_CONCAT});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, a, a}, teq::Opcode{"", egen::CONCAT});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -593,7 +593,7 @@ TEST(STABILIZER, GroupSum)
 	teq::Shape shape({2, 3, 4});
 	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a,a,a}, teq::Opcode{"", egen::GROUP_SUM});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a,a,a}, teq::Opcode{"", egen::ADD});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),
@@ -687,7 +687,7 @@ TEST(STABILIZER, GroupProd)
 	teq::Shape shape({2, 3, 4});
 	teq::TensptrT a(new MockLeaf(shape));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a,a,a}, teq::Opcode{"", egen::GROUP_PROD});
+	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a,a,a}, teq::Opcode{"", egen::MUL});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(3, 4),

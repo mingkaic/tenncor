@@ -5,9 +5,7 @@ import argparse
 
 import numpy as np
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-import layr.layr as layr
+import tenncor as tc
 
 prog_description = 'Demo lstm model'
 
@@ -46,7 +44,7 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        eteq.seed(args.seedval)
+        tc.seed(args.seedval)
         np.random.seed(args.seedval)
     else:
         np.random.seed(seed=0)
@@ -56,23 +54,23 @@ def main(args):
     x_dim = 50
     y_list = [-0.5, 0.2, 0.1, -0.5]
     input_val_arr = [np.random.random(x_dim) for _ in y_list]
-    sess = eteq.Session()
+    sess = tc.Session()
 
-    model = layr.lstm(x_dim, mem_cell_ct, len(y_list),
-        weight_init=layr.unif_xavier_init(1),
-        bias_init=layr.unif_xavier_init(1))
+    model = tc.layer.lstm(x_dim, mem_cell_ct, len(y_list),
+        weight_init=tc.unif_xavier_init(1),
+        bias_init=tc.unif_xavier_init(1))
     untrained_model = model.deep_clone()
     pretrained_model = model.deep_clone()
     try:
         print('loading ' + args.load)
-        pretrained_model = layr.load_layers_file(args.load)[0]
+        pretrained_model = tc.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    test_inputs = eteq.variable(np.array(input_val_arr), 'test_input')
-    test_outputs = eteq.variable(np.array(y_list), 'test_outputs')
+    test_inputs = tc.variable(np.array(input_val_arr), 'test_input')
+    test_outputs = tc.variable(np.array(y_list), 'test_outputs')
 
     untrained = tc.slice(untrained_model.connect(test_inputs), 0, 1, 0)
     hiddens = tc.slice(model.connect(test_inputs), 0, 1, 0)
@@ -81,20 +79,23 @@ def main(args):
     err = tc.reduce_sum(loss(tc.transpose(tc.slice(hiddens, 0, 1, 0)), test_outputs))
     sess.track([untrained, hiddens, pretrained, err])
 
-    trainer = layr.sgd_train(model, sess, test_inputs, test_outputs,
-        layr.get_sgd(learning_rate=0.1),
+    train_err = tc.sgd_train(model, test_inputs, test_outputs,
+        lambda assocs: tc.approx.sgd(assocs, learning_rate=0.1),
         err_func=lstm_loss)
-    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+    sess.track([train_err])
+
+    tc.optimize(sess, "cfg/optimizations.json")
 
     start = time.time()
     for cur_iter in range(args.n_train):
-        trainer()
+        sess.update_target([train_err])
 
         sess.update_target([hiddens, err])
         print("iter {}: y_pred = {}, loss: {}".format(
             cur_iter, hiddens.get().flatten(), err.get()))
 
     sess.update_target([untrained, hiddens, pretrained])
+    print("expecting = {}".format(np.array(y_list)))
     print("untrained_y_pred = {}".format(untrained.get().flatten()))
     print("trained_y_pred = {}".format(hiddens.get().flatten()))
     print("pretrained_y_pred = {}".format(pretrained.get().flatten()))
@@ -102,7 +103,7 @@ def main(args):
 
     try:
         print('saving')
-        if layr.save_layers_file(args.save, [model]):
+        if tc.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

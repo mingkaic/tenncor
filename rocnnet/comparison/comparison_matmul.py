@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
+import tenncor as tc
+import tenncor as eteq
 
 matrix_dims = [
     25,

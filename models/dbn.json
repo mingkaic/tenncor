@@ -117,23 +117,7 @@
          "name": "5",
          "opType": "ADD",
          "domain": "",
-         "attribute": [
-          {
-           "name": "commutative",
-           "refAttrName": "",
-           "docString": "",
-           "type": "STRING",
-           "f": 0,
-           "i": "0",
-           "s": "",
-           "floats": [],
-           "ints": [],
-           "strings": [],
-           "tensors": [],
-           "graphs": [],
-           "sparseTensors": []
-          }
-         ],
+         "attribute": [],
          "docString": ""
         }
        ],
@@ -345,21 +329,6 @@
       "tensors": [],
       "graphs": [],
       "sparseTensors": []
-     },
-     {
-      "name": "commutative",
-      "refAttrName": "",
-      "docString": "",
-      "type": "STRING",
-      "f": 0,
-      "i": "0",
-      "s": "",
-      "floats": [],
-      "ints": [],
-      "strings": [],
-      "tensors": [],
-      "graphs": [],
-      "sparseTensors": []
      }
     ],
     "docString": ""
@@ -486,23 +455,7 @@
          "name": "11",
          "opType": "ADD",
          "domain": "",
-         "attribute": [
-          {
-           "name": "commutative",
-           "refAttrName": "",
-           "docString": "",
-           "type": "STRING",
-           "f": 0,
-           "i": "0",
-           "s": "",
-           "floats": [],
-           "ints": [],
-           "strings": [],
-           "tensors": [],
-           "graphs": [],
-           "sparseTensors": []
-          }
-         ],
+         "attribute": [],
          "docString": ""
         }
        ],
@@ -705,21 +658,6 @@
       "tensors": [],
       "graphs": [],
       "sparseTensors": []
-     },
-     {
-      "name": "commutative",
-      "refAttrName": "",
-      "docString": "",
-      "type": "STRING",
-      "f": 0,
-      "i": "0",
-      "s": "",
-      "floats": [],
-      "ints": [],
-      "strings": [],
-      "tensors": [],
-      "graphs": [],
-      "sparseTensors": []
      }
     ],
     "docString": ""
@@ -846,23 +784,7 @@
          "name": "17",
          "opType": "ADD",
          "domain": "",
-         "attribute": [
-          {
-           "name": "commutative",
-           "refAttrName": "",
-           "docString": "",
-           "type": "STRING",
-           "f": 0,
-           "i": "0",
-           "s": "",
-           "floats": [],
-           "ints": [],
-           "strings": [],
-           "tensors": [],
-           "graphs": [],
-           "sparseTensors": []
-          }
-         ],
+         "attribute": [],
          "docString": ""
         }
        ],
@@ -1055,21 +977,6 @@
         }
        ]
       },
-      "floats": [],
-      "ints": [],
-      "strings": [],
-      "tensors": [],
-      "graphs": [],
-      "sparseTensors": []
-     },
-     {
-      "name": "commutative",
-      "refAttrName": "",
-      "docString": "",
-      "type": "STRING",
-      "f": 0,
-      "i": "0",
-      "s": "",
       "floats": [],
       "ints": [],
       "strings": [],
@@ -1275,23 +1182,7 @@
     "name": "25",
     "opType": "ADD",
     "domain": "",
-    "attribute": [
-     {
-      "name": "commutative",
-      "refAttrName": "",
-      "docString": "",
-      "type": "STRING",
-      "f": 0,
-      "i": "0",
-      "s": "",
-      "floats": [],
-      "ints": [],
-      "strings": [],
-      "tensors": [],
-      "graphs": [],
-      "sparseTensors": []
-     }
-    ],
+    "attribute": [],
     "docString": ""
    },
    {

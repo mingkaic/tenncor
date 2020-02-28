@@ -221,7 +221,7 @@ ELayersT<T> load_layers (const onnx::ModelProto& model)
 	auto roots = load_model(ids, model);
 	if (roots.empty())
 	{
-		logs::fatal("failed to load model without roots");
+		teq::fatal("failed to load model without roots");
 	}
 	std::unordered_map<std::string,teq::TensptrT> encodings;
 	for (auto idpair : ids.right)

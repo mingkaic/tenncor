@@ -2,6 +2,8 @@
 
 #include "teq/ifunctor.hpp"
 
+#include "teq/mock/leaf.hpp"
+
 #ifndef TEQ_MOCK_FUNCTOR_HPP
 #define TEQ_MOCK_FUNCTOR_HPP
 

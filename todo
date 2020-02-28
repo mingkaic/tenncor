@@ -6,7 +6,11 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - implement embedding
+   - save sessions
+   - implement reliable training harness
+      - periodically caching data
+      - save environment state + historic record
+      - recover environment state + model
    - upgrade layr to allow restructuring recurrent structure sequence length
    - fix gru demo to run optimally
    - improve grader/optimization rule according to rnn, lstm, gru
@@ -14,19 +18,19 @@ P5 = "get to it eventually"
       (outlined in https://arxiv.org/pdf/1412.5567.pdf)
       (or GRU veriants in https://arxiv.org/pdf/1901.03860.pdf)
 
->>>> aux project >>>>
+>>>> aux project >>>> (preferrable to ensure smooth completion of inprogress tasks)
    - train convolutional nn demo
+   - implement sparse embedding using eigen sparse matrix
    - select and integrate some other CUDA-supported LinAlgebra libraries
+   - make global context configurable through python
 
->>> bugs >>>
-   - eteq extension to change shape according to optimized attributes (replace opt with query)
+   - rework graph modeling (in opt) to allow faster replace and find
 
 === transparency/code readability ===
+   - refactor derivative to merge local_derivative AND chain_rule
 P2 - generate value-range graph to detect erroneous operators
       - for each node, generate "range" tensor (min, max) that identifies the expected min-max value of that node
       - this graph can help developers quickly identifies unstable nodes
-P2 - centralize global context structures
-P2 - create global context for setting local logger
 P2 - provide graph-setup time summary when failing to match shapes (re-use experimental/locator)
 P2 - implement debug option that locates nodes by some attr/parent-child relationship/etc.
 P3 - implement custom logger that displays location of nearest node on fatal errors
@@ -38,7 +42,7 @@ P4 - add even more debugging tools
 P4 - conform to some bazel style/convention (or change to another build tool)
 P4 - investigate adopting more of boost in place of cppkg
 P5 - refactor, and rename variables to improve readability
-P5 - formalize codestyle
+   - query-based opt: cleanup graph properly instead of keeping dangling leaves after every conversion call
 
 === feature ===
    - renable test for duplicate removal optimization filter
@@ -50,6 +54,7 @@ P4 - implement reduce_prod gradient using Eigen cumprod
       generalize tensor attribute to include control information
 
 === usage ===
+   - separate dbn and dqn setup and training
 P2 - demo A3C
    - implement models concerning visual and audio processing, and semantic data processing
    - separate supervised and unsupervised trainers (since they have different statefulness)

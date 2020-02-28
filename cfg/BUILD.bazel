@@ -16,5 +16,5 @@ filegroup(
 
 filegroup(
     name = "optimizations",
-    srcs = ["optimizations.rules"],
+    srcs = ["optimizations.json"],
 )

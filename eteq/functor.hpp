@@ -6,8 +6,6 @@
 /// Eigen functor implementation of operable func
 ///
 
-#include "eigen/packattr.hpp"
-
 #include "eteq/etens.hpp"
 #include "eteq/shaper.hpp"
 #include "eteq/observable.hpp"
@@ -23,7 +21,7 @@ outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
 
 /// Functor implementation of operable functor of Eigen operators
 template <typename T>
-struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
+struct Functor final : public Observable
 {
 	/// Return Functor given opcodes mapped to Eigen operators in operator.hpp
 	/// Return nullptr if functor is redundant
@@ -32,7 +30,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 	{
 		if (children.empty())
 		{
-			logs::fatalf("cannot perform `%s` without arguments",
+			teq::fatalf("cannot perform `%s` without arguments",
 				egen::name_op(opcode).c_str());
 		}
 
@@ -43,7 +41,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 		{
 			if (tcode != child->type_code())
 			{
-				logs::fatalf("incompatible tensor types %s and %s: "
+				teq::fatalf("incompatible tensor types %s and %s: "
 					"cross-type functors not supported yet",
 					egen::name_type(tcode).c_str(),
 					child->type_label().c_str());
@@ -61,7 +59,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 	{
 		for (teq::TensptrT child : children_)
 		{
-			if (auto f = dynamic_cast<Functor<T>*>(child.get()))
+			if (auto f = dynamic_cast<Observable*>(child.get()))
 			{
 				f->unsubscribe(this);
 			}
@@ -133,14 +131,14 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 	{
 		if (index >= children_.size())
 		{
-			logs::fatalf("cannot modify argument %d "
+			teq::fatalf("cannot modify argument %d "
 				"when there are only %d arguments",
 				index, children_.size());
 		}
 		if (arg != children_[index])
 		{
 			uninitialize();
-			if (auto f = dynamic_cast<Functor<T>*>(children_[index].get()))
+			if (auto f = dynamic_cast<Observable*>(children_[index].get()))
 			{
 				f->unsubscribe(this);
 			}
@@ -148,13 +146,13 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 			teq::Shape curshape = children_[index]->shape();
 			if (false == nexshape.compatible_after(curshape, 0))
 			{
-				logs::fatalf("cannot update child %d to argument with "
+				teq::fatalf("cannot update child %d to argument with "
 					"incompatible shape %s (requires shape %s)",
 					index, nexshape.to_string().c_str(),
 					curshape.to_string().c_str());
 			}
 			children_[index] = arg;
-			if (auto f = dynamic_cast<Functor<T>*>(arg.get()))
+			if (auto f = dynamic_cast<Observable*>(arg.get()))
 			{
 				f->subscribe(this);
 			}
@@ -166,7 +164,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 	{
 		if (false == has_data())
 		{
-			initialize();
+			must_initialize();
 		}
 		return *ref_;
 	}
@@ -176,7 +174,7 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 	{
 		if (false == has_data())
 		{
-			logs::fatal("cannot get device of uninitialized functor");
+			teq::fatal("cannot get device of uninitialized functor");
 		}
 		return *ref_;
 	}
@@ -199,29 +197,56 @@ struct Functor final : public teq::iFunctor, public Observable<Functor<T>*>
 		return sizeof(T) * shape_.n_elems();
 	}
 
-	bool has_data (void) const
+	/// Implementation of Observable
+	bool has_data (void) const override
 	{
 		return nullptr != ref_;
 	}
 
-	/// Removes internal Eigen data object
-	void uninitialize (void)
+	/// Implementation of Observable
+	void uninitialize (void) override
 	{
 		if (has_data())
 		{
+			ref_ = nullptr;
 			for (auto& parent : this->subs_)
 			{
 				parent->uninitialize();
 			}
-			ref_ = nullptr;
 		}
 	}
 
-	/// Populate internal Eigen data object
-	void initialize (void)
+	/// Implementation of Observable
+	bool initialize (void) override
 	{
-		egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-			ref_, shape_, children_, *this);
+		if (std::all_of(children_.begin(), children_.end(),
+			[](teq::TensptrT child)
+			{
+				if (auto f = dynamic_cast<Observable*>(child.get()))
+				{
+					return f->has_data();
+				}
+				return true;
+			}))
+		{
+			egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
+				ref_, shape_, children_, *this);
+		}
+		return has_data();
+	}
+
+	/// Implementation of Observable
+	void must_initialize (void) override
+	{
+		for (auto child : children_)
+		{
+			auto f = dynamic_cast<Observable*>(child.get());
+			if (nullptr != f && false == f->has_data())
+			{
+				f->must_initialize();
+			}
+		}
+		assert(initialize());
 	}
 
 private:
@@ -252,24 +277,13 @@ private:
 	{
 		for (teq::TensptrT child : children_)
 		{
-			if (auto f = dynamic_cast<Functor<T>*>(child.get()))
+			if (auto f = dynamic_cast<Observable*>(child.get()))
 			{
 				f->subscribe(this);
 			}
 		}
 #ifndef SKIP_INIT
-		if (std::all_of(children_.begin(), children_.end(),
-			[](teq::TensptrT child)
-			{
-				if (auto f = dynamic_cast<Functor<T>*>(child.get()))
-				{
-					return f->has_data();
-				}
-				return true;
-			}))
-		{
-			initialize();
-		}
+		initialize();
 #endif // SKIP_INIT
 	}
 

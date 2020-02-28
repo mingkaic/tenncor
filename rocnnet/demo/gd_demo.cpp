@@ -13,13 +13,13 @@
 #include "dbg/psess/plugin_sess.hpp"
 #include "dbg/psess/emit/emitter.hpp"
 
-#include "layr/api.hpp"
-#include "layr/trainer/sgd.hpp"
+#include "layr/layer.hpp"
+#include "trainer/sgd.hpp"
 
 static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
 	// Specify the engine and distribution.
-	std::mt19937 mersenne_engine(eigen::get_engine()());
+	std::mt19937 mersenne_engine(eigen::default_engine()());
 	std::uniform_real_distribution<float> dist(0, 1);
 
 	auto gen = std::bind(dist, mersenne_engine);
@@ -43,6 +43,9 @@ static teq::ShapedArr<PybindT> avgevry2 (teq::ShapedArr<PybindT>& in)
 int main (int argc, const char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
+	LOG_INIT(logs::DefLogger);
+	DEVICE_INIT(eigen::Device);
+	RANDOM_INIT;
 
 	bool seed;
 	size_t seedval;
@@ -81,7 +84,7 @@ int main (int argc, const char** argv)
 	if (seed)
 	{
 		std::cout << "seeding " << seedval << '\n';
-		eigen::get_engine().seed(seedval);
+		eigen::default_engine().seed(seedval);
 	}
 
 	uint8_t n_in = 10;
@@ -113,18 +116,18 @@ int main (int argc, const char** argv)
 			throw std::exception();
 		}
 		trained_model = eteq::load_layers<PybindT>(pb_model)[0];
-		logs::infof("model successfully loaded from file `%s`", loadpath.c_str());
+		teq::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
 	catch (...)
 	{
-		logs::warnf("model failed to loaded from file `%s`", loadpath.c_str());
+		teq::warnf("model failed to loaded from file `%s`", loadpath.c_str());
 	}
 
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
 	layr::ApproxF<PybindT> approx =
-		[](const layr::VarErrsT<PybindT>& leaves)
+		[](const layr::VarMapT<PybindT>& leaves)
 		{
 			return layr::sgd<PybindT>(leaves, 0.9); // learning rate = 0.9
 		};
@@ -145,9 +148,10 @@ int main (int argc, const char** argv)
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
-	auto train = trainer::sgd(model, sess,
+	auto train_err = trainer::sgd(model,
 		eteq::ETensor<PybindT>(train_input),
 		eteq::ETensor<PybindT>(train_output), approx);
+	sess.track({train_err});
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");
@@ -156,8 +160,7 @@ int main (int argc, const char** argv)
 	auto trained_out = trained_model.connect(eteq::ETensor<PybindT>(testin));
 	sess.track({untrained_out, out, trained_out});
 
-	auto rules = eteq::parse_file<PybindT>("cfg/optimizations.rules");
-	eteq::optimize<PybindT>(sess, rules);
+	eteq::optimize<PybindT>(sess, "cfg/optimizations.json");
 
 	// train mlp to output input
 	start = std::clock();
@@ -167,13 +170,15 @@ int main (int argc, const char** argv)
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
 		train_input->assign(batch);
 		train_output->assign(batch_out);
-		auto err = train();
+		sess.update_target({train_err.get()});
 		if (i % show_every_n == show_every_n - 1)
 		{
-			float ferr = std::accumulate(err.data_.begin(), err.data_.end(), 0.f);
+			PybindT* data = (PybindT*) train_err->device().data();
+			PybindT* data_end = data + train_err->shape().n_elems();
+			float ferr = std::accumulate(data, data_end, 0.f);
 			std::cout << "training " << i + 1 << '\n';
-			std::cout << "trained error: " << fmts::to_string(
-				err.data_.begin(), err.data_.end()) << "~" << ferr << '\n';
+			std::cout << "trained error: "
+				<< fmts::to_string(data, data_end) << "~" << ferr << '\n';
 		}
 	}
 	duration = (std::clock() - start) / (float) CLOCKS_PER_SEC;
@@ -186,9 +191,9 @@ int main (int argc, const char** argv)
 	float trained_err = 0;
 	float pretrained_err = 0;
 
-	float* untrained_res = (PybindT*) untrained_out->data();
-	float* trained_res = (PybindT*) out->data();
-	float* pretrained_res = (PybindT*) trained_out->data();
+	float* untrained_res = (PybindT*) untrained_out->device().data();
+	float* trained_res = (PybindT*) out->device().data();
+	float* pretrained_res = (PybindT*) trained_out->device().data();
 	for (size_t i = 0; i < n_test; i++)
 	{
 		if (i % show_every_n == show_every_n - 1)
@@ -230,13 +235,13 @@ int main (int argc, const char** argv)
 			eteq::save_layers<PybindT>(pb_model, {model});
 			if (pb_model.SerializeToOstream(&savestr))
 			{
-				logs::infof("successfully saved model to `%s`", savepath.c_str());
+				teq::infof("successfully saved model to `%s`", savepath.c_str());
 			}
 			savestr.close();
 		}
 		else
 		{
-			logs::warnf("failed to save model to `%s`", savepath.c_str());
+			teq::warnf("failed to save model to `%s`", savepath.c_str());
 		}
 	}
 

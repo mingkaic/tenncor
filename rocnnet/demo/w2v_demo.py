@@ -3,11 +3,12 @@
 import numpy as np
 from collections import defaultdict
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-import layr.layr as layr
+import tenncor as tc
+
+from rocnnet.extenncor.embed import make_embedding
 
 text = "natural language processing and machine learning is fun and exciting"
+np.random.seed(0)
 
 # Note the .lower() as upper and lowercase does not matter in our implementation
 # [['natural', 'language', 'processing', 'and', 'machine', 'learning', 'is', 'fun', 'and', 'exciting']]
@@ -69,33 +70,21 @@ training_data, word_index, index_word = generate_training_data(corpus)
 # Initialising weight matrices
 # Both s1 and s2 should be randomly initialised but for this demo, we pre-determine the arrays (getW1 and getW2)
 # getW1 - shape (9x10) and getW2 - shape (10x9)
-np.random.seed(0)
 
-def embedding_init(shape, label):
-    return eteq.variable(np.random.uniform(
-        -1, 1, tuple(shape.as_list())), label)
+w1, model = make_embedding(len(word_index), n)
 
-nword = len(word_index)
-embedding = layr.dense([nword], [n],
-    weight_init=embedding_init, bias_init=None)
-model = layr.link([
-    embedding,
-    layr.dense([n], [nword],
-        weight_init=embedding_init, bias_init=None),
-    layr.bind(tc.softmax),
-])
-w1 = embedding.get_storage()[0]
+sess = tc.Session()
 
-sess = eteq.Session()
-
-winput = eteq.variable(np.random.rand(len(word_index)) * 2 - 1, 'input')
-woutput = eteq.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'output')
+winput = tc.variable(np.random.rand(len(word_index)) * 2 - 1, 'input')
+woutput = tc.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'output')
 
 y_pred = model.connect(winput)
 sess.track([y_pred])
-train = layr.sgd_train(model, sess, winput, woutput, layr.get_sgd(lr),
+train_err = tc.sgd_train(model, winput, woutput, lambda assocs: tc.approx.sgd(assocs, lr),
     err_func=lambda ex, out: tc.reduce_sum(tc.pow(tc.extend(out, [1, 2 * window]) - ex, 2.)))
-# eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+sess.track([train_err])
+
+tc.optimize(sess, "cfg/optimizations.json")
 
 # Cycle through each epoch
 for i in range(epochs):
@@ -111,7 +100,8 @@ for i in range(epochs):
             wcdata = np.concatenate((wcdata, y_pred.get().reshape(1, len(word_index))), 0)
         winput.assign(np.array(w_t))
         woutput.assign(wcdata)
-        loss += train().as_numpy()
+        sess.update_target([train_err])
+        loss += train_err.get()
     print('Epoch:', i, "Loss:", loss)
 
 def word_vec(word):

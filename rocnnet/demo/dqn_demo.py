@@ -5,9 +5,7 @@ import argparse
 
 import numpy as np
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-import layr.layr as layr
+import tenncor as tc
 
 prog_description = 'Demo dqn trainer'
 
@@ -65,51 +63,50 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        eteq.seed(args.seedval)
+        tc.seed(args.seedval)
         np.random.seed(args.seedval)
 
     nobservations = 10
     nunits = 9
     nactions = 9
 
-    model = layr.link([
-        layr.dense([nobservations], [nunits],
-            weight_init=layr.unif_xavier_init(),
-            bias_init=layr.zero_init()),
-        layr.bind(tc.sigmoid),
-        layr.dense([nunits], [nactions],
-            weight_init=layr.unif_xavier_init(),
-            bias_init=layr.zero_init()),
-        layr.bind(tc.sigmoid),
+    model = tc.link([
+        tc.layer.dense([nobservations], [nunits],
+            weight_init=tc.unif_xavier_init(),
+            bias_init=tc.zero_init()),
+        tc.bind(tc.sigmoid),
+        tc.layer.dense([nunits], [nactions],
+            weight_init=tc.unif_xavier_init(),
+            bias_init=tc.zero_init()),
+        tc.bind(tc.sigmoid),
     ])
 
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = layr.load_layers_file(args.load)[0]
+        trained = tc.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    bgd = layr.get_rms_momentum(
-        learning_rate = 0.1,
-        discount_factor = 0.5)
-    param = layr.DQNInfo(
+    bgd = lambda assocs: tc.approx.rms_momentum(assocs,
+        learning_rate = 0.1, discount_factor = 0.5)
+    param = tc.DQNInfo(
         mini_batch_size = 1,
         store_interval = 1,
         discount_rate = 0.99,
         exploration_period = 0.0)
 
-    sess = eteq.Session()
+    sess = tc.Session()
 
-    untrained_dqn = layr.DQNTrainer(untrained, sess, bgd, param)
-    trained_dqn = layr.DQNTrainer(model, sess, bgd, param,
+    untrained_dqn = tc.DQNTrainer(untrained, sess, bgd, param)
+    trained_dqn = tc.DQNTrainer(model, sess, bgd, param,
         gradprocess = lambda x: tc.clip_by_l2norm(x, 5))
-    pretrained_dqn = layr.DQNTrainer(trained, sess, bgd, param)
+    pretrained_dqn = tc.DQNTrainer(trained, sess, bgd, param)
 
-    eteq.optimize(sess, eteq.parse_optrules("cfg/optimizations.rules"))
+    tc.optimize(sess, "cfg/optimizations.json")
 
     err_msg = None
     err_queue_size = 10
@@ -202,7 +199,7 @@ def main(args):
     if err_msg is None:
         try:
             print('saving')
-            if layr.save_layers_file(args.save, [model]):
+            if tc.save_layers_file(args.save, [model]):
                 print('successfully saved to {}'.format(args.save))
         except Exception as e:
             print(e)

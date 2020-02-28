@@ -1,11 +1,7 @@
 # licenses(["notice"])
 
-# load(
-#     "@com_github_stackb_rules_proto//cpp:cpp_proto_library.bzl",
-#     "cpp_proto_library"
-# )
-
-# load("//third_party/drake_rules:pybind.bzl", "pybind_library")
+# load("//third_party:tools/pybind.bzl", "pybind_py_library")
+# load("@rules_proto//proto:defs.bzl", "proto_library")
 
 # package(
 #     default_visibility = ["//visibility:public"],
@@ -40,7 +36,7 @@
 #     srcs = ["//ccur:protos"],
 # )
 
-# cpp_proto_library(
+# cc_proto_library(
 #     name = "weight_cc_proto",
 #     deps = ["//ccur:weight_proto"],
 # )
@@ -56,13 +52,14 @@
 #     ],
 # )
 
-# pybind_library(
+# pybind_py_library(
 #     name = "ccur_py",
 #     cc_srcs = ["//ccur:python/ccur.cpp"],
 #     cc_deps = [
 #         "//ccur:ccur",
 #     ],
-#     py_deps = ["//eteq:eteq_py"],
+#     py_deps = ["//:tenncor_py"],
+#     copts = ["-std=c++17"],
 #     visibility = ["//visibility:public"],
 # )
 

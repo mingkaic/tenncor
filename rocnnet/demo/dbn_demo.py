@@ -4,9 +4,7 @@ import argparse
 
 import numpy as np
 
-import eteq.tenncor as tc
-import eteq.eteq as eteq
-import layr.layr as layr
+import tenncor as tc
 
 prog_description = 'Demo dbn model'
 
@@ -43,7 +41,7 @@ def main(args):
 
     if args.seed:
         print('seeding {}'.format(args.seedval))
-        eteq.seed(args.seedval)
+        tc.seed(args.seedval)
         np.random.seed(args.seedval)
 
     x = np.array([
@@ -65,32 +63,32 @@ def main(args):
 
     # construct DBN
     rbms = [
-        layr.rbm(6, 3,
-            weight_init=layr.unif_xavier_init(),
-            bias_init=layr.zero_init()),
-        layr.rbm(3, 3,
-            weight_init=layr.unif_xavier_init(),
-            bias_init=layr.zero_init())
+        tc.layer.rbm(6, 3,
+            weight_init=tc.unif_xavier_init(),
+            bias_init=tc.zero_init()),
+        tc.layer.rbm(3, 3,
+            weight_init=tc.unif_xavier_init(),
+            bias_init=tc.zero_init())
     ]
-    dense = layr.dense([3], [2],
-        weight_init=layr.zero_init(),
-        bias_init=layr.zero_init())
+    dense = tc.layer.dense([3], [2],
+        weight_init=tc.zero_init(),
+        bias_init=tc.zero_init())
     softmax_dim = 0
 
-    rbm_interlace = zip([rbm.fwd() for rbm in rbms], len(rbms) * [layr.bind(tc.sigmoid)])
-    model = layr.link([e for inters in rbm_interlace for e in inters] +
-        [dense, layr.bind(lambda x: tc.softmax(x, softmax_dim, 1))])
+    rbm_interlace = zip([rbm.fwd() for rbm in rbms], len(rbms) * [tc.bind(tc.sigmoid)])
+    model = tc.link([e for inters in rbm_interlace for e in inters] +
+        [dense, tc.bind(lambda x: tc.softmax(x, softmax_dim, 1))])
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = layr.load_layers_file(args.load)[0]
+        trained = tc.load_layers_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    trainer = layr.DBNTrainer(rbms, dense, softmax_dim, x.shape[0],
+    trainer = tc.DBNTrainer(rbms, dense, softmax_dim, x.shape[0],
         pretrain_lr = 0.1, train_lr = 0.1, cdk = args.cdk)
 
     def pretrain_log(epoch, layer):
@@ -111,12 +109,15 @@ def main(args):
 
     # test
     x = np.array([1, 1, 0, 0, 0, 0])
-    sess = eteq.Session()
-    var = eteq.variable(x)
+    sess = tc.Session()
+    var = tc.variable(x)
     untrained_out = untrained.connect(var)
     out = model.connect(var)
     trained_out = trained.connect(var)
     sess.track([untrained_out, out, trained_out])
+
+    tc.optimize(sess, "cfg/optimizations.json")
+
     sess.update_target([untrained_out, out, trained_out])
     # since x is similar to first 3 rows of x, expect results simlar to first 3 rows of y [1, 0]
     print('untrained_out: ', untrained_out.get())
@@ -125,7 +126,7 @@ def main(args):
 
     try:
         print('saving')
-        if layr.save_layers_file(args.save, [model]):
+        if tc.save_layers_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

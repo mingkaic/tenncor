@@ -178,6 +178,10 @@ private:
 	iDevice* device_;
 };
 
+const std::string device_key = "device";
+
+#define DEVICE_INIT(DEVICE_TYPE)::config::global_config.add_entry<DEVICE_TYPE>(teq::device_key)
+
 }
 
 #endif // TEQ_ISESSION_HPP

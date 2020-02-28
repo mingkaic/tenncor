@@ -21,7 +21,7 @@ struct Emitter final : public dbg::iPlugin
 		ClientConfig client_cfg = ClientConfig()) :
 		client_(channel, client_cfg)
 	{
-		logs::infof("created session: %s", sess_id_.c_str());
+		teq::infof("created session: %s", sess_id_.c_str());
 	}
 
 	Emitter (std::string host,
@@ -113,7 +113,7 @@ struct Emitter final : public dbg::iPlugin
 					(egen::_GENERATED_DTYPE) leaf->type_code();
 				std::vector<float> data;
 				size_t nelems = leaf->shape().n_elems();
-				egen::type_convert(data, leaf->data(), dtype, nelems);
+				egen::type_convert(data, leaf->device().data(), dtype, nelems);
 
 				gemitter::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
@@ -133,7 +133,7 @@ struct Emitter final : public dbg::iPlugin
 				(egen::_GENERATED_DTYPE) func->type_code();
 			std::vector<float> data;
 			size_t nelems = func->shape().n_elems();
-			egen::type_convert(data, func->data(), dtype, nelems);
+			egen::type_convert(data, func->device().data(), dtype, nelems);
 
 			// create requests (bulk of the overhead)
 			gemitter::UpdateNodeDataRequest request;

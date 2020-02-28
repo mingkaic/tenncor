@@ -6,12 +6,12 @@
 /// Define functions for loading teq graph
 ///
 
+#ifndef ONNX_LOAD_HPP
+#define ONNX_LOAD_HPP
+
 #include "teq/traveler.hpp"
 
 #include "onnx/marshal.hpp"
-
-#ifndef ONNX_LOAD_HPP
-#define ONNX_LOAD_HPP
 
 namespace onnx
 {

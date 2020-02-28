@@ -1,11 +1,12 @@
+
+#ifndef ONNX_MARSHAL_HPP
+#define ONNX_MARSHAL_HPP
+
 #include <boost/bimap.hpp>
 
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
 #include "teq/objs.hpp"
-
-#ifndef ONNX_MARSHAL_HPP
-#define ONNX_MARSHAL_HPP
 
 #include "onnx/onnx.pb.h"
 

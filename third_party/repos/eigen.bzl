@@ -1,10 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 
-_BUILD_CONTENT = """load(
-    "@com_github_mingkaic_tenncor//third_party/drake_rules:install.bzl",
-    "install",
-)
-
+_BUILD_CONTENT = """
 licenses([
     "notice",  # BSD-3-Clause
     "reciprocal",  # MPL-2.0
@@ -33,15 +29,6 @@ cc_library(
     hdrs = [":srcs"],
     defines = ["EIGEN_MPL2_ONLY"],
     includes = ["."],
-)
-
-install(
-    name = "install",
-    targets = [":eigen"],
-    hdr_dest = "include/eigen3",
-    guess_hdrs = "PACKAGE",
-    docs = glob(["COPYING.*"]),
-    doc_dest = "share/doc/eigen3",
 )
 """
 

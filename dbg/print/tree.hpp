@@ -23,7 +23,7 @@ struct PrettyTree final
 {
 	/// Traverser and streamer methods define behavior for traversing through
 	/// and displaying elements of a generic structure
-	PrettyTree (std::function<std::vector<T>(T&)> traverser,
+	PrettyTree (std::function<std::vector<T>(T&,size_t)> traverser,
 		std::function<void(std::ostream&,T&)> to_stream) :
 		traverser_(traverser), to_stream_(to_stream) {}
 
@@ -32,25 +32,27 @@ struct PrettyTree final
 	/// each node with series of | and `-- branches and stream to out
 	void print (std::ostream& out, T root)
 	{
-		print_helper(out, root, "");
+		size_t depth = 0;
+		print_helper(out, root, "", depth);
 	}
 
 	/// Horizontal length of the branch, by default the branch looks like `--
 	size_t branch_length_ = 2;
 
 	/// Behavior of traversing through a structure
-	std::function<std::vector<T>(T&)> traverser_;
+	std::function<std::vector<T>(T&,size_t)> traverser_;
 
 	/// Behavior of displaying a node in the structure
 	std::function<void(std::ostream&,T&)> to_stream_;
 
 private:
-	void print_helper (std::ostream& out, T root, std::string prefix)
+	void print_helper (std::ostream& out, T root,
+		std::string prefix, size_t depth)
 	{
 		out << "(";
 		to_stream_(out, root);
 		out << ")\n";
-		std::vector<T> children = traverser_(root);
+		std::vector<T> children = traverser_(root, depth);
 		size_t nchildren = children.size();
 		if (nchildren > 0)
 		{
@@ -59,12 +61,12 @@ private:
 			for (size_t i = 0; i < nchildren - 1; ++i)
 			{
 				out << branch;
-				this->print_helper(out, children[i],
-					prefix + " |" + std::string(branch_length_, ' '));
+				this->print_helper(out, children[i], prefix + " |" +
+					std::string(branch_length_, ' '), depth + 1);
 			}
 			out << branch;
 			this->print_helper(out, children[nchildren - 1],
-				prefix + std::string(2 + branch_length_, ' '));
+				prefix + std::string(2 + branch_length_, ' '), depth + 1);
 		}
 	}
 };

@@ -81,3 +81,5 @@ html/
 !models/**/*.onnx
 !rocnnet/pretrained/*.onnx
 !rocnnet/notebooks/*.onnx
+
+./build/*

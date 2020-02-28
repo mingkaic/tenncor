@@ -12,18 +12,19 @@ struct ShapeParser final
 {
 	/// Return output shape if operator is not redundant
 	/// given specified attributes and input shapes
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		if (shapes.empty())
 		{
-			logs::fatal("cannot generated outshape without shapes");
+			teq::fatal("cannot generated outshape without shapes");
 		}
 		teq::Shape outshape = shapes.front();
 		for (size_t i = 1, n = shapes.size(); i < n; ++i)
 		{
 			if (false == shapes[i].compatible_after(outshape, 0))
 			{
-				logs::fatalf("cannot %s with incompatible shapes %s and %s",
+				teq::fatalf("cannot %s with incompatible shapes %s and %s",
 					egen::name_op(OPCODE).c_str(),
 					shapes[i].to_string().c_str(),
 					outshape.to_string().c_str());
@@ -37,7 +38,8 @@ struct ReducePacker
 {
 	virtual ~ReducePacker (void) = default;
 
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		std::set<teq::RankT> ranks;
 		eigen::Packer<std::set<teq::RankT>>().unpack(ranks, attrs);
@@ -78,7 +80,8 @@ struct ShapeParser<egen::REDUCE_MAX> final : private ReducePacker
 template <>
 struct ShapeParser<egen::ARGMAX> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		teq::RankT return_dim;
 		eigen::Packer<teq::RankT>().unpack(return_dim, attrs);
@@ -92,7 +95,8 @@ struct ShapeParser<egen::ARGMAX> final
 template <>
 struct ShapeParser<egen::SLICE> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		eigen::PairVecT<teq::DimT> extents;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, attrs);
@@ -114,7 +118,8 @@ struct ShapeParser<egen::SLICE> final
 template <>
 struct ShapeParser<egen::PAD> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		eigen::PairVecT<teq::DimT> paddings;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(paddings, attrs);
@@ -135,7 +140,8 @@ struct ShapeParser<egen::PAD> final
 template <>
 struct ShapeParser<egen::STRIDE> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		std::vector<teq::DimT> incrs;
 		eigen::Packer<std::vector<teq::DimT>>().unpack(incrs, attrs);
@@ -159,7 +165,8 @@ struct ShapeParser<egen::STRIDE> final
 template <>
 struct ShapeParser<egen::SCATTER> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
@@ -170,7 +177,8 @@ struct ShapeParser<egen::SCATTER> final
 template <>
 struct ShapeParser<egen::MATMUL> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		eigen::PairVecT<teq::RankT> ranks;
 		eigen::Packer<eigen::PairVecT<teq::RankT>>().unpack(ranks, attrs);
@@ -186,14 +194,14 @@ struct ShapeParser<egen::MATMUL> final
 		{
 			if (ashape.at(coms.first) != bshape.at(coms.second))
 			{
-				logs::fatalf("invalid shapes %s and %s do not match "
+				teq::fatalf("invalid shapes %s and %s do not match "
 					"common dimensions %s", ashape.to_string().c_str(),
 					bshape.to_string().c_str(),
 					eigen::to_string(ranks).c_str());
 			}
 			if (avisit[coms.first] || bvisit[coms.second])
 			{
-				logs::fatalf("contraction dimensions %s must be unique for "
+				teq::fatalf("contraction dimensions %s must be unique for "
 					"each side", eigen::to_string(ranks).c_str());
 			}
 			avisit[coms.first] = bvisit[coms.second] = true;
@@ -223,7 +231,8 @@ struct ShapeParser<egen::MATMUL> final
 template <>
 struct ShapeParser<egen::CONV> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		std::vector<teq::RankT> ranks;
 		eigen::Packer<std::vector<teq::RankT>>().unpack(ranks, attrs);
@@ -233,7 +242,7 @@ struct ShapeParser<egen::CONV> final
 		if (std::any_of(kernelshape.begin() + n, kernelshape.end(),
 			[](teq::DimT d) { return d > 1; }))
 		{
-			logs::fatalf("cannot have ambiguous ranks not specified in "
+			teq::fatalf("cannot have ambiguous ranks not specified in "
 				"kernelshape %s (ranks=%s)", kernelshape.to_string().c_str(),
 				fmts::to_string(ranks.begin(), ranks.end()).c_str());
 		}
@@ -252,7 +261,7 @@ struct ShapeParser<egen::CONV> final
 			{
 				if (kdim > sdim)
 				{
-					logs::fatalf("cannot convolve a kernel of shape %s against "
+					teq::fatalf("cannot convolve a kernel of shape %s against "
 						"smaller image of shape %s",
 						kernelshape.to_string().c_str(),
 						imgshape.to_string().c_str());
@@ -267,7 +276,8 @@ struct ShapeParser<egen::CONV> final
 template <>
 struct ShapeParser<egen::REVERSE> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		return shapes.front();
 	}
@@ -276,7 +286,8 @@ struct ShapeParser<egen::REVERSE> final
 template <>
 struct ShapeParser<egen::PERMUTE> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		std::vector<teq::RankT> order;
 		eigen::Packer<std::vector<teq::RankT>>().unpack(order, attrs);
@@ -287,7 +298,7 @@ struct ShapeParser<egen::PERMUTE> final
 		{
 			if (visited[order[i]])
 			{
-				logs::fatalf("permute does not support repeated orders "
+				teq::fatalf("permute does not support repeated orders "
 					"(order=%s)", fmts::to_string(
 						order.begin(), order.end()).c_str());
 			}
@@ -313,14 +324,15 @@ struct ShapeParser<egen::PERMUTE> final
 template <>
 struct ShapeParser<egen::EXTEND> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> bcast = eigen::unpack_extend(shape, attrs);
 		if (std::any_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 0 == d; }))
 		{
-			logs::fatalf("cannot extend using zero dimensions %s",
+			teq::fatalf("cannot extend using zero dimensions %s",
 				fmts::to_string(bcast.begin(), bcast.end()).c_str());
 		}
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
@@ -328,7 +340,7 @@ struct ShapeParser<egen::EXTEND> final
 		{
 			if (bcast.at(i) > 1 && shape.at(i) > 1)
 			{
-				logs::fatalf("cannot extend non-singular dimension %d of "
+				teq::fatalf("cannot extend non-singular dimension %d of "
 					"shape %s: bcast=%s", i, shape.to_string().c_str(),
 					fmts::to_string(bcast.begin(), bcast.end()).c_str());
 			}
@@ -341,11 +353,25 @@ struct ShapeParser<egen::EXTEND> final
 template <>
 struct ShapeParser<egen::CONCAT> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		teq::RankT axis;
 		eigen::Packer<teq::RankT>().unpack(axis, attrs);
-
+		if (shapes.size() > 2)
+		{
+			if (std::any_of(shapes.begin(), shapes.end(),
+				[axis](teq::Shape shape)
+				{ return shape.at(axis) != 1; }))
+			{
+				teq::fatal("cannot group concat shapes "
+					"with dimension that is not one");
+			}
+			teq::Shape initshape = shapes.front();
+			std::vector<teq::DimT> slist(initshape.begin(), initshape.end());
+			slist[axis] = shapes.size();
+			return teq::Shape(slist);
+		}
 		teq::Shape leftshape = shapes[0];
 		teq::Shape rightshape = shapes[1];
 		std::vector<teq::DimT> slist(leftshape.begin(), leftshape.end());
@@ -362,31 +388,10 @@ struct ShapeParser<egen::CONCAT> final
 };
 
 template <>
-struct ShapeParser<egen::GROUP_CONCAT> final
-{
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
-	{
-		teq::RankT axis;
-		eigen::Packer<teq::RankT>().unpack(axis, attrs);
-
-		if (std::any_of(shapes.begin(), shapes.end(),
-			[axis](teq::Shape shape)
-			{ return shape.at(axis) != 1; }))
-		{
-			logs::fatal("cannot group concat shapes "
-				"with dimension that is not one");
-		}
-		teq::Shape initshape = shapes.front();
-		std::vector<teq::DimT> slist(initshape.begin(), initshape.end());
-		slist[axis] = shapes.size();
-		return teq::Shape(slist);
-	}
-};
-
-template <>
 struct ShapeParser<egen::RESHAPE> final
 {
-	teq::Shape shape (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
 	{
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);

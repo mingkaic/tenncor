@@ -1,6 +1,6 @@
 #include <google/protobuf/util/json_util.h>
 
-#include "logs/logs.hpp"
+#include "teq/logs.hpp"
 
 #include "query/parse.hpp"
 
@@ -18,7 +18,7 @@ void json_parse (Node& condition, std::istream& json_in)
 		google::protobuf::util::JsonStringToMessage(
 			jstr, &condition, options))
 	{
-		logs::fatal("failed to parse json condition");
+		teq::fatal("failed to parse json condition");
 	}
 }
 

@@ -57,9 +57,9 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 			});
 		if (strs.size() > 0 && ints.size() > 0 && floats.size() > 0)
 		{
-			logs::fatal("onnx does not support hetero-typed arrays");
+			teq::fatal("onnx does not support hetero-typed arrays");
 		}
-		if (strs.size() > 0)
+		if (arr.is_object())
 		{
 			out_->set_type(AttributeProto::STRINGS);
 			for (auto str : strs)
@@ -67,7 +67,7 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 				out_->add_strings(str);
 			}
 		}
-		else if (ints.size() > 0)
+		if (arr.is_integral())
 		{
 			out_->set_type(AttributeProto::INTS);
 			for (auto num : ints)
@@ -77,7 +77,6 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 		}
 		else
 		{
-			// by default, assume to be float array
 			out_->set_type(AttributeProto::FLOATS);
 			for (auto num : floats)
 			{
@@ -88,7 +87,7 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 
 	void marshal (const marsh::Maps& mm) override
 	{
-		logs::fatal("onnx does not support map attributes");
+		teq::fatal("onnx does not support map attributes");
 	}
 
 	void marshal (const teq::TensorObj& tens) override
@@ -226,12 +225,12 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 				}
 				else
 				{
-					logs::warnf("unknown graph attribute %s",
+					teq::warnf("unknown graph attribute %s",
 						attr_name.c_str());
 				}
 				continue;
 			default:
-				logs::fatalf("unknown onnx attribute type of %s",
+				teq::fatalf("unknown onnx attribute type of %s",
 					attr_name.c_str());
 		}
 		out.add_attr(attr_name, marsh::ObjptrT(val));
@@ -247,7 +246,6 @@ teq::Shape unmarshal_shape (const TensorShapeProto& shape)
 	std::transform(dims.begin(), dims.end(), std::back_inserter(slist),
 		[](const TensorShapeProto::Dimension& dim)
 		{
-			assert(dim.has_dim_value());
 			return dim.dim_value();
 		});
 	return teq::Shape(slist);

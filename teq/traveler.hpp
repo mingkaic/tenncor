@@ -69,6 +69,7 @@ struct GraphStat final : public iTraveler
 		graphsize_.emplace(&leaf, estd::NumRange<size_t>());
 	}
 
+	/// Implementation of iTraveler
 	void visit (iFunctor& func) override
 	{
 		if (estd::has(graphsize_, &func))
@@ -84,7 +85,8 @@ struct GraphStat final : public iTraveler
 		for (TensptrT child : children)
 		{
 			child->accept(*this);
-			estd::NumRange<size_t> range = estd::must_getf(graphsize_, child.get(),
+			estd::NumRange<size_t> range =
+				estd::must_getf(graphsize_, child.get(),
 				"GraphStat failed to visit child `%s` of functor `%s`",
 					child->to_string().c_str(), func.to_string().c_str());
 			max_heights.push_back(range.upper_);
@@ -108,8 +110,44 @@ struct GraphStat final : public iTraveler
 			estd::NumRange<size_t>(min_height, max_height));
 	}
 
+	const estd::NumRange<size_t>& at (teq::iTensor* tens) const
+	{
+		return graphsize_.at(tens);
+	}
+
 	// Maximum depth of the subtree of mapped tensors
 	TensMapT<estd::NumRange<size_t>> graphsize_;
+};
+
+struct GraphIndex final : public iTraveler
+{
+	/// Implementation of iTraveler
+	void visit (iLeaf& leaf) override
+	{
+		indexes_.emplace(&leaf, indexes_.size());
+	}
+
+	/// Implementation of iTraveler
+	void visit (iFunctor& func) override
+	{
+		if (estd::has(indexes_, &func))
+		{
+			return;
+		}
+		auto children = func.get_children();
+		for (auto child : children)
+		{
+			child->accept(*this);
+		}
+		indexes_.emplace(&func, indexes_.size());
+	}
+
+	const size_t& at (teq::iTensor* tens) const
+	{
+		return indexes_.at(tens);
+	}
+
+	TensMapT<size_t> indexes_;
 };
 
 struct PathDirection
@@ -139,6 +177,11 @@ struct PathFinder final : public iOnceTraveler
 	{
 		iOnceTraveler::clear();
 		roadmap_.clear();
+	}
+
+	const PathNodeT& at (teq::iTensor* tens) const
+	{
+		return roadmap_.at(tens);
 	}
 
 	/// Map of parent to child indices that lead to target tensor
@@ -238,6 +281,11 @@ struct ParentFinder final : public iTraveler
 			parents_[tens.get()][&func].push_back(i);
 		}
 		parents_.emplace(&func, ParentMapT());
+	}
+
+	const ParentMapT& at (teq::iTensor* tens) const
+	{
+		return parents_.at(tens);
 	}
 
 	/// Tracks child to parents relationship

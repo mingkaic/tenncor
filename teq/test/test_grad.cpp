@@ -14,29 +14,28 @@
 
 struct MockDeriveFunc final : public teq::iDerivativeFuncs
 {
-	teq::TensptrT local_derivative (teq::FuncptrT op, size_t arg_idx) const override
+	teq::TensptrT lderive (teq::FuncptrT op,
+		teq::TensptrT supgrad, size_t arg_idx) const override
 	{
 		std::string label = op->to_string();
+		teq::TensptrT local_der;
 		if (label == "FUNC")
 		{
-			return op->get_children()[arg_idx];
+			local_der = op->get_children()[arg_idx];
 		}
 		else if (label == "FUNC2")
 		{
-			return std::make_shared<MockFunctor>(
+			local_der = std::make_shared<MockFunctor>(
 				teq::TensptrsT{op->get_children()[arg_idx]}, teq::Opcode{"FUNC4", 3});
 		}
-		return teq::TensptrT(new MockLeaf(op->shape(), "other"));
-	}
-
-	teq::TensptrT chain_rule (teq::FuncptrT op, const teq::TensptrT& local_der,
-		teq::TensptrT supcomp_grad, size_t arg_idx) const override
-	{
+		else
+		{
+			local_der = teq::TensptrT(new MockLeaf(op->shape(), "other"));
+		}
 		teq::TensptrT tens(new MockFunctor(
 			teq::TensptrsT{op,local_der}, teq::Opcode{"FUNC2", 1}));
-
 		return teq::TensptrT(new MockFunctor(
-			teq::TensptrsT{tens, supcomp_grad}, teq::Opcode{"FUNC3", 2}));
+			teq::TensptrsT{tens, supgrad}, teq::Opcode{"FUNC3", 2}));
 	}
 
 	teq::TensptrT get_const_one (teq::Shape shape) const override

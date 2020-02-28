@@ -1,5 +1,7 @@
 licenses(["notice"])
 
+load("//third_party:tools/pybind.bzl", "pybind_py_library")
+
 package(
     default_visibility = ["//visibility:public"],
 )
@@ -39,4 +41,61 @@ filegroup(
         "models/*.json",
         "models/data/*",
     ])
+)
+
+######### TOP-LEVEL LIBRARY #########
+
+GEN_CMD_FMT = """$(location //egen:egen) --plugins \
+plugins.apis:APIsPlugin \
+plugins.pyapis:PyAPIsPlugin \
+--out $(@D)/generated \
+--strip_prefix=$(@D) \
+--cfgs $(locations //cfg:{})"""
+
+GEN_HDRS = [
+    "generated/api.hpp",
+    "generated/pyapi.hpp",
+]
+
+genrule(
+    name = "generated_tenncor",
+    srcs = select({
+        "//conditions:default": ["//cfg:eteq_min"],
+        "//eigen:fast_build": ["//cfg:eteq_min"],
+        "//eigen:full_build": ["//cfg:eteq"]
+    }),
+    outs = GEN_HDRS + [
+        "generated/api.cpp",
+        "generated/pyapi_tenncor.cpp",
+    ],
+    tools = ["//egen:egen"],
+    cmd = select({
+        "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
+        "//eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
+        "//eigen:full_build": GEN_CMD_FMT.format("eteq"),
+    })
+)
+
+cc_library(
+    name = "tenncor",
+    hdrs = [":"+hdr for hdr in GEN_HDRS] + glob(["trainer/*.hpp"]),
+    srcs = [":generated/api.cpp"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//eteq:eteq",
+        "//layr:layr",
+    ],
+)
+
+pybind_py_library(
+    name = "tenncor_py",
+    cc_srcs = ["//:generated/pyapi_tenncor.cpp"] + glob([
+        "python/*.hpp",
+        "python/*.cpp",
+    ]),
+    cc_deps = [
+        "//:tenncor",
+        "//pyutils:pyutils",
+    ],
+    copts = ["-std=c++17"],
 )

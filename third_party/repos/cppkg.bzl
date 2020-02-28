@@ -4,5 +4,5 @@ def cppkg_repository():
     git_repository(
         name = "com_github_mingkaic_cppkg",
         remote = "https://github.com/mingkaic/cppkg",
-        commit = "b023d5a116ad7c58eea7c37c1187e1361dcb5e1a",
+        commit = "337195803a6ee60f60ee692acadab7c768585d45",
     )

@@ -76,6 +76,6 @@ This is the generator for EIGEN/ETEQ module. Generated files include:
 
 ## Building
 
-Tenncor uses bazel 0.28+.
+Tenncor uses bazel 0.28+. Building with bazel before 2.0 has duplicate symbols issues. Will investigate after C++ Module support
 
 Download bazel: https://docs.bazel.build/versions/master/install.html

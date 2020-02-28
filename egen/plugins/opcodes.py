@@ -26,6 +26,8 @@ _GENERATED_OPCODE get_op (std::string name);
 
 bool is_commutative (_GENERATED_OPCODE code);
 
+bool is_commutative (const std::string& name);
+
 template <typename T>
 void typed_exec (_GENERATED_OPCODE opcode, {params})
 {{
@@ -34,7 +36,7 @@ void typed_exec (_GENERATED_OPCODE opcode, {params})
     {{
         //>>> ops
         {ops}
-        default: logs::fatal("unknown opcode");
+        default: teq::fatal("unknown opcode");
     }}
 }}
 
@@ -48,7 +50,7 @@ void typed_exec (_GENERATED_OPCODE opcode, {params})
 switch (OPCODE)\\
 {{\\
     {cases}\\
-    default: logs::fatal("executing bad op");\\
+    default: teq::fatal("executing bad op");\\
 }}
 //>>> ^ cases
 
@@ -103,6 +105,15 @@ _GENERATED_OPCODE get_op (std::string name)
 bool is_commutative (_GENERATED_OPCODE code)
 {{
     return estd::has(commutatives, code);
+}}
+
+bool is_commutative (const std::string& name)
+{{
+    if (estd::has(name2code, name))
+    {{
+        return is_commutative(name2code.at(name));
+    }}
+    return false;
 }}
 
 }}

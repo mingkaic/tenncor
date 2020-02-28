@@ -1,7 +1,22 @@
+
 #include "gtest/gtest.h"
+
+#include "onnx/onnx.pb.h"
+
+#include "teq/logs.hpp"
+
+#include "eigen/device.hpp"
+#include "eigen/random.hpp"
 
 int main (int argc, char** argv)
 {
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+	LOG_INIT(logs::DefLogger);
+	DEVICE_INIT(eigen::Device);
+	RANDOM_INIT;
+
 	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
+	int ret = RUN_ALL_TESTS();
+	google::protobuf::ShutdownProtobufLibrary();
+	return ret;
 }
