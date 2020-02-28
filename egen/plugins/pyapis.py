@@ -116,7 +116,8 @@ def _parse_header_args(arg):
 
 def _parse_description(arg):
     if 'description' in arg:
-        description = ': {}'.format(arg['description'])
+        full_description = ' '.join(arg['description'].split('\n'))
+        description = ': {}'.format(full_description)
     else:
         description = ''
     outtype = 'teq::TensptrT'

@@ -64,13 +64,16 @@ def _nullcheck(args):
     return ' || '.join([varname + ' == nullptr' for varname in varnames])
 
 _decl_tmp = '''
-/// {comment}
+{comment}
 {template_prefix}{outtype} {funcname} ({args});
 '''
 def _decl_func(api):
     funcname = api['name']
     comment = api.get('description', funcname + ' ...')
     template = api.get('template', '')
+
+    comment_lines = comment.split('\n')
+    full_comment = '\n'.join(['/// ' + line for line in comment_lines])
 
     if template == '':
         template_prefix = ''
@@ -83,7 +86,7 @@ def _decl_func(api):
 
     declaration = _decl_tmp.format(
         template_prefix=template_prefix,
-        comment = comment,
+        comment = full_comment,
         outtype = outtype,
         funcname = funcname,
         args = ', '.join([
@@ -96,7 +99,7 @@ def _decl_func(api):
     if len(op) > 0:
         decl_operator = _decl_tmp.format(
             template_prefix=template_prefix,
-            comment = comment,
+            comment = full_comment,
             outtype = outtype,
             funcname = 'operator ' + op,
             args = ', '.join([

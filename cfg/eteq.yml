@@ -685,7 +685,7 @@ api:
         out:
           type: eteq::ETensor<T>
           val: return eteq::make_functor<T>(::egen::RESHAPE,teq::TensptrsT{arg},shape);
-      - description: sum values for dimensions specified
+      - description: Return sum of values along dimensions specified
         template: typename T
         name: reduce_sum
         args:
@@ -696,7 +696,7 @@ api:
         out:
           type: eteq::ETensor<T>
           val: return eteq::make_functor<T>(::egen::REDUCE_SUM,teq::TensptrsT{tens},dims);
-      - description: multiply values for dimensions specified
+      - description: Return product of values along dimensions specified
         template: typename T
         name: reduce_prod
         args:
@@ -707,7 +707,7 @@ api:
         out:
           type: eteq::ETensor<T>
           val: return eteq::make_functor<T>(::egen::REDUCE_PROD,teq::TensptrsT{tens},dims);
-      - description: get min values of dimensions specified
+      - description: Return min of values along dimensions specified
         template: typename T
         name: reduce_min
         args:
@@ -718,7 +718,7 @@ api:
         out:
           type: eteq::ETensor<T>
           val: return eteq::make_functor<T>(::egen::REDUCE_MIN,teq::TensptrsT{tens},dims);
-      - description: get max values for dimensions specified
+      - description: Return max of values along dimensions specified
         template: typename T
         name: reduce_max
         args:
@@ -729,7 +729,7 @@ api:
         out:
           type: eteq::ETensor<T>
           val: return eteq::make_functor<T>(::egen::REDUCE_MAX,teq::TensptrsT{tens},dims);
-      - description: sum values for ndims dimensions after offset
+      - description: Return sum of values for ndims dimensions after offset
         template: typename T
         name: reduce_sum
         args:
@@ -755,7 +755,7 @@ api:
                   std::iota(dims.begin(), dims.end(), offset);
                   return eteq::make_functor<T>(::egen::REDUCE_SUM,teq::TensptrsT{tens},
                       std::set<teq::RankT>(dims.begin(), dims.end()));
-      - description: multiply values for ndims dimensions after offset
+      - description: Return product of values for ndims dimensions after offset
         template: typename T
         name: reduce_prod
         args:
@@ -781,7 +781,7 @@ api:
                   std::iota(dims.begin(), dims.end(), offset);
                   return eteq::make_functor<T>(::egen::REDUCE_PROD,teq::TensptrsT{tens},
                       std::set<teq::RankT>(dims.begin(), dims.end()));
-      - description: min values for ndims dimensions after offset
+      - description: Return min of values for ndims dimensions after offset
         template: typename T
         name: reduce_min
         args:
@@ -807,7 +807,7 @@ api:
                   std::iota(dims.begin(), dims.end(), offset);
                   return eteq::make_functor<T>(::egen::REDUCE_MIN,teq::TensptrsT{tens},
                       std::set<teq::RankT>(dims.begin(), dims.end()));
-      - description: max values for ndims dimensions after offset
+      - description: Return max of values for ndims dimensions after offset
         template: typename T
         name: reduce_max
         args:
@@ -1313,6 +1313,19 @@ api:
                   return out;
       - template: typename T
         name: conv2d
+        description: |
+                    Given image of shape [in, iwidth, iheight, batch]
+                    and kernel of shape [out, in, kwidth, kheight]
+                    Return output of shape [
+                      out,
+                      image.width-kernel.width+1+2*zero_padding.first,
+                      image.height-kernel.height+1+2*zero_padding.second,
+                      batch,
+                    ]
+                    Where image is zero-padded along the width, and height dimensions according to zero_padding argument (
+                    of the form {size of width-pad, size of height-pad}) then convolved with kernel split along the out dimension
+                    for each slice along image's batch dimension
+                    This whole process is similar to tensorflow's conv2d (https://www.tensorflow.org/api_docs/python/tf/nn/conv2d)
         args:
         - dtype: const eteq::ETensor<T>&
           name: image
@@ -1329,16 +1342,6 @@ api:
           type: eteq::ETensor<T>
           val: |
               //
-                  // image must be in form [in, iwidth, iheight, batch]
-                  // kernel must be in form [out, in, kwidth, kheight]
-                  // expect output shape of [
-                  //    out,
-                  //    image.width-kernel.width+1+2*zero_padding.first,
-                  //    image.height-kernel.height+1+2*zero_padding.second,
-                  //    batch,
-                  // ]
-                  // zero_padding apply symmetrical padding for dimensions 1 and 2 to image before convolution
-                  // see https://www.tensorflow.org/api_docs/python/tf/nn/conv2d
                   eteq::ETensor<T> cimage = image;
                   if (zero_padding.first > 0 || zero_padding.second > 0)
                   {
@@ -1874,6 +1877,16 @@ api:
     tenncor::approx:
       - template: typename T
         name: sgd
+        description: |
+                    Return all batches of variable assignments of
+                    stochastic gradient descent error approximation applied to
+                    particular variables-error associations
+
+                    Stochastic Gradient Descent Approximation
+                    for each (x, err) in leaves
+                    x_next ~ x_curr - eta * err,
+
+                    where eta is the learning rate
         args:
         - dtype: const layr::VarMapT<T>&
           name: assocs
@@ -1884,15 +1897,6 @@ api:
           type: layr::VarMapT<T>
           val: |
               //
-                  /// Return all batches of variable assignments of
-                  /// stochastic gradient descent error approximation applied to
-                  /// particular variables-error associations
-                  ///
-                  /// Stochastic Gradient Descent Approximation
-                  /// for each (x, err) in leaves
-                  /// x_next ~ x_curr - eta * err,
-                  ///
-                  /// where eta is the learning rate
                   layr::VarMapT<T> out;
                   for (const auto& assoc : assocs)
                   {
@@ -1932,6 +1936,19 @@ api:
                   return out;
       - template: typename T
         name: rms_momentum
+        description: |
+                    Return all batches of variable assignments of
+                    momentum-based rms error approximation applied to
+                    particular variables-error associations
+
+                    Momentum-based Root Mean Square Approximation
+                    for each (x, err) in leaves
+                    momentum_next ~ chi * momentum_cur + (1 - chi) * err ^ 2
+                    x_next ~ x_curr - (eta * err) / (sqrt(eps + momentum_next))
+
+                    where eta is the learning rate, eps is epsilon,
+                    and chi is discount_factor
+                    initial momentum is 1
         args:
         - dtype: const layr::VarMapT<T>&
           name: assocs
@@ -1948,18 +1965,6 @@ api:
           type: layr::VarMapT<T>
           val: |
               //
-                  /// Return all batches of variable assignments of
-                  /// momentum-based rms error approximation applied to
-                  /// particular variables-error associations
-                  ///
-                  /// Momentum-based Root Mean Square Approximation
-                  /// for each (x, err) in leaves
-                  /// momentum_next ~ chi * momentum_cur + (1 - chi) * err ^ 2
-                  /// x_next ~ x_curr - (eta * err) / (sqrt(eps + momentum_next))
-                  ///
-                  /// where eta is the learning rate, eps is epsilon,
-                  /// and chi is discount_factor
-                  /// initial momentum is 1
                   layr::VarMapT<T> out;
                   for (const auto& assoc : assocs)
                   {
