@@ -99,7 +99,7 @@ private:
 
 struct LayerObj final : public TensorRef
 {
-	LayerObj (std::string opname, TensptrT input) :
+	LayerObj (const std::string& opname, TensptrT input) :
 		opname_(opname), input_(input)
 	{
 		if (nullptr == input)

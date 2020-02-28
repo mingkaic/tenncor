@@ -10,7 +10,7 @@ struct String final : public iObject
 {
 	String (void) = default;
 
-	String (std::string val) : val_(val) {}
+	String (const std::string& val) : val_(val) {}
 
 	String* clone (void) const
 	{
@@ -331,7 +331,7 @@ struct Maps final : public iObject, public iAttributed
 		auto ks = ls_attrs();
 		std::sort(ks.begin(), ks.end());
 		std::vector<std::pair<std::string,std::string>> pairs;
-		for (std::string key : ks)
+		for (const std::string& key : ks)
 		{
 			pairs.push_back({key, contents_.at(key)->to_string()});
 		}
@@ -365,7 +365,7 @@ struct Maps final : public iObject, public iAttributed
 		marshaler.marshal(*this);
 	}
 
-	const iObject* get_attr (std::string attr_key) const override
+	const iObject* get_attr (const std::string& attr_key) const override
 	{
 		return estd::has(contents_, attr_key) ?
 			contents_.at(attr_key).get() : nullptr;
@@ -383,12 +383,12 @@ struct Maps final : public iObject, public iAttributed
 		return out;
 	}
 
-	void add_attr (std::string attr_key, ObjptrT&& attr_val) override
+	void add_attr (const std::string& attr_key, ObjptrT&& attr_val) override
 	{
 		contents_.emplace(attr_key, std::move(attr_val));
 	}
 
-	void rm_attr (std::string attr_key) override
+	void rm_attr (const std::string& attr_key) override
 	{
 		contents_.erase(attr_key);
 	}

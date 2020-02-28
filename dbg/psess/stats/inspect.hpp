@@ -9,7 +9,7 @@ namespace stats
 {
 
 template <typename T>
-void inspect_helper (T* data, teq::Shape shape, std::string label)
+void inspect_helper (T* data, teq::Shape shape, const std::string& label)
 {
 	if (nullptr == data)
 	{

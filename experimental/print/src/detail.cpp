@@ -36,7 +36,7 @@ std::string detail_str (teq::iTensor* tens, int64_t attrdepth)
 	if (auto f = dynamic_cast<teq::iFunctor*>(tens))
 	{
 		std::vector<std::string> attrstrs = f->ls_attrs();
-		for (std::string& attrstr : attrstrs)
+		for (const std::string& attrstr : attrstrs)
 		{
 			attrstr += ":" + detail_str(f->get_attr(attrstr), attrdepth);
 		}

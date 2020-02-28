@@ -14,6 +14,7 @@
 
 #include "generated/api.hpp"
 
+
 TEST(LAYER, Dense)
 {
 	teq::DimT ninput = 6, noutput = 5, ninput2 = 7;

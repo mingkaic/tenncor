@@ -28,9 +28,9 @@ struct iTargetFactory
 	virtual TargptrT make_scalar (double scalar,
 		std::string sshape) const = 0;
 
-	virtual TargptrT make_symbol (std::string symbol) const = 0;
+	virtual TargptrT make_symbol (const std::string& symbol) const = 0;
 
-	virtual TargptrT make_functor (std::string opname,
+	virtual TargptrT make_functor (const std::string& opname,
 		const google::protobuf::Map<std::string,query::Attribute>& attrs,
 		const TargptrsT& args) const = 0;
 };

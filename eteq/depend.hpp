@@ -60,16 +60,16 @@ struct Depends final : public Observable
 	}
 
 	/// Implementation of iAttributed
-	const marsh::iObject* get_attr (std::string attr_name) const override
+	const marsh::iObject* get_attr (const std::string& attr_name) const override
 	{
 		return nullptr;
 	}
 
 	/// Implementation of iAttributed
-	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override {}
+	void add_attr (const std::string& attr_key, marsh::ObjptrT&& attr_val) override {}
 
 	/// Implementation of iAttributed
-	void rm_attr (std::string attr_key) override {}
+	void rm_attr (const std::string& attr_key) override {}
 
 	/// Implementation of iFunctor
 	teq::Opcode get_opcode (void) const override

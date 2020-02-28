@@ -22,7 +22,7 @@ enum _GENERATED_OPCODE
 
 std::string name_op (_GENERATED_OPCODE code);
 
-_GENERATED_OPCODE get_op (std::string name);
+_GENERATED_OPCODE get_op (const std::string& name);
 
 bool is_commutative (_GENERATED_OPCODE code);
 
@@ -97,7 +97,7 @@ std::string name_op (_GENERATED_OPCODE code)
     return estd::try_get(code2name, code, "BAD_OP");
 }}
 
-_GENERATED_OPCODE get_op (std::string name)
+_GENERATED_OPCODE get_op (const std::string& name)
 {{
     return estd::try_get(name2code, name, BAD_OP);
 }}

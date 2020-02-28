@@ -89,12 +89,12 @@ struct TargetFactory final : public opt::iTargetFactory
 		return std::make_shared<ScalarTarget<T>>(scalar, sshape);
 	}
 
-	opt::TargptrT make_symbol (std::string symbol) const override
+	opt::TargptrT make_symbol (const std::string& symbol) const override
 	{
 		return std::make_shared<SymbolTarget<T>>(symbol, *ginfo_);
 	}
 
-	opt::TargptrT make_functor (std::string opname,
+	opt::TargptrT make_functor (const std::string& opname,
 		const google::protobuf::Map<std::string,query::Attribute>& attrs,
 		const opt::TargptrsT& args) const override
 	{

@@ -37,14 +37,14 @@ struct MockTargetFactory final : public opt::iTargetFactory
 			tfactory_delim + fmts::to_string(index_++)));
 	}
 
-	opt::TargptrT make_symbol (std::string symbol) const override
+	opt::TargptrT make_symbol (const std::string& symbol) const override
 	{
 		return std::make_shared<MockTarget>(
 			std::make_shared<MockLeaf>(teq::Shape(),
 			symbol + tfactory_delim + fmts::to_string(index_++)));
 	}
 
-	opt::TargptrT make_functor (std::string opname,
+	opt::TargptrT make_functor (const std::string& opname,
 		const google::protobuf::Map<std::string,query::Attribute>& attrs,
 		const opt::TargptrsT& args) const override
 	{

@@ -178,7 +178,7 @@ struct GraphEmitterClient final
 		}, std::move(requests), std::move(update_it));
 	}
 
-	void delete_model (std::string sess_id)
+	void delete_model (const std::string& sess_id)
 	{
 		gemitter::DeleteModelRequest request;
 		request.set_model_id(sess_id);

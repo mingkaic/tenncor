@@ -114,7 +114,7 @@ void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib,
 	const teq::CTensMapT<std::string>& tensid)
 {
 	std::vector<std::string> attr_keys = attrib.ls_attrs();
-	for (std::string attr_key : attr_keys)
+	for (const std::string& attr_key : attr_keys)
 	{
 		if (attr_key == teq::layer_key)
 		{
@@ -180,7 +180,7 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 				auto strs = new marsh::ObjArray();
 				val = strs;
 				auto& content = strs->contents_;
-				for (std::string e : pb_values)
+				for (const std::string& e : pb_values)
 				{
 					content.emplace(content.end(),
 						std::make_unique<marsh::String>(e));

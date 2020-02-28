@@ -211,7 +211,7 @@ void layr_ext(py::module& m)
 
 		// ==== serialization ====
 		.def("load_layers_file",
-			[](std::string filename)
+			[](const std::string& filename)
 			{
 				std::ifstream input(filename);
 				if (false == input.is_open())
@@ -229,7 +229,7 @@ void layr_ext(py::module& m)
 				return layers;
 			})
 		.def("save_layers_file",
-			[](std::string filename, const eteq::ELayersT<PybindT>& models)
+			[](const std::string& filename, const eteq::ELayersT<PybindT>& models)
 			{
 				std::ofstream output(filename);
 				if (false == output.is_open())
@@ -246,7 +246,7 @@ void layr_ext(py::module& m)
 				//
 			})
 		.def("save_session_file",
-			[](std::string filename, const teq::iSession& sess)
+			[](const std::string& filename, const teq::iSession& sess)
 			{
 				//
 			});

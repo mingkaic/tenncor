@@ -114,7 +114,7 @@ ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
 }
 
 template <typename T>
-ETensor<T> make_layer (std::string layername,
+ETensor<T> make_layer (const std::string& layername,
 	teq::TensptrT input, teq::FuncptrT output)
 {
 	output->add_attr(teq::layer_key,

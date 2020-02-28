@@ -24,7 +24,7 @@ std::string name_type (_GENERATED_DTYPE type);
 
 uint8_t type_size (_GENERATED_DTYPE type);
 
-_GENERATED_DTYPE get_type (std::string name);
+_GENERATED_DTYPE get_type (const std::string& name);
 
 template <typename T>
 _GENERATED_DTYPE get_type (void)
@@ -108,7 +108,7 @@ std::string name_type (_GENERATED_DTYPE type)
     return estd::try_get(type2name, type, "BAD_DTYPE");
 }}
 
-_GENERATED_DTYPE get_type (std::string name)
+_GENERATED_DTYPE get_type (const std::string& name)
 {{
     return estd::try_get(name2type, name, BAD_TYPE);
 }}
