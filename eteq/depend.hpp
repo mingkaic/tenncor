@@ -131,15 +131,6 @@ struct Depends final : public Observable
 		if (arg != cur)
 		{
 			uninitialize();
-			teq::Shape nexshape = arg->shape();
-			teq::Shape curshape = cur->shape();
-			if (false == nexshape.compatible_after(curshape, 0))
-			{
-				teq::fatalf("cannot update child %d to argument with "
-					"incompatible shape %s (requires shape %s)",
-					index, nexshape.to_string().c_str(),
-					curshape.to_string().c_str());
-			}
 			if (auto f = dynamic_cast<Observable*>(cur.get()))
 			{
 				f->unsubscribe(this);

@@ -20,7 +20,8 @@ function bzl_coverage() {
     then
 		COV_FILE="$COV_DIR/coverage.info";
 	fi
-	lcov --remove bazel-out/_coverage/_coverage_report.dat '**/*.pb.h' '**/*.pb.cc' '**/utils/*' '**/perf/*' -o "$COV_FILE";
+	lcov --remove bazel-out/_coverage/_coverage_report.dat
+		'**/*.pb.h' '**/*.pb.cc' 'dbg/*' 'dbg/**/*' 'utils/*' 'utils/**/*' 'perf/*' 'perf/**/*' -o "$COV_FILE";
 }
 
 # uploads coverage file specified by the first argument to coveralls

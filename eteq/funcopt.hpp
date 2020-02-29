@@ -102,7 +102,7 @@ struct FuncOpt<egen::ARGMAX> final
 		teq::RankT return_dim;
 		eigen::Packer<teq::RankT>().unpack(return_dim, attrs);
 		teq::Shape shape = shapes.front();
-		bool redundant = shape.at(return_dim) == 1;
+		bool redundant = return_dim < teq::rank_cap && shape.at(return_dim) == 1;
 		if (redundant)
 		{
 			teq::debugf("argreducing with no significant dimensions... "

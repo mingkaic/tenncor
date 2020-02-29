@@ -39,19 +39,19 @@ This module marshals any TEQ graph, but requires data serialization functors whe
 
 This module defines marshable objects used as attribute values
 
-## Supplemental Components
-
-### [OPT (OPTimizer)](opt/README_OPT.md)
-
-This module specifies graph optimization through TEQ's visitor pattern.
-
 ### [QUERY](query/README_QUERY.md)
 
 This module looks up TEQ subgraphs according to structural pattern, attributes, variable shapes or labels
 
+### [OPT (OPTimizer)](opt/README_OPT.md)
+
+This module specifies graph optimization through TEQ subgraph Query.
+
 ### [LAYR (LAYeR models)](layr/README_LAYR.md)
 
-This module implements common machine learning models
+This module contains utility functions for common machine learning api
+
+## Supplemental Components
 
 ### [DBG (Debug)](dbg/README_DBG.md)
 

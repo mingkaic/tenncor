@@ -1276,6 +1276,32 @@ TEST(API, NDims)
 }
 
 
+TEST(API, Argmax)
+{
+	teq::Shape shape({2, 3, 4});
+	std::vector<double> data = {
+		22, 15, 74, 38, 61, 95, 62, 81, 99, 76, 7, 22,
+		56, 50, 19, 13, 12, 10, 31, 40, 60, 54, 6, 83
+	};
+
+	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> dest = tenncor::argmax(src);
+
+	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
+	{
+		eigen::default_device().calc(dtens->device());
+		eigen::default_device().calc(dtens->device()); // idempotency check
+	}
+	teq::Shape oshape = dest->shape();
+	teq::Shape exshape;
+	EXPECT_ARREQ(exshape, oshape);
+	double* ptr = (double*) dest->device().data();
+	EXPECT_EQ(8, *ptr);
+
+	EXPECT_FATAL(eteq::derive(dest, src), "cannot derive ARGMAX");
+}
+
+
 TEST(API, Rsum)
 {
 	unary_generic(

@@ -6,6 +6,8 @@
 namespace eteq
 {
 
+const std::string noinshape_err = "cannot generated shape without input shape(s)";
+
 // todo: move these to eigen and auto-generate
 template <egen::_GENERATED_OPCODE OPCODE>
 struct ShapeParser final
@@ -17,7 +19,7 @@ struct ShapeParser final
 	{
 		if (shapes.empty())
 		{
-			teq::fatal("cannot generated outshape without shapes");
+			teq::fatal(noinshape_err);
 		}
 		teq::Shape outshape = shapes.front();
 		for (size_t i = 1, n = shapes.size(); i < n; ++i)
@@ -41,6 +43,10 @@ struct ReducePacker
 	teq::Shape shape (const marsh::iAttributed& attrs,
 		const teq::ShapesT& shapes) const
 	{
+		if (shapes.empty())
+		{
+			teq::fatal(noinshape_err);
+		}
 		std::set<teq::RankT> ranks;
 		eigen::Packer<std::set<teq::RankT>>().unpack(ranks, attrs);
 		teq::Shape shape = shapes.front();
@@ -83,8 +89,16 @@ struct ShapeParser<egen::ARGMAX> final
 	teq::Shape shape (const marsh::iAttributed& attrs,
 		const teq::ShapesT& shapes) const
 	{
+		if (shapes.empty())
+		{
+			teq::fatal(noinshape_err);
+		}
 		teq::RankT return_dim;
 		eigen::Packer<teq::RankT>().unpack(return_dim, attrs);
+		if (return_dim >= teq::rank_cap)
+		{
+			return teq::Shape();
+		}
 		teq::Shape shape = shapes.front();
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
 		slist[return_dim] = 1;
@@ -98,6 +112,10 @@ struct ShapeParser<egen::SLICE> final
 	teq::Shape shape (const marsh::iAttributed& attrs,
 		const teq::ShapesT& shapes) const
 	{
+		if (shapes.empty())
+		{
+			teq::fatal(noinshape_err);
+		}
 		eigen::PairVecT<teq::DimT> extents;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, attrs);
 		teq::Shape shape = shapes.front();
@@ -121,6 +139,10 @@ struct ShapeParser<egen::PAD> final
 	teq::Shape shape (const marsh::iAttributed& attrs,
 		const teq::ShapesT& shapes) const
 	{
+		if (shapes.empty())
+		{
+			teq::fatal(noinshape_err);
+		}
 		eigen::PairVecT<teq::DimT> paddings;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(paddings, attrs);
 		teq::Shape shape = shapes.front();
@@ -143,6 +165,10 @@ struct ShapeParser<egen::STRIDE> final
 	teq::Shape shape (const marsh::iAttributed& attrs,
 		const teq::ShapesT& shapes) const
 	{
+		if (shapes.empty())
+		{
+			teq::fatal(noinshape_err);
+		}
 		std::vector<teq::DimT> incrs;
 		eigen::Packer<std::vector<teq::DimT>>().unpack(incrs, attrs);
 
@@ -162,16 +188,44 @@ struct ShapeParser<egen::STRIDE> final
 	}
 };
 
-template <>
-struct ShapeParser<egen::SCATTER> final
+template <egen::_GENERATED_OPCODE OPCODE>
+struct ReshapePacker
 {
+	virtual ~ReshapePacker (void) = default;
+
 	teq::Shape shape (const marsh::iAttributed& attrs,
 		const teq::ShapesT& shapes) const
 	{
+		if (shapes.empty())
+		{
+			teq::fatal(noinshape_err);
+		}
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
+		if (shapes.front().n_elems() != outshape.n_elems())
+		{
+			teq::fatalf("cannot %s with shapes of different sizes "
+				"%d (shape %s) and %d (shape %s)",
+				egen::name_op(OPCODE).c_str(),
+				shapes.front().n_elems(),
+				shapes.front().to_string().c_str(),
+				outshape.n_elems(),
+				outshape.to_string().c_str());
+		}
 		return outshape;
 	}
+};
+
+template <>
+struct ShapeParser<egen::SCATTER> final : private ReshapePacker<egen::SCATTER>
+{
+	using ReshapePacker<egen::SCATTER>::shape;
+};
+
+template <>
+struct ShapeParser<egen::RESHAPE> final : private ReshapePacker<egen::RESHAPE>
+{
+	using ReshapePacker<egen::RESHAPE>::shape;
 };
 
 template <>
@@ -270,16 +324,6 @@ struct ShapeParser<egen::CONV> final
 			}
 		}
 		return teq::Shape(slist);
-	}
-};
-
-template <>
-struct ShapeParser<egen::REVERSE> final
-{
-	teq::Shape shape (const marsh::iAttributed& attrs,
-		const teq::ShapesT& shapes) const
-	{
-		return shapes.front();
 	}
 };
 
@@ -384,18 +428,6 @@ struct ShapeParser<egen::CONCAT> final
 			slist[axis] += rightshape.at(axis);
 		}
 		return teq::Shape(slist);
-	}
-};
-
-template <>
-struct ShapeParser<egen::RESHAPE> final
-{
-	teq::Shape shape (const marsh::iAttributed& attrs,
-		const teq::ShapesT& shapes) const
-	{
-		teq::Shape outshape;
-		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
-		return outshape;
 	}
 };
 
