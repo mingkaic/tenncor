@@ -321,6 +321,7 @@ TEST(OBJS, String)
 	EXPECT_FALSE(empty.equals(content));
 	EXPECT_FALSE(content.equals(empty));
 
+	marsh::Number<size_t> notstr;
 	marsh::String es;
 	marsh::String exact("stuff happening");
 	marsh::String notexact("stuf hppenig");
@@ -330,6 +331,7 @@ TEST(OBJS, String)
 	EXPECT_TRUE(empty.equals(es));
 	EXPECT_TRUE(content.equals(exact));
 
+	EXPECT_FALSE(empty.equals(notstr));
 	EXPECT_FALSE(empty.equals(content));
 	EXPECT_FALSE(content.equals(empty));
 	EXPECT_FALSE(notexact.equals(content));
