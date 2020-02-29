@@ -43,7 +43,8 @@ else
 fi
 
 lcov --remove "$COV_DIR/coverage.info" 'external/*' '**/test/*' \
-'testutil/*' '**/genfiles/*' 'dbg/*' '**/mock/*' -o "$COV_DIR/coverage.info";
+'testutil/*' '**/genfiles/*' 'dbg/*' 'dbg/**/*' 'utils/*' 'utils/**/*' \
+'perf/*' 'perf/**/*' '**/mock/*' '**/*.pb.h' '**/*.pb.cc' -o "$COV_DIR/coverage.info";
 send2codecov "$COV_DIR/coverage.info";
 
 echo "";
