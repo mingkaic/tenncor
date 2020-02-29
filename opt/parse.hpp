@@ -1,27 +1,18 @@
-///
-/// parse.hpp
-/// opt
-///
-/// Purpose:
-/// Define interfaces to build extensions of TEQ graphs
-/// and wrap around C parser
-///
-
-#include "opt/optimize.hpp"
 
 #ifndef OPT_PARSE_HPP
 #define OPT_PARSE_HPP
 
+#include "opt/target.hpp"
+#include "opt/rule.hpp"
+#include "opt/graph.hpp"
+
 namespace opt
 {
 
-using BuildTargetF = std::function<TargptrT(::TreeNode*)>;
+void json_parse (OptRulesT& rules,
+	std::istream& json_in, const iTargetFactory& tfactory);
 
-/// Return all parsed optimization rules of string content
-CversionCtx parse (std::string content, BuildTargetF parse_target);
-
-/// Return all parsed optimization rules of a file
-CversionCtx parse_file (std::string filename, BuildTargetF parse_target);
+marsh::iObject* parse (const query::Attribute& pba, const opt::GraphInfo& graphinfo);
 
 }
 

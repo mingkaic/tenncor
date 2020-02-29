@@ -17,10 +17,23 @@ std::vector<teq::DimT> c2pshape (const teq::Shape& cshape)
 	return std::vector<teq::DimT>(fwd.rbegin(), fwd.rend());
 }
 
-teq::Shape p2cshape (std::vector<py::ssize_t>& pyshape)
+teq::Shape p2cshape (const py::list& pyshape)
 {
-	return teq::Shape(std::vector<teq::DimT>(
-		pyshape.rbegin(), pyshape.rend()));
+	std::vector<teq::DimT> slist;
+	size_t n = pyshape.size();
+	slist.reserve(n);
+	for (size_t i = 0; i < n; ++i)
+	{
+		slist.push_back(pyshape[n - i - 1].cast<teq::DimT>());
+	}
+	return teq::Shape(slist);
+}
+
+teq::Shape p2cshape (const py::ssize_t* pslist, size_t ndim)
+{
+	std::vector<teq::DimT> slist(pslist, pslist + ndim);
+	std::reverse(slist.begin(), slist.end());
+	return teq::Shape(slist);
 }
 
 }

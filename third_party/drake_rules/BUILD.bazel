@@ -1,7 +1,0 @@
-licenses(["notice"])
-
-exports_files(
-    [
-        "install.py.in",
-    ],
-)

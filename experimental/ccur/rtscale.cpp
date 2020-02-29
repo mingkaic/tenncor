@@ -7,10 +7,11 @@
 
 #include "eigen/generated/opcode.hpp"
 
-#include "eteq/generated/api.hpp"
 #include "eteq/make.hpp"
 
 #include "ccur/weights.pb.h"
+
+#include "generated/api.hpp"
 
 #define TIME(action)\
 std::chrono::high_resolution_clock::time_point start =\
@@ -26,6 +27,8 @@ double softplus (double x)
 
 int main (int argc, const char** argv)
 {
+	LOG_INIT(logs::DefLogger);
+
 	std::string writepath;
 	flag::FlagSet flags("rt_anubis");
 	flags.add_flags()
@@ -37,7 +40,7 @@ int main (int argc, const char** argv)
 		return 1;
 	}
 
-	logs::get_logger().set_log_level(logs::INFO);
+	teq::get_logger().set_log_level(teq::INFO);
 
 	std::unordered_map<std::string,size_t> stats;
 	size_t mean_stat = 0;//,
@@ -48,7 +51,7 @@ int main (int argc, const char** argv)
 		size_t stat;
 		auto opcode = (egen::_GENERATED_OPCODE) i;
 		teq::Opcode op{egen::name_op(opcode), opcode};
-		logs::infof("weighing operation %s", op.name_.c_str());
+		teq::infof("weighing operation %s", op.name_.c_str());
 		switch (i)
 		{
 			// elementary unary
@@ -216,15 +219,15 @@ int main (int argc, const char** argv)
 		weights->insert({op.first, value});
 	}
 
-	logs::infof("writing to %s", writepath.c_str());
+	teq::infof("writing to %s", writepath.c_str());
 	std::fstream out(writepath,
 		std::ios::out | std::ios::trunc | std::ios::binary);
 	if (out.is_open())
 	{
-		logs::infof("opened %s", writepath.c_str());
+		teq::infof("opened %s", writepath.c_str());
 		if (opweights.SerializeToOstream(&out))
 		{
-			logs::infof("done writing to %s", writepath.c_str());
+			teq::infof("done writing to %s", writepath.c_str());
 		}
 		out.close();
 	}

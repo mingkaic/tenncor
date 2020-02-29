@@ -45,6 +45,8 @@ struct iLeaf : public iTensor
 /// Leaf smart pointer
 using LeafptrT = std::shared_ptr<iLeaf>;
 
+using LeafsT = std::vector<iLeaf*>;
+
 template <typename T>
 using LeafMapT = std::unordered_map<iLeaf*,T>;
 
@@ -81,7 +83,7 @@ std::string const_encode (const T* data, const Shape& shape)
 	return out;
 }
 
-Usage get_named_usage (std::string name);
+Usage get_named_usage (const std::string& name);
 
 std::string get_usage_name (Usage usage);
 

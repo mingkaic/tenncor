@@ -39,6 +39,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//marsh:marsh",
+        "//testutil:tutil",
         "@gtest//:gtest",
         "@boost//:property_tree",
     ],

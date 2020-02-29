@@ -1,9 +1,6 @@
 licenses(["notice"])
 
-load(
-    "@com_github_stackb_rules_proto//cpp:cpp_proto_library.bzl",
-    "cpp_proto_library"
-)
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -28,11 +25,6 @@ filegroup(
 
 ######### LIBRARY #########
 
-cpp_proto_library(
-    name = "onnx_cc_proto",
-    deps = ["@com_github_onnx_onnx//:onnx_proto"],
-)
-
 cc_library(
     name = "onnx",
     hdrs = glob(["*.hpp"]),
@@ -45,11 +37,24 @@ cc_library(
         "@boost//:bimap",
     ],
 )
+
+# cc_proto_library(
+#     name = "onnx_cc_proto",
+#     deps = ["@com_github_onnx_onnx//:onnx_proto"],
+# )
+
+cc_library(
+    name = "onnx_cc_proto",
+    hdrs = ["onnx.pb.h"],
+    srcs = ["onnx.pb.cc"],
+    deps = ["@com_google_protobuf_custom//:protobuf"],
+)
+
 ######### TOOLS #########
 
 cc_binary(
     name = "inspector",
-    srcs = glob(["inspector.cpp"]),
+    srcs = ["inspector.cpp"],
     copts = ["-std=c++17"],
     deps = [
         "//onnx:onnx_cc_proto",

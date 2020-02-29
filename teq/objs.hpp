@@ -78,7 +78,7 @@ struct TensorObj final : public TensorRef
 		}
 		else
 		{
-			logs::warn("non-teq marshaler cannot marshal "
+			warn("non-teq marshaler cannot marshal "
 				"tensor-typed objects");
 		}
 	}
@@ -99,12 +99,12 @@ private:
 
 struct LayerObj final : public TensorRef
 {
-	LayerObj (std::string opname, TensptrT input) :
+	LayerObj (const std::string& opname, TensptrT input) :
 		opname_(opname), input_(input)
 	{
 		if (nullptr == input)
 		{
-			logs::fatalf("cannot `%s` with null input", opname.c_str());
+			fatalf("cannot `%s` with null input", opname.c_str());
 		}
 	}
 
@@ -147,7 +147,7 @@ struct LayerObj final : public TensorRef
 		}
 		else
 		{
-			logs::warn("non-teq marshaler cannot marshal "
+			warn("non-teq marshaler cannot marshal "
 				"layer-typed objects");
 		}
 	}

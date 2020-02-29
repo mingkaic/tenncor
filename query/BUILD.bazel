@@ -1,10 +1,7 @@
 licenses(["notice"])
 
-load("//third_party/drake_rules:pybind.bzl", "pybind_library")
-load(
-    "@com_github_stackb_rules_proto//cpp:cpp_proto_library.bzl",
-    "cpp_proto_library"
-)
+load("//third_party:tools/pybind.bzl", "pybind_py_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
 filegroup(
     name = "srcs",
@@ -43,20 +40,30 @@ cc_library(
 proto_library(
     name = "query_proto",
     srcs = ["query.proto"],
+    visibility = ["//visibility:public"],
 )
 
-cpp_proto_library(
-    name = "query_cc_proto",
-    deps = ["//query:query_proto"],
+# cc_proto_library(
+#     name = "query_cc_proto",
+#     deps = ["//query:query_proto"],
+# )
+
+cc_library(
+    name="query_cc_proto",
+    hdrs=["query.pb.h"],
+    srcs=["query.pb.cc"],
+    deps = ["@com_google_protobuf_custom//:protobuf"],
+    visibility = ["//visibility:public"],
 )
 
-pybind_library(
+pybind_py_library(
     name = "query_py",
     cc_srcs = ["//query:python/query.cpp"],
     cc_deps = [
-        "//eteq:eteq",
+        "//:tenncor",
         "//query:query",
     ],
+    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )
 
@@ -67,9 +74,12 @@ cc_test(
     srcs = ["//query:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//eteq:eteq",
+        "//teq:mock_teq",
+        "//dbg:print",
+        "//:tenncor",
         "//testutil:tutil",
         "//query:query",
     ],
     linkstatic = True,
+    data = ["//:test_models"],
 )

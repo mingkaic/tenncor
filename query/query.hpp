@@ -1,20 +1,24 @@
-//
-/// query.hpp
-/// query
-///
-/// Purpose:
-/// Define subgraph filtering functionality
-///
+#ifndef QUERY_QUERY_HPP
+#define QUERY_QUERY_HPP
 
-#ifndef QUERY_HPP
-#define QUERY_HPP
+#include "eigen/generated/opcode.hpp"
 
-#include "query/sindex.hpp"
-
-#include "query/parse.hpp"
+#include "query/query.pb.h"
+#include "query/path.hpp"
 
 namespace query
 {
+
+template <typename VEC, typename UNARY>
+inline void remove_if (VEC& vec, UNARY pred)
+{
+	auto pend = std::remove_if(vec.begin(), vec.end(), pred);
+	vec.erase(pend, vec.end());
+}
+
+using SindexT = std::unordered_map<std::string,teq::TensT>;
+
+struct Query;
 
 static inline teq::Shape to_shape (
 	const google::protobuf::RepeatedField<uint32_t>& sfields)
@@ -23,292 +27,285 @@ static inline teq::Shape to_shape (
 	return teq::Shape(slist);
 }
 
-static inline bool equals (double scalar, const teq::iLeaf* leaf)
+inline bool equals (const teq::iLeaf* leaf, double scalar)
 {
+	if (nullptr == leaf)
+	{
+		return false;
+	}
 	return teq::IMMUTABLE == leaf->get_usage() &&
 		leaf->to_string() == fmts::to_string(scalar);
 }
 
-static inline bool equals (const Variable& var, const teq::iLeaf* leaf)
+inline bool equals (const teq::iLeaf* leaf, const query::Leaf& var)
 {
-	return (Variable::kLabel != var.nullable_label_case() || var.label() == leaf->to_string()) &&
-		(Variable::kDtype != var.nullable_dtype_case() || var.dtype() == leaf->type_label()) &&
-		(0 == var.shape_size() || to_shape(var.shape()).compatible_after(leaf->shape(), 0));
+	if (nullptr == leaf)
+	{
+		return false;
+	}
+	return
+		(query::Leaf::kLabel != var.nullable_label_case() ||
+			var.label() == leaf->to_string()) &&
+		(query::Leaf::kDtype != var.nullable_dtype_case() ||
+			var.dtype() == leaf->type_label()) &&
+		(query::Leaf::kUsage != var.nullable_usage_case() ||
+			var.usage() == teq::get_usage_name(leaf->get_usage())) &&
+		(0 == var.shape_size() ||
+			to_shape(var.shape()).compatible_after(leaf->shape(), 0));
 }
 
-struct Query
-{
-	Query (search::OpTrieT& sindex) : sindex_(sindex) {}
+bool equals (const marsh::iObject* attr,
+	const query::Attribute& pba, const Query& matcher);
 
-	void where (teq::TensSetT& results, std::istream& condition)
+struct QueryResult final
+{
+	operator teq::iTensor*() const
 	{
-		Node cond;
-		json_parse(cond, condition);
-		constraint(results, sindex_.root(), cond);
+		return root_;
 	}
 
-private:
-	bool equals (const Attribute& pba, const marsh::iObject* attr)
+	teq::iTensor* root_;
+
+	SymbMapT symbs_;
+};
+
+using QResultsT = std::vector<QueryResult>;
+
+struct Query final : public teq::iOnceTraveler
+{
+	QResultsT match (const query::Node& cond) const
 	{
-		bool match = false;
-		switch (pba.attr_case())
+		PathsT paths;
+		switch (cond.val_case())
 		{
-			case Attribute::kInum:
-				if (auto num = dynamic_cast<const marsh::iNumber*>(attr))
-				{
-					match = pba.inum() == num->to_int64();
-				}
-				break;
-			case Attribute::kDnum:
-				if (auto num = dynamic_cast<const marsh::iNumber*>(attr))
-				{
-					match = pba.dnum() == num->to_float64();
-				}
-				break;
-			case Attribute::kIarr:
-				if (auto narr = dynamic_cast<const marsh::iArray*>(attr))
-				{
-					const auto& arr = pba.iarr().values();
-					if (arr.size() == narr->size())
+			case query::Node::ValCase::kSymb:
+				paths.reserve(visited_.size());
+				std::transform(visited_.begin(), visited_.end(),
+					std::back_inserter(paths),
+					[](teq::iTensor* node)
 					{
-						match = true;
-						narr->foreach(
-						[&](size_t i, const marsh::ObjptrT& obj)
-						{
-							auto num = dynamic_cast<const marsh::iNumber*>(obj.get());
-							match = match &&
-								nullptr != num && arr[i] == num->to_int64();
-						});
-					}
-				}
+						return std::make_shared<Path>(node);
+					});
+				symb_filter(paths, cond.symb());
 				break;
-			case Attribute::kDarr:
-				if (auto narr = dynamic_cast<const marsh::iArray*>(attr))
-				{
-					const auto& arr = pba.darr().values();
-					if (arr.size() == narr->size())
+			case query::Node::ValCase::kCst:
+				paths.reserve(visited_.size());
+				std::transform(visited_.begin(), visited_.end(),
+					std::back_inserter(paths),
+					[](teq::iTensor* node)
 					{
-						match = true;
-						narr->foreach(
-						[&](size_t i, const marsh::ObjptrT& obj)
-						{
-							auto num = dynamic_cast<const marsh::iNumber*>(obj.get());
-							match = match &&
-								nullptr != num && arr[i] == num->to_float64();
-						});
-					}
-				}
+						return std::make_shared<Path>(node);
+					});
+				leaf_filter(paths, cond.cst());
 				break;
-			case Attribute::kStr:
-				match = pba.str() == attr->to_string();
+			case query::Node::ValCase::kLeaf:
+				paths.reserve(visited_.size());
+				std::transform(visited_.begin(), visited_.end(),
+					std::back_inserter(paths),
+					[](teq::iTensor* node)
+					{
+						return std::make_shared<Path>(node);
+					});
+				leaf_filter(paths, cond.leaf());
 				break;
-			case Attribute::kNode:
+			case query::Node::ValCase::kOp:
 			{
-				if (auto tens = dynamic_cast<const teq::TensorObj*>(attr))
+				teq::TensT nodes;
+				if (estd::get(nodes, sindex_, cond.op().opname()))
 				{
-					teq::TensSetT results;
-					constraint(results, sindex_.root(), pba.node());
-					match = estd::has(results, tens->get_tensor().get());
-				}
-			}
-				break;
-			case Attribute::kLayer:
-			{
-				if (auto lay = dynamic_cast<const teq::LayerObj*>(attr))
-				{
-					const Layer& layer = pba.layer();
-					match = Layer::kName == layer.nullable_name_case() || layer.name() == lay->get_opname();
-					if (match && layer.has_input())
-					{
-						teq::TensSetT results;
-						constraint(results, sindex_.root(), layer.input());
-						match = estd::has(results, lay->get_tensor().get());
-					}
+					paths.reserve(nodes.size());
+					std::transform(nodes.begin(), nodes.end(),
+						std::back_inserter(paths),
+						[](teq::iTensor* node)
+						{
+							return std::make_shared<Path>(node);
+						});
+					match_helper(paths, cond);
 				}
 			}
 				break;
 			default:
-				logs::fatal("cannot compare unknown attribute");
+				teq::fatal("cannot look for unknown node");
 		}
-		return match;
+		QResultsT results;
+		std::transform(paths.begin(), paths.end(),
+			std::back_inserter(results),
+			[](PathptrT path)
+			{
+				return QueryResult{path->tens_, path->symbols_};
+			});
+		return results;
 	}
 
-	// Return true if there's at least one result
-	void constraint (teq::TensSetT& results,
-		const search::OpTrieT::NodeT* tri, const Node& cond) // todo: add filter_out mechanism instead of allocing a subresult at every branch
+	SindexT sindex_;
+
+private:
+	/// Implementation of iOnceTraveler
+	void visit_leaf (teq::iLeaf& leaf) override {}
+
+	/// Implementation of iOnceTraveler
+	void visit_func (teq::iFunctor& func) override
 	{
-		if (nullptr == tri)
+		sindex_[func.get_opcode().name_].push_back(&func);
+		auto children = func.get_children();
+		for (auto& arg : children)
 		{
-			results.clear();
+			arg->accept(*this);
+		}
+	}
+
+	bool surface_matches (teq::iTensor* node, const query::Operator& cond,
+		const google::protobuf::Map<std::string,query::Attribute>& pb_attrs) const
+	{
+		if (auto f = dynamic_cast<teq::iFunctor*>(node))
+		{
+			std::string cop = cond.opname();
+			size_t ncargs = cond.args().size();
+			return f->get_opcode().name_ == cop &&
+				ncargs <= f->get_children().size() &&
+				std::all_of(pb_attrs.begin(), pb_attrs.end(),
+					[&](const auto& pb_attr)
+					{
+						return equals(f->get_attr(pb_attr.first), pb_attr.second, *this);
+					});
+		}
+		return false;
+	}
+
+	void noncomm_filter (PathsT& paths, const query::Operator& cond) const
+	{
+		for (const query::Node& carg : cond.args())
+		{
+			PathsT children;
+			children.reserve(paths.size());
+			std::transform(paths.begin(), paths.end(),
+				std::back_inserter(children),
+				[](PathptrT& path)
+				{
+					auto args = path->get_args();
+					assert(args.size() > 0);
+					auto arg = args.front();
+					return std::make_shared<Path>(arg.second,
+						PrevT{arg.first, path}, path->symbols_);
+				});
+			match_helper(children, carg);
+			paths.clear();
+			std::transform(children.begin(), children.end(),
+				std::back_inserter(paths),
+				[](PathptrT match)
+				{
+					return match->recall();
+				});
+		}
+	}
+
+	void commutative_filter (PathsT& paths, const query::Operator& cond) const
+	{
+		const auto& cargs = cond.args();
+		size_t nargs = cargs.size();
+		for (const query::Node& carg : cargs)
+		{
+			PathsT children;
+			children.reserve(paths.size() * nargs);
+			for (auto& root : paths)
+			{
+				auto args = root->get_args();
+				for (std::pair<size_t,teq::iTensor*>& arg : args)
+				{
+					children.push_back(std::make_shared<Path>(
+						arg.second, PrevT{arg.first, root}, root->symbols_));
+				}
+			}
+			match_helper(children, carg);
+			paths.clear();
+			std::transform(children.begin(), children.end(),
+				std::back_inserter(paths),
+				[](PathptrT match)
+				{
+					return match->recall();
+				});
+		}
+		remove_if(paths,
+			[&](PathptrT root)
+			{
+				return root->memory_.size() != nargs;
+			});
+	}
+
+	void symb_filter (PathsT& paths, std::string cond) const
+	{
+		remove_if(paths,
+			[&](PathptrT root)
+			{
+				return estd::has(root->symbols_, cond) &&
+					root->symbols_[cond] != root->tens_;
+			});
+		for (PathptrT root : paths)
+		{
+			root->symbols_.emplace(cond, root->tens_);
+		}
+	}
+
+	template <typename T>
+	void leaf_filter (PathsT& paths, T leaf) const
+	{
+		remove_if(paths,
+			[&](PathptrT root)
+			{
+				return false == equals(
+					dynamic_cast<teq::iLeaf*>(root->tens_), leaf);
+			});
+	}
+
+	void func_filter (PathsT& paths, const query::Operator& cond) const
+	{
+		const auto& attrs = cond.attrs();
+		remove_if(paths,
+			[&](PathptrT root)
+			{
+				return nullptr == dynamic_cast<teq::iFunctor*>(root->tens_) ||
+					false == surface_matches(root->tens_, cond, attrs);
+			});
+		if (egen::is_commutative(cond.opname()))
+		{
+			commutative_filter(paths, cond);
+		}
+		else
+		{
+			noncomm_filter(paths, cond);
+		}
+		if (query::Operator::kCapture == cond.nullable_capture_case())
+		{
+			symb_filter(paths, cond.capture());
+		}
+	}
+
+	void match_helper (PathsT& paths, const query::Node& cond) const
+	{
+		if (paths.empty())
+		{
 			return;
 		}
 		switch (cond.val_case())
 		{
-			case Node::ValCase::kCst:
-			{
-				if (false == tri->leaf_.has_value())
-				{
-					results.clear();
-					return;
-				}
-				bool nomatch = true;
-				double scalar = cond.cst();
-				for (const auto& lpair : tri->leaf_->leaves_)
-				{
-					if (::query::equals(scalar, lpair.first))
-					{
-						nomatch = false;
-						results.insert(lpair.second.begin(), lpair.second.end());
-					}
-				}
-				if (nomatch)
-				{
-					results.clear();
-				}
-			}
+			case query::Node::ValCase::kSymb:
+				symb_filter(paths, cond.symb());
 				break;
-			case Node::ValCase::kVar:
-			{
-				if (false == tri->leaf_.has_value())
-				{
-					results.clear();
-					return;
-				}
-				bool nomatch = true;
-				const Variable& var = cond.var();
-				for (const auto& lpair : tri->leaf_->leaves_)
-				{
-					if (::query::equals(var, lpair.first))
-					{
-						nomatch = false;
-						results.insert(lpair.second.begin(), lpair.second.end());
-					}
-				}
-				if (nomatch)
-				{
-					results.clear();
-				}
-			}
+			case query::Node::ValCase::kCst:
+				leaf_filter(paths, cond.cst());
 				break;
-			case Node::ValCase::kOp:
-			{
-				const Operator& op = cond.op();
-				const auto& attrs = op.attrs();
-				if (attrs.size() > 0)
-				{
-					auto lookahead = static_cast<const search::OpTrieT::NodeT*>(
-						tri->next(PathNode{0, egen::get_op(op.opname())}));
-					if (false == lookahead->leaf_.has_value() ||
-						lookahead->leaf_->attrs_.empty())
-					{
-						results.clear();
-						return;
-					}
-					teq::FuncMapT<teq::TensSetT> attr_matches;
-					for (const auto& apair : lookahead->leaf_->attrs_)
-					{
-						teq::iFunctor* iattr = apair.first;
-						std::unordered_set<std::string> need_keys;
-						for (const auto& apair : attrs)
-						{
-							need_keys.emplace(apair.first);
-						}
-						for (auto jt = need_keys.begin(), et = need_keys.end();
-							jt != et;)
-						{
-							std::string key = *jt;
-							auto val = iattr->get_attr(key);
-							if (nullptr != val && equals(attrs.at(key), val))
-							{
-								jt = need_keys.erase(jt);
-							}
-							else
-							{
-								++jt;
-							}
-						}
-						if (need_keys.empty())
-						{
-							attr_matches.emplace(iattr, apair.second);
-						}
-					}
-					// match the rest of the condition subgraph from trie root
-					// in order to filter for matching attributable functors
-					teq::TensSetT subresults;
-					iterate_condition(subresults, sindex_.root(), op);
-					// get attr_matches[subresults intersection attr_matches.keys]
-					if (subresults.empty())
-					{
-						results.clear();
-					}
-					for (const auto& apair : attr_matches)
-					{
-						if (estd::has(subresults, apair.first))
-						{
-							results.insert(apair.second.begin(), apair.second.end());
-						}
-					}
-				}
-				else
-				{
-					iterate_condition(results, tri, op);
-				}
-			}
+			case query::Node::ValCase::kLeaf:
+				leaf_filter(paths, cond.leaf());
+				break;
+			case query::Node::ValCase::kOp:
+				func_filter(paths, cond.op());
 				break;
 			default:
-				search::possible_paths(
-					[&results](const search::PathListT& path, const search::PathVal& val)
-					{
-						for (const auto& lpair : val.leaves_)
-						{
-							results.insert(lpair.second.begin(), lpair.second.end());
-						}
-						for (const auto& apair : val.attrs_)
-						{
-							results.insert(apair.second.begin(), apair.second.end());
-						}
-					}, tri);
+				teq::fatal("cannot look for unknown node");
 		}
 	}
-
-	// Return true if there's at least one result
-	void iterate_condition (teq::TensSetT& results,
-		const search::OpTrieT::NodeT* tri, const Operator& op)
-	{
-		egen::_GENERATED_OPCODE opcode = egen::get_op(op.opname());
-		const auto& args = op.args();
-		if (args.empty())
-		{
-			constraint(results, tri, Node());
-			return;
-		}
-		constraint(results, static_cast<const search::OpTrieT::NodeT*>(
-			tri->next(PathNode{0, opcode})), args[0]);
-		teq::TensSetT subresults;
-		for (size_t i = 1, n = args.size(); i < n && false == results.empty(); ++i)
-		{
-			constraint(subresults, static_cast<const search::OpTrieT::NodeT*>(
-				tri->next(PathNode{i, opcode})), args[i]);
-			// final result is an intersect of all subresults
-			for (auto it = results.begin(), et = results.end();
-				it != et;)
-			{
-				if (false == estd::has(subresults, *it))
-				{
-					it = results.erase(it);
-				}
-				else
-				{
-					++it;
-				}
-			}
-			subresults.clear();
-		}
-	}
-
-	search::OpTrieT& sindex_;
 };
 
 }
 
-#endif // QUERY_HPP
+#endif // QUERY_QUERY_HPP

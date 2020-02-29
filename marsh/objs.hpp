@@ -10,7 +10,7 @@ struct String final : public iObject
 {
 	String (void) = default;
 
-	String (std::string val) : val_(val) {}
+	String (const std::string& val) : val_(val) {}
 
 	String* clone (void) const
 	{
@@ -134,6 +134,10 @@ struct iArray : public iObject
 
 	virtual size_t size (void) const = 0;
 
+	virtual bool is_object (void) const = 0;
+
+	virtual bool is_integral (void) const = 0;
+
 	void accept (iMarshaler& marshaler) const override
 	{
 		marshaler.marshal(*this);
@@ -205,6 +209,16 @@ struct ObjArray final : public iArray
 		{
 			consume(i, contents_.at(i));
 		}
+	}
+
+	bool is_object (void) const override
+	{
+		return true;
+	}
+
+	bool is_integral (void) const override
+	{
+		return false;
 	}
 
 	std::vector<ObjptrT> contents_;
@@ -280,6 +294,16 @@ struct NumArray final : public iArray
 		}
 	}
 
+	bool is_object (void) const override
+	{
+		return false;
+	}
+
+	bool is_integral (void) const override
+	{
+		return std::is_integral<T>::value;
+	}
+
 	std::vector<T> contents_;
 
 private:
@@ -307,7 +331,7 @@ struct Maps final : public iObject, public iAttributed
 		auto ks = ls_attrs();
 		std::sort(ks.begin(), ks.end());
 		std::vector<std::pair<std::string,std::string>> pairs;
-		for (std::string key : ks)
+		for (const std::string& key : ks)
 		{
 			pairs.push_back({key, contents_.at(key)->to_string()});
 		}
@@ -341,7 +365,7 @@ struct Maps final : public iObject, public iAttributed
 		marshaler.marshal(*this);
 	}
 
-	const iObject* get_attr (std::string attr_key) const override
+	const iObject* get_attr (const std::string& attr_key) const override
 	{
 		return estd::has(contents_, attr_key) ?
 			contents_.at(attr_key).get() : nullptr;
@@ -359,12 +383,12 @@ struct Maps final : public iObject, public iAttributed
 		return out;
 	}
 
-	void add_attr (std::string attr_key, ObjptrT&& attr_val) override
+	void add_attr (const std::string& attr_key, ObjptrT&& attr_val) override
 	{
 		contents_.emplace(attr_key, std::move(attr_val));
 	}
 
-	void rm_attr (std::string attr_key) override
+	void rm_attr (const std::string& attr_key) override
 	{
 		contents_.erase(attr_key);
 	}

@@ -21,7 +21,7 @@ static const std::unordered_map<Usage,std::string> usage_names = {
 	{PLACEHOLDER, "placeholder"},
 };
 
-Usage get_named_usage (std::string name)
+Usage get_named_usage (const std::string& name)
 {
 	return estd::try_get(named_usages, name, UNKNOWN_USAGE);
 }

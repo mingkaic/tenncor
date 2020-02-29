@@ -8,10 +8,10 @@
 
 #include "teq/isession.hpp"
 
-#include "eteq/generated/api.hpp"
 #include "eteq/derive.hpp"
-
 #include "eteq/optimize.hpp"
+
+#include "generated/api.hpp"
 
 
 using TensProcF = std::function<void(teq::TensptrsT&)>;
@@ -87,7 +87,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		auto gotshape = da->shape();
 		ASSERT_ARREQ(ashape, gotshape);
 	}
-	float* gaptr = (float*) da->data();
+	float* gaptr = (float*) da->device().data();
 	for (size_t i = 0, n = ashape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_ga[i], gaptr[i]);
@@ -97,7 +97,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		auto gotshape = db->shape();
 		ASSERT_ARREQ(bshape, gotshape);
 	}
-	float* gbptr = (float*) db->data();
+	float* gbptr = (float*) db->device().data();
 	for (size_t i = 0, n = bshape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_gb[i], gbptr[i]);
@@ -107,7 +107,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		auto gotshape = dc->shape();
 		ASSERT_ARREQ(cshape, gotshape);
 	}
-	float* gcptr = (float*) dc->data();
+	float* gcptr = (float*) dc->device().data();
 	for (size_t i = 0, n = cshape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_gc[i], gcptr[i]);
@@ -302,7 +302,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		auto gotshape = dw0->shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
-	double* gw0ptr = (double*) dw0->data();
+	double* gw0ptr = (double*) dw0->device().data();
 	for (size_t i = 0, n = weight0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
@@ -312,7 +312,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		auto gotshape = db0->shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
-	double* gb0ptr = (double*) db0->data();
+	double* gb0ptr = (double*) db0->device().data();
 	for (size_t i = 0, n = bias0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
@@ -322,7 +322,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		auto gotshape = dw1->shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
-	double* gw1ptr = (double*) dw1->data();
+	double* gw1ptr = (double*) dw1->device().data();
 	for (size_t i = 0, n = weight1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
@@ -332,7 +332,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		auto gotshape = db1->shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
-	double* gb1ptr = (double*) db1->data();
+	double* gb1ptr = (double*) db1->device().data();
 	for (size_t i = 0, n = bias1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb1[i], gb1ptr[i]);
@@ -524,7 +524,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		auto gotshape = dw0->shape();
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
-	double* gw0ptr = (double*) dw0->data();
+	double* gw0ptr = (double*) dw0->device().data();
 	for (size_t i = 0, n = weight0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
@@ -534,7 +534,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		auto gotshape = db0->shape();
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
-	double* gb0ptr = (double*) db0->data();
+	double* gb0ptr = (double*) db0->device().data();
 	for (size_t i = 0, n = bias0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
@@ -544,7 +544,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		auto gotshape = dw1->shape();
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
-	double* gw1ptr = (double*) dw1->data();
+	double* gw1ptr = (double*) dw1->device().data();
 	for (size_t i = 0, n = weight1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
@@ -554,7 +554,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		auto gotshape = db1->shape();
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
-	double* gb1ptr = (double*) db1->data();
+	double* gb1ptr = (double*) db1->device().data();
 	for (size_t i = 0, n = bias1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb1[i], gb1ptr[i]);
@@ -662,7 +662,7 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 		auto gotshape = dw->shape();
 		ASSERT_ARREQ(weight_shape, gotshape);
 	}
-	double* gwptr = (double*) dw->data();
+	double* gwptr = (double*) dw->device().data();
 	for (size_t i = 0, n = weight_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw[i], gwptr[i]);
@@ -672,7 +672,7 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 		auto gotshape = db->shape();
 		ASSERT_ARREQ(bias_shape, gotshape);
 	}
-	double* gbptr = (double*) db->data();
+	double* gbptr = (double*) db->device().data();
 	for (size_t i = 0, n = bias_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb[i], gbptr[i]);
@@ -682,7 +682,7 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 		auto gotshape = dstate->shape();
 		ASSERT_ARREQ(state_shape, gotshape);
 	}
-	double* gstateptr = (double*) dstate->data();
+	double* gstateptr = (double*) dstate->device().data();
 	for (size_t i = 0, n = state_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gstate[i], gstateptr[i]);
@@ -758,14 +758,14 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell_root = tenncor::tanh(tenncor::layer::dense(cell_in, weight, bias));
+	auto cell_root = tenncor::tanh(tenncor::nn::dense(cell_in, weight, bias));
 	auto cell_f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) cell_root);
 	eteq::ELayer<double> cell(cell_f, cell_in);
 
 	auto state = tenncor::extend_like(istate,
 		tenncor::slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor::layer::rnn(in, state, cell, seq_dim);
+	auto output = tenncor::nn::rnn(in, state, cell, seq_dim);
 
 	auto err = tenncor::pow(out - output, 2.);
 
@@ -787,7 +787,7 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		auto gotshape = dw->shape();
 		ASSERT_ARREQ(weight_shape, gotshape);
 	}
-	double* gwptr = (double*) dw->data();
+	double* gwptr = (double*) dw->device().data();
 	for (size_t i = 0, n = weight_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw[i], gwptr[i]);
@@ -797,7 +797,7 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		auto gotshape = db->shape();
 		ASSERT_ARREQ(bias_shape, gotshape);
 	}
-	double* gbptr = (double*) db->data();
+	double* gbptr = (double*) db->device().data();
 	for (size_t i = 0, n = bias_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb[i], gbptr[i]);
@@ -807,7 +807,7 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		auto gotshape = dstate->shape();
 		ASSERT_ARREQ(state_shape, gotshape);
 	}
-	double* gstateptr = (double*) dstate->data();
+	double* gstateptr = (double*) dstate->device().data();
 	for (size_t i = 0, n = state_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gstate[i], gstateptr[i]);
@@ -883,7 +883,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell_root = tenncor::tanh(tenncor::layer::dense(cell_in, weight, bias));
+	auto cell_root = tenncor::tanh(tenncor::nn::dense(cell_in, weight, bias));
 	auto cell_f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) cell_root);
 	eteq::ELayer<double> cell(cell_f, cell_in);
 
@@ -891,7 +891,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		tenncor::slice(in, 0, 1, seq_dim));
 
 	eteq::ETensor<double> layer_in(eteq::make_variable_scalar<double>(0, teq::Shape({5, 3})));
-	auto layer_output = tenncor::layer::rnn(layer_in, state, cell, seq_dim);
+	auto layer_output = tenncor::nn::rnn(layer_in, state, cell, seq_dim);
 	eteq::ELayer<double> layer(std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) layer_output), layer_in);
 
 	auto output = layer.connect(in);
@@ -916,7 +916,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		auto gotshape = dw->shape();
 		ASSERT_ARREQ(weight_shape, gotshape);
 	}
-	double* gwptr = (double*) dw->data();
+	double* gwptr = (double*) dw->device().data();
 	for (size_t i = 0, n = weight_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw[i], gwptr[i]);
@@ -926,7 +926,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		auto gotshape = db->shape();
 		ASSERT_ARREQ(bias_shape, gotshape);
 	}
-	double* gbptr = (double*) db->data();
+	double* gbptr = (double*) db->device().data();
 	for (size_t i = 0, n = bias_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb[i], gbptr[i]);
@@ -936,7 +936,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		auto gotshape = dstate->shape();
 		ASSERT_ARREQ(state_shape, gotshape);
 	}
-	double* gstateptr = (double*) dstate->data();
+	double* gstateptr = (double*) dstate->device().data();
 	for (size_t i = 0, n = state_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gstate[i], gstateptr[i]);
@@ -982,55 +982,60 @@ TEST(EQUATION, TanhRNNLayerConnect)
 
 TEST(EQUATION, OptimizedMatmulComplex)
 {
-	auto rules = eteq::parse_file<float>("cfg/optimizations.rules");
 	matmul_complex(
-		[&rules](teq::TensptrsT roots)
+		[](teq::TensptrsT roots)
 		{
-			eteq::optimize<float>(roots, rules);
+			std::ifstream file("cfg/optimizations.json");
+			eteq::ETensorsT<float> eroots(roots.begin(), roots.end());
+			eteq::optimize<float>(eroots, file);
 		});
 }
 
 
 TEST(EQUATION, OptimizedSlowSigmoidMLP)
 {
-	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
 	sigmoid_MLP_slow(
-		[&rules](teq::TensptrsT roots)
+		[](teq::TensptrsT roots)
 		{
-			eteq::optimize<double>(roots, rules);
+			std::ifstream file("cfg/optimizations.json");
+			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
+			eteq::optimize<double>(eroots, file);
 		});
 }
 
 
 TEST(EQUATION, OptimizedFastSigmoidMLP)
 {
-	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
 	sigmoid_MLP_fast(
-		[&rules](teq::TensptrsT roots)
+		[](teq::TensptrsT roots)
 		{
-			eteq::optimize<double>(roots, rules);
+			std::ifstream file("cfg/optimizations.json");
+			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
+			eteq::optimize<double>(eroots, file);
 		});
 }
 
 
 TEST(EQUATION, OptimizedTanhRNN)
 {
-	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
 	tanh_RNN(
-		[&rules](teq::TensptrsT roots)
+		[](teq::TensptrsT roots)
 		{
-			eteq::optimize<double>(roots, rules);
+			std::ifstream file("cfg/optimizations.json");
+			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
+			eteq::optimize<double>(eroots, file);
 		});
 }
 
 
 TEST(EQUATION, OptimizedTanhRNNLayer)
 {
-	auto rules = eteq::parse_file<double>("cfg/optimizations.rules");
 	tanh_RNN_layer(
-		[&rules](teq::TensptrsT roots)
+		[](teq::TensptrsT roots)
 		{
-			eteq::optimize<double>(roots, rules);
+			std::ifstream file("cfg/optimizations.json");
+			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
+			eteq::optimize<double>(eroots, file);
 		});
 }
 

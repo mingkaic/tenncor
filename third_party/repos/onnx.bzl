@@ -1,15 +1,25 @@
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 
 _BUILD_CONTENT="""
+load("@rules_proto//proto:defs.bzl", "proto_library")
+
 package(
     default_visibility = ["//visibility:public"],
 )
 
 licenses(["notice"]) # MIT
 
+genrule(
+    name = "proto3to2",
+    srcs = ["onnx/onnx.proto3"],
+    outs = ["onnx.proto"],
+    cmd = "cp $(location onnx/onnx.proto3) $@",
+)
+
 proto_library(
     name = "onnx_proto",
-    srcs = ["onnx/onnx.proto"],
+    srcs = ["onnx.proto"],
+    import_prefix = "onnx",
 )
 """
 

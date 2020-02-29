@@ -1,7 +1,5 @@
 licenses(["notice"])
 
-load("//third_party/drake_rules:pybind.bzl", "pybind_library")
-
 filegroup(
     name = "srcs",
     srcs = glob([
@@ -36,68 +34,17 @@ filegroup(
 
 ######### LIBRARY #########
 
-GEN_CMD_FMT = """$(location //egen:egen) --plugins \
-plugins.apis:APIsPlugin \
-plugins.pyapis:PyAPIsPlugin \
---out $(@D)/generated \
---strip_prefix=$$(dirname $(@D)) \
---cfgs $(locations //cfg:{})"""
-
-GEN_HDRS = [
-    "generated/api.hpp",
-    "generated/pyapi.hpp",
-]
-
-genrule(
-    name = "generated_ead",
-    srcs = select({
-        "//conditions:default": ["//cfg:eteq_min"],
-        "//eigen:fast_build": ["//cfg:eteq_min"],
-        "//eigen:full_build": ["//cfg:eteq"]
-    }),
-    outs = GEN_HDRS + [
-        "generated/api.cpp",
-        "generated/pyapi_tenncor.cpp",
-    ],
-    tools = ["//egen:egen"],
-    cmd = select({
-        "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
-        "//eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
-        "//eigen:full_build": GEN_CMD_FMT.format("eteq"),
-    })
-)
-
 cc_library(
     name = "eteq",
-    hdrs = glob(["*.hpp"]) + [
-        ':'+hdr for hdr in GEN_HDRS
-    ],
-    srcs = glob(["src/*.cpp"]) + [
-        ":generated/api.cpp",
-    ],
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
         "//eigen:eigen",
         "//opt:opt",
         "//onnx:onnx",
+        "@boost//:uuid",
     ],
-    visibility = ["//visibility:public"],
-)
-
-pybind_library(
-    name = "tenncor_py",
-    cc_srcs = [":generated/pyapi_tenncor.cpp"],
-    cc_deps = ["//eteq:eteq"],
-)
-
-pybind_library(
-    name = "eteq_py",
-    cc_srcs = ["//eteq:python/eteq.cpp"],
-    cc_deps = [
-        "//eteq:eteq",
-        "//pyutils:pyutils",
-    ],
-    py_deps = ["//eteq:tenncor_py"],
     visibility = ["//visibility:public"],
 )
 
@@ -108,7 +55,7 @@ cc_test(
     srcs = ["//eteq:ctest_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//eteq:eteq",
+        "//:tenncor",
         "//dbg:print",
         "//utils:utils",
         "//testutil:tutil",
@@ -127,7 +74,7 @@ py_test(
     name = "ptest",
     srcs = ["//eteq:ptest_srcs"],
     deps = [
-        "//eteq:eteq_py",
+        "//:tenncor_py",
         "//testutil:pyunit_util",
     ],
     data = ["//testutil:ead_testcase_template"],
@@ -139,7 +86,7 @@ cc_binary(
     name = "benchmark",
     srcs = ["bm/benchmark.cpp"],
     deps = [
-        "//eteq:eteq",
+        "//:tenncor",
         "@com_github_google_benchmark//:benchmark",
     ],
     copts = ["-std=c++17"],

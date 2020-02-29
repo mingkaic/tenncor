@@ -1,5 +1,7 @@
 licenses(["notice"])
 
+load("//third_party:tools/pybind.bzl", "pybind_py_library")
+
 package(
     default_visibility = ["//visibility:public"],
 )
@@ -18,7 +20,6 @@ filegroup(
         "//perf:srcs",
         "//query:srcs",
         "//teq:srcs",
-        "//rocnnet:srcs",
         "BUILD.bazel",
     ],
 )
@@ -39,4 +40,183 @@ filegroup(
         "models/*.json",
         "models/data/*",
     ])
+)
+
+######### TOP-LEVEL LIBRARY #########
+
+GEN_CMD_FMT = """$(location //egen:egen) --plugins \
+plugins.apis:APIsPlugin \
+plugins.pyapis:PyAPIsPlugin \
+--out $(@D)/generated \
+--strip_prefix=$(@D) \
+--cfgs $(locations //cfg:{})"""
+
+GEN_HDRS = [
+    "generated/api.hpp",
+    "generated/pyapi.hpp",
+]
+
+genrule(
+    name = "generated_tenncor",
+    srcs = select({
+        "//conditions:default": ["//cfg:eteq_min"],
+        "//eigen:fast_build": ["//cfg:eteq_min"],
+        "//eigen:full_build": ["//cfg:eteq"]
+    }),
+    outs = GEN_HDRS + [
+        "generated/api.cpp",
+        "generated/pyapi_tenncor.cpp",
+    ],
+    tools = ["//egen:egen"],
+    cmd = select({
+        "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
+        "//eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
+        "//eigen:full_build": GEN_CMD_FMT.format("eteq"),
+    })
+)
+
+cc_library(
+    name = "tenncor",
+    hdrs = [":"+hdr for hdr in GEN_HDRS] + glob(["trainer/*.hpp"]),
+    srcs = [":generated/api.cpp"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//eteq:eteq",
+        "//layr:layr",
+    ],
+)
+
+pybind_py_library(
+    name = "tenncor_py",
+    cc_srcs = ["//:generated/pyapi_tenncor.cpp"] + glob([
+        "python/*.hpp",
+        "python/*.cpp",
+    ]),
+    cc_deps = [
+        "//:tenncor",
+        "//pyutils:pyutils",
+    ],
+    copts = ["-std=c++17"],
+)
+
+py_library(
+    name = "extenncor",
+    srcs = glob(["extenncor/*.py"]),
+    deps = ["//:tenncor_py"],
+)
+
+######### COMPARISONS #########
+
+py_binary(
+    name = "comparison_matmul",
+    srcs = ["comparison/comparison_matmul.py"],
+    deps = ["//:tenncor_py"],
+)
+
+py_binary(
+    name = "comparison_mlp",
+    srcs = ["comparison/comparison_mlp.py"],
+    deps = ["//:tenncor_py"],
+)
+
+py_binary(
+    name = "comparison_mlp_grad",
+    srcs = ["comparison/comparison_mlp_grad.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//cfg:optimizations"],
+)
+
+# py_binary(
+#     name = "comparison_mlp_grad_pll",
+#     srcs = ["comparison/comparison_mlp_grad_pll.py"],
+#     deps = [
+#         "//:tenncor_py",
+#         "//ccur:ccur_py",
+#     ],
+#     data = ["//cfg:optimizations"],
+# )
+
+######### DEMOS #########
+
+# cc_binary(
+#     name = "cgd_demo",
+#     srcs = ["demo/gd_demo.cpp"],
+#     copts = ["-std=c++17"],
+#     deps = [
+#         "//:tenncor",
+#         "//dbg:emit_plugin",
+#         "@com_github_mingkaic_cppkg//flag:flag",
+#     ],
+#     data = ["//:models", "//cfg:optimizations"],
+# )
+
+py_binary(
+    name = "gd_demo",
+    srcs = ["demo/gd_demo.py"],
+    deps = [
+        "//:tenncor_py",
+    ],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "rbm_demo",
+    srcs = ["demo/rbm_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "dqn_demo",
+    srcs = ["demo/dqn_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "dbn_demo",
+    srcs = ["demo/dbn_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "rnn_demo",
+    srcs = ["demo/rnn_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "lstm_demo",
+    srcs = ["demo/lstm_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "gru_demo",
+    srcs = ["demo/gru_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "cnn_demo",
+    srcs = ["demo/cnn_demo.py"],
+    deps = [
+        "//:tenncor_py",
+        "//dbg:psess_py",
+        "//query:query_py",
+    ],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "w2v_demo",
+    srcs = ["demo/w2v_demo.py"],
+    deps = [
+        "//:extenncor",
+    ],
+    data = ["//:models", "//cfg:optimizations"],
 )

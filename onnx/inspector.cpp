@@ -66,7 +66,7 @@ int main (int argc, const char** argv)
 		return 1;
 	}
 
-	logs::get_logger().set_log_level(logs::INFO);
+	logs::get_logger().set_log_level("info");
 
 	std::ifstream readstr(readpath);
 	if (readstr.is_open())

@@ -4,6 +4,8 @@
 
 #include "gtest/gtest.h"
 
+#include "exam/exam.hpp"
+
 #include "marsh/objs.hpp"
 
 #include "marsh/test/json_marsh.hpp"
@@ -38,6 +40,22 @@ TEST(OBJS, Number)
 	EXPECT_FALSE(numba_deux.equals(diff));
 	EXPECT_TRUE(same.equals(numba_deux));
 	EXPECT_TRUE(numba_deux.equals(same));
+
+	EXPECT_FALSE(numba_wun.is_integral());
+	ASSERT_TRUE(numba_deux.is_integral());
+	EXPECT_FALSE(numba_tres.is_integral());
+
+	auto one = numba_wun.clone();
+	auto two = numba_deux.clone();
+	auto three = numba_tres.clone();
+
+	ASSERT_TRUE(one->equals(numba_wun));
+	ASSERT_TRUE(two->equals(numba_deux));
+	ASSERT_TRUE(three->equals(numba_tres));
+
+	delete one;
+	delete two;
+	delete three;
 }
 
 
@@ -128,13 +146,30 @@ TEST(OBJS, ObjArray)
 	fmts::trim(parsed_root);
 	EXPECT_STREQ("{\"\":[\"2\",\"1.11\"],\"\":\"3.3\"}", parsed_root.c_str());
 	EXPECT_STREQ("[]", parser.parse(empty, false).c_str());
+
+	EXPECT_TRUE(empty.is_object());
+	EXPECT_FALSE(empty.is_integral());
+
+	auto r = root.clone();
+	auto c = root_clone.clone();
+	auto big = big_root.clone();
+	auto imperfect = imperfect_clone.clone();
+
+	ASSERT_TRUE(r->equals(root));
+	ASSERT_TRUE(c->equals(root_clone));
+	ASSERT_TRUE(big->equals(big_root));
+	ASSERT_TRUE(imperfect->equals(imperfect_clone));
+
+	delete r;
+	delete c;
+	delete big;
+	delete imperfect;
 }
 
 
 TEST(OBJS, NumArray)
 {
-	marsh::NumArray<double> root;
-	root.contents_ = {2, 3.3};
+	marsh::NumArray<double> root({2, 3.3});
 
 	EXPECT_EQ(2, root.size());
 	EXPECT_STREQ("[2\\3.3]", root.to_string().c_str());
@@ -176,6 +211,24 @@ TEST(OBJS, NumArray)
 	fmts::trim(parsed_root);
 	EXPECT_STREQ("{\"\":\"2\",\"\":\"3.3\"}", parsed_root.c_str());
 	EXPECT_STREQ("[]", parser.parse(empty, false).c_str());
+
+	EXPECT_FALSE(empty.is_object());
+	EXPECT_TRUE(empty.is_integral());
+
+	auto r = root.clone();
+	auto e = empty.clone();
+	auto big = big_root.clone();
+	auto imperfect = imperfect_clone.clone();
+
+	ASSERT_TRUE(r->equals(root));
+	ASSERT_TRUE(e->equals(empty));
+	ASSERT_TRUE(big->equals(big_root));
+	ASSERT_TRUE(imperfect->equals(imperfect_clone));
+
+	delete r;
+	delete e;
+	delete big;
+	delete imperfect;
 }
 
 
@@ -233,6 +286,73 @@ TEST(OBJS, Maps)
 	fmts::trim(parsed_root);
 	EXPECT_STREQ("{\"obj1\":\"\",\"obj2\":\"2.3\"}", parsed_root.c_str());
 	EXPECT_STREQ("[]", parser.parse(empty, false).c_str());
+
+	auto r = root.clone();
+	auto c = root_clone.clone();
+	auto big = big_root.clone();
+	auto imperfect = imperfect_clone.clone();
+
+	ASSERT_TRUE(r->equals(root));
+	ASSERT_TRUE(c->equals(root_clone));
+	ASSERT_TRUE(big->equals(big_root));
+	ASSERT_TRUE(imperfect->equals(imperfect_clone));
+
+	big_root.rm_attr("obj2");
+	auto keys = big_root.ls_attrs();
+	ASSERT_EQ(2, keys.size());
+	EXPECT_ARRHAS(keys, "obj1");
+	EXPECT_ARRHAS(keys, "obj3");
+
+	delete r;
+	delete c;
+	delete big;
+	delete imperfect;
+}
+
+
+TEST(OBJS, String)
+{
+	marsh::String empty;
+	marsh::String content("stuff happening");
+
+	ASSERT_EQ(typeid(marsh::String).hash_code(), empty.class_code());
+	ASSERT_EQ(typeid(marsh::String).hash_code(), content.class_code());
+
+	EXPECT_FALSE(empty.equals(content));
+	EXPECT_FALSE(content.equals(empty));
+
+	marsh::Number<size_t> notstr;
+	marsh::String es;
+	marsh::String exact("stuff happening");
+	marsh::String notexact("stuf hppenig");
+
+	EXPECT_TRUE(es.equals(empty));
+	EXPECT_TRUE(exact.equals(content));
+	EXPECT_TRUE(empty.equals(es));
+	EXPECT_TRUE(content.equals(exact));
+
+	EXPECT_FALSE(empty.equals(notstr));
+	EXPECT_FALSE(empty.equals(content));
+	EXPECT_FALSE(content.equals(empty));
+	EXPECT_FALSE(notexact.equals(content));
+	EXPECT_FALSE(content.equals(notexact));
+
+	EXPECT_STREQ("stuff happening", content.to_string().c_str());
+
+	marsh::JsonMarshaler parser;
+	std::string parsed_root = parser.parse(content, false);
+	fmts::trim(parsed_root);
+	EXPECT_STREQ("", parser.parse(empty, false).c_str());
+	EXPECT_STREQ("stuff happening", parsed_root.c_str());
+
+	auto e = empty.clone();
+	auto c = content.clone();
+
+	ASSERT_TRUE(e->equals(empty));
+	ASSERT_TRUE(c->equals(content));
+
+	delete e;
+	delete c;
 }
 
 

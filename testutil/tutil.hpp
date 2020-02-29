@@ -39,8 +39,8 @@ void check_tensordata (teq::iTensor* xpc, teq::iTensor* got, const char* fname, 
 	auto gofnc = dynamic_cast<teq::iFunctor*>(got);
 	if (nullptr != exvar && nullptr != govar)
 	{
-		T* expect = (T*) exvar->data();
-		T* got = (T*) govar->data();
+		T* expect = (T*) exvar->device().data();
+		T* got = (T*) govar->device().data();
 		size_t n = eshape.n_elems();
 		ASSERT_TRUE(std::equal(expect, expect + n, got))
 			<< fname << ":" << lno << ": "
@@ -49,8 +49,8 @@ void check_tensordata (teq::iTensor* xpc, teq::iTensor* got, const char* fname, 
 	}
 	else if (nullptr != exfnc && nullptr != gofnc)
 	{
-		T* expect = (T*) exfnc->data();
-		T* got = (T*) gofnc->data();
+		T* expect = (T*) exfnc->device().data();
+		T* got = (T*) gofnc->device().data();
 		size_t n = eshape.n_elems();
 		ASSERT_TRUE(std::equal(expect, expect + n, got))
 			<< fname << ":" << lno << ": "
@@ -85,8 +85,8 @@ void check_tensordata_real (teq::iTensor* xpc, teq::iTensor* got, const char* fn
 	auto gofnc = dynamic_cast<teq::iFunctor*>(got);
 	if (nullptr != exvar && nullptr != govar)
 	{
-		T* expect = (T*) exvar->data();
-		T* got = (T*) govar->data();
+		T* expect = (T*) exvar->device().data();
+		T* got = (T*) govar->device().data();
 		size_t n = eshape.n_elems();
 		for (size_t i = 0; i < n; ++i)
 		{
@@ -98,8 +98,8 @@ void check_tensordata_real (teq::iTensor* xpc, teq::iTensor* got, const char* fn
 	}
 	else if (nullptr != exfnc && nullptr != gofnc)
 	{
-		T* expect = (T*) exfnc->data();
-		T* got = (T*) gofnc->data();
+		T* expect = (T*) exfnc->device().data();
+		T* got = (T*) gofnc->device().data();
 		size_t n = eshape.n_elems();
 		for (size_t i = 0; i < n; ++i)
 		{

@@ -1,6 +1,6 @@
 COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 
-COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' 'dbg/*' '**/mock/*'
+COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' '**/mock/*' '**/*.pb.h' '**/*.pb.cc' 'dbg/*' 'dbg/**/*' 'utils/*' 'utils/**/*' 'perf/*' 'perf/**/*'
 
 CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
 
@@ -20,18 +20,18 @@ QUERY_TEST := //query:test
 
 TEQ_TEST := //teq:test
 
-CC := clang
 
+.PHONY: protoc
+protoc:
+	mkdir ./build
+	bazel build @com_google_protobuf_custom//:protoc
+	cp bazel-bin/external/com_google_protobuf_custom/protoc ./build
 
-print_vars:
-	@echo "CC: " $(CC)
-
-rocnnet_py_build:
-	bazel build --config $(CC)_eigen_optimal //layr:layr_py
-
-rocnnet_py_export: bazel-bin/layr/layr.so bazel-bin/eteq/tenncor.so bazel-bin/eteq/eteq.so
-	cp -f bazel-bin/layr/*.so rocnnet/notebooks/layr
-	cp -f bazel-bin/eteq/*.so rocnnet/notebooks/eteq
+.PHONY: gen_proto
+gen_proto: protoc
+	./build/protoc --cpp_out=. -I . onnx/onnx.proto
+	./build/protoc --cpp_out=. -I . query/query.proto
+	./build/protoc --cpp_out=. -I . opt/optimize.proto
 
 
 onnx2json: onnx_test_o2j eteq_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j

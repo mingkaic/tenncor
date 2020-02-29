@@ -16,6 +16,8 @@
 
 #include "eteq/eteq.hpp"
 
+#include "generated/api.hpp"
+
 
 const std::string testdir = "models/test";
 

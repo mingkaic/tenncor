@@ -1,10 +1,10 @@
 
 # ------ ALL SETTINGS ------
 
-run --incompatible_depset_is_not_iterable=false --jobs=3
-build --incompatible_depset_is_not_iterable=false --jobs=3
-test --incompatible_depset_is_not_iterable=false --jobs=3
-coverage --incompatible_depset_is_not_iterable=false --jobs=3
+run --jobs=3
+build --jobs=3
+test --jobs=3
+coverage --jobs=3
 
 # ------ HARDWARE ------
 

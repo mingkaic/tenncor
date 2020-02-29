@@ -4,17 +4,21 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
+#include "teq/logs.hpp"
 #include "teq/teq.hpp"
 
 #include "dbg/print/teq_csv.hpp"
 
-#include "eteq/generated/pyapi.hpp"
 #include "eteq/etens.hpp"
+
+#include "generated/pyapi.hpp"
 
 namespace py = pybind11;
 
 PYBIND11_MODULE(print, m)
 {
+	LOG_INIT(logs::DefLogger);
+
 	m.doc() = "print teq graphs to stream";
 
 	m
@@ -97,7 +101,7 @@ PYBIND11_MODULE(print, m)
 				}
 				else
 				{
-					logs::warnf("failed to print graph to file `%s`",
+					teq::warnf("failed to print graph to file `%s`",
 						filename.c_str());
 				}
 			},
@@ -118,7 +122,7 @@ PYBIND11_MODULE(print, m)
 				}
 				else
 				{
-					logs::warnf("failed to write csv to file `%s`", filename.c_str());
+					teq::warnf("failed to write csv to file `%s`", filename.c_str());
 				}
 			},
 			"Stream csv of graph edges to file",
@@ -141,7 +145,7 @@ PYBIND11_MODULE(print, m)
 				}
 				else
 				{
-					logs::warnf("failed to write csv to file `%s`", filename.c_str());
+					teq::warnf("failed to write csv to file `%s`", filename.c_str());
 				}
 			},
 			"Return csv of graph edges of multiple roots to file",

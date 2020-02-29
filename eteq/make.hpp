@@ -1,5 +1,9 @@
+#include "eigen/packattr.hpp"
+
 #include "eteq/constant.hpp"
+#include "eteq/assign.hpp"
 #include "eteq/functor.hpp"
+#include "eteq/depend.hpp"
 
 #ifndef ETEQ_MAKE_HPP
 #define ETEQ_MAKE_HPP
@@ -75,7 +79,7 @@ ETensor<T> make_funcattr (egen::_GENERATED_OPCODE opcode,
 {
 	if (children.empty())
 	{
-		logs::fatalf("cannot %s without arguments", egen::name_op(opcode).c_str());
+		teq::fatalf("cannot %s without arguments", egen::name_op(opcode).c_str());
 	}
 
 	teq::ShapesT shapes;
@@ -110,7 +114,7 @@ ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
 }
 
 template <typename T>
-ETensor<T> make_layer (std::string layername,
+ETensor<T> make_layer (const std::string& layername,
 	teq::TensptrT input, teq::FuncptrT output)
 {
 	output->add_attr(teq::layer_key,

@@ -48,7 +48,7 @@ private:
 		marsh::Maps dup_attrs;
 		marsh::get_attrs(dup_attrs, func);
 		auto& attr_directions = target_dir.attrs_;
-		for (std::string attr : attr_directions)
+		for (const std::string& attr : attr_directions)
 		{
 			auto ref = static_cast<const teq::TensorRef*>(func.get_attr(attr));
 			auto ctens = ref->get_tensor();
@@ -221,7 +221,7 @@ ELayersT<T> load_layers (const onnx::ModelProto& model)
 	auto roots = load_model(ids, model);
 	if (roots.empty())
 	{
-		logs::fatal("failed to load model without roots");
+		teq::fatal("failed to load model without roots");
 	}
 	std::unordered_map<std::string,teq::TensptrT> encodings;
 	for (auto idpair : ids.right)
@@ -233,7 +233,7 @@ ELayersT<T> load_layers (const onnx::ModelProto& model)
 			case '_':
 			{
 				auto keys = fmts::split(id, key_delim);
-				for (std::string key : keys)
+				for (const std::string& key : keys)
 				{
 					encodings.emplace(key, tens);
 				}

@@ -59,7 +59,7 @@ struct Variable final : public iLeaf<T>
 	{
 		if (false == shape.compatible_after(this->shape_, 0))
 		{
-			logs::fatalf("assigning data shaped %s to tensor %s",
+			teq::fatalf("assigning data shaped %s to tensor %s",
 				shape.to_string().c_str(), this->shape_.to_string().c_str());
 		}
 		std::vector<T> data;
@@ -69,7 +69,7 @@ struct Variable final : public iLeaf<T>
 
 	void assign (const teq::iTensor& tens)
 	{
-		const void* input = tens.data();
+		const void* input = tens.device().data();
 		teq::Shape inshape = tens.shape();
 		egen::_GENERATED_DTYPE dtype =
 			(egen::_GENERATED_DTYPE) tens.type_code();

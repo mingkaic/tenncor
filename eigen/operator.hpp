@@ -46,7 +46,7 @@ inline std::array<T,N> dim_copy (std::vector<T> d)
 }
 
 #define _ARRAY_SWITCH(ARR, CASE)switch (ARR.size()) {\
-	case 0: logs::fatal("missing dimensions");\
+	case 0: teq::fatal("missing dimensions");\
 	case 1: CASE(ARR,1)\
 	case 2: CASE(ARR,2)\
 	case 3: CASE(ARR,3)\
@@ -61,7 +61,7 @@ inline std::array<T,N> dim_copy (std::vector<T> d)
 return make_eigentensor<T,\
 Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
 Eigen::internal::SumReducer<T>,N,T>>,TensMapT<T>>(\
-outdims, make_tensmap((T*) in.data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
+outdims, make_tensmap((T*) in.device().data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
 return in.sum(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is sum
@@ -82,7 +82,7 @@ EigenptrT reduce_sum (teq::Shape outshape, const teq::iTensor& in, const marsh::
 return make_eigentensor<T,\
 Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
 Eigen::internal::ProdReducer<T>,N,T>>,TensMapT<T>>(\
-outdims, make_tensmap((T*) in.data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
+outdims, make_tensmap((T*) in.device().data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
 return in.prod(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is prod
@@ -103,7 +103,7 @@ EigenptrT reduce_prod (teq::Shape outshape, const teq::iTensor& in, const marsh:
 return make_eigentensor<T,\
 Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
 Eigen::internal::MinReducer<T>,N,T>>,TensMapT<T>>(\
-outdims, make_tensmap((T*) in.data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
+outdims, make_tensmap((T*) in.device().data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
 return in.minimum(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is min
@@ -124,7 +124,7 @@ EigenptrT reduce_min (teq::Shape outshape, const teq::iTensor& in, const marsh::
 return make_eigentensor<T,\
 Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
 Eigen::internal::MaxReducer<T>,N,T>>,TensMapT<T>>(\
-outdims, make_tensmap((T*) in.data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
+outdims, make_tensmap((T*) in.device().data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
 return in.maximum(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is max
@@ -160,7 +160,7 @@ EigenptrT argmax (teq::Shape outshape, const teq::iTensor& in, const marsh::iAtt
 					const Eigen::array<Eigen::Index,teq::rank_cap>,
 					const TensMapT<T>>>>,
 			TensMapT<T>>(
-			outdims, make_tensmap((T*) in.data(), in.shape()),
+			outdims, make_tensmap((T*) in.device().data(), in.shape()),
 			[&outdims](TensMapT<T>& in)
 			{
 				return in.argmax().template cast<T>().reshape(outdims);
@@ -175,7 +175,7 @@ EigenptrT argmax (teq::Shape outshape, const teq::iTensor& in, const marsh::iAtt
 				const Eigen::array<Eigen::Index,1>,
 				const TensMapT<T>>>>,
 		TensMapT<T>>(
-		outdims, make_tensmap((T*) in.data(), in.shape()),
+		outdims, make_tensmap((T*) in.device().data(), in.shape()),
 		[return_dim, &outdims](TensMapT<T>& in)
 		{
 			return in.argmax(return_dim).template cast<T>().reshape(outdims);
@@ -195,7 +195,7 @@ EigenptrT extend (teq::Shape outshape, const teq::iTensor& in, const marsh::iAtt
 		std::min((size_t) teq::rank_cap, bcast.size()), coord.begin());
 	return make_eigentensor<T,Eigen::TensorBroadcastingOp<
 		const teq::ShapeT,const TensMapT<T>>,TensMapT<T>>(
-		shape_convert(outshape), make_tensmap((T*) in.data(), inshape),
+		shape_convert(outshape), make_tensmap((T*) in.device().data(), inshape),
 		[coord](TensMapT<T>& in)
 		{
 			return in.broadcast(coord);
@@ -228,7 +228,7 @@ EigenptrT permute (teq::Shape outshape, const teq::iTensor& in, const marsh::iAt
 		// use matrix when possible
 		return make_eigenmatrix<T,Eigen::Transpose<MatMapT<T>>,
 			MatMapT<T>>(
-			shape_convert(outshape), make_matmap((T*) in.data(), in.shape()),
+			shape_convert(outshape), make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return in.transpose();
@@ -236,7 +236,7 @@ EigenptrT permute (teq::Shape outshape, const teq::iTensor& in, const marsh::iAt
 	}
 	return make_eigentensor<T,Eigen::TensorShufflingOp<
 		const std::array<teq::RankT,teq::rank_cap>,TensMapT<T>>,TensMapT<T>>(
-		shape_convert(outshape), make_tensmap((T*) in.data(), in.shape()),
+		shape_convert(outshape), make_tensmap((T*) in.device().data(), in.shape()),
 		[reorder](TensMapT<T>& in)
 		{
 			return in.shuffle(reorder);
@@ -248,7 +248,7 @@ template <typename T>
 EigenptrT reshape (teq::Shape outshape, const teq::iTensor& in)
 {
 	return make_eigentensor<T,TensMapT<T>,TensMapT<T>>(
-		shape_convert(outshape), make_tensmap((T*) in.data(), in.shape()),
+		shape_convert(outshape), make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in){ return in; });
 }
 
@@ -283,7 +283,7 @@ EigenptrT slice (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttr
 		// the number of batches before start of output slice
 		// (a batch defined as the subtensor of shape shape[:lastdim])
 		return std::make_shared<PtrRef<T>>(
-			(T*) in.data() + index * batchsize);
+			(T*) in.device().data() + index * batchsize);
 	}
 	DimensionsT outdims = shape_convert(outshape);
 	return make_eigentensor<T,Eigen::TensorReshapingOp<
@@ -291,83 +291,10 @@ EigenptrT slice (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttr
 			const teq::ShapeT, const teq::ShapeT,
 			TensMapT<T>>>,
 		TensMapT<T>>(
-		outdims, make_tensmap((T*) in.data(), shape),
+		outdims, make_tensmap((T*) in.device().data(), shape),
 		[&offsets, &extents, &outdims](TensMapT<T>& in)
 		{
 			return in.slice(offsets, extents).reshape(outdims);
-		});
-}
-
-template <typename T>
-EigenptrT group_concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh::iAttributed& attrib)
-{
-	assert(group.size() > 1);
-	teq::RankT dimension;
-	Packer<teq::RankT>().unpack(dimension, attrib);
-
-	std::vector<TensMapT<T>> args;
-	args.reserve(group.size());
-	std::transform(group.begin(), group.end(), std::back_inserter(args),
-		[](teq::TensptrT arg)
-		{
-			return make_tensmap((T*) arg->data(), arg->shape());
-		});
-	std::array<Eigen::Index,teq::rank_cap-1> reshaped;
-	auto it = outshape.begin();
-	std::copy(it, it + dimension, reshaped.begin());
-	std::copy(it + dimension + 1, outshape.end(), reshaped.begin() + dimension);
-	return std::make_shared<TensAssign<T,std::vector<TensMapT<T>>>>(
-		0, shape_convert(outshape), args,
-		[dimension,reshaped](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
-		{
-			for (size_t i = 0, n = args.size(); i < n; ++i)
-			{
-				out.chip(i, dimension) = args[i].reshape(reshaped);
-			}
-		});
-}
-
-template <typename T>
-EigenptrT group_sum (teq::Shape outshape, const teq::TensptrsT& group)
-{
-	assert(group.size() > 2);
-	std::vector<TensMapT<T>> args;
-	args.reserve(group.size());
-	std::transform(group.begin(), group.end(), std::back_inserter(args),
-		[](teq::TensptrT arg)
-		{
-			return make_tensmap((T*) arg->data(), arg->shape());
-		});
-	return std::make_shared<TensAssign<T,std::vector<TensMapT<T>>>>(
-		0, shape_convert(outshape), args,
-		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
-		{
-			for (size_t i = 0, n = args.size(); i < n; ++i)
-			{
-				out += args[i];
-			}
-		});
-}
-
-template <typename T>
-EigenptrT group_prod (teq::Shape outshape, const teq::TensptrsT& group)
-{
-	assert(group.size() > 2);
-	std::vector<TensMapT<T>> args;
-	args.reserve(group.size());
-	std::transform(group.begin(), group.end(), std::back_inserter(args),
-		[](teq::TensptrT arg)
-		{
-			return make_tensmap((T*) arg->data(), arg->shape());
-		});
-	return std::make_shared<TensAssign<T,std::vector<TensMapT<T>>>>(
-		1, shape_convert(outshape), args,
-		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
-		{
-			for (size_t i = 0, n = args.size(); i < n; ++i)
-			{
-				out *= args[i];
-			}
 		});
 }
 
@@ -389,7 +316,7 @@ EigenptrT pad (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttrib
 			const TensMapT<T>
 		>,
 		TensMapT<T>>(
-		shape_convert(outshape), make_tensmap((T*) in.data(), in.shape()),
+		shape_convert(outshape), make_tensmap((T*) in.device().data(), in.shape()),
 		[&paddings](TensMapT<T>& in)
 		{
 			return in.pad(paddings);
@@ -412,7 +339,7 @@ EigenptrT stride (teq::Shape outshape, const teq::iTensor& in, const marsh::iAtt
 			TensMapT<T>
 		>,
 		TensMapT<T>>(
-		shape_convert(outshape), make_tensmap((T*) in.data(), in.shape()),
+		shape_convert(outshape), make_tensmap((T*) in.device().data(), in.shape()),
 		[&incrs](TensMapT<T>& in)
 		{
 			return in.stride(incrs);
@@ -432,8 +359,8 @@ EigenptrT scatter (teq::Shape outshape, const teq::iTensor& in, const marsh::iAt
 	std::fill(incrs.begin(), incrs.end(), 1);
 	std::copy(dims.begin(), dims.begin() +
 		std::min((size_t) teq::rank_cap, dims.size()), incrs.begin());
-	return std::make_shared<TensAssign<T,TensMapT<T>>>(
-		0, shape_convert(outshape), make_tensmap((T*) in.data(), in.shape()),
+	return std::make_shared<TensAccum<T,TensMapT<T>>>(
+		0, shape_convert(outshape), make_tensmap((T*) in.device().data(), in.shape()),
 		[incrs](TensorT<T>& out, const TensMapT<T>& in)
 		{
 			out.stride(incrs) = in;
@@ -457,7 +384,7 @@ EigenptrT reverse (teq::Shape outshape, const teq::iTensor& in, const marsh::iAt
 			TensMapT<T>
 		>,
 		TensMapT<T>>(
-		shape_convert(outshape), make_tensmap((T*) in.data(), in.shape()),
+		shape_convert(outshape), make_tensmap((T*) in.device().data(), in.shape()),
 		[&do_reverse](TensMapT<T>& in)
 		{
 			return in.reverse(do_reverse);
@@ -465,21 +392,46 @@ EigenptrT reverse (teq::Shape outshape, const teq::iTensor& in, const marsh::iAt
 }
 
 template <typename T>
-EigenptrT concat (teq::Shape outshape, const teq::iTensor& left, const teq::iTensor& right, const marsh::iAttributed& attrib)
+EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh::iAttributed& attrib)
 {
+	assert(group.size() > 1);
 	teq::RankT axis;
 	Packer<teq::RankT>().unpack(axis, attrib);
-
-	return make_eigentensor<T,
-		Eigen::TensorConcatenationOp<
-			const teq::RankT,TensMapT<T>,TensMapT<T>>,
-		std::vector<TensMapT<T>>>(
-		shape_convert(outshape), {
-			make_tensmap((T*) left.data(), left.shape()),
-			make_tensmap((T*) right.data(), right.shape())},
-		[axis](std::vector<TensMapT<T>>& args)
+	if (group.size() == 2)
+	{
+		const teq::TensptrT& left = group[0];
+		const teq::TensptrT& right = group[1];
+		return make_eigentensor<T,
+			Eigen::TensorConcatenationOp<
+				const teq::RankT,TensMapT<T>,TensMapT<T>>,
+			std::vector<TensMapT<T>>>(
+			shape_convert(outshape), {
+				make_tensmap((T*) left->device().data(), left->shape()),
+				make_tensmap((T*) right->device().data(), right->shape())},
+			[axis](std::vector<TensMapT<T>>& args)
+			{
+				return args[0].concatenate(args[1], axis);
+			});
+	}
+	std::vector<TensMapT<T>> args;
+	args.reserve(group.size());
+	std::transform(group.begin(), group.end(), std::back_inserter(args),
+		[](teq::TensptrT arg)
 		{
-			return args[0].concatenate(args[1], axis);
+			return make_tensmap((T*) arg->device().data(), arg->shape());
+		});
+	std::array<Eigen::Index,teq::rank_cap-1> reshaped;
+	auto it = outshape.begin();
+	std::copy(it, it + axis, reshaped.begin());
+	std::copy(it + axis + 1, outshape.end(), reshaped.begin() + axis);
+	return std::make_shared<TensAccum<T,std::vector<TensMapT<T>>>>(
+		0, shape_convert(outshape), args,
+		[axis,reshaped](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
+		{
+			for (size_t i = 0, n = args.size(); i < n; ++i)
+			{
+				out.chip(i, axis) = args[i].reshape(reshaped);
+			}
 		});
 }
 
@@ -494,7 +446,7 @@ EigenptrT abs (teq::Shape outshape, const teq::iTensor& in)
 		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
 			Eigen::internal::scalar_abs_op<T>,const MatMapT<T>>,
 			MatMapT<T>>(shape_convert(outshape),
-			make_matmap((T*) in.data(), in.shape()),
+			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return in.cwiseAbs();
@@ -503,7 +455,7 @@ EigenptrT abs (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		Eigen::internal::scalar_abs_op<T>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.abs();
@@ -521,7 +473,7 @@ EigenptrT neg (teq::Shape outshape, const teq::iTensor& in)
 		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
 			Eigen::internal::scalar_opposite_op<T>,const MatMapT<T>>,
 			MatMapT<T>>(shape_convert(outshape),
-			make_matmap((T*) in.data(), in.shape()),
+			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return -in;
@@ -530,7 +482,7 @@ EigenptrT neg (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		Eigen::internal::scalar_opposite_op<T>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return -in;
@@ -551,7 +503,7 @@ EigenptrT sin (teq::Shape outshape, const teq::iTensor& in)
 			return make_eigenmatrix<T,
 				typename Eigen::ArrayWrapper<MatMapT<T>>::SinReturnType,
 				MatMapT<T>>(shape_convert(outshape),
-				make_matmap((T*) in.data(), in.shape()),
+				make_matmap((T*) in.device().data(), in.shape()),
 				[](MatMapT<T>& in)
 				{
 					return in.array().sin();
@@ -562,7 +514,7 @@ EigenptrT sin (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		std::function<T(const T&)>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.unaryExpr(std::function<T(const T&)>(
@@ -587,7 +539,7 @@ EigenptrT cos (teq::Shape outshape, const teq::iTensor& in)
 			return make_eigenmatrix<T,
 				typename Eigen::ArrayWrapper<MatMapT<T>>::CosReturnType,
 				MatMapT<T>>(shape_convert(outshape),
-				make_matmap((T*) in.data(), in.shape()),
+				make_matmap((T*) in.device().data(), in.shape()),
 				[](MatMapT<T>& in)
 				{
 					return in.array().cos();
@@ -598,7 +550,7 @@ EigenptrT cos (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		std::function<T(const T&)>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.unaryExpr(std::function<T(const T&)>(
@@ -620,7 +572,7 @@ EigenptrT tan (teq::Shape outshape, const teq::iTensor& in)
 		return make_eigenmatrix<T,
 			typename Eigen::ArrayWrapper<MatMapT<T>>::TanReturnType,
 			MatMapT<T>>(shape_convert(outshape),
-			make_matmap((T*) in.data(), in.shape()),
+			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return in.array().tan();
@@ -629,7 +581,7 @@ EigenptrT tan (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		std::function<T(const T&)>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.unaryExpr(std::function<T(const T&)>(
@@ -651,7 +603,7 @@ EigenptrT exp (teq::Shape outshape, const teq::iTensor& in)
 		return make_eigenmatrix<T,
 			typename Eigen::ArrayWrapper<MatMapT<T>>::ExpReturnType,
 			MatMapT<T>>(shape_convert(outshape),
-			make_matmap((T*) in.data(), in.shape()),
+			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return in.array().exp();
@@ -660,7 +612,7 @@ EigenptrT exp (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		Eigen::internal::scalar_exp_op<T>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.exp();
@@ -678,7 +630,7 @@ EigenptrT log (teq::Shape outshape, const teq::iTensor& in)
 		return make_eigenmatrix<T,
 			typename Eigen::ArrayWrapper<MatMapT<T>>::LogReturnType,
 			MatMapT<T>>(shape_convert(outshape),
-			make_matmap((T*) in.data(), in.shape()),
+			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return in.array().log();
@@ -687,7 +639,7 @@ EigenptrT log (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		Eigen::internal::scalar_log_op<T>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.log();
@@ -705,7 +657,7 @@ EigenptrT sqrt (teq::Shape outshape, const teq::iTensor& in)
 		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
 			Eigen::internal::scalar_sqrt_op<T>,const MatMapT<T>>,
 			MatMapT<T>>(shape_convert(outshape),
-			make_matmap((T*) in.data(), in.shape()),
+			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return in.cwiseSqrt();
@@ -714,7 +666,7 @@ EigenptrT sqrt (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		Eigen::internal::scalar_sqrt_op<T>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.sqrt();
@@ -732,7 +684,7 @@ EigenptrT round (teq::Shape outshape, const teq::iTensor& in)
 		return make_eigenmatrix<T,
 			typename Eigen::ArrayWrapper<MatMapT<T>>::RoundReturnType,
 			MatMapT<T>>(shape_convert(outshape),
-			make_matmap((T*) in.data(), in.shape()),
+			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return in.array().round();
@@ -741,7 +693,7 @@ EigenptrT round (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		Eigen::internal::scalar_round_op<T>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.round();
@@ -757,7 +709,7 @@ EigenptrT sigmoid (teq::Shape outshape, const teq::iTensor& in)
 		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
 			Eigen::internal::scalar_logistic_op<T>,const MatMapT<T>>,
 			MatMapT<T>>(shape_convert(outshape),
-			make_matmap((T*) in.data(), in.shape()),
+			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return in.unaryExpr(Eigen::internal::scalar_logistic_op<T>());
@@ -766,7 +718,7 @@ EigenptrT sigmoid (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		Eigen::internal::scalar_logistic_op<T>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.sigmoid();
@@ -782,7 +734,7 @@ EigenptrT tanh (teq::Shape outshape, const teq::iTensor& in)
 		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
 			Eigen::internal::scalar_tanh_op<T>,const MatMapT<T>>,
 			MatMapT<T>>(shape_convert(outshape),
-			make_matmap((T*) in.data(), in.shape()),
+			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return in.unaryExpr(Eigen::internal::scalar_tanh_op<T>());
@@ -791,7 +743,7 @@ EigenptrT tanh (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		Eigen::internal::scalar_tanh_op<T>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.tanh();
@@ -807,7 +759,7 @@ EigenptrT square (teq::Shape outshape, const teq::iTensor& in)
 		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
 			Eigen::internal::scalar_square_op<T>,const MatMapT<T>>,
 			MatMapT<T>>(shape_convert(outshape),
-			make_matmap((T*) in.data(), in.shape()),
+			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return in.unaryExpr(Eigen::internal::scalar_square_op<T>());
@@ -816,7 +768,7 @@ EigenptrT square (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		Eigen::internal::scalar_square_op<T>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.square();
@@ -832,7 +784,7 @@ EigenptrT cube (teq::Shape outshape, const teq::iTensor& in)
 		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
 			Eigen::internal::scalar_cube_op<T>,const MatMapT<T>>,
 			MatMapT<T>>(shape_convert(outshape),
-			make_matmap((T*) in.data(), in.shape()),
+			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in)
 			{
 				return in.unaryExpr(Eigen::internal::scalar_cube_op<T>());
@@ -841,7 +793,7 @@ EigenptrT cube (teq::Shape outshape, const teq::iTensor& in)
 	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
 		Eigen::internal::scalar_cube_op<T>,const TensMapT<T>>,
 		TensMapT<T>>(shape_convert(outshape),
-		make_tensmap((T*) in.data(), in.shape()),
+		make_tensmap((T*) in.device().data(), in.shape()),
 		[](TensMapT<T>& in)
 		{
 			return in.cube();
@@ -861,8 +813,8 @@ EigenptrT pow (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 			std::function<T(const T&,const T&)>,
 			const MatMapT<T>,const MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0].binaryExpr(args[1],
@@ -877,8 +829,8 @@ EigenptrT pow (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 		std::function<T(const T&,const T&)>,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
+			make_tensmap((T*) a.device().data(), a.shape()),
+			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
 			return args[0].binaryExpr(args[1],
@@ -891,31 +843,53 @@ EigenptrT pow (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 }
 
 template <typename T>
-EigenptrT add (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT add (teq::Shape outshape, const teq::TensptrsT& group)
 {
-	if (is_2d(outshape))
+	assert(group.size() > 1);
+	if (group.size() == 2)
 	{
-		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
+		const teq::TensptrT& a = group[0];
+		const teq::TensptrT& b = group[1];
+		if (is_2d(outshape))
+		{
+			// use matrix when possible
+			return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
+				Eigen::internal::scalar_sum_op<T>,
+				const MatMapT<T>,const MatMapT<T>>,
+				std::vector<MatMapT<T>>>(shape_convert(outshape), {
+					make_matmap((T*) a->device().data(), a->shape()),
+					make_matmap((T*) b->device().data(), b->shape())},
+				[](std::vector<MatMapT<T>>& args)
+				{
+					return args[0] + args[1];
+				});
+		}
+		return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
 			Eigen::internal::scalar_sum_op<T>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			const TensMapT<T>,const TensMapT<T>>,
+			std::vector<TensMapT<T>>>(shape_convert(outshape), {
+				make_tensmap((T*) a->device().data(), a->shape()),
+				make_tensmap((T*) b->device().data(), b->shape())},
+			[](std::vector<TensMapT<T>>& args)
 			{
 				return args[0] + args[1];
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		Eigen::internal::scalar_sum_op<T>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+	std::vector<TensMapT<T>> args;
+	args.reserve(group.size());
+	std::transform(group.begin(), group.end(), std::back_inserter(args),
+		[](teq::TensptrT arg)
 		{
-			return args[0] + args[1];
+			return make_tensmap((T*) arg->device().data(), arg->shape());
+		});
+	return std::make_shared<TensAccum<T,std::vector<TensMapT<T>>>>(
+		0, shape_convert(outshape), args,
+		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
+		{
+			for (size_t i = 0, n = args.size(); i < n; ++i)
+			{
+				out += args[i];
+			}
 		});
 }
 
@@ -932,8 +906,8 @@ EigenptrT sub (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 			Eigen::internal::scalar_difference_op<T>,
 			const MatMapT<T>,const MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0] - args[1];
@@ -943,8 +917,8 @@ EigenptrT sub (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 		Eigen::internal::scalar_difference_op<T>,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
+			make_tensmap((T*) a.device().data(), a.shape()),
+			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
 			return args[0] - args[1];
@@ -952,31 +926,53 @@ EigenptrT sub (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 }
 
 template <typename T>
-EigenptrT mul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+EigenptrT mul (teq::Shape outshape, const teq::TensptrsT& group)
 {
-	if (is_2d(outshape))
+	assert(group.size() > 1);
+	if (group.size() == 2)
 	{
-		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
+		const teq::TensptrT& a = group[0];
+		const teq::TensptrT& b = group[1];
+		if (is_2d(outshape))
+		{
+			// use matrix when possible
+			return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
+				Eigen::internal::scalar_product_op<T>,
+				const MatMapT<T>,const MatMapT<T>>,
+				std::vector<MatMapT<T>>>(shape_convert(outshape), {
+					make_matmap((T*) a->device().data(), a->shape()),
+					make_matmap((T*) b->device().data(), b->shape())},
+				[](std::vector<MatMapT<T>>& args)
+				{
+					return args[0].cwiseProduct(args[1]);
+				});
+		}
+		return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
 			Eigen::internal::scalar_product_op<T>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			const TensMapT<T>,const TensMapT<T>>,
+			std::vector<TensMapT<T>>>(shape_convert(outshape), {
+				make_tensmap((T*) a->device().data(), a->shape()),
+				make_tensmap((T*) b->device().data(), b->shape())},
+			[](std::vector<TensMapT<T>>& args)
 			{
-				return args[0].cwiseProduct(args[1]);
+				return args[0] * args[1];
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		Eigen::internal::scalar_product_op<T>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+	std::vector<TensMapT<T>> args;
+	args.reserve(group.size());
+	std::transform(group.begin(), group.end(), std::back_inserter(args),
+		[](teq::TensptrT arg)
 		{
-			return args[0] * args[1];
+			return make_tensmap((T*) arg->device().data(), arg->shape());
+		});
+	return std::make_shared<TensAccum<T,std::vector<TensMapT<T>>>>(
+		1, shape_convert(outshape), args,
+		[](TensorT<T>& out, const std::vector<TensMapT<T>>& args)
+		{
+			for (size_t i = 0, n = args.size(); i < n; ++i)
+			{
+				out *= args[i];
+			}
 		});
 }
 
@@ -993,8 +989,8 @@ EigenptrT div (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 			Eigen::internal::scalar_quotient_op<T>,
 			const MatMapT<T>,const MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0].cwiseQuotient(args[1]);
@@ -1004,8 +1000,8 @@ EigenptrT div (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 		Eigen::internal::scalar_quotient_op<T>,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
+			make_tensmap((T*) a.device().data(), a.shape()),
+			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
 			return args[0] / args[1];
@@ -1025,8 +1021,8 @@ EigenptrT eq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 			std::function<T(const T&,const T&)>,
 			const MatMapT<T>,const MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0].binaryExpr(args[1],
@@ -1041,8 +1037,8 @@ EigenptrT eq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 		std::function<T(const T&,const T&)>,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
+			make_tensmap((T*) a.device().data(), a.shape()),
+			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
 			return args[0].binaryExpr(args[1],
@@ -1067,8 +1063,8 @@ EigenptrT neq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 			std::function<T(const T&,const T&)>,
 			const MatMapT<T>,const MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0].binaryExpr(args[1],
@@ -1083,8 +1079,8 @@ EigenptrT neq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 		std::function<T(const T&,const T&)>,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
+			make_tensmap((T*) a.device().data(), a.shape()),
+			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
 			return args[0].binaryExpr(args[1],
@@ -1109,8 +1105,8 @@ EigenptrT lt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 			std::function<T(const T&,const T&)>,
 			const MatMapT<T>,const MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0].binaryExpr(args[1],
@@ -1125,8 +1121,8 @@ EigenptrT lt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 		std::function<T(const T&,const T&)>,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
+			make_tensmap((T*) a.device().data(), a.shape()),
+			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
 			return args[0].binaryExpr(args[1],
@@ -1151,8 +1147,8 @@ EigenptrT gt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 			std::function<T(const T&,const T&)>,
 			const MatMapT<T>,const MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0].binaryExpr(args[1],
@@ -1167,8 +1163,8 @@ EigenptrT gt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 		std::function<T(const T&,const T&)>,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
+			make_tensmap((T*) a.device().data(), a.shape()),
+			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
 			return args[0].binaryExpr(args[1],
@@ -1192,8 +1188,8 @@ EigenptrT min (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 			Eigen::internal::scalar_min_op<T,T>,
 			const MatMapT<T>,const MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0].cwiseMin(args[1]);
@@ -1203,8 +1199,8 @@ EigenptrT min (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 		Eigen::internal::scalar_min_op<T>,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
+			make_tensmap((T*) a.device().data(), a.shape()),
+			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
 			return args[0].cwiseMin(args[1]);
@@ -1223,8 +1219,8 @@ EigenptrT max (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 			Eigen::internal::scalar_max_op<T,T>,
 			const MatMapT<T>,const MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0].cwiseMax(args[1]);
@@ -1234,8 +1230,8 @@ EigenptrT max (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 		Eigen::internal::scalar_max_op<T>,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
+			make_tensmap((T*) a.device().data(), a.shape()),
+			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
 			return args[0].cwiseMax(args[1]);
@@ -1255,24 +1251,30 @@ EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::i
 			std::function<T(const T&,const T&)>,
 			const MatMapT<T>,const MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
+				Randomizer rand;
 				return args[0].binaryExpr(args[1],
-					std::function<T(const T&,const T&)>(unif<T>));
+					std::function<T(const T&,const T&)>(
+						[rand](const T& a, const T& b)
+						{ return rand.unif<T>(a, b); }));
 			});
 	}
 	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
 		std::function<T(const T&,const T&)>,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) a.data(), a.shape()),
-			make_tensmap((T*) b.data(), b.shape())},
+			make_tensmap((T*) a.device().data(), a.shape()),
+			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
+			Randomizer rand;
 			return args[0].binaryExpr(args[1],
-				std::function<T(const T&,const T&)>(unif<T>));
+				std::function<T(const T&,const T&)>(
+					[rand](const T& a, const T& b)
+					{ return rand.unif<T>(a, b); }));
 		});
 }
 
@@ -1289,9 +1291,9 @@ EigenptrT select (teq::Shape outshape, const teq::iTensor& condition,
 		return make_eigenmatrix<T,Eigen::Select<MatMapT<T>,
 			MatMapT<T>,MatMapT<T>>,std::vector<MatMapT<T>>>(
 			shape_convert(outshape), {
-			make_matmap((T*) condition.data(), condition.shape()),
-			make_matmap((T*) then.data(), then.shape()),
-			make_matmap((T*) otherwise.data(), otherwise.shape())},
+			make_matmap((T*) condition.device().data(), condition.shape()),
+			make_matmap((T*) then.device().data(), then.shape()),
+			make_matmap((T*) otherwise.device().data(), otherwise.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0].select(args[1], args[2]);
@@ -1301,9 +1303,9 @@ EigenptrT select (teq::Shape outshape, const teq::iTensor& condition,
 		Eigen::TensorSelectOp<const TensMapT<T>,
 			const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) condition.data(), condition.shape()),
-			make_tensmap((T*) then.data(), then.shape()),
-			make_tensmap((T*) otherwise.data(), otherwise.shape())},
+			make_tensmap((T*) condition.device().data(), condition.shape()),
+			make_tensmap((T*) then.device().data(), then.shape()),
+			make_tensmap((T*) otherwise.device().data(), otherwise.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
 			return args[0].select(args[1], args[2]);
@@ -1340,8 +1342,8 @@ EigenptrT matmul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 	{
 		return make_eigenmatrix<T,Eigen::Product<MatMapT<T>,MatMapT<T>>,
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
-				make_matmap((T*) a.data(), a.shape()),
-				make_matmap((T*) b.data(), b.shape())},
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
 				return args[0] * args[1];
@@ -1349,8 +1351,8 @@ EigenptrT matmul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 	}
 	DimensionsT outdims = shape_convert(outshape);
 	std::vector<TensMapT<T>> args = {
-		make_tensmap((T*) a.data(), a.shape()),
-		make_tensmap((T*) b.data(), b.shape())};
+		make_tensmap((T*) a.device().data(), a.shape()),
+		make_tensmap((T*) b.device().data(), b.shape())};
 	_ARRAY_SWITCH(dims, _EIGEN_MATMUL_CASE);
 }
 
@@ -1372,7 +1374,7 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 		teq::RankT d = order[i];
 		if (visited[d])
 		{
-			logs::fatalf("convolution does not support repeated kernel "
+			teq::fatalf("convolution does not support repeated kernel "
 				"dimensions: %s", fmts::to_string(
 					order.begin(), order.end()).c_str());
 		}
@@ -1383,7 +1385,7 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 	{
 		if (kshape.at(i) > 1)
 		{
-			logs::fatalf("given kernel shape %s, unspecified "
+			teq::fatalf("given kernel shape %s, unspecified "
 				"non-singular kernel dimension %d is undefined",
 					kshape.to_string().c_str(), i);
 		}
@@ -1401,8 +1403,8 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 		const teq::ShapeT,
 		const TensMapT<T>,const TensMapT<T>>,
 		std::vector<TensMapT<T>>>(shape_convert(outshape), {
-			make_tensmap((T*) input.data(), input.shape()),
-			make_tensmap((T*) kernel.data(), kernel.shape())},
+			make_tensmap((T*) input.device().data(), input.shape()),
+			make_tensmap((T*) kernel.device().data(), kernel.shape())},
 		[&](std::vector<TensMapT<T>>& args)
 		{
 			return args[0].convolve(args[1], dims);
@@ -1410,6 +1412,66 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 }
 
 #undef _ARRAY_SWITCH
+
+template <typename T>
+EigenptrT assign (teq::iTensor& target, const teq::iTensor& source)
+{
+	SrcRef<T>& tar = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(tar,
+		make_tensmap((T*) source.device().data(), source.shape()),
+		[](TensorT<T>& target, TensMapT<T>& src)
+		{
+			target = src;
+		});
+}
+
+template <typename T>
+EigenptrT assign_add (teq::iTensor& target, const teq::iTensor& source)
+{
+	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
+		make_tensmap((T*) source.device().data(), source.shape()),
+		[](TensorT<T>& target, TensMapT<T>& src)
+		{
+			target += src;
+		});
+}
+
+template <typename T>
+EigenptrT assign_sub (teq::iTensor& target, const teq::iTensor& source)
+{
+	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
+		make_tensmap((T*) source.device().data(), source.shape()),
+		[](TensorT<T>& target, TensMapT<T>& src)
+		{
+			target -= src;
+		});
+}
+
+template <typename T>
+EigenptrT assign_mul (teq::iTensor& target, const teq::iTensor& source)
+{
+	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
+		make_tensmap((T*) source.device().data(), source.shape()),
+		[](TensorT<T>& target, TensMapT<T>& src)
+		{
+			target *= src;
+		});
+}
+
+template <typename T>
+EigenptrT assign_div (teq::iTensor& target, const teq::iTensor& source)
+{
+	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
+		make_tensmap((T*) source.device().data(), source.shape()),
+		[](TensorT<T>& target, TensMapT<T>& src)
+		{
+			target /= src;
+		});
+}
 
 }
 

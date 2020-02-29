@@ -3,10 +3,14 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "eteq/generated/pyapi.hpp"
+#include "teq/logs.hpp"
+
 #include "eteq/etens.hpp"
 
 #include "query/query.hpp"
+#include "query/parse.hpp"
+
+#include "generated/pyapi.hpp"
 
 namespace py = pybind11;
 
@@ -15,7 +19,15 @@ namespace pyquery
 
 struct Statement final
 {
-	std::shared_ptr<query::search::OpTrieT> sindex_;
+	Statement (teq::TensptrsT tens) : tracked_(tens)
+	{
+		for (auto ten : tens)
+		{
+			ten->accept(sindex_);
+		}
+	}
+
+	query::Query sindex_;
 
 	teq::TensptrsT tracked_;
 };
@@ -24,6 +36,8 @@ struct Statement final
 
 PYBIND11_MODULE(query, m)
 {
+	LOG_INIT(logs::DefLogger);
+
 	m.doc() = "query teq graphs";
 
 	py::class_<pyquery::Statement> stmt(m, "Statement");
@@ -32,28 +46,27 @@ PYBIND11_MODULE(query, m)
 			[](eteq::ETensorsT<PybindT> roots)
 			{
 				teq::TensptrsT rtens(roots.begin(), roots.end());
-				pyquery::Statement out{
-					std::make_shared<query::search::OpTrieT>(), rtens
-				};
-				query::search::populate_itable(*(out.sindex_), rtens);
-				return out;
+				return pyquery::Statement(rtens);
 			}),
 			"Create query statement from roots")
 		.def("find",
 			[](pyquery::Statement& self, std::string condition)
 			{
-				teq::TensSetT results;
 				std::stringstream ss;
 				ss << condition;
-				query::Query(*self.sindex_).where(results, ss);
+				query::Node cond;
+				query::json_parse(cond, ss);
+
+				auto results = self.sindex_.match(cond);
 				teq::OwnerMapT owners = teq::track_owners(self.tracked_);
 				eteq::ETensorsT<PybindT> eresults;
 				eresults.reserve(results.size());
 				std::transform(results.begin(), results.end(),
 					std::back_inserter(eresults),
-					[&](teq::iTensor* result)
+					[&](query::QueryResult& result)
 					{
-						return eteq::ETensor<PybindT>(owners.at(result).lock());
+						return eteq::ETensor<PybindT>(
+							owners.at(result.root_).lock());
 					});
 				return eresults;
 			});

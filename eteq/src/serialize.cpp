@@ -37,20 +37,13 @@ static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 	}
 		break;
 	default:
-		logs::fatal("cannot unpack leaf of unknown usage");
+		teq::fatal("cannot unpack leaf of unknown usage");
 	}
 	return out;
 }
 
-template <typename T>
-static inline teq::TensptrT convert_func (std::string opname,
-	const teq::TensptrsT& children, marsh::Maps&& attrs)
-{
-	return Functor<T>::get(egen::get_op(opname), children, std::move(attrs));
-}
-
 #define _OUT_GENFUNC(realtype)\
-func = Functor<realtype>::get(opcode, children, std::move(attrs));
+func = make_funcattr<realtype>(opcode, children, attrs);
 
 #define _OUT_GENLAYR(realtype)\
 layer = make_layer<realtype>(opname, child, f);
@@ -81,7 +74,7 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 
 	void marsh_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf) const override
 	{
-		char* data = (char*) leaf.data();
+		char* data = (char*) leaf.device().data();
 		size_t nelems = leaf.shape().n_elems();
 		auto type_code = (egen::_GENERATED_DTYPE) leaf.type_code();
 		auto code_name = egen::name_type(type_code);
@@ -130,7 +123,7 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 					&onnx::TensorProto::add_int64_data);
 				break;
 			default:
-				logs::fatalf("unknown onnx type %d (aka %s)",
+				teq::fatalf("unknown onnx type %d (aka %s)",
 					onnx_type, code_name.c_str());
 		}
 	}
@@ -189,7 +182,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 // 				break;
 // #endif
 			default:
-				logs::fatalf("unknown onnx type %d", onnx_type);
+				teq::fatalf("unknown onnx type %d", onnx_type);
 		}
 		return out;
 	}
@@ -199,13 +192,13 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 	{
 		if (children.empty())
 		{
-			logs::fatalf("cannot generate func %s without args", opname.c_str());
+			teq::fatalf("cannot generate func %s without args", opname.c_str());
 		}
 		egen::_GENERATED_OPCODE opcode = egen::get_op(opname);
-		size_t gencode = children.front()->type_code();
-		teq::iFunctor* func = nullptr;
-		TYPE_LOOKUP(_OUT_GENFUNC, (egen::_GENERATED_DTYPE) gencode);
-		return teq::TensptrT(func);
+		auto gencode = (egen::_GENERATED_DTYPE) children.front()->type_code();
+		teq::TensptrT func;
+		TYPE_LOOKUP(_OUT_GENFUNC, gencode);
+		return func;
 	}
 
 	teq::TensptrT unmarsh_layr (std::string opname,

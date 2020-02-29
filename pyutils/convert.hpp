@@ -13,7 +13,9 @@ namespace py = pybind11;
 
 std::vector<teq::DimT> c2pshape (const teq::Shape& cshape);
 
-teq::Shape p2cshape (std::vector<py::ssize_t>& pyshape);
+teq::Shape p2cshape (const py::list& pyshape);
+
+teq::Shape p2cshape (const py::ssize_t* pslist, size_t ndim);
 
 template <typename T>
 py::array shapedarr2arr (const teq::ShapedArr<T>& sarr)
@@ -30,8 +32,8 @@ void arr2shapedarr (teq::ShapedArr<T>& out, py::array& data)
 	auto dtype = data.dtype();
 	const void* dptr = data.data();
 	const py::ssize_t* sptr = data.shape();
-	std::vector<py::ssize_t> slist(sptr, sptr + data.ndim());
-	out.shape_ = p2cshape(slist);
+	size_t ndim = data.ndim();
+	out.shape_ = p2cshape(sptr, ndim);
 	size_t n = out.shape_.n_elems();
 	char kind = dtype.kind();
 	py::ssize_t tbytes = dtype.itemsize();
@@ -53,7 +55,7 @@ void arr2shapedarr (teq::ShapedArr<T>& out, py::array& data)
 				}
 					break;
 				default:
-					logs::fatalf("unsupported float type with %d bytes", tbytes);
+					teq::fatalf("unsupported float type with %d bytes", tbytes);
 			}
 			break;
 		case 'i':
@@ -84,11 +86,11 @@ void arr2shapedarr (teq::ShapedArr<T>& out, py::array& data)
 				}
 					break;
 				default:
-					logs::fatalf("unsupported integer type with %d bytes", tbytes);
+					teq::fatalf("unsupported integer type with %d bytes", tbytes);
 			}
 			break;
 		default:
-			logs::fatalf("unknown dtype %c", kind);
+			teq::fatalf("unknown dtype %c", kind);
 	}
 }
 

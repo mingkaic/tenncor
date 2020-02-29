@@ -6,14 +6,14 @@
 /// Define functions for saving teq graph
 ///
 
+#ifndef ONNX_SAVE_HPP
+#define ONNX_SAVE_HPP
+
 #include <list>
 
 #include "teq/traveler.hpp"
 
 #include "onnx/marshal.hpp"
-
-#ifndef ONNX_SAVE_HPP
-#define ONNX_SAVE_HPP
 
 namespace onnx
 {

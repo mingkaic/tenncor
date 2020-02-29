@@ -2,6 +2,8 @@
 
 #include "teq/ifunctor.hpp"
 
+#include "teq/mock/leaf.hpp"
+
 #ifndef TEQ_MOCK_FUNCTOR_HPP
 #define TEQ_MOCK_FUNCTOR_HPP
 
@@ -39,7 +41,7 @@ struct MockFunctor : public teq::iFunctor
 		return children_;
 	}
 
-	const marsh::iObject* get_attr (std::string attr_name) const override
+	const marsh::iObject* get_attr (const std::string& attr_name) const override
 	{
 		return attrs_.get_attr(attr_name);
 	}
@@ -49,12 +51,12 @@ struct MockFunctor : public teq::iFunctor
 		return attrs_.ls_attrs();
 	}
 
-	void add_attr (std::string attr_key, marsh::ObjptrT&& attr_val) override
+	void add_attr (const std::string& attr_key, marsh::ObjptrT&& attr_val) override
 	{
 		attrs_.add_attr(attr_key, std::move(attr_val));
 	}
 
-	void rm_attr (std::string attr_key) override
+	void rm_attr (const std::string& attr_key) override
 	{
 		attrs_.rm_attr(attr_key);
 	}

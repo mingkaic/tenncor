@@ -29,13 +29,22 @@ namespace pyegen
 //>>> modname
 PYBIND11_MODULE({modname}, m_{modname})
 {{
-    m_{modname}.doc() = "pybind for {modname} api";
+	LOG_INIT(logs::DefLogger);
+	DEVICE_INIT(eigen::Device);
+	RANDOM_INIT;
 
-    //>>> modname
-    py::class_<teq::iTensor,teq::TensptrT> tensor(m_{modname}, "Tensor");
+	m_{modname}.doc() = "pybind for {modname} api";
 
-    //>>> defs
-    {defs}
+	//>>> modname
+	py::class_<teq::iTensor,teq::TensptrT> tensor(m_{modname}, "Tensor");
+
+	//>>> defs
+	{defs}
+
+#ifdef CUSTOM_PYBIND_EXT
+	CUSTOM_PYBIND_EXT(m_{modname})
+#endif
+
 }}
 '''
 
@@ -62,7 +71,7 @@ def _remove_template(stmt):
 _func_fmt = '''
 {outtype} {funcname}_{idx} ({param_decl})
 {{
-    return {namespace}::{funcname}({args});
+	return {namespace}::{funcname}({args});
 }}
 '''
 def _mangle_func(idx, api, namespace):
@@ -107,7 +116,8 @@ def _parse_header_args(arg):
 
 def _parse_description(arg):
     if 'description' in arg:
-        description = ': {}'.format(arg['description'])
+        full_description = ' '.join(arg['description'].split('\n'))
+        description = ': {}'.format(full_description)
     else:
         description = ''
     outtype = 'teq::TensptrT'
@@ -310,7 +320,10 @@ class PyAPIsPlugin:
                     '"pybind11/pybind11.h"',
                     '"pybind11/stl.h"',
                     '"pybind11/operators.h"',
-                ],
+                    '"teq/config.hpp"',
+                    '"eigen/device.hpp"',
+                    '"eigen/random.hpp"',
+                ] + api.get('pybind_includes', []),
                 internal_refs=[_hdr_file, api_header])
 
         return generated_files
