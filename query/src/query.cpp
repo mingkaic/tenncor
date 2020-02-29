@@ -6,6 +6,11 @@
 namespace query
 {
 
+inline bool doub_eq (const double& a, const double& b)
+{
+	return std::fabs(a - b) < std::numeric_limits<float>::epsilon();
+}
+
 bool equals (const marsh::iObject* attr,
 	const query::Attribute& pba, const Query& matcher)
 {
@@ -21,14 +26,14 @@ bool equals (const marsh::iObject* attr,
 		case query::Attribute::kDnum:
 			if (auto num = dynamic_cast<const marsh::iNumber*>(attr))
 			{
-				match = pba.dnum() == num->to_float64();
+				match = doub_eq(pba.dnum(), num->to_float64());
 			}
 			break;
 		case query::Attribute::kIarr:
 			if (auto narr = dynamic_cast<const marsh::iArray*>(attr))
 			{
 				const auto& arr = pba.iarr().values();
-				if ((size_t) arr.size() == narr->size())
+				if ((size_t) arr.size() == narr->size() && narr->is_integral())
 				{
 					match = true;
 					narr->foreach(
@@ -45,7 +50,7 @@ bool equals (const marsh::iObject* attr,
 			if (auto narr = dynamic_cast<const marsh::iArray*>(attr))
 			{
 				const auto& arr = pba.darr().values();
-				if ((size_t) arr.size() == narr->size())
+				if ((size_t) arr.size() == narr->size() && false == narr->is_integral())
 				{
 					match = true;
 					narr->foreach(
@@ -53,7 +58,7 @@ bool equals (const marsh::iObject* attr,
 					{
 						auto num = dynamic_cast<const marsh::iNumber*>(obj.get());
 						match = match &&
-							nullptr != num && arr[i] == num->to_float64();
+							nullptr != num && doub_eq(arr[i], num->to_float64());
 					});
 				}
 			}
