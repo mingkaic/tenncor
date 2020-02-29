@@ -5,7 +5,7 @@ from collections import defaultdict
 
 import tenncor as tc
 
-from rocnnet.extenncor.embed import make_embedding
+from extenncor.embed import make_embedding
 
 text = "natural language processing and machine learning is fun and exciting"
 np.random.seed(0)
