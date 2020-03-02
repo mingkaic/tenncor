@@ -5,17 +5,24 @@ services:
 
 jobs:
   include:
-    - stage: build docker image
+    - stage: build test docker image
       script:
         - git checkout ${TRAVIS_BRANCH}
         - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-        - docker build -t $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT} .
+        - docker build -f Dockerfile.test -t $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT} .
         - docker images
         - docker push $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT}
     - stage: test everything
       script:
         - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN}
           --rm $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT}
+    - stage: build docker image with C++ and python library
+      script:
+        - git checkout ${TRAVIS_BRANCH}
+        - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        - docker build -t $DOCKER_USERNAME/tenncor:${TRAVIS_COMMIT} .
+        - docker images
+        - docker push $DOCKER_USERNAME/tenncor:${TRAVIS_COMMIT}
     # - stage: fast test
     #   script:
     #     - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN}

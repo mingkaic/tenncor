@@ -1,7 +1,5 @@
 FROM mkaichen/bazel_cpp:latest
 
-RUN pip3 install tensorflow==1.14.0
-
 ENV APP_DIR /usr/src/tenncor
 
 RUN mkdir -p $APP_DIR
@@ -9,6 +7,6 @@ WORKDIR $APP_DIR
 
 COPY . $APP_DIR
 RUN apt-get update && apt-get install -y curl
-RUN pip3 install -r requirements.txt
+RUN pip3 install numpy pyyaml
 
-ENTRYPOINT [ "./tests.sh" ]
+RUN bazel build --config gcc_eigen_optimal //:tenncor_py
