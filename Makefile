@@ -20,6 +20,39 @@ QUERY_TEST := //query:test
 
 TEQ_TEST := //teq:test
 
+IMAGE_REPO := mkaichen
+IMAGE_TAG := latest
+
+
+all: build_test_image build_lib_image build_image
+
+.PHONY: build_test_image
+build_test_image:
+	docker build -f Dockerfile.test -t ${IMAGE_REPO}/tenncor-test:${IMAGE_TAG} .
+
+.PHONY: build_lib_image
+build_lib_image:
+	docker build -f Dockerfile.make -t ${IMAGE_REPO}/tenncor-build:${IMAGE_TAG} .
+	docker tag ${IMAGE_REPO}/tenncor-build:${IMAGE_TAG} ${IMAGE_REPO}/tenncor-build:latest
+
+.PHONY: build_image
+build_image: build_lib_image
+	docker build -f Dockerfile -t ${IMAGE_REPO}/tenncor:${IMAGE_TAG} .
+
+push: push_test_image push_lib_image
+
+.PHONY: push_test_image
+push_test_image:
+	docker push ${IMAGE_REPO}/tenncor-test:${IMAGE_TAG}
+
+.PHONY: push_lib_image
+push_lib_image:
+	docker push ${IMAGE_REPO}/tenncor-build:${IMAGE_TAG}
+
+.PHONY: push_image
+push_image:
+	docker push ${IMAGE_REPO}/tenncor:${IMAGE_TAG}
+
 
 .PHONY: protoc
 protoc:
