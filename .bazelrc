@@ -20,10 +20,10 @@ build:clang_eigen_optimal --copt="-march=native" --copt="-openmp" --copt="-O3"
 test:clang_eigen_optimal --copt="-march=native" --copt="-openmp" --copt="-O3"
 coverage:clang_eigen_optimal --copt="-march=native" --copt="-openmp" --copt="-O3"
 
-run:gcc_eigen_optimal --copt="-march=native" --copt="-fopenmp" --copt="-O3"
-build:gcc_eigen_optimal --copt="-march=native" --copt="-fopenmp" --copt="-O3"
-test:gcc_eigen_optimal --copt="-march=native" --copt="-fopenmp" --copt="-O3"
-coverage:gcc_eigen_optimal --copt="-march=native" --copt="-fopenmp" --copt="-O3"
+run:gcc_eigen_optimal --linkopt="-lgomp" --copt="-march=native" --copt="-fopenmp" --copt="-O3"
+build:gcc_eigen_optimal --linkopt="-lgomp" --copt="-march=native" --copt="-fopenmp" --copt="-O3"
+test:gcc_eigen_optimal --linkopt="-lgomp" --copt="-march=native" --copt="-fopenmp" --copt="-O3"
+coverage:gcc_eigen_optimal --linkopt="-lgomp" --copt="-march=native" --copt="-fopenmp" --copt="-O3"
 
 # ------ TEST & COVERAGE SETTINGS ------
 
