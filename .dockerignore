@@ -1,5 +1,7 @@
 bazel-*
 .*
+Dockerfile
+Dockerfile.*
 
 !.git
 !.bazelrc

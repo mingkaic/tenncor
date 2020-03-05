@@ -5,25 +5,25 @@ services:
 
 jobs:
   include:
-    - stage: build docker image
+    - stage: build test docker image
       script:
         - git checkout ${TRAVIS_BRANCH}
         - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-        - docker build -t $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT} .
+        - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=travis-${TRAVIS_COMMIT} build_test_image
         - docker images
-        - docker push $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT}
+        - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=travis-${TRAVIS_COMMIT} push_test_image
     - stage: test everything
       script:
         - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN}
-          --rm $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT}
-    # - stage: fast test
+          --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT}
+    # disable making docker due to long build times
+    # - stage: build docker image with C++ and python library
     #   script:
-    #     - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN}
-    #       --rm $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT} fast
-    # - stage: slow test
-    #   script:
-    #     - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN}
-    #       --rm $DOCKER_USERNAME/tenncor-test:travis-${TRAVIS_COMMIT} slow
+    #     - git checkout ${TRAVIS_BRANCH}
+    #     - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+    #     - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=${TRAVIS_COMMIT} build_lib_image
+    #     - docker images
+    #     - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=${TRAVIS_COMMIT} push_lib_image
 
 notifications:
   email: false
