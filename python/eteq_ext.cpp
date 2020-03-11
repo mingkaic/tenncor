@@ -38,17 +38,17 @@ void eteq_ext (py::module& m)
 			});
 
 	// ==== etens ====
-	auto etens = (py::class_<pyead::ETensT>) m.attr("ETensor");
+	auto etens = (py::class_<pyeteq::ETensT>) m.attr("ETensor");
 
 	etens
 		.def(py::init<teq::TensptrT>())
 		.def("__str__",
-			[](pyead::ETensT& self)
+			[](pyeteq::ETensT& self)
 			{
 				return self->to_string();
 			})
 		.def("shape",
-			[](pyead::ETensT& self)
+			[](pyeteq::ETensT& self)
 			{
 				teq::Shape shape = self->shape();
 				auto pshape = pyutils::c2pshape(shape);
@@ -57,14 +57,14 @@ void eteq_ext (py::module& m)
 			},
 			"Return this instance's shape")
 		.def("get",
-			[](pyead::ETensT& self)
+			[](pyeteq::ETensT& self)
 			{
-				return pyead::typedata_to_array<PybindT>(
+				return pyeteq::typedata_to_array<PybindT>(
 					*self, py::dtype::of<PybindT>());
 			});
 
 	// ==== variable ====
-	py::class_<eteq::EVariable<PybindT>,pyead::ETensT> evar(m, "EVariable");
+	py::class_<eteq::EVariable<PybindT>,pyeteq::ETensT> evar(m, "EVariable");
 
 	evar
 		.def(py::init(
@@ -89,7 +89,7 @@ void eteq_ext (py::module& m)
 
 	elayer
 		.def(py::init(
-			[](pyead::ETensT root, pyead::ETensT input)
+			[](pyeteq::ETensT root, pyeteq::ETensT input)
 			{
 				return eteq::ELayer<PybindT>(
 					estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root), input);
@@ -105,9 +105,9 @@ void eteq_ext (py::module& m)
 				return estores;
 			})
 		.def("root",
-			[](eteq::ELayer<PybindT>& self) -> pyead::ETensT
+			[](eteq::ELayer<PybindT>& self) -> pyeteq::ETensT
 			{
-				return pyead::ETensT(self.root());
+				return pyeteq::ETensT(self.root());
 			})
 		.def("input", &eteq::ELayer<PybindT>::input);
 
@@ -123,7 +123,7 @@ void eteq_ext (py::module& m)
 				troots.reserve(roots.size());
 				std::transform(roots.begin(), roots.end(),
 					std::back_inserter(troots),
-					[](pyead::ETensT& etens)
+					[](pyeteq::ETensT& etens)
 					{
 						return etens;
 					});
@@ -131,29 +131,29 @@ void eteq_ext (py::module& m)
 			})
 		.def("update",
 			[](teq::iSession* self,
-				std::vector<pyead::ETensT> ignored)
+				std::vector<pyeteq::ETensT> ignored)
 			{
 				teq::TensSetT ignored_set;
-				for (pyead::ETensT& etens : ignored)
+				for (pyeteq::ETensT& etens : ignored)
 				{
 					ignored_set.emplace(etens.get());
 				}
 				self->update(ignored_set);
 			},
 			"Calculate every etens in the graph given list of nodes to ignore",
-			py::arg("ignored") = std::vector<pyead::ETensT>{})
+			py::arg("ignored") = std::vector<pyeteq::ETensT>{})
 		.def("update_target",
 			[](teq::iSession* self,
-				std::vector<pyead::ETensT> targeted,
-				std::vector<pyead::ETensT> ignored)
+				std::vector<pyeteq::ETensT> targeted,
+				std::vector<pyeteq::ETensT> ignored)
 			{
 				teq::TensSetT targeted_set;
 				teq::TensSetT ignored_set;
-				for (pyead::ETensT& etens : targeted)
+				for (pyeteq::ETensT& etens : targeted)
 				{
 					targeted_set.emplace(etens.get());
 				}
-				for (pyead::ETensT& etens : ignored)
+				for (pyeteq::ETensT& etens : ignored)
 				{
 					ignored_set.emplace(etens.get());
 				}
@@ -161,8 +161,13 @@ void eteq_ext (py::module& m)
 			},
 			"Calculate etens relevant to targets in the graph given list of nodes to ignore",
 			py::arg("targeted"),
-			py::arg("ignored") = std::vector<pyead::ETensT>{})
-		.def("get_tracked", &teq::iSession::get_tracked);
+			py::arg("ignored") = std::vector<pyeteq::ETensT>{})
+		.def("get_tracked",
+			[](teq::iSession& self)
+			{
+				auto tracked = self.get_tracked();
+				return pyeteq::ETensorsT(tracked.begin(), tracked.end());
+			});
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
@@ -197,7 +202,7 @@ void eteq_ext (py::module& m)
 			py::arg("slist"),
 			py::arg("label") = "")
 		.def("variable_like",
-			[](PybindT scalar, pyead::ETensT like, std::string label)
+			[](PybindT scalar, pyeteq::ETensT like, std::string label)
 			{
 				return eteq::make_variable_like<PybindT>(
 					scalar, (teq::TensptrT) like, label);
@@ -221,8 +226,8 @@ void eteq_ext (py::module& m)
 		.def("derive", &eteq::derive<PybindT>,
 			"Return derivative of first tensor with respect to second tensor")
 
-		.def("trail", [](const pyead::ETensT& root,
-			const std::vector<pyead::ETensPairT>& inps)
+		.def("trail", [](const pyeteq::ETensT& root,
+			const std::vector<pyeteq::ETensPairT>& inps)
 			{
 				teq::TensMapT<teq::TensptrT> inputs;
 				for (const auto& inp : inps)

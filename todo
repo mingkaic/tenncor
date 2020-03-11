@@ -6,7 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - save sessions
    - implement reliable training harness
       - periodically caching data
       - save environment state + historic record

@@ -194,6 +194,18 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 		{
 			teq::fatalf("cannot generate func %s without args", opname.c_str());
 		}
+		if (opname == depname)
+		{
+			auto obs = std::dynamic_pointer_cast<Observable>(children.front());
+			if (nullptr == obs)
+			{
+				teq::fatal("cannot depend on a non-observable");
+			}
+			auto depit = children.begin() + obs->get_children().size() + 1;
+			auto depet = children.end();
+			return teq::TensptrT(eteq::Depends::get(obs,
+				teq::TensptrsT(depit, depet)));
+		}
 		egen::_GENERATED_OPCODE opcode = egen::get_op(opname);
 		auto gencode = (egen::_GENERATED_DTYPE) children.front()->type_code();
 		teq::TensptrT func;

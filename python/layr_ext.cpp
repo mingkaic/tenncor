@@ -241,13 +241,38 @@ void layr_ext(py::module& m)
 				return pb_model.SerializeToOstream(&output);
 			})
 		.def("load_session_file",
-			[](teq::iSession& sess, std::string filename)
+			[](const std::string& filename, teq::iSession& sess)
 			{
-				//
+				std::ifstream input(filename);
+				if (false == input.is_open())
+				{
+					teq::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				if (false == pb_model.ParseFromIstream(&input))
+				{
+					teq::fatalf("failed to parse onnx from %s",
+						filename.c_str());
+				}
+				onnx::TensptrIdT ids;
+std::cout << "loading" << std::endl;
+				auto roots = eteq::load_model(ids, pb_model);
+std::cout << "loaded" << std::endl;
+				sess.track(roots);
+				input.close();
 			})
 		.def("save_session_file",
 			[](const std::string& filename, const teq::iSession& sess)
 			{
-				//
+				auto troots = sess.get_tracked();
+				std::ofstream output(filename);
+				if (false == output.is_open())
+				{
+					teq::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				onnx::TensIdT ids;
+				eteq::save_model(pb_model, teq::TensptrsT(troots.begin(), troots.end()), ids);
+				return pb_model.SerializeToOstream(&output);
 			});
 }
