@@ -10,8 +10,11 @@
 #include "eteq/eteq.hpp"
 #include "eteq/optimize.hpp"
 
-#include "dbg/psess/plugin_sess.hpp"
-#include "dbg/psess/emit/emitter.hpp"
+#include "generated/pyapi.hpp"
+#include "generated/api.hpp"
+
+// #include "dbg/psess/plugin_sess.hpp"
+// #include "dbg/psess/emit/emitter.hpp"
 
 #include "layr/layer.hpp"
 #include "trainer/sgd.hpp"
@@ -93,10 +96,10 @@ int main (int argc, const char** argv)
 	std::vector<teq::DimT> n_outs = {9, n_out};
 
 	eteq::ELayer<PybindT> model = layr::link<PybindT>({
-		layr::dense<PybindT>(teq::Shape({n_in}), {n_hid},
+		tenncor::layer::dense<PybindT>(teq::Shape({n_in}), {n_hid},
 			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
 		layr::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
-		layr::dense<PybindT>(teq::Shape({n_hid}), {n_out},
+		tenncor::layer::dense<PybindT>(teq::Shape({n_hid}), {n_out},
 			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
 		layr::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
 	});
@@ -129,22 +132,23 @@ int main (int argc, const char** argv)
 	layr::ApproxF<PybindT> approx =
 		[](const layr::VarMapT<PybindT>& leaves)
 		{
-			return layr::sgd<PybindT>(leaves, 0.9); // learning rate = 0.9
+			return tenncor::approx::sgd<PybindT>(leaves, 0.9); // learning rate = 0.9
 		};
-	emit::Emitter emitter("localhost:50051");
-	dbg::PluginSession sess(eigen::default_device());
-	sess.plugins_.push_back(emitter);
+	// emit::Emitter emitter("localhost:50051");
+	// dbg::PluginSession sess(eigen::default_device());
+	// sess.plugins_.push_back(emitter);
+	auto sess = eigen::get_session();
 	{
 
-	jobs::ScopeGuard defer(
-		[&emitter]
-		{
-			// 10 seconds
-			std::chrono::time_point<std::chrono::system_clock> deadline =
-				std::chrono::system_clock::now() +
-				std::chrono::seconds(10);
-			emitter.join_then_stop(deadline);
-		});
+	// jobs::ScopeGuard defer(
+	// 	[&emitter]
+	// 	{
+	// 		// 10 seconds
+	// 		std::chrono::time_point<std::chrono::system_clock> deadline =
+	// 			std::chrono::system_clock::now() +
+	// 			std::chrono::seconds(10);
+	// 		emitter.join_then_stop(deadline);
+	// 	});
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));

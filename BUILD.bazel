@@ -138,17 +138,17 @@ py_binary(
 
 ######### DEMOS #########
 
-# cc_binary(
-#     name = "cgd_demo",
-#     srcs = ["demo/gd_demo.cpp"],
-#     copts = ["-std=c++17"],
-#     deps = [
-#         "//:tenncor",
-#         "//dbg:emit_plugin",
-#         "@com_github_mingkaic_cppkg//flag:flag",
-#     ],
-#     data = ["//:models", "//cfg:optimizations"],
-# )
+cc_binary(
+    name = "cgd_demo",
+    srcs = ["demo/gd_demo.cpp"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//:tenncor",
+        # "//dbg:emit_plugin",
+        "@com_github_mingkaic_cppkg//flag:flag",
+    ],
+    data = ["//:models", "//cfg:optimizations"],
+)
 
 py_binary(
     name = "gd_demo",

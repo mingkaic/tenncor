@@ -255,9 +255,7 @@ void layr_ext(py::module& m)
 						filename.c_str());
 				}
 				onnx::TensptrIdT ids;
-std::cout << "loading" << std::endl;
 				auto roots = eteq::load_model(ids, pb_model);
-std::cout << "loaded" << std::endl;
 				sess.track(roots);
 				input.close();
 			})

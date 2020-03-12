@@ -56,7 +56,7 @@ push_image:
 
 .PHONY: protoc
 protoc:
-	mkdir ./build
+	mkdir -p ./build
 	bazel build @com_google_protobuf_custom//:protoc
 	cp bazel-bin/external/com_google_protobuf_custom/protoc ./build
 

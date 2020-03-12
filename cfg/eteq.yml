@@ -1622,7 +1622,7 @@ api:
                       auto update = ::tenncor::sigmoid(ugate.connect(xc));
                       auto reset = ::tenncor::sigmoid(rgate.connect(xc));
                       auto hidden = ::tenncor::tanh(hgate.connect(
-                          ::tenncor::concat(inslice, ::tenncor::mul(reset,state), 0)));
+                          ::tenncor::concat(inslice,::tenncor::mul(reset,state),0)));
                       state = ::tenncor::add(::tenncor::mul(update,state),
                           ::tenncor::mul(::tenncor::sub((T)1,update),hidden));
                       states.push_back(state);
