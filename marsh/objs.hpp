@@ -365,12 +365,6 @@ struct Maps final : public iObject, public iAttributed
 		marshaler.marshal(*this);
 	}
 
-	const iObject* get_attr (const std::string& attr_key) const override
-	{
-		return estd::has(contents_, attr_key) ?
-			contents_.at(attr_key).get() : nullptr;
-	}
-
 	std::vector<std::string> ls_attrs (void) const override
 	{
 		std::vector<std::string> out;
@@ -381,6 +375,18 @@ struct Maps final : public iObject, public iAttributed
 		}
 		std::sort(out.begin(), out.end());
 		return out;
+	}
+
+	const iObject* get_attr (const std::string& attr_key) const override
+	{
+		return estd::has(contents_, attr_key) ?
+			contents_.at(attr_key).get() : nullptr;
+	}
+
+	iObject* get_attr (const std::string& attr_key) override
+	{
+		return estd::has(contents_, attr_key) ?
+			contents_.at(attr_key).get() : nullptr;
 	}
 
 	void add_attr (const std::string& attr_key, ObjptrT&& attr_val) override
