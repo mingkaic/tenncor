@@ -121,6 +121,9 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 	estd::NumRange<T> outrange;
 	switch (opcode.code_)
 	{
+		case egen::IDENTITY:
+			outrange = ranges.front();
+			break;
 		case egen::ABS:
 		{
 			std::vector<T> bounds = {std::abs(ranges[0].lower_), std::abs(ranges[0].upper_)};

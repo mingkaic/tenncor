@@ -144,6 +144,7 @@ struct iArray : public iObject
 	}
 };
 
+// Array containing Heterogeneous typed objects
 struct ObjArray final : public iArray
 {
 	ObjArray* clone (void) const
@@ -236,6 +237,7 @@ private:
 	}
 };
 
+// Homogeneous variant of ObjArray
 template <typename T, typename std::enable_if<
 	std::is_base_of<iObject,T>::value>::type* = nullptr>
 struct PtrArray final : public iArray

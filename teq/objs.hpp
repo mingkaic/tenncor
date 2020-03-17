@@ -173,11 +173,7 @@ private:
 	TensptrT input_;
 };
 
-using LayerptrT = std::unique_ptr<teq::LayerObj>;
-
-using LayerArrayT = marsh::PtrArray<teq::LayerObj>;
-
-const std::string layers_key = "layers";
+const std::string layer_key = "layer";
 
 }
 

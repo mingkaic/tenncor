@@ -223,7 +223,7 @@ private:
 		for (auto attr : attrs)
 		{
 			auto attrval = func.get_attr(attr);
-			if (auto tens_attr = dynamic_cast<const TensorObj*>(attrval))
+			if (auto tens_attr = dynamic_cast<const TensorRef*>(attrval))
 			{
 				auto tens = tens_attr->get_tensor();
 				std::string label;
@@ -243,32 +243,6 @@ private:
 						}
 					}
 				}
-			}
-			else if (auto layers_attr = dynamic_cast<const LayerArrayT*>(attrval))
-			{
-				layers_attr->foreach(
-					[&](size_t i, const marsh::iObject* obj)
-					{
-						auto layer = estd::must_cast<const LayerObj>(obj);
-						auto tens = layer->get_tensor();
-						std::string label;
-						if (estd::get(label, targets_, tens.get()))
-						{
-							nexts[label].attrs_.push_back(attr);
-						}
-						else
-						{
-							tens->accept(*this);
-							if (estd::has(roadmap_, tens.get()))
-							{
-								auto& subnode = roadmap_.at(tens.get());
-								for (auto& spair : subnode)
-								{
-									nexts[spair.first].attrs_.push_back(attr);
-								}
-							}
-						}
-					});
 			}
 		}
 		if (false == nexts.empty())

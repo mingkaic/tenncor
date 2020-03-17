@@ -64,26 +64,10 @@ void eteq_ext (py::module& m)
 			})
 
 		// layer extensions
-		.def("get_input",
-			[](pyeteq::ETensT& self, const std::string& layername)
-			{
-				return eteq::get_input(layername, self);
-			})
-		.def("connect",
-			[](pyeteq::ETensT& self, const std::string& layername, pyeteq::ETensT& input)
-			{
-				return eteq::connect(layername, self, input);
-			})
-		.def("deep_clone",
-			[](pyeteq::ETensT& self, const std::string& layername)
-			{
-				return eteq::deep_clone(layername, self);
-			})
-		.def("get_storage",
-			[](pyeteq::ETensT& self, const std::string& layername)
-			{
-				return eteq::get_storage(layername, self);
-			});
+		.def("get_input", eteq::get_input<PybindT>)
+		.def("connect", eteq::connect<PybindT>)
+		.def("deep_clone", eteq::deep_clone<PybindT>)
+		.def("get_storage", eteq::get_storage<PybindT>);
 
 	// ==== variable ====
 	py::class_<eteq::EVariable<PybindT>,pyeteq::ETensT> evar(m, "EVariable");

@@ -57,14 +57,14 @@ struct DQNInfo final
 template <typename T>
 struct DQNTrainer final
 {
-	DQNTrainer (const std::string& layername, eteq::ETensor<T>& model,
+	DQNTrainer (eteq::ETensor<T>& model,
 		teq::iSession& sess, layr::ApproxF<T> update, const DQNInfo<T>& param,
 		layr::UnaryF<T> gradprocess = layr::UnaryF<T>()) :
-		layername_(layername), sess_(&sess), params_(param),
-		source_model_(model), target_model_(eteq::deep_clone(layername, model)),
+		sess_(&sess), params_(param), source_model_(model),
+		target_model_(eteq::deep_clone(model)),
 		get_random_(eigen::Randomizer().unif_gen<T>(0, 1))
 	{
-		teq::DimT indim = eteq::get_input(layername, model)->shape().at(0);
+		teq::DimT indim = eteq::get_input(model)->shape().at(0);
 		teq::DimT outdim = model->shape().at(0);
 		teq::Shape batchin({indim, params_.mini_batch_size_});
 		teq::Shape batchout({outdim, params_.mini_batch_size_});
@@ -78,11 +78,11 @@ struct DQNTrainer final
 		output_mask_ = eteq::make_variable_scalar<T>(0, batchout, "action_mask");
 
 		// forward action score computation
-		output_ = eteq::connect(layername_, source_model_, input_);
-		train_out_ = eteq::connect(layername_, source_model_, train_input_);
+		output_ = eteq::connect(source_model_, input_);
+		train_out_ = eteq::connect(source_model_, train_input_);
 
 		// predicting target future rewards
-		next_output_ = eteq::connect(layername_, target_model_, next_input_);
+		next_output_ = eteq::connect(target_model_, next_input_);
 
 		auto target_values = next_output_mask_ *
 			tenncor::reduce_max_1d(next_output_, 0);
@@ -95,8 +95,8 @@ struct DQNTrainer final
 		prediction_error_ = tenncor::reduce_mean(tenncor::square(
 			masked_output_score - future_reward_));
 
-		eteq::VarptrsT<T> source_vars = eteq::get_storage(layername_, source_model_);
-		eteq::VarptrsT<T> target_vars = eteq::get_storage(layername_, target_model_);
+		eteq::VarptrsT<T> source_vars = eteq::get_storage(source_model_);
+		eteq::VarptrsT<T> target_vars = eteq::get_storage(target_model_);
 		size_t nvars = source_vars.size();
 		assert(nvars == target_vars.size());
 
@@ -287,8 +287,6 @@ private:
 	// === scalar parameters ===
 	// training parameters
 	DQNInfo<T> params_;
-
-	std::string layername_;
 
 	// source network
 	eteq::ETensor<T> source_model_;

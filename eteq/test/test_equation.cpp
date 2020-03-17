@@ -890,7 +890,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 	eteq::ETensor<double> layer_in(eteq::make_variable_scalar<double>(0, teq::Shape({5, 3})));
 	auto layer = tenncor::nn::rnn(layer_in, state, cell,
 		layr::UnaryF<double>(tenncor::tanh<double>), seq_dim);
-	auto output = eteq::connect(layr::rnn_name, layer, in);
+	auto output = eteq::connect(layer, in);
 
 	auto err = tenncor::pow(out - output, 2.);
 

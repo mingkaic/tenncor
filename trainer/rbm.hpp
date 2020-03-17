@@ -103,8 +103,8 @@ layr::VarMapT<T> cd_grad_approx (CDChainIO<T>& io,
 	io.visible_mean_ = tenncor::sigmoid(model.backward_connect(chain_it));
 	io.hidden_mean_ = tenncor::sigmoid(model.connect(io.visible_mean_));
 
-	eteq::VarptrsT<T> fcontent = eteq::get_storage(layr::dense_name, model.fwd_);
-	eteq::VarptrsT<T> bcontent = eteq::get_storage(layr::dense_name, model.bwd_);
+	eteq::VarptrsT<T> fcontent = eteq::get_storage(model.fwd_);
+	eteq::VarptrsT<T> bcontent = eteq::get_storage(model.bwd_);
 	std::unordered_map<std::string,eteq::VarptrT<T>> vars;
 	for (eteq::VarptrT<T> var : fcontent)
 	{

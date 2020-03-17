@@ -33,24 +33,6 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 
 	void marshal (const marsh::iArray& arr) override
 	{
-		if (auto layers = dynamic_cast<const teq::LayerArrayT*>(&arr))
-		{
-			out_->set_type(AttributeProto::GRAPHS);
-			layers->foreach(
-				[&](size_t i, const marsh::iObject* obj)
-				{
-					GraphProto* graph = out_->add_graphs();
-					auto layer = estd::must_cast<const teq::LayerObj>(obj);
-
-					ValueInfoProto* pb_place = graph->add_input();
-					auto input = layer->get_tensor();
-					auto id = estd::must_getf(tensid_, input.get(),
-						"cannot find subgraph input '%s'", input->to_string().c_str());
-					pb_place->set_name(id);
-					graph->set_name(layer->to_string());
-				});
-			return;
-		}
 		std::vector<std::string> strs;
 		std::vector<int64_t> ints;
 		std::vector<double> floats;
@@ -120,7 +102,15 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 
 	void marshal (const teq::LayerObj& layer) override
 	{
-		// ignore: since marshaler resolves graph info
+		out_->set_type(AttributeProto::GRAPH);
+		GraphProto* graph = out_->mutable_g();
+
+		ValueInfoProto* pb_place = graph->add_input();
+		auto input = layer.get_tensor();
+		auto id = estd::must_getf(tensid_, input.get(),
+			"cannot find subgraph input '%s'", input->to_string().c_str());
+		pb_place->set_name(id);
+		graph->set_name(layer.to_string());
 	}
 
 	AttributeProto* out_;
@@ -233,32 +223,26 @@ void unmarshal_attrs (marsh::Maps& out,
 					"cannot find tensor id %s", id.c_str()));
 			}
 				break;
-			case AttributeProto::GRAPHS:
-				if (attr_name == teq::layers_key)
+			case AttributeProto::GRAPH:
+				if (attr_name == teq::layer_key)
 				{
-					auto& graphs = pb_attr.graphs();
-					auto layers = new teq::LayerArrayT();
-					for (const GraphProto& graph : graphs)
+					auto& graph = pb_attr.g();
+					auto& inputs = graph.input();
+					if (inputs.size() == 0)
 					{
-						auto& inputs = graph.input();
-						if (inputs.size() == 0)
-						{
-							teq::fatal("cannot unmarshal graph without inputs");
-						}
-						const ValueInfoProto& pb_input = inputs.Get(0);
-						std::string input_id = pb_input.name();
-						std::string layername = graph.name();
-						teq::TensptrT input = estd::must_getf(
-							identified_tens.right, input_id,
-							"cannot find graph input %s", input_id.c_str());
-						layers->contents_.push_back(
-							std::make_unique<teq::LayerObj>(layername, input));
+						teq::fatal("cannot unmarshal graph without inputs");
 					}
-					val = layers;
+					const ValueInfoProto& pb_input = inputs.Get(0);
+					std::string input_id = pb_input.name();
+					std::string layername = graph.name();
+					teq::TensptrT input = estd::must_getf(
+						identified_tens.right, input_id,
+						"cannot find graph input %s", input_id.c_str());
+					val = new teq::LayerObj(layername, input);
 				}
 				else
 				{
-					teq::warnf("unknown graphs attribute %s",
+					teq::warnf("unknown graph attribute %s",
 						attr_name.c_str());
 				}
 				break;

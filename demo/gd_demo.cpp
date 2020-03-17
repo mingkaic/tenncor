@@ -95,16 +95,16 @@ int main (int argc, const char** argv)
 	uint8_t n_out = n_in / 2;
 	std::vector<teq::DimT> n_outs = {9, n_out};
 
-	eteq::ETensor<PybindT> model = layr::link<PybindT>({
-		{layr::dense_name, tenncor::layer::dense<PybindT>(teq::Shape({n_in}), {n_hid},
-			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>())},
-		{layr::bind_name, layr::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>))},
-		{layr::dense_name, tenncor::layer::dense<PybindT>(teq::Shape({n_hid}), {n_out},
-			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>())},
-		{layr::bind_name, layr::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>))},
+	eteq::ETensor<PybindT> model = tenncor::layer::link<PybindT>({
+		tenncor::layer::dense<PybindT>(teq::Shape({n_in}), {n_hid},
+			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
+		tenncor::layer::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
+		tenncor::layer::dense<PybindT>(teq::Shape({n_hid}), {n_out},
+			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
+		tenncor::layer::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
 	});
-	eteq::ETensor<PybindT> untrained_model = eteq::deep_clone(layr::link_name, model);
-	eteq::ETensor<PybindT> trained_model = eteq::deep_clone(layr::link_name, model);
+	eteq::ETensor<PybindT> untrained_model = eteq::deep_clone(model);
+	eteq::ETensor<PybindT> trained_model = eteq::deep_clone(model);
 
 	std::ifstream loadstr(loadpath);
 	try
@@ -153,18 +153,17 @@ int main (int argc, const char** argv)
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
-	auto train_err = trainer::sgd(layr::link_name, model,
+	auto train_err = trainer::sgd(model,
 		eteq::ETensor<PybindT>(train_input),
 		eteq::ETensor<PybindT>(train_output), approx);
 	sess.track({train_err});
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");
-	auto untrained_out = eteq::connect(layr::link_name,
+	auto untrained_out = eteq::connect(
 		untrained_model, eteq::ETensor<PybindT>(testin));
-	auto out = eteq::connect(layr::link_name,
-		model, eteq::ETensor<PybindT>(testin));
-	auto trained_out = eteq::connect(layr::link_name,
+	auto out = eteq::connect(model, eteq::ETensor<PybindT>(testin));
+	auto trained_out = eteq::connect(
 		trained_model, eteq::ETensor<PybindT>(testin));
 	sess.track({untrained_out, out, trained_out});
 

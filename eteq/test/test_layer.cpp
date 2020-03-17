@@ -32,17 +32,19 @@ TEST(LAYER, Dense)
 		eteq::ETensor<float>(weight2));
 
 	EXPECT_GRAPHEQ(
-		"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
-		" `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
-		" |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
-		" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
-		" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
-		"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", biasedy);
+		"(IDENTITY[5\\2\\1\\1\\1\\1\\1\\1])\n"
+		" `--(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
+		"     |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"     |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", biasedy);
 
 	EXPECT_GRAPHEQ(
-		"(MATMUL[6\\2\\1\\1\\1\\1\\1\\1])\n"
-		" `--(variable:x2[7\\2\\1\\1\\1\\1\\1\\1])\n"
-		" `--(variable:weight[6\\7\\1\\1\\1\\1\\1\\1])", y);
+		"(IDENTITY[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		" `--(MATMUL[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(variable:x2[7\\2\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(variable:weight[6\\7\\1\\1\\1\\1\\1\\1])", y);
 }
 
 
@@ -61,7 +63,7 @@ TEST(LAYER, DenseSerialization)
 			0, teq::Shape({noutput}), "bias");
 		auto y = tenncor::nn::dense(eteq::ETensor<float>(x),
 			eteq::ETensor<float>(weight), eteq::ETensor<float>(bias));
-		eteq::VarptrsT<float> contents = eteq::get_storage(layr::dense_name, y);
+		eteq::VarptrsT<float> contents = eteq::get_storage(y);
 		ASSERT_EQ(2, contents.size());
 		EXPECT_ARRHAS(contents, weight);
 		EXPECT_ARRHAS(contents, bias);
@@ -71,12 +73,13 @@ TEST(LAYER, DenseSerialization)
 		weight_data = std::vector<float>(w, w + weight->shape().n_elems());
 		bias_data = std::vector<float>(b, b + bias->shape().n_elems());
 		EXPECT_GRAPHEQ(
-			"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			" `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			" |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
-			" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
-			" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", y);
+			"(IDENTITY[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			" `--(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"     `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"     |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+			"     |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
+			"     `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"         `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", y);
 
 		eteq::save_model(model, {y});
 	}
@@ -89,12 +92,13 @@ TEST(LAYER, DenseSerialization)
 		ASSERT_EQ(1, roots.size());
 
 		EXPECT_GRAPHEQ(
-			"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			" `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			" |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
-			" |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
-			" `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			"     `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", roots.front());
+			"(IDENTITY[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			" `--(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"     `--(MATMUL[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"     |   `--(variable:x[6\\2\\1\\1\\1\\1\\1\\1])\n"
+			"     |   `--(variable:weight[5\\6\\1\\1\\1\\1\\1\\1])\n"
+			"     `--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"         `--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", roots.front());
 	}
 }
 
@@ -114,15 +118,16 @@ TEST(LAYER, Conv)
 		eteq::ETensor<float>(weight), eteq::ETensor<float>(bias));
 
 	EXPECT_GRAPHEQ(
-		"(ADD[3\\6\\4\\2\\1\\1\\1\\1])\n"
-		" `--(PERMUTE[3\\6\\4\\2\\1\\1\\1\\1])\n"
-		" |   `--(CONV[1\\6\\4\\2\\3\\1\\1\\1])\n"
-		" |       `--(PAD[4\\10\\9\\2\\5\\1\\1\\1])\n"
-		" |       |   `--(variable:x[4\\10\\9\\2\\1\\1\\1\\1])\n"
-		" |       `--(REVERSE[3\\4\\5\\6\\1\\1\\1\\1])\n"
-		" |           `--(variable:weight[3\\4\\5\\6\\1\\1\\1\\1])\n"
-		" `--(EXTEND[3\\6\\4\\2\\1\\1\\1\\1])\n"
-		"     `--(variable:bias[3\\1\\1\\1\\1\\1\\1\\1])", y);
+		"(IDENTITY[3\\6\\4\\2\\1\\1\\1\\1])\n"
+		" `--(ADD[3\\6\\4\\2\\1\\1\\1\\1])\n"
+		"     `--(PERMUTE[3\\6\\4\\2\\1\\1\\1\\1])\n"
+		"     |   `--(CONV[1\\6\\4\\2\\3\\1\\1\\1])\n"
+		"     |       `--(PAD[4\\10\\9\\2\\5\\1\\1\\1])\n"
+		"     |       |   `--(variable:x[4\\10\\9\\2\\1\\1\\1\\1])\n"
+		"     |       `--(REVERSE[3\\4\\5\\6\\1\\1\\1\\1])\n"
+		"     |           `--(variable:weight[3\\4\\5\\6\\1\\1\\1\\1])\n"
+		"     `--(EXTEND[3\\6\\4\\2\\1\\1\\1\\1])\n"
+		"         `--(variable:bias[3\\1\\1\\1\\1\\1\\1\\1])", y);
 }
 
 

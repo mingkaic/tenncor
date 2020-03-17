@@ -7,16 +7,16 @@ namespace trainer
 {
 
 template <typename T>
-eteq::ETensor<T> sgd (const std::string layername,
+eteq::ETensor<T> sgd (
 	const eteq::ETensor<T>& model, eteq::ETensor<T> train_in,
 	eteq::ETensor<T> expect_out, layr::ApproxF<T> update,
 	layr::ErrorF<T> err_func = tenncor::error::sqr_diff<T>,
 	layr::UnaryF<T> proc_grad = layr::UnaryF<T>())
 {
-	eteq::ETensor<T> train_out = eteq::connect(layername, model, train_in);
+	eteq::ETensor<T> train_out = eteq::connect(model, train_in);
 	auto error = err_func(expect_out, train_out);
 
-	eteq::VarptrsT<T> contents = eteq::get_storage(layername, model);
+	eteq::VarptrsT<T> contents = eteq::get_storage(model);
 	layr::VarMapT<T> vars;
 	for (auto var : contents)
 	{

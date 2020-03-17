@@ -81,6 +81,14 @@ api:
           type: eteq::ETensor<T>
           val: return teq::TensptrT(eteq::Assign<T>::get(::egen::ASSIGN_DIV,target,teq::TensptrsT{source}));
       - template: typename T
+        name: identity
+        args:
+        - dtype: const eteq::ETensor<T>&
+          name: arg
+        out:
+          type: eteq::ETensor<T>
+          val: return eteq::make_functor<T>(::egen::IDENTITY,teq::TensptrsT{arg});
+      - template: typename T
         name: abs
         args:
         - dtype: const eteq::ETensor<T>&
@@ -512,7 +520,7 @@ api:
       - template: typename T
         name: min
         args:
-        - dtype: eteq::ETensorsT<T>
+        - dtype: const eteq::ETensorsT<T>&
           name: args
         out:
           type: eteq::ETensor<T>
@@ -561,7 +569,7 @@ api:
       - template: typename T
         name: max
         args:
-        - dtype: eteq::ETensorsT<T>
+        - dtype: const eteq::ETensorsT<T>&
           name: args
         out:
           type: eteq::ETensor<T>
@@ -657,7 +665,7 @@ api:
       - template: typename T
         name: concat
         args:
-        - dtype: eteq::ETensorsT<T>
+        - dtype: const eteq::ETensorsT<T>&
           name: args
         - dtype: teq::RankT
           name: axis
@@ -1158,7 +1166,7 @@ api:
       - template: typename T
         name: sum
         args:
-        - dtype: eteq::ETensorsT<T>
+        - dtype: const eteq::ETensorsT<T>&
           name: args
         out:
           type: eteq::ETensor<T>
@@ -1180,7 +1188,7 @@ api:
       - template: typename T
         name: prod
         args:
-        - dtype: eteq::ETensorsT<T>
+        - dtype: const eteq::ETensorsT<T>&
           name: args
         out:
           type: eteq::ETensor<T>
@@ -1279,9 +1287,9 @@ api:
       - template: typename T
         name: fully_connect
         args:
-        - dtype: eteq::ETensorsT<T>
+        - dtype: const eteq::ETensorsT<T>&
           name: lefts
-        - dtype: eteq::ETensorsT<T>
+        - dtype: const eteq::ETensorsT<T>&
           name: rights
         - dtype: const eteq::ETensor<T>&
           name: bias
@@ -1457,8 +1465,8 @@ api:
           val: |
               //
                   auto output = ::tenncor::nn::fully_connect({input}, {weight}, bias, dims);
-                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::make_layer<T>(layr::dense_name, input, f);
+                  auto layer_root = ::tenncor::identity(output);
+                  return eteq::make_layer(layer_root, layr::dense_name, input);
       - template: typename T
         name: conv
         args:
@@ -1478,8 +1486,8 @@ api:
           val: |
               //
                   auto output = ::tenncor::nn::conv2d(input, weight, bias, zero_padding);
-                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::make_layer<T>(layr::conv_name, input, f);
+                  auto layer_root = ::tenncor::identity(output);
+                  return eteq::make_layer(layer_root, layr::conv_name, input);
       - template: typename T
         name: rnn
         args:
@@ -1511,13 +1519,13 @@ api:
                   for (teq::DimT i = 0; i < nseq; ++i)
                   {
                       inslice = ::tenncor::slice(input, i, 1, seq_dim);
-                      state = activation(eteq::connect(layr::dense_name, cell,
+                      state = activation(eteq::connect(cell,
                           ::tenncor::concat(inslice, state, 0)));
                       states.push_back(state);
                   }
                   auto output = ::tenncor::concat(states, seq_dim);
-                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::make_layer<T>(layr::rnn_name, input, f);
+                  auto layer_root = ::tenncor::identity(output);
+                  return eteq::make_layer(layer_root, layr::rnn_name, input);
       - template: typename T
         name: lstm
         args:
@@ -1559,18 +1567,18 @@ api:
                       inslice = ::tenncor::slice(input, i, 1, seq_dim);
                       xc = ::tenncor::concat(inslice, hidden, 0);
 
-                      auto gate = ::tenncor::tanh(eteq::connect(layr::dense_name, ggate, xc));
-                      auto input = ::tenncor::sigmoid(eteq::connect(layr::dense_name, ingate, xc));
-                      auto forget = ::tenncor::sigmoid(eteq::connect(layr::dense_name, forgate, xc));
-                      auto output = ::tenncor::sigmoid(eteq::connect(layr::dense_name, outgate, xc));
+                      auto gate = ::tenncor::tanh(eteq::connect(ggate, xc));
+                      auto input = ::tenncor::sigmoid(eteq::connect(ingate, xc));
+                      auto forget = ::tenncor::sigmoid(eteq::connect(forgate, xc));
+                      auto output = ::tenncor::sigmoid(eteq::connect(outgate, xc));
                       state = ::tenncor::add(::tenncor::mul(gate,input),
                           ::tenncor::mul(state,forget));
                       hidden = ::tenncor::mul(state, output);
                       states.push_back(hidden);
                   }
                   auto output = ::tenncor::concat(states, seq_dim);
-                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::make_layer<T>(layr::lstm_name, input, f);
+                  auto layer_root = ::tenncor::identity(output);
+                  return eteq::make_layer(layer_root, layr::lstm_name, input);
       - template: typename T
         name: gru
         args:
@@ -1607,18 +1615,72 @@ api:
                       inslice = ::tenncor::slice(input, i, 1, seq_dim);
                       xc = ::tenncor::concat(inslice, state, 0);
 
-                      auto update = ::tenncor::sigmoid(eteq::connect(layr::dense_name, ugate, xc));
-                      auto reset = ::tenncor::sigmoid(eteq::connect(layr::dense_name, rgate, xc));
-                      auto hidden = ::tenncor::tanh(eteq::connect(layr::dense_name, hgate,
+                      auto update = ::tenncor::sigmoid(eteq::connect(ugate, xc));
+                      auto reset = ::tenncor::sigmoid(eteq::connect(rgate, xc));
+                      auto hidden = ::tenncor::tanh(eteq::connect(hgate,
                           ::tenncor::concat(inslice,::tenncor::mul(reset,state),0)));
                       state = ::tenncor::add(::tenncor::mul(update,state),
                           ::tenncor::mul(::tenncor::sub((T)1,update),hidden));
                       states.push_back(state);
                   }
                   auto output = ::tenncor::concat(states, seq_dim);
-                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::make_layer<T>(layr::gru_name, input, f);
+                  auto layer_root = ::tenncor::identity(output);
+                  return eteq::make_layer(layer_root, layr::gru_name, input);
     tenncor::layer:
+      - template: typename T
+        name: bind
+        args:
+        - dtype: layr::UnaryF<T>
+          name: unary
+        - dtype: const teq::Shape&
+          name: inshape
+          default: teq::Shape()
+        out:
+          type: eteq::ETensor<T>
+          val: |
+              //
+                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
+                    0, inshape, layr::input_label));
+                  auto output = unary(input);
+                  auto layer_root = ::tenncor::identity(output);
+                  return eteq::make_layer<T>(layer_root, layr::bind_name, input);
+      - template: typename T
+        name: link
+        args:
+        - dtype: eteq::ETensorsT<T>
+          name: layers
+        - dtype: eteq::ETensor<T>
+          name: input
+          check_null: false
+          default: eteq::ETensor<T>()
+        out:
+          type: eteq::ETensor<T>
+          val: |
+              //
+                  if (layers.empty())
+                  {
+                      teq::fatal("cannot link without layers");
+                  }
+                  eteq::ETensor<T> output = input;
+                  if (nullptr == input)
+                  {
+                      output = layers.front();
+                      input = eteq::get_input(output);
+                      layers = eteq::ETensorsT<T>(layers.begin() + 1, layers.end());
+                  }
+                  for (auto layer : layers)
+                  {
+                      if (eteq::get_input(layer).get() == output.get())
+                      {
+                          output = layer;
+                      }
+                      else
+                      {
+                          output = eteq::connect(layer, output);
+                      }
+                  }
+                  auto layer_root = ::tenncor::identity(output);
+                  return eteq::make_layer<T>(layer_root, layr::link_name, input);
       - template: typename T
         name: dense
         args:

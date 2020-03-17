@@ -116,18 +116,18 @@ ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
 }
 
 template <typename T>
-ETensor<T> make_layer (const std::string& layername,
-	teq::TensptrT input, teq::FuncptrT output)
+ETensor<T> make_layer (ETensor<T> root,
+	const std::string& layername, teq::TensptrT input)
 {
-	auto layer = output->get_attr(teq::layers_key);
-	if (nullptr == layer)
+	auto f = estd::must_cast<teq::iFunctor>(root.get());
+	if (nullptr != f->get_attr(teq::layer_key))
 	{
-		output->add_attr(teq::layers_key, std::make_unique<teq::LayerArrayT>());
-		layer = output->get_attr(teq::layers_key);
+		teq::fatalf("attempting to attach layer attribute to node %s "
+			"with an existing layer attribute", root->to_string().c_str());
 	}
-	auto& layers = estd::must_cast<teq::LayerArrayT>(layer)->contents_;
-	layers.push_back(std::make_unique<teq::LayerObj>(layername, input));
-	return ETensor<T>(output);
+	f->add_attr(teq::layer_key,
+		std::make_unique<teq::LayerObj>(layername, input));
+	return root;
 }
 
 }

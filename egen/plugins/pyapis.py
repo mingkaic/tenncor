@@ -38,12 +38,16 @@ PYBIND11_MODULE({modname}, m_{modname})
 	//>>> modname
 	py::class_<teq::iTensor,teq::TensptrT> tensor(m_{modname}, "Tensor");
 
-	//>>> defs
-	{defs}
+    //>>> class_defs
+    {class_defs}
 
 #ifdef CUSTOM_PYBIND_EXT
+    //>>> modname
 	CUSTOM_PYBIND_EXT(m_{modname})
 #endif
+
+	//>>> defs
+	{defs}
 
 }}
 '''
@@ -210,11 +214,22 @@ def template_pyconvert(api, stmt):
         stmt = _sub_pybind(stmt, temp)
     return stmt
 
-def _handle_defs(pybind_type, apis, module_name, first_module):
+_class_def_tmpl = 'py::class_<{outtype}> {label}(m_{module_name}, "{name}");'
+
+class ClassDef:
+    def __init__(self, outtype, label):
+        self.outtype = outtype
+        self.label = label
+
+    def format(self, modname):
+        return _class_def_tmpl.format(
+            module_name=modname,
+            outtype=self.outtype, label=self.label,
+            name=_remove_template(self.outtype.split('::')[-1]))
+
+def _handle_defs(pybind_type, apis, module_name, class_defs):
     _mdef_tmpl = 'm_{module_name}.def("{func}", '+\
         '&pyegen::{func}_{idx}, {description}, {pyargs});'
-
-    _class_def_tmpl = 'py::class_<{outtype}> {label}(m_{module_name}, "{name}");'
 
     outtypes = set()
     for api in apis:
@@ -222,19 +237,16 @@ def _handle_defs(pybind_type, apis, module_name, first_module):
             outtype = template_pyconvert(api, api['out']['type'])
             outtypes.add(outtype)
 
-    class_defs = []
     atype_labels = {}
-    if first_module:
-        for i, outtype in enumerate(outtypes):
-            if 'teq::TensptrT' == outtype:
-                continue
-            label = 'class_{}'.format(i)
-            atype_labels[outtype] = label
-            class_defs.append(_class_def_tmpl.format(
-                module_name=module_name,
-                outtype=outtype,
-                label=label,
-                name=_remove_template(outtype.split('::')[-1])))
+    for outtype in outtypes:
+        if 'teq::TensptrT' == outtype:
+            continue
+        if outtype not in class_defs:
+            label = 'class_{}'.format(len(class_defs))
+            class_defs[outtype] = ClassDef(outtype, label)
+        else:
+            label = class_defs[outtype].label
+        atype_labels[outtype] = label
 
     func_defs = [_mdef_tmpl.format(
             module_name=module_name,
@@ -247,7 +259,6 @@ def _handle_defs(pybind_type, apis, module_name, first_module):
     operator_defs = [_def_op(atype_labels, api) for api in apis if 'operator' in api]
 
     defs = [
-        '\n    '.join(class_defs),
         '\n\n    '.join(func_defs),
         '\n\n    '.join(operator_defs),
     ]
@@ -282,6 +293,7 @@ class PyAPIsPlugin:
                 ], internal_refs=[])
 
         contents = {}
+        class_defs = dict()
         for namespace in api['namespaces']:
             definitions = api['namespaces'][namespace]
             if namespace == '' or namespace == '_':
@@ -298,23 +310,27 @@ class PyAPIsPlugin:
             if len(mods) > 1:
                 mod_def = _submodule_def.format(
                     name=modname, prename='_'.join(mods[:-1]), submod=mods[-1])
-            defs = mod_def + _handle_defs(bindtype, definitions, modname, mod not in contents)
+            cdefs = class_defs.get(mod, dict())
+            defs = mod_def + _handle_defs(bindtype, definitions, modname, cdefs)
             if mod in contents:
                 existing_uwraps, existing_defs = contents[mod]
                 contents[mod] = (
-                    existing_uwraps + '\n\n' + uwraps,
-                    existing_defs + '\n\n' + defs)
+                    '\n\n'.join([existing_uwraps, uwraps]).strip(),
+                    '\n\n'.join([existing_defs, defs]).strip())
             else:
                 contents[mod] = (uwraps, defs)
+            class_defs[mod] = cdefs
 
         src_file_tmpl = 'pyapi_{}.cpp'
         for mod in contents:
             name_mangling, defs = contents[mod]
+            cdefs = class_defs[mod]
             src_file = src_file_tmpl.format(mod)
             generated_files[src_file] = FileRep(
                 _source_template.format(
                     modname=mod,
                     name_mangling=''.join(name_mangling),
+                    class_defs='\n    '.join([cdefs[ctype].format(mod) for ctype in cdefs]),
                     defs=''.join(defs)),
                 user_includes=[
                     '"pybind11/pybind11.h"',

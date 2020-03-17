@@ -50,44 +50,15 @@ private:
 		auto& attr_directions = target_dir.attrs_;
 		for (const std::string& attr : attr_directions)
 		{
-			auto attrval = func.get_attr(attr);
-			if (auto ref = dynamic_cast<const teq::TensorObj*>(attrval))
-			{
-				auto ctens = ref->get_tensor();
-				ctens->accept(*this);
-				teq::TensptrT trailed;
-				if (estd::get(trailed, trailed_, ctens.get()))
-				{
-					dup_attrs.rm_attr(attr);
-					dup_attrs.add_attr(attr,
-						marsh::ObjptrT(ref->copynreplace(trailed)));
-				}
-			}
-			else if (auto lattr = dynamic_cast<const teq::LayerArrayT*>(attrval))
+			auto ref = static_cast<const teq::TensorRef*>(func.get_attr(attr));
+			auto ctens = ref->get_tensor();
+			ctens->accept(*this);
+			teq::TensptrT trailed;
+			if (estd::get(trailed, trailed_, ctens.get()))
 			{
 				dup_attrs.rm_attr(attr);
-				dup_attrs.add_attr(attr, std::make_unique<teq::LayerArrayT>());
-				auto& cplayers = static_cast<teq::LayerArrayT*>(
-					dup_attrs.get_attr(attr))->contents_;
-				lattr->foreach(
-					[&](size_t i, const marsh::iObject* obj)
-					{
-						auto layer = estd::must_cast<const teq::LayerObj>(obj);
-						auto ctens = layer->get_tensor();
-						ctens->accept(*this);
-						teq::TensptrT trailed;
-						if (estd::get(trailed, this->trailed_, ctens.get()))
-						{
-							cplayers.insert(cplayers.end(),
-								teq::LayerptrT(static_cast<teq::LayerObj*>(
-									layer->copynreplace(trailed))));
-						}
-						else
-						{
-							cplayers.insert(cplayers.end(),
-								teq::LayerptrT(layer->clone()));
-						}
-					});
+				dup_attrs.add_attr(attr, marsh::ObjptrT(
+					ref->copynreplace(trailed)));
 			}
 		}
 
@@ -140,71 +111,28 @@ ETensor<T> trail (const ETensor<T>& root,
 }
 
 template <typename T>
-std::vector<std::string> ls_layerattrs (const ETensor<T>& root)
-{
-	auto froot = estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root);
-	auto layers = estd::must_cast<teq::LayerArrayT>(
-		froot->get_attr(teq::layers_key));
-
-	std::vector<std::string> attrs;
-	attrs.reserve(layers->contents_.size());
-	layers->foreach(
-		[&](size_t i, marsh::iObject* obj)
-		{
-			attrs.push_back(obj->to_string());
-		});
-	return attrs;
-}
-
-template <typename T>
-teq::LayerObj* get_layerattr (
-	const std::string& layername, const ETensor<T>& root)
+ETensor<T> get_input (const ETensor<T>& root)
 {
 	if (nullptr == root)
 	{
-		teq::fatalf("cannot get layer attr %s with null root",
-			layername.c_str());
+		teq::fatal("cannot get layer attr with null root");
 	}
 	auto froot = estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root);
-	auto layers = estd::must_cast<marsh::iArray>(
-		froot->get_attr(teq::layers_key));
-	teq::LayerObj* layerattr = nullptr;
-	layers->foreach(
-		[&](size_t i, marsh::iObject* obj)
-		{
-			auto layer = estd::must_cast<teq::LayerObj>(obj);
-			if (layer->to_string() == layername)
-			{
-				layerattr = layer;
-			}
-		});
-	return layerattr;
-}
-
-template <typename T>
-ETensor<T> get_input (const std::string& layername, const ETensor<T>& root)
-{
-	teq::LayerObj* layerattr = get_layerattr(layername, root);
-	if (nullptr == layerattr)
-	{
-		teq::fatalf("cannot get input from %s without an layer attribute",
-			layername.c_str());
-	}
+	auto layerattr = estd::must_cast<teq::LayerObj>(froot->get_attr(teq::layer_key));
 	return layerattr->get_tensor();
 }
 
 template <typename T>
-ETensor<T> connect (const std::string& layername,
-	const ETensor<T>& root, const ETensor<T>& input)
+ETensor<T> connect (const ETensor<T>& root, const ETensor<T>& input)
 {
 	return trail(root, teq::TensMapT<teq::TensptrT>{
-		{get_input(layername, root).get(), (teq::TensptrT) input}});
+		{get_input(root).get(), (teq::TensptrT) input}});
 }
 
 template <typename T>
-VarptrsT<T> get_storage (const std::string& layername, const ETensor<T>& root)
+VarptrsT<T> get_storage (const ETensor<T>& root)
 {
-	auto intens = get_input(layername, root).get();
+	auto intens = get_input(root).get();
 	VarptrsT<T> vars;
 
 	teq::GraphStat stats;
@@ -238,9 +166,9 @@ VarptrsT<T> get_storage (const std::string& layername, const ETensor<T>& root)
 }
 
 template <typename T>
-ETensor<T> deep_clone (const std::string& layername, const ETensor<T>& root)
+ETensor<T> deep_clone (const ETensor<T>& root)
 {
-	teq::Copier kamino({get_input(layername, root).get()});
+	teq::Copier kamino({get_input(root).get()});
 	root->accept(kamino);
 	return kamino.clones_.at(root.get());
 }

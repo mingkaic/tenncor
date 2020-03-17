@@ -35,14 +35,6 @@ layr::ApproxF<PybindT> convert (ApproxF f)
 
 void layr_ext(py::module& m)
 {
-	m.attr("bind_name") = layr::bind_name;
-	m.attr("link_name") = layr::link_name;
-	m.attr("dense_name") = layr::dense_name;
-	m.attr("conv_name") = layr::conv_name;
-	m.attr("rnn_name") = layr::rnn_name;
-	m.attr("lstm_name") = layr::lstm_name;
-	m.attr("gru_name") = layr::gru_name;
-
 	// === supports ===
 	py::class_<trainer::DQNInfo<PybindT>> dqninfo(m, "DQNInfo");
 	dqninfo
@@ -59,7 +51,8 @@ void layr_ext(py::module& m)
 			py::arg("max_exp") = 30000);
 
 	// ==== layer ====
-	py::class_<layr::RBMLayer<PybindT>> rbmlayer(m, "RBMLayer");
+	auto rbmlayer = (py::class_<layr::RBMLayer<PybindT>>) m.attr("RBMLayer");
+
 	rbmlayer
 		.def(py::init(
 			[](eteq::ETensor<PybindT> fwd, eteq::ETensor<PybindT> bwd)
@@ -82,16 +75,16 @@ void layr_ext(py::module& m)
 
 	// ==== DQN trainer ====
 	py::class_<trainer::DQNTrainer<PybindT>> dqntrainer(m, "DQNTrainer");
+
 	dqntrainer
-		.def(py::init([](const std::string& layername,
-				eteq::ETensor<PybindT>& model, teq::iSession& sess,
+		.def(py::init([](eteq::ETensor<PybindT>& model, teq::iSession& sess,
 				layr::ApproxF<PybindT> update, trainer::DQNInfo<PybindT> param,
 				layr::UnaryF<PybindT> gradprocess)
 			{
-				return trainer::DQNTrainer<PybindT>(layername, model, sess,
+				return trainer::DQNTrainer<PybindT>(model, sess,
 					update, param, gradprocess);
 			}),
-			py::arg("layername"), py::arg("model"), py::arg("sess"),
+			py::arg("model"), py::arg("sess"),
 			py::arg("update"), py::arg("param"),
 			py::arg("gradprocess") = layr::UnaryF<PybindT>())
 		.def("action",
@@ -114,6 +107,7 @@ void layr_ext(py::module& m)
 
 	// ==== DBN trainer ====
 	py::class_<trainer::DBNTrainer<PybindT>> dbntrainer(m, "DBNTrainer");
+
 	dbntrainer
 		.def(py::init<
 			const std::vector<layr::RBMLayer<PybindT>>&,eteq::ETensor<PybindT>,
@@ -177,30 +171,15 @@ void layr_ext(py::module& m)
 			"normal xavier initializer",
 			py::arg("factor") = 1)
 
-		// ==== layer creation ====
-		.def("bind", &layr::bind<PybindT>,
-			py::arg("unary"), py::arg("inshape") = teq::Shape())
-		.def("link",
-			[](const layr::LayersT<PybindT>& layers)
-			{
-				return layr::link<PybindT>(layers);
-			})
-		.def("link",
-			[](const layr::LayersT<PybindT>& layers,
-				const eteq::ETensor<PybindT>& input)
-			{
-				return layr::link<PybindT>(layers, input);
-			})
-
 		// ==== layer training ====
-		.def("sgd_train", [](const std::string& layername,
-				const eteq::ETensor<PybindT>& model, eteq::ETensor<PybindT> train_in,
-				eteq::ETensor<PybindT> expect_out, layr::ApproxF<PybindT> update,
-				layr::ErrorF<PybindT> err_func, layr::UnaryF<PybindT> proc_grad)
+		.def("sgd_train", [](const eteq::ETensor<PybindT>& model,
+				eteq::ETensor<PybindT> train_in, eteq::ETensor<PybindT> expect_out,
+				layr::ApproxF<PybindT> update, layr::ErrorF<PybindT> err_func,
+				layr::UnaryF<PybindT> proc_grad)
 			{
-				return trainer::sgd<PybindT>(layername, model, train_in, expect_out, update, err_func, proc_grad);
+				return trainer::sgd<PybindT>(model, train_in, expect_out, update, err_func, proc_grad);
 			},
-			py::arg("layername"), py::arg("model"), py::arg("train_in"),
+			py::arg("model"), py::arg("train_in"),
 			py::arg("expect_out"), py::arg("update"),
 			py::arg("err_func") = layr::ErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>),
 			py::arg("proc_grad") = layr::UnaryF<PybindT>())
