@@ -4,6 +4,8 @@
 
 #include <boost/bimap.hpp>
 
+#include "estd/cast.hpp"
+
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
 #include "teq/objs.hpp"
@@ -37,7 +39,7 @@ void marshal_io (ValueInfoProto& out, const teq::Shape& shape);
 
 void marshal_annotation (TensorAnnotation& out, const teq::iLeaf& leaf);
 
-const GraphProto* unmarshal_attrs (marsh::Maps& out,
+void unmarshal_attrs (marsh::Maps& out,
 	const PbAttrsT& pb_attrs, const TensptrIdT& identified_tens);
 
 teq::Shape unmarshal_shape (const TensorShapeProto& shape);

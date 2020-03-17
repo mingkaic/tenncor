@@ -61,10 +61,7 @@ TEST(LAYER, DenseSerialization)
 			0, teq::Shape({noutput}), "bias");
 		auto y = tenncor::nn::dense(eteq::ETensor<float>(x),
 			eteq::ETensor<float>(weight), eteq::ETensor<float>(bias));
-
-		eteq::VarptrsT<float> contents = eteq::ELayer<float>(
-			std::static_pointer_cast<teq::iFunctor>(teq::TensptrT(y)),
-				eteq::ETensor<float>(x)).get_storage();
+		eteq::VarptrsT<float> contents = eteq::get_storage(layr::dense_name, y);
 		ASSERT_EQ(2, contents.size());
 		EXPECT_ARRHAS(contents, weight);
 		EXPECT_ARRHAS(contents, bias);

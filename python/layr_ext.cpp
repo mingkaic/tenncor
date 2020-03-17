@@ -35,6 +35,14 @@ layr::ApproxF<PybindT> convert (ApproxF f)
 
 void layr_ext(py::module& m)
 {
+	m.attr("bind_name") = layr::bind_name;
+	m.attr("link_name") = layr::link_name;
+	m.attr("dense_name") = layr::dense_name;
+	m.attr("conv_name") = layr::conv_name;
+	m.attr("rnn_name") = layr::rnn_name;
+	m.attr("lstm_name") = layr::lstm_name;
+	m.attr("gru_name") = layr::gru_name;
+
 	// === supports ===
 	py::class_<trainer::DQNInfo<PybindT>> dqninfo(m, "DQNInfo");
 	dqninfo
@@ -54,7 +62,7 @@ void layr_ext(py::module& m)
 	py::class_<layr::RBMLayer<PybindT>> rbmlayer(m, "RBMLayer");
 	rbmlayer
 		.def(py::init(
-			[](eteq::ELayer<PybindT> fwd, eteq::ELayer<PybindT> bwd)
+			[](eteq::ETensor<PybindT> fwd, eteq::ETensor<PybindT> bwd)
 			{
 				return layr::RBMLayer<PybindT>{fwd, bwd};
 			}))
@@ -69,28 +77,21 @@ void layr_ext(py::module& m)
 			{
 				return self.bwd_;
 			})
-		.def("connect",
-			[](layr::RBMLayer<PybindT>& self, const eteq::ETensor<PybindT>& e)
-			{
-				return self.fwd_.connect(e);
-			})
-		.def("backward_connect",
-			[](layr::RBMLayer<PybindT>& self, const eteq::ETensor<PybindT>& e)
-			{
-				return self.bwd_.connect(e);
-			});
+		.def("connect", &layr::RBMLayer<PybindT>::connect)
+		.def("backward_connect", &layr::RBMLayer<PybindT>::backward_connect);
 
 	// ==== DQN trainer ====
 	py::class_<trainer::DQNTrainer<PybindT>> dqntrainer(m, "DQNTrainer");
 	dqntrainer
-		.def(py::init([](eteq::ELayer<PybindT>& model, teq::iSession& sess,
+		.def(py::init([](const std::string& layername,
+				eteq::ETensor<PybindT>& model, teq::iSession& sess,
 				layr::ApproxF<PybindT> update, trainer::DQNInfo<PybindT> param,
 				layr::UnaryF<PybindT> gradprocess)
 			{
-				return trainer::DQNTrainer<PybindT>(model, sess,
+				return trainer::DQNTrainer<PybindT>(layername, model, sess,
 					update, param, gradprocess);
 			}),
-			py::arg("model"), py::arg("sess"),
+			py::arg("layername"), py::arg("model"), py::arg("sess"),
 			py::arg("update"), py::arg("param"),
 			py::arg("gradprocess") = layr::UnaryF<PybindT>())
 		.def("action",
@@ -115,7 +116,7 @@ void layr_ext(py::module& m)
 	py::class_<trainer::DBNTrainer<PybindT>> dbntrainer(m, "DBNTrainer");
 	dbntrainer
 		.def(py::init<
-			const std::vector<layr::RBMLayer<PybindT>>&,eteq::ELayer<PybindT>,
+			const std::vector<layr::RBMLayer<PybindT>>&,eteq::ETensor<PybindT>,
 			teq::RankT,teq::DimT,PybindT,PybindT,size_t,PybindT,PybindT>(),
 			py::arg("rbms"), py::arg("dense"), py::arg("softmax_dim"),
 			py::arg("batch_size"), py::arg("pretrain_lr") = 0.1,
@@ -180,26 +181,26 @@ void layr_ext(py::module& m)
 		.def("bind", &layr::bind<PybindT>,
 			py::arg("unary"), py::arg("inshape") = teq::Shape())
 		.def("link",
-			[](const std::vector<eteq::ELayer<PybindT>>& layers)
+			[](const layr::LayersT<PybindT>& layers)
 			{
 				return layr::link<PybindT>(layers);
 			})
 		.def("link",
-			[](const std::vector<eteq::ELayer<PybindT>>& layers,
+			[](const layr::LayersT<PybindT>& layers,
 				const eteq::ETensor<PybindT>& input)
 			{
 				return layr::link<PybindT>(layers, input);
 			})
 
 		// ==== layer training ====
-		.def("sgd_train", [](
-				const eteq::ELayer<PybindT>& model, eteq::ETensor<PybindT> train_in,
+		.def("sgd_train", [](const std::string& layername,
+				const eteq::ETensor<PybindT>& model, eteq::ETensor<PybindT> train_in,
 				eteq::ETensor<PybindT> expect_out, layr::ApproxF<PybindT> update,
 				layr::ErrorF<PybindT> err_func, layr::UnaryF<PybindT> proc_grad)
 			{
-				return trainer::sgd<PybindT>(model, train_in, expect_out, update, err_func, proc_grad);
+				return trainer::sgd<PybindT>(layername, model, train_in, expect_out, update, err_func, proc_grad);
 			},
-			py::arg("model"), py::arg("train_in"),
+			py::arg("layername"), py::arg("model"), py::arg("train_in"),
 			py::arg("expect_out"), py::arg("update"),
 			py::arg("err_func") = layr::ErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>),
 			py::arg("proc_grad") = layr::UnaryF<PybindT>())
@@ -207,70 +208,5 @@ void layr_ext(py::module& m)
 			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
 			py::arg("err_func") = layr::ErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>),
-			py::arg("cdk") = 1)
-
-		// ==== serialization ====
-		.def("load_layers_file",
-			[](const std::string& filename)
-			{
-				std::ifstream input(filename);
-				if (false == input.is_open())
-				{
-					teq::fatalf("file %s not found", filename.c_str());
-				}
-				onnx::ModelProto pb_model;
-				if (false == pb_model.ParseFromIstream(&input))
-				{
-					teq::fatalf("failed to parse onnx from %s",
-						filename.c_str());
-				}
-				auto layers = eteq::load_layers<PybindT>(pb_model);
-				input.close();
-				return layers;
-			})
-		.def("save_layers_file",
-			[](const std::string& filename, const eteq::ELayersT<PybindT>& models)
-			{
-				std::ofstream output(filename);
-				if (false == output.is_open())
-				{
-					teq::fatalf("file %s not found", filename.c_str());
-				}
-				onnx::ModelProto pb_model;
-				eteq::save_layers<PybindT>(pb_model, models);
-				return pb_model.SerializeToOstream(&output);
-			})
-		.def("load_session_file",
-			[](const std::string& filename, teq::iSession& sess)
-			{
-				std::ifstream input(filename);
-				if (false == input.is_open())
-				{
-					teq::fatalf("file %s not found", filename.c_str());
-				}
-				onnx::ModelProto pb_model;
-				if (false == pb_model.ParseFromIstream(&input))
-				{
-					teq::fatalf("failed to parse onnx from %s",
-						filename.c_str());
-				}
-				onnx::TensptrIdT ids;
-				auto roots = eteq::load_model(ids, pb_model);
-				sess.track(roots);
-				input.close();
-			})
-		.def("save_session_file",
-			[](const std::string& filename, const teq::iSession& sess)
-			{
-				auto troots = sess.get_tracked();
-				std::ofstream output(filename);
-				if (false == output.is_open())
-				{
-					teq::fatalf("file %s not found", filename.c_str());
-				}
-				onnx::ModelProto pb_model;
-				onnx::TensIdT ids;
-				eteq::save_model(pb_model, teq::TensptrsT(troots.begin(), troots.end()), ids);
-				return pb_model.SerializeToOstream(&output);
-			});
+			py::arg("cdk") = 1);
 }

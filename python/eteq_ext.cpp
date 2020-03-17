@@ -61,6 +61,28 @@ void eteq_ext (py::module& m)
 			{
 				return pyeteq::typedata_to_array<PybindT>(
 					*self, py::dtype::of<PybindT>());
+			})
+
+		// layer extensions
+		.def("get_input",
+			[](pyeteq::ETensT& self, const std::string& layername)
+			{
+				return eteq::get_input(layername, self);
+			})
+		.def("connect",
+			[](pyeteq::ETensT& self, const std::string& layername, pyeteq::ETensT& input)
+			{
+				return eteq::connect(layername, self, input);
+			})
+		.def("deep_clone",
+			[](pyeteq::ETensT& self, const std::string& layername)
+			{
+				return eteq::deep_clone(layername, self);
+			})
+		.def("get_storage",
+			[](pyeteq::ETensT& self, const std::string& layername)
+			{
+				return eteq::get_storage(layername, self);
 			});
 
 	// ==== variable ====
@@ -68,7 +90,7 @@ void eteq_ext (py::module& m)
 
 	evar
 		.def(py::init(
-			[](py::list slist, PybindT scalar, std::string label)
+			[](py::list slist, PybindT scalar, const std::string& label)
 			{
 				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
 			}),
@@ -83,33 +105,6 @@ void eteq_ext (py::module& m)
 				self->assign(arr);
 			},
 			"Assign numpy data array to variable");
-
-	// ==== elayer ====
-	py::class_<eteq::ELayer<PybindT>> elayer(m, "ELayer");
-
-	elayer
-		.def(py::init(
-			[](pyeteq::ETensT root, pyeteq::ETensT input)
-			{
-				return eteq::ELayer<PybindT>(
-					estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root), input);
-			}),
-			py::arg("root"), py::arg("input"))
-		.def("deep_clone", &eteq::ELayer<PybindT>::deep_clone)
-		.def("connect", &eteq::ELayer<PybindT>::connect)
-		.def("get_storage",
-			[](eteq::ELayer<PybindT>& self)
-			{
-				auto stores = self.get_storage();
-				std::vector<eteq::EVariable<PybindT>> estores(stores.begin(), stores.end());
-				return estores;
-			})
-		.def("root",
-			[](eteq::ELayer<PybindT>& self) -> pyeteq::ETensT
-			{
-				return pyeteq::ETensT(self.root());
-			})
-		.def("input", &eteq::ELayer<PybindT>::input);
 
 	// ==== session ====
 	py::class_<teq::iSession> isess(m, "iSession");
@@ -193,7 +188,7 @@ void eteq_ext (py::module& m)
 
 		// ==== variable creation ====
 		.def("scalar_variable",
-			[](PybindT scalar, py::list slist, std::string label)
+			[](PybindT scalar, py::list slist, const std::string& label)
 			{
 				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
 			},
@@ -202,7 +197,7 @@ void eteq_ext (py::module& m)
 			py::arg("slist"),
 			py::arg("label") = "")
 		.def("variable_like",
-			[](PybindT scalar, pyeteq::ETensT like, std::string label)
+			[](PybindT scalar, pyeteq::ETensT like, const std::string& label)
 			{
 				return eteq::make_variable_like<PybindT>(
 					scalar, (teq::TensptrT) like, label);
@@ -212,7 +207,7 @@ void eteq_ext (py::module& m)
 			py::arg("like"),
 			py::arg("label") = "")
 		.def("variable",
-			[](py::array data, std::string label)
+			[](py::array data, const std::string& label)
 			{
 				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
@@ -239,7 +234,7 @@ void eteq_ext (py::module& m)
 
 		// ==== optimization ====
 		.def("optimize",
-			[](teq::iSession& sess, std::string filename)
+			[](teq::iSession& sess, const std::string& filename)
 			{
 				eteq::optimize<PybindT>(sess, filename);
 			},
@@ -288,7 +283,73 @@ void eteq_ext (py::module& m)
 		// 		}
 		// 		engine->seed(seed);
 			},
-			"Seed internal RNG");
+			"Seed internal RNG")
+
+		// ==== serialization ====
+		.def("load_from_file",
+			[](const std::string& filename)
+			{
+				std::ifstream input(filename);
+				if (false == input.is_open())
+				{
+					teq::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				if (false == pb_model.ParseFromIstream(&input))
+				{
+					teq::fatalf("failed to parse onnx from %s",
+						filename.c_str());
+				}
+				onnx::TensptrIdT ids;
+				auto roots = eteq::load_model(ids, pb_model);
+				input.close();
+				return eteq::ETensorsT<PybindT>(roots.begin(), roots.end());
+			})
+		.def("save_to_file",
+			[](const std::string& filename, const eteq::ETensorsT<PybindT>& models)
+			{
+				std::ofstream output(filename);
+				if (false == output.is_open())
+				{
+					teq::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				eteq::save_model(pb_model, teq::TensptrsT(models.begin(), models.end()));
+				return pb_model.SerializeToOstream(&output);
+			})
+		.def("load_session_file",
+			[](const std::string& filename, teq::iSession& sess)
+			{
+				std::ifstream input(filename);
+				if (false == input.is_open())
+				{
+					teq::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				if (false == pb_model.ParseFromIstream(&input))
+				{
+					teq::fatalf("failed to parse onnx from %s",
+						filename.c_str());
+				}
+				onnx::TensptrIdT ids;
+				auto roots = eteq::load_model(ids, pb_model);
+				sess.track(roots);
+				input.close();
+			})
+		.def("save_session_file",
+			[](const std::string& filename, const teq::iSession& sess)
+			{
+				auto troots = sess.get_tracked();
+				std::ofstream output(filename);
+				if (false == output.is_open())
+				{
+					teq::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				onnx::TensIdT ids;
+				eteq::save_model(pb_model, teq::TensptrsT(troots.begin(), troots.end()), ids);
+				return pb_model.SerializeToOstream(&output);
+			});
 }
 
 #endif

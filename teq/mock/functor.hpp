@@ -41,14 +41,19 @@ struct MockFunctor : public teq::iFunctor
 		return children_;
 	}
 
-	const marsh::iObject* get_attr (const std::string& attr_name) const override
-	{
-		return attrs_.get_attr(attr_name);
-	}
-
 	std::vector<std::string> ls_attrs (void) const override
 	{
 		return attrs_.ls_attrs();
+	}
+
+	const marsh::iObject* get_attr (const std::string& attr_key) const override
+	{
+		return attrs_.get_attr(attr_key);
+	}
+
+	marsh::iObject* get_attr (const std::string& attr_key) override
+	{
+		return attrs_.get_attr(attr_key);
 	}
 
 	void add_attr (const std::string& attr_key, marsh::ObjptrT&& attr_val) override

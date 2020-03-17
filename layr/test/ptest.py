@@ -15,18 +15,18 @@ class LAYRTest(unittest.TestCase):
         n_batch = 10
 
         model = tc.link([
-            tc.layer.dense([ninput], [nunits],
+            (tc.dense_name, tc.layer.dense([ninput], [nunits],
                 weight_init=tc.unif_xavier_init(),
-                bias_init=tc.zero_init()),
-            tc.bind(tc.sigmoid),
-            tc.layer.dense([nunits], [noutput],
+                bias_init=tc.zero_init())),
+            (tc.bind_name, tc.bind(tc.sigmoid)),
+            (tc.dense_name, tc.layer.dense([nunits], [noutput],
                 weight_init=tc.unif_xavier_init(),
-                bias_init=tc.zero_init()),
-            tc.bind(tc.sigmoid),
+                bias_init=tc.zero_init())),
+            (tc.bind_name, tc.bind(tc.sigmoid)),
         ])
         train_input = tc.EVariable([n_batch, ninput])
         train_output = tc.EVariable([n_batch, noutput])
-        train_err = tc.sgd_train(model, train_input, train_output,
+        train_err = tc.sgd_train(tc.link_name, model, train_input, train_output,
             lambda assocs: tc.approx.sgd(assocs, 0.9))
         sess.track([train_err])
 

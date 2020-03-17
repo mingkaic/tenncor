@@ -77,25 +77,15 @@ teq::TensptrsT load_graph (TensptrIdT& identified_tens,
 				return estd::must_getf(identified_tens.right, input,
 					"failed to find input %s", input.c_str());
 			});
-		teq::TensptrT tens;
-		if (const GraphProto* sub = unmarshal_attrs(
-			attrs, pb_attrs, identified_tens))
+		unmarshal_attrs(attrs, pb_attrs, identified_tens);
+
+		std::string id = pb_node.name();
+		if (estd::has(identified_tens.right, id))
 		{
-			teq::TensptrsT roots = load_graph(
-				identified_tens, *sub, unmarshaler);
-			tens = unmarshaler.unmarsh_layr(
-				opname, roots.front(), args.front(), std::move(attrs));
+			teq::fatalf("duplicate id %s", id.c_str());
 		}
-		else
-		{
-			std::string id = pb_node.name();
-			if (estd::has(identified_tens.right, id))
-			{
-				teq::fatalf("duplicate id %s", id.c_str());
-			}
-			tens = unmarshaler.unmarsh_func(opname, args, std::move(attrs));
-			identified_tens.insert({tens, id});
-		}
+		teq::TensptrT tens = unmarshaler.unmarsh_func(opname, args, std::move(attrs));
+		identified_tens.insert({tens, id});
 	}
 
 	teq::TensptrsT roots;

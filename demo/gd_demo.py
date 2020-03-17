@@ -57,19 +57,19 @@ def main(args):
     train_input = tc.EVariable([nbatch, ninput])
     train_output = tc.EVariable([nbatch, noutput])
     model = tc.link([
-        tc.layer.dense([ninput], [nunits],
+        (tc.dense_name, tc.layer.dense([ninput], [nunits],
             weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
-        tc.bind(tc.sigmoid),
-        tc.layer.dense([nunits], [noutput],
+            bias_init=tc.zero_init())),
+        (tc.bind_name, tc.bind(tc.sigmoid)),
+        (tc.dense_name, tc.layer.dense([nunits], [noutput],
             weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
-        tc.bind(tc.sigmoid),
+            bias_init=tc.zero_init())),
+        (tc.bind_name, tc.bind(tc.sigmoid)),
     ], train_input)
-    train_err = tc.sgd_train(model, train_input, train_output,
+    train_err = tc.sgd_train(tc.link_name, model, train_input, train_output,
         lambda assocs: tc.approx.sgd(assocs, 0.9))
-    untrained = model.deep_clone()
-    trained = model.deep_clone()
+    untrained = model.deep_clone(tc.link_name)
+    trained = model.deep_clone(tc.link_name)
     try:
         print('loading ' + args.load)
         trained = tc.load_layers_file(args.load)[0]
@@ -82,9 +82,9 @@ def main(args):
     sess.track([train_err])
 
     testin = tc.EVariable([ninput], label='testin')
-    untrained_out = untrained.connect(testin)
-    trained_out = model.connect(testin)
-    pretrained_out = trained.connect(testin)
+    untrained_out = untrained.connect(tc.link_name, testin)
+    trained_out = model.connect(tc.link_name, testin)
+    pretrained_out = trained.connect(tc.link_name, testin)
     sess.track([untrained_out, trained_out, pretrained_out])
 
     tc.optimize(sess, "cfg/optimizations.json")

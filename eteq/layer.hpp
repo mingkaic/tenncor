@@ -50,12 +50,45 @@ private:
 		auto& attr_directions = target_dir.attrs_;
 		for (const std::string& attr : attr_directions)
 		{
-			auto ref = static_cast<const teq::TensorRef*>(func.get_attr(attr));
-			auto ctens = ref->get_tensor();
-			ctens->accept(*this);
-			dup_attrs.rm_attr(attr);
-			dup_attrs.add_attr(attr, marsh::ObjptrT(ref->copynreplace(
-				trailed_.at(ctens.get()))));
+			auto attrval = func.get_attr(attr);
+			if (auto ref = dynamic_cast<const teq::TensorObj*>(attrval))
+			{
+				auto ctens = ref->get_tensor();
+				ctens->accept(*this);
+				teq::TensptrT trailed;
+				if (estd::get(trailed, trailed_, ctens.get()))
+				{
+					dup_attrs.rm_attr(attr);
+					dup_attrs.add_attr(attr,
+						marsh::ObjptrT(ref->copynreplace(trailed)));
+				}
+			}
+			else if (auto lattr = dynamic_cast<const teq::LayerArrayT*>(attrval))
+			{
+				dup_attrs.rm_attr(attr);
+				dup_attrs.add_attr(attr, std::make_unique<teq::LayerArrayT>());
+				auto& cplayers = static_cast<teq::LayerArrayT*>(
+					dup_attrs.get_attr(attr))->contents_;
+				lattr->foreach(
+					[&](size_t i, const marsh::iObject* obj)
+					{
+						auto layer = estd::must_cast<const teq::LayerObj>(obj);
+						auto ctens = layer->get_tensor();
+						ctens->accept(*this);
+						teq::TensptrT trailed;
+						if (estd::get(trailed, this->trailed_, ctens.get()))
+						{
+							cplayers.insert(cplayers.end(),
+								teq::LayerptrT(static_cast<teq::LayerObj*>(
+									layer->copynreplace(trailed))));
+						}
+						else
+						{
+							cplayers.insert(cplayers.end(),
+								teq::LayerptrT(layer->clone()));
+						}
+					});
+			}
 		}
 
 		auto& child_directions = target_dir.children_;
@@ -107,153 +140,109 @@ ETensor<T> trail (const ETensor<T>& root,
 }
 
 template <typename T>
-struct ELayer final
+std::vector<std::string> ls_layerattrs (const ETensor<T>& root)
 {
-	ELayer (teq::FuncptrT root, ETensor<T> input) :
-		root_(root), input_(input) {}
+	auto froot = estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root);
+	auto layers = estd::must_cast<teq::LayerArrayT>(
+		froot->get_attr(teq::layers_key));
 
-	ELayer<T> deep_clone (void) const
-	{
-		auto oinput = input_;
-		teq::Copier kamino({input_.get()});
-		root_->accept(kamino);
-		auto oroot = kamino.clones_.at(root_.get());
-		auto f = std::static_pointer_cast<teq::iFunctor>(
-			(teq::TensptrT) oroot);
-		return ELayer<T>(f, oinput);
-	}
-
-	ETensor<T> connect (const ETensor<T>& oinput) const
-	{
-		return trail(ETensor<T>(root_), teq::TensMapT<teq::TensptrT>{
-			{input_.get(), (teq::TensptrT) oinput}});
-	}
-
-	teq::FuncptrT root (void) const
-	{
-		return root_;
-	}
-
-	ETensor<T> input (void) const
-	{
-		return input_;
-	}
-
-	VarptrsT<T> get_storage (void) const
-	{
-		auto intens = input_.get();
-		VarptrsT<T> vars;
-
-		teq::GraphStat stats;
-		stats.graphsize_.emplace(intens, estd::NumRange<size_t>());
-		root_->accept(stats);
-
-		BreadthStat bstats;
-		bstats.breadth_.emplace(intens, 0);
-		root_->accept(bstats);
-
-		teq::OwnerMapT owner = teq::track_owners({teq::TensptrT(root_)});
-
-		for (auto gpair : stats.graphsize_)
+	std::vector<std::string> attrs;
+	attrs.reserve(layers->contents_.size());
+	layers->foreach(
+		[&](size_t i, marsh::iObject* obj)
 		{
-			if (0 == gpair.second.upper_ && intens != gpair.first)
-			{
-				if (auto var = std::dynamic_pointer_cast<
-					Variable<T>>(owner.at(gpair.first).lock()))
-				{
-					vars.push_back(var);
-				}
-			}
-		}
-		std::sort(vars.begin(), vars.end(),
-			[&bstats](VarptrT<T> a, VarptrT<T> b)
-			{
-				return bstats.breadth_.at(a.get()) <
-					bstats.breadth_.at(b.get());
-			});
-		return vars;
-	}
-
-private:
-	teq::FuncptrT root_;
-
-	ETensor<T> input_;
-};
-
-template <typename T>
-using ELayersT = std::vector<ELayer<T>>;
-
-const std::string root_key_fmt = "_r%d";
-
-const std::string input_key_fmt = "_i%d";
-
-const std::string key_delim = ",";
-
-template <typename T>
-void save_layers (onnx::ModelProto& model, const ELayersT<T>& layers)
-{
-	teq::TensptrsT roots;
-	roots.reserve(layers.size());
-	std::unordered_map<teq::iTensor*,std::vector<std::string>> encodings;
-	for (size_t i = 0, n = layers.size(); i < n; ++i)
-	{
-		const ELayer<T>& layer = layers[i];
-		teq::TensptrT root = layer.root();
-		teq::TensptrT input = layer.input();
-		encodings[root.get()].push_back(fmts::sprintf(root_key_fmt, i));
-		encodings[input.get()].push_back(fmts::sprintf(input_key_fmt, i));
-		roots.push_back(root);
-	}
-	onnx::TensIdT ids;
-	for (auto encpair : encodings)
-	{
-		std::string id = fmts::join(key_delim,
-			encpair.second.begin(), encpair.second.end());
-		ids.insert({encpair.first, id});
-	}
-	save_model(model, roots, ids);
+			attrs.push_back(obj->to_string());
+		});
+	return attrs;
 }
 
 template <typename T>
-ELayersT<T> load_layers (const onnx::ModelProto& model)
+teq::LayerObj* get_layerattr (
+	const std::string& layername, const ETensor<T>& root)
 {
-	onnx::TensptrIdT ids;
-	auto roots = load_model(ids, model);
-	if (roots.empty())
+	if (nullptr == root)
 	{
-		teq::fatal("failed to load model without roots");
+		teq::fatalf("cannot get layer attr %s with null root",
+			layername.c_str());
 	}
-	std::unordered_map<std::string,teq::TensptrT> encodings;
-	for (auto idpair : ids.right)
-	{
-		std::string id = idpair.first;
-		teq::TensptrT tens = idpair.second;
-		switch (id[0])
+	auto froot = estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root);
+	auto layers = estd::must_cast<marsh::iArray>(
+		froot->get_attr(teq::layers_key));
+	teq::LayerObj* layerattr = nullptr;
+	layers->foreach(
+		[&](size_t i, marsh::iObject* obj)
 		{
-			case '_':
+			auto layer = estd::must_cast<teq::LayerObj>(obj);
+			if (layer->to_string() == layername)
 			{
-				auto keys = fmts::split(id, key_delim);
-				for (const std::string& key : keys)
-				{
-					encodings.emplace(key, tens);
-				}
+				layerattr = layer;
 			}
-				break;
-			default:
-				break;
+		});
+	return layerattr;
+}
+
+template <typename T>
+ETensor<T> get_input (const std::string& layername, const ETensor<T>& root)
+{
+	teq::LayerObj* layerattr = get_layerattr(layername, root);
+	if (nullptr == layerattr)
+	{
+		teq::fatalf("cannot get input from %s without an layer attribute",
+			layername.c_str());
+	}
+	return layerattr->get_tensor();
+}
+
+template <typename T>
+ETensor<T> connect (const std::string& layername,
+	const ETensor<T>& root, const ETensor<T>& input)
+{
+	return trail(root, teq::TensMapT<teq::TensptrT>{
+		{get_input(layername, root).get(), (teq::TensptrT) input}});
+}
+
+template <typename T>
+VarptrsT<T> get_storage (const std::string& layername, const ETensor<T>& root)
+{
+	auto intens = get_input(layername, root).get();
+	VarptrsT<T> vars;
+
+	teq::GraphStat stats;
+	stats.graphsize_.emplace(intens, estd::NumRange<size_t>());
+	root->accept(stats);
+
+	BreadthStat bstats;
+	bstats.breadth_.emplace(intens, 0);
+	root->accept(bstats);
+
+	teq::OwnerMapT owner = teq::track_owners({teq::TensptrT(root)});
+
+	for (auto gpair : stats.graphsize_)
+	{
+		if (0 == gpair.second.upper_ && intens != gpair.first)
+		{
+			if (auto var = std::dynamic_pointer_cast<
+				Variable<T>>(owner.at(gpair.first).lock()))
+			{
+				vars.push_back(var);
+			}
 		}
 	}
-	teq::TensptrT root;
-	teq::TensptrT input;
-	ELayersT<T> layers;
-	for (size_t i = 0;
-		estd::get(input, encodings, fmts::sprintf(input_key_fmt, i)) &&
-		estd::get(root, encodings, fmts::sprintf(root_key_fmt, i)); ++i)
-	{
-		layers.push_back(ELayer<T>(
-			estd::must_ptr_cast<teq::iFunctor>(root), ETensor<T>(input)));
-	}
-	return layers;
+	std::sort(vars.begin(), vars.end(),
+		[&bstats](VarptrT<T> a, VarptrT<T> b)
+		{
+			return bstats.breadth_.at(a.get()) <
+				bstats.breadth_.at(b.get());
+		});
+	return vars;
+}
+
+template <typename T>
+ETensor<T> deep_clone (const std::string& layername, const ETensor<T>& root)
+{
+	teq::Copier kamino({get_input(layername, root).get()});
+	root->accept(kamino);
+	return kamino.clones_.at(root.get());
 }
 
 }

@@ -7,6 +7,7 @@
 ///
 
 #include "estd/range.hpp"
+#include "estd/cast.hpp"
 
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
@@ -221,8 +222,8 @@ private:
 		auto attrs = func.ls_attrs();
 		for (auto attr : attrs)
 		{
-			if (auto tens_attr = dynamic_cast<const TensorRef*>(
-				func.get_attr(attr)))
+			auto attrval = func.get_attr(attr);
+			if (auto tens_attr = dynamic_cast<const TensorObj*>(attrval))
 			{
 				auto tens = tens_attr->get_tensor();
 				std::string label;
@@ -242,6 +243,32 @@ private:
 						}
 					}
 				}
+			}
+			else if (auto layers_attr = dynamic_cast<const LayerArrayT*>(attrval))
+			{
+				layers_attr->foreach(
+					[&](size_t i, const marsh::iObject* obj)
+					{
+						auto layer = estd::must_cast<const LayerObj>(obj);
+						auto tens = layer->get_tensor();
+						std::string label;
+						if (estd::get(label, targets_, tens.get()))
+						{
+							nexts[label].attrs_.push_back(attr);
+						}
+						else
+						{
+							tens->accept(*this);
+							if (estd::has(roadmap_, tens.get()))
+							{
+								auto& subnode = roadmap_.at(tens.get());
+								for (auto& spair : subnode)
+								{
+									nexts[spair.first].attrs_.push_back(attr);
+								}
+							}
+						}
+					});
 			}
 		}
 		if (false == nexts.empty())

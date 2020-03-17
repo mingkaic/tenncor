@@ -1458,7 +1458,7 @@ api:
               //
                   auto output = ::tenncor::nn::fully_connect({input}, {weight}, bias, dims);
                   auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::make_layer<T>("_DENSE_LAYER", input, f);
+                  return eteq::make_layer<T>(layr::dense_name, input, f);
       - template: typename T
         name: conv
         args:
@@ -1479,7 +1479,7 @@ api:
               //
                   auto output = ::tenncor::nn::conv2d(input, weight, bias, zero_padding);
                   auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::make_layer<T>("_CONV_LAYER", input, f);
+                  return eteq::make_layer<T>(layr::conv_name, input, f);
       - template: typename T
         name: rnn
         args:
@@ -1487,8 +1487,10 @@ api:
           name: input
         - dtype: const eteq::ETensor<T>&
           name: init_state
-        - dtype: const eteq::ELayer<T>&
+        - dtype: const eteq::ETensor<T>&
           name: cell
+        - dtype: const layr::UnaryF<T>&
+          name: activation
         - dtype: teq::RankT
           name: seq_dim
           default: "1"
@@ -1498,11 +1500,6 @@ api:
               //
                   teq::Shape inshape = input->shape();
                   teq::DimT nseq = inshape.at(seq_dim);
-                  if (nseq == 0)
-                  {
-                      teq::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
-                          seq_dim, inshape.to_string().c_str());
-                  }
                   if (seq_dim == 0)
                   {
                       teq::fatal("spliting input across 0th dimension... "
@@ -1514,12 +1511,13 @@ api:
                   for (teq::DimT i = 0; i < nseq; ++i)
                   {
                       inslice = ::tenncor::slice(input, i, 1, seq_dim);
-                      state = cell.connect(::tenncor::concat(inslice, state, 0));
+                      state = activation(eteq::connect(layr::dense_name, cell,
+                          ::tenncor::concat(inslice, state, 0)));
                       states.push_back(state);
                   }
                   auto output = ::tenncor::concat(states, seq_dim);
                   auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::make_layer<T>("_RNN_LAYER", input, f);
+                  return eteq::make_layer<T>(layr::rnn_name, input, f);
       - template: typename T
         name: lstm
         args:
@@ -1529,13 +1527,13 @@ api:
           name: init_state
         - dtype: const eteq::ETensor<T>&
           name: init_hidden
-        - dtype: const eteq::ELayer<T>&
+        - dtype: const eteq::ETensor<T>&
           name: ggate
-        - dtype: const eteq::ELayer<T>&
+        - dtype: const eteq::ETensor<T>&
           name: forgate
-        - dtype: const eteq::ELayer<T>&
+        - dtype: const eteq::ETensor<T>&
           name: ingate
-        - dtype: const eteq::ELayer<T>&
+        - dtype: const eteq::ETensor<T>&
           name: outgate
         - dtype: teq::RankT
           name: seq_dim
@@ -1546,11 +1544,6 @@ api:
               //
                   teq::Shape inshape = input->shape();
                   teq::DimT nseq = inshape.at(seq_dim);
-                  if (nseq == 0)
-                  {
-                      teq::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
-                          seq_dim, inshape.to_string().c_str());
-                  }
                   if (seq_dim == 0)
                   {
                       teq::fatal("spliting input across 0th dimension... "
@@ -1566,10 +1559,10 @@ api:
                       inslice = ::tenncor::slice(input, i, 1, seq_dim);
                       xc = ::tenncor::concat(inslice, hidden, 0);
 
-                      auto gate = ::tenncor::tanh(ggate.connect(xc));
-                      auto input = ::tenncor::sigmoid(ingate.connect(xc));
-                      auto forget = ::tenncor::sigmoid(forgate.connect(xc));
-                      auto output = ::tenncor::sigmoid(outgate.connect(xc));
+                      auto gate = ::tenncor::tanh(eteq::connect(layr::dense_name, ggate, xc));
+                      auto input = ::tenncor::sigmoid(eteq::connect(layr::dense_name, ingate, xc));
+                      auto forget = ::tenncor::sigmoid(eteq::connect(layr::dense_name, forgate, xc));
+                      auto output = ::tenncor::sigmoid(eteq::connect(layr::dense_name, outgate, xc));
                       state = ::tenncor::add(::tenncor::mul(gate,input),
                           ::tenncor::mul(state,forget));
                       hidden = ::tenncor::mul(state, output);
@@ -1577,7 +1570,7 @@ api:
                   }
                   auto output = ::tenncor::concat(states, seq_dim);
                   auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::make_layer<T>("_LSTM_LAYER", input, f);
+                  return eteq::make_layer<T>(layr::lstm_name, input, f);
       - template: typename T
         name: gru
         args:
@@ -1585,11 +1578,11 @@ api:
           name: input
         - dtype: const eteq::ETensor<T>&
           name: init_state
-        - dtype: const eteq::ELayer<T>&
+        - dtype: const eteq::ETensor<T>&
           name: ugate
-        - dtype: const eteq::ELayer<T>&
+        - dtype: const eteq::ETensor<T>&
           name: rgate
-        - dtype: const eteq::ELayer<T>&
+        - dtype: const eteq::ETensor<T>&
           name: hgate
         - dtype: teq::RankT
           name: seq_dim
@@ -1600,11 +1593,6 @@ api:
               //
                   teq::Shape inshape = input->shape();
                   teq::DimT nseq = inshape.at(seq_dim);
-                  if (nseq == 0)
-                  {
-                      teq::fatalf("cannot sequence on ambiguous dimension %d on shape %s",
-                          seq_dim, inshape.to_string().c_str());
-                  }
                   if (seq_dim == 0)
                   {
                       teq::fatal("spliting input across 0th dimension... "
@@ -1619,9 +1607,9 @@ api:
                       inslice = ::tenncor::slice(input, i, 1, seq_dim);
                       xc = ::tenncor::concat(inslice, state, 0);
 
-                      auto update = ::tenncor::sigmoid(ugate.connect(xc));
-                      auto reset = ::tenncor::sigmoid(rgate.connect(xc));
-                      auto hidden = ::tenncor::tanh(hgate.connect(
+                      auto update = ::tenncor::sigmoid(eteq::connect(layr::dense_name, ugate, xc));
+                      auto reset = ::tenncor::sigmoid(eteq::connect(layr::dense_name, rgate, xc));
+                      auto hidden = ::tenncor::tanh(eteq::connect(layr::dense_name, hgate,
                           ::tenncor::concat(inslice,::tenncor::mul(reset,state),0)));
                       state = ::tenncor::add(::tenncor::mul(update,state),
                           ::tenncor::mul(::tenncor::sub((T)1,update),hidden));
@@ -1629,7 +1617,7 @@ api:
                   }
                   auto output = ::tenncor::concat(states, seq_dim);
                   auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::make_layer<T>("_GRU_LAYER", input, f);
+                  return eteq::make_layer<T>(layr::gru_name, input, f);
     tenncor::layer:
       - template: typename T
         name: dense
@@ -1647,7 +1635,7 @@ api:
           name: dims
           default: "eigen::PairVecT<teq::RankT>{{0, 1}}"
         out:
-          type: eteq::ELayer<T>
+          type: eteq::ETensor<T>
           val: |
               //
                   assert(weight_init);
@@ -1659,9 +1647,7 @@ api:
                   {
                       bias = bias_init(teq::Shape(hidden_dims), layr::bias_label);
                   }
-                  auto output = ::tenncor::nn::dense(input, weight, bias, dims);
-                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::ELayer<T>(f, input);
+                  return ::tenncor::nn::dense(input, weight, bias, dims);
       - template: typename T
         name: conv
         args:
@@ -1680,7 +1666,7 @@ api:
           name: zero_padding
           default: "std::pair<teq::DimT,teq::DimT>{0, 0}"
         out:
-          type: eteq::ELayer<T>
+          type: eteq::ETensor<T>
           val: |
               //
                   assert(weight_init);
@@ -1694,9 +1680,7 @@ api:
                   {
                       bias = bias_init(teq::Shape({out_ncol}), layr::bias_label);
                   }
-                  auto output = ::tenncor::nn::conv(input, weight, bias, zero_padding);
-                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::ELayer<T>(f, input);
+                  return ::tenncor::nn::conv(input, weight, bias, zero_padding);
       - template: typename T
         name: rnn
         args:
@@ -1717,7 +1701,7 @@ api:
           name: seq_dim
           default: "1"
         out:
-          type: eteq::ELayer<T>
+          type: eteq::ETensor<T>
           val: |
               //
                   // input needs to specify number of sequences,
@@ -1730,18 +1714,13 @@ api:
 
                   auto cell = dense<T>(teq::Shape({(teq::DimT) (hidden_dim + indim)}),
                       {hidden_dim}, weight_init, bias_init);
-                  teq::TensptrT croot = activation(eteq::ETensor<T>(cell.root()));
-                  cell = eteq::ELayer<T>(std::static_pointer_cast<
-                      teq::iFunctor>(croot), cell.input());
 
                   auto init_state = eteq::make_variable<T>(
                       teq::Shape({hidden_dim}), "init_state");
                   eteq::ETensor<T> state = ::tenncor::extend_like(init_state,
                       ::tenncor::slice(input, 0, 1, seq_dim));
 
-                  auto output = ::tenncor::nn::rnn(input, state, cell, seq_dim);
-                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::ELayer<T>(f, input);
+                  return ::tenncor::nn::rnn(input, state, cell, activation, seq_dim);
       - template: typename T
         name: lstm
         args:
@@ -1760,7 +1739,7 @@ api:
           name: seq_dim
           default: "1"
         out:
-          type: eteq::ELayer<T>
+          type: eteq::ETensor<T>
           val: |
               //
                   // input needs to specify number of sequences,
@@ -1782,10 +1761,8 @@ api:
                   auto state = eteq::make_constant_scalar<T>(0, stateshape);
                   auto hidden = eteq::make_constant_scalar<T>(0, stateshape);
 
-                  auto output = ::tenncor::nn::lstm(input, state, hidden,
+                  return ::tenncor::nn::lstm(input, state, hidden,
                       ggate, forgate, ingate, outgate, seq_dim);
-                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::ELayer<T>(f, input);
       - template: typename T
         name: gru
         args:
@@ -1804,7 +1781,7 @@ api:
           name: seq_dim
           default: "1"
         out:
-          type: eteq::ELayer<T>
+          type: eteq::ETensor<T>
           val: |
               //
                   // input needs to specify number of sequences,
@@ -1823,10 +1800,8 @@ api:
 
                   auto state = eteq::make_constant_scalar<T>(0, teq::Shape({hidden_dim}));
 
-                  auto output = ::tenncor::nn::gru(input, state,
+                  return ::tenncor::nn::gru(input, state,
                       ugate, rgate, hgate, seq_dim);
-                  auto f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) output);
-                  return eteq::ELayer<T>(f, input);
       - template: typename T
         name: rbm
         args:
@@ -1857,12 +1832,11 @@ api:
                       hbias = bias_init(teq::Shape({nhidden}), "h" + layr::bias_label);
                       vbias = bias_init(teq::Shape({nvisible}), "v" + layr::bias_label);
                   }
-                  auto fwd = ::tenncor::nn::dense(fwdinput, weight, hbias, {{0, 1}});
-                  auto bwd = ::tenncor::nn::dense(
-                      bwdinput, ::tenncor::transpose(weight), vbias, {{0, 1}});
-                  auto ffwd = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) fwd);
-                  auto fbwd = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) bwd);
-                  return layr::RBMLayer<T>{eteq::ELayer<T>(ffwd, fwdinput), eteq::ELayer<T>(fbwd, bwdinput)};
+                  return layr::RBMLayer<T>{
+                      ::tenncor::nn::dense(fwdinput, weight, hbias, {{0, 1}}),
+                      ::tenncor::nn::dense(bwdinput,
+                          ::tenncor::transpose(weight), vbias, {{0, 1}})
+                  };
     tenncor::error:
       - template: typename T
         name: sqr_diff

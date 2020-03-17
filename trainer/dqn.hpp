@@ -57,15 +57,15 @@ struct DQNInfo final
 template <typename T>
 struct DQNTrainer final
 {
-	DQNTrainer (eteq::ELayer<T>& model, teq::iSession& sess,
-		layr::ApproxF<T> update, const DQNInfo<T>& param,
+	DQNTrainer (const std::string& layername, eteq::ETensor<T>& model,
+		teq::iSession& sess, layr::ApproxF<T> update, const DQNInfo<T>& param,
 		layr::UnaryF<T> gradprocess = layr::UnaryF<T>()) :
-		sess_(&sess), params_(param),
-		source_model_(model), target_model_(model.deep_clone()),
+		layername_(layername), sess_(&sess), params_(param),
+		source_model_(model), target_model_(eteq::deep_clone(layername, model)),
 		get_random_(eigen::Randomizer().unif_gen<T>(0, 1))
 	{
-		teq::DimT indim = model.input()->shape().at(0);
-		teq::DimT outdim = model.root()->shape().at(0);
+		teq::DimT indim = eteq::get_input(layername, model)->shape().at(0);
+		teq::DimT outdim = model->shape().at(0);
 		teq::Shape batchin({indim, params_.mini_batch_size_});
 		teq::Shape batchout({outdim, params_.mini_batch_size_});
 		teq::Shape outshape({params_.mini_batch_size_});
@@ -78,11 +78,11 @@ struct DQNTrainer final
 		output_mask_ = eteq::make_variable_scalar<T>(0, batchout, "action_mask");
 
 		// forward action score computation
-		output_ = source_model_.connect(input_);
-		train_out_ = source_model_.connect(train_input_);
+		output_ = eteq::connect(layername_, source_model_, input_);
+		train_out_ = eteq::connect(layername_, source_model_, train_input_);
 
 		// predicting target future rewards
-		next_output_ = target_model_.connect(next_input_);
+		next_output_ = eteq::connect(layername_, target_model_, next_input_);
 
 		auto target_values = next_output_mask_ *
 			tenncor::reduce_max_1d(next_output_, 0);
@@ -95,8 +95,8 @@ struct DQNTrainer final
 		prediction_error_ = tenncor::reduce_mean(tenncor::square(
 			masked_output_score - future_reward_));
 
-		eteq::VarptrsT<T> source_vars = source_model_.get_storage();
-		eteq::VarptrsT<T> target_vars = target_model_.get_storage();
+		eteq::VarptrsT<T> source_vars = eteq::get_storage(layername_, source_model_);
+		eteq::VarptrsT<T> target_vars = eteq::get_storage(layername_, target_model_);
 		size_t nvars = source_vars.size();
 		assert(nvars == target_vars.size());
 
@@ -137,7 +137,7 @@ struct DQNTrainer final
 		// perform random exploration action
 		if (get_random_() < exploration)
 		{
-			return std::floor(get_random_() * source_model_.root()->shape().at(0));
+			return std::floor(get_random_() * source_model_->shape().at(0));
 		}
 		input_->assign(input);
 		sess_->update();
@@ -196,7 +196,7 @@ struct DQNTrainer final
 					batch.observation_.begin(), batch.observation_.end());
 				{
 					std::vector<T> local_act_mask(
-						source_model_.root()->shape().at(0), 0);
+						source_model_->shape().at(0), 0);
 					local_act_mask[batch.action_idx_] = 1.;
 					action_mask.insert(action_mask.end(),
 						local_act_mask.begin(), local_act_mask.end());
@@ -205,7 +205,7 @@ struct DQNTrainer final
 				if (batch.new_observation_.empty())
 				{
 					new_states.insert(new_states.end(),
-						source_model_.input()->shape().at(0), 0);
+						source_model_->shape().at(0), 0);
 					new_states_mask.push_back(0);
 				}
 				else
@@ -288,11 +288,13 @@ private:
 	// training parameters
 	DQNInfo<T> params_;
 
+	std::string layername_;
+
 	// source network
-	eteq::ELayer<T> source_model_;
+	eteq::ETensor<T> source_model_;
 
 	// target network
-	eteq::ELayer<T> target_model_;
+	eteq::ETensor<T> target_model_;
 
 	// train fanout: shape <noutput, batchsize>
 	eteq::ETensor<T> next_output_;

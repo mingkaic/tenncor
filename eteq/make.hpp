@@ -1,3 +1,5 @@
+#include "estd/cast.hpp"
+
 #include "eigen/packattr.hpp"
 
 #include "eteq/constant.hpp"
@@ -117,8 +119,14 @@ template <typename T>
 ETensor<T> make_layer (const std::string& layername,
 	teq::TensptrT input, teq::FuncptrT output)
 {
-	output->add_attr(teq::layer_key,
-		std::make_unique<teq::LayerObj>(layername, input));
+	auto layer = output->get_attr(teq::layers_key);
+	if (nullptr == layer)
+	{
+		output->add_attr(teq::layers_key, std::make_unique<teq::LayerArrayT>());
+		layer = output->get_attr(teq::layers_key);
+	}
+	auto& layers = estd::must_cast<teq::LayerArrayT>(layer)->contents_;
+	layers.push_back(std::make_unique<teq::LayerObj>(layername, input));
 	return ETensor<T>(output);
 }
 

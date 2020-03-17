@@ -1,6 +1,7 @@
 
 #ifndef DISABLE_API_TEST
 
+#include "dbg/print/teq.hpp"
 
 #include "gtest/gtest.h"
 
@@ -22,8 +23,8 @@ TEST(DENSE, Connection)
 		0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<float>(
 		0, teq::Shape({7, 2}), "x2");
-	auto biasedy = biased_dense.connect(eteq::ETensor<float>(x));
-	auto y = dense.connect(eteq::ETensor<float>(x2));
+	auto biasedy = eteq::connect(layr::dense_name, biased_dense, eteq::ETensor<float>(x));
+	auto y = eteq::connect(layr::dense_name, dense, eteq::ETensor<float>(x2));
 
 	EXPECT_GRAPHEQ(
 		"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -47,7 +48,7 @@ TEST(CONV, Connection)
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({4, 10, 9, 2}), "x");
-	auto y = conv.connect(eteq::ETensor<float>(x));
+	auto y = eteq::connect(layr::conv_name, conv, eteq::ETensor<float>(x));
 
 	EXPECT_GRAPHEQ(
 		"(ADD[3\\6\\4\\2\\1\\1\\1\\1])\n"
@@ -69,8 +70,8 @@ TEST(RBM, Connection)
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<float>(0, teq::Shape({7, 2}), "x2");
-	auto biasedy = rrbm.fwd_.connect(eteq::ETensor<float>(x));
-	auto y = nobias.fwd_.connect(eteq::ETensor<float>(x2));
+	auto biasedy = rrbm.connect(eteq::ETensor<float>(x));
+	auto y = nobias.connect(eteq::ETensor<float>(x2));
 
 	EXPECT_GRAPHEQ(
 		"(ADD[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -94,8 +95,8 @@ TEST(RBM, BackwardConnection)
 
 	auto y = eteq::make_variable_scalar<float>(0, teq::Shape({5, 2}), "y");
 	auto y2 = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "y2");
-	auto biasedx = rrbm.bwd_.connect(eteq::ETensor<float>(y));
-	auto x = nobias.bwd_.connect(eteq::ETensor<float>(y2));
+	auto biasedx = rrbm.backward_connect(eteq::ETensor<float>(y));
+	auto x = nobias.backward_connect(eteq::ETensor<float>(y2));
 
 	EXPECT_GRAPHEQ(
 		"(ADD[6\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -119,7 +120,7 @@ TEST(BIND, Sigmoid)
 	auto sgm = layr::bind<float>(tenncor::sigmoid<float>);
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
-	auto s = sgm.connect(eteq::ETensor<float>(x));
+	auto s = eteq::connect(layr::bind_name, sgm, eteq::ETensor<float>(x));
 
 	EXPECT_GRAPHEQ(
 		"(SIGMOID[6\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -142,8 +143,8 @@ TEST(BIND, Softmax)
 		});
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
-	auto s0 = sft0.connect(eteq::ETensor<float>(x));
-	auto s1 = sft1.connect(eteq::ETensor<float>(x));
+	auto s0 = eteq::connect(layr::bind_name, sft0, eteq::ETensor<float>(x));
+	auto s1 = eteq::connect(layr::bind_name, sft1, eteq::ETensor<float>(x));
 
 	std::string eps_str = fmts::to_string(std::numeric_limits<float>::epsilon());
 	auto expect_str0 = fmts::sprintf(
@@ -262,10 +263,9 @@ TEST(CONNECT, TanhRNN)
 			return eteq::make_variable<double>(bias_data.data(), bshape, label);
 		}, seq_dim);
 
-	auto output = layer.connect(in);
-
+	auto output = eteq::connect(layr::rnn_name, layer, in);
 	auto err = tenncor::pow(out - output, 2.);
-	auto contents = layer.get_storage();
+	auto contents = eteq::get_storage(layr::rnn_name, layer);
 	auto istate = contents[0];
 	auto weight = contents[1];
 	auto bias = contents[2];
@@ -406,12 +406,15 @@ TEST(CONNECT, DenseTanhRNN)
 			return eteq::make_variable<double>(b1_data.data(), bshape, label);
 		}, seq_dim);
 
-	auto layer = layr::link<double>({indense, rnn});
+	auto layer = layr::link<double>({
+		{layr::dense_name, indense},
+		{layr::rnn_name, rnn}
+	});
 
-	auto output = layer.connect(in);
+	auto output = eteq::connect(layr::link_name, layer, in);
 
 	auto err = tenncor::pow(out - output, 2.);
-	auto contents = layer.get_storage();
+	auto contents = eteq::get_storage(layr::link_name, layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];
@@ -615,14 +618,16 @@ TEST(CONNECT, TanhRNNFull)
 		});
 
 	auto layer = layr::link<double>({
-		indense, rnn, outdense,
-		layr::bind<double>(tenncor::sigmoid<double>),
+		{layr::dense_name, indense},
+		{layr::rnn_name, rnn},
+		{layr::dense_name, outdense},
+		{layr::bind_name, layr::bind<double>(tenncor::sigmoid<double>)},
 	});
 
-	auto output = layer.connect(in);
+	auto output = eteq::connect(layr::link_name, layer, in);
 
 	auto err = tenncor::pow(out - output, 2.);
-	auto contents = layer.get_storage();
+	auto contents = eteq::get_storage(layr::link_name, layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];
@@ -850,17 +855,19 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		});
 
 	auto layer = layr::link<double>({
-		indense, rnn, outdense,
-		layr::bind<double>(tenncor::sigmoid<double>),
+		{layr::dense_name, indense},
+		{layr::rnn_name, rnn},
+		{layr::dense_name, outdense},
+		{layr::bind_name, layr::bind<double>(tenncor::sigmoid<double>)},
 	});
 
-	auto output = layer.connect(in);
+	auto output = eteq::connect(layr::link_name, layer, in);
 
 	double epsilon = 1e-5;
 	auto common = output + epsilon;
 	auto err = tenncor::reduce_mean(-(out * tenncor::log(common) + (1. - out) * tenncor::log(1. - common)));
 
-	auto contents = layer.get_storage();
+	auto contents = eteq::get_storage(layr::link_name, layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];
@@ -1276,17 +1283,19 @@ TEST(CONNECT, TanhRNNTraining)
 		});
 
 	auto layer = layr::link<double>({
-		indense, rnn, outdense,
-		layr::bind<double>(tenncor::sigmoid<double>),
+		{layr::dense_name, indense},
+		{layr::rnn_name, rnn},
+		{layr::dense_name, outdense},
+		{layr::bind_name, layr::bind<double>(tenncor::sigmoid<double>)},
 	});
 
-	auto output = layer.connect(in);
+	auto output = eteq::connect(layr::link_name, layer, in);
 
 	double epsilon = 1e-5;
 	auto common = output + epsilon;
 	auto err = tenncor::reduce_mean(-(out * tenncor::log(common) + (1. - out) * tenncor::log(1. - common)));
 
-	auto contents = layer.get_storage();
+	auto contents = eteq::get_storage(layr::link_name, layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];

@@ -2,6 +2,8 @@ opcode:
   operator_path: eigen/operator.hpp
   params: eigen::EigenptrT& out, teq::Shape outshape, const teq::TensptrsT& in, const marsh::iAttributed& attrib
   opcalls:
+    IDENTITY:
+      stmt: out = eigen::ref<T>(outshape, *in[0]);
     ABS:
       stmt: out = eigen::abs<T>(outshape, *in[0]);
     NEG:

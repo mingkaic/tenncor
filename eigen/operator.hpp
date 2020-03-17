@@ -436,6 +436,14 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 }
 
 /// Given reference to output array, and input vector ref,
+/// make output elements referencing input tensor
+template <typename T>
+EigenptrT ref (teq::Shape outshape, const teq::iTensor& in)
+{
+	return std::make_shared<PtrRef<T>>((T*) in.device().data());
+}
+
+/// Given reference to output array, and input vector ref,
 /// make output elements take absolute value of inputs
 template <typename T>
 EigenptrT abs (teq::Shape outshape, const teq::iTensor& in)
