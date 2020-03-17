@@ -7,7 +7,6 @@
 ///
 
 #include "estd/range.hpp"
-#include "estd/cast.hpp"
 
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
@@ -222,8 +221,8 @@ private:
 		auto attrs = func.ls_attrs();
 		for (auto attr : attrs)
 		{
-			auto attrval = func.get_attr(attr);
-			if (auto tens_attr = dynamic_cast<const TensorRef*>(attrval))
+			if (auto tens_attr = dynamic_cast<const TensorRef*>(
+				func.get_attr(attr)))
 			{
 				auto tens = tens_attr->get_tensor();
 				std::string label;

@@ -25,6 +25,10 @@ struct iUnmarshFuncs
 
 	virtual teq::TensptrT unmarsh_func (std::string opname,
 		const teq::TensptrsT& children, marsh::Maps&& attrs) const = 0;
+
+	virtual teq::TensptrT unmarsh_layr (std::string opname,
+		const teq::TensptrT& root, const teq::TensptrT& child,
+		marsh::Maps&& attrs) const = 0;
 };
 
 /// Return graph roots mapped to their ids through out available from in graph

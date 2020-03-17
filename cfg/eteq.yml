@@ -1643,7 +1643,7 @@ api:
                     0, inshape, layr::input_label));
                   auto output = unary(input);
                   auto layer_root = ::tenncor::identity(output);
-                  return eteq::make_layer<T>(layer_root, layr::bind_name, input);
+                  return eteq::make_layer(layer_root, layr::bind_name, input);
       - template: typename T
         name: link
         args:
@@ -1680,7 +1680,7 @@ api:
                       }
                   }
                   auto layer_root = ::tenncor::identity(output);
-                  return eteq::make_layer<T>(layer_root, layr::link_name, input);
+                  return eteq::make_layer(layer_root, layr::link_name, input);
       - template: typename T
         name: dense
         args:

@@ -209,6 +209,13 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 		TYPE_LOOKUP(_OUT_GENFUNC, gencode);
 		return func;
 	}
+
+	teq::TensptrT unmarsh_layr (std::string layername,
+		const teq::TensptrT& root, const teq::TensptrT& child,
+		marsh::Maps&& attrs) const override
+	{
+		return eteq::make_layer(root, layername, child);
+	}
 };
 
 #undef _OUT_GENFUNC

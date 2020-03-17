@@ -102,15 +102,7 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 
 	void marshal (const teq::LayerObj& layer) override
 	{
-		out_->set_type(AttributeProto::GRAPH);
-		GraphProto* graph = out_->mutable_g();
-
-		ValueInfoProto* pb_place = graph->add_input();
-		auto input = layer.get_tensor();
-		auto id = estd::must_getf(tensid_, input.get(),
-			"cannot find subgraph input '%s'", input->to_string().c_str());
-		pb_place->set_name(id);
-		graph->set_name(layer.to_string());
+		// ignore: since marshaler resolves graph info
 	}
 
 	AttributeProto* out_;
@@ -124,6 +116,10 @@ void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib,
 	std::vector<std::string> attr_keys = attrib.ls_attrs();
 	for (const std::string& attr_key : attr_keys)
 	{
+		if (attr_key == teq::layer_key)
+		{
+			continue; // ignore: since marshaler resolves graph info
+		}
 		auto attr = attrib.get_attr(attr_key);
 		AttributeProto* pb_attrs = out.Add();
 		pb_attrs->set_name(attr_key);
@@ -161,9 +157,10 @@ void marshal_annotation (TensorAnnotation& out, const teq::iLeaf& leaf)
 
 using StrArrayT = marsh::PtrArray<marsh::String>;
 
-void unmarshal_attrs (marsh::Maps& out,
+const GraphProto* unmarshal_attrs (marsh::Maps& out,
 	const PbAttrsT& pb_attrs, const TensptrIdT& identified_tens)
 {
+	const GraphProto* subgraph = nullptr;
 	for (const auto& pb_attr : pb_attrs)
 	{
 		std::string attr_name = pb_attr.name();
@@ -226,32 +223,21 @@ void unmarshal_attrs (marsh::Maps& out,
 			case AttributeProto::GRAPH:
 				if (attr_name == teq::layer_key)
 				{
-					auto& graph = pb_attr.g();
-					auto& inputs = graph.input();
-					if (inputs.size() == 0)
-					{
-						teq::fatal("cannot unmarshal graph without inputs");
-					}
-					const ValueInfoProto& pb_input = inputs.Get(0);
-					std::string input_id = pb_input.name();
-					std::string layername = graph.name();
-					teq::TensptrT input = estd::must_getf(
-						identified_tens.right, input_id,
-						"cannot find graph input %s", input_id.c_str());
-					val = new teq::LayerObj(layername, input);
+					subgraph = &pb_attr.g();
 				}
 				else
 				{
 					teq::warnf("unknown graph attribute %s",
 						attr_name.c_str());
 				}
-				break;
+				continue;
 			default:
 				teq::fatalf("unknown onnx attribute type of %s",
 					attr_name.c_str());
 		}
 		out.add_attr(attr_name, marsh::ObjptrT(val));
 	}
+	return subgraph;
 }
 
 teq::Shape unmarshal_shape (const TensorShapeProto& shape)
