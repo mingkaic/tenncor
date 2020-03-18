@@ -141,19 +141,19 @@ def main(args):
     ninput = 2
     noutput = 1
 
-    model = tc.link([
+    model = tc.layer.link([
         tc.layer.dense([ninput], [nunits], weight_init),
         tc.layer.rnn(nunits, nunits, tc.tanh, sequence_len,
             weight_init=weight_init, bias_init=tc.zero_init(),
             seq_dim=2),
         tc.layer.dense([nunits], [noutput], weight_init),
-        tc.bind(tc.sigmoid),
+        tc.layer.bind(tc.sigmoid),
     ])
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = tc.load_layers_file(args.load)[0]
+        trained = tc.load_from_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
@@ -256,7 +256,7 @@ def main(args):
 
     try:
         print('saving')
-        if tc.save_layers_file(args.save, [model]):
+        if tc.save_to_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

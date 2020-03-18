@@ -92,20 +92,20 @@ def main(args):
 
     print_interval = 100
 
-    model = tc.link([
+    model = tc.layer.link([
         tc.layer.gru(N, h_size, seq_length,
             weight_init=old_winit,
             bias_init=tc.zero_init()),
         tc.layer.dense([h_size], [o_size],
             weight_init=old_winit,
             bias_init=tc.zero_init()),
-        tc.bind(lambda x: tc.softmax(x, 0, 1)),
+        tc.layer.bind(lambda x: tc.softmax(x, 0, 1)),
     ])
     untrained_model = model.deep_clone()
     pretrained_model = model.deep_clone()
     try:
         print('loading ' + args.load)
-        pretrained_model = tc.load_layers_file(args.load)[0]
+        pretrained_model = tc.load_from_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
@@ -174,7 +174,7 @@ def main(args):
 
     try:
         print('saving')
-        if tc.save_layers_file(args.save, [model]):
+        if tc.save_to_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

@@ -2,6 +2,8 @@
 
 #ifdef PYTHON_ETEQ_EXT_HPP
 
+using ETensKeysT = std::unordered_map<std::string,eteq::ETensor<PybindT>>;
+
 void eteq_ext (py::module& m)
 {
 	// ==== data and shape ====
@@ -271,7 +273,8 @@ void eteq_ext (py::module& m)
 
 		// ==== serialization ====
 		.def("load_from_file",
-			[](const std::string& filename)
+			[](const std::string& filename,
+				const std::unordered_map<std::string,size_t>& key_prec)
 			{
 				std::ifstream input(filename);
 				if (false == input.is_open())
@@ -287,10 +290,45 @@ void eteq_ext (py::module& m)
 				onnx::TensptrIdT ids;
 				auto roots = eteq::load_model(ids, pb_model);
 				input.close();
-				return eteq::ETensorsT<PybindT>(roots.begin(), roots.end());
-			})
+
+				std::vector<std::string> precids;
+				std::vector<std::string> root_ids;
+				precids.reserve(key_prec.size());
+				root_ids.reserve(roots.size());
+				for (teq::TensptrT root : roots)
+				{
+					std::string id = ids.left.at(root);
+					if (estd::has(key_prec, id))
+					{
+						precids.push_back(id);
+					}
+					else
+					{
+						root_ids.push_back(id);
+					}
+				}
+				std::sort(precids.begin(), precids.end(),
+					[&key_prec](const std::string& a, const std::string& b)
+					{ return key_prec.at(a) < key_prec.at(b); });
+
+				eteq::ETensorsT<PybindT> out;
+				out.reserve(roots.size());
+				for (const std::string& id : precids)
+				{
+					out.push_back(ids.right.at(id));
+				}
+				for (const std::string& id : root_ids)
+				{
+					out.push_back(ids.right.at(id));
+				}
+				return out;
+			},
+			py::arg("filename"),
+			py::arg("key_prec") = std::unordered_map<std::string,size_t>{})
 		.def("save_to_file",
-			[](const std::string& filename, const eteq::ETensorsT<PybindT>& models)
+			[](const std::string& filename,
+				const eteq::ETensorsT<PybindT>& models,
+				const ETensKeysT& keys)
 			{
 				std::ofstream output(filename);
 				if (false == output.is_open())
@@ -298,9 +336,17 @@ void eteq_ext (py::module& m)
 					teq::fatalf("file %s not found", filename.c_str());
 				}
 				onnx::ModelProto pb_model;
-				eteq::save_model(pb_model, teq::TensptrsT(models.begin(), models.end()));
+				onnx::TensIdT identified;
+				for (auto keyit : keys)
+				{
+					identified.insert({keyit.second.get(), keyit.first});
+				}
+				eteq::save_model(pb_model, teq::TensptrsT(
+					models.begin(), models.end()), identified);
 				return pb_model.SerializeToOstream(&output);
-			})
+			},
+			py::arg("filename"), py::arg("models"),
+			py::arg("keys") = ETensKeysT{})
 		.def("load_session_file",
 			[](const std::string& filename, teq::iSession& sess)
 			{
@@ -331,7 +377,8 @@ void eteq_ext (py::module& m)
 				}
 				onnx::ModelProto pb_model;
 				onnx::TensIdT ids;
-				eteq::save_model(pb_model, teq::TensptrsT(troots.begin(), troots.end()), ids);
+				eteq::save_model(pb_model, teq::TensptrsT(
+					troots.begin(), troots.end()), ids);
 				return pb_model.SerializeToOstream(&output);
 			});
 }
