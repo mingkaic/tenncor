@@ -93,7 +93,7 @@ def main(args):
     print_interval = 100
 
     model = tc.layer.link([
-        tc.layer.gru(N, h_size, seq_length,
+        tc.layer.gru(tc.Shape([N]), h_size, seq_length,
             weight_init=old_winit,
             bias_init=tc.zero_init()),
         tc.layer.dense([h_size], [o_size],

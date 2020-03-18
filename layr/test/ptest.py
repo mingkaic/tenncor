@@ -41,6 +41,26 @@ class LAYRTest(unittest.TestCase):
         self.assertEquals(graph_to_str(train_err),
             graph_to_str(list(roots)[0]))
 
+    def test_gru(self):
+        brain = tc.layer.link([
+            tc.layer.conv([5, 5], 1, 16,
+                weight_init=tc.norm_xavier_init(0.5),
+                zero_padding=[2, 2]), # input of [1, 2641, 128, 1] -> output of [16, 2647, 128, 1]
+            tc.layer.conv([5, 5], 16, 20,
+                weight_init=tc.norm_xavier_init(0.5),
+                zero_padding=[2, 2]), # input of [16, 2647, 128, 1] -> output of [20, 2647, 128, 1]
+            tc.layer.gru(tc.Shape([2647, 20]), 20, 128,
+                seq_dim = 2,
+                weight_init=tc.zero_init(),
+                bias_init=tc.zero_init()), # input of [20, 2647, 128, 1] -> output of [20, 2647, 128]
+        ], tc.EVariable([128, 2647, 1], label='input'))
+
+        # state = [x, 2647]
+        # concat([20, 2647] [x, 2647]) -> [20 + x, 2647]
+        # inshape = [20 + x, 2647]
+        # [20 + x, 2647] @ [x, 20 + x] -> [x, 2647]
+        self.assertEquals([128, 2647, 20], list(brain.shape()))
+
 
 if __name__ == "__main__":
     unittest.main()
