@@ -10,6 +10,30 @@ namespace eteq
 
 struct Observable : public teq::iFunctor
 {
+	Observable (void) = default;
+
+	Observable (marsh::Maps&& attrs) : attrs_(std::move(attrs)) {}
+
+	Observable (const Observable& other)
+	{
+		std::unique_ptr<marsh::Maps> mattr(other.attrs_.clone());
+		attrs_ = std::move(*mattr);
+	}
+
+	Observable (Observable&& other) = default;
+
+	Observable& operator = (const Observable& other)
+	{
+		if (this != &other)
+		{
+			std::unique_ptr<marsh::Maps> mattr(other.attrs_.clone());
+			attrs_ = std::move(*mattr);
+		}
+		return *this;
+	}
+
+	Observable& operator = (Observable&& other) = default;
+
 	virtual ~Observable (void) = default;
 
 	void subscribe (Observable* sub)
@@ -35,8 +59,41 @@ struct Observable : public teq::iFunctor
 	/// Do or die populate internal data object, will recurse
 	virtual void must_initialize (void) = 0;
 
+	/// Implementation of iAttributed
+	std::vector<std::string> ls_attrs (void) const override
+	{
+		return attrs_.ls_attrs();
+	}
+
+	/// Implementation of iAttributed
+	const marsh::iObject* get_attr (const std::string& attr_key) const override
+	{
+		return attrs_.get_attr(attr_key);
+	}
+
+	/// Implementation of iAttributed
+	marsh::iObject* get_attr (const std::string& attr_key) override
+	{
+		return attrs_.get_attr(attr_key);
+	}
+
+	/// Implementation of iAttributed
+	void add_attr (const std::string& attr_key, marsh::ObjptrT&& attr_val) override
+	{
+		attrs_.add_attr(attr_key, std::move(attr_val));
+	}
+
+	/// Implementation of iAttributed
+	void rm_attr (const std::string& attr_key) override
+	{
+		attrs_.rm_attr(attr_key);
+	}
+
 protected:
 	std::unordered_set<Observable*> subs_;
+
+private:
+	marsh::Maps attrs_;
 };
 
 using ObsptrT = std::shared_ptr<Observable>;

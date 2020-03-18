@@ -45,9 +45,6 @@ static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 #define _OUT_GENFUNC(realtype)\
 func = make_funcattr<realtype>(opcode, children, attrs);
 
-#define _OUT_GENLAYR(realtype)\
-layer = make_layer<realtype>(opname, child, f);
-
 // todo: move this to generated layer
 static const std::unordered_map<
 	std::string,onnx::TensorProto::DataType> name2onnxtype = {
@@ -194,6 +191,18 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 		{
 			teq::fatalf("cannot generate func %s without args", opname.c_str());
 		}
+		if (opname == depname)
+		{
+			auto obs = std::dynamic_pointer_cast<Observable>(children.front());
+			if (nullptr == obs)
+			{
+				teq::fatal("cannot depend on a non-observable");
+			}
+			auto depit = children.begin() + obs->get_children().size() + 1;
+			auto depet = children.end();
+			return teq::TensptrT(eteq::Depends::get(obs,
+				teq::TensptrsT(depit, depet)));
+		}
 		egen::_GENERATED_OPCODE opcode = egen::get_op(opname);
 		auto gencode = (egen::_GENERATED_DTYPE) children.front()->type_code();
 		teq::TensptrT func;
@@ -201,21 +210,15 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 		return func;
 	}
 
-	teq::TensptrT unmarsh_layr (std::string opname,
+	teq::TensptrT unmarsh_layr (std::string layername,
 		const teq::TensptrT& root, const teq::TensptrT& child,
 		marsh::Maps&& attrs) const override
 	{
-		auto f = std::static_pointer_cast<teq::iFunctor>(root);
-		size_t gencode = f->type_code();
-		teq::TensptrT layer = nullptr;
-		TYPE_LOOKUP(_OUT_GENLAYR, (egen::_GENERATED_DTYPE) gencode);
-		return layer;
+		return eteq::make_layer(root, layername, child);
 	}
 };
 
 #undef _OUT_GENFUNC
-
-#undef _OUT_GENLAYR
 
 void save_model (onnx::ModelProto& pb_model, teq::TensptrsT roots,
 	const onnx::TensIdT& identified)

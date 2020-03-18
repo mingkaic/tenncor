@@ -19,10 +19,12 @@
 
 namespace py = pybind11;
 
-namespace pyead
+namespace pyeteq
 {
 
 using ETensT = eteq::ETensor<PybindT>;
+
+using ETensorsT = eteq::ETensorsT<PybindT>;
 
 using ETensPairT = std::pair<ETensT,ETensT>;
 

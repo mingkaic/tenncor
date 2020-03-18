@@ -59,30 +59,6 @@ struct Assign final : public Observable
 		return opcode_.name_;
 	}
 
-	/// Implementation of iAttributed
-	std::vector<std::string> ls_attrs (void) const override
-	{
-		return attrs_.ls_attrs();
-	}
-
-	/// Implementation of iAttributed
-	const marsh::iObject* get_attr (const std::string& attr_name) const override
-	{
-		return attrs_.get_attr(attr_name);
-	}
-
-	/// Implementation of iAttributed
-	void add_attr (const std::string& attr_key, marsh::ObjptrT&& attr_val) override
-	{
-		attrs_.add_attr(attr_key, std::move(attr_val));
-	}
-
-	/// Implementation of iAttributed
-	void rm_attr (const std::string& attr_key) override
-	{
-		attrs_.rm_attr(attr_key);
-	}
-
 	/// Implementation of iFunctor
 	teq::Opcode get_opcode (void) const override
 	{
@@ -235,12 +211,11 @@ private:
 	}
 
 	Assign (const Assign<T>& other) :
+		Observable(other),
 		opcode_(other.opcode_),
 		target_(other.target_),
 		children_(other.children_)
 	{
-		std::unique_ptr<marsh::Maps> mattr(other.attrs_.clone());
-		attrs_ = std::move(*mattr);
 		common_init();
 	}
 
@@ -273,8 +248,6 @@ private:
 
 	/// Tensor arguments (and children)
 	teq::TensptrsT children_;
-
-	marsh::Maps attrs_;
 };
 
 }

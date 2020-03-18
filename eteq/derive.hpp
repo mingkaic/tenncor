@@ -75,6 +75,9 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 		ETensor<T> out;
 		switch (opcode.code_)
 		{
+			case egen::IDENTITY:
+				out = supgrad;
+				break;
 			case egen::NEG:
 				out = make_functor<T>(egen::NEG, {supgrad});
 				break;

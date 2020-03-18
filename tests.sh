@@ -33,13 +33,13 @@ elif [[ "$MODE" == "slow" ]]; then
 	bzl_coverage //eteq:ctest //layr:test;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest;
+	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest //layr:ptest;
 else
 	bzl_coverage //eigen:test //eteq:ctest //layr:test //marsh:test \
 	//onnx:test //opt:test //perf:test //query:test //teq:test;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest //gen:ptest;
+	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest //gen:ptest //layr:ptest;
 fi
 
 lcov --remove "$COV_DIR/coverage.info" 'external/*' '**/test/*' \

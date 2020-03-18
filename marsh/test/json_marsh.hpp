@@ -25,10 +25,10 @@ struct JsonMarshaler final : public iMarshaler
 	{
 		auto& jarr = jreps_[&arr];
 		arr.foreach(
-			[&](size_t i, const ObjptrT& entry)
+			[&](size_t i, const iObject* entry)
 			{
 				entry->accept(*this);
-				jarr.push_back(std::make_pair("", jreps_[entry.get()]));
+				jarr.push_back(std::make_pair("", jreps_[entry]));
 			});
 	}
 

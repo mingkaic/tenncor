@@ -85,14 +85,13 @@ TEST(SINDEX, GraphPathPrefix)
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell_root = tenncor::tanh(tenncor::layer::dense(cell_in, weight, bias));
-	auto cell_f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) cell_root);
-	eteq::ELayer<double> cell(cell_f, cell_in);
+	auto cell = tenncor::layer::dense(cell_in, weight, bias);
 
 	auto state = tenncor::extend_like(istate,
 		tenncor::slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor::layer::rnn(in, state, cell, seq_dim);
+	auto output = tenncor::layer::rnn(in, state, cell,
+		layr::UnaryF<double>(tenncor::tanh<double>), seq_dim);
 
 	auto err = tenncor::pow(out - output, 2.);
 
@@ -235,14 +234,13 @@ TEST(SINDEX, GraphPathPossibles)
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell_root = tenncor::tanh(tenncor::layer::dense(cell_in, weight, bias));
-	auto cell_f = std::static_pointer_cast<teq::iFunctor>((teq::TensptrT) cell_root);
-	eteq::ELayer<double> cell(cell_f, cell_in);
+	auto cell = tenncor::layer::dense(cell_in, weight, bias);
 
 	auto state = tenncor::extend_like(istate,
 		tenncor::slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor::layer::rnn(in, state, cell, seq_dim);
+	auto output = tenncor::layer::rnn(in, state, cell,
+		layr::UnaryF<double>(tenncor::tanh<double>), seq_dim);
 
 	auto err = tenncor::pow(out - output, 2.);
 

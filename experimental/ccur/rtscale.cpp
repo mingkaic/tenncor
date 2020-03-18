@@ -55,6 +55,7 @@ int main (int argc, const char** argv)
 		switch (i)
 		{
 			// elementary unary
+			case egen::IDENTITY:
 			case egen::ABS:
 			case egen::NEG:
 			case egen::SIN:

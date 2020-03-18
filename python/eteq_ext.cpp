@@ -2,6 +2,8 @@
 
 #ifdef PYTHON_ETEQ_EXT_HPP
 
+using ETensKeysT = std::unordered_map<std::string,eteq::ETensor<PybindT>>;
+
 void eteq_ext (py::module& m)
 {
 	// ==== data and shape ====
@@ -38,17 +40,17 @@ void eteq_ext (py::module& m)
 			});
 
 	// ==== etens ====
-	auto etens = (py::class_<pyead::ETensT>) m.attr("ETensor");
+	auto etens = (py::class_<pyeteq::ETensT>) m.attr("ETensor");
 
 	etens
 		.def(py::init<teq::TensptrT>())
 		.def("__str__",
-			[](pyead::ETensT& self)
+			[](pyeteq::ETensT& self)
 			{
 				return self->to_string();
 			})
 		.def("shape",
-			[](pyead::ETensT& self)
+			[](pyeteq::ETensT& self)
 			{
 				teq::Shape shape = self->shape();
 				auto pshape = pyutils::c2pshape(shape);
@@ -57,18 +59,24 @@ void eteq_ext (py::module& m)
 			},
 			"Return this instance's shape")
 		.def("get",
-			[](pyead::ETensT& self)
+			[](pyeteq::ETensT& self)
 			{
-				return pyead::typedata_to_array<PybindT>(
+				return pyeteq::typedata_to_array<PybindT>(
 					*self, py::dtype::of<PybindT>());
-			});
+			})
+
+		// layer extensions
+		.def("get_input", eteq::get_input<PybindT>)
+		.def("connect", eteq::connect<PybindT>)
+		.def("deep_clone", eteq::deep_clone<PybindT>)
+		.def("get_storage", eteq::get_storage<PybindT>);
 
 	// ==== variable ====
-	py::class_<eteq::EVariable<PybindT>,pyead::ETensT> evar(m, "EVariable");
+	py::class_<eteq::EVariable<PybindT>,pyeteq::ETensT> evar(m, "EVariable");
 
 	evar
 		.def(py::init(
-			[](py::list slist, PybindT scalar, std::string label)
+			[](py::list slist, PybindT scalar, const std::string& label)
 			{
 				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
 			}),
@@ -84,33 +92,6 @@ void eteq_ext (py::module& m)
 			},
 			"Assign numpy data array to variable");
 
-	// ==== elayer ====
-	py::class_<eteq::ELayer<PybindT>> elayer(m, "ELayer");
-
-	elayer
-		.def(py::init(
-			[](pyead::ETensT root, pyead::ETensT input)
-			{
-				return eteq::ELayer<PybindT>(
-					estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root), input);
-			}),
-			py::arg("root"), py::arg("input"))
-		.def("deep_clone", &eteq::ELayer<PybindT>::deep_clone)
-		.def("connect", &eteq::ELayer<PybindT>::connect)
-		.def("get_storage",
-			[](eteq::ELayer<PybindT>& self)
-			{
-				auto stores = self.get_storage();
-				std::vector<eteq::EVariable<PybindT>> estores(stores.begin(), stores.end());
-				return estores;
-			})
-		.def("root",
-			[](eteq::ELayer<PybindT>& self) -> pyead::ETensT
-			{
-				return pyead::ETensT(self.root());
-			})
-		.def("input", &eteq::ELayer<PybindT>::input);
-
 	// ==== session ====
 	py::class_<teq::iSession> isess(m, "iSession");
 	py::class_<teq::Session> session(m, "Session", isess);
@@ -123,7 +104,7 @@ void eteq_ext (py::module& m)
 				troots.reserve(roots.size());
 				std::transform(roots.begin(), roots.end(),
 					std::back_inserter(troots),
-					[](pyead::ETensT& etens)
+					[](pyeteq::ETensT& etens)
 					{
 						return etens;
 					});
@@ -131,29 +112,29 @@ void eteq_ext (py::module& m)
 			})
 		.def("update",
 			[](teq::iSession* self,
-				std::vector<pyead::ETensT> ignored)
+				std::vector<pyeteq::ETensT> ignored)
 			{
 				teq::TensSetT ignored_set;
-				for (pyead::ETensT& etens : ignored)
+				for (pyeteq::ETensT& etens : ignored)
 				{
 					ignored_set.emplace(etens.get());
 				}
 				self->update(ignored_set);
 			},
 			"Calculate every etens in the graph given list of nodes to ignore",
-			py::arg("ignored") = std::vector<pyead::ETensT>{})
+			py::arg("ignored") = std::vector<pyeteq::ETensT>{})
 		.def("update_target",
 			[](teq::iSession* self,
-				std::vector<pyead::ETensT> targeted,
-				std::vector<pyead::ETensT> ignored)
+				std::vector<pyeteq::ETensT> targeted,
+				std::vector<pyeteq::ETensT> ignored)
 			{
 				teq::TensSetT targeted_set;
 				teq::TensSetT ignored_set;
-				for (pyead::ETensT& etens : targeted)
+				for (pyeteq::ETensT& etens : targeted)
 				{
 					targeted_set.emplace(etens.get());
 				}
-				for (pyead::ETensT& etens : ignored)
+				for (pyeteq::ETensT& etens : ignored)
 				{
 					ignored_set.emplace(etens.get());
 				}
@@ -161,8 +142,13 @@ void eteq_ext (py::module& m)
 			},
 			"Calculate etens relevant to targets in the graph given list of nodes to ignore",
 			py::arg("targeted"),
-			py::arg("ignored") = std::vector<pyead::ETensT>{})
-		.def("get_tracked", &teq::iSession::get_tracked);
+			py::arg("ignored") = std::vector<pyeteq::ETensT>{})
+		.def("get_tracked",
+			[](teq::iSession& self)
+			{
+				auto tracked = self.get_tracked();
+				return pyeteq::ETensorsT(tracked.begin(), tracked.end());
+			});
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
@@ -188,7 +174,7 @@ void eteq_ext (py::module& m)
 
 		// ==== variable creation ====
 		.def("scalar_variable",
-			[](PybindT scalar, py::list slist, std::string label)
+			[](PybindT scalar, py::list slist, const std::string& label)
 			{
 				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
 			},
@@ -197,7 +183,7 @@ void eteq_ext (py::module& m)
 			py::arg("slist"),
 			py::arg("label") = "")
 		.def("variable_like",
-			[](PybindT scalar, pyead::ETensT like, std::string label)
+			[](PybindT scalar, pyeteq::ETensT like, const std::string& label)
 			{
 				return eteq::make_variable_like<PybindT>(
 					scalar, (teq::TensptrT) like, label);
@@ -207,7 +193,7 @@ void eteq_ext (py::module& m)
 			py::arg("like"),
 			py::arg("label") = "")
 		.def("variable",
-			[](py::array data, std::string label)
+			[](py::array data, const std::string& label)
 			{
 				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
@@ -221,8 +207,8 @@ void eteq_ext (py::module& m)
 		.def("derive", &eteq::derive<PybindT>,
 			"Return derivative of first tensor with respect to second tensor")
 
-		.def("trail", [](const pyead::ETensT& root,
-			const std::vector<pyead::ETensPairT>& inps)
+		.def("trail", [](const pyeteq::ETensT& root,
+			const std::vector<pyeteq::ETensPairT>& inps)
 			{
 				teq::TensMapT<teq::TensptrT> inputs;
 				for (const auto& inp : inps)
@@ -234,7 +220,7 @@ void eteq_ext (py::module& m)
 
 		// ==== optimization ====
 		.def("optimize",
-			[](teq::iSession& sess, std::string filename)
+			[](teq::iSession& sess, const std::string& filename)
 			{
 				eteq::optimize<PybindT>(sess, filename);
 			},
@@ -283,7 +269,118 @@ void eteq_ext (py::module& m)
 		// 		}
 		// 		engine->seed(seed);
 			},
-			"Seed internal RNG");
+			"Seed internal RNG")
+
+		// ==== serialization ====
+		.def("load_from_file",
+			[](const std::string& filename,
+				const std::unordered_map<std::string,size_t>& key_prec)
+			{
+				std::ifstream input(filename);
+				if (false == input.is_open())
+				{
+					teq::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				if (false == pb_model.ParseFromIstream(&input))
+				{
+					teq::fatalf("failed to parse onnx from %s",
+						filename.c_str());
+				}
+				onnx::TensptrIdT ids;
+				auto roots = eteq::load_model(ids, pb_model);
+				input.close();
+
+				std::vector<std::string> precids;
+				std::vector<std::string> root_ids;
+				precids.reserve(key_prec.size());
+				root_ids.reserve(roots.size());
+				for (teq::TensptrT root : roots)
+				{
+					std::string id = ids.left.at(root);
+					if (estd::has(key_prec, id))
+					{
+						precids.push_back(id);
+					}
+					else
+					{
+						root_ids.push_back(id);
+					}
+				}
+				std::sort(precids.begin(), precids.end(),
+					[&key_prec](const std::string& a, const std::string& b)
+					{ return key_prec.at(a) < key_prec.at(b); });
+
+				eteq::ETensorsT<PybindT> out;
+				out.reserve(roots.size());
+				for (const std::string& id : precids)
+				{
+					out.push_back(ids.right.at(id));
+				}
+				for (const std::string& id : root_ids)
+				{
+					out.push_back(ids.right.at(id));
+				}
+				return out;
+			},
+			py::arg("filename"),
+			py::arg("key_prec") = std::unordered_map<std::string,size_t>{})
+		.def("save_to_file",
+			[](const std::string& filename,
+				const eteq::ETensorsT<PybindT>& models,
+				const ETensKeysT& keys)
+			{
+				std::ofstream output(filename);
+				if (false == output.is_open())
+				{
+					teq::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				onnx::TensIdT identified;
+				for (auto keyit : keys)
+				{
+					identified.insert({keyit.second.get(), keyit.first});
+				}
+				eteq::save_model(pb_model, teq::TensptrsT(
+					models.begin(), models.end()), identified);
+				return pb_model.SerializeToOstream(&output);
+			},
+			py::arg("filename"), py::arg("models"),
+			py::arg("keys") = ETensKeysT{})
+		.def("load_session_file",
+			[](const std::string& filename, teq::iSession& sess)
+			{
+				std::ifstream input(filename);
+				if (false == input.is_open())
+				{
+					teq::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				if (false == pb_model.ParseFromIstream(&input))
+				{
+					teq::fatalf("failed to parse onnx from %s",
+						filename.c_str());
+				}
+				onnx::TensptrIdT ids;
+				auto roots = eteq::load_model(ids, pb_model);
+				sess.track(roots);
+				input.close();
+			})
+		.def("save_session_file",
+			[](const std::string& filename, const teq::iSession& sess)
+			{
+				auto troots = sess.get_tracked();
+				std::ofstream output(filename);
+				if (false == output.is_open())
+				{
+					teq::fatalf("file %s not found", filename.c_str());
+				}
+				onnx::ModelProto pb_model;
+				onnx::TensIdT ids;
+				eteq::save_model(pb_model, teq::TensptrsT(
+					troots.begin(), troots.end()), ids);
+				return pb_model.SerializeToOstream(&output);
+			});
 }
 
 #endif

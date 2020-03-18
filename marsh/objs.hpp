@@ -128,9 +128,9 @@ struct iArray : public iObject
 {
 	virtual ~iArray (void) = default;
 
-	virtual void foreach (std::function<void(size_t,ObjptrT&)> consume) = 0;
+	virtual void foreach (std::function<void(size_t,iObject*)> consume) = 0;
 
-	virtual void foreach (std::function<void(size_t,const ObjptrT&)> consume) const = 0;
+	virtual void foreach (std::function<void(size_t,const iObject*)> consume) const = 0;
 
 	virtual size_t size (void) const = 0;
 
@@ -144,6 +144,7 @@ struct iArray : public iObject
 	}
 };
 
+// Array containing Heterogeneous typed objects
 struct ObjArray final : public iArray
 {
 	ObjArray* clone (void) const
@@ -195,19 +196,19 @@ struct ObjArray final : public iArray
 		return contents_.size();
 	}
 
-	void foreach (std::function<void(size_t,ObjptrT&)> consume) override
+	void foreach (std::function<void(size_t,iObject*)> consume) override
 	{
 		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
-			consume(i, contents_.at(i));
+			consume(i, contents_.at(i).get());
 		}
 	}
 
-	void foreach (std::function<void(size_t,const ObjptrT&)> consume) const override
+	void foreach (std::function<void(size_t,const iObject*)> consume) const override
 	{
 		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
-			consume(i, contents_.at(i));
+			consume(i, contents_.at(i).get());
 		}
 	}
 
@@ -231,6 +232,101 @@ private:
 		{
 			cpy->contents_.insert(cpy->contents_.end(),
 				ObjptrT(obj->clone()));
+		}
+		return cpy;
+	}
+};
+
+// Homogeneous variant of ObjArray
+template <typename T, typename std::enable_if<
+	std::is_base_of<iObject,T>::value>::type* = nullptr>
+struct PtrArray final : public iArray
+{
+	PtrArray<T>* clone (void) const
+	{
+		return static_cast<PtrArray<T>*>(clone_impl());
+	}
+
+	size_t class_code (void) const override
+	{
+		static const std::type_info& tp = typeid(PtrArray<T>);
+		return tp.hash_code();
+	}
+
+	std::string to_string (void) const override
+	{
+		std::vector<std::string> strs;
+		strs.reserve(contents_.size());
+		for (auto& c : contents_)
+		{
+			strs.push_back(c->to_string());
+		}
+		return fmts::to_string(strs.begin(), strs.end());
+	}
+
+	bool equals (const iObject& other) const override
+	{
+		if (other.class_code() != this->class_code())
+		{
+			return false;
+		}
+		auto& ocontents = static_cast<const PtrArray<T>*>(&other)->contents_;
+		size_t n = contents_.size();
+		if (ocontents.size() != n)
+		{
+			return false;
+		}
+		for (size_t i = 0; i < n; ++i)
+		{
+			if (false == contents_[i]->equals(*ocontents[i]))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	size_t size (void) const override
+	{
+		return contents_.size();
+	}
+
+	void foreach (std::function<void(size_t,iObject*)> consume) override
+	{
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
+		{
+			consume(i, contents_.at(i).get());
+		}
+	}
+
+	void foreach (std::function<void(size_t,const iObject*)> consume) const override
+	{
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
+		{
+			consume(i, contents_.at(i).get());
+		}
+	}
+
+	bool is_object (void) const override
+	{
+		return true;
+	}
+
+	bool is_integral (void) const override
+	{
+		return false;
+	}
+
+	std::vector<std::unique_ptr<T>> contents_;
+
+private:
+	iObject* clone_impl (void) const override
+	{
+		auto cpy = new PtrArray<T>();
+		for (auto& obj : contents_)
+		{
+			cpy->contents_.insert(cpy->contents_.end(),
+				std::unique_ptr<T>(static_cast<T*>(obj->clone())));
 		}
 		return cpy;
 	}
@@ -277,20 +373,21 @@ struct NumArray final : public iArray
 		return contents_.size();
 	}
 
-	void foreach (std::function<void(size_t,ObjptrT&)> consume) override
+	void foreach (std::function<void(size_t,iObject*)> consume) override
 	{
 		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
 			ObjptrT obj = std::make_unique<Number<T>>(contents_[i]);
-			consume(i, obj);
+			consume(i, obj.get());
 		}
 	}
 
-	void foreach (std::function<void(size_t,const ObjptrT&)> consume) const override
+	void foreach (std::function<void(size_t,const iObject*)> consume) const override
 	{
 		for (size_t i = 0, n = contents_.size(); i < n; ++i)
 		{
-			consume(i, std::make_unique<Number<T>>(contents_[i]));
+			ObjptrT obj = std::make_unique<Number<T>>(contents_[i]);
+			consume(i, obj.get());
 		}
 	}
 
@@ -365,12 +462,6 @@ struct Maps final : public iObject, public iAttributed
 		marshaler.marshal(*this);
 	}
 
-	const iObject* get_attr (const std::string& attr_key) const override
-	{
-		return estd::has(contents_, attr_key) ?
-			contents_.at(attr_key).get() : nullptr;
-	}
-
 	std::vector<std::string> ls_attrs (void) const override
 	{
 		std::vector<std::string> out;
@@ -381,6 +472,18 @@ struct Maps final : public iObject, public iAttributed
 		}
 		std::sort(out.begin(), out.end());
 		return out;
+	}
+
+	const iObject* get_attr (const std::string& attr_key) const override
+	{
+		return estd::has(contents_, attr_key) ?
+			contents_.at(attr_key).get() : nullptr;
+	}
+
+	iObject* get_attr (const std::string& attr_key) override
+	{
+		return estd::has(contents_, attr_key) ?
+			contents_.at(attr_key).get() : nullptr;
 	}
 
 	void add_attr (const std::string& attr_key, ObjptrT&& attr_val) override

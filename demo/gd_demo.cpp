@@ -10,8 +10,11 @@
 #include "eteq/eteq.hpp"
 #include "eteq/optimize.hpp"
 
-#include "dbg/psess/plugin_sess.hpp"
-#include "dbg/psess/emit/emitter.hpp"
+#include "generated/pyapi.hpp"
+#include "generated/api.hpp"
+
+// #include "dbg/psess/plugin_sess.hpp"
+// #include "dbg/psess/emit/emitter.hpp"
 
 #include "layr/layer.hpp"
 #include "trainer/sgd.hpp"
@@ -92,16 +95,16 @@ int main (int argc, const char** argv)
 	uint8_t n_out = n_in / 2;
 	std::vector<teq::DimT> n_outs = {9, n_out};
 
-	eteq::ELayer<PybindT> model = layr::link<PybindT>({
-		layr::dense<PybindT>(teq::Shape({n_in}), {n_hid},
+	eteq::ETensor<PybindT> model = tenncor::layer::link<PybindT>({
+		tenncor::layer::dense<PybindT>(teq::Shape({n_in}), {n_hid},
 			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
-		layr::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
-		layr::dense<PybindT>(teq::Shape({n_hid}), {n_out},
+		tenncor::layer::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
+		tenncor::layer::dense<PybindT>(teq::Shape({n_hid}), {n_out},
 			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
-		layr::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
+		tenncor::layer::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
 	});
-	eteq::ELayer<PybindT> untrained_model = model.deep_clone();
-	eteq::ELayer<PybindT> trained_model = model.deep_clone();
+	eteq::ETensor<PybindT> untrained_model = eteq::deep_clone(model);
+	eteq::ETensor<PybindT> trained_model = eteq::deep_clone(model);
 
 	std::ifstream loadstr(loadpath);
 	try
@@ -115,7 +118,8 @@ int main (int argc, const char** argv)
 		{
 			throw std::exception();
 		}
-		trained_model = eteq::load_layers<PybindT>(pb_model)[0];
+		onnx::TensptrIdT ids;
+		trained_model = eteq::load_model(ids, pb_model)[0];
 		teq::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
@@ -129,22 +133,23 @@ int main (int argc, const char** argv)
 	layr::ApproxF<PybindT> approx =
 		[](const layr::VarMapT<PybindT>& leaves)
 		{
-			return layr::sgd<PybindT>(leaves, 0.9); // learning rate = 0.9
+			return tenncor::approx::sgd<PybindT>(leaves, 0.9); // learning rate = 0.9
 		};
-	emit::Emitter emitter("localhost:50051");
-	dbg::PluginSession sess(eigen::default_device());
-	sess.plugins_.push_back(emitter);
+	// emit::Emitter emitter("localhost:50051");
+	// dbg::PluginSession sess(eigen::default_device());
+	// sess.plugins_.push_back(emitter);
+	auto sess = eigen::get_session();
 	{
 
-	jobs::ScopeGuard defer(
-		[&emitter]
-		{
-			// 10 seconds
-			std::chrono::time_point<std::chrono::system_clock> deadline =
-				std::chrono::system_clock::now() +
-				std::chrono::seconds(10);
-			emitter.join_then_stop(deadline);
-		});
+	// jobs::ScopeGuard defer(
+	// 	[&emitter]
+	// 	{
+	// 		// 10 seconds
+	// 		std::chrono::time_point<std::chrono::system_clock> deadline =
+	// 			std::chrono::system_clock::now() +
+	// 			std::chrono::seconds(10);
+	// 		emitter.join_then_stop(deadline);
+	// 	});
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
@@ -155,9 +160,11 @@ int main (int argc, const char** argv)
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");
-	auto untrained_out = untrained_model.connect(eteq::ETensor<PybindT>(testin));
-	auto out = model.connect(eteq::ETensor<PybindT>(testin));
-	auto trained_out = trained_model.connect(eteq::ETensor<PybindT>(testin));
+	auto untrained_out = eteq::connect(
+		untrained_model, eteq::ETensor<PybindT>(testin));
+	auto out = eteq::connect(model, eteq::ETensor<PybindT>(testin));
+	auto trained_out = eteq::connect(
+		trained_model, eteq::ETensor<PybindT>(testin));
 	sess.track({untrained_out, out, trained_out});
 
 	eteq::optimize<PybindT>(sess, "cfg/optimizations.json");
@@ -232,7 +239,7 @@ int main (int argc, const char** argv)
 		if (savestr.is_open())
 		{
 			onnx::ModelProto pb_model;
-			eteq::save_layers<PybindT>(pb_model, {model});
+			eteq::save_model(pb_model, teq::TensptrsT{model});
 			if (pb_model.SerializeToOstream(&savestr))
 			{
 				teq::infof("successfully saved model to `%s`", savepath.c_str());

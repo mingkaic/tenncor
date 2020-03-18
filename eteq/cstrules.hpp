@@ -60,7 +60,7 @@ struct ConstantTarget final : public opt::iTarget
 };
 
 // source graph for certain branching factor of certain operator
-static void get_cstsource (query::Node& node, std::string opname, size_t nbranch)
+static inline void get_cstsource (query::Node& node, std::string opname, size_t nbranch)
 {
 	query::Operator* op = node.mutable_op();
 	op->set_opname(opname);

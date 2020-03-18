@@ -72,9 +72,9 @@ inline bool equals2 (const Attribute& pba, const marsh::iObject* attr,
 				{
 					match = true;
 					narr->foreach(
-					[&](size_t i, const marsh::ObjptrT& obj)
+					[&](size_t i, const marsh::iObject* obj)
 					{
-						auto num = dynamic_cast<const marsh::iNumber*>(obj.get());
+						auto num = dynamic_cast<const marsh::iNumber*>(obj);
 						match = match &&
 							nullptr != num && arr[i] == num->to_int64();
 					});
@@ -89,9 +89,9 @@ inline bool equals2 (const Attribute& pba, const marsh::iObject* attr,
 				{
 					match = true;
 					narr->foreach(
-					[&](size_t i, const marsh::ObjptrT& obj)
+					[&](size_t i, const marsh::iObject* obj)
 					{
-						auto num = dynamic_cast<const marsh::iNumber*>(obj.get());
+						auto num = dynamic_cast<const marsh::iNumber*>(obj);
 						match = match &&
 							nullptr != num && arr[i] == num->to_float64();
 					});

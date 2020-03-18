@@ -32,7 +32,7 @@ def main(args):
         help='Whether to seed or not (default: True)')
     parser.add_argument('--seedval', dest='seedval', type=int, nargs='?', default=int(default_ts),
         help='Random seed value (default: <current time>)')
-    parser.add_argument('--n_batch', dest='n_batch', type=int, nargs='?', default=3,
+    parser.add_argument('--nbatch', dest='nbatch', type=int, nargs='?', default=3,
         help='Batch size when training (default: 3)')
     parser.add_argument('--n_train', dest='n_train', type=int, nargs='?', default=3000,
         help='Number of times to train (default: 3000)')
@@ -52,34 +52,33 @@ def main(args):
     nunits = 9
     ninput = 10
     noutput = int(ninput / 2)
+    nbatch = args.nbatch
 
-    model = tc.link([
+    train_input = tc.EVariable([nbatch, ninput])
+    train_output = tc.EVariable([nbatch, noutput])
+    model = tc.layer.link([
         tc.layer.dense([ninput], [nunits],
             weight_init=tc.unif_xavier_init(),
             bias_init=tc.zero_init()),
-        tc.bind(tc.sigmoid),
+        tc.layer.bind(tc.sigmoid),
         tc.layer.dense([nunits], [noutput],
             weight_init=tc.unif_xavier_init(),
             bias_init=tc.zero_init()),
-        tc.bind(tc.sigmoid),
-    ])
+        tc.layer.bind(tc.sigmoid),
+    ], train_input)
+    train_err = tc.sgd_train(model, train_input, train_output,
+        lambda assocs: tc.approx.sgd(assocs, 0.9))
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = tc.load_layers_file(args.load)[0]
+        trained = tc.load_from_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
     sess = tc.Session()
-    n_batch = args.n_batch
-    show_every_n = 500
-    train_input = tc.EVariable([n_batch, ninput])
-    train_output = tc.EVariable([n_batch, noutput])
-    train_err = tc.sgd_train(model, train_input, train_output,
-        lambda assocs: tc.approx.sgd(assocs, 0.9))
     sess.track([train_err])
 
     testin = tc.EVariable([ninput], label='testin')
@@ -90,11 +89,12 @@ def main(args):
 
     tc.optimize(sess, "cfg/optimizations.json")
 
+    show_every_n = 500
     start = time.time()
     for i in range(args.n_train):
-        batch, batch_out = batch_generate(ninput, n_batch)
-        train_input.assign(batch.reshape(n_batch, ninput))
-        train_output.assign(batch_out.reshape(n_batch, noutput))
+        batch, batch_out = batch_generate(ninput, nbatch)
+        train_input.assign(batch.reshape(nbatch, ninput))
+        train_output.assign(batch_out.reshape(nbatch, noutput))
         sess.update_target([train_err])
         if i % show_every_n == show_every_n - 1:
             err = train_err.get()
@@ -132,7 +132,7 @@ def main(args):
 
     try:
         print('saving')
-        if tc.save_layers_file(args.save, [model]):
+        if tc.save_to_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

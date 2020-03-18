@@ -74,7 +74,8 @@ def main(args):
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = tc.RBMLayer(*tc.load_layers_file(args.load))
+        trained = tc.RBMLayer(*tc.load_from_file(
+            args.load, key_prec={'fwd': 0, 'bwd': 1}))
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
@@ -178,7 +179,8 @@ def main(args):
 
     try:
         print('saving')
-        if tc.save_layers_file(args.save, [model.fwd(), model.bwd()]):
+        if tc.save_to_file(args.save, [model.fwd(), model.bwd()],
+            keys={'fwd': model.fwd(), 'bwd': model.bwd()}):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

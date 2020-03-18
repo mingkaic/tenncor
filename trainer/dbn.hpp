@@ -12,7 +12,7 @@ template <typename T>
 struct DBNTrainer final
 {
 	DBNTrainer (const std::vector<layr::RBMLayer<T>>& rbms,
-		eteq::ELayer<T> dense, teq::RankT softmax_dim,
+		eteq::ETensor<T> dense, teq::RankT softmax_dim,
 		teq::DimT batch_size, T pretrain_lr = 0.1,
 		T train_lr = 0.1, size_t cdk = 10,
 		T l2_reg = 0., T lr_scaling = 0.95) :
@@ -21,8 +21,8 @@ struct DBNTrainer final
 		pretrain_sess_(eigen::default_device()),
 		train_sess_(eigen::default_device())
 	{
-		input_size_ = rbms.front().fwd_.input()->shape().at(0);
-		output_size_ = dense.root()->shape().at(0);
+		input_size_ = eteq::get_input(rbms.front().fwd_)->shape().at(0);
+		output_size_ = dense->shape().at(0);
 
 		teq::Shape inshape({(teq::DimT) input_size_, batch_size});
 		teq::Shape outshape({(teq::DimT) output_size_, batch_size});
@@ -45,8 +45,8 @@ struct DBNTrainer final
 			auto& rx = sample_pipes_[i];
 			auto& ry = sample_pipes_[i + 1];
 			teq::TensSetT to_learn;
-			auto fstorage = rbm.fwd_.get_storage();
-			auto bstorage = rbm.bwd_.get_storage();
+			auto fstorage = eteq::get_storage(rbm.fwd_);
+			auto bstorage = eteq::get_storage(rbm.bwd_);
 			for (auto var : fstorage)
 			{
 				to_learn.emplace(var.get());
@@ -71,8 +71,8 @@ struct DBNTrainer final
 			}
 			rupdates_.push_back(assigns);
 
-			auto vhv = tenncor::sigmoid(rbm.bwd_.connect(
-				tenncor::sigmoid(rbm.fwd_.connect(rx))));
+			auto vhv = tenncor::sigmoid(rbm.backward_connect(
+				tenncor::sigmoid(rbm.connect(rx))));
 			auto rcost = -tenncor::reduce_mean(tenncor::reduce_sum_1d(
 				rx * tenncor::log(vhv) + ((T) 1 - rx) *
 				tenncor::log((T) 1 - vhv), 0));
@@ -84,10 +84,10 @@ struct DBNTrainer final
 
 		// logistic layer training
 		// todo: improve this adhoc way of training log layer
-		auto contents = dense.get_storage();
+		auto contents = eteq::get_storage(dense);
 		eteq::VarptrT<T> w = contents[0];
 		eteq::VarptrT<T> b = contents[1];
-		auto final_out = tenncor::softmax(dense.connect(sample_pipes_.back()), softmax_dim, 1);
+		auto final_out = tenncor::softmax(eteq::connect(dense, sample_pipes_.back()), softmax_dim, 1);
 		auto diff = trainy_ - final_out;
 		auto l2_regularized = tenncor::matmul(tenncor::transpose(
 			sample_pipes_.back()), diff) - l2_reg * eteq::ETensor<T>(w);

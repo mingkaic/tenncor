@@ -127,15 +127,15 @@ for matrix_dim in matrix_dims:
     batch_size = 1
 
     # regular mlp
-    brain = tc.link([
+    brain = tc.layer.link([
         tc.dense([n_in], [matrix_dim],
             weight_init=tc.unif_xavier_init(),
             bias_init=tc.zero_init()),
-        tc.bind(tc.sigmoid),
+        tc.layer.bind(tc.sigmoid),
         tc.dense([matrix_dim], [n_out],
             weight_init=tc.unif_xavier_init(),
             bias_init=tc.zero_init()),
-        tc.bind(tc.sigmoid),
+        tc.layer.bind(tc.sigmoid),
     ])
 
     invar = tc.variable(np.zeros([batch_size, n_in], dtype=float), 'in')

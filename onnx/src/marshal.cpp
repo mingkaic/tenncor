@@ -37,13 +37,13 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 		std::vector<int64_t> ints;
 		std::vector<double> floats;
 		arr.foreach(
-			[&](size_t i, const marsh::ObjptrT& obj)
+			[&](size_t i, const marsh::iObject* obj)
 			{
-				if (auto str = dynamic_cast<const marsh::String*>(obj.get()))
+				if (auto str = dynamic_cast<const marsh::String*>(obj))
 				{
 					strs.push_back(str->to_string());
 				}
-				else if (auto num = dynamic_cast<const marsh::iNumber*>(obj.get()))
+				else if (auto num = dynamic_cast<const marsh::iNumber*>(obj))
 				{
 					if (num->is_integral())
 					{
@@ -155,6 +155,8 @@ void marshal_annotation (TensorAnnotation& out, const teq::iLeaf& leaf)
 	tenspair->set_value(teq::get_usage_name(leaf.get_usage()));
 }
 
+using StrArrayT = marsh::PtrArray<marsh::String>;
+
 const GraphProto* unmarshal_attrs (marsh::Maps& out,
 	const PbAttrsT& pb_attrs, const TensptrIdT& identified_tens)
 {
@@ -177,7 +179,7 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 			case AttributeProto::STRINGS:
 			{
 				auto& pb_values = pb_attr.strings();
-				auto strs = new marsh::ObjArray();
+				auto strs = new StrArrayT();
 				val = strs;
 				auto& content = strs->contents_;
 				for (const std::string& e : pb_values)

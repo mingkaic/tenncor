@@ -48,7 +48,7 @@ TEST(DEPEND, Chaining)
 		auto num = std::make_unique<marsh::Number<double>>(3);
 		fdep->add_attr("anything", std::move(num));
 	}
-	EXPECT_EQ(nullptr, fdep->get_attr("anything"));
+	EXPECT_NE(nullptr, fdep->get_attr("anything"));
 	fdep->rm_attr("anything");
 	EXPECT_EQ(nullptr, fdep->get_attr("anything"));
 

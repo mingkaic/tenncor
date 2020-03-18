@@ -63,7 +63,7 @@ def main(args):
     pretrained_model = model.deep_clone()
     try:
         print('loading ' + args.load)
-        pretrained_model = tc.load_layers_file(args.load)[0]
+        pretrained_model = tc.load_from_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
@@ -103,7 +103,7 @@ def main(args):
 
     try:
         print('saving')
-        if tc.save_layers_file(args.save, [model]):
+        if tc.save_to_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

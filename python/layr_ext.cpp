@@ -51,10 +51,11 @@ void layr_ext(py::module& m)
 			py::arg("max_exp") = 30000);
 
 	// ==== layer ====
-	py::class_<layr::RBMLayer<PybindT>> rbmlayer(m, "RBMLayer");
+	auto rbmlayer = (py::class_<layr::RBMLayer<PybindT>>) m.attr("RBMLayer");
+
 	rbmlayer
 		.def(py::init(
-			[](eteq::ELayer<PybindT> fwd, eteq::ELayer<PybindT> bwd)
+			[](eteq::ETensor<PybindT> fwd, eteq::ETensor<PybindT> bwd)
 			{
 				return layr::RBMLayer<PybindT>{fwd, bwd};
 			}))
@@ -69,21 +70,14 @@ void layr_ext(py::module& m)
 			{
 				return self.bwd_;
 			})
-		.def("connect",
-			[](layr::RBMLayer<PybindT>& self, const eteq::ETensor<PybindT>& e)
-			{
-				return self.fwd_.connect(e);
-			})
-		.def("backward_connect",
-			[](layr::RBMLayer<PybindT>& self, const eteq::ETensor<PybindT>& e)
-			{
-				return self.bwd_.connect(e);
-			});
+		.def("connect", &layr::RBMLayer<PybindT>::connect)
+		.def("backward_connect", &layr::RBMLayer<PybindT>::backward_connect);
 
 	// ==== DQN trainer ====
 	py::class_<trainer::DQNTrainer<PybindT>> dqntrainer(m, "DQNTrainer");
+
 	dqntrainer
-		.def(py::init([](eteq::ELayer<PybindT>& model, teq::iSession& sess,
+		.def(py::init([](eteq::ETensor<PybindT>& model, teq::iSession& sess,
 				layr::ApproxF<PybindT> update, trainer::DQNInfo<PybindT> param,
 				layr::UnaryF<PybindT> gradprocess)
 			{
@@ -113,9 +107,10 @@ void layr_ext(py::module& m)
 
 	// ==== DBN trainer ====
 	py::class_<trainer::DBNTrainer<PybindT>> dbntrainer(m, "DBNTrainer");
+
 	dbntrainer
 		.def(py::init<
-			const std::vector<layr::RBMLayer<PybindT>>&,eteq::ELayer<PybindT>,
+			const std::vector<layr::RBMLayer<PybindT>>&,eteq::ETensor<PybindT>,
 			teq::RankT,teq::DimT,PybindT,PybindT,size_t,PybindT,PybindT>(),
 			py::arg("rbms"), py::arg("dense"), py::arg("softmax_dim"),
 			py::arg("batch_size"), py::arg("pretrain_lr") = 0.1,
@@ -176,26 +171,11 @@ void layr_ext(py::module& m)
 			"normal xavier initializer",
 			py::arg("factor") = 1)
 
-		// ==== layer creation ====
-		.def("bind", &layr::bind<PybindT>,
-			py::arg("unary"), py::arg("inshape") = teq::Shape())
-		.def("link",
-			[](const std::vector<eteq::ELayer<PybindT>>& layers)
-			{
-				return layr::link<PybindT>(layers);
-			})
-		.def("link",
-			[](const std::vector<eteq::ELayer<PybindT>>& layers,
-				const eteq::ETensor<PybindT>& input)
-			{
-				return layr::link<PybindT>(layers, input);
-			})
-
 		// ==== layer training ====
-		.def("sgd_train", [](
-				const eteq::ELayer<PybindT>& model, eteq::ETensor<PybindT> train_in,
-				eteq::ETensor<PybindT> expect_out, layr::ApproxF<PybindT> update,
-				layr::ErrorF<PybindT> err_func, layr::UnaryF<PybindT> proc_grad)
+		.def("sgd_train", [](const eteq::ETensor<PybindT>& model,
+				eteq::ETensor<PybindT> train_in, eteq::ETensor<PybindT> expect_out,
+				layr::ApproxF<PybindT> update, layr::ErrorF<PybindT> err_func,
+				layr::UnaryF<PybindT> proc_grad)
 			{
 				return trainer::sgd<PybindT>(model, train_in, expect_out, update, err_func, proc_grad);
 			},
@@ -207,47 +187,5 @@ void layr_ext(py::module& m)
 			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
 			py::arg("err_func") = layr::ErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>),
-			py::arg("cdk") = 1)
-
-		// ==== serialization ====
-		.def("load_layers_file",
-			[](const std::string& filename)
-			{
-				std::ifstream input(filename);
-				if (false == input.is_open())
-				{
-					teq::fatalf("file %s not found", filename.c_str());
-				}
-				onnx::ModelProto pb_model;
-				if (false == pb_model.ParseFromIstream(&input))
-				{
-					teq::fatalf("failed to parse onnx from %s",
-						filename.c_str());
-				}
-				auto layers = eteq::load_layers<PybindT>(pb_model);
-				input.close();
-				return layers;
-			})
-		.def("save_layers_file",
-			[](const std::string& filename, const eteq::ELayersT<PybindT>& models)
-			{
-				std::ofstream output(filename);
-				if (false == output.is_open())
-				{
-					teq::fatalf("file %s not found", filename.c_str());
-				}
-				onnx::ModelProto pb_model;
-				eteq::save_layers<PybindT>(pb_model, models);
-				return pb_model.SerializeToOstream(&output);
-			})
-		.def("load_session_file",
-			[](teq::iSession& sess, std::string filename)
-			{
-				//
-			})
-		.def("save_session_file",
-			[](const std::string& filename, const teq::iSession& sess)
-			{
-				//
-			});
+			py::arg("cdk") = 1);
 }

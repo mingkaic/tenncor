@@ -53,24 +53,6 @@ struct Depends final : public Observable
 		return depname;
 	}
 
-	/// Implementation of iAttributed
-	std::vector<std::string> ls_attrs (void) const override
-	{
-		return {};
-	}
-
-	/// Implementation of iAttributed
-	const marsh::iObject* get_attr (const std::string& attr_name) const override
-	{
-		return nullptr;
-	}
-
-	/// Implementation of iAttributed
-	void add_attr (const std::string& attr_key, marsh::ObjptrT&& attr_val) override {}
-
-	/// Implementation of iAttributed
-	void rm_attr (const std::string& attr_key) override {}
-
 	/// Implementation of iFunctor
 	teq::Opcode get_opcode (void) const override
 	{
@@ -212,6 +194,7 @@ private:
 	}
 
 	Depends (const Depends& other) :
+		Observable(other),
 		dependee_(other.dependee_),
 		dependencies_(other.dependencies_)
 	{

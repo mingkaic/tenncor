@@ -1,3 +1,5 @@
+#include "estd/cast.hpp"
+
 #include "eigen/packattr.hpp"
 
 #include "eteq/constant.hpp"
@@ -113,14 +115,8 @@ ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
 	return make_funcattr<T>(opcode, children, attrs);
 }
 
-template <typename T>
-ETensor<T> make_layer (const std::string& layername,
-	teq::TensptrT input, teq::FuncptrT output)
-{
-	output->add_attr(teq::layer_key,
-		std::make_unique<teq::LayerObj>(layername, input));
-	return ETensor<T>(output);
-}
+teq::TensptrT make_layer (teq::TensptrT root,
+	const std::string& layername, teq::TensptrT input);
 
 }
 

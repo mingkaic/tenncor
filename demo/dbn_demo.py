@@ -75,14 +75,14 @@ def main(args):
         bias_init=tc.zero_init())
     softmax_dim = 0
 
-    rbm_interlace = zip([rbm.fwd() for rbm in rbms], len(rbms) * [tc.bind(tc.sigmoid)])
-    model = tc.link([e for inters in rbm_interlace for e in inters] +
-        [dense, tc.bind(lambda x: tc.softmax(x, softmax_dim, 1))])
+    rbm_interlace = zip([rbm.fwd() for rbm in rbms], len(rbms) * [tc.layer.bind(tc.sigmoid)])
+    model = tc.layer.link([e for inters in rbm_interlace for e in inters] +
+        [dense, tc.layer.bind(lambda x: tc.softmax(x, softmax_dim, 1))])
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = tc.load_layers_file(args.load)[0]
+        trained = tc.load_from_file(args.load)[0]
         print('successfully loaded from ' + args.load)
     except Exception as e:
         print(e)
@@ -126,7 +126,7 @@ def main(args):
 
     try:
         print('saving')
-        if tc.save_layers_file(args.save, [model]):
+        if tc.save_to_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

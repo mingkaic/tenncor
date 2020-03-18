@@ -20,6 +20,13 @@ filegroup(
     ]),
 )
 
+filegroup(
+    name = "ptest_srcs",
+    srcs = glob([
+        "test/*.py",
+    ]),
+)
+
 ######### LIBRARY #########
 
 cc_library(
@@ -44,4 +51,13 @@ cc_test(
         "@com_github_mingkaic_cppkg//diff:diff",
     ],
     linkstatic = True,
+)
+
+py_test(
+    name = "ptest",
+    srcs = ["//layr:ptest_srcs"],
+    deps = [
+        "//:tenncor_py",
+        "//dbg:print_py",
+    ],
 )
