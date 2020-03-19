@@ -106,7 +106,7 @@ def main(args):
         tc.layer.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
             inshape=tc.Shape([1, 8, 8, 20])), # outputs [nbatch, 4, 4, 20]
 
-        tc.layer.dense([20, 4, 4, 1], [10], # weight has shape [10, 4, 4, 20]
+        tc.layer.dense([4, 4, 20], [10], # weight has shape [10, 4, 4, 20]
             weight_init=tc.norm_xavier_init(0.5),
             bias_init=tc.zero_init(),
             dims=[[0, 1], [1, 2], [2, 3]]), # outputs [nbatch, 10]
@@ -123,9 +123,10 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = ps.PluginSess()
-    inspector = ps.Inspector()
-    sess.add_plugin(inspector)
+    # sess = ps.PluginSess()
+    # inspector = ps.Inspector()
+    # sess.add_plugin(inspector)
+    sess = tc.Session()
 
     raw_inshape[0] = 1
     test_inshape = raw_inshape
@@ -137,7 +138,7 @@ def main(args):
 
     query_targets = []
     def error_wrapper(T, Y):
-        inspector.add(Y, 'output')
+        # inspector.add(Y, 'output')
         err = cross_entropy_loss(T, Y)
         query_targets.append(err)
         return err
@@ -151,7 +152,7 @@ def main(args):
     train_err = tc.sgd_train(model, normalized, train_output,
         tc.get_adagrad(0.01), err_func=error_wrapper)
     sess.track([train_err])
-    inspector.add(normalized, "normalized_input")
+    # inspector.add(normalized, "normalized_input")
     tc.optimize(sess, "cfg/optimizations.json")
 
     qs = q.Statement(query_targets)
@@ -213,9 +214,9 @@ def main(args):
         len(conv_res) == 1 and
         len(conv_res2) == 1 and
         len(conv_res3) == 1)
-    inspector.add(conv_res[0], "first_conv")
-    inspector.add(conv_res2[0], "second_conv")
-    inspector.add(conv_res3[0], "third_conv")
+    # inspector.add(conv_res[0], "first_conv")
+    # inspector.add(conv_res2[0], "second_conv")
+    # inspector.add(conv_res3[0], "third_conv")
 
     # train
     for i, data in enumerate(cifar):

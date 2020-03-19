@@ -188,11 +188,9 @@ struct ShapeParser<egen::STRIDE> final
 	}
 };
 
-template <egen::_GENERATED_OPCODE OPCODE>
-struct ReshapePacker
+template <>
+struct ShapeParser<egen::RESHAPE> final
 {
-	virtual ~ReshapePacker (void) = default;
-
 	teq::Shape shape (const marsh::iAttributed& attrs,
 		const teq::ShapesT& shapes) const
 	{
@@ -204,9 +202,8 @@ struct ReshapePacker
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
 		if (shapes.front().n_elems() != outshape.n_elems())
 		{
-			teq::fatalf("cannot %s with shapes of different sizes "
+			teq::fatalf("cannot RESHAPE with shapes of different sizes "
 				"%d (shape %s) and %d (shape %s)",
-				egen::name_op(OPCODE).c_str(),
 				shapes.front().n_elems(),
 				shapes.front().to_string().c_str(),
 				outshape.n_elems(),
@@ -217,15 +214,19 @@ struct ReshapePacker
 };
 
 template <>
-struct ShapeParser<egen::SCATTER> final : private ReshapePacker<egen::SCATTER>
+struct ShapeParser<egen::SCATTER> final
 {
-	using ReshapePacker<egen::SCATTER>::shape;
-};
-
-template <>
-struct ShapeParser<egen::RESHAPE> final : private ReshapePacker<egen::RESHAPE>
-{
-	using ReshapePacker<egen::RESHAPE>::shape;
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
+	{
+		if (shapes.empty())
+		{
+			teq::fatal(noinshape_err);
+		}
+		teq::Shape outshape;
+		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
+		return outshape;
+	}
 };
 
 template <>

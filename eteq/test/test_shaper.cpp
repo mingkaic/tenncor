@@ -147,6 +147,29 @@ TEST(SHAPER, Reshape)
 }
 
 
+TEST(SHAPER, Scatter)
+{
+	teq::Shape expect({3, 4, 6});
+
+	eteq::ShapeParser<egen::SCATTER> parser;
+	marsh::Maps shaped;
+	eigen::Packer<teq::Shape>().pack(shaped, expect);
+
+	EXPECT_FATAL(parser.shape(shaped, {}), eteq::noinshape_err.c_str());
+
+	// scatter allows conflicting shape
+	teq::Shape conflicting({3, 4, 5});
+	teq::Shape got = parser.shape(shaped, {conflicting});
+
+	EXPECT_ARREQ(expect, got);
+
+	teq::Shape inshape({8, 3, 3});
+	teq::Shape got2 = parser.shape(shaped, {inshape});
+
+	EXPECT_ARREQ(expect, got2);
+}
+
+
 // TEST(SHAPER, Matmul)
 // {
 // 	//

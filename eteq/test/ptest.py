@@ -9,7 +9,20 @@ import tenncor as tc
 
 from testutil.generate_testcases import generate_testcases
 
-oldTf = tf.VERSION < '1.6.0'
+# return true if left < right
+def version_lt(left, right):
+    left = left.split('.')
+    right = right.split('.')
+    for lv, rv in zip(left, right):
+        lv = int(lv)
+        rv = int(rv)
+        if lv < rv:
+            return True
+        elif lv > rv:
+            return False
+    return False
+
+oldTf = version_lt(tf.VERSION, '1.6.0')
 if oldTf:
     tfSess = tf.Session
 else:
@@ -1015,6 +1028,17 @@ class EADTest(unittest.TestCase):
 
         self._array_eq(data0, rej)
         self._array_close(exdata[0], der)
+
+    def test_stride(self):
+        shape = [3, 8, 8, 2]
+        data = np.random.rand(*shape).astype(np.float32)
+        image = tc.variable(data, 'image')
+
+        strideout = tc.stride(image, [1, 2, 2])
+        self._array_eq([3, 4, 4, 2], strideout.shape())
+
+        ex = tc.derive(strideout, image)
+        self._array_eq(shape, ex.shape())
 
     def test_maxpool(self):
         shape = [3, 8, 8, 2]

@@ -1153,7 +1153,7 @@ api:
           type: eteq::ETensor<T>
           val: |
               //
-                  // todo: allow l2norm offset and ndims to be configurable
+                  // todo: parameterize l2norm offset and ndims
                   if (upper == 0)
                   {
                       teq::fatal("cannot clip_by_norm with a upper limit of 0");
@@ -1411,7 +1411,6 @@ api:
                   auto bot_right = ::tenncor::stride(
                       ::tenncor::slice(arg, pvec), strider);
 
-                  // todo: tag this maybe?
                   return ::tenncor::div(::tenncor::sum(eteq::ETensorsT<T>{
                       top_left, top_right, bot_left, bot_right}), (T) 4);
       - template: typename T
@@ -1443,7 +1442,6 @@ api:
                   auto bot_right = ::tenncor::stride(
                       ::tenncor::slice(arg, pvec), strider);
 
-                  // todo: tag this maybe?
                   return ::tenncor::max(eteq::ETensorsT<T>{
                       top_left, top_right, bot_left, bot_right});
       - template: typename T
