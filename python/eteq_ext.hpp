@@ -29,7 +29,7 @@ using ETensorsT = eteq::ETensorsT<PybindT>;
 using ETensPairT = std::pair<ETensT,ETensT>;
 
 template <typename T>
-py::array typedata_to_array (teq::iTensor& tens, py::dtype dtype)
+py::array typedata_to_array (const teq::iTensor& tens, py::dtype dtype)
 {
 	assert(egen::get_type<PybindT>() == tens.type_code());
 	auto pshape = pyutils::c2pshape(tens.shape());

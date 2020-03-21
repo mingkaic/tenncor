@@ -150,7 +150,8 @@ def main(args):
     train_output = tc.EVariable(train_outshape, label="trainout")
     normalized = train_input / 255. - 0.5
     train_err = tc.sgd_train(model, normalized, train_output,
-        tc.get_adagrad(0.01), err_func=error_wrapper)
+        lambda assocs: tc.approx.adagrad(assocs, 0.01),
+        err_func=error_wrapper)
     sess.track([train_err])
     # inspector.add(normalized, "normalized_input")
     tc.optimize(sess, "cfg/optimizations.json")

@@ -162,9 +162,7 @@ struct DQNTrainer final
 				observation, action_idx, reward, new_obs});
 			if (params_.experiences_.size() > params_.max_exp_)
 			{
-				params_.experiences_.front() =
-					std::move(params_.experiences_.back());
-				params_.experiences_.pop_back();
+				params_.experiences_.erase(params_.experiences_.begin());
 			}
 		}
 		params_.nstore_called_++;

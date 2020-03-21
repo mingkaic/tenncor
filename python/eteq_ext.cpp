@@ -45,12 +45,17 @@ void eteq_ext (py::module& m)
 	etens
 		.def(py::init<teq::TensptrT>())
 		.def("__str__",
-			[](pyeteq::ETensT& self)
+			[](const pyeteq::ETensT& self)
 			{
 				return self->to_string();
 			})
+		.def("__hash__",
+			[](const pyeteq::ETensT& self)
+			{
+				return size_t(self.get());
+			})
 		.def("shape",
-			[](pyeteq::ETensT& self)
+			[](const pyeteq::ETensT& self)
 			{
 				teq::Shape shape = self->shape();
 				auto pshape = pyutils::c2pshape(shape);
@@ -59,7 +64,7 @@ void eteq_ext (py::module& m)
 			},
 			"Return this instance's shape")
 		.def("get",
-			[](pyeteq::ETensT& self)
+			[](const pyeteq::ETensT& self)
 			{
 				return pyeteq::typedata_to_array<PybindT>(
 					*self, py::dtype::of<PybindT>());
@@ -69,7 +74,13 @@ void eteq_ext (py::module& m)
 		.def("get_input", eteq::get_input<PybindT>)
 		.def("connect", eteq::connect<PybindT>)
 		.def("deep_clone", eteq::deep_clone<PybindT>)
-		.def("get_storage", eteq::get_storage<PybindT>);
+		.def("get_storage",
+			[](const pyeteq::ETensT& self)
+			{
+				auto contents = eteq::get_storage<PybindT>(self);
+				return std::vector<eteq::EVariable<PybindT>>(
+					contents.begin(), contents.end());
+			});
 
 	// ==== variable ====
 	py::class_<eteq::EVariable<PybindT>,pyeteq::ETensT> evar(m, "EVariable");
