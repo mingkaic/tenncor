@@ -56,6 +56,18 @@ struct PrettyEquation final
 				{
 					out << root->shape().to_string();
 				}
+				if (auto fnc = dynamic_cast<teq::iFunctor*>(root))
+				{
+					if (lsattrs_)
+					{
+						auto attrs = fnc->ls_attrs();
+						out << ":attrkeys=" << fmts::to_string(attrs.begin(), attrs.end());
+					}
+					if (auto attr = fnc->get_attr(showattr_))
+					{
+						out << ":attr=" << attr->to_string();
+					}
+				}
 			}
 		}) {}
 
@@ -76,6 +88,10 @@ struct PrettyEquation final
 
 	/// Print every tensor's shape if true, otherwise don't
 	bool showshape_ = false;
+
+	bool lsattrs_ = false;
+
+	std::string showattr_;
 
 private:
 	/// Actual ascii renderer

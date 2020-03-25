@@ -1,3 +1,5 @@
+#include "pybind11/functional.h"
+
 #include "python/eteq_ext.hpp"
 
 #ifdef PYTHON_ETEQ_EXT_HPP
@@ -80,6 +82,16 @@ void eteq_ext (py::module& m)
 				auto contents = eteq::get_storage<PybindT>(self);
 				return std::vector<eteq::EVariable<PybindT>>(
 					contents.begin(), contents.end());
+			})
+
+		// useful for debugging
+		.def("tag",
+			[](pyeteq::ETensT& self, const std::string& key, const std::string& val)
+			{
+				if (auto f = dynamic_cast<teq::iFunctor*>(self.get()))
+				{
+					f->add_attr(key, std::make_unique<marsh::String>(val));
+				}
 			});
 
 	// ==== variable ====
@@ -281,6 +293,20 @@ void eteq_ext (py::module& m)
 		// 		engine->seed(seed);
 			},
 			"Seed internal RNG")
+
+		// ==== use eigen randomizer ====
+		.def("unif_gen",
+			[](PybindT lower, PybindT upper)
+			{
+				return py::cpp_function(
+					eigen::Randomizer().unif_gen<PybindT>(lower, upper));
+			}, py::arg("lower") = 0, py::arg("upper") = 1)
+		.def("norm_gen",
+			[](PybindT mean, PybindT stdev)
+			{
+				return py::cpp_function(
+					eigen::Randomizer().norm_gen<PybindT>(mean, stdev));
+			})
 
 		// ==== serialization ====
 		.def("load_from_file",

@@ -93,18 +93,19 @@ def main(args):
 
     bgd = lambda assocs: tc.approx.rms_momentum(assocs,
         learning_rate = 0.1, discount_factor = 0.5)
-    param = tc.DQNInfo(
-        mini_batch_size = 1,
-        store_interval = 1,
-        discount_rate = 0.99,
-        exploration_period = 0.0)
+    param = {
+        'mbatch_size': 1,
+        'store_interval': 1,
+        'discount_rate': 0.99,
+        'explore_period': 0.0,
+    }
 
     sess = tc.Session()
 
-    untrained_dqn = tc.DQNTrainer(untrained, sess, bgd, param)
-    trained_dqn = tc.DQNTrainer(model, sess, bgd, param,
-        gradprocess = lambda x: tc.clip_by_l2norm(x, 5))
-    pretrained_dqn = tc.DQNTrainer(trained, sess, bgd, param)
+    untrained_dqn = tc.DQNTrainer(untrained, sess, bgd, **param)
+    trained_dqn = tc.DQNTrainer(model, sess, bgd,
+        gradprocess = lambda x: tc.clip_by_l2norm(x, 5), **param)
+    pretrained_dqn = tc.DQNTrainer(trained, sess, bgd, **param)
 
     tc.optimize(sess, "cfg/optimizations.json")
 

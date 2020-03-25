@@ -35,21 +35,6 @@ layr::ApproxF<PybindT> convert (ApproxF f)
 
 void layr_ext(py::module& m)
 {
-	// === supports ===
-	py::class_<trainer::DQNInfo<PybindT>> dqninfo(m, "DQNInfo");
-	dqninfo
-		.def(py::init<size_t,
-			PybindT, PybindT, PybindT, PybindT,
-			size_t, teq::DimT, size_t>(),
-			py::arg("train_interval") = 5,
-			py::arg("rand_action_prob") = 0.05,
-			py::arg("discount_rate") = 0.95,
-			py::arg("target_update_rate") = 0.01,
-			py::arg("exploration_period") = 1000,
-			py::arg("store_interval") = 5,
-			py::arg("mini_batch_size") = 32,
-			py::arg("max_exp") = 30000);
-
 	// ==== layer ====
 	auto rbmlayer = (py::class_<layr::RBMLayer<PybindT>>) m.attr("RBMLayer");
 
@@ -78,15 +63,23 @@ void layr_ext(py::module& m)
 
 	dqntrainer
 		.def(py::init([](eteq::ETensor<PybindT>& model, teq::iSession& sess,
-				layr::ApproxF<PybindT> update, trainer::DQNInfo<PybindT> param,
-				layr::UnaryF<PybindT> gradprocess)
+				layr::ApproxF<PybindT> update, layr::UnaryF<PybindT> gradprocess,
+				size_t train_interval, PybindT rand_action_prob,
+				PybindT discount_rate, PybindT target_update_rate,
+				PybindT explore_period, size_t store_interval,
+				teq::DimT mbatch_size, size_t max_exp)
 			{
 				return trainer::DQNTrainer<PybindT>(model, sess,
-					update, param, gradprocess);
+					update, gradprocess, train_interval, rand_action_prob,
+					discount_rate, target_update_rate, explore_period,
+					store_interval, mbatch_size, max_exp);
 			}),
 			py::arg("model"), py::arg("sess"),
-			py::arg("update"), py::arg("param"),
-			py::arg("gradprocess") = layr::UnaryF<PybindT>())
+			py::arg("update"), py::arg("gradprocess") = layr::UnaryF<PybindT>(),
+			py::arg("train_interval") = 5, py::arg("rand_action_prob") = 0.05,
+			py::arg("discount_rate") = 0.95, py::arg("target_update_rate") = 0.01,
+			py::arg("explore_period") = 1000, py::arg("store_interval") = 5,
+			py::arg("mbatch_size") = 32, py::arg("max_exp") = 30000)
 		.def("action",
 			[](trainer::DQNTrainer<PybindT>* self, py::array input)
 			{
@@ -96,14 +89,7 @@ void layr_ext(py::module& m)
 			},
 			"get next action")
 		.def("store", &trainer::DQNTrainer<PybindT>::store, "save observation, action, and reward")
-		.def("train", &trainer::DQNTrainer<PybindT>::train, "train qnets")
-		.def("error", &trainer::DQNTrainer<PybindT>::get_error, "get prediction error")
-		.def("ntrained", &trainer::DQNTrainer<PybindT>::get_numtrained, "get number of iterations trained")
-		.def("train_out",
-			[](trainer::DQNTrainer<PybindT>* self)
-			{
-				return self->train_out_;
-			}, "get training node");
+		.def("train", &trainer::DQNTrainer<PybindT>::train, "train qnets");
 
 	// ==== DBN trainer ====
 	py::class_<trainer::DBNTrainer<PybindT>> dbntrainer(m, "DBNTrainer");
