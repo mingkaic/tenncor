@@ -22,11 +22,14 @@ def version_lt(left, right):
             return False
     return False
 
-oldTf = version_lt(tf.VERSION, '1.6.0')
+oldTf = version_lt(tf.__version__, '1.6.0')
 if oldTf:
     tfSess = tf.Session
 else:
     tfSess = tf.compat.v1.Session
+
+if version_lt('2.0.0', tf.__version__):
+    tf.compat.v1.disable_v2_behavior()
 
 _test_data = {}
 
@@ -875,7 +878,6 @@ class EADTest(unittest.TestCase):
                 self._array_close(exdata3, der3)
 
     def test_convolution(self):
-        padding = "VALID"
         shapes = [
             ([3, 3], [3, 3]),
             ([5, 5], [3, 3]),
@@ -907,7 +909,7 @@ class EADTest(unittest.TestCase):
             tfsess.run(tf_var.initializer)
             tfsess.run(tf_kernel.initializer)
 
-            tf_out = tf.nn.convolution(tf_var, tf_kernel, padding)
+            tf_out = tf.nn.convolution(tf_var, tf_kernel)
             tf_fout = tfsess.run(tf_out)
 
             tf_fout = tf_fout.reshape([tf_fout.shape[1], tf_fout.shape[2]])

@@ -1,45 +1,7 @@
-#include <sstream>
+#include "python/query_ext.hpp"
 
-#include "pybind11/pybind11.h"
-#include "pybind11/stl.h"
-
-#include "teq/logs.hpp"
-
-#include "eteq/etens.hpp"
-
-#include "query/query.hpp"
-#include "query/parse.hpp"
-
-#include "generated/pyapi.hpp"
-
-namespace py = pybind11;
-
-namespace pyquery
+void query_ext(py::module& m)
 {
-
-struct Statement final
-{
-	Statement (teq::TensptrsT tens) : tracked_(tens)
-	{
-		for (auto ten : tens)
-		{
-			ten->accept(sindex_);
-		}
-	}
-
-	query::Query sindex_;
-
-	teq::TensptrsT tracked_;
-};
-
-}
-
-PYBIND11_MODULE(query, m)
-{
-	LOG_INIT(logs::DefLogger);
-
-	m.doc() = "query teq graphs";
-
 	py::class_<pyquery::Statement> stmt(m, "Statement");
 	stmt
 		.def(py::init(
