@@ -31,13 +31,9 @@ using VPairT = std::pair<eteq::EVariable<PybindT>,eteq::ETensor<PybindT>>;
 
 using VPairsT = std::vector<VPairT>;
 
-using ApproxF = std::function<VPairsT(const VPairsT&)>;
-
 layr::VarMapT<PybindT> convert (const VPairsT& op);
 
 VPairsT convert (const layr::VarMapT<PybindT>& op);
-
-layr::ApproxF<PybindT> convert (ApproxF f);
 
 }
 

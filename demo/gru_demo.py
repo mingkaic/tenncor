@@ -123,7 +123,7 @@ def main(args):
     train_inps = tc.EVariable([seq_length, vocab_size], 0)
     train_output = tc.EVariable([seq_length, vocab_size], 0)
     train_err = tc.sgd_train(model, train_inps, train_output,
-        update=lambda assocs: tc.approx.adagrad(assocs, learning_rate=learning_rate, epsilon=1e-8),
+        update=lambda error, leaves: tc.approx.adagrad(error, leaves, learning_rate=learning_rate, epsilon=1e-8),
         err_func=encoded_loss)
     sess.track([train_err])
 

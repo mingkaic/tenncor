@@ -909,7 +909,7 @@ class EADTest(unittest.TestCase):
             tfsess.run(tf_var.initializer)
             tfsess.run(tf_kernel.initializer)
 
-            tf_out = tf.nn.convolution(tf_var, tf_kernel)
+            tf_out = tf.nn.convolution(tf_var, tf_kernel, padding='VALID')
             tf_fout = tfsess.run(tf_out)
 
             tf_fout = tf_fout.reshape([tf_fout.shape[1], tf_fout.shape[2]])

@@ -23,14 +23,6 @@ VPairsT convert (const layr::VarMapT<PybindT>& op)
 	return out;
 }
 
-layr::ApproxF<PybindT> convert (ApproxF f)
-{
-	return [f](const layr::VarMapT<PybindT>& vs)
-	{
-		return convert(f(convert(vs)));
-	};
-}
-
 }
 
 void layr_ext(py::module& m)
@@ -62,20 +54,19 @@ void layr_ext(py::module& m)
 	py::class_<trainer::DQNTrainer<PybindT>> dqntrainer(m, "DQNTrainer");
 
 	dqntrainer
-		.def(py::init([](eteq::ETensor<PybindT>& model, teq::iSession& sess,
-				layr::ApproxF<PybindT> update, layr::UnaryF<PybindT> gradprocess,
+		.def(py::init([](eteq::ETensor<PybindT>& model,
+				teq::iSession& sess, layr::ApproxF<PybindT> update,
 				size_t train_interval, PybindT rand_action_prob,
 				PybindT discount_rate, PybindT target_update_rate,
 				PybindT explore_period, size_t store_interval,
 				teq::DimT mbatch_size, size_t max_exp)
 			{
-				return trainer::DQNTrainer<PybindT>(model, sess,
-					update, gradprocess, train_interval, rand_action_prob,
+				return trainer::DQNTrainer<PybindT>(model,
+					sess, update, train_interval, rand_action_prob,
 					discount_rate, target_update_rate, explore_period,
 					store_interval, mbatch_size, max_exp);
 			}),
-			py::arg("model"), py::arg("sess"),
-			py::arg("update"), py::arg("gradprocess") = layr::UnaryF<PybindT>(),
+			py::arg("model"), py::arg("sess"), py::arg("update"),
 			py::arg("train_interval") = 5, py::arg("rand_action_prob") = 0.05,
 			py::arg("discount_rate") = 0.95, py::arg("target_update_rate") = 0.01,
 			py::arg("explore_period") = 1000, py::arg("store_interval") = 5,
@@ -160,15 +151,13 @@ void layr_ext(py::module& m)
 		// ==== layer training ====
 		.def("sgd_train", [](const eteq::ETensor<PybindT>& model,
 				eteq::ETensor<PybindT> train_in, eteq::ETensor<PybindT> expect_out,
-				layr::ApproxF<PybindT> update, layr::ErrorF<PybindT> err_func,
-				layr::UnaryF<PybindT> proc_grad)
+				layr::ApproxF<PybindT> update, layr::ErrorF<PybindT> err_func)
 			{
-				return trainer::sgd<PybindT>(model, train_in, expect_out, update, err_func, proc_grad);
+				return trainer::sgd<PybindT>(model, train_in, expect_out, update, err_func);
 			},
 			py::arg("model"), py::arg("train_in"),
 			py::arg("expect_out"), py::arg("update"),
-			py::arg("err_func") = layr::ErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>),
-			py::arg("proc_grad") = layr::UnaryF<PybindT>())
+			py::arg("err_func") = layr::ErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>))
 		.def("rbm_train", &trainer::rbm<PybindT>,
 			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),

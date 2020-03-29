@@ -80,7 +80,7 @@ def main(args):
     sess.track([untrained, hiddens, pretrained, err])
 
     train_err = tc.sgd_train(model, test_inputs, test_outputs,
-        lambda assocs: tc.approx.sgd(assocs, learning_rate=0.1),
+        lambda error, leaves: tc.approx.sgd(error, leaves, learning_rate=0.1),
         err_func=lstm_loss)
     sess.track([train_err])
 

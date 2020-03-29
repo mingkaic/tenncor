@@ -55,18 +55,17 @@ def create_dataset(nb_samples, sequence_len):
             reversed([int(b) for b in format_str.format(nb1+nb2)]))
     return X, T
 
-def make_rms_prop(grads, learning_rate, momentum_term, lmbd, eps):
-    targets = grads.keys()
-    gs = [grads[var] for var in grads]
-    momentums = [tc.variable_like(0, target, label='momentum_' + str(target)) for target in targets]
-    mvavg_sqrs = [tc.variable_like(0, target, label='mving_avg_' + str(target)) for target in targets]
+def make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps):
+    gs = [tc.derive(error, var) for var in leaves]
+    momentums = [tc.variable_like(0, target, label='momentum_' + str(target)) for target in leaves]
+    mvavg_sqrs = [tc.variable_like(0, target, label='mving_avg_' + str(target)) for target in leaves]
 
     momentum_tmps = [momentum * momentum_term for momentum in momentums]
     target_incrs = [tc.assign_add(target, momentum_tmp)
-        for target, momentum_tmp in zip(targets, momentum_tmps)]
+        for target, momentum_tmp in zip(leaves, momentum_tmps)]
 
     # trail grads as increment in grads operation
-    tincr_mapping = list(zip(targets, target_incrs))
+    tincr_mapping = list(zip(leaves, target_incrs))
     grad_deps = [tc.trail(grad, tincr_mapping)for grad in gs]
 
     # update moving average, dependent on target incr
@@ -82,7 +81,7 @@ def make_rms_prop(grads, learning_rate, momentum_term, lmbd, eps):
         for momentum, momentum_tmp, pgrad_norm in zip(momentums, momentum_tmps, pgrad_norms)]
 
     assigns += [(target, tc.assign_sub(target, pgrad_norm))
-        for target, pgrad_norm in zip(targets, pgrad_norms)]
+        for target, pgrad_norm in zip(leaves, pgrad_norms)]
 
     return dict(assigns)
 
@@ -166,7 +165,7 @@ def main(args):
     tinput = tc.permute(train_invar, [0, 2, 1])
     toutput = tc.permute(train_exout, [0, 2, 1])
     train_err = tc.sgd_train(model, tinput, toutput,
-        lambda assocs: make_rms_prop(assocs, learning_rate, momentum_term, lmbd, eps),
+        lambda error, leaves: make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps),
         err_func=loss)
     sess.track([train_err])
 

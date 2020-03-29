@@ -19,8 +19,8 @@ struct ExpBatch
 template <typename T>
 struct DQNTrainer final
 {
-	DQNTrainer (eteq::ETensor<T>& model, teq::iSession& sess,
-		layr::ApproxF<T> update, layr::UnaryF<T> gradprocess = layr::UnaryF<T>(),
+	DQNTrainer (eteq::ETensor<T>& model,
+		teq::iSession& sess, layr::ApproxF<T> update,
 		size_t train_interval = 5, T rand_action_prob = 0.05,
 		T discount_rate = 0.95, T target_update_rate = 0.01,
 		T explore_period = 1000, size_t store_interval = 5,
@@ -62,18 +62,8 @@ struct DQNTrainer final
 		eteq::VarptrsT<T> target_vars = eteq::get_storage(target_model_);
 		assert(source_vars.size() == target_vars.size());
 
-		layr::VarMapT<T> source_errs;
-		for (auto& source_var : source_vars)
-		{
-			// updates for source network
-			auto error = eteq::derive(prediction_err, eteq::ETensor<T>(source_var));
-			if (gradprocess)
-			{
-				error = gradprocess(error);
-			}
-			source_errs.emplace(eteq::EVariable<T>(source_var), error);
-		}
-		auto src_updates = update(source_errs);
+		auto src_updates = update(prediction_err,
+			eteq::EVariablesT<T>(source_vars.begin(), source_vars.end()));
 
 		teq::TensptrsT track_batch = {prediction_err, src_act_, action_idx_};
 		track_batch.reserve(source_vars.size() + 3);

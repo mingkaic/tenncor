@@ -1,6 +1,7 @@
 api:
   pybind_type: float
   includes:
+  - '"eteq/derive.hpp"'
   - '"eteq/make.hpp"'
   - '"eteq/layer.hpp"'
   - '"layr/approx.hpp"'
@@ -2020,6 +2021,210 @@ api:
                       out.emplace(assoc.first, ::tenncor::assign_sub(assoc.first,
                           ::tenncor::div(
                               ::tenncor::mul(assoc.second, learning_rate),
+                              ::tenncor::add(tenncor::sqrt(update), epsilon))));
+                  }
+                  return out;
+      - template: typename T
+        name: sgd
+        description: |
+                    Return all batches of variables to their corresponding assignment operator
+                    applied using stochastic gradient descent approximation
+                    given the error tenncor node and their corresponding variables
+
+                    :::::: Stochastic Gradient Descent Optimization ::::::
+
+                    Let f be the error
+                    For each variable x in variables
+
+                    x_next = x - learning_rate * f'(x)
+        args:
+        - dtype: const eteq::ETensor<T>&
+          name: error
+        - dtype: const eteq::EVariablesT<T>&
+          name: variables
+        - dtype: T
+          name: learning_rate
+          default: 0.5
+        - dtype: layr::UnaryF<T>
+          name: apply
+          default: layr::UnaryF<T>()
+        out:
+          type: layr::VarMapT<T>
+          val: |
+              //
+                  layr::VarMapT<T> out;
+                  for (const auto& x : variables)
+                  {
+                      auto der = eteq::derive<T>(error, x);
+                      if (apply)
+                      {
+                          der = apply(der);
+                      }
+
+                      out.emplace(x, ::tenncor::assign_sub(x, ::tenncor::mul(der, learning_rate)));
+                  }
+                  return out;
+      - template: typename T
+        name: adagrad
+        args:
+        - dtype: const eteq::ETensor<T>&
+          name: error
+        - dtype: const eteq::EVariablesT<T>&
+          name: variables
+        - dtype: T
+          name: learning_rate
+          default: 0.5
+        - dtype: T
+          name: epsilon
+          default: std::numeric_limits<T>::epsilon()
+        - dtype: layr::UnaryF<T>
+          name: apply
+          default: layr::UnaryF<T>()
+        out:
+          type: layr::VarMapT<T>
+          val: |
+              //
+                  layr::VarMapT<T> out;
+                  for (const auto& x : variables)
+                  {
+                      auto der = eteq::derive<T>(error, x);
+                      if (apply)
+                      {
+                          der = apply(der);
+                      }
+
+                      eteq::EVariable<T> momentum = eteq::make_variable_like<T>(1, der, "momentum");
+                      auto update = ::tenncor::assign_add(momentum, ::tenncor::square(der));
+
+                      // assign momentums before leaves
+                      out.emplace(x, ::tenncor::assign_sub(x, ::tenncor::div(
+                          ::tenncor::mul(der, learning_rate),
+                          ::tenncor::add(tenncor::sqrt(update), epsilon))));
+                  }
+                  return out;
+      - template: typename T
+        name: adadelta
+        description: |
+                    Return all batches of variables to their corresponding assignment operator
+                    applied using adadelta error optimization
+                    given the error tenncor node and their corresponding variables
+
+                    :::::: Adadelta Optimization ::::::
+
+                    Let f be the error
+                    Initialize g = 0, s = 0
+                    For each variable x in variables
+
+                    g_next = (1 - decay) * f'(x) ^ 2 + decay * g      [deps: x, g; alts: g]
+                    d = step_rate * sqrt(s + offset) /
+                        sqrt(g_next + offset) * f'(x)                 [deps: x, s]
+                    x_next = x - d                                    [deps: x, s; alts: x]
+                    s_next = (1 - decay) * d ^ 2 + decay * s          [deps: x, s; alts: s]
+        args:
+        - dtype: const eteq::ETensor<T>&
+          name: error
+        - dtype: const eteq::EVariablesT<T>&
+          name: variables
+        - dtype: T
+          name: step_rate
+        - dtype: T
+          name: decay
+        - dtype: T
+          name: offset
+        - dtype: layr::UnaryF<T>
+          name: apply
+          default: layr::UnaryF<T>()
+        out:
+          type: layr::VarMapT<T>
+          val: |
+              //
+                  layr::VarMapT<T> out;
+                  for (const auto& x : variables)
+                  {
+                      auto der = eteq::derive<T>(error, x);
+                      if (apply)
+                      {
+                          der = apply(der);
+                      }
+
+                      T nodecay = 1. - decay;
+                      eteq::EVariable<T> g = eteq::make_variable_like<T>(0, der, "g");
+                      eteq::EVariable<T> s = eteq::make_variable_like<T>(0, der, "s");
+                      eteq::EVariable<T> buffer = eteq::make_variable_like<T>(0, der, "buffer");
+
+                      auto g_assign = ::tenncor::assign(g, ::tenncor::add(
+                          ::tenncor::mul(nodecay, ::tenncor::square(der)),
+                          ::tenncor::mul(decay, g)));
+                      auto d = ::tenncor::assign(buffer, ::tenncor::mul(
+                          ::tenncor::mul(step_rate, ::tenncor::div(
+                              ::tenncor::sqrt(::tenncor::add(s, offset)),
+                              ::tenncor::sqrt(::tenncor::add(g_assign, offset))
+                          )), der));
+
+                      auto s_assign = ::tenncor::assign(s, ::tenncor::add(
+                          ::tenncor::mul(nodecay, ::tenncor::square(d)),
+                          ::tenncor::mul(decay, s)));
+                      out.emplace(x, ::tenncor::depends(
+                          ::tenncor::assign_sub(x, d), {s_assign}));
+                  }
+                  return out;
+      - template: typename T
+        name: rms_momentum
+        description: |
+                    Return all batches of variable assignments of
+                    momentum-based rms error approximation applied to
+                    particular variables-error associations
+
+                    :::::: Momentum-based Root Mean Square Optimization ::::::
+
+                    Let f be the error
+                    Initialize m = 1
+                    For each x in leaves
+
+                    momentum_next = discount_factor * m + (1 - discount_factor) * f'(x) ^ 2
+                    x_next = x - (learning * f'(x)) / (sqrt(epsilon + momentum_next))
+        args:
+        - dtype: const eteq::ETensor<T>&
+          name: error
+        - dtype: const eteq::EVariablesT<T>&
+          name: variables
+        - dtype: T
+          name: learning_rate
+          default: 0.5
+        - dtype: T
+          name: discount_factor
+          default: 0.99
+        - dtype: T
+          name: epsilon
+          default: std::numeric_limits<T>::epsilon()
+        - dtype: layr::UnaryF<T>
+          name: apply
+          default: layr::UnaryF<T>()
+        out:
+          type: layr::VarMapT<T>
+          val: |
+              //
+                  layr::VarMapT<T> out;
+                  for (const auto& x : variables)
+                  {
+                      auto der = eteq::derive<T>(error, x);
+                      if (apply)
+                      {
+                          der = apply(der);
+                      }
+
+                      eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
+                          1, der, "momentum");
+                      auto update = ::tenncor::assign(momentum,
+                          ::tenncor::add(
+                              ::tenncor::mul(discount_factor, momentum),
+                              ::tenncor::mul(1-discount_factor,
+                                  ::tenncor::square(der))));
+
+                      // assign momentums before leaves
+                      out.emplace(x, ::tenncor::assign_sub(x,
+                          ::tenncor::div(
+                              ::tenncor::mul(der, learning_rate),
                               ::tenncor::add(tenncor::sqrt(update), epsilon))));
                   }
                   return out;

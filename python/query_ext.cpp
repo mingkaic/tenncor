@@ -12,7 +12,8 @@ void query_ext(py::module& m)
 			}),
 			"Create query statement from roots")
 		.def("find",
-			[](pyquery::Statement& self, std::string condition)
+			[](pyquery::Statement& self, const std::string& condition,
+				const std::string& sym_cap)
 			{
 				std::stringstream ss;
 				ss << condition;
@@ -23,13 +24,28 @@ void query_ext(py::module& m)
 				teq::OwnerMapT owners = teq::track_owners(self.tracked_);
 				eteq::ETensorsT<PybindT> eresults;
 				eresults.reserve(results.size());
-				std::transform(results.begin(), results.end(),
-					std::back_inserter(eresults),
-					[&](query::QueryResult& result)
+				if (sym_cap.empty())
+				{
+					std::transform(results.begin(), results.end(),
+						std::back_inserter(eresults),
+						[&](query::QueryResult& result)
+						{
+							return eteq::ETensor<PybindT>(
+								owners.at(result.root_).lock());
+						});
+				}
+				else
+				{
+					for (query::QueryResult& result : results)
 					{
-						return eteq::ETensor<PybindT>(
-							owners.at(result.root_).lock());
-					});
+						teq::iTensor* res;
+						if (estd::get(res, result.symbs_, sym_cap))
+						{
+							eresults.push_back(eteq::ETensor<PybindT>(
+								owners.at(res).lock()));
+						}
+					}
+				}
 				return eresults;
-			});
+			}, py::arg("condition"), py::arg("sym_cap") = "");
 }

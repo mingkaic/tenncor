@@ -91,8 +91,9 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    bgd = lambda assocs: tc.approx.rms_momentum(assocs,
-        learning_rate = 0.1, discount_factor = 0.5)
+    bgd = lambda error, leaves: tc.approx.rms_momentum(error, leaves,
+        learning_rate = 0.1, discount_factor = 0.5,
+        apply = lambda x: tc.clip_by_l2norm(x, 5))
     param = {
         'mbatch_size': 1,
         'store_interval': 1,
@@ -103,8 +104,7 @@ def main(args):
     sess = tc.Session()
 
     untrained_dqn = tc.DQNTrainer(untrained, sess, bgd, **param)
-    trained_dqn = tc.DQNTrainer(model, sess, bgd,
-        gradprocess = lambda x: tc.clip_by_l2norm(x, 5), **param)
+    trained_dqn = tc.DQNTrainer(model, sess, bgd, **param)
     pretrained_dqn = tc.DQNTrainer(trained, sess, bgd, **param)
 
     tc.optimize(sess, "cfg/optimizations.json")
