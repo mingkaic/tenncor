@@ -25,18 +25,21 @@ TEST(APPROX, StochasticGD)
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "leaf");
-	auto root = eteq::make_variable_scalar<PybindT>(
-		0, teq::Shape(slist), "root");
+	auto err = tenncor::abs(leaf);
 
-	auto groups = tenncor::approx::sgd<PybindT>(layr::VarMapT<PybindT>{{
-		eteq::VarptrT<PybindT>(leaf),
-		eteq::ETensor<PybindT>(root)}}, 0.67);
+	auto groups = tenncor::approx::sgd<PybindT>(
+		err, eteq::EVariablesT<PybindT>{leaf}, 0.67);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
 		"(ASSIGN_SUB[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		" `--(variable:leaf[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		" `--(MUL[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"     `--(variable:root[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     `--(MUL[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     |   `--(DIV[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     |   |   `--(variable:leaf[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     |   |   `--(ABS[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     |   |       `--(variable:leaf[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     |   `--(constant:1[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"     `--(EXTEND[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"         `--(constant:0.67[1\\1\\1\\1\\1\\1\\1\\1])",
 		groups.begin()->second);
@@ -49,12 +52,10 @@ TEST(APPROX, RmsMomentum)
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "leaf");
-	auto root = eteq::make_variable_scalar<PybindT>(
-		0, teq::Shape(slist), "root");
+	auto err = tenncor::abs(leaf);
 
-	auto groups = tenncor::approx::rms_momentum<PybindT>(layr::VarMapT<PybindT>{{
-		eteq::VarptrT<PybindT>(leaf),
-		eteq::ETensor<PybindT>(root)}}, 0.67, 0.78,
+	auto groups = tenncor::approx::rms_momentum<PybindT>(
+		err, eteq::EVariablesT<PybindT>{leaf}, 0.67, 0.78,
 		std::numeric_limits<PybindT>::epsilon());
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
@@ -62,7 +63,12 @@ TEST(APPROX, RmsMomentum)
 		" `--(variable:leaf[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		" `--(DIV[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"     `--(MUL[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"     |   `--(variable:root[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     |   `--(MUL[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     |   |   `--(DIV[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     |   |   |   `--(variable:leaf[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     |   |   |   `--(ABS[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     |   |   |       `--(variable:leaf[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"     |   |   `--(constant:1[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"     |   `--(EXTEND[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"     |       `--(constant:0.67[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		"     `--(ADD[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -78,7 +84,12 @@ TEST(APPROX, RmsMomentum)
 		"         |               `--(EXTEND[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"         |               |   `--(constant:0.22[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		"         |               `--(SQUARE[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"         |                   `--(variable:root[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"         |                   `--(MUL[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"         |                       `--(DIV[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"         |                       |   `--(variable:leaf[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"         |                       |   `--(ABS[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"         |                       |       `--(variable:leaf[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"         |                       `--(constant:1[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"         `--(EXTEND[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"             `--(constant:1.19209e-07[1\\1\\1\\1\\1\\1\\1\\1])",
 		groups.begin()->second);
@@ -90,11 +101,50 @@ TEST(APPROX, GroupAssign)
 	teq::Shape shape({5});
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(0, shape, "leaf");
-	auto err = eteq::make_variable_scalar<PybindT>(0.5, shape, "err");
+	auto err = tenncor::sin(leaf) / 2.f;
 
 	layr::VarMapT<PybindT> groups = tenncor::approx::rms_momentum<PybindT>(
-		layr::VarMapT<PybindT>{{leaf, eteq::ETensor<PybindT>(err)}},
+		err, eteq::EVariablesT<PybindT>{leaf},
 		1, 0.52, std::numeric_limits<PybindT>::epsilon());
+
+	ASSERT_EQ(1, groups.size());
+	EXPECT_GRAPHEQ(
+		"(ASSIGN_SUB[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(variable:leaf[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		" `--(DIV[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(MUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   `--(MUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |   `--(COS[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |   |   `--(variable:leaf[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |   `--(DIV[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |       `--(constant:1[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |       `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   |           `--(constant:2[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |   `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     |       `--(constant:1[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"     `--(ADD[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(SQRT[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |   `--(ASSIGN[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |       `--(variable:momentum[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |       `--(ADD[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |           `--(MUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |           |   `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |           |   |   `--(constant:0.52[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |           |   `--(variable:momentum[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |           `--(MUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |               `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |               |   `--(constant:0.48[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |               `--(SQUARE[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |                   `--(MUL[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |                       `--(COS[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |                       |   `--(variable:leaf[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |                       `--(DIV[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |                           `--(constant:1[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |                           `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         |                               `--(constant:2[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"         `--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
+		"             `--(constant:1.19209e-07[1\\1\\1\\1\\1\\1\\1\\1])\n",
+		groups.begin()->second);
 
 	auto sess = eigen::get_session();
 	sess.track(teq::TensptrsT{groups.begin()->second});
