@@ -657,11 +657,65 @@ TEST(API, Depends)
 		double* cptr = (double*) c->device().data();
 		for (size_t i = 0; i < n; ++i)
 		{
-			EXPECT_DOUBLE_EQ(data[i] + data2[i], cptr[i]);
+			ASSERT_DOUBLE_EQ(data[i] + data2[i], cptr[i]);
 		}
 	}
 
 	EXPECT_FATAL(eteq::derive(ass, a), "Unknown op DEPEND");
+}
+
+
+// ensures depend's observee is executed only once
+TEST(API, DependsRunOnce)
+{
+	// tensor operation
+	std::vector<teq::DimT> slist = {2, 3, 4};
+	std::vector<double> data = {
+		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
+		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
+	};
+	std::vector<double> data2 = {
+		22, 15, 74, 38, 61, 95, 62, 81, 99, 76, 7, 22,
+		56, 50, 19, 13, 12, 10, 31, 40, 60, 54, 6, 83
+	};
+	teq::Shape shape(slist);
+	teq::NElemT n = shape.n_elems();
+	assert(data.size() == n);
+	assert(data2.size() == n);
+
+	eteq::EVariable<double> target = eteq::make_variable_scalar<double>(0, shape);
+	eteq::ETensor<double> a = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor<double> b = eteq::make_constant<double>(data2.data(), shape);
+	auto c = a + b;
+
+	// assign add is non-idempotent
+	auto ass = tenncor::depends(tenncor::assign_add(target, b), {c});
+
+	auto session = eigen::get_session();
+	session.track({ass});
+	session.update();
+	{
+		auto gotshape = target->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		auto gotshape2 = ass->shape();
+		ASSERT_ARREQ(shape, gotshape2);
+		double* optr = (double*) target->device().data();
+		double* aptr = (double*) ass->device().data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(data2[i], optr[i]);
+			EXPECT_DOUBLE_EQ(data2[i], aptr[i]);
+		}
+	}
+	{
+		auto gotshape = c->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		double* cptr = (double*) c->device().data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			ASSERT_DOUBLE_EQ(data[i] + data2[i], cptr[i]);
+		}
+	}
 }
 
 

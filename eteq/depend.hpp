@@ -63,8 +63,6 @@ struct Depends final : public Observable
 	teq::TensptrsT get_children (void) const override
 	{
 		teq::TensptrsT out = {dependee_};
-		auto children = dependee_->get_children();
-		out.insert(out.end(), children.begin(), children.end());
 		out.insert(out.end(), dependencies_.begin(), dependencies_.end());
 		return out;
 	}
@@ -96,13 +94,6 @@ struct Depends final : public Observable
 			return;
 		}
 		--index;
-		size_t ndependee = dependee_->get_children().size();
-		if (index < ndependee)
-		{
-			dependee_->update_child(arg, index);
-			return;
-		}
-		index = ndependee - index;
 		if (index >= dependencies_.size())
 		{
 			teq::fatalf("cannot modify dependency %d "

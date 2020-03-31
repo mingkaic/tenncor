@@ -2003,15 +2003,16 @@ api:
 
                     :::::: Adadelta Optimization ::::::
 
-                    Let f be the error
-                    Initialize g = 0, s = 0
+                    Let f be the error, g be short hand for f'(x)
+                    Initialize E(g^2) = 0, E(dx^2) = 0
                     For each variable x in variables
 
-                    g_next = (1 - decay) * f'(x) ^ 2 + decay * g      [deps: x, g; alts: g]
-                    d = step_rate * sqrt(s + offset) /
-                        sqrt(g_next + offset) * f'(x)                 [deps: x, s]
-                    x_next = x - d                                    [deps: x, s; alts: x]
-                    s_next = (1 - decay) * d ^ 2 + decay * s          [deps: x, s; alts: s]
+                    E(g_next^2) = decay * E(g^2) + (1 - decay) * f'(x) ^ 2
+                    dx = step_rate * RMS(dx + offset) / (RMS(g_next + offset)) * f'(x)
+                       = step_rate * sqrt(E(dx^2) + offset) / sqrt(E(g_next^2) + epsilon) * f'(x)
+
+                    E(dx_next^2) = decay * E(dx^2) + (1 - decay) * dx ^ 2
+                    x_next = x - dx
         args:
         - dtype: const eteq::ETensor<T>&
           name: error
@@ -2019,10 +2020,13 @@ api:
           name: variables
         - dtype: T
           name: step_rate
+          default: 1
         - dtype: T
           name: decay
+          default: 0.9
         - dtype: T
           name: offset
+          default: 0.0001
         - dtype: layr::UnaryF<T>
           name: apply
           default: layr::UnaryF<T>()
@@ -2040,24 +2044,29 @@ api:
                       }
 
                       T nodecay = 1. - decay;
-                      eteq::EVariable<T> g = eteq::make_variable_like<T>(0, der, "g");
-                      eteq::EVariable<T> s = eteq::make_variable_like<T>(0, der, "s");
-                      eteq::EVariable<T> buffer = eteq::make_variable_like<T>(0, der, "buffer");
+                      eteq::EVariable<T> msg = eteq::make_variable_like<T>(0, der, "ex_sqr_grad");
+                      eteq::EVariable<T> msd = eteq::make_variable_like<T>(0, der, "ex_sqr_delx");
 
-                      auto g_assign = ::tenncor::assign(g, ::tenncor::add(
-                          ::tenncor::mul(nodecay, ::tenncor::square(der)),
-                          ::tenncor::mul(decay, g)));
-                      auto d = ::tenncor::assign(buffer, ::tenncor::mul(
+                      auto msg_next = ::tenncor::assign(msg,
+                          ::tenncor::add(
+                              ::tenncor::mul(decay, msg),
+                              ::tenncor::mul(nodecay, ::tenncor::square(der))
+                          )
+                      );
+                      auto delta = ::tenncor::mul(
                           ::tenncor::mul(step_rate, ::tenncor::div(
-                              ::tenncor::sqrt(::tenncor::add(s, offset)),
-                              ::tenncor::sqrt(::tenncor::add(g_assign, offset))
-                          )), der));
+                              ::tenncor::sqrt(::tenncor::add(msd, offset)),
+                              ::tenncor::sqrt(::tenncor::add(msg_next, offset))
+                          )), der);
 
-                      auto s_assign = ::tenncor::assign(s, ::tenncor::add(
-                          ::tenncor::mul(nodecay, ::tenncor::square(d)),
-                          ::tenncor::mul(decay, s)));
+                      auto msd_next = ::tenncor::assign(msd,
+                          ::tenncor::add(
+                              ::tenncor::mul(decay, msd),
+                              ::tenncor::mul(nodecay, ::tenncor::square(delta))
+                          )
+                      );
                       out.emplace(x, ::tenncor::depends(
-                          ::tenncor::assign_sub(x, d), {s_assign}));
+                          ::tenncor::assign_sub(x, delta), {msd_next}));
                   }
                   return out;
       - template: typename T
