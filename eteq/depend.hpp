@@ -158,10 +158,10 @@ struct Depends final : public Observable
 		if (dependee_->has_data())
 		{
 			dependee_->uninitialize();
-			for (auto& parent : this->subs_)
-			{
-				parent->uninitialize();
-			}
+		}
+		for (auto& parent : this->subs_)
+		{
+			parent->uninitialize();
 		}
 	}
 

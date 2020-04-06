@@ -175,11 +175,16 @@ static void unar_elem (std::vector<double> data,
 
 	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
 	eteq::ETensor<double> dest = op(src);
+	eteq::ETensor<double> uninit_dest = op(src);
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(dtens->device());
-	eigen::default_device().calc(dtens->device()); // idempotency check
+	{
+		auto op_sess = eigen::get_session();
+		op_sess.track({dest});
+		op_sess.update();
+		op_sess.update(); // idempotency check
+	}
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -192,7 +197,7 @@ static void unar_elem (std::vector<double> data,
 
 	auto session = eigen::get_session();
 
-	eteq::ETensor<double> gsrc = eteq::derive(dest, src);
+	eteq::ETensor<double> gsrc = eteq::derive(uninit_dest, src);
 
 	session.track({gsrc});
 	session.update();
@@ -608,6 +613,15 @@ TEST(API, Assign)
 
 	EXPECT_FATAL(eteq::derive(ass1, src), "cannot derive ASSIGN");
 	EXPECT_FATAL(eteq::derive(ass2, src), "cannot derive ASSIGN");
+}
+
+
+TEST(API, Identity)
+{
+	unary_elementary(
+		[](eteq::ETensor<double>& a) { return tenncor::identity(tenncor::abs(a)); },
+		[](double d) { return std::abs(d); },
+		[](double d) { return d / std::abs(d); });
 }
 
 

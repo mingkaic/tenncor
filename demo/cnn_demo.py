@@ -20,10 +20,9 @@ import argparse
 
 import tenncor as tc
 
-import tensorflow_datasets as tfds
 import numpy as np
-
 import matplotlib.pyplot as plt
+import tensorflow_datasets as tfds
 
 prog_description = 'Demo cnn model'
 
@@ -31,7 +30,7 @@ cifar_name = 'cifar10'
 assert cifar_name in tfds.list_builders()
 
 def cross_entropy_loss(Label, Pred):
-    return -tc.reduce_sum(Label * tc.log(Pred))
+    return -tc.reduce_sum(Label * tc.log(Pred + np.finfo(float).eps), set([0]))
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -65,8 +64,7 @@ def main(args):
 
     nbatch = 4
     learning_rate = 0.01
-    momentum = 0.9
-    weight_decay = 0.0001
+    l2_decay = 0.0001
     show_every_n = 5
     nepochs = 10
 
@@ -79,11 +77,12 @@ def main(args):
     sess = tc.Session()
 
     # batch, height, width, in
-    raw_inshape = [nbatch] + list(ds.output_shapes['image'][1:])
-    raw_outshape = [nbatch, 10]
+    raw_inshape = list(ds.output_shapes['image'][1:])
+    train_outshape = [nbatch, 10]
+    print(raw_inshape)
 
-    trainin = tc.EVariable(raw_inshape, label="trainin")
-    trainout = tc.EVariable(raw_outshape, label="trainout")
+    trainin = tc.EVariable([nbatch] + raw_inshape, label="trainin")
+    trainout = tc.EVariable(train_outshape, label="trainout")
 
     # construct CNN
     model = tc.layer.link([ # minimum input shape of [1, 32, 32, 3]
@@ -123,16 +122,19 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
+    opt = lambda error, leaves: tc.approx.adadelta(error, leaves,
+        step_rate=learning_rate, decay=l2_decay)
+
     normalized = trainin / 255. - 0.5
+    output_prob = model.connect(normalized)
     train_err = tc.sgd_train(model, normalized, trainout,
-        lambda assocs: tc.approx.adagrad(assocs, learning_rate=learning_rate),
-        err_func=cross_entropy_loss)
+        opt, err_func=cross_entropy_loss)
 
-    raw_inshape[0] = 1
-    testin = tc.EVariable(raw_inshape, label="testin")
+    testin = tc.EVariable([1] + raw_inshape, label="testin")
     testout = model.connect(testin)
+    testidx = tc.argmax(testout)
 
-    sess.track([train_err, testout])
+    sess.track([train_err, output_prob, testidx])
     tc.optimize(sess, "cfg/optimizations.json")
 
     # train
@@ -144,15 +146,23 @@ def main(args):
         print('expected label:\n{}'.format(labels))
         trainin.assign(data['image'].astype(np.float))
         trainout.assign(labels.astype(np.float))
+        epoch_errs = []
         for j in range(nepochs):
-            sess.update_target([train_err])
-            print('done epoch {}'.format(j))
-            if j % show_every_n == show_every_n - 1:
-                terr = train_err.get()
-                print(('training {}th image, epoch {}\ntraining error: {}')
-                    .format(i, j + 1, terr))
-                terrs.append(terr)
-        if i > 200:
+            sess.update_target([train_err, output_prob])
+            trained_err = train_err.get()
+            prob = output_prob.get()
+            epoch_errs.append(np.average(trained_err))
+            print('==== epoch {} ===='.format(j))
+            print('prob: {}'.format(prob))
+            outof = np.sum(prob, axis=1)
+            assert(np.all([s > 0.95 for s in outof]))
+            print('training error: {}'.format(trained_err))
+        avg_err = epoch_errs[-1]
+        if i % show_every_n == show_every_n - 1:
+            print('==== {}th image ====\naverage error:\n{}'.format(i, avg_err))
+        terrs.append(avg_err)
+
+        if i > 500:
             break
 
     plt.plot(list(range(len(terrs))), terrs)
@@ -162,17 +172,18 @@ def main(args):
         split=tfds.Split.TEST,
         batch_size=1,
         shuffle_files=True)
-    image = next(tfds.as_numpy(tds))
     names = [
         'airplane', 'automobile', 'bird', 'cat', 'deer',
         'dog', 'frog', 'horse', 'ship', 'truck',
     ]
+    image = next(tfds.as_numpy(tds))
     testin.assign(image['image'].astype(np.float))
-    sess.update_target([testout])
-    print('class: {}'.format(names[image['label']]))
-    print(testout.get())
+    sess.update_target([testidx])
+    print('expect: {}'.format(names[image['label'][0]]))
+    print('got: {}'.format(names[int(testidx.get())]))
+    print('probability: {}'.format(testout.get()))
 
-    plt.imshow(image['image'].reshape(*raw_inshape[1:]))
+    plt.imshow(image['image'].reshape(*raw_inshape))
     plt.show()
 
     try:

@@ -233,4 +233,145 @@ TEST(OPTIMIZE, RNNLayer)
 }
 
 
+TEST(OPTIMIZE, CNNLayer)
+{
+	teq::Shape in_shape({2, 4, 4});
+	teq::Shape out_shape({2, 4, 4});
+
+	// invar has 32 elements, outvar has 32 elements
+	// conv weight has 54 elements, bias has 2 elements
+	// dense weight has 24 elements, bias has 3 elements
+	std::vector<double> in_data = {
+		0.3916215715, 0.8931230937, 0.1004809072, 0.6106936032,
+		0.1609866205, 0.5359489463, 0.9634307603, 0.2478257704,
+
+		0.1131220231, 0.4383789791, 0.0301699064, 0.3556333890,
+		0.0795634409, 0.4742393984, 0.8927304780, 0.0425374477,
+
+		0.6454238082, 0.6158521193, 0.8372817240, 0.0632589826,
+		0.8192038024, 0.4463440314, 0.4563414313, 0.0836714963,
+
+		0.2945361165, 0.2556635326, 0.1268742524, 0.2480380053,
+		0.8182844250, 0.4024040436, 0.9260259954, 0.5273402129,
+	};
+	std::vector<double> out_data = {
+		0.0486572783, 0.2315281440,
+		0.4123123876, 0.4495204814,
+		0.0607173969, 0.2353327942,
+		0.8020420684, 0.0349825945,
+
+		0.2586609385, 0.0877771944,
+		0.9793879792, 0.2052353283,
+		0.8427712275, 0.3320400669,
+		0.2011303283, 0.9303916739,
+
+		0.1586272183, 0.9857192229,
+		0.0378285752, 0.6744445943,
+		0.0417076290, 0.5292058108,
+		0.7405830646, 0.8138606324,
+
+		0.1809403598, 0.1407543910,
+		0.9964283066, 0.0307449753,
+		0.4892965036, 0.0682599624,
+		0.4739679432, 0.0640243035,
+	};
+	std::vector<double> cweight_data = {
+		0.6108596848, 0.0956259063, 0.6491984452,
+		0.3726083910, 0.5912457068, 0.9649860713,
+		0.5676557932, 0.8560985490, 0.7104686176,
+
+		0.8212629984, 0.7445572667, 0.2392157299,
+		0.6922254848, 0.1974129231, 0.1444881939,
+		0.5144365413, 0.9551529858, 0.3786297296,
+
+		0.7821505938, 0.3357298454, 0.3313290519,
+		0.2713678980, 0.5092105264, 0.0672732383,
+		0.7695201538, 0.2726840520, 0.3161799709,
+
+		0.7017531611, 0.7219056805, 0.8948515926,
+		0.0569561413, 0.6600032360, 0.5564323337,
+		0.0013410820, 0.4314001600, 0.8535746740,
+
+		0.8290206508, 0.0293501654, 0.4915898917,
+		0.2890500076, 0.7259008624, 0.7892775434,
+		0.8895895730, 0.4935260523, 0.5615521486,
+
+		0.2289719211, 0.4937565211, 0.8541293040,
+		0.3559381633, 0.7543374263, 0.7611097303,
+		0.8421407822, 0.0207011400, 0.1428302497,
+	};
+	std::vector<double> cbias_data = {
+		0.8801580962, 0.5008790402,
+	};
+
+	eteq::EVariable<double> invar = eteq::make_variable<double>(
+		in_data.data(), in_shape, "invar");
+	eteq::EVariable<double> outvar = eteq::make_variable<double>(
+		out_data.data(), out_shape, "outvar");
+
+	// construct CNN
+	auto model = tenncor::layer::link({ // input [2\4\4]
+		tenncor::layer::conv<double>({3, 3}, 2, 2,
+			[&](teq::Shape shape, std::string label) -> eteq::EVariable<double>
+			{
+				return eteq::make_variable<double>(cweight_data.data(), shape, label);
+			},
+			[&](teq::Shape shape, std::string label) -> eteq::EVariable<double>
+			{
+				return eteq::make_variable<double>(cbias_data.data(), shape, label);
+			},
+			{1, 1}), // outputs [2\4\4]
+		tenncor::layer::bind(layr::UnaryF<double>(tenncor::relu<double>)),
+	}, invar);
+
+	double learning_rate = 0.01;
+	double l2_decay = 0.0001;
+
+	auto normalized = invar / 255. - 0.5;
+	eteq::ETensor<double> train_out = eteq::connect(model, normalized);
+	auto error = -tenncor::reduce_sum(outvar *
+		tenncor::log(train_out + std::numeric_limits<double>::epsilon()));
+
+	eteq::VarptrsT<double> vars = eteq::get_storage(model);
+	auto updates = tenncor::approx::adadelta<double>(
+		error, eteq::EVariablesT<double>(vars.begin(), vars.end()),
+		learning_rate, l2_decay);
+	teq::TensMapT<teq::TensptrT> umap;
+	eteq::ETensorsT<double> deps;
+	deps.reserve(updates.size());
+	for (auto& update : updates)
+	{
+		umap.emplace(update.first.get(), update.second);
+		deps.push_back(update.second);
+	}
+	auto err = tenncor::identity(tenncor::depends(eteq::trail(error, umap), deps));
+
+	eteq::ETensorsT<double> roots = {err};
+	std::ifstream rulefile("cfg/optimizations.json");
+	eteq::optimize(roots, rulefile);
+	err = roots[0];
+
+	std::string expect_pbfile = testdir + "/cnn_opt.txt";
+	std::ifstream expect_ifs(expect_pbfile);
+	std::string expect(
+		(std::istreambuf_iterator<char>(expect_ifs)),
+		(std::istreambuf_iterator<char>()));
+	EXPECT_GRAPHEQ(expect.c_str(), err);
+
+	teq::Session sess = eigen::get_session();
+	sess.track({err});
+	sess.update_target({err.get()});
+
+	teq::Shape exshape;
+	double evdata = 451.94709417496551;
+
+	teq::Shape gotshape = err->shape();
+	double* got_data = (double*) err->device().data();
+	std::vector<double> gvdata(got_data, got_data + gotshape.n_elems());
+
+	ASSERT_ARREQ(exshape, gotshape);
+	EXPECT_DOUBLE_EQ(evdata, gvdata[0]);
+}
+
+
 #endif // DISABLE_OPT_TEST

@@ -26,7 +26,7 @@ The condition object has the following schema (protobuf):
 message Node {
     oneof node {
         double cst = 1;
-        Leaf var = 2;
+        Leaf leaf = 2;
         Operator op = 3;
         string symb = 4;
     }
