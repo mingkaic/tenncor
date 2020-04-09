@@ -225,6 +225,13 @@ void eteq_ext (py::module& m)
 			"Return labelled variable containing numpy data array",
 			py::arg("data"),
 			py::arg("label") = "")
+		.def("to_variable",
+			[](const pyeteq::ETensT& tens)
+			{
+				auto var = std::dynamic_pointer_cast<eteq::Variable<PybindT>>(
+					(teq::TensptrT) tens);
+				return eteq::EVariable<PybindT>(var);
+			})
 
 		// ==== other stuff ====
 		.def("derive", &eteq::derive<PybindT>,
