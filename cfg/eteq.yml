@@ -1228,7 +1228,7 @@ api:
                   }
                   teq::Shape shape = arg->shape();
                   auto overflow_preventer = ::tenncor::extend_like(
-                      ::tenncor::reduce_max(arg), arg);
+                      ::tenncor::reduce_max(arg, offset, ndims), arg);
                   auto exarg = ::tenncor::exp(::tenncor::sub(arg, overflow_preventer));
                   auto it = shape.begin() + offset;
                   std::vector<teq::DimT> xlist(it, it + ndims);
