@@ -78,8 +78,8 @@ struct QResHasher
 	size_t operator ()(const QueryResult& res) const
 	{
 		size_t seed = 0;
-        boost::hash_combine(seed, res.root_);
-        boost::hash_combine(seed, boost::hash_range(
+		boost::hash_combine(seed, res.root_);
+		boost::hash_combine(seed, boost::hash_range(
 			res.symbs_.begin(), res.symbs_.end()));
 		return seed;
 	}

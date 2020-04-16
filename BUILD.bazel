@@ -169,7 +169,7 @@ py_binary(
 py_binary(
     name = "dqn_demo",
     srcs = ["demo/dqn_demo.py"],
-    deps = ["//:tenncor_py"],
+    deps = ["//:extenncor"],
     data = ["//:models", "//cfg:optimizations"],
 )
 

@@ -54,10 +54,10 @@ class SessCache:
         cache_fpath = os.path.join(self.cache_dir,
             SessCache._format_cachefile(self.cur_id))
         try:
-            print('loading model "{}'.format(cache_fpath))
-            if tc.load_session_file(cache_fpath, session):
-                print('successfully recovered session from "{}"'.format(cache_fpath))
-                return True
+            print('loading model from "{}"'.format(cache_fpath))
+            tc.load_session_file(cache_fpath, session)
+            print('successfully recovered session from "{}"'.format(cache_fpath))
+            return True
         except Exception as e:
             print(e)
             print('failed recover from "{}"'.format(cache_fpath))
@@ -68,7 +68,13 @@ class EnvManager(metaclass=abc.ABCMeta):
     def _format_cachefile(id):
         return _env_prefix + hex(id)[2:] + _env_ext
 
-    # if clean is set to True, do not recover from existing cache
+    '''
+    args:
+
+    clean: whether to prevent auto-recovery on init.
+    If clean is set to True, do not recover from existing cache, defaults to recovering
+
+    '''
     def __init__(self, name, sess,
         default_init = None,
         clean = False,
@@ -94,9 +100,12 @@ class EnvManager(metaclass=abc.ABCMeta):
             if not clean and self.sesscache.recover(self.sess) and \
                 self._recover_env(os.path.join(self.dirpath,
                     EnvManager._format_cachefile(self.env_id))):
+                print('successful recovery')
+                print('recover session {}'.format(self.sesscache.cur_id))
+                print('recover environment {}'.format(self.env_id))
                 return
-        except:
-            pass
+        except Exception as e:
+            print('recovery error: {}'.format(e))
 
         if default_init is not None:
             default_init()

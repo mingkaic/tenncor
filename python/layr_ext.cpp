@@ -50,38 +50,6 @@ void layr_ext(py::module& m)
 		.def("connect", &layr::RBMLayer<PybindT>::connect)
 		.def("backward_connect", &layr::RBMLayer<PybindT>::backward_connect);
 
-	// ==== DQN trainer ====
-	py::class_<trainer::DQNTrainer<PybindT>> dqntrainer(m, "DQNTrainer");
-
-	dqntrainer
-		.def(py::init([](eteq::ETensor<PybindT>& model,
-				teq::iSession& sess, layr::ApproxF<PybindT> update,
-				size_t train_interval, PybindT rand_action_prob,
-				PybindT discount_rate, PybindT target_update_rate,
-				PybindT explore_period, size_t store_interval,
-				teq::DimT mbatch_size, size_t max_exp)
-			{
-				return trainer::DQNTrainer<PybindT>(model,
-					sess, update, train_interval, rand_action_prob,
-					discount_rate, target_update_rate, explore_period,
-					store_interval, mbatch_size, max_exp);
-			}),
-			py::arg("model"), py::arg("sess"), py::arg("update"),
-			py::arg("train_interval") = 5, py::arg("rand_action_prob") = 0.05,
-			py::arg("discount_rate") = 0.95, py::arg("target_update_rate") = 0.01,
-			py::arg("explore_period") = 1000, py::arg("store_interval") = 5,
-			py::arg("mbatch_size") = 32, py::arg("max_exp") = 30000)
-		.def("action",
-			[](trainer::DQNTrainer<PybindT>* self, py::array input)
-			{
-				teq::ShapedArr<PybindT> a;
-				pyutils::arr2shapedarr(a, input);
-				return self->action(a);
-			},
-			"get next action")
-		.def("store", &trainer::DQNTrainer<PybindT>::store, "save observation, action, and reward")
-		.def("train", &trainer::DQNTrainer<PybindT>::train, "train qnets");
-
 	// ==== DBN trainer ====
 	py::class_<trainer::DBNTrainer<PybindT>> dbntrainer(m, "DBNTrainer");
 

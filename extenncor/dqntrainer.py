@@ -1,25 +1,27 @@
 import math
 import random
+import os.path
+
 import numpy as np
+from collections.abc import Iterable
+
+import tenncor as tc
 
 import extenncor.trainer_cache as ecache
 import extenncor.dqntrainer_pb2 as dqn_pb
-
-import tenncor as tc
 
 _get_random = tc.unif_gen(0, 1)
 
 # generalize as feedback class
 @ecache.EnvManager.register
 class DQNEnv(ecache.EnvManager):
-    def __init__(self, src_model, sess,
-        update_fn, gradprocess_fn = None,
+    def __init__(self, src_model, sess, update_fn,
         optimize_cfg = "", max_exp = 30000,
         train_interval = 5, store_interval = 5,
         explore_period = 1000, action_prob = 0.05,
         mbatch_size = 32, discount_rate = 0.95,
         target_update_rate = 0.01, clean_startup = False,
-        cachedir = '/tmp'):
+        usecase = '', cachedir = '/tmp'):
 
         self.max_exp = max_exp
         self.train_interval = train_interval
@@ -66,14 +68,7 @@ class DQNEnv(ecache.EnvManager):
             target_vars = nxt_model.get_storage()
             assert(len(source_vars) == len(target_vars))
 
-            source_errs = dict()
-            for source_var in source_vars:
-                error = tc.derive(prediction_err, source_var)
-                if gradprocess_fn is not None:
-                    error = gradprocess_fn(error)
-                source_errs[source_var] = error
-
-            src_updates = dict(update_fn(source_errs))
+            src_updates = dict(update_fn(prediction_err, source_vars))
 
             updates = [prediction_err, src_act, self.act_idx]
             for target_var, source_var in zip(target_vars, source_vars):
@@ -84,10 +79,15 @@ class DQNEnv(ecache.EnvManager):
             self.sess.track(updates)
             tc.optimize(self.sess, optimize_cfg)
 
-        super().__init__('dqn', sess, default_init=default_init,
+        super().__init__(os.path.join(usecase, 'dqn'),
+            sess, default_init=default_init,
             clean=clean_startup,  cacheroot=cachedir)
         self.src_shape = self.src_outmask.shape()
-        self.mbatch_size = self.rewards.shape()[0]
+        self.mbatch_size = self.rewards.shape()
+        if len(self.mbatch_size) > 0:
+            self.mbatch_size = self.mbatch_size[0]
+        else:
+            self.mbatch_size = 1
 
     def _backup_env(self, fpath: str) -> bool:
         with open(fpath, 'wb') as envfile:
@@ -113,13 +113,23 @@ class DQNEnv(ecache.EnvManager):
         # recover object members from recovered session
         query = tc.Statement(self.sess.get_tracked())
         self.obs = query.find('{ "leaf":{ "label":"obs" } }')[0]
-        self.act_idx = query.find('{ "op":{ "opname":"ARGMAX", "attrs":{"recovery":"act_idx" } }')[0]
+        self.act_idx = query.find('''{
+            "op":{
+                "opname":"ARGMAX",
+                "attrs":{
+                    "recovery":{
+                        "str":"act_idx"
+                    }
+                }
+            }
+        }''')[0]
         self.src_obs = query.find('{ "leaf":{ "label":"src_obs" } }')[0]
         self.nxt_obs = query.find('{ "leaf":{ "label":"nxt_obs" } }')[0]
         self.src_outmask = query.find('{ "leaf":{ "label":"src_outmask" } }')[0]
         self.nxt_outmask = query.find('{ "leaf":{ "label":"nxt_outmask" } }')[0]
         self.rewards = query.find('{ "leaf":{ "label":"rewards" } }')[0]
 
+        print('loading environment from "{}"'.format(fpath))
         with open(fpath, 'rb') as envfile:
             dqn_env = dqn_pb.DqnEnv()
             dqn_env.ParseFromString(envfile.read())
@@ -129,7 +139,11 @@ class DQNEnv(ecache.EnvManager):
             self.nstore_called = dqn_env.nstore_called
             self.experiences = [(exp.obs, exp.act_idx, exp.reward, exp.new_obs)
                 for exp in dqn_env.experiences]
+
+            print('successfully recovered environment from "{}"'.format(fpath))
             return True
+
+        print('failed environment recovery')
         return False
 
     def action(self, obs):

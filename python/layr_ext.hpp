@@ -17,7 +17,6 @@
 #include "eteq/eteq.hpp"
 
 #include "trainer/sgd.hpp"
-#include "trainer/dqn.hpp"
 #include "trainer/dbn.hpp"
 
 #include "generated/pyapi.hpp"

@@ -6,6 +6,7 @@ import argparse
 import numpy as np
 
 import tenncor as tc
+import extenncor.dqntrainer as etc
 
 prog_description = 'Demo dqn trainer'
 
@@ -103,11 +104,19 @@ def main(args):
 
     sess = tc.Session()
 
-    untrained_dqn = tc.DQNTrainer(untrained, sess, bgd, **param)
-    trained_dqn = tc.DQNTrainer(model, sess, bgd, **param)
-    pretrained_dqn = tc.DQNTrainer(trained, sess, bgd, **param)
-
-    tc.optimize(sess, "cfg/optimizations.json")
+    params = {
+        'optimize_cfg': "cfg/optimizations.json",
+        'mbatch_size': 1,
+        'store_interval': 1,
+        'discount_rate': 0.99,
+        'explore_period': 0.0,
+    }
+    untrained_dqn = etc.DQNEnv(untrained, sess, bgd,
+        usecase='demo_untrained', **params)
+    trained_dqn = etc.DQNEnv(model, sess, bgd,
+        usecase='demo_trained', **params)
+    pretrained_dqn = etc.DQNEnv(trained, sess, bgd,
+        usecase='demo_pretrained', **params)
 
     err_msg = None
     err_queue_size = 10
