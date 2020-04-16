@@ -74,7 +74,7 @@ bool equals (
 			if (auto tens = dynamic_cast<const teq::TensorObj*>(attr))
 			{
 				candidates = matcher.match(pba.node());
-				remove_if(candidates,
+				estd::remove_if(candidates,
 					[&tens](const QueryResult& result)
 					{
 						return result.root_ != tens->get_tensor().get();
@@ -90,7 +90,7 @@ bool equals (
 				if (match && layer.has_input())
 				{
 					candidates = matcher.match(layer.input());
-					remove_if(candidates,
+					estd::remove_if(candidates,
 						[&lay](const QueryResult& result)
 						{
 							return result.root_ != lay->get_tensor().get();

@@ -3,6 +3,8 @@
 
 #include <boost/functional/hash.hpp>
 
+#include "estd/algorithm.hpp"
+
 #include "eigen/generated/opcode.hpp"
 
 #include "query/query.pb.h"
@@ -10,13 +12,6 @@
 
 namespace query
 {
-
-template <typename VEC, typename UNARY>
-inline void remove_if (VEC& vec, UNARY pred)
-{
-	auto pend = std::remove_if(vec.begin(), vec.end(), pred);
-	vec.erase(pend, vec.end());
-}
 
 using SindexT = std::unordered_map<std::string,teq::TensT>;
 
@@ -254,7 +249,7 @@ private:
 					return match->recall();
 				});
 		}
-		remove_if(paths,
+		estd::remove_if(paths,
 			[&](PathptrT root)
 			{
 				return root->memory_.size() != nargs;
@@ -263,7 +258,7 @@ private:
 
 	void symb_filter (PathsT& paths, std::string cond) const
 	{
-		remove_if(paths,
+		estd::remove_if(paths,
 			[&](PathptrT root)
 			{
 				return estd::has(root->symbols_, cond) &&
@@ -313,7 +308,7 @@ private:
 	template <typename T>
 	void leaf_filter (PathsT& paths, T leaf) const
 	{
-		remove_if(paths,
+		estd::remove_if(paths,
 			[&](PathptrT root)
 			{
 				return false == equals(
