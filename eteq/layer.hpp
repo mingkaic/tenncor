@@ -100,6 +100,42 @@ private:
 	}
 };
 
+// Inorder traversal for mutable leaves
+struct VarExtract final : public teq::iOnceTraveler
+{
+	VarExtract (teq::TensSetT term = {}) : term_(term) {}
+
+	teq::LeafsT variables_;
+
+	teq::TensSetT term_;
+
+private:
+	void visit_leaf (teq::iLeaf& leaf) override
+	{
+		if (estd::has(term_, &leaf))
+		{
+			return;
+		}
+		if (teq::Usage::IMMUTABLE != leaf.get_usage())
+		{
+			variables_.push_back(&leaf);
+		}
+	}
+
+	void visit_func (teq::iFunctor& func) override
+	{
+		if (estd::has(term_, &func))
+		{
+			return;
+		}
+		auto children = func.get_children();
+		for (teq::TensptrT child : children)
+		{
+			child->accept(*this);
+		}
+	}
+};
+
 /// Copy everything from input.first to root, except replacing input.first with input.second
 template <typename T>
 ETensor<T> trail (const ETensor<T>& root,
@@ -132,36 +168,22 @@ ETensor<T> connect (const ETensor<T>& root, const ETensor<T>& input)
 template <typename T>
 VarptrsT<T> get_storage (const ETensor<T>& root)
 {
-	auto intens = get_input(root).get();
-	VarptrsT<T> vars;
-
-	teq::GraphStat stats;
-	stats.graphsize_.emplace(intens, estd::NumRange<size_t>());
-	root->accept(stats);
-
-	BreadthStat bstats;
-	bstats.breadth_.emplace(intens, 0);
-	root->accept(bstats);
-
 	teq::OwnerMapT owner = teq::track_owners({teq::TensptrT(root)});
 
-	for (auto gpair : stats.graphsize_)
+	auto intens = get_input(root).get();
+	VarExtract extra({intens});
+	root->accept(extra);
+
+	VarptrsT<T> vars;
+	vars.reserve(extra.variables_.size());
+	for (auto leaf : extra.variables_)
 	{
-		if (0 == gpair.second.upper_ && intens != gpair.first)
+		if (auto var = std::dynamic_pointer_cast<
+			Variable<T>>(owner.at(leaf).lock()))
 		{
-			if (auto var = std::dynamic_pointer_cast<
-				Variable<T>>(owner.at(gpair.first).lock()))
-			{
-				vars.push_back(var);
-			}
+			vars.push_back(var);
 		}
 	}
-	std::sort(vars.begin(), vars.end(),
-		[&bstats](VarptrT<T> a, VarptrT<T> b)
-		{
-			return bstats.breadth_.at(a.get()) <
-				bstats.breadth_.at(b.get());
-		});
 	return vars;
 }
 

@@ -27,7 +27,9 @@ TEST(ATTR, Unknown)
 	query::Attribute attr;
 	marsh::Number<double> numba_wun(1.11);
 
-	EXPECT_FATAL(query::equals(&numba_wun, attr, matcher),
+	query::QResultsT attr_res;
+	EXPECT_FATAL(query::equals(
+		attr_res, &numba_wun, attr, matcher),
 		"cannot compare unknown attribute");
 }
 
@@ -43,10 +45,11 @@ TEST(ATTR, IntEquals)
 	marsh::Number<float> numba_tres(3.3);
 	marsh::Number<int> numba_cinq(5);
 
-	EXPECT_FALSE(query::equals(&numba_wun, attr, matcher));
-	EXPECT_FALSE(query::equals(&numba_deux, attr, matcher));
-	EXPECT_FALSE(query::equals(&numba_tres, attr, matcher));
-	EXPECT_TRUE(query::equals(&numba_cinq, attr, matcher));
+	query::QResultsT attr_res;
+	EXPECT_FALSE(query::equals(attr_res, &numba_wun, attr, matcher));
+	EXPECT_FALSE(query::equals(attr_res, &numba_deux, attr, matcher));
+	EXPECT_FALSE(query::equals(attr_res, &numba_tres, attr, matcher));
+	EXPECT_TRUE(query::equals(attr_res, &numba_cinq, attr, matcher));
 }
 
 
@@ -61,10 +64,11 @@ TEST(ATTR, DecEquals)
 	marsh::Number<float> numba_tres(3.3);
 	marsh::Number<int> numba_cinq(5);
 
-	EXPECT_FALSE(query::equals(&numba_wun, attr, matcher));
-	EXPECT_FALSE(query::equals(&numba_deux, attr, matcher));
-	EXPECT_TRUE(query::equals(&numba_tres, attr, matcher));
-	EXPECT_FALSE(query::equals(&numba_cinq, attr, matcher));
+	query::QResultsT attr_res;
+	EXPECT_FALSE(query::equals(attr_res, &numba_wun, attr, matcher));
+	EXPECT_FALSE(query::equals(attr_res, &numba_deux, attr, matcher));
+	EXPECT_TRUE(query::equals(attr_res, &numba_tres, attr, matcher));
+	EXPECT_FALSE(query::equals(attr_res, &numba_cinq, attr, matcher));
 }
 
 
@@ -80,12 +84,13 @@ TEST(ATTR, IntArrEquals)
 	marsh::NumArray<size_t> iroot({5, 6});
 	marsh::NumArray<size_t> empty;
 
-	EXPECT_FALSE(query::equals(&root, attr, matcher));
-	EXPECT_TRUE(query::equals(&iroot, attr, matcher));
-	EXPECT_FALSE(query::equals(&empty, attr, matcher));
-	EXPECT_FALSE(query::equals(&root, attr2, matcher));
-	EXPECT_FALSE(query::equals(&iroot, attr2, matcher));
-	EXPECT_TRUE(query::equals(&empty, attr2, matcher));
+	query::QResultsT attr_res;
+	EXPECT_FALSE(query::equals(attr_res, &root, attr, matcher));
+	EXPECT_TRUE(query::equals(attr_res, &iroot, attr, matcher));
+	EXPECT_FALSE(query::equals(attr_res, &empty, attr, matcher));
+	EXPECT_FALSE(query::equals(attr_res, &root, attr2, matcher));
+	EXPECT_FALSE(query::equals(attr_res, &iroot, attr2, matcher));
+	EXPECT_TRUE(query::equals(attr_res, &empty, attr2, matcher));
 }
 
 
@@ -101,12 +106,13 @@ TEST(ATTR, DecArrEquals)
 	marsh::NumArray<double> iroot({5, 6});
 	marsh::NumArray<double> empty;
 
-	EXPECT_FALSE(query::equals(&root, attr, matcher));
-	EXPECT_TRUE(query::equals(&iroot, attr, matcher));
-	EXPECT_FALSE(query::equals(&empty, attr, matcher));
-	EXPECT_FALSE(query::equals(&root, attr2, matcher));
-	EXPECT_FALSE(query::equals(&iroot, attr2, matcher));
-	EXPECT_TRUE(query::equals(&empty, attr2, matcher));
+	query::QResultsT attr_res;
+	EXPECT_FALSE(query::equals(attr_res, &root, attr, matcher));
+	EXPECT_TRUE(query::equals(attr_res, &iroot, attr, matcher));
+	EXPECT_FALSE(query::equals(attr_res, &empty, attr, matcher));
+	EXPECT_FALSE(query::equals(attr_res, &root, attr2, matcher));
+	EXPECT_FALSE(query::equals(attr_res, &iroot, attr2, matcher));
+	EXPECT_TRUE(query::equals(attr_res, &empty, attr2, matcher));
 }
 
 
@@ -119,8 +125,9 @@ TEST(ATTR, StrEquals)
 	marsh::String s1("smitty werbenjagermanjensen");
 	marsh::String s2("numba wun");
 
-	EXPECT_FALSE(query::equals(&s1, attr, matcher));
-	EXPECT_TRUE(query::equals(&s2, attr, matcher));
+	query::QResultsT attr_res;
+	EXPECT_FALSE(query::equals(attr_res, &s1, attr, matcher));
+	EXPECT_TRUE(query::equals(attr_res, &s2, attr, matcher));
 }
 
 

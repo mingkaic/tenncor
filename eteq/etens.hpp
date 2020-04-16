@@ -102,6 +102,9 @@ template <typename T>
 using ETensorsT = std::vector<ETensor<T>>;
 
 template <typename T>
+using EVariablesT = std::vector<EVariable<T>>;
+
+template <typename T>
 teq::TensptrsT to_tensors (const ETensorsT<T>& etensors)
 {
 	teq::TensptrsT tensors;

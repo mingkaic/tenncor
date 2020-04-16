@@ -67,7 +67,7 @@ def main(args):
         tc.layer.bind(tc.sigmoid),
     ], train_input)
     train_err = tc.sgd_train(model, train_input, train_output,
-        lambda assocs: tc.approx.sgd(assocs, 0.9))
+        lambda err, leaves: tc.approx.sgd(err, leaves, learning_rate=0.9))
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:

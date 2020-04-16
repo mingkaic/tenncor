@@ -93,6 +93,7 @@ struct Session : public iSession
 		{
 			acceptable.emplace(root.get());
 		}
+		std::unordered_set<teq::iDeviceRef*> devices;
 		// ignored tensors will never populate reqs
 		for (auto rit = ops_.rbegin(), ret = ops_.rend();
 			rit != ret; ++rit)
@@ -101,7 +102,11 @@ struct Session : public iSession
 			if (estd::has(acceptable, op) &&
 				false == estd::has(ignored, op))
 			{
-				reqs.push_front(op);
+				if (false == estd::has(devices, &op->device()))
+				{
+					reqs.push_front(op);
+					devices.emplace(&op->device());
+				}
 				auto children = op->get_children();
 				for (TensptrT child : children)
 				{
@@ -122,6 +127,7 @@ struct Session : public iSession
 		{
 			acceptable.emplace(root);
 		}
+		std::unordered_set<teq::iDeviceRef*> devices;
 		// ignored tensors will never populate reqs
 		for (auto rit = ops_.rbegin(), ret = ops_.rend();
 			rit != ret; ++rit)
@@ -130,7 +136,11 @@ struct Session : public iSession
 			if (estd::has(acceptable, op) &&
 				false == estd::has(ignored, op))
 			{
-				reqs.push_front(op);
+				if (false == estd::has(devices, &op->device()))
+				{
+					reqs.push_front(op);
+					devices.emplace(&op->device());
+				}
 				auto children = op->get_children();
 				for (TensptrT child : children)
 				{

@@ -131,9 +131,10 @@ int main (int argc, const char** argv)
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
 	layr::ApproxF<PybindT> approx =
-		[](const layr::VarMapT<PybindT>& leaves)
+		[](const eteq::ETensor<PybindT>& error,
+			const eteq::EVariablesT<PybindT>& leaves)
 		{
-			return tenncor::approx::sgd<PybindT>(leaves, 0.9); // learning rate = 0.9
+			return tenncor::approx::sgd<PybindT>(error, leaves, 0.9); // learning rate = 0.9
 		};
 	// emit::Emitter emitter("localhost:50051");
 	// dbg::PluginSession sess(eigen::default_device());

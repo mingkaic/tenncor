@@ -1,3 +1,5 @@
+#include "pybind11/functional.h"
+
 #include "python/eteq_ext.hpp"
 
 #ifdef PYTHON_ETEQ_EXT_HPP
@@ -45,12 +47,17 @@ void eteq_ext (py::module& m)
 	etens
 		.def(py::init<teq::TensptrT>())
 		.def("__str__",
-			[](pyeteq::ETensT& self)
+			[](const pyeteq::ETensT& self)
 			{
 				return self->to_string();
 			})
+		.def("__hash__",
+			[](const pyeteq::ETensT& self)
+			{
+				return size_t(self.get());
+			})
 		.def("shape",
-			[](pyeteq::ETensT& self)
+			[](const pyeteq::ETensT& self)
 			{
 				teq::Shape shape = self->shape();
 				auto pshape = pyutils::c2pshape(shape);
@@ -59,7 +66,7 @@ void eteq_ext (py::module& m)
 			},
 			"Return this instance's shape")
 		.def("get",
-			[](pyeteq::ETensT& self)
+			[](const pyeteq::ETensT& self)
 			{
 				return pyeteq::typedata_to_array<PybindT>(
 					*self, py::dtype::of<PybindT>());
@@ -69,7 +76,24 @@ void eteq_ext (py::module& m)
 		.def("get_input", eteq::get_input<PybindT>)
 		.def("connect", eteq::connect<PybindT>)
 		.def("deep_clone", eteq::deep_clone<PybindT>)
-		.def("get_storage", eteq::get_storage<PybindT>);
+		.def("get_storage",
+			[](const pyeteq::ETensT& self)
+			{
+				auto contents = eteq::get_storage<PybindT>(self);
+				return std::vector<eteq::EVariable<PybindT>>(
+					contents.begin(), contents.end());
+			})
+
+		// useful for debugging
+		.def("tag",
+			[](pyeteq::ETensT& self,
+				const std::string& key, const std::string& val)
+			{
+				if (auto f = dynamic_cast<teq::iFunctor*>(self.get()))
+				{
+					f->add_attr(key, std::make_unique<marsh::String>(val));
+				}
+			});
 
 	// ==== variable ====
 	py::class_<eteq::EVariable<PybindT>,pyeteq::ETensT> evar(m, "EVariable");
@@ -78,7 +102,8 @@ void eteq_ext (py::module& m)
 		.def(py::init(
 			[](py::list slist, PybindT scalar, const std::string& label)
 			{
-				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
+				return eteq::make_variable_scalar<PybindT>(
+					scalar, pyutils::p2cshape(slist), label);
 			}),
 			py::arg("shape"),
 			py::arg("scalar") = 0,
@@ -140,7 +165,8 @@ void eteq_ext (py::module& m)
 				}
 				self->update_target(targeted_set, ignored_set);
 			},
-			"Calculate etens relevant to targets in the graph given list of nodes to ignore",
+			"Calculate etens relevant to targets in the "
+			"graph given list of nodes to ignore",
 			py::arg("targeted"),
 			py::arg("ignored") = std::vector<pyeteq::ETensT>{})
 		.def("get_tracked",
@@ -148,6 +174,22 @@ void eteq_ext (py::module& m)
 			{
 				auto tracked = self.get_tracked();
 				return pyeteq::ETensorsT(tracked.begin(), tracked.end());
+			})
+		.def("replace",
+			[](teq::iSession& self, const std::vector<std::pair<
+				pyeteq::ETensT,pyeteq::ETensT>>& converts)
+			{
+				auto tracked = self.get_tracked();
+				opt::GraphInfo graph(teq::TensptrsT(
+					tracked.begin(), tracked.end()));
+				teq::TensMapT<teq::TensptrT> conversions;
+				for (auto& convert : converts)
+				{
+					conversions.emplace(convert.first.get(), convert.second);
+				}
+				graph.replace(conversions);
+				self.clear();
+				self.track(graph.get_roots());
 			});
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
@@ -176,7 +218,8 @@ void eteq_ext (py::module& m)
 		.def("scalar_variable",
 			[](PybindT scalar, py::list slist, const std::string& label)
 			{
-				return eteq::make_variable_scalar<PybindT>(scalar, pyutils::p2cshape(slist), label);
+				return eteq::make_variable_scalar<PybindT>(
+					scalar, pyutils::p2cshape(slist), label);
 			},
 			"Return labelled variable containing numpy data array",
 			py::arg("scalar"),
@@ -197,11 +240,18 @@ void eteq_ext (py::module& m)
 			{
 				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
-				return eteq::make_variable(arr.data_.data(), arr.shape_, label);
+				return eteq::make_variable(
+					arr.data_.data(), arr.shape_, label);
 			},
 			"Return labelled variable containing numpy data array",
 			py::arg("data"),
 			py::arg("label") = "")
+		.def("to_variable",
+			[](const pyeteq::ETensT& tens)
+			{
+				return eteq::EVariable<PybindT>(std::dynamic_pointer_cast<
+					eteq::Variable<PybindT>>((teq::TensptrT) tens));
+			})
 
 		// ==== other stuff ====
 		.def("derive", &eteq::derive<PybindT>,
@@ -270,6 +320,20 @@ void eteq_ext (py::module& m)
 		// 		engine->seed(seed);
 			},
 			"Seed internal RNG")
+
+		// ==== use eigen randomizer ====
+		.def("unif_gen",
+			[](PybindT lower, PybindT upper)
+			{
+				return py::cpp_function(
+					eigen::Randomizer().unif_gen<PybindT>(lower, upper));
+			}, py::arg("lower") = 0, py::arg("upper") = 1)
+		.def("norm_gen",
+			[](PybindT mean, PybindT stdev)
+			{
+				return py::cpp_function(
+					eigen::Randomizer().norm_gen<PybindT>(mean, stdev));
+			})
 
 		// ==== serialization ====
 		.def("load_from_file",

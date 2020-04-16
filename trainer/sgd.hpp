@@ -10,24 +10,14 @@ template <typename T>
 eteq::ETensor<T> sgd (
 	const eteq::ETensor<T>& model, eteq::ETensor<T> train_in,
 	eteq::ETensor<T> expect_out, layr::ApproxF<T> update,
-	layr::ErrorF<T> err_func = tenncor::error::sqr_diff<T>,
-	layr::UnaryF<T> proc_grad = layr::UnaryF<T>())
+	layr::ErrorF<T> err_func = tenncor::error::sqr_diff<T>)
 {
 	eteq::ETensor<T> train_out = eteq::connect(model, train_in);
 	auto error = err_func(expect_out, train_out);
 
-	eteq::VarptrsT<T> contents = eteq::get_storage(model);
-	layr::VarMapT<T> vars;
-	for (auto var : contents)
-	{
-		auto derivative = eteq::derive(error, eteq::ETensor<T>(var));
-		if (proc_grad)
-		{
-			derivative = proc_grad(derivative);
-		}
-		vars.emplace(var, derivative);
-	}
-	auto updates = update(vars);
+	eteq::VarptrsT<T> vars = eteq::get_storage(model);
+	auto updates = update(error,
+		eteq::EVariablesT<T>(vars.begin(), vars.end()));
 	teq::TensMapT<teq::TensptrT> umap;
 	eteq::ETensorsT<T> deps;
 	deps.reserve(updates.size());

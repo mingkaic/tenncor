@@ -30,12 +30,12 @@ using VarMapT = std::unordered_map<eteq::EVariable<T>,eteq::ETensor<T>,EVarHashe
 /// Function that returns the error between two nodes,
 /// left node contains expected values, right contains resulting values
 template <typename T>
-using ErrorF = std::function<eteq::ETensor<T>(eteq::ETensor<T>,eteq::ETensor<T>)>;
+using ErrorF = std::function<eteq::ETensor<T>(const eteq::ETensor<T>&,const eteq::ETensor<T>&)>;
 
 /// Function that approximate error of sources
 /// given a vector of variables and its corresponding errors
 template <typename T>
-using ApproxF = std::function<VarMapT<T>(const VarMapT<T>&)>;
+using ApproxF = std::function<VarMapT<T>(const eteq::ETensor<T>&,const eteq::EVariablesT<T>&)>;
 
 }
 

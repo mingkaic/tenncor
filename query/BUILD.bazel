@@ -1,6 +1,5 @@
 licenses(["notice"])
 
-load("//third_party:tools/pybind.bzl", "pybind_py_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 filegroup(
@@ -53,17 +52,6 @@ cc_library(
     hdrs=["query.pb.h"],
     srcs=["query.pb.cc"],
     deps = ["@com_google_protobuf_custom//:protobuf"],
-    visibility = ["//visibility:public"],
-)
-
-pybind_py_library(
-    name = "query_py",
-    cc_srcs = ["//query:python/query.cpp"],
-    cc_deps = [
-        "//:tenncor",
-        "//query:query",
-    ],
-    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )
 

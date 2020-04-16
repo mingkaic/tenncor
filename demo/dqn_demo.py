@@ -6,6 +6,7 @@ import argparse
 import numpy as np
 
 import tenncor as tc
+import extenncor.dqntrainer as etc
 
 prog_description = 'Demo dqn trainer'
 
@@ -91,22 +92,31 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    bgd = lambda assocs: tc.approx.rms_momentum(assocs,
-        learning_rate = 0.1, discount_factor = 0.5)
-    param = tc.DQNInfo(
-        mini_batch_size = 1,
-        store_interval = 1,
-        discount_rate = 0.99,
-        exploration_period = 0.0)
+    bgd = lambda error, leaves: tc.approx.rms_momentum(error, leaves,
+        learning_rate = 0.1, discount_factor = 0.5,
+        apply = lambda x: tc.clip_by_l2norm(x, 5))
+    param = {
+        'mbatch_size': 1,
+        'store_interval': 1,
+        'discount_rate': 0.99,
+        'explore_period': 0.0,
+    }
 
     sess = tc.Session()
 
-    untrained_dqn = tc.DQNTrainer(untrained, sess, bgd, param)
-    trained_dqn = tc.DQNTrainer(model, sess, bgd, param,
-        gradprocess = lambda x: tc.clip_by_l2norm(x, 5))
-    pretrained_dqn = tc.DQNTrainer(trained, sess, bgd, param)
-
-    tc.optimize(sess, "cfg/optimizations.json")
+    params = {
+        'optimize_cfg': "cfg/optimizations.json",
+        'mbatch_size': 1,
+        'store_interval': 1,
+        'discount_rate': 0.99,
+        'explore_period': 0.0,
+    }
+    untrained_dqn = etc.DQNEnv(untrained, sess, bgd,
+        usecase='demo_untrained', **params)
+    trained_dqn = etc.DQNEnv(model, sess, bgd,
+        usecase='demo_trained', **params)
+    pretrained_dqn = etc.DQNEnv(trained, sess, bgd,
+        usecase='demo_pretrained', **params)
 
     err_msg = None
     err_queue_size = 10

@@ -53,19 +53,17 @@ TEST(DEPEND, Chaining)
 	EXPECT_EQ(nullptr, fdep->get_attr("anything"));
 
 	auto children = fdep->get_children();
-	ASSERT_EQ(4, children.size());
+	ASSERT_EQ(2, children.size());
 	EXPECT_EQ(op.get(), children[0].get());
-	EXPECT_EQ(src.get(), children[1].get());
-	EXPECT_EQ(src2.get(), children[2].get());
-	EXPECT_EQ(happen_first.get(), children[3].get());
+	EXPECT_EQ(happen_first.get(), children[1].get());
 
 	EXPECT_FATAL(fdep->update_child(src3, 0), "cannot reassign non-observable dependee of depend (index 0)");
 
 	eteq::EVariable<double> buffer = eteq::make_variable<double>(data.data(), shape);
 	auto ass = tenncor::assign(buffer, happen_first);
 
-	fdep->update_child(buffer, 1);
-	fdep->update_child(ass, 3); // assign replaces happen_first
+	static_cast<teq::iFunctor*>(op.get())->update_child(buffer, 0);
+	fdep->update_child(ass, 1); // assign replaces happen_first
 
 	// assign is an indirect dependency of op
 	auto session = eigen::get_session();

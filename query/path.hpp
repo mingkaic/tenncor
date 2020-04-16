@@ -37,9 +37,7 @@ struct Path final
 		assert(nullptr != tens_);
 	}
 
-	Path (const Path& other,
-		SymbMapT symbols = {},
-		MemoryT memory = {}) :
+	Path (const Path& other, SymbMapT symbols, MemoryT memory) :
 		tens_(other.tens_), symbols_(symbols),
 		prev_(other.prev_), memory_(memory)
 	{
@@ -66,7 +64,8 @@ struct Path final
 		{
 			if (false == estd::has(memory_, i))
 			{
-				out.push_back(std::pair<size_t,teq::iTensor*>{i, children[i].get()});
+				out.push_back(std::pair<
+					size_t,teq::iTensor*>{i, children[i].get()});
 			}
 		}
 		return out;

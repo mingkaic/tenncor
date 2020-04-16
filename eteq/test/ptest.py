@@ -9,11 +9,27 @@ import tenncor as tc
 
 from testutil.generate_testcases import generate_testcases
 
-oldTf = tf.VERSION < '1.6.0'
+# return true if left < right
+def version_lt(left, right):
+    left = left.split('.')
+    right = right.split('.')
+    for lv, rv in zip(left, right):
+        lv = int(lv)
+        rv = int(rv)
+        if lv < rv:
+            return True
+        elif lv > rv:
+            return False
+    return False
+
+oldTf = version_lt(tf.__version__, '1.6.0')
 if oldTf:
     tfSess = tf.Session
 else:
     tfSess = tf.compat.v1.Session
+
+if version_lt('2.0.0', tf.__version__):
+    tf.compat.v1.disable_v2_behavior()
 
 _test_data = {}
 
@@ -862,7 +878,6 @@ class EADTest(unittest.TestCase):
                 self._array_close(exdata3, der3)
 
     def test_convolution(self):
-        padding = "VALID"
         shapes = [
             ([3, 3], [3, 3]),
             ([5, 5], [3, 3]),
@@ -894,7 +909,7 @@ class EADTest(unittest.TestCase):
             tfsess.run(tf_var.initializer)
             tfsess.run(tf_kernel.initializer)
 
-            tf_out = tf.nn.convolution(tf_var, tf_kernel, padding)
+            tf_out = tf.nn.convolution(tf_var, tf_kernel, padding='VALID')
             tf_fout = tfsess.run(tf_out)
 
             tf_fout = tf_fout.reshape([tf_fout.shape[1], tf_fout.shape[2]])
@@ -1015,6 +1030,17 @@ class EADTest(unittest.TestCase):
 
         self._array_eq(data0, rej)
         self._array_close(exdata[0], der)
+
+    def test_stride(self):
+        shape = [3, 8, 8, 2]
+        data = np.random.rand(*shape).astype(np.float32)
+        image = tc.variable(data, 'image')
+
+        strideout = tc.stride(image, [1, 2, 2])
+        self._array_eq([3, 4, 4, 2], strideout.shape())
+
+        ex = tc.derive(strideout, image)
+        self._array_eq(shape, ex.shape())
 
     def test_maxpool(self):
         shape = [3, 8, 8, 2]
