@@ -51,7 +51,7 @@ struct iMetadata
 	/// Return data type encoding
 	virtual size_t type_code (void) const = 0;
 
-	/// Return data type encoding
+	/// Return data type label (for better readability)
 	virtual std::string type_label (void) const = 0;
 
 	/// Return tensor version denoting its state
@@ -88,18 +88,6 @@ struct iTensor
 
 	/// Return the string representation of the tensor
 	virtual std::string to_string (void) const = 0;
-
-	/// Return data type encoding
-	size_t type_code (void) const
-	{
-		return get_meta().type_code();
-	}
-
-	/// Return data type label (for better readability)
-	std::string type_label (void) const
-	{
-		return get_meta().type_label();
-	}
 
 protected:
 	virtual iTensor* clone_impl (void) const = 0;

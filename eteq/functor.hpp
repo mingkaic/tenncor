@@ -40,12 +40,12 @@ struct Functor final : public eigen::Observable
 		egen::_GENERATED_DTYPE tcode = egen::get_type<T>();
 		for (teq::TensptrT child : children)
 		{
-			if (tcode != child->type_code())
+			if (tcode != child->get_meta().type_code())
 			{
 				teq::fatalf("incompatible tensor types %s and %s: "
 					"cross-type functors not supported yet",
 					egen::name_type(tcode).c_str(),
-					child->type_label().c_str());
+					child->get_meta().type_label().c_str());
 			}
 			shapes.push_back(child->shape());
 		}

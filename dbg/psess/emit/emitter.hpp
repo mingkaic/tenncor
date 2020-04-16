@@ -110,7 +110,7 @@ struct Emitter final : public dbg::iPlugin
 			{
 				auto leaf = static_cast<teq::iLeaf*>(statpair.first);
 				egen::_GENERATED_DTYPE dtype =
-					(egen::_GENERATED_DTYPE) leaf->type_code();
+					(egen::_GENERATED_DTYPE) leaf->get_meta().type_code();
 				std::vector<float> data;
 				size_t nelems = leaf->shape().n_elems();
 				egen::type_convert(data, leaf->device().data(), dtype, nelems);
@@ -130,7 +130,7 @@ struct Emitter final : public dbg::iPlugin
 		for (auto& func : funcs)
 		{
 			egen::_GENERATED_DTYPE dtype =
-				(egen::_GENERATED_DTYPE) func->type_code();
+				(egen::_GENERATED_DTYPE) func->get_meta().type_code();
 			std::vector<float> data;
 			size_t nelems = func->shape().n_elems();
 			egen::type_convert(data, func->device().data(), dtype, nelems);

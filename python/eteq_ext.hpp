@@ -31,7 +31,7 @@ using ETensPairT = std::pair<ETensT,ETensT>;
 template <typename T>
 py::array typedata_to_array (const teq::iTensor& tens, py::dtype dtype)
 {
-	assert(egen::get_type<PybindT>() == tens.type_code());
+	assert(egen::get_type<PybindT>() == tens.get_meta().type_code());
 	auto pshape = pyutils::c2pshape(tens.shape());
 	return py::array(dtype,
 		py::array::ShapeContainer(pshape.begin(), pshape.end()),
