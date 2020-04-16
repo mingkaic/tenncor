@@ -68,24 +68,22 @@ def main(args):
     show_every_n = 5
     nepochs = 10
 
-    ds = tfds.load('cifar10',
-        split=tfds.Split.TRAIN,
-        batch_size=nbatch,
-        shuffle_files=True)
+    ds = tfds.load('cifar10', split='train', batch_size=nbatch, shuffle_files=True)
     cifar = tfds.as_numpy(ds)
 
     sess = tc.Session()
 
     # batch, height, width, in
     raw_inshape = list(ds.output_shapes['image'][1:])
-    train_outshape = [nbatch, 10]
+    train_exoutshape = [nbatch, 10]
     print(raw_inshape)
 
-    trainin = tc.EVariable([nbatch] + raw_inshape, label="trainin")
-    trainout = tc.EVariable(train_outshape, label="trainout")
+    train_in = tc.EVariable([nbatch] + raw_inshape, label="train_in")
+    train_exout = tc.EVariable(train_exoutshape, label="train_exout")
 
     # construct CNN
-    model = tc.layer.link([ # minimum input shape of [1, 32, 32, 3]
+    output_prob = tc.layer.link([ # minimum input shape of [1, 32, 32, 3]
+        tc.layer.bind(lambda x: x / 255. - 0.5), # normalization
         tc.layer.conv([5, 5], 3, 16,
             weight_init=tc.norm_xavier_init(0.5),
             zero_padding=[2, 2]), # outputs [nbatch, 32, 32, 16]
@@ -110,10 +108,10 @@ def main(args):
             bias_init=tc.zero_init(),
             dims=[[0, 1], [1, 2], [2, 3]]), # outputs [nbatch, 10]
         tc.layer.bind(lambda x: tc.softmax(x, 0, 1))
-    ], trainin)
+    ], train_in)
 
-    untrained = model.deep_clone()
-    trained = model.deep_clone()
+    untrained = output_prob.deep_clone()
+    trained = output_prob.deep_clone()
     try:
         print('loading ' + args.load)
         trained = tc.load_from_file(args.load)[0]
@@ -122,19 +120,17 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    opt = lambda error, leaves: tc.approx.adadelta(error, leaves,
-        step_rate=learning_rate, decay=l2_decay)
+    opt = lambda error, leaves: \
+        tc.approx.adadelta(error, leaves, step_rate=learning_rate, decay=l2_decay)
 
-    normalized = trainin / 255. - 0.5
-    output_prob = model.connect(normalized)
-    train_err = tc.sgd_train(model, normalized, trainout,
+    train_err = tc.sgd_train(output_prob, normalized, train_exout,
         opt, err_func=cross_entropy_loss)
 
-    testin = tc.EVariable([1] + raw_inshape, label="testin")
-    testout = model.connect(testin)
-    testidx = tc.argmax(testout)
+    test_in = tc.EVariable([1] + raw_inshape, label="test_in")
+    test_prob = output_prob.connect(test_in)
+    test_idx = tc.argmax(test_prob)
 
-    sess.track([train_err, output_prob, testidx])
+    sess.track([train_err, output_prob, test_idx, test_prob])
     tc.optimize(sess, "cfg/optimizations.json")
 
     # train
@@ -144,8 +140,8 @@ def main(args):
         for j, label in enumerate(data['label']):
             labels[j][label] = 1
         print('expected label:\n{}'.format(labels))
-        trainin.assign(data['image'].astype(np.float))
-        trainout.assign(labels.astype(np.float))
+        train_in.assign(data['image'].astype(np.float))
+        train_exout.assign(labels.astype(np.float))
         epoch_errs = []
         for j in range(nepochs):
             sess.update_target([train_err, output_prob])
@@ -156,7 +152,7 @@ def main(args):
             print('prob: {}'.format(prob))
             outof = np.sum(prob, axis=1)
             assert(np.all([s > 0.95 for s in outof]))
-            print('training error: {}'.format(trained_err))
+            print('train_ing error: {}'.format(trained_err))
         avg_err = epoch_errs[-1]
         if i % show_every_n == show_every_n - 1:
             print('==== {}th image ====\naverage error:\n{}'.format(i, avg_err))
@@ -168,27 +164,24 @@ def main(args):
     plt.plot(list(range(len(terrs))), terrs)
 
     # test
-    tds = tfds.load('cifar10',
-        split=tfds.Split.TEST,
-        batch_size=1,
-        shuffle_files=True)
+    tds = tfds.load('cifar10', split='test', batch_size=1, shuffle_files=True)
     names = [
         'airplane', 'automobile', 'bird', 'cat', 'deer',
         'dog', 'frog', 'horse', 'ship', 'truck',
     ]
     image = next(tfds.as_numpy(tds))
-    testin.assign(image['image'].astype(np.float))
-    sess.update_target([testidx])
+    test_in.assign(image['image'].astype(np.float))
+    sess.update_target([test_idx])
     print('expect: {}'.format(names[image['label'][0]]))
-    print('got: {}'.format(names[int(testidx.get())]))
-    print('probability: {}'.format(testout.get()))
+    print('got: {}'.format(names[int(test_idx.get())]))
+    print('probability: {}'.format(test_prob.get()))
 
     plt.imshow(image['image'].reshape(*raw_inshape))
     plt.show()
 
     try:
         print('saving')
-        if tc.save_to_file(args.save, [model]):
+        if tc.save_to_file(args.save, [output_prob]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)
