@@ -115,7 +115,7 @@ struct GraphInfo final
 	}
 
 	// sindex_ built from pbuilder_.paths_
-	query::Query sindex_;
+	query::Query sindex_ = query::Query(true);
 
 	teq::TensptrsT roots_;
 

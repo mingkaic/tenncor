@@ -71,7 +71,7 @@ def main(args):
     ds = tfds.load('cifar10', split='train', batch_size=nbatch, shuffle_files=True)
     cifar = tfds.as_numpy(ds)
 
-    sess = tc.Session()
+    sess = tc.global_default_sess
 
     # batch, height, width, in
     raw_inshape = list(ds.output_shapes['image'][1:])

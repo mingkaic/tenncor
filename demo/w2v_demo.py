@@ -73,7 +73,7 @@ training_data, word_index, index_word = generate_training_data(corpus)
 
 w1, model = make_embedding(len(word_index), n)
 
-sess = tc.Session()
+sess = tc.global_default_sess
 
 winput = tc.variable(np.random.rand(len(word_index)) * 2 - 1, 'input')
 woutput = tc.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'output')

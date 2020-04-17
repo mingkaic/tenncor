@@ -96,7 +96,7 @@ def main(args):
         learning_rate = 0.1, discount_factor = 0.5,
         apply = lambda x: tc.clip_by_l2norm(x, 5))
 
-    sess = tc.Session()
+    sess = tc.global_default_sess
 
     params = {
         'optimize_cfg': "cfg/optimizations.json",

@@ -6,6 +6,12 @@
 
 using ETensKeysT = std::unordered_map<std::string,eteq::ETensor<PybindT>>;
 
+teq::Session& get_default_sess (void)
+{
+	static teq::Session sess = eigen::get_session();
+	return sess;
+}
+
 void eteq_ext (py::module& m)
 {
 	// ==== data and shape ====
@@ -95,29 +101,6 @@ void eteq_ext (py::module& m)
 				}
 			});
 
-	// ==== variable ====
-	py::class_<eteq::EVariable<PybindT>,pyeteq::ETensT> evar(m, "EVariable");
-
-	evar
-		.def(py::init(
-			[](py::list slist, PybindT scalar, const std::string& label)
-			{
-				return eteq::make_variable_scalar<PybindT>(
-					scalar, pyutils::p2cshape(slist), label);
-			}),
-			py::arg("shape"),
-			py::arg("scalar") = 0,
-			py::arg("label") = "")
-		.def("assign",
-			[](eteq::EVariable<PybindT>& self, py::array data, teq::iSession& sess)
-			{
-				teq::ShapedArr<PybindT> arr;
-				pyutils::arr2shapedarr(arr, data);
-				self->assign(arr, sess);
-			},
-			"Assign numpy data array to variable",
-			py::arg("data"), py::arg("sess"));
-
 	// ==== session ====
 	py::class_<teq::iSession> isess(m, "iSession");
 	py::class_<teq::Session> session(m, "Session", isess);
@@ -196,6 +179,31 @@ void eteq_ext (py::module& m)
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
 		.def(py::init(&eigen::get_session));
+
+	m.attr("global_default_sess") = &get_default_sess();
+
+	// ==== variable ====
+	py::class_<eteq::EVariable<PybindT>,pyeteq::ETensT> evar(m, "EVariable");
+
+	evar
+		.def(py::init(
+			[](py::list slist, PybindT scalar, const std::string& label)
+			{
+				return eteq::make_variable_scalar<PybindT>(
+					scalar, pyutils::p2cshape(slist), label);
+			}),
+			py::arg("shape"),
+			py::arg("scalar") = 0,
+			py::arg("label") = "")
+		.def("assign",
+			[](eteq::EVariable<PybindT>& self, py::array data, teq::iSession& sess)
+			{
+				teq::ShapedArr<PybindT> arr;
+				pyutils::arr2shapedarr(arr, data);
+				self->assign(arr, sess);
+			},
+			"Assign numpy data array to variable",
+			py::arg("data"), py::arg("sess") = get_default_sess());
 
 	// ==== inline functions ====
 	m

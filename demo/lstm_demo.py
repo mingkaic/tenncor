@@ -54,7 +54,7 @@ def main(args):
     x_dim = 50
     y_list = [-0.5, 0.2, 0.1, -0.5]
     input_val_arr = [np.random.random(x_dim) for _ in y_list]
-    sess = tc.Session()
+    sess = tc.global_default_sess
 
     model = tc.layer.lstm(x_dim, mem_cell_ct, len(y_list),
         weight_init=tc.unif_xavier_init(1),

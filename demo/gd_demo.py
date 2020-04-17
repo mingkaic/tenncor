@@ -78,7 +78,7 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.Session()
+    sess = tc.global_default_sess
     sess.track([train_err])
 
     testin = tc.EVariable([ninput], label='testin')

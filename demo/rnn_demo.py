@@ -158,7 +158,7 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.Session()
+    sess = tc.global_default_sess
 
     train_invar = tc.EVariable([n_batch, sequence_len, ninput])
     train_exout = tc.EVariable([n_batch, sequence_len, noutput])

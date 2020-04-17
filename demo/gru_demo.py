@@ -111,7 +111,7 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.Session()
+    sess = tc.global_default_sess
 
     sample_inp = tc.EVariable([1, vocab_size], 0)
 

@@ -81,7 +81,7 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.Session()
+    sess = tc.global_default_sess
     n_batch = 10
 
     # ds = tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=n_batch)
