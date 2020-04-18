@@ -9,6 +9,8 @@ namespace tutil
 
 const size_t peek_limit = 256;
 
+const std::unordered_set<char> cset = {' ', '\t', '\n', default_indent};
+
 std::string compare_graph (std::istream& expectstr, teq::iTensor* root,
 	bool showshape, LabelsMapT labels)
 {
@@ -30,7 +32,7 @@ std::string compare_graph (std::istream& expectstr, teq::iTensor* root,
 			exrun = (bool) std::getline(expectstr, line);
 			if (exrun)
 			{
-				fmts::trim(line);
+				fmts::strip(line, cset);
 				if (line.size() > 0)
 				{
 					expects.push_back(line);
@@ -42,7 +44,7 @@ std::string compare_graph (std::istream& expectstr, teq::iTensor* root,
 			gorun = (bool) std::getline(gotstr, line);
 			if (gorun)
 			{
-				fmts::trim(line);
+				fmts::strip(line, {'_', ' ', '\t', '\n'});
 				if (line.size() > 0)
 				{
 					gots.push_back(line);
