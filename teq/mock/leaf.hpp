@@ -1,6 +1,7 @@
 #include "teq/ileaf.hpp"
 
 #include "teq/mock/device.hpp"
+#include "teq/mock/meta.hpp"
 
 #ifndef TEQ_MOCK_LEAF_HPP
 #define TEQ_MOCK_LEAF_HPP
@@ -40,14 +41,9 @@ struct MockLeaf : public teq::iLeaf
 		return ref_;
 	}
 
-	size_t type_code (void) const override
+	const teq::iMetadata& get_meta (void) const override
 	{
-		return 0;
-	}
-
-	std::string type_label (void) const override
-	{
-		return "double";
+		return meta_;
 	}
 
 	size_t nbytes (void) const override
@@ -72,6 +68,8 @@ struct MockLeaf : public teq::iLeaf
 	std::string label_;
 
 	teq::Usage usage_ = teq::UNKNOWN_USAGE;
+
+	MockMeta meta_;
 };
 
 #endif // TEQ_MOCK_LEAF_HPP

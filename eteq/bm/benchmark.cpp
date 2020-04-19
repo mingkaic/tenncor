@@ -248,9 +248,9 @@ static void BM_MatmulComplex(benchmark::State& state)
 		std::vector<int32_t> data2(ddata2.begin(), ddata2.end());
 		std::vector<int32_t> data3(ddata3.begin(), ddata3.end());
 		state.ResumeTiming();
-		a->assign(data.data(), a->shape());
-		b->assign(data2.data(), b->shape());
-		c->assign(data3.data(), c->shape());
+		a->assign(data.data(), a->shape(), session);
+		b->assign(data2.data(), b->shape(), session);
+		c->assign(data3.data(), c->shape(), session);
 		session.update();
 	}
 }
@@ -303,12 +303,12 @@ static void BM_SigmoidMLP(benchmark::State& state)
 		std::vector<double> b1_data = random_data(bias1_shape.n_elems(), 0, 1);
 		std::vector<double> out_data = random_data(out_shape.n_elems(), 0, 1);
 		state.ResumeTiming();
-		in->assign(in_data.data(), in->shape());
-		out->assign(out_data.data(), out->shape());
-		weight0->assign(w0_data.data(), weight0->shape());
-		bias0->assign(b0_data.data(), bias0->shape());
-		weight1->assign(w1_data.data(), weight1->shape());
-		bias1->assign(b1_data.data(), bias1->shape());
+		in->assign(in_data.data(), in->shape(), session);
+		out->assign(out_data.data(), out->shape(), session);
+		weight0->assign(w0_data.data(), weight0->shape(), session);
+		bias0->assign(b0_data.data(), bias0->shape(), session);
+		weight1->assign(w1_data.data(), weight1->shape(), session);
+		bias1->assign(b1_data.data(), bias1->shape(), session);
 		session.update();
 	}
 }
@@ -368,12 +368,12 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 		std::vector<double> b1_data = random_data(bias1_shape.n_elems(), 0, 1);
 		std::vector<double> out_data = random_data(out_shape.n_elems(), 0, 1);
 		state.ResumeTiming();
-		in->assign(in_data.data(), in->shape());
-		out->assign(out_data.data(), out->shape());
-		weight0->assign(w0_data.data(), weight0->shape());
-		bias0->assign(b0_data.data(), bias0->shape());
-		weight1->assign(w1_data.data(), weight1->shape());
-		bias1->assign(b1_data.data(), bias1->shape());
+		in->assign(in_data.data(), in->shape(), session);
+		out->assign(out_data.data(), out->shape(), session);
+		weight0->assign(w0_data.data(), weight0->shape(), session);
+		bias0->assign(b0_data.data(), bias0->shape(), session);
+		weight1->assign(w1_data.data(), weight1->shape(), session);
+		bias1->assign(b1_data.data(), bias1->shape(), session);
 		session.update();
 	}
 }

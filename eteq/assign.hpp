@@ -1,7 +1,8 @@
 
+#include "eigen/observable.hpp"
+
 #include "eteq/etens.hpp"
 #include "eteq/shaper.hpp"
-#include "eteq/observable.hpp"
 
 #ifndef ETEQ_ASSIGN_HPP
 #define ETEQ_ASSIGN_HPP
@@ -10,7 +11,7 @@ namespace eteq
 {
 
 template <typename T>
-struct Assign final : public Observable
+struct Assign final : public eigen::Observable
 {
 	static Assign<T>* get (egen::_GENERATED_OPCODE opcode,
 		VarptrT<T> target, teq::TensptrsT children)
@@ -28,7 +29,7 @@ struct Assign final : public Observable
 	{
 		for (teq::TensptrT child : children_)
 		{
-			if (auto f = dynamic_cast<Observable*>(child.get()))
+			if (auto f = dynamic_cast<eigen::Observable*>(child.get()))
 			{
 				f->unsubscribe(this);
 			}
@@ -90,7 +91,7 @@ struct Assign final : public Observable
 		if (arg != children_[index])
 		{
 			uninitialize();
-			if (auto f = dynamic_cast<Observable*>(children_[index].get()))
+			if (auto f = dynamic_cast<eigen::Observable*>(children_[index].get()))
 			{
 				f->unsubscribe(this);
 			}
@@ -104,7 +105,7 @@ struct Assign final : public Observable
 					curshape.to_string().c_str());
 			}
 			children_[index] = arg;
-			if (auto f = dynamic_cast<Observable*>(arg.get()))
+			if (auto f = dynamic_cast<eigen::Observable*>(arg.get()))
 			{
 				f->subscribe(this);
 			}
@@ -131,19 +132,13 @@ struct Assign final : public Observable
 		return *ref_;
 	}
 
-	/// Implementation of iData
-	size_t type_code (void) const override
+	/// Implementation of iTensor
+	const teq::iMetadata& get_meta (void) const override
 	{
-		return egen::get_type<T>();
+		return meta_;
 	}
 
-	/// Implementation of iData
-	std::string type_label (void) const override
-	{
-		return egen::name_type(egen::get_type<T>());
-	}
-
-	/// Implementation of iData
+	/// Implementation of iTensor
 	size_t nbytes (void) const override
 	{
 		return sizeof(T) * shape().n_elems();
@@ -174,7 +169,7 @@ struct Assign final : public Observable
 		if (std::all_of(children_.begin(), children_.end(),
 			[](teq::TensptrT child)
 			{
-				if (auto f = dynamic_cast<Observable*>(child.get()))
+				if (auto f = dynamic_cast<eigen::Observable*>(child.get()))
 				{
 					return f->has_data();
 				}
@@ -192,13 +187,26 @@ struct Assign final : public Observable
 	{
 		for (auto child : children_)
 		{
-			auto f = dynamic_cast<Observable*>(child.get());
+			auto f = dynamic_cast<eigen::Observable*>(child.get());
 			if (nullptr != f && false == f->has_data())
 			{
 				f->must_initialize();
 			}
 		}
 		assert(initialize());
+	}
+
+	/// Implementation of Observable
+	bool prop_version (void) override
+	{
+		size_t version = 0;
+		for (auto& child : children_)
+		{
+			version = std::max(version, child->get_meta().state_version());
+		}
+		meta_.version_ = std::max(meta_.version_, version);
+		target_->upversion(version + 1);
+		return true;
 	}
 
 private:
@@ -211,7 +219,7 @@ private:
 	}
 
 	Assign (const Assign<T>& other) :
-		Observable(other),
+		eigen::Observable(other),
 		opcode_(other.opcode_),
 		target_(other.target_),
 		children_(other.children_)
@@ -228,7 +236,7 @@ private:
 	{
 		for (teq::TensptrT child : children_)
 		{
-			if (auto f = dynamic_cast<Observable*>(child.get()))
+			if (auto f = dynamic_cast<eigen::Observable*>(child.get()))
 			{
 				f->subscribe(this);
 			}
@@ -248,6 +256,8 @@ private:
 
 	/// Tensor arguments (and children)
 	teq::TensptrsT children_;
+
+	eigen::EMetadata<T> meta_;
 };
 
 }

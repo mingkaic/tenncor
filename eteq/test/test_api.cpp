@@ -146,8 +146,8 @@ static void unary_generic (UnaryOpF<double> op,
 
 	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
 	{
-		eigen::default_device().calc(dtens->device());
-		eigen::default_device().calc(dtens->device()); // idempotency check
+		eigen::default_device().calc(*dtens);
+		eigen::default_device().calc(*dtens); // idempotency check
 	}
 	verify(dest, shape, data);
 
@@ -577,8 +577,8 @@ TEST(API, Assign)
 	auto ass1 = tenncor::assign(target1, src);
 	auto ass2 = tenncor::assign(target2, -src);
 
-	eigen::default_device().calc(ass1->device());
-	eigen::default_device().calc(ass1->device()); // idempotency check
+	eigen::default_device().calc(*ass1);
+	eigen::default_device().calc(*ass1); // idempotency check
 	{
 		auto gotshape = target1->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -1099,8 +1099,8 @@ TEST(API, Select)
 
 		auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 		ASSERT_NE(nullptr, dtens);
-		eigen::default_device().calc(dtens->device());
-		eigen::default_device().calc(dtens->device()); // idempotency check
+		eigen::default_device().calc(*dtens);
+		eigen::default_device().calc(*dtens); // idempotency check
 		{
 			auto gotshape = dest->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -1178,8 +1178,8 @@ TEST(API, Slice)
 	};
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(dtens->device());
-	eigen::default_device().calc(dtens->device()); // idempotency check
+	eigen::default_device().calc(*dtens);
+	eigen::default_device().calc(*dtens); // idempotency check
 	auto gotshape = dest->shape();
 	ASSERT_ARREQ(exshape, gotshape);
 	double* optr = (double*) dest->device().data();
@@ -1357,8 +1357,8 @@ TEST(API, Argmax)
 
 	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
 	{
-		eigen::default_device().calc(dtens->device());
-		eigen::default_device().calc(dtens->device()); // idempotency check
+		eigen::default_device().calc(*dtens);
+		eigen::default_device().calc(*dtens); // idempotency check
 	}
 	teq::Shape oshape = dest->shape();
 	teq::Shape exshape;
@@ -1447,8 +1447,8 @@ TEST(API, Rprod)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(dtens->device());
-	eigen::default_device().calc(dtens->device()); // idempotency check
+	eigen::default_device().calc(*dtens);
+	eigen::default_device().calc(*dtens); // idempotency check
 	{
 		size_t n = dest->shape().n_elems();
 		{
@@ -1462,8 +1462,8 @@ TEST(API, Rprod)
 
 	auto dtens2 = static_cast<eteq::Functor<int32_t>*>(dest2.get());
 	ASSERT_NE(nullptr, dtens2);
-	eigen::default_device().calc(dtens2->device());
-	eigen::default_device().calc(dtens2->device()); // idempotency check
+	eigen::default_device().calc(*dtens2);
+	eigen::default_device().calc(*dtens2); // idempotency check
 	{
 		std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 		expect_list[1] = 1;
@@ -1715,8 +1715,8 @@ TEST(API, Permute)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(dtens->device());
-	eigen::default_device().calc(dtens->device()); // idempotency check
+	eigen::default_device().calc(*dtens);
+	eigen::default_device().calc(*dtens); // idempotency check
 	size_t n = dest->shape().n_elems();
 	ASSERT_EQ(nelem, n);
 	double* got = (double*) dest->device().data();
@@ -1765,8 +1765,8 @@ TEST(API, Extend)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(dtens->device());
-	eigen::default_device().calc(dtens->device()); // idempotency check
+	eigen::default_device().calc(*dtens);
+	eigen::default_device().calc(*dtens); // idempotency check
 	size_t ext_nelem = teq::Shape(ext).n_elems();
 	auto extshape = dest->shape();
 	teq::Shape expect_shape({2, 5, 1, 3});
@@ -1839,8 +1839,8 @@ TEST(API, Matmul)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(dtens->device());
-	eigen::default_device().calc(dtens->device()); // idempotency check
+	eigen::default_device().calc(*dtens);
+	eigen::default_device().calc(*dtens); // idempotency check
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(2, gotshape.at(1));
@@ -1929,8 +1929,8 @@ TEST(API, Contract)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(dtens->device());
-	eigen::default_device().calc(dtens->device()); // idempotency check
+	eigen::default_device().calc(*dtens);
+	eigen::default_device().calc(*dtens); // idempotency check
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(1, gotshape.at(1));
@@ -1995,8 +1995,8 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(dtens->device());
-	eigen::default_device().calc(dtens->device()); // idempotency check
+	eigen::default_device().calc(*dtens);
+	eigen::default_device().calc(*dtens); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -2110,8 +2110,8 @@ TEST(API, Convolution)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(dtens->device());
-	eigen::default_device().calc(dtens->device()); // idempotency check
+	eigen::default_device().calc(*dtens);
+	eigen::default_device().calc(*dtens); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(expectslist, gotshape);

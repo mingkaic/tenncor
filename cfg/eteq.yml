@@ -22,7 +22,7 @@ api:
           type: eteq::ETensor<T>
           val: |
               //
-                  if (auto dep = std::dynamic_pointer_cast<eteq::Observable>(
+                  if (auto dep = std::dynamic_pointer_cast<eigen::Observable>(
                     (teq::TensptrT) dependee))
                   {
                       return eteq::ETensor<T>(teq::TensptrT(eteq::Depends::get(dep,

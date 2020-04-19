@@ -6,6 +6,9 @@
 /// Implement constant leaf tensor
 ///
 
+#include "eigen/device.hpp"
+#include "eigen/emeta.hpp"
+
 #include "eteq/etens.hpp"
 
 #ifndef ETEQ_CONSTANT_HPP
@@ -16,7 +19,7 @@ namespace eteq
 
 /// Constant implementation of Eigen leaf tensor
 template <typename T>
-struct Constant final : public iLeaf<T>
+struct Constant final : public teq::iLeaf
 {
 	/// Return Constant tensor containing first
 	/// shape.n_elems() values of data pointer
@@ -35,6 +38,36 @@ struct Constant final : public iLeaf<T>
 	Constant<T>& operator = (const Constant<T>& other) = delete;
 
 	Constant<T>& operator = (Constant<T>&& other) = delete;
+
+	/// Implementation of iTensor
+	teq::Shape shape (void) const override
+	{
+		return shape_;
+	}
+
+	/// Implementation of iTensor
+	teq::iDeviceRef& device (void) override
+	{
+		return ref_;
+	}
+
+	/// Implementation of iTensor
+	const teq::iDeviceRef& device (void) const override
+	{
+		return ref_;
+	}
+
+	/// Implementation of iTensor
+	const teq::iMetadata& get_meta (void) const override
+	{
+		return meta_;
+	}
+
+	/// Implementation of iTensor
+	size_t nbytes (void) const override
+	{
+		return sizeof(T) * shape_.n_elems();
+	}
 
 	/// Implementation of iTensor
 	std::string to_string (void) const override
@@ -59,7 +92,7 @@ struct Constant final : public iLeaf<T>
 
 private:
 	Constant (T* data, teq::Shape shape) :
-		iLeaf<T>(data, shape) {}
+		ref_(data, shape), shape_(shape) {}
 
 	Constant (const Constant<T>& other) = default;
 
@@ -67,6 +100,15 @@ private:
 	{
 		return new Constant<T>(*this);
 	}
+
+	/// Data Source
+	eigen::SrcRef<T> ref_;
+
+	/// Shape utility to avoid excessive conversion between data_.dimensions()
+	teq::Shape shape_;
+
+	/// Variable metadata
+	eigen::EMetadata<T> meta_ = eigen::EMetadata<T>(1);
 };
 
 /// Return constant node given scalar and shape

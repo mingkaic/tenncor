@@ -1,12 +1,26 @@
-#ifndef ETEQ_OBSERVABLE_HPP
-#define ETEQ_OBSERVABLE_HPP
+
+#ifndef EIGEN_OBSERVABLE_HPP
+#define EIGEN_OBSERVABLE_HPP
 
 #include <unordered_set>
 
+#include "marsh/objs.hpp"
+
+#include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
 
-namespace eteq
+#include "eigen/emeta.hpp"
+
+namespace eigen
 {
+
+struct iMutableLeaf : public teq::iLeaf
+{
+	virtual ~iMutableLeaf (void) = default;
+
+	/// Increment metadata version
+	virtual void upversion (size_t version) = 0;
+};
 
 struct Observable : public teq::iFunctor
 {
@@ -59,6 +73,10 @@ struct Observable : public teq::iFunctor
 	/// Do or die populate internal data object, will recurse
 	virtual void must_initialize (void) = 0;
 
+	/// Update metadata version to latest version of arguments
+	/// Return true if functor has received new version, otherwise false
+	virtual bool prop_version (void) = 0;
+
 	/// Implementation of iAttributed
 	std::vector<std::string> ls_attrs (void) const override
 	{
@@ -100,4 +118,4 @@ using ObsptrT = std::shared_ptr<Observable>;
 
 }
 
-#endif // ETEQ_OBSERVABLE_HPP
+#endif // EIGEN_OBSERVABLE_HPP

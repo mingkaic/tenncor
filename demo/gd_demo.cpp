@@ -176,8 +176,8 @@ int main (int argc, const char** argv)
 	{
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		train_input->assign(batch);
-		train_output->assign(batch_out);
+		train_input->assign(batch, sess);
+		train_output->assign(batch_out, sess);
 		sess.update_target({train_err.get()});
 		if (i % show_every_n == show_every_n - 1)
 		{
@@ -210,7 +210,7 @@ int main (int argc, const char** argv)
 		}
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		testin->assign(batch);
+		testin->assign(batch, sess);
 		sess.update();
 
 		float untrained_avgerr = 0;

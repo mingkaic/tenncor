@@ -193,7 +193,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 		}
 		if (opname == depname)
 		{
-			auto obs = std::dynamic_pointer_cast<Observable>(children.front());
+			auto obs = std::dynamic_pointer_cast<eigen::Observable>(children.front());
 			if (nullptr == obs)
 			{
 				teq::fatal("cannot depend on a non-observable");

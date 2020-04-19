@@ -5,6 +5,7 @@
 #include "teq/config.hpp"
 
 #include "eigen/eigen.hpp"
+#include "eigen/observable.hpp"
 
 namespace eigen
 {
@@ -68,29 +69,29 @@ struct PtrRef final : public iEigen
 template <typename T, typename ARGS>
 struct TensAssign final : public iEigen
 {
-	TensAssign (SrcRef<T>& target, ARGS args,
+	TensAssign (teq::iTensor& target, ARGS args,
 		std::function<void(TensorT<T>&,ARGS&)> assign) :
-		target_(&target.data_), args_(args), assign_(assign) {}
+		target_(&target), args_(args), assign_(assign) {}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override
 	{
-		return target_->data();
+		return target_->device().data();
 	}
 
 	/// Implementation of iDeviceRef
 	const void* data (void) const override
 	{
-		return target_->data();
+		return target_->device().data();
 	}
 
 	/// Implementation of iEigen
 	void assign (void) override
 	{
-		assign_(*target_, args_);
+		assign_(static_cast<SrcRef<T>&>(target_->device()).data_, args_);
 	}
 
-	TensorT<T>* target_;
+	teq::iTensor* target_;
 
 	/// Assignment arguments
 	ARGS args_;
@@ -233,9 +234,14 @@ inline EigenptrT make_eigenmatrix (DimensionsT dims, ARGS args,
 
 struct Device final : public teq::iDevice
 {
-	void calc (teq::iDeviceRef& ref) override
+	void calc (teq::iTensor& tens) override
 	{
-		static_cast<iEigen&>(ref).assign();
+		auto& obs = static_cast<Observable&>(tens);
+		bool propped = obs.prop_version();
+		if (propped || false == obs.has_data())
+		{
+			static_cast<iEigen&>(tens.device()).assign();
+		}
 	}
 };
 

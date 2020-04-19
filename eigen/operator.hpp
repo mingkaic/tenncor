@@ -1424,60 +1424,65 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 template <typename T>
 EigenptrT assign (teq::iTensor& target, const teq::iTensor& source)
 {
-	SrcRef<T>& tar = static_cast<SrcRef<T>&>(target.device());
-	return std::make_shared<TensAssign<T,TensMapT<T>>>(tar,
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(target,
 		make_tensmap((T*) source.device().data(), source.shape()),
-		[](TensorT<T>& target, TensMapT<T>& src)
+		[&](TensorT<T>& target_tens, TensMapT<T>& src_tens)
 		{
-			target = src;
+			static_cast<iMutableLeaf&>(target).upversion(
+				source.get_meta().state_version() + 1);
+			target_tens = src_tens;
 		});
 }
 
 template <typename T>
 EigenptrT assign_add (teq::iTensor& target, const teq::iTensor& source)
 {
-	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
-	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(target,
 		make_tensmap((T*) source.device().data(), source.shape()),
-		[](TensorT<T>& target, TensMapT<T>& src)
+		[&](TensorT<T>& target_tens, TensMapT<T>& src_tens)
 		{
-			target += src;
+			static_cast<iMutableLeaf&>(target).upversion(
+				source.get_meta().state_version() + 1);
+			target_tens += src_tens;
 		});
 }
 
 template <typename T>
 EigenptrT assign_sub (teq::iTensor& target, const teq::iTensor& source)
 {
-	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
-	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(target,
 		make_tensmap((T*) source.device().data(), source.shape()),
-		[](TensorT<T>& target, TensMapT<T>& src)
+		[&](TensorT<T>& target_tens, TensMapT<T>& src_tens)
 		{
-			target -= src;
+			static_cast<iMutableLeaf&>(target).upversion(
+				source.get_meta().state_version() + 1);
+			target_tens -= src_tens;
 		});
 }
 
 template <typename T>
 EigenptrT assign_mul (teq::iTensor& target, const teq::iTensor& source)
 {
-	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
-	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(target,
 		make_tensmap((T*) source.device().data(), source.shape()),
-		[](TensorT<T>& target, TensMapT<T>& src)
+		[&](TensorT<T>& target_tens, TensMapT<T>& src_tens)
 		{
-			target *= src;
+			static_cast<iMutableLeaf&>(target).upversion(
+				source.get_meta().state_version() + 1);
+			target_tens *= src_tens;
 		});
 }
 
 template <typename T>
 EigenptrT assign_div (teq::iTensor& target, const teq::iTensor& source)
 {
-	SrcRef<T>& src = static_cast<SrcRef<T>&>(target.device());
-	return std::make_shared<TensAssign<T,TensMapT<T>>>(src,
+	return std::make_shared<TensAssign<T,TensMapT<T>>>(target,
 		make_tensmap((T*) source.device().data(), source.shape()),
-		[](TensorT<T>& target, TensMapT<T>& src)
+		[&](TensorT<T>& target_tens, TensMapT<T>& src_tens)
 		{
-			target /= src;
+			static_cast<iMutableLeaf&>(target).upversion(
+				source.get_meta().state_version() + 1);
+			target_tens /= src_tens;
 		});
 }
 

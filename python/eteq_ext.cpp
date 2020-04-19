@@ -109,13 +109,14 @@ void eteq_ext (py::module& m)
 			py::arg("scalar") = 0,
 			py::arg("label") = "")
 		.def("assign",
-			[](eteq::EVariable<PybindT>& self, py::array data)
+			[](eteq::EVariable<PybindT>& self, py::array data, teq::iSession& sess)
 			{
 				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
-				self->assign(arr);
+				self->assign(arr, sess);
 			},
-			"Assign numpy data array to variable");
+			"Assign numpy data array to variable",
+			py::arg("data"), py::arg("sess"));
 
 	// ==== session ====
 	py::class_<teq::iSession> isess(m, "iSession");
