@@ -123,8 +123,8 @@ def main(args):
     opt = lambda error, leaves: \
         tc.approx.adadelta(error, leaves, step_rate=learning_rate, decay=l2_decay)
 
-    train_err = tc.sgd_train(output_prob, normalized, train_exout,
-        opt, err_func=cross_entropy_loss)
+    train_err = tc.apply_update([output_prob], opt,
+        lambda models: cross_entropy_loss(train_exout, output_prob))
 
     test_in = tc.EVariable([1] + raw_inshape, label="test_in")
     test_prob = output_prob.connect(test_in)

@@ -26,8 +26,10 @@ class LAYRTest(unittest.TestCase):
         ])
         train_input = tc.EVariable([n_batch, ninput])
         train_output = tc.EVariable([n_batch, noutput])
-        train_err = tc.sgd_train(model, train_input, train_output,
-            lambda errs, vars: tc.approx.sgd(errs, vars, learning_rate=0.9))
+
+        train_err = tc.apply_update([model],
+            lambda err, vars: tc.approx.sgd(err, vars, learning_rate=0.9),
+            lambda models: tc.error.sqr_diff(train_output, models[0].connect(train_input)))
         sess.track([train_err])
 
         temp_dir = tempfile.mkdtemp()

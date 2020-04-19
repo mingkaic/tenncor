@@ -164,9 +164,10 @@ def main(args):
     train_exout = tc.EVariable([n_batch, sequence_len, noutput])
     tinput = tc.permute(train_invar, [0, 2, 1])
     toutput = tc.permute(train_exout, [0, 2, 1])
-    train_err = tc.sgd_train(model, tinput, toutput,
+
+    train_err = tc.apply_update([model],
         lambda error, leaves: make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps),
-        err_func=loss)
+        lambda models: loss(toutput, models[0].connect(tinput)))
     sess.track([train_err])
 
     # create training samples

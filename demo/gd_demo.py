@@ -66,8 +66,10 @@ def main(args):
             bias_init=tc.zero_init()),
         tc.layer.bind(tc.sigmoid),
     ], train_input)
-    train_err = tc.sgd_train(model, train_input, train_output,
-        lambda err, leaves: tc.approx.sgd(err, leaves, learning_rate=0.9))
+
+    train_err = tc.apply_update([model],
+        lambda err, leaves: tc.approx.sgd(err, leaves, learning_rate=0.9),
+        lambda models: tc.error.sqr_diff(train_output, models[0].connect(train_input)))
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
@@ -79,14 +81,12 @@ def main(args):
         print('failed to load from "{}"'.format(args.load))
 
     sess = tc.global_default_sess
-    sess.track([train_err])
-
     testin = tc.EVariable([ninput], label='testin')
     untrained_out = untrained.connect(testin)
     trained_out = model.connect(testin)
     pretrained_out = trained.connect(testin)
-    sess.track([untrained_out, trained_out, pretrained_out])
 
+    sess.track([train_err, untrained_out, trained_out, pretrained_out])
     tc.optimize(sess, "cfg/optimizations.json")
 
     show_every_n = 500
@@ -96,8 +96,8 @@ def main(args):
         train_input.assign(batch.reshape(nbatch, ninput))
         train_output.assign(batch_out.reshape(nbatch, noutput))
         sess.update_target([train_err])
+        err = train_err.get()
         if i % show_every_n == show_every_n - 1:
-            err = train_err.get()
             print('training {}\ntraining error:\n{}'
                 .format(i + 1, err))
 
@@ -113,8 +113,8 @@ def main(args):
 
         test_batch, test_batch_out = batch_generate(ninput, 1)
         testin.assign(test_batch)
-        sess.update()
 
+        sess.update()
         untrained_data = untrained_out.get()
         trained_data = trained_out.get()
         pretrained_data = pretrained_out.get()

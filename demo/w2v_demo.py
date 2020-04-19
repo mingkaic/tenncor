@@ -79,8 +79,10 @@ winput = tc.variable(np.random.rand(len(word_index)) * 2 - 1, 'input')
 woutput = tc.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'output')
 
 y_pred = model.connect(winput)
-train_err = tc.sgd_train(model, winput, woutput, lambda error, leaves: tc.approx.sgd(error, leaves, lr),
-    err_func=lambda ex, out: tc.reduce_sum(tc.pow(tc.extend(out, [1, 2 * window]) - ex, 2.)))
+
+train_err = tc.apply_update([model],
+    lambda error, leaves: tc.approx.sgd(error, leaves, lr),
+    lambda models: tc.reduce_sum(tc.pow(tc.extend(models[0].connect(winput), [1, 2 * window]) - woutput, 2.)))
 sess.track([y_pred, train_err])
 
 tc.optimize(sess, "cfg/optimizations.json")

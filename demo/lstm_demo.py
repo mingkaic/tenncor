@@ -79,9 +79,9 @@ def main(args):
     err = tc.reduce_sum(loss(tc.transpose(tc.slice(hiddens, 0, 1, 0)), test_outputs))
     sess.track([untrained, hiddens, pretrained, err])
 
-    train_err = tc.sgd_train(model, test_inputs, test_outputs,
+    train_err = tc.apply_update([model],
         lambda error, leaves: tc.approx.sgd(error, leaves, learning_rate=0.1),
-        err_func=lstm_loss)
+        lambda models: lstm_loss(test_outputs, models[0].connect(test_inputs)))
     sess.track([train_err])
 
     tc.optimize(sess, "cfg/optimizations.json")

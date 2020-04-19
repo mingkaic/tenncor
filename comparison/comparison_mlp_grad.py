@@ -149,7 +149,10 @@ for matrix_dim in matrix_dims:
 
     train_input = tc.EVariable([batch_size, n_in])
     train_output = tc.EVariable([batch_size, n_out])
-    train_err = tc.sgd_train(brain, train_input, train_output, tc.approx.sgd(learning_rate))
+
+    train_err = tc.apply_update([brain],
+        tc.approx.sgd(learning_rate),
+        lambda models: tc.error.sqr_diff(train_output, models[0].connect(train_input)))
     sess.track([train_err])
 
     # tensorflow mlp

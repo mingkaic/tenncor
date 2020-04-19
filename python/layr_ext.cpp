@@ -117,18 +117,14 @@ void layr_ext(py::module& m)
 			py::arg("factor") = 1)
 
 		// ==== layer training ====
-		.def("sgd_train", [](const eteq::ETensor<PybindT>& model,
-				eteq::ETensor<PybindT> train_in, eteq::ETensor<PybindT> expect_out,
+		.def("apply_update", [](const eteq::ETensorsT<PybindT>& models,
 				layr::ApproxF<PybindT> update, layr::ErrorF<PybindT> err_func)
 			{
-				return trainer::sgd<PybindT>(model, train_in, expect_out, update, err_func);
-			},
-			py::arg("model"), py::arg("train_in"),
-			py::arg("expect_out"), py::arg("update"),
-			py::arg("err_func") = layr::ErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>))
+				return trainer::apply_update<PybindT>(models, update, err_func);
+			}, py::arg("models"), py::arg("update"), py::arg("err_func"))
 		.def("rbm_train", &trainer::rbm<PybindT>,
 			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
-			py::arg("err_func") = layr::ErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>),
+			py::arg("err_func") = layr::BErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>),
 			py::arg("cdk") = 1);
 }

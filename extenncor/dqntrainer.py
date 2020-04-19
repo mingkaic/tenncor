@@ -70,7 +70,7 @@ class DQNEnv(ecache.EnvManager):
 
             src_updates = dict(update_fn(prediction_err, source_vars))
 
-            updates = [prediction_err, src_act, self.act_idx]
+            updates = [prediction_err, self.act_idx]
             for target_var, source_var in zip(target_vars, source_vars):
                 diff = target_var - src_updates[source_var]
                 assign = tc.assign_sub(target_var, target_update_rate * diff)
