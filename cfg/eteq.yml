@@ -40,7 +40,7 @@ api:
           name: source
         out:
           type: eteq::ETensor<T>
-          val: return teq::TensptrT(eteq::Assign<T>::get(::egen::ASSIGN,target,teq::TensptrsT{source}));
+          val: return eteq::make_functor<T>(::egen::ASSIGN,teq::TensptrsT{target,source});
       - template: typename T
         name: assign_add
         args:
@@ -50,7 +50,7 @@ api:
           name: source
         out:
           type: eteq::ETensor<T>
-          val: return teq::TensptrT(eteq::Assign<T>::get(::egen::ASSIGN_ADD,target,teq::TensptrsT{source}));
+          val: return eteq::make_functor<T>(::egen::ASSIGN_ADD,teq::TensptrsT{target,source});
       - template: typename T
         name: assign_sub
         args:
@@ -60,7 +60,7 @@ api:
           name: source
         out:
           type: eteq::ETensor<T>
-          val: return teq::TensptrT(eteq::Assign<T>::get(::egen::ASSIGN_SUB,target,teq::TensptrsT{source}));
+          val: return eteq::make_functor<T>(::egen::ASSIGN_SUB,teq::TensptrsT{target,source});
       - template: typename T
         name: assign_mul
         args:
@@ -70,7 +70,7 @@ api:
           name: source
         out:
           type: eteq::ETensor<T>
-          val: return teq::TensptrT(eteq::Assign<T>::get(::egen::ASSIGN_MUL,target,teq::TensptrsT{source}));
+          val: return eteq::make_functor<T>(::egen::ASSIGN_MUL,teq::TensptrsT{target,source});
       - template: typename T
         name: assign_div
         args:
@@ -80,7 +80,7 @@ api:
           name: source
         out:
           type: eteq::ETensor<T>
-          val: return teq::TensptrT(eteq::Assign<T>::get(::egen::ASSIGN_DIV,target,teq::TensptrsT{source}));
+          val: return eteq::make_functor<T>(::egen::ASSIGN_DIV,teq::TensptrsT{target,source});
       - template: typename T
         name: identity
         args:
