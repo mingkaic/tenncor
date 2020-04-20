@@ -32,6 +32,7 @@ opcode:
       stmt: out = eigen::cube<T>(outshape, *in[0]);
     RAND_UNIF:
       stmt: out = eigen::rand_uniform<T>(outshape, *in[0], *in[1]);
+      idempotent: False
     REVERSE:
       stmt: out = eigen::reverse<T>(outshape, *in[0], attrib);
     REDUCE_SUM:
@@ -98,9 +99,13 @@ opcode:
       stmt: out = eigen::assign<T>(*in[0], *in[1]);
     ASSIGN_ADD:
       stmt: out = eigen::assign_add<T>(*in[0], *in[1]);
+      idempotent: False
     ASSIGN_SUB:
       stmt: out = eigen::assign_sub<T>(*in[0], *in[1]);
+      idempotent: False
     ASSIGN_MUL:
       stmt: out = eigen::assign_mul<T>(*in[0], *in[1]);
+      idempotent: False
     ASSIGN_DIV:
       stmt: out = eigen::assign_div<T>(*in[0], *in[1]);
+      idempotent: False

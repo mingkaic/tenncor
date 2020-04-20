@@ -223,6 +223,12 @@ struct Functor final : public eigen::Observable
 	/// Implementation of Observable
 	bool prop_version (void) override
 	{
+		if (false == egen::is_idempotent(
+			(egen::_GENERATED_OPCODE) opcode_.code_))
+		{
+			++meta_.version_;
+			return true;
+		}
 		size_t version = 0;
 		for (auto& child : children_)
 		{

@@ -28,6 +28,10 @@ bool is_commutative (_GENERATED_OPCODE code);
 
 bool is_commutative (const std::string& name);
 
+bool is_idempotent (_GENERATED_OPCODE code);
+
+bool is_idempotent (const std::string& name);
+
 template <typename T>
 void typed_exec (_GENERATED_OPCODE opcode, {params})
 {{
@@ -92,6 +96,12 @@ static const std::unordered_set<_GENERATED_OPCODE> commutatives =
     {commcodes}
 }};
 
+static const std::unordered_set<_GENERATED_OPCODE> idempotents =
+{{
+    //>>> idemcodes
+    {idemcodes}
+}};
+
 std::string name_op (_GENERATED_OPCODE code)
 {{
     return estd::try_get(code2name, code, "BAD_OP");
@@ -112,6 +122,20 @@ bool is_commutative (const std::string& name)
     if (estd::has(name2code, name))
     {{
         return is_commutative(name2code.at(name));
+    }}
+    return false;
+}}
+
+bool is_idempotent (_GENERATED_OPCODE code)
+{{
+    return estd::has(idempotents, code);
+}}
+
+bool is_idempotent (const std::string& name)
+{{
+    if (estd::has(name2code, name))
+    {{
+        return is_idempotent(name2code.at(name));
     }}
     return false;
 }}
@@ -160,6 +184,11 @@ def _handle_name2codes(params, opcalls):
 def _handle_commcodes(params, opcalls):
     return ',\n    '.join(filter(
         lambda code: opcalls[code].get("commutative", False),
+        list(opcalls.keys())))
+
+def _handle_idemcodes(params, opcalls):
+    return ',\n    '.join(filter(
+        lambda code: opcalls[code].get("idempotent", True),
         list(opcalls.keys())))
 
 _plugin_id = "OPCODE"
