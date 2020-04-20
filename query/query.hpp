@@ -92,8 +92,6 @@ bool equals (
 
 struct Query final : public teq::iOnceTraveler
 {
-	Query (bool ignore_attr = false) : ignore_attr_(ignore_attr) {}
-
 	QResultsT match (const Node& cond) const
 	{
 		PathsT paths;
@@ -163,8 +161,6 @@ struct Query final : public teq::iOnceTraveler
 	}
 
 	SindexT sindex_;
-
-	bool ignore_attr_;
 
 private:
 	/// Implementation of iOnceTraveler
@@ -284,34 +280,27 @@ private:
 			if (surface_matches(attr_matches,
 				dynamic_cast<const teq::iFunctor*>(root->tens_), cond, attrs))
 			{
-				if (ignore_attr_)
+				for (auto& attr_match : attr_matches)
+				{
+					teq::iTensor* tens;
+					if (std::all_of(
+						attr_match.symbs_.begin(), attr_match.symbs_.end(),
+						[&](const std::pair<
+							std::string,teq::iTensor*>& sympair)
+						{
+							return false == estd::get(
+								tens, root->symbols_, sympair.first) ||
+								tens == sympair.second;
+						}))
+					{
+						PathptrT rclone = std::make_shared<Path>(*root);
+						rclone->symbols_.merge(attr_match.symbs_);
+						mpaths.push_back(rclone);
+					}
+				}
+				if (attr_matches.empty())
 				{
 					mpaths.push_back(root);
-				}
-				else
-				{
-					for (auto& attr_match : attr_matches)
-					{
-						teq::iTensor* tens;
-						if (std::all_of(
-							attr_match.symbs_.begin(), attr_match.symbs_.end(),
-							[&](const std::pair<
-								std::string,teq::iTensor*>& sympair)
-							{
-								return false == estd::get(
-									tens, root->symbols_, sympair.first) ||
-									tens == sympair.second;
-							}))
-						{
-							PathptrT rclone = std::make_shared<Path>(*root);
-							rclone->symbols_.merge(attr_match.symbs_);
-							mpaths.push_back(rclone);
-						}
-					}
-					if (attr_matches.empty())
-					{
-						mpaths.push_back(root);
-					}
 				}
 			}
 		}
