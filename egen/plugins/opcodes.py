@@ -69,16 +69,7 @@ _source_template = '''
 namespace egen
 {{
 
-struct EnumHash
-{{
-    template <typename T>
-    size_t operator() (T e) const
-    {{
-        return static_cast<size_t>(e);
-    }}
-}};
-
-static const std::unordered_map<_GENERATED_OPCODE,std::string,EnumHash> code2name =
+static const std::unordered_map<_GENERATED_OPCODE,std::string,estd::EnumHash> code2name =
 {{
     //>>> code2names
     {code2names}
