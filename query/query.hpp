@@ -293,7 +293,8 @@ private:
 						}))
 					{
 						PathptrT rclone = std::make_shared<Path>(*root);
-						rclone->symbols_.merge(attr_match.symbs_);
+						rclone->symbols_.insert(
+							attr_match.symbs_.begin(), attr_match.symbs_.end());
 						mpaths.push_back(rclone);
 					}
 				}

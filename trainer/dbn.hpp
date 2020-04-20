@@ -56,7 +56,7 @@ struct DBNTrainer final
 				to_learn.emplace(var.get());
 			}
 
-			CDChainIO io(rx, ry);
+			CDChainIO<T> io(rx, ry);
 			layr::VarMapT<T> varerrs = cd_grad_approx(io, rbm, cdk); // todo: add persistent option
 			teq::TensSetT assigns;
 			for (auto varerr : varerrs)

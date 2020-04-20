@@ -47,6 +47,7 @@ cc_library(
     name = "onnx_cc_proto",
     hdrs = ["onnx.pb.h"],
     srcs = ["onnx.pb.cc"],
+    copts = ["-std=c++17"],
     deps = ["@com_google_protobuf_custom//:protobuf"],
 )
 

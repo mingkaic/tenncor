@@ -48,9 +48,10 @@ proto_library(
 # )
 
 cc_library(
-    name="opt_cc_proto",
-    hdrs=["optimize.pb.h"],
-    srcs=["optimize.pb.cc"],
+    name = "opt_cc_proto",
+    hdrs = ["optimize.pb.h"],
+    srcs = ["optimize.pb.cc"],
+    copts = ["-std=c++17"],
     deps = [
         "//query:query_cc_proto",
         "@com_google_protobuf_custom//:protobuf",

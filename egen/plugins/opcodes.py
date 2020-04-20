@@ -81,13 +81,13 @@ static const std::unordered_map<std::string,_GENERATED_OPCODE> name2code =
     {name2codes}
 }};
 
-static const std::unordered_set<_GENERATED_OPCODE> commutatives =
+static const std::unordered_set<_GENERATED_OPCODE,estd::EnumHash> commutatives =
 {{
     //>>> commcodes
     {commcodes}
 }};
 
-static const std::unordered_set<_GENERATED_OPCODE> idempotents =
+static const std::unordered_set<_GENERATED_OPCODE,estd::EnumHash> idempotents =
 {{
     //>>> idemcodes
     {idemcodes}
