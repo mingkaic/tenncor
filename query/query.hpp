@@ -283,14 +283,13 @@ private:
 				for (auto& attr_match : attr_matches)
 				{
 					teq::iTensor* tens;
-					if (std::all_of(
-						attr_match.symbs_.begin(), attr_match.symbs_.end(),
-						[&](const std::pair<
-							std::string,teq::iTensor*>& sympair)
+					if (std::all_of(attr_match.symbs_.begin(),
+						attr_match.symbs_.end(),
+						[&](const std::pair<std::string,teq::iTensor*>& sp)
 						{
 							return false == estd::get(
-								tens, root->symbols_, sympair.first) ||
-								tens == sympair.second;
+								tens, root->symbols_, sp.first) ||
+								tens == sp.second;
 						}))
 					{
 						PathptrT rclone = std::make_shared<Path>(*root);
