@@ -15,6 +15,8 @@
 
 const char vert_branch = '-';
 
+const char default_indent = '_';
+
 /// Generically draw a traversible structure
 /// Traversible structure is anything having a parent-children relationship
 /// Template argument T defines one node of the traversible structure
@@ -45,6 +47,8 @@ struct PrettyTree final
 	/// Behavior of displaying a node in the structure
 	std::function<void(std::ostream&,T&)> to_stream_;
 
+	char indent_ = default_indent;
+
 private:
 	void print_helper (std::ostream& out, T root,
 		std::string prefix, size_t depth)
@@ -56,17 +60,17 @@ private:
 		size_t nchildren = children.size();
 		if (nchildren > 0)
 		{
-			std::string branch = prefix + " `" +
+			std::string branch = prefix + indent_ + "`" +
 				std::string(branch_length_, vert_branch);
 			for (size_t i = 0; i < nchildren - 1; ++i)
 			{
 				out << branch;
-				this->print_helper(out, children[i], prefix + " |" +
-					std::string(branch_length_, ' '), depth + 1);
+				this->print_helper(out, children[i], prefix + indent_ + "|" +
+					std::string(branch_length_, indent_), depth + 1);
 			}
 			out << branch;
 			this->print_helper(out, children[nchildren - 1],
-				prefix + std::string(2 + branch_length_, ' '), depth + 1);
+				prefix + std::string(2 + branch_length_, indent_), depth + 1);
 		}
 	}
 };

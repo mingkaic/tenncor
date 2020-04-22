@@ -109,7 +109,7 @@ def main(args):
 
     # test
     x = np.array([1, 1, 0, 0, 0, 0])
-    sess = tc.Session()
+    sess = tc.global_default_sess
     var = tc.variable(x)
     untrained_out = untrained.connect(var)
     out = model.connect(var)

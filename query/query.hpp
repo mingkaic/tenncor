@@ -44,7 +44,7 @@ inline bool equals (const teq::iLeaf* leaf, const Leaf& var)
 		(Leaf::kLabel != var.nullable_label_case() ||
 			var.label() == leaf->to_string()) &&
 		(Leaf::kDtype != var.nullable_dtype_case() ||
-			var.dtype() == leaf->type_label()) &&
+			var.dtype() == leaf->get_meta().type_label()) &&
 		(Leaf::kUsage != var.nullable_usage_case() ||
 			var.usage() == teq::get_usage_name(leaf->get_usage())) &&
 		(0 == var.shape_size() ||
@@ -283,16 +283,18 @@ private:
 				for (auto& attr_match : attr_matches)
 				{
 					teq::iTensor* tens;
-					if (std::all_of(attr_match.symbs_.begin(), attr_match.symbs_.end(),
-						[&](const std::pair<std::string,teq::iTensor*>& sympair)
+					if (std::all_of(attr_match.symbs_.begin(),
+						attr_match.symbs_.end(),
+						[&](const std::pair<std::string,teq::iTensor*>& sp)
 						{
 							return false == estd::get(
-								tens, root->symbols_, sympair.first) ||
-								tens == sympair.second;
+								tens, root->symbols_, sp.first) ||
+								tens == sp.second;
 						}))
 					{
 						PathptrT rclone = std::make_shared<Path>(*root);
-						rclone->symbols_.merge(attr_match.symbs_);
+						rclone->symbols_.insert(
+							attr_match.symbs_.begin(), attr_match.symbs_.end());
 						mpaths.push_back(rclone);
 					}
 				}

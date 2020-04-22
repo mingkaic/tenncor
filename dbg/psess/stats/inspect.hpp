@@ -38,7 +38,7 @@ struct Inspector final : public dbg::iPlugin
 			if (estd::has(insps_, func))
 			{
 				std::string label = insps_.at(func);
-				auto dtype = (egen::_GENERATED_DTYPE) func->type_code();
+				auto dtype = (egen::_GENERATED_DTYPE) func->get_meta().type_code();
 				TYPE_LOOKUP(INSPECTOR_SELECT, dtype)
 			}
 		}

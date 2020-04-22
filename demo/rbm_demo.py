@@ -6,8 +6,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-from tensorflow.examples.tutorials.mnist import input_data
-# import tensorflow_datasets as tfds
+import tensorflow_datasets as tfds
 
 import tenncor as tc
 
@@ -81,10 +80,8 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.Session()
+    sess = tc.global_default_sess
     n_batch = 10
-
-    # ds = tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=n_batch)
 
     train_input = tc.EVariable([n_batch, n_visible])
     train_err = tc.rbm_train(model, train_input,
@@ -103,7 +100,14 @@ def main(args):
     trained_genx = tc.sigmoid(trained.backward_connect(
         tc.random.rand_binom_one(tc.sigmoid(trained.connect(x)))))
 
-    mnist_images = input_data.read_data_sets('MNIST_data/', one_hot=True).train.images
+    n_data = 55000
+    ds = tfds.as_numpy(tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=1))
+    mnist_images = []
+    for _ in range(n_data):
+        image = next(ds)['image']
+        mnist_images.append(image.flatten())
+    # numpyize + normalize
+    mnist_images = np.array(mnist_images) / 255.
 
     image = random.choice(mnist_images)
     sess.track([genx, trained_genx, untrained_genx])
@@ -113,7 +117,6 @@ def main(args):
     n_epoches = 30
     shuffle = True
     verbose = True
-    n_data = mnist_images.shape[0]
 
     if n_batch > 0:
         n_batches = n_data // n_batch + (0 if n_data % n_batch == 0 else 1)
@@ -130,8 +133,6 @@ def main(args):
         if shuffle:
             np.random.shuffle(inds)
             mnist_images = mnist_images[inds]
-
-        # ds = tfds.load('mnist', split=tfds.Split.TRAIN, shuffle_files=True, batch_size=10)
 
         r_batches = range(n_batches)
 

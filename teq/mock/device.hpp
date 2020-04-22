@@ -27,9 +27,9 @@ struct MockDeviceRef : public teq::iDeviceRef
 
 struct MockDevice : public teq::iDevice
 {
-	void calc (teq::iDeviceRef& ref) override
+	void calc (teq::iTensor& tens) override
 	{
-		static_cast<MockDeviceRef&>(ref).updated_ = true;
+		static_cast<MockDeviceRef&>(tens.device()).updated_ = true;
 	}
 };
 

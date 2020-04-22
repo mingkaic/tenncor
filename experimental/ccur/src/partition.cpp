@@ -54,7 +54,7 @@ PartGroupsT k_partition (teq::TensptrsT roots, size_t k, OpWeightT weights)
 			if (false == estd::has(weight_map, tens))
 			{
 				weight_map.emplace(tens,
-					estd::try_get(weights, tens->type_code(), 1));
+					estd::try_get(weights, tens->get_meta().type_code(), 1));
 			}
 			teq::ParentMapT parents;
 			if (estd::get(parents, pfinder.parents_, tens))

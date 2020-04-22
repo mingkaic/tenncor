@@ -27,10 +27,13 @@ struct EVarHasher
 template <typename T>
 using VarMapT = std::unordered_map<eteq::EVariable<T>,eteq::ETensor<T>,EVarHasher<T>>;
 
-/// Function that returns the error between two nodes,
-/// left node contains expected values, right contains resulting values
+/// Function that returns error given two tensor inputs
 template <typename T>
-using ErrorF = std::function<eteq::ETensor<T>(const eteq::ETensor<T>&,const eteq::ETensor<T>&)>;
+using BErrorF = std::function<eteq::ETensor<T>(const eteq::ETensor<T>&,const eteq::ETensor<T>&)>;
+
+/// Function that returns the error given list of tensor inputs
+template <typename T>
+using ErrorF = std::function<eteq::ETensor<T>(const eteq::ETensorsT<T>&)>;
 
 /// Function that approximate error of sources
 /// given a vector of variables and its corresponding errors

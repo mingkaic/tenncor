@@ -3,6 +3,7 @@
 #include "teq/ifunctor.hpp"
 
 #include "teq/mock/leaf.hpp"
+#include "teq/mock/meta.hpp"
 
 #ifndef TEQ_MOCK_FUNCTOR_HPP
 #define TEQ_MOCK_FUNCTOR_HPP
@@ -81,19 +82,14 @@ struct MockFunctor : public teq::iFunctor
 		return data_.ref_;
 	}
 
+	const teq::iMetadata& get_meta (void) const override
+	{
+		return meta_;
+	}
+
 	teq::Shape shape (void) const override
 	{
 		return data_.shape();
-	}
-
-	size_t type_code (void) const override
-	{
-		return data_.type_code();
-	}
-
-	std::string type_label (void) const override
-	{
-		return data_.type_label();
 	}
 
 	size_t nbytes (void) const override
@@ -115,6 +111,8 @@ struct MockFunctor : public teq::iFunctor
 	marsh::Maps attrs_;
 
 	MockLeaf data_;
+
+	MockMeta meta_;
 };
 
 #endif // TEQ_MOCK_FUNCTOR_HPP

@@ -28,6 +28,10 @@ bool is_commutative (_GENERATED_OPCODE code);
 
 bool is_commutative (const std::string& name);
 
+bool is_idempotent (_GENERATED_OPCODE code);
+
+bool is_idempotent (const std::string& name);
+
 template <typename T>
 void typed_exec (_GENERATED_OPCODE opcode, {params})
 {{
@@ -65,16 +69,7 @@ _source_template = '''
 namespace egen
 {{
 
-struct EnumHash
-{{
-    template <typename T>
-    size_t operator() (T e) const
-    {{
-        return static_cast<size_t>(e);
-    }}
-}};
-
-static const std::unordered_map<_GENERATED_OPCODE,std::string,EnumHash> code2name =
+static const std::unordered_map<_GENERATED_OPCODE,std::string,estd::EnumHash> code2name =
 {{
     //>>> code2names
     {code2names}
@@ -86,10 +81,16 @@ static const std::unordered_map<std::string,_GENERATED_OPCODE> name2code =
     {name2codes}
 }};
 
-static const std::unordered_set<_GENERATED_OPCODE> commutatives =
+static const std::unordered_set<_GENERATED_OPCODE,estd::EnumHash> commutatives =
 {{
     //>>> commcodes
     {commcodes}
+}};
+
+static const std::unordered_set<_GENERATED_OPCODE,estd::EnumHash> idempotents =
+{{
+    //>>> idemcodes
+    {idemcodes}
 }};
 
 std::string name_op (_GENERATED_OPCODE code)
@@ -112,6 +113,20 @@ bool is_commutative (const std::string& name)
     if (estd::has(name2code, name))
     {{
         return is_commutative(name2code.at(name));
+    }}
+    return false;
+}}
+
+bool is_idempotent (_GENERATED_OPCODE code)
+{{
+    return estd::has(idempotents, code);
+}}
+
+bool is_idempotent (const std::string& name)
+{{
+    if (estd::has(name2code, name))
+    {{
+        return is_idempotent(name2code.at(name));
     }}
     return false;
 }}
@@ -160,6 +175,11 @@ def _handle_name2codes(params, opcalls):
 def _handle_commcodes(params, opcalls):
     return ',\n    '.join(filter(
         lambda code: opcalls[code].get("commutative", False),
+        list(opcalls.keys())))
+
+def _handle_idemcodes(params, opcalls):
+    return ',\n    '.join(filter(
+        lambda code: opcalls[code].get("idempotent", True),
         list(opcalls.keys())))
 
 _plugin_id = "OPCODE"

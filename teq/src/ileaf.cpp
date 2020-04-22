@@ -15,7 +15,7 @@ static const std::unordered_map<std::string,Usage> named_usages = {
 	{"placeholder", PLACEHOLDER},
 };
 
-static const std::unordered_map<Usage,std::string> usage_names = {
+static const std::unordered_map<Usage,std::string,estd::EnumHash> usage_names = {
 	{IMMUTABLE, "constant"},
 	{VARUSAGE, "variable"},
 	{PLACEHOLDER, "placeholder"},

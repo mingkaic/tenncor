@@ -39,7 +39,7 @@ inline bool equals2 (const Leaf& var, const teq::iLeaf* leaf)
 		(Leaf::kLabel != var.nullable_label_case() ||
 			var.label() == leaf->to_string()) &&
 		(Leaf::kDtype != var.nullable_dtype_case() ||
-			var.dtype() == leaf->type_label()) &&
+			var.dtype() == leaf->get_meta().type_label()) &&
 		(Leaf::kUsage != var.nullable_usage_case() ||
 			var.usage() == teq::get_usage_name(leaf->get_usage())) &&
 		(0 == var.shape_size() ||

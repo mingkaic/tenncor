@@ -3,7 +3,6 @@
 #include "eigen/packattr.hpp"
 
 #include "eteq/constant.hpp"
-#include "eteq/assign.hpp"
 #include "eteq/functor.hpp"
 #include "eteq/depend.hpp"
 

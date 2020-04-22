@@ -128,7 +128,7 @@ TEST(SERIALIZE, LoadGraph)
 		ASSERT_TRUE(expectstr.is_open());
 		while (std::getline(expectstr, line))
 		{
-			fmts::trim(line);
+			fmts::strip(line, {' ', '\t', '\n', default_indent});
 			if (line.size() > 0)
 			{
 				expect += line + '\n';
@@ -145,7 +145,7 @@ TEST(SERIALIZE, LoadGraph)
 
 	while (std::getline(gotstr, line))
 	{
-		fmts::trim(line);
+		fmts::strip(line, {' ', '\t', '\n', default_indent});
 		if (line.size() > 0)
 		{
 			got += line + '\n';

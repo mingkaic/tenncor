@@ -48,7 +48,7 @@ struct iDevice
 {
 	virtual ~iDevice (void) = default;
 
-	virtual void calc (iDeviceRef& ref) = 0;
+	virtual void calc (iTensor& tens) = 0;
 };
 
 /// iSession implementation that tracks subgraphs by ordering operable functors
@@ -180,7 +180,7 @@ private:
 	{
 		for (auto& op : reqs)
 		{
-			device_->calc(op->device());
+			device_->calc(*op);
 		}
 		process_reqs(reqs);
 	}

@@ -554,7 +554,7 @@ private:
 	/// Implementation of iTraveler
 	void visit_leaf (teq::iLeaf& leaf) override
 	{
-		if (egen::get_type<T>() == leaf.type_code() &&
+		if (egen::get_type<T>() == leaf.get_meta().type_code() &&
 			teq::IMMUTABLE == leaf.get_usage())
 		{
 			auto data = (T*) leaf.device().data();

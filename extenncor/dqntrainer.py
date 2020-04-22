@@ -12,6 +12,38 @@ import extenncor.dqntrainer_pb2 as dqn_pb
 
 _get_random = tc.unif_gen(0, 1)
 
+def get_dqnupdate(update_fn, update_rate):
+    def dqnupdate(err, vars):
+        halfvars = int(len(vars) / 2)
+        src_vars = vars[:halfvars]
+        nxt_vars = vars[halfvars:]
+
+        src_updates = dict(update_fn(err, src_vars))
+
+        assigns = dict()
+        for nxt_var, src_var in zip(nxt_vars, src_vars):
+            diff = nxt_var - src_updates[src_var]
+            assigns[nxt_var] = tc.assign_sub(nxt_var, update_rate * diff)
+        return assigns
+    return dqnupdate
+
+def get_dqnerror(env, discount_rate):
+    def dqnerror(models):
+        src_model, nxt_model = tuple(models)
+
+        # forward action score computation
+        src_act = src_model.connect(env.src_obs)
+
+        # predicting target future rewards
+        nxt_act = nxt_model.connect(env.nxt_obs)
+        target_vals = env.nxt_outmask * tc.reduce_max_1d(nxt_act, 0)
+
+        future_reward = env.rewards + discount_rate * target_vals
+
+        masked_output_score = tc.reduce_sum_1d(src_act * env.src_outmask, 0)
+        return tc.reduce_mean(tc.square(masked_output_score - future_reward))
+    return dqnerror
+
 # generalize as feedback class
 @ecache.EnvManager.register
 class DQNEnv(ecache.EnvManager):
@@ -52,31 +84,11 @@ class DQNEnv(ecache.EnvManager):
             self.nxt_outmask = tc.EVariable([mbatch_size], 1, 'nxt_outmask')
             self.rewards = tc.EVariable([mbatch_size], 0, 'rewards')
 
-            # forward action score computation
-            src_act = src_model.connect(self.src_obs)
+            self.prediction_err = tc.apply_update([src_model, nxt_model],
+                get_dqnupdate(update_fn, target_update_rate),
+                get_dqnerror(self, discount_rate))
 
-            # predicting target future rewards
-            nxt_act = nxt_model.connect(self.nxt_obs)
-            target_vals = self.nxt_outmask * tc.reduce_max_1d(nxt_act, 0)
-
-            future_reward = self.rewards + discount_rate * target_vals
-
-            masked_output_score = tc.reduce_sum_1d(src_act * self.src_outmask, 0)
-            prediction_err = tc.reduce_mean(tc.square(masked_output_score - future_reward))
-
-            source_vars = src_model.get_storage()
-            target_vars = nxt_model.get_storage()
-            assert(len(source_vars) == len(target_vars))
-
-            src_updates = dict(update_fn(prediction_err, source_vars))
-
-            updates = [prediction_err, src_act, self.act_idx]
-            for target_var, source_var in zip(target_vars, source_vars):
-                diff = target_var - src_updates[source_var]
-                assign = tc.assign_sub(target_var, target_update_rate * diff)
-                updates.append(assign)
-
-            self.sess.track(updates)
+            self.sess.track([self.prediction_err, self.act_idx])
             tc.optimize(self.sess, optimize_cfg)
 
         super().__init__(os.path.join(usecase, 'dqn'),
@@ -154,7 +166,7 @@ class DQNEnv(ecache.EnvManager):
             return math.floor(_get_random() * self.src_shape[-1])
 
         self.obs.assign(obs)
-        self.sess.update()
+        self.sess.update_target([self.act_idx])
         return int(self.act_idx.get())
 
     def store(self, observation, act_idx, reward, new_obs):
@@ -196,7 +208,7 @@ class DQNEnv(ecache.EnvManager):
             self.nxt_obs.assign(new_states)
             self.rewards.assign(rewards)
 
-            self.sess.update()
+            self.sess.update_target([self.prediction_err])
         self.ntrain_called += 1
 
     def _linear_annealing(self, initial_prob):

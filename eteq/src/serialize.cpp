@@ -64,7 +64,7 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 {
 	size_t get_typecode (const teq::iTensor& tens) const override
 	{
-		auto type_code = (egen::_GENERATED_DTYPE) tens.type_code();
+		auto type_code = (egen::_GENERATED_DTYPE) tens.get_meta().type_code();
 		auto code_name = egen::name_type(type_code);
 		return name2onnxtype.at(code_name);
 	}
@@ -73,7 +73,7 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 	{
 		char* data = (char*) leaf.device().data();
 		size_t nelems = leaf.shape().n_elems();
-		auto type_code = (egen::_GENERATED_DTYPE) leaf.type_code();
+		auto type_code = (egen::_GENERATED_DTYPE) leaf.get_meta().type_code();
 		auto code_name = egen::name_type(type_code);
 		auto onnx_type = name2onnxtype.at(code_name);
 		out.set_data_type(onnx_type);
@@ -193,7 +193,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 		}
 		if (opname == depname)
 		{
-			auto obs = std::dynamic_pointer_cast<Observable>(children.front());
+			auto obs = std::dynamic_pointer_cast<eigen::Observable>(children.front());
 			if (nullptr == obs)
 			{
 				teq::fatal("cannot depend on a non-observable");
@@ -202,7 +202,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 				teq::TensptrsT(children.begin() + 1, children.end())));
 		}
 		egen::_GENERATED_OPCODE opcode = egen::get_op(opname);
-		auto gencode = (egen::_GENERATED_DTYPE) children.front()->type_code();
+		auto gencode = (egen::_GENERATED_DTYPE) children.front()->get_meta().type_code();
 		teq::TensptrT func;
 		TYPE_LOOKUP(_OUT_GENFUNC, gencode);
 		return func;

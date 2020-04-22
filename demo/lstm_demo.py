@@ -54,7 +54,7 @@ def main(args):
     x_dim = 50
     y_list = [-0.5, 0.2, 0.1, -0.5]
     input_val_arr = [np.random.random(x_dim) for _ in y_list]
-    sess = tc.Session()
+    sess = tc.global_default_sess
 
     model = tc.layer.lstm(x_dim, mem_cell_ct, len(y_list),
         weight_init=tc.unif_xavier_init(1),
@@ -79,9 +79,9 @@ def main(args):
     err = tc.reduce_sum(loss(tc.transpose(tc.slice(hiddens, 0, 1, 0)), test_outputs))
     sess.track([untrained, hiddens, pretrained, err])
 
-    train_err = tc.sgd_train(model, test_inputs, test_outputs,
+    train_err = tc.apply_update([model],
         lambda error, leaves: tc.approx.sgd(error, leaves, learning_rate=0.1),
-        err_func=lstm_loss)
+        lambda models: lstm_loss(test_outputs, models[0].connect(test_inputs)))
     sess.track([train_err])
 
     tc.optimize(sess, "cfg/optimizations.json")

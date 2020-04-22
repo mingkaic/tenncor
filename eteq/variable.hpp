@@ -9,7 +9,8 @@
 
 #include "teq/shaped_arr.hpp"
 
-#include "eteq/ileaf.hpp"
+#include "eigen/device.hpp"
+#include "eigen/emeta.hpp"
 
 #ifndef ETEQ_VARIABLE_HPP
 #define ETEQ_VARIABLE_HPP
@@ -17,9 +18,20 @@
 namespace eteq
 {
 
+static inline size_t get_lastvers (teq::iSession& sess)
+{
+	auto proots = sess.get_tracked();
+	size_t mvers = 0;
+	for (auto& proot : proots)
+	{
+		mvers = std::max(mvers, proot->get_meta().state_version());
+	}
+	return mvers;
+}
+
 /// Leaf node implementation containing mutable Eigen data
 template <typename T>
-struct Variable final : public iLeaf<T>
+struct Variable final : public eigen::iMutableLeaf
 {
 	/// Return Variable given raw pointer array whose size is denoted by shape
 	static Variable<T>* get (T* ptr, teq::Shape shape,
@@ -44,18 +56,23 @@ struct Variable final : public iLeaf<T>
 
 	Variable<T>& operator = (Variable<T>&& other) = delete;
 
-	void assign (const eigen::TensMapT<T>& input)
+	void assign (const eigen::TensMapT<T>& input, teq::iSession& sess)
 	{
+		size_t last_version = get_lastvers(sess);
+		upversion(last_version + 1);
 		this->ref_.data_ = input;
 	}
 
-	void assign (const eigen::TensorT<T>& input)
+	void assign (const eigen::TensorT<T>& input, teq::iSession& sess)
 	{
+		size_t last_version = get_lastvers(sess);
+		upversion(last_version + 1);
 		this->ref_.data_ = input;
 	}
 
 	/// Assign void pointer of specified data type enum and shape
-	void assign (const void* input, egen::_GENERATED_DTYPE dtype, teq::Shape shape)
+	void assign (const void* input, egen::_GENERATED_DTYPE dtype,
+		teq::Shape shape, teq::iSession& sess)
 	{
 		if (false == shape.compatible_after(this->shape_, 0))
 		{
@@ -64,27 +81,57 @@ struct Variable final : public iLeaf<T>
 		}
 		std::vector<T> data;
 		egen::type_convert(data, input, dtype, shape.n_elems());
-		this->assign(eigen::make_tensmap<T>(data.data(), shape));
+		assign(eigen::make_tensmap<T>(data.data(), shape), sess);
 	}
 
-	void assign (const teq::iTensor& tens)
+	void assign (const teq::iTensor& tens, teq::iSession& sess)
 	{
 		const void* input = tens.device().data();
 		teq::Shape inshape = tens.shape();
 		egen::_GENERATED_DTYPE dtype =
-			(egen::_GENERATED_DTYPE) tens.type_code();
-		this->assign(input, dtype, inshape);
+			(egen::_GENERATED_DTYPE) tens.get_meta().type_code();
+		assign(input, dtype, inshape, sess);
 	}
 
-	void assign (const T* input, teq::Shape shape)
+	void assign (const T* input, teq::Shape shape, teq::iSession& sess)
 	{
-		assign(input, egen::get_type<T>(), shape);
+		assign(input, egen::get_type<T>(), shape, sess);
 	}
 
-	void assign (const teq::ShapedArr<T>& arr)
+	void assign (const teq::ShapedArr<T>& arr, teq::iSession& sess)
 	{
-		this->assign((T*) arr.data_.data(),
-			egen::get_type<T>(), arr.shape_);
+		assign((T*) arr.data_.data(),
+			egen::get_type<T>(), arr.shape_, sess);
+	}
+
+	/// Implementation of iTensor
+	teq::Shape shape (void) const override
+	{
+		return shape_;
+	}
+
+	/// Implementation of iTensor
+	teq::iDeviceRef& device (void) override
+	{
+		return ref_;
+	}
+
+	/// Implementation of iTensor
+	const teq::iDeviceRef& device (void) const override
+	{
+		return ref_;
+	}
+
+	/// Implementation of iTensor
+	const teq::iMetadata& get_meta (void) const override
+	{
+		return meta_;
+	}
+
+	/// Implementation of iTensor
+	size_t nbytes (void) const override
+	{
+		return sizeof(T) * shape_.n_elems();
 	}
 
 	/// Implementation of iTensor
@@ -99,9 +146,15 @@ struct Variable final : public iLeaf<T>
 		return usage_;
 	}
 
+	/// Implementation of iMutableLeaf
+	void upversion (size_t version) override
+	{
+		meta_.version_ = std::max(meta_.version_, version);
+	}
+
 private:
 	Variable (T* data, teq::Shape shape, std::string label, teq::Usage usage) :
-		iLeaf<T>(data, shape), label_(label), usage_(usage) {}
+		ref_(data, shape), shape_(shape), label_(label), usage_(usage) {}
 
 	Variable (const Variable<T>& other) = default;
 
@@ -111,6 +164,15 @@ private:
 	{
 		return new Variable<T>(*this);
 	}
+
+	/// Data Source
+	eigen::SrcRef<T> ref_;
+
+	/// Shape utility to avoid excessive conversion between data_.dimensions()
+	teq::Shape shape_;
+
+	/// Variable metadata
+	eigen::EMetadata<T> meta_ = eigen::EMetadata<T>(1);
 
 	/// Label for distinguishing variable nodes
 	std::string label_;

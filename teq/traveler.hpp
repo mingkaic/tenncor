@@ -316,7 +316,7 @@ private:
 		{
 			return;
 		}
-		clones_.emplace(&leaf, leaf.clone());
+		clones_.emplace(&leaf, teq::TensptrT(leaf.clone()));
 	}
 
 	void visit_func (iFunctor& func) override
@@ -352,7 +352,7 @@ private:
 				}
 			}
 		}
-		clones_.emplace(&func, fcpy);
+		clones_.emplace(&func, teq::TensptrT(fcpy));
 	}
 };
 

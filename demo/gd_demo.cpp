@@ -17,7 +17,7 @@
 // #include "dbg/psess/emit/emitter.hpp"
 
 #include "layr/layer.hpp"
-#include "trainer/sgd.hpp"
+#include "trainer/apply_update.hpp"
 
 static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
@@ -153,10 +153,13 @@ int main (int argc, const char** argv)
 	// 	});
 
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
-	auto train_output = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
-	auto train_err = trainer::sgd(model,
-		eteq::ETensor<PybindT>(train_input),
-		eteq::ETensor<PybindT>(train_output), approx);
+	auto train_exout = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
+	auto train_err = trainer::apply_update<PybindT>({model}, approx,
+		[&](const eteq::ETensorsT<PybindT>& models)
+		{
+			return tenncor::error::sqr_diff<PybindT>(train_exout,
+				eteq::connect(models.front(), train_input));
+		});
 	sess.track({train_err});
 
 	eteq::VarptrT<float> testin = eteq::make_variable_scalar<float>(
@@ -176,8 +179,8 @@ int main (int argc, const char** argv)
 	{
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		train_input->assign(batch);
-		train_output->assign(batch_out);
+		train_input->assign(batch, sess);
+		train_exout->assign(batch_out, sess);
 		sess.update_target({train_err.get()});
 		if (i % show_every_n == show_every_n - 1)
 		{
@@ -210,7 +213,7 @@ int main (int argc, const char** argv)
 		}
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		testin->assign(batch);
+		testin->assign(batch, sess);
 		sess.update();
 
 		float untrained_avgerr = 0;

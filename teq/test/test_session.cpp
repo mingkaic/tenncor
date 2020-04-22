@@ -70,10 +70,10 @@ TEST(SESSION, Update)
 	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{x, c});
 
 	// * (target) = not updated
-	// `-- + (x) = not updated
-	// |   `-- a
-	// |   `-- b
-	// `-- c
+	// `-- + (x) = not updated
+	// |   `-- a
+	// |   `-- b
+	// `-- c
 
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
@@ -85,10 +85,10 @@ TEST(SESSION, Update)
 
 	// expected state:
 	// * (target) = updated
-	// `-- + (x) = updated
-	// |   `-- a
-	// |   `-- b
-	// `-- c
+	// `-- + (x) = updated
+	// |   `-- a
+	// |   `-- b
+	// `-- c
 
 	EXPECT_TRUE(target->data_.ref_.updated_);
 	EXPECT_TRUE(x->data_.ref_.updated_);
@@ -109,12 +109,12 @@ TEST(SESSION, UpdateIgnore)
 	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d});
 
 	// - (target) = not updated
-	// `-- * (y) = not updated
-	// |   `-- + (x) = not updated
-	// |   |   `-- a
-	// |   |   `-- b
-	// |   `-- c
-	// `-- d
+	// `-- * (y) = not updated
+	// |   `-- + (x) = not updated
+	// |   |   `-- a
+	// |   |   `-- b
+	// |   `-- c
+	// `-- d
 
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(y->data_.ref_.updated_);
@@ -127,12 +127,12 @@ TEST(SESSION, UpdateIgnore)
 
 	// expected state:
 	// - (target) = updated
-	// `-- * (y) = not updated
-	// |   `-- + (x) = not updated
-	// |   |   `-- a
-	// |   |   `-- b
-	// |   `-- c
-	// `-- d
+	// `-- * (y) = not updated
+	// |   `-- + (x) = not updated
+	// |   |   `-- a
+	// |   |   `-- b
+	// |   `-- c
+	// `-- d
 
 	EXPECT_TRUE(target->data_.ref_.updated_);
 	EXPECT_FALSE(x->data_.ref_.updated_);
@@ -144,12 +144,12 @@ TEST(SESSION, UpdateIgnore)
 
 	// expected state:
 	// - (target) = updated
-	// `-- * (y) = updated
-	// |   `-- + (x) = not updated
-	// |   |   `-- a
-	// |   |   `-- b
-	// |   `-- c
-	// `-- d
+	// `-- * (y) = updated
+	// |   `-- + (x) = not updated
+	// |   |   `-- a
+	// |   |   `-- b
+	// |   `-- c
+	// `-- d
 
 	EXPECT_TRUE(target->data_.ref_.updated_);
 	EXPECT_TRUE(y->data_.ref_.updated_);
@@ -171,14 +171,14 @@ TEST(SESSION, UpdateIgnoreCommonDesc)
 	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{y, x});
 
 	// - (target) = not updated
-	// `-- / (y) = not updated
-	// |   `-- c
-	// |   `-- - (u) = not updated
-	// |       `-- a
-	// `-- * (x) = not updated
-	//     `-- - (u)
-	//     |   `-- a
-	//     `-- b
+	// `-- / (y) = not updated
+	// |   `-- c
+	// |   `-- - (u) = not updated
+	// |       `-- a
+	// `-- * (x) = not updated
+	//     `-- - (u)
+	//     |   `-- a
+	//     `-- b
 
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(y->data_.ref_.updated_);
@@ -192,14 +192,14 @@ TEST(SESSION, UpdateIgnoreCommonDesc)
 
 	// expected state:
 	// - (target) = updated
-	// `-- / (y) = not updated
-	// |   `-- c
-	// |   `-- - (u) = updated
-	// |       `-- a
-	// `-- * (x) = updated
-	//     `-- - (u)
-	//     |   `-- a
-	//     `-- b
+	// `-- / (y) = not updated
+	// |   `-- c
+	// |   `-- - (u) = updated
+	// |       `-- a
+	// `-- * (x) = updated
+	//     `-- - (u)
+	//     |   `-- a
+	//     `-- b
 
 	EXPECT_TRUE(target->data_.ref_.updated_);
 	EXPECT_FALSE(y->data_.ref_.updated_);
@@ -220,10 +220,10 @@ TEST(SESSION, TargetedUpdate)
 	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{x, c});
 
 	// * (target) = not updated
-	// `-- + (x) = not updated
-	// |   `-- a
-	// |   `-- b
-	// `-- c
+	// `-- + (x) = not updated
+	// |   `-- a
+	// |   `-- b
+	// `-- c
 
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
@@ -235,10 +235,10 @@ TEST(SESSION, TargetedUpdate)
 
 	// expected state:
 	// * (target) = not updated
-	// `-- + (x) = updated
-	// |   `-- a
-	// |   `-- b
-	// `-- c
+	// `-- + (x) = updated
+	// |   `-- a
+	// |   `-- b
+	// `-- c
 
 	EXPECT_FALSE(target->data_.ref_.updated_);
 	EXPECT_TRUE(x->data_.ref_.updated_);
@@ -260,12 +260,12 @@ TEST(SESSION, TargetedUpdateIgnore)
 	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d});
 
 	// - (targetd) = not updated
-	// `-- * (y) = not updated
-	// |   `-- + (x) = not updated
-	// |   |   `-- a
-	// |   |   `-- b
-	// |   `-- c
-	// `-- d
+	// `-- * (y) = not updated
+	// |   `-- + (x) = not updated
+	// |   |   `-- a
+	// |   |   `-- b
+	// |   `-- c
+	// `-- d
 
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(y->data_.ref_.updated_);
@@ -278,12 +278,12 @@ TEST(SESSION, TargetedUpdateIgnore)
 
 	// expected state:
 	// - (targetd) = not updated
-	// `-- * (y) = updated
-	// |   `-- + (x) = not updated
-	// |   |   `-- a
-	// |   |   `-- b
-	// |   `-- c
-	// `-- d
+	// `-- * (y) = updated
+	// |   `-- + (x) = not updated
+	// |   |   `-- a
+	// |   |   `-- b
+	// |   `-- c
+	// `-- d
 
 	EXPECT_FALSE(target->data_.ref_.updated_);
 	EXPECT_TRUE(y->data_.ref_.updated_);
@@ -307,16 +307,16 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d});
 
 	// pow (targeted) = not updated
-	// `-- - (z) = not updated
-	// |   `-- / (y) = not updated
-	// |   |   `-- c
-	// |   |   `-- - (u) = not updated
-	// |   |       `-- a
-	// |   `-- * (x) = not updated
-	// |       `-- - (u)
-	// |       |   `-- a
-	// |       `-- b
-	// `-- d
+	// `-- - (z) = not updated
+	// |   `-- / (y) = not updated
+	// |   |   `-- c
+	// |   |   `-- - (u) = not updated
+	// |   |       `-- a
+	// |   `-- * (x) = not updated
+	// |       `-- - (u)
+	// |       |   `-- a
+	// |       `-- b
+	// `-- d
 
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(z->data_.ref_.updated_);
@@ -331,16 +331,16 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 
 	// expected state:
 	// pow (targeted) = not updated
-	// `-- - (z) = updated
-	// |   `-- / (y) = not updated
-	// |   |   `-- c
-	// |   |   `-- - (u) = updated
-	// |   |       `-- a
-	// |   `-- * (x) = updated
-	// |       `-- - (u)
-	// |       |   `-- a
-	// |       `-- b
-	// `-- d
+	// `-- - (z) = updated
+	// |   `-- / (y) = not updated
+	// |   |   `-- c
+	// |   |   `-- - (u) = updated
+	// |   |       `-- a
+	// |   `-- * (x) = updated
+	// |       `-- - (u)
+	// |       |   `-- a
+	// |       `-- b
+	// `-- d
 
 	EXPECT_FALSE(target->data_.ref_.updated_);
 	EXPECT_TRUE(z->data_.ref_.updated_);

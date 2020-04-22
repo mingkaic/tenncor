@@ -95,14 +95,8 @@ def main(args):
     bgd = lambda error, leaves: tc.approx.rms_momentum(error, leaves,
         learning_rate = 0.1, discount_factor = 0.5,
         apply = lambda x: tc.clip_by_l2norm(x, 5))
-    param = {
-        'mbatch_size': 1,
-        'store_interval': 1,
-        'discount_rate': 0.99,
-        'explore_period': 0.0,
-    }
 
-    sess = tc.Session()
+    sess = tc.global_default_sess
 
     params = {
         'optimize_cfg': "cfg/optimizations.json",

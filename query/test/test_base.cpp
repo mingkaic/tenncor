@@ -24,8 +24,8 @@ TEST(BASE, NoComNoSymbs)
 	std::stringstream condjson;
 	condjson <<
 		"{\"op\":{"
-		"    \"opname\":\"SUB\","
-		"    \"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
+			"\"opname\":\"SUB\","
+			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
 		"}}";
 	query::Node cond;
 	json_parse(cond, condjson);
@@ -37,14 +37,14 @@ TEST(BASE, NoComNoSymbs)
 	ASSERT_EQ(2, roots.size());
 	char expected[] =
 		"(SUB)\n"
-		" `--(SIN)\n"
-		" |   `--(constant:X)\n"
-		" `--(SUB)\n"
-		"     `--(constant:X)\n"
-		"     `--(constant:X)\n\n"
+		"_`--(SIN)\n"
+		"_|___`--(constant:X)\n"
+		"_`--(SUB)\n"
+		"_____`--(constant:X)\n"
+		"_____`--(constant:X)\n\n"
 		"(SUB)\n"
-		" `--(constant:X)\n"
-		" `--(constant:X)\n";
+		"_`--(constant:X)\n"
+		"_`--(constant:X)\n";
 
 	PrettyEquation peq;
 	std::vector<std::string> dets;
@@ -72,11 +72,11 @@ TEST(BASE, NoComBadStruct)
 	std::stringstream condjson;
 	condjson <<
 		"{\"op\":{"
-		"    \"opname\":\"SUB\","
-		"    \"args\":[{\"op\":{"
-		"        \"opname\":\"SUB\","
-		"        \"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
-		"    }},{\"symb\":\"C\"}]"
+			"\"opname\":\"SUB\","
+			"\"args\":[{\"op\":{"
+				"\"opname\":\"SUB\","
+				"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
+			"}},{\"symb\":\"C\"}]"
 		"}}";
 	query::Node cond;
 	json_parse(cond, condjson);
@@ -98,8 +98,8 @@ TEST(BASE, NoComSymbOnly)
 	std::stringstream condjson;
 	condjson <<
 		"{\"op\":{"
-		"    \"opname\":\"SUB\","
-		"    \"args\":[{\"symb\":\"A\"},{\"symb\":\"A\"}]"
+			"\"opname\":\"SUB\","
+			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"A\"}]"
 		"}}";
 	query::Node cond;
 	json_parse(cond, condjson);
@@ -110,8 +110,8 @@ TEST(BASE, NoComSymbOnly)
 	ASSERT_EQ(1, roots.size());
 	char expected[] =
 		"(SUB)\n"
-		" `--(constant:X)\n"
-		" `--(constant:X)\n";
+		"_`--(constant:X)\n"
+		"_`--(constant:X)\n";
 
 	PrettyEquation peq;
 	std::stringstream ss;
@@ -131,11 +131,11 @@ TEST(BASE, CommNoSymbs)
 	std::stringstream condjson;
 	condjson <<
 		"{\"op\":{"
-		"    \"opname\":\"ADD\","
-		"    \"args\":[{\"op\":{"
-		"        \"opname\":\"ADD\","
-		"        \"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
-		"    }},{\"symb\":\"C\"}]"
+			"\"opname\":\"ADD\","
+			"\"args\":[{\"op\":{"
+				"\"opname\":\"ADD\","
+				"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
+			"}},{\"symb\":\"C\"}]"
 		"}}";
 	query::Node cond;
 	json_parse(cond, condjson);
@@ -146,11 +146,11 @@ TEST(BASE, CommNoSymbs)
 	ASSERT_EQ(1, roots.size());
 	char expected[] =
 		"(ADD)\n"
-		" `--(SIN)\n"
-		" |   `--(constant:X)\n"
-		" `--(ADD)\n"
-		"     `--(constant:X)\n"
-		"     `--(constant:X)\n";
+		"_`--(SIN)\n"
+		"_|___`--(constant:X)\n"
+		"_`--(ADD)\n"
+		"_____`--(constant:X)\n"
+		"_____`--(constant:X)\n";
 
 	PrettyEquation peq;
 	std::stringstream ss;
@@ -170,11 +170,11 @@ TEST(BASE, CommBadStruct)
 	std::stringstream condjson;
 	condjson <<
 		"{\"op\":{"
-		"    \"opname\":\"ADD\","
-		"    \"args\":[{\"op\":{"
-		"        \"opname\":\"SUB\","
-		"        \"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
-		"    }},{\"symb\":\"C\"}]"
+			"\"opname\":\"ADD\","
+			"\"args\":[{\"op\":{"
+				"\"opname\":\"SUB\","
+				"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
+			"}},{\"symb\":\"C\"}]"
 		"}}";
 	query::Node cond;
 	json_parse(cond, condjson);
@@ -196,8 +196,8 @@ TEST(BASE, CommSymbOnly)
 	std::stringstream condjson;
 	condjson <<
 		"{\"op\":{"
-		"    \"opname\":\"ADD\","
-		"    \"args\":[{\"symb\":\"A\"},{\"symb\":\"A\"}]"
+			"\"opname\":\"ADD\","
+			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"A\"}]"
 		"}}";
 	query::Node cond;
 	json_parse(cond, condjson);
@@ -208,8 +208,8 @@ TEST(BASE, CommSymbOnly)
 	ASSERT_EQ(1, roots.size());
 	char expected[] =
 		"(ADD)\n"
-		" `--(constant:X)\n"
-		" `--(constant:X)\n";
+		"_`--(constant:X)\n"
+		"_`--(constant:X)\n";
 
 	PrettyEquation peq;
 	std::stringstream ss;

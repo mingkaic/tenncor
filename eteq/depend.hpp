@@ -1,7 +1,8 @@
 
+#include "eigen/observable.hpp"
+
 #include "eteq/etens.hpp"
 #include "eteq/shaper.hpp"
-#include "eteq/observable.hpp"
 
 #ifndef ETEQ_DEPEND_HPP
 #define ETEQ_DEPEND_HPP
@@ -12,9 +13,9 @@ namespace eteq
 const std::string depname = "DEPEND";
 
 // Proxy functor node that encapsulates operational dependency
-struct Depends final : public Observable
+struct Depends final : public eigen::Observable
 {
-	static Depends* get (ObsptrT dependee, const teq::TensptrsT& dependencies)
+	static Depends* get (eigen::ObsptrT dependee, const teq::TensptrsT& dependencies)
 	{
 		if (dependencies.empty())
 		{
@@ -73,7 +74,7 @@ struct Depends final : public Observable
 		if (0 == index)
 		{
 			uninitialize();
-			auto obs = std::dynamic_pointer_cast<Observable>(arg);
+			auto obs = std::dynamic_pointer_cast<eigen::Observable>(arg);
 			if (nullptr == obs)
 			{
 				teq::fatal("cannot reassign non-observable dependee of depend (index 0)");
@@ -104,12 +105,12 @@ struct Depends final : public Observable
 		if (arg != cur)
 		{
 			uninitialize();
-			if (auto f = dynamic_cast<Observable*>(cur.get()))
+			if (auto f = dynamic_cast<eigen::Observable*>(cur.get()))
 			{
 				f->unsubscribe(this);
 			}
 			dependencies_[index] = arg;
-			if (auto f = dynamic_cast<Observable*>(arg.get()))
+			if (auto f = dynamic_cast<eigen::Observable*>(arg.get()))
 			{
 				f->subscribe(this);
 			}
@@ -128,19 +129,13 @@ struct Depends final : public Observable
 		return dependee_->device();
 	}
 
-	/// Implementation of iData
-	size_t type_code (void) const override
+	/// Implementation of iTensor
+	const teq::iMetadata& get_meta (void) const override
 	{
-		return dependee_->type_code();
+		return dependee_->get_meta();
 	}
 
-	/// Implementation of iData
-	std::string type_label (void) const override
-	{
-		return dependee_->type_label();
-	}
-
-	/// Implementation of iData
+	/// Implementation of iTensor
 	size_t nbytes (void) const override
 	{
 		return dependee_->nbytes();
@@ -177,15 +172,22 @@ struct Depends final : public Observable
 		dependee_->must_initialize();
 	}
 
+	/// Implementation of Observable
+	bool prop_version (void) override
+	{
+		dependee_->prop_version();
+		return true;
+	}
+
 private:
-	Depends (ObsptrT dependee, const teq::TensptrsT& dependencies) :
+	Depends (eigen::ObsptrT dependee, const teq::TensptrsT& dependencies) :
 		dependee_(dependee), dependencies_(dependencies)
 	{
 		dependee_->subscribe(this);
 	}
 
 	Depends (const Depends& other) :
-		Observable(other),
+		eigen::Observable(other),
 		dependee_(other.dependee_),
 		dependencies_(other.dependencies_)
 	{
@@ -197,7 +199,7 @@ private:
 		return new Depends(*this);
 	}
 
-	ObsptrT dependee_;
+	eigen::ObsptrT dependee_;
 
 	teq::TensptrsT dependencies_;
 };
