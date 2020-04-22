@@ -22,8 +22,7 @@ def version_lt(left, right):
             return False
     return False
 
-oldTf = version_lt(tf.__version__, '1.6.0')
-if oldTf:
+if version_lt(tf.__version__, '2.0.0'):
     tfSess = tf.Session
 else:
     tfSess = tf.compat.v1.Session
@@ -1426,7 +1425,7 @@ class EADTest(unittest.TestCase):
         self._array_close(exb, db.get())
         self._array_close(exc, dc.get())
 
-if oldTf:
+if version_lt(tf.__version__, '1.6.0'):
     delattr(EADTest, 'test_maxpool')
     delattr(EADTest, 'test_avgpool')
 
