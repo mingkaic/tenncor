@@ -75,11 +75,10 @@ def main(args):
 
     # batch, height, width, in
     raw_inshape = list(ds.output_shapes['image'][1:])
-    train_exoutshape = [nbatch, 10]
-    print(raw_inshape)
+    train_outshape = [nbatch, 10]
 
     train_in = tc.EVariable([nbatch] + raw_inshape, label="train_in")
-    train_exout = tc.EVariable(train_exoutshape, label="train_exout")
+    train_exout = tc.EVariable(train_outshape, label="train_exout")
 
     # construct CNN
     output_prob = tc.layer.link([ # minimum input shape of [1, 32, 32, 3]
@@ -109,7 +108,6 @@ def main(args):
             dims=[[0, 1], [1, 2], [2, 3]]), # outputs [nbatch, 10]
         tc.layer.bind(lambda x: tc.softmax(x, 0, 1))
     ], train_in)
-
     untrained = output_prob.deep_clone()
     trained = output_prob.deep_clone()
     try:
