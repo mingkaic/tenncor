@@ -55,7 +55,7 @@ def main(args):
     nbatch = args.nbatch
 
     train_input = tc.EVariable([nbatch, ninput])
-    train_output = tc.EVariable([nbatch, noutput])
+    train_exout = tc.EVariable([nbatch, noutput])
     model = tc.layer.link([
         tc.layer.dense([ninput], [nunits],
             weight_init=tc.unif_xavier_init(),
@@ -69,7 +69,7 @@ def main(args):
 
     train_err = tc.apply_update([model],
         lambda err, leaves: tc.approx.sgd(err, leaves, learning_rate=0.9),
-        lambda models: tc.error.sqr_diff(train_output, models[0].connect(train_input)))
+        lambda models: tc.error.sqr_diff(train_exout, models[0].connect(train_input)))
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
@@ -94,7 +94,7 @@ def main(args):
     for i in range(args.n_train):
         batch, batch_out = batch_generate(ninput, nbatch)
         train_input.assign(batch.reshape(nbatch, ninput))
-        train_output.assign(batch_out.reshape(nbatch, noutput))
+        train_exout.assign(batch_out.reshape(nbatch, noutput))
         sess.update_target([train_err])
         err = train_err.get()
         if i % show_every_n == show_every_n - 1:
