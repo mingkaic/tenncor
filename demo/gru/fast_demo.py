@@ -1,4 +1,4 @@
-# logic source: https://github.com/Manik9/LSTMs
+# scenario source: https://github.com/Manik9/LSTMs
 import sys
 import time
 import argparse
@@ -7,13 +7,10 @@ import numpy as np
 
 import tenncor as tc
 
-prog_description = 'Demo lstm model'
+prog_description = 'Demo gru model using a fast scenario'
 
-def loss(pred, label):
-    return tc.pow(pred - label, 2)
-
-def lstm_loss(label, predictions):
-    return loss(tc.transpose(tc.slice(predictions, 0, 1, 0)), label)
+def loss(label, predictions):
+    return tc.pow(tc.transpose(tc.slice(predictions, 0, 1, 0)) - label, 2)
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -38,8 +35,8 @@ def main(args):
         help='Number of times of train (default: 100)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/lstm.onnx',
-        help='Filename to load pretrained model (default: models/lstm.onnx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/fast_gru.onnx',
+        help='Filename to load pretrained model (default: models/fast_gru.onnx)')
     args = parser.parse_args(args)
 
     if args.seed:
@@ -49,14 +46,14 @@ def main(args):
     else:
         np.random.seed(seed=0)
 
-    # parameters for input data dimension and lstm cell count
+    # parameters for input data dimension and gru cell count
     mem_cell_ct = 100
     x_dim = 50
     y_list = [-0.5, 0.2, 0.1, -0.5]
     input_val_arr = [np.random.random(x_dim) for _ in y_list]
     sess = tc.global_default_sess
 
-    model = tc.layer.lstm(x_dim, mem_cell_ct, len(y_list),
+    model = tc.layer.gru(tc.Shape([x_dim]), mem_cell_ct, len(y_list),
         weight_init=tc.unif_xavier_init(1),
         bias_init=tc.unif_xavier_init(1))
     untrained_model = model.deep_clone()
@@ -70,18 +67,18 @@ def main(args):
         print('failed to load from "{}"'.format(args.load))
 
     test_inputs = tc.variable(np.array(input_val_arr), 'test_input')
-    test_outputs = tc.variable(np.array(y_list), 'test_outputs')
+    test_exout = tc.variable(np.array(y_list), 'test_exout')
 
     untrained = tc.slice(untrained_model.connect(test_inputs), 0, 1, 0)
     hiddens = tc.slice(model.connect(test_inputs), 0, 1, 0)
     pretrained = tc.slice(pretrained_model.connect(test_inputs), 0, 1, 0)
 
-    err = tc.reduce_sum(loss(tc.transpose(tc.slice(hiddens, 0, 1, 0)), test_outputs))
+    err = tc.reduce_sum(loss(test_exout, hiddens))
     sess.track([untrained, hiddens, pretrained, err])
 
     train_err = tc.apply_update([model],
         lambda error, leaves: tc.approx.sgd(error, leaves, learning_rate=0.1),
-        lambda models: lstm_loss(test_outputs, models[0].connect(test_inputs)))
+        lambda models: loss(test_exout, models[0].connect(test_inputs)))
     sess.track([train_err])
 
     tc.optimize(sess, "cfg/optimizations.json")

@@ -7,7 +7,7 @@ import numpy as np
 
 import tenncor as tc
 
-prog_description = 'Demo gru model'
+prog_description = 'Demo lstm model against a latin corpus'
 
 def one_encode(indices, vocab_size):
     encoding = []
@@ -66,8 +66,8 @@ def main(args):
         help='Number of times of train (default: 10001)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/gru.onnx',
-        help='Filename to load pretrained model (default: models/gru.onnx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/latin_lstm.onnx',
+        help='Filename to load pretrained model (default: models/latin_lstm.onnx)')
     args = parser.parse_args(args)
 
     if args.seed:
@@ -78,7 +78,7 @@ def main(args):
         np.random.seed(seed=0)
 
     # Read data and setup maps for integer encoding and decoding.
-    data = open('models/data/gru_input.txt', 'r').read()
+    data = open('models/data/latin_input.txt', 'r').read()
     chars = sorted(list(set(data))) # Sort makes model predictable (if seeded).
     data_size, vocab_size = len(data), len(chars)
     print('data has %d characters, %d unique.' % (data_size, vocab_size))
@@ -93,7 +93,7 @@ def main(args):
     print_interval = 100
 
     model = tc.layer.link([
-        tc.layer.gru(tc.Shape([N]), h_size, seq_length,
+        tc.layer.lstm(tc.Shape([N]), h_size, seq_length,
             weight_init=old_winit,
             bias_init=tc.zero_init()),
         tc.layer.dense([h_size], [o_size],
@@ -121,11 +121,11 @@ def main(args):
     sess.track([trained_prob, untrained_prob, pretrained_prob])
 
     train_inps = tc.EVariable([seq_length, vocab_size], 0)
-    train_output = tc.EVariable([seq_length, vocab_size], 0)
+    train_exout = tc.EVariable([seq_length, vocab_size], 0)
 
     train_err = tc.apply_update([model],
         lambda error, leaves: tc.approx.adagrad(error, leaves, learning_rate=learning_rate, epsilon=1e-8),
-        lambda models: encoded_loss(train_output, models[0].connect(train_inps)))
+        lambda models: encoded_loss(train_exout, models[0].connect(train_inps)))
     sess.track([train_err])
 
     tc.optimize(sess, "cfg/optimizations.json")
@@ -151,7 +151,7 @@ def main(args):
 
         # Get gradients for current oldModel based on input and target sequences
         train_inps.assign(encoded_inp)
-        train_output.assign(encoded_out)
+        train_exout.assign(encoded_out)
         sess.update_target([train_err])
         loss = train_err.get()
 

@@ -1785,8 +1785,8 @@ api:
       - template: typename T
         name: lstm
         args:
-        - dtype: teq::DimT
-          name: indim
+        - dtype: const teq::Shape&
+          name: inshape
         - dtype: teq::DimT
           name: hidden_dim
         - dtype: teq::DimT
@@ -1805,20 +1805,25 @@ api:
               //
                   // input needs to specify number of sequences,
                   // since graph topography can't be traced
-                  std::vector<teq::DimT> inslist(teq::rank_cap, 1);
-                  inslist[0] = indim;
+                  std::vector<teq::DimT> inslist(inshape.begin(), inshape.end());
                   inslist[seq_dim] = nseq;
                   eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
                       0, teq::Shape(inslist), layr::input_label));
 
-                  teq::Shape inshape({(teq::DimT) (hidden_dim + indim)});
-                  std::vector<teq::DimT> hid_dims = {hidden_dim};
-                  auto ggate = dense<T>(inshape, hid_dims, weight_init, bias_init);
-                  auto forgate = dense<T>(inshape, hid_dims, weight_init, bias_init);
-                  auto ingate = dense<T>(inshape, hid_dims, weight_init, bias_init);
-                  auto outgate = dense<T>(inshape, hid_dims, weight_init, bias_init);
+                  std::vector<teq::DimT> inputlist(inshape.begin(), inshape.end());
+                  std::vector<teq::DimT> statelist(inshape.begin(), inshape.end());
+                  inputlist[0] += hidden_dim;
+                  statelist[0] = hidden_dim;
+                  inputlist[seq_dim] = statelist[seq_dim] = 1;
 
-                  teq::Shape stateshape({hidden_dim});
+                  teq::Shape inputshape(inputlist);
+                  teq::Shape stateshape(statelist);
+                  std::vector<teq::DimT> hid_dims = {hidden_dim};
+                  auto ggate = dense<T>(inputshape, hid_dims, weight_init, bias_init);
+                  auto forgate = dense<T>(inputshape, hid_dims, weight_init, bias_init);
+                  auto ingate = dense<T>(inputshape, hid_dims, weight_init, bias_init);
+                  auto outgate = dense<T>(inputshape, hid_dims, weight_init, bias_init);
+
                   auto state = eteq::make_constant_scalar<T>(0, stateshape);
                   auto hidden = eteq::make_constant_scalar<T>(0, stateshape);
 

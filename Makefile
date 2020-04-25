@@ -65,6 +65,8 @@ gen_proto: protoc
 	./build/protoc --cpp_out=. -I . onnx/onnx.proto
 	./build/protoc --cpp_out=. -I . query/query.proto
 	./build/protoc --cpp_out=. -I . opt/optimize.proto
+	./build/protoc --python_out=. -I=. extenncor/dqntrainer.proto
+	./build/protoc --python_out=. -I=. extenncor/dataset.proto
 
 
 .PHONY: onnx2json
