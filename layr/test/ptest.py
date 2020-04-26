@@ -47,10 +47,10 @@ class LAYRTest(unittest.TestCase):
         brain = tc.layer.link([
             tc.layer.conv([5, 5], 1, 16,
                 weight_init=tc.norm_xavier_init(0.5),
-                zero_padding=[2, 2]), # input of [1, 2641, 128, 1] -> output of [16, 2647, 128, 1]
+                zero_padding=((2, 2), (2, 2))), # input of [1, 2641, 128, 1] -> output of [16, 2647, 128, 1]
             tc.layer.conv([5, 5], 16, 20,
                 weight_init=tc.norm_xavier_init(0.5),
-                zero_padding=[2, 2]), # input of [16, 2647, 128, 1] -> output of [20, 2647, 128, 1]
+                zero_padding=((2, 2), (2, 2))), # input of [16, 2647, 128, 1] -> output of [20, 2647, 128, 1]
             tc.layer.gru(tc.Shape([2647, 20]), 20, 128,
                 seq_dim = 2,
                 weight_init=tc.zero_init(),

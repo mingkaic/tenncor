@@ -917,7 +917,7 @@ api:
         args:
         - dtype: const eteq::ETensor<T>&
           name: arg
-        - dtype: std::pair<teq::DimT,teq::DimT>
+        - dtype: const eteq::DimPairsT&
           name: padding
         - dtype: teq::RankT
           name: dimension
@@ -1344,23 +1344,26 @@ api:
           name: bias
           default: eteq::ETensor<T>()
           check_null: false
-        - dtype: std::pair<teq::DimT,teq::DimT>
-          name: zero_padding
-          default: "std::pair<teq::DimT,teq::DimT>{0,0}"
+        - dtype: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
+          name: zero_paddings
+          default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
         out:
           type: eteq::ETensor<T>
           val: |
               //
                   eteq::ETensor<T> cimage = image;
-                  if (zero_padding.first > 0 || zero_padding.second > 0)
+                  if (zero_paddings.first.first > 0 ||
+                      zero_paddings.first.second > 0 ||
+                      zero_paddings.second.first > 0 ||
+                      zero_paddings.second.second > 0)
                   {
                       cimage = ::tenncor::pad(cimage, {{0, 0},
-                          {zero_padding.first, zero_padding.first},
-                          {zero_padding.second, zero_padding.second}});
+                          {zero_paddings.first.first, zero_paddings.first.second},
+                          {zero_paddings.second.first, zero_paddings.second.second}});
                   }
                   teq::DimT img_pad = kernel->shape().at(0) - 1; // out
                   cimage = ::tenncor::pad(cimage,
-                      std::pair<teq::DimT,teq::DimT>{img_pad, img_pad}, 4);
+                      eteq::DimPairsT{img_pad, img_pad}, 4);
 
                   auto out =  ::tenncor::permute(::tenncor::convolution(cimage,
                       ::tenncor::reverse(kernel, {0}), {4, 0, 1, 2}), {4, 1, 2, 3});
@@ -1477,9 +1480,9 @@ api:
           name: bias
           default: eteq::ETensor<T>()
           check_null: false
-        - dtype: std::pair<teq::DimT,teq::DimT>
+        - dtype: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
           name: zero_padding
-          default: "std::pair<teq::DimT,teq::DimT>{0, 0}"
+          default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0, 0},{0, 0}}"
         out:
           type: eteq::ETensor<T>
           val: |
@@ -1712,7 +1715,7 @@ api:
       - template: typename T
         name: conv
         args:
-        - dtype: const std::pair<teq::DimT,teq::DimT>&
+        - dtype: const eteq::DimPairsT&
           name: filter_hw
         - dtype: teq::DimT
           name: in_ncol
@@ -1723,9 +1726,9 @@ api:
         - dtype: const layr::InitF<T>&
           name: bias_init
           default: layr::zero_init<T>()
-        - dtype: const std::pair<teq::DimT,teq::DimT>&
+        - dtype: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
           name: zero_padding
-          default: "std::pair<teq::DimT,teq::DimT>{0, 0}"
+          default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0, 0},{0, 0}}"
         out:
           type: eteq::ETensor<T>
           val: |

@@ -81,23 +81,24 @@ def main(args):
     train_exout = tc.EVariable(train_outshape, label="train_exout")
 
     # construct CNN
+    padding = ((2, 2), (2, 2))
     output_prob = tc.layer.link([ # minimum input shape of [1, 32, 32, 3]
         tc.layer.bind(lambda x: x / 255. - 0.5), # normalization
         tc.layer.conv([5, 5], 3, 16,
             weight_init=tc.norm_xavier_init(0.5),
-            zero_padding=[2, 2]), # outputs [nbatch, 32, 32, 16]
+            zero_padding=padding), # outputs [nbatch, 32, 32, 16]
         tc.layer.bind(tc.relu),
         tc.layer.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
             inshape=tc.Shape([1, 32, 32, 16])), # outputs [nbatch, 16, 16, 16]
         tc.layer.conv([5, 5], 16, 20,
             weight_init=tc.norm_xavier_init(0.3),
-            zero_padding=[2, 2]), # outputs [nbatch, 16, 16, 20]
+            zero_padding=padding), # outputs [nbatch, 16, 16, 20]
         tc.layer.bind(tc.relu),
         tc.layer.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
             inshape=tc.Shape([1, 16, 16, 20])), # outputs [nbatch, 8, 8, 20]
         tc.layer.conv([5, 5], 20, 20,
             weight_init=tc.norm_xavier_init(0.1),
-            zero_padding=[2, 2]), # outputs [nbatch, 8, 8, 20]
+            zero_padding=padding), # outputs [nbatch, 8, 8, 20]
         tc.layer.bind(tc.relu),
         tc.layer.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
             inshape=tc.Shape([1, 8, 8, 20])), # outputs [nbatch, 4, 4, 20]

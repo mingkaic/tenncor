@@ -12,6 +12,8 @@
 namespace eteq
 {
 
+using DimPairsT = std::pair<teq::DimT,teq::DimT>;
+
 /// Return variable node given scalar and shape
 template <typename T>
 EVariable<T> make_variable_scalar (T scalar,
