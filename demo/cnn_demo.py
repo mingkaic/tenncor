@@ -20,6 +20,8 @@ import argparse
 
 import tenncor as tc
 
+from extenncor.tfdstrainer import TfdsEnv
+
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow_datasets as tfds
@@ -62,6 +64,10 @@ def main(args):
         tc.seed(args.seedval)
         np.random.seed(args.seedval)
 
+    names = [
+        'airplane', 'automobile', 'bird', 'cat', 'deer',
+        'dog', 'frog', 'horse', 'ship', 'truck',
+    ]
     nbatch = 4
     learning_rate = 0.01
     l2_decay = 0.0001
@@ -82,7 +88,7 @@ def main(args):
 
     # construct CNN
     padding = ((2, 2), (2, 2))
-    output_prob = tc.layer.link([ # minimum input shape of [1, 32, 32, 3]
+    model = tc.layer.link([ # minimum input shape of [1, 32, 32, 3]
         tc.layer.bind(lambda x: x / 255. - 0.5), # normalization
         tc.layer.conv([5, 5], 3, 16,
             weight_init=tc.norm_xavier_init(0.5),
@@ -109,8 +115,8 @@ def main(args):
             dims=[[0, 1], [1, 2], [2, 3]]), # outputs [nbatch, 10]
         tc.layer.bind(lambda x: tc.softmax(x, 0, 1))
     ], train_in)
-    untrained = output_prob.deep_clone()
-    trained = output_prob.deep_clone()
+    untrained = model.deep_clone()
+    trained = model.deep_clone()
     try:
         print('loading ' + args.load)
         trained = tc.load_from_file(args.load)[0]
@@ -122,52 +128,98 @@ def main(args):
     opt = lambda error, leaves: \
         tc.approx.adadelta(error, leaves, step_rate=learning_rate, decay=l2_decay)
 
-    train_err = tc.apply_update([output_prob], opt,
-        lambda models: cross_entropy_loss(train_exout, output_prob))
+    train_err = tc.apply_update([model], opt,
+        lambda models: cross_entropy_loss(train_exout, models[0]))
 
     test_in = tc.EVariable([1] + raw_inshape, label="test_in")
-    test_prob = output_prob.connect(test_in)
+    test_exout = tc.EVariable([10], label='test_exout')
+    test_prob = model.connect(test_in)
     test_idx = tc.argmax(test_prob)
+    test_err = cross_entropy_loss(test_exout, test_prob)
 
-    sess.track([train_err, output_prob, test_idx, test_prob])
-    tc.optimize(sess, "cfg/optimizations.json")
+    test_ds = tfds.load('cifar10', split='test', batch_size=1, shuffle_files=True)
+    sess.track([test_idx, test_prob, train_err])
 
-    # train
+    test_gen = tfds.as_numpy(test_ds)
+    def test_iteration(show=False):
+        test_sample = next(test_gen)
+        labels = np.zeros(10)
+        labels[test_sample['label'][0]] = 1
+
+        test_in.assign(test_sample['image'].astype(np.float))
+        test_exout.assign(labels.astype(np.float))
+        sess.update_target([test_idx, test_prob, test_err])
+        print('expect: {}'.format(names[test_sample['label'][0]]))
+        print('got: {}'.format(names[int(test_idx.get())]))
+        print('probability: {}'.format(test_prob.get()))
+        print('err: {}'.format(test_err.get()))
+        if show:
+            plt.imshow(test_sample['image'].reshape(*raw_inshape))
+            plt.show()
+
+    backup_every = 50
+    test_every = 10
     terrs = []
-    for i, data in enumerate(cifar):
+    def cifar_trainstep(train_idx, sess, data, trainins, trainouts):
+        invar, exout = tuple(trainins)
+        trainerr, trainprob = tuple(trainouts)
+
         labels = np.zeros((nbatch, 10))
         for j, label in enumerate(data['label']):
             labels[j][label] = 1
         print('expected label:\n{}'.format(labels))
-        train_in.assign(data['image'].astype(np.float))
-        train_exout.assign(labels.astype(np.float))
+        invar.assign(data['image'].astype(np.float))
+        exout.assign(labels.astype(np.float))
         epoch_errs = []
         for j in range(nepochs):
-            sess.update_target([train_err, output_prob])
-            trained_err = train_err.get()
-            prob = output_prob.get()
-            epoch_errs.append(np.average(trained_err))
+            sess.update_target(trainouts)
+            prob = trainprob.get()
+            err = trainerr.get()
+            epoch_errs.append(np.average(err))
             print('==== epoch {} ===='.format(j))
+            try:
+                epoch_debug()
+            except:
+                pass
+
             print('prob: {}'.format(prob))
             outof = np.sum(prob, axis=1)
             assert(np.all([s > 0.95 for s in outof]))
-            print('train_ing error: {}'.format(trained_err))
-        avg_err = epoch_errs[-1]
-        if i % show_every_n == show_every_n - 1:
-            print('==== {}th image ====\naverage error:\n{}'.format(i, avg_err))
-        terrs.append(avg_err)
+            print('error: {}'.format(err))
 
-        if i > 500:
-            break
+        min_err = epoch_errs[-1]
+        terrs.append(min_err)
+        if train_idx % show_every_n == show_every_n - 1:
+            print('==== {}th image ====\nmin error:\n{}'.format(train_idx, min_err))
+
+        if train_idx % test_every == test_every - 1:
+            test_iteration()
+
+    def error_connect(input_vars):
+        opt = lambda error, leaves: tc.approx.adadelta(error, leaves, step_rate=learning_rate, decay=l2_decay)
+        invar, exout = tuple(input_vars)
+
+        output_prob = model.connect(invar)
+        train_err = tc.apply_update([output_prob], opt,
+            lambda models: cross_entropy_loss(exout, models[0]))
+
+        return [train_err, output_prob]
+
+    env = TfdsEnv('cifar10', sess, [train_in, train_exout],
+                error_connect, cifar_trainstep,
+                split='train', batch_size=nbatch,
+                display_name='demo_cifar10',
+                optimize_cfg='cfg/optimizations.json')
+
+    # train
+    ntraining = 50
+    for _ in zip(env.train(), range(ntraining)):
+        pass
 
     plt.plot(list(range(len(terrs))), terrs)
 
     # test
     tds = tfds.load('cifar10', split='test', batch_size=1, shuffle_files=True)
-    names = [
-        'airplane', 'automobile', 'bird', 'cat', 'deer',
-        'dog', 'frog', 'horse', 'ship', 'truck',
-    ]
     image = next(tfds.as_numpy(tds))
     test_in.assign(image['image'].astype(np.float))
     sess.update_target([test_idx])
@@ -180,7 +232,7 @@ def main(args):
 
     try:
         print('saving')
-        if tc.save_to_file(args.save, [output_prob]):
+        if tc.save_to_file(args.save, [model]):
             print('successfully saved to {}'.format(args.save))
     except Exception as e:
         print(e)

@@ -165,7 +165,7 @@ class DQNEnv(ecache.EnvManager):
         if _get_random() < exploration:
             return math.floor(_get_random() * self.src_shape[-1])
 
-        self.obs.assign(obs)
+        self.obs.assign(obs, self.sess)
         self.sess.update_target([self.act_idx])
         return int(self.act_idx.get())
 
@@ -203,10 +203,10 @@ class DQNEnv(ecache.EnvManager):
             new_states = np.array(new_states)
             action_mask = np.array(action_mask)
             rewards = np.array(rewards)
-            self.src_obs.assign(states)
-            self.src_outmask.assign(action_mask)
-            self.nxt_obs.assign(new_states)
-            self.rewards.assign(rewards)
+            self.src_obs.assign(states, self.sess)
+            self.src_outmask.assign(action_mask, self.sess)
+            self.nxt_obs.assign(new_states, self.sess)
+            self.rewards.assign(rewards, self.sess)
 
             self.sess.update_target([self.prediction_err])
         self.ntrain_called += 1

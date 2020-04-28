@@ -47,7 +47,7 @@ py_binary(
     name = "cnn_demo",
     srcs = ["cnn_demo.py"],
     deps = [
-        "//:tenncor_py",
+        "//:extenncor",
         "//dbg:psess_py",
     ],
     data = ["//:models", "//cfg:optimizations"],

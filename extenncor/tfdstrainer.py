@@ -23,7 +23,8 @@ class TfdsEnv(ecache.EnvManager):
     def __init__(self, name, sess, train_inputs,
                  connect_fn, trainstep_fn,
                  clean_startup=False, cachedir='/tmp',
-                 optimize_cfg='', **kwargs):
+                 optimize_cfg='', display_name = None,
+                 **kwargs):
         def default_init():
             self.name = name
             ds_params = dict(kwargs)
@@ -53,7 +54,9 @@ class TfdsEnv(ecache.EnvManager):
             self.sess.track(self.train_outputs)
             tc.optimize(self.sess, optimize_cfg)
 
-        super().__init__('tfds_' + name, sess,
+        if display_name is None:
+            display_name = name
+        super().__init__('tfds_' + display_name, sess,
                          default_init=default_init,
                          clean=clean_startup,
                          cacheroot=cachedir)

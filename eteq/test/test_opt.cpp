@@ -320,7 +320,7 @@ TEST(OPTIMIZE, CNNLayer)
 			{
 				return eteq::make_variable<double>(cbias_data.data(), shape, label);
 			},
-			{1, 1}), // outputs [2\4\4]
+			{{1, 1}, {1, 1}}), // outputs [2\4\4]
 		tenncor::layer::bind(layr::UnaryF<double>(tenncor::relu<double>)),
 	}, invar);
 
