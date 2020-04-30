@@ -124,13 +124,13 @@ struct GraphIndex final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (iLeaf& leaf) override
 	{
-		indexes_.emplace(&leaf, indexes_.size());
+		indices_.emplace(&leaf, indices_.size());
 	}
 
 	/// Implementation of iTraveler
 	void visit (iFunctor& func) override
 	{
-		if (estd::has(indexes_, &func))
+		if (estd::has(indices_, &func))
 		{
 			return;
 		}
@@ -139,15 +139,15 @@ struct GraphIndex final : public iTraveler
 		{
 			child->accept(*this);
 		}
-		indexes_.emplace(&func, indexes_.size());
+		indices_.emplace(&func, indices_.size());
 	}
 
 	const size_t& at (teq::iTensor* tens) const
 	{
-		return indexes_.at(tens);
+		return indices_.at(tens);
 	}
 
-	TensMapT<size_t> indexes_;
+	TensMapT<size_t> indices_;
 };
 
 struct PathDirection

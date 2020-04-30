@@ -12,6 +12,7 @@ cc_binary(
     copts = ["-std=c++17"],
     deps = [
         "//:tenncor",
+        "//dbg:compare",
         # "//dbg:emit_plugin",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],

@@ -23,6 +23,8 @@ struct Hasher final : public teq::iOnceTraveler
 {
 	teq::TensMapT<boost::uuids::uuid> hashes_;
 
+	boost::uuids::random_generator uuid_gen_;
+
 private:
 	/// Implementation of iOnceTraveler
 	void visit_leaf (teq::iLeaf& leaf) override
@@ -93,8 +95,6 @@ private:
 	}
 
 	std::unordered_map<std::string,boost::uuids::uuid> uuids_;
-
-	boost::uuids::random_generator uuid_gen_;
 };
 
 template <typename T>
