@@ -263,7 +263,11 @@ void eteq_ext (py::module& m)
 			})
 
 		// ==== other stuff ====
-		.def("derive", &eteq::derive<PybindT>,
+		.def("derive", [](eteq::ETensor<PybindT> root,
+				const eteq::ETensorsT<PybindT>& targets)
+			{
+				return eteq::derive<PybindT>(root, targets);
+			},
 			"Return derivative of first tensor with respect to second tensor")
 
 		.def("trail", [](const pyeteq::ETensT& root,

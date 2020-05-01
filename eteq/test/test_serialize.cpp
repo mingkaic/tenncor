@@ -56,10 +56,10 @@ TEST(SERIALIZE, SaveGraph)
 
 	auto err = tenncor::pow(out - sig1, 2.);
 
-	auto dw0 = eteq::derive(err, weight0);
-	auto db0 = eteq::derive(err, bias0);
-	auto dw1 = eteq::derive(err, weight1);
-	auto db1 = eteq::derive(err, bias1);
+	auto dw0 = eteq::derive(err, {weight0})[0];
+	auto db0 = eteq::derive(err, {bias0})[0];
+	auto dw1 = eteq::derive(err, {weight1})[0];
+	auto db1 = eteq::derive(err, {bias1})[0];
 
 	onnx::TensIdT ids;
 	ids.insert({dw0.get(), "dw0"});

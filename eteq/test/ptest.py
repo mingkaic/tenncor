@@ -89,8 +89,7 @@ class EADTest(unittest.TestCase):
         self._array_close(real(data), fout)
 
         var2 = tc.variable(data, 'var2')
-        ex = tc.derive(out, var)
-        zero = tc.derive(out, var2)
+        ex, zero = tuple(tc.derive(out, [var, var2]))
 
         sess.track([ex, zero])
         sess.update()
@@ -122,8 +121,7 @@ class EADTest(unittest.TestCase):
         self._array_close(real, fout)
 
         var2 = tc.variable(data, 'var2')
-        ex = tc.derive(out, var)
-        zero = tc.derive(out, var2)
+        ex, zero = tuple(tc.derive(out, [var, var2]))
 
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
@@ -165,12 +163,10 @@ class EADTest(unittest.TestCase):
 
         var3 = tc.variable(data, 'var3')
 
-        zero = tc.derive(out, var3)
-        ex = tc.derive(out, var)
-        ex2 = tc.derive(out, var2)
-        ex3 = tc.derive(both, var)
-        ex4 = tc.derive(clhs, var)
-        ex5 = tc.derive(crhs, var2)
+        zero, ex, ex2 = tuple(tc.derive(out, [var3, var, var2]))
+        ex3 = tc.derive(both, [var])[0]
+        ex4 = tc.derive(clhs, [var])[0]
+        ex5 = tc.derive(crhs, [var2])[0]
 
         sess.track([zero, ex, ex2, ex3, ex4, ex5])
         sess.update()
@@ -223,8 +219,7 @@ class EADTest(unittest.TestCase):
         self._array_close(tf_fout, fout)
 
         var2 = tc.variable(data, 'var2')
-        ex = tc.derive(out, var)
-        zero = tc.derive(out, var2)
+        ex, zero = tuple(tc.derive(out, [var, var2]))
         sess.track([ex, zero])
         sess.update()
 
@@ -270,9 +265,8 @@ class EADTest(unittest.TestCase):
             self._array_close(tf_fout2, fout2)
 
             var2 = tc.variable(data, 'var2')
-            ex = tc.derive(out, var)
-            ex2 = tc.derive(out2, var)
-            zero = tc.derive(out, var2)
+            ex, zero = tuple(tc.derive(out, [var, var2]))
+            ex2 = tc.derive(out2, [var])[0]
             sess.track([ex, ex2, zero])
             sess.update()
 
@@ -339,8 +333,7 @@ class EADTest(unittest.TestCase):
             self._array_close(data, fout)
 
             var2 = tc.variable(data, 'var2')
-            one = tc.derive(var, var)
-            zero = tc.derive(var, var2)
+            one, zero = tuple(tc.derive(var, [var, var2]))
             sess.track([one, zero])
             sess.update()
 
@@ -697,7 +690,7 @@ class EADTest(unittest.TestCase):
         fout = out.get()
         self._array_close(expected_out, fout)
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         sess.track([ex])
         sess.update()
 
@@ -757,8 +750,7 @@ class EADTest(unittest.TestCase):
             self._array_close(tf_fout, fout)
 
             var2 = tc.variable(data, 'var2')
-            ex = tc.derive(out, var)
-            zero = tc.derive(out, var2)
+            ex, zero = tuple(tc.derive(out, [var, var2]))
             sess.track([ex, zero])
             sess.update()
 
@@ -826,9 +818,7 @@ class EADTest(unittest.TestCase):
 
             var3 = tc.variable(data, 'var3')
 
-            zero = tc.derive(out, var3)
-            ex = tc.derive(out, var)
-            ex2 = tc.derive(out, var2)
+            zero, ex, ex2 = tuple(tc.derive(out, [var3, var, var2]))
 
             sess.track([zero, ex, ex2])
             sess.update()
@@ -864,7 +854,7 @@ class EADTest(unittest.TestCase):
 
                 self._array_close(tf_fboth, fboth)
 
-                ex3 = tc.derive(both, var)
+                ex3 = tc.derive(both, [var])[0]
                 sess.track([ex3])
                 sess.update()
 
@@ -915,9 +905,7 @@ class EADTest(unittest.TestCase):
             self._array_close(tf_fout, fout)
 
             var2 = tc.variable(data, 'var2')
-            zero = tc.derive(out, var2)
-            ex = tc.derive(out, var)
-            ex2 = tc.derive(out, vkernel)
+            zero, ex, ex2 = tuple(tc.derive(out, [var2, var, vkernel]))
 
             sess.track([zero, ex, ex2])
             sess.update()
@@ -971,9 +959,7 @@ class EADTest(unittest.TestCase):
         self._array_close(tfconv_output, conv_output)
 
         var2 = tc.variable(data, 'var2')
-        zero = tc.derive(out, var2)
-        ex = tc.derive(out, image)
-        ex2 = tc.derive(out, kernel)
+        zero, ex, ex2 = tuple(tc.derive(out, [var2, image, kernel]))
 
         sess.track([zero, ex, ex2])
         sess.update()
@@ -1013,8 +999,7 @@ class EADTest(unittest.TestCase):
         self._array_close(tfoutput, output)
 
         var2 = tc.variable(data, 'var2')
-        zero = tc.derive(out, var2)
-        ex = tc.derive(out, image)
+        zero, ex = tuple(tc.derive(out, [var2, image]))
 
         sess.track([zero, ex])
         sess.update()
@@ -1038,7 +1023,7 @@ class EADTest(unittest.TestCase):
         strideout = tc.stride(image, [1, 2, 2])
         self._array_eq([3, 4, 4, 2], strideout.shape())
 
-        ex = tc.derive(strideout, image)
+        ex = tc.derive(strideout, [image])[0]
         self._array_eq(shape, ex.shape())
 
     def test_maxpool(self):
@@ -1061,8 +1046,7 @@ class EADTest(unittest.TestCase):
         self._array_close(tfoutput, output)
 
         var2 = tc.variable(data, 'var2')
-        zero = tc.derive(out, var2)
-        ex = tc.derive(out, image)
+        zero, ex = tuple(tc.derive(out, [var2, image]))
 
         sess.track([zero, ex])
         sess.update()
@@ -1105,7 +1089,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1141,7 +1125,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1177,7 +1161,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1217,7 +1201,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1257,7 +1241,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1293,7 +1277,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1330,7 +1314,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1369,7 +1353,7 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
         sess.track([ex])
@@ -1404,9 +1388,7 @@ class EADTest(unittest.TestCase):
         tf_f = tf.matmul(tf.transpose(tf_d), tf.transpose(tf_c))
         tf_dest = tf.matmul(tf_e, tf_f)
 
-        da = tc.derive(dest, a)
-        db = tc.derive(dest, b)
-        dc = tc.derive(dest, c)
+        da, db, dc = tuple(tc.derive(dest, [a, b, c]))
         tf_da, tf_db, tf_dc = tf.gradients(tf_dest, [tf_a, tf_b, tf_c])
 
         tfsess = tfSess()

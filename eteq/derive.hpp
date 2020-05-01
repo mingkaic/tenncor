@@ -556,11 +556,12 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 
 /// Derive root with respect to target and optimized
 template <typename T>
-ETensor<T> derive (ETensor<T> root, ETensor<T> target)
+ETensorsT<T> derive (ETensor<T> root, const ETensorsT<T>& targets)
 {
 	DerivativeFuncs<T> builder;
-	teq::TensptrT derivative = teq::derive(root, target, builder);
-	return ETensor<T>(derivative);
+	teq::TensptrsT derivatives = teq::derive(root,
+		teq::TensptrsT(targets.begin(), targets.end()), builder);
+	return ETensorsT<T>(derivatives.begin(), derivatives.end());
 }
 
 }

@@ -189,11 +189,8 @@ TEST(OPTIMIZE, RNNLayer)
 
 	auto err = tenncor::pow(out - output, 2.);
 
-	auto dw = eteq::derive(err, weight);
-	auto db = eteq::derive(err, bias);
-	auto dstate = eteq::derive(err, istate);
-
-	eteq::ETensorsT<double> roots = {dw, db, dstate, err};
+	auto ders = eteq::derive(err, {weight, bias, istate});
+	eteq::ETensorsT<double> roots = {ders[0], ders[1], ders[2], err};
 
 	std::ifstream rulefile("cfg/optimizations.json");
 	eteq::optimize(roots, rulefile);

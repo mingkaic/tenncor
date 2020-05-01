@@ -280,13 +280,17 @@ TEST(CONNECT, TanhRNN)
 	auto weight = contents[1];
 	auto bias = contents[2];
 
-	auto dw = eteq::derive(err, eteq::ETensor<double>(weight));
-	auto db = eteq::derive(err, eteq::ETensor<double>(bias));
-	auto dstate = eteq::derive(err, eteq::ETensor<double>(istate));
+	auto ders = eteq::derive(err, {
+		eteq::ETensor<double>(weight),
+		eteq::ETensor<double>(bias),
+		eteq::ETensor<double>(istate),
+	});
+	auto dw = ders[0];
+	auto db = ders[1];
+	auto dstate = ders[2];
 
-	teq::TensptrsT roots = {dw, db, dstate};
 	auto session = eigen::get_session();
-	session.track(roots);
+	session.track(teq::TensptrsT(ders.begin(), ders.end()));
 	session.update();
 
 	teq::Shape weight_shape({hidden_dim, (teq::DimT) (indim + hidden_dim)});
@@ -428,15 +432,21 @@ TEST(CONNECT, DenseTanhRNN)
 	auto weight1 = contents[3];
 	auto bias1 = contents[4];
 
-	auto dw1 = eteq::derive(err, eteq::ETensor<double>(weight1));
-	auto db1 = eteq::derive(err, eteq::ETensor<double>(bias1));
-	auto dstate = eteq::derive(err, eteq::ETensor<double>(istate));
-	auto dw0 = eteq::derive(err, eteq::ETensor<double>(weight0));
-	auto db0 = eteq::derive(err, eteq::ETensor<double>(bias0));
+	auto ders = eteq::derive(err, {
+		eteq::ETensor<double>(weight1),
+		eteq::ETensor<double>(bias1),
+		eteq::ETensor<double>(istate),
+		eteq::ETensor<double>(weight0),
+		eteq::ETensor<double>(bias0),
+	});
+	auto dw1 = ders[0];
+	auto db1 = ders[1];
+	auto dstate = ders[2];
+	auto dw0 = ders[3];
+	auto db0 = ders[4];
 
-	teq::TensptrsT roots = {dw1, db1, dstate, dw0, db0};
 	auto session = eigen::get_session();
-	session.track(roots);
+	session.track(teq::TensptrsT(ders.begin(), ders.end()));
 	session.update();
 
 	teq::Shape weight0_shape({hidden_dim, indim});
@@ -641,23 +651,26 @@ TEST(CONNECT, TanhRNNFull)
 	auto weight2 = contents[5];
 	auto bias2 = contents[6];
 
-	auto dw0 = eteq::derive(err, eteq::ETensor<double>(weight0));
-	auto db0 = eteq::derive(err, eteq::ETensor<double>(bias0));
+	auto ders = eteq::derive(err, {
+		eteq::ETensor<double>(weight0),
+		eteq::ETensor<double>(bias0),
+		eteq::ETensor<double>(istate),
+		eteq::ETensor<double>(weight1),
+		eteq::ETensor<double>(bias1),
+		eteq::ETensor<double>(weight2),
+		eteq::ETensor<double>(bias2),
+	});
 
-	auto dstate = eteq::derive(err, eteq::ETensor<double>(istate));
-	auto dw1 = eteq::derive(err, eteq::ETensor<double>(weight1));
-	auto db1 = eteq::derive(err, eteq::ETensor<double>(bias1));
+	auto dw0 = ders[0];
+	auto db0 = ders[1];
+	auto dstate = ders[2];
+	auto dw1 = ders[3];
+	auto db1 = ders[4];
+	auto dw2 = ders[5];
+	auto db2 = ders[6];
 
-	auto dw2 = eteq::derive(err, eteq::ETensor<double>(weight2));
-	auto db2 = eteq::derive(err, eteq::ETensor<double>(bias2));
-
-	teq::TensptrsT roots = {
-		dw0, db0,
-		dw1, db1, dstate,
-		dw2, db2,
-	};
 	auto session = eigen::get_session();
-	session.track(roots);
+	session.track(teq::TensptrsT(ders.begin(), ders.end()));
 	session.update();
 
 	{
@@ -879,23 +892,26 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 	auto weight2 = contents[5];
 	auto bias2 = contents[6];
 
-	auto dw0 = eteq::derive(err, eteq::ETensor<double>(weight0));
-	auto db0 = eteq::derive(err, eteq::ETensor<double>(bias0));
+	auto ders = eteq::derive(err, {
+		eteq::ETensor<double>(weight0),
+		eteq::ETensor<double>(bias0),
+		eteq::ETensor<double>(istate),
+		eteq::ETensor<double>(weight1),
+		eteq::ETensor<double>(bias1),
+		eteq::ETensor<double>(weight2),
+		eteq::ETensor<double>(bias2)
+	});
 
-	auto dstate = eteq::derive(err, eteq::ETensor<double>(istate));
-	auto dw1 = eteq::derive(err, eteq::ETensor<double>(weight1));
-	auto db1 = eteq::derive(err, eteq::ETensor<double>(bias1));
+	auto dw0 = ders[0];
+	auto db0 = ders[1];
+	auto dstate = ders[2];
+	auto dw1 = ders[3];
+	auto db1 = ders[4];
+	auto dw2 = ders[5];
+	auto db2 = ders[6];
 
-	auto dw2 = eteq::derive(err, eteq::ETensor<double>(weight2));
-	auto db2 = eteq::derive(err, eteq::ETensor<double>(bias2));
-
-	teq::TensptrsT roots = {
-		dw0, db0,
-		dw1, db1, dstate,
-		dw2, db2,
-	};
 	auto session = eigen::get_session();
-	session.track(roots);
+	session.track(teq::TensptrsT(ders.begin(), ders.end()));
 	session.update();
 
 	{
@@ -1305,23 +1321,21 @@ TEST(CONNECT, TanhRNNTraining)
 	auto weight2 = contents[5];
 	auto bias2 = contents[6];
 
-	auto dw0 = eteq::derive(err, eteq::ETensor<double>(weight0));
-	auto db0 = eteq::derive(err, eteq::ETensor<double>(bias0));
-
-	auto dstate = eteq::derive(err, eteq::ETensor<double>(istate));
-	auto dw1 = eteq::derive(err, eteq::ETensor<double>(weight1));
-	auto db1 = eteq::derive(err, eteq::ETensor<double>(bias1));
-
-	auto dw2 = eteq::derive(err, eteq::ETensor<double>(weight2));
-	auto db2 = eteq::derive(err, eteq::ETensor<double>(bias2));
-
-	eteq::ETensorsT<double> roots = {dw0, db0, dw1, db1, dstate, dw2, db2};
-	size_t nroots = roots.size();
+	auto ders = eteq::derive(err, {
+		eteq::ETensor<double>(weight0),
+		eteq::ETensor<double>(bias0),
+		eteq::ETensor<double>(weight1),
+		eteq::ETensor<double>(bias1),
+		eteq::ETensor<double>(istate),
+		eteq::ETensor<double>(weight2),
+		eteq::ETensor<double>(bias2),
+	});
+	size_t nders = ders.size();
 
 	eteq::VarptrsT<double> targets = {weight0, bias0, weight1, bias1, istate, weight2, bias2};
 	eteq::VarptrsT<double> momentums;
 	eteq::VarptrsT<double> mvavg_sqrs;
-	for (auto root : roots)
+	for (auto root : ders)
 	{
 		momentums.push_back(eteq::make_variable_like<double>(0, root, "momentum_" + root->to_string()));
 		mvavg_sqrs.push_back(eteq::make_variable_like<double>(0, root, "mvavg_sqrs_" + root->to_string()));
@@ -1337,7 +1351,7 @@ TEST(CONNECT, TanhRNNTraining)
 	}
 	eteq::VarptrsT<double> group1_left;
 	eteq::ETensorsT<double> group1_right;
-	for (size_t i = 0; i < nroots; ++i)
+	for (size_t i = 0; i < nders; ++i)
 	{
 		auto right = eteq::ETensor<double>(targets[i]) + momentum_tmps[i];
 		group1_left.push_back(targets[i]);
@@ -1348,10 +1362,10 @@ TEST(CONNECT, TanhRNNTraining)
 	// group 2
 	eteq::VarptrsT<double> group2_left;
 	eteq::ETensorsT<double> group2_right;
-	for (size_t i = 0; i < nroots; ++i)
+	for (size_t i = 0; i < nders; ++i)
 	{
 		auto right = lmbd * eteq::ETensor<double>(mvavg_sqrs[i]) +
-			(1. - lmbd) * tenncor::pow(roots[i], 2.);
+			(1. - lmbd) * tenncor::pow(ders[i], 2.);
 		group2_left.push_back(mvavg_sqrs[i]);
 		group2_right.push_back(right);
 		to_track.push_back(right);
@@ -1362,13 +1376,13 @@ TEST(CONNECT, TanhRNNTraining)
 	eteq::ETensorsT<double> group3_right;
 	{
 		eteq::ETensorsT<double> pgrad_norm_nodes;
-		for (size_t i = 0; i < nroots; ++i)
+		for (size_t i = 0; i < nders; ++i)
 		{
-			pgrad_norm_nodes.push_back((learning_rate * roots[i]) /
+			pgrad_norm_nodes.push_back((learning_rate * ders[i]) /
 				(tenncor::sqrt(eteq::ETensor<double>(mvavg_sqrs[i])) + eps));
 		}
 
-		for (size_t i = 0; i < nroots; ++i)
+		for (size_t i = 0; i < nders; ++i)
 		{
 			auto right = momentum_tmps[i] - pgrad_norm_nodes[i];
 			group3_left.push_back(momentums[i]);
@@ -1376,7 +1390,7 @@ TEST(CONNECT, TanhRNNTraining)
 			to_track.push_back(right);
 		}
 
-		for (size_t i = 0; i < nroots; ++i)
+		for (size_t i = 0; i < nders; ++i)
 		{
 			auto right = eteq::ETensor<double>(targets[i]) - pgrad_norm_nodes[i];
 			group3_left.push_back(targets[i]);
@@ -1390,15 +1404,15 @@ TEST(CONNECT, TanhRNNTraining)
 
 	{
 		teq::TensSetT rights;
-		for (auto r : roots)
+		for (auto r : ders)
 		{
 			rights.emplace(r.get());
 		}
 		session.update_target(rights);
 
-		for (size_t i = 0; i < nroots; ++i)
+		for (size_t i = 0; i < nders; ++i)
 		{
-			auto left = roots[i];
+			auto left = ders[i];
 			double* ptr = (double*) left->device().data();
 			ASSERT_NE(nullptr, ptr);
 			for (size_t j = 0, n = left->shape().n_elems(); j < n; ++j)
@@ -1416,12 +1430,12 @@ TEST(CONNECT, TanhRNNTraining)
 			rights.emplace(r.get());
 		}
 		session.update_target(rights);
-		for (size_t i = 0; i < nroots; ++i)
+		for (size_t i = 0; i < nders; ++i)
 		{
 			group1_left[i]->assign(*group1_right[i], session);
 		}
 
-		for (size_t i = 0; i < nroots; ++i)
+		for (size_t i = 0; i < nders; ++i)
 		{
 			auto left = group1_left[i];
 			double* ptr = (double*) left->device().data();
@@ -1435,15 +1449,15 @@ TEST(CONNECT, TanhRNNTraining)
 
 	{
 		teq::TensSetT rights;
-		for (auto r : roots)
+		for (auto r : ders)
 		{
 			rights.emplace(r.get());
 		}
 		session.update_target(rights);
 
-		for (size_t i = 0; i < nroots; ++i)
+		for (size_t i = 0; i < nders; ++i)
 		{
-			auto left = roots[i];
+			auto left = ders[i];
 			double* ptr = (double*) left->device().data();
 			ASSERT_NE(nullptr, ptr);
 			for (size_t j = 0, n = left->shape().n_elems(); j < n; ++j)
@@ -1461,12 +1475,12 @@ TEST(CONNECT, TanhRNNTraining)
 			rights.emplace(r.get());
 		}
 		session.update_target(rights);
-		for (size_t i = 0; i < nroots; ++i)
+		for (size_t i = 0; i < nders; ++i)
 		{
 			group2_left[i]->assign(*group2_right[i], session);
 		}
 
-		for (size_t i = 0; i < nroots; ++i)
+		for (size_t i = 0; i < nders; ++i)
 		{
 			auto left = group2_left[i];
 			double* ptr = (double*) left->device().data();

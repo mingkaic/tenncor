@@ -232,9 +232,10 @@ static void BM_MatmulComplex(benchmark::State& state)
 	auto f = tenncor::matmul(tenncor::transpose(d), tenncor::transpose(c));
 	auto dest = tenncor::matmul(e, f);
 
-	eteq::ETensor<int32_t> da = eteq::derive(dest, a);
-	eteq::ETensor<int32_t> db = eteq::derive(dest, b);
-	eteq::ETensor<int32_t> dc = eteq::derive(dest, c);
+	eteq::ETensorsT<int32_t> ders = eteq::derive(dest, {a, b, c});
+	auto da = ders[0];
+	auto db = ders[1];
+	auto dc = ders[2];
 	auto session = eigen::get_session();
 	session.track({da, db, dc});
 
@@ -286,10 +287,11 @@ static void BM_SigmoidMLP(benchmark::State& state)
 
 	auto err = tenncor::pow(out - sig1, 2.);
 
-	auto dw0 = eteq::derive(err, weight0);
-	auto db0 = eteq::derive(err, bias0);
-	auto dw1 = eteq::derive(err, weight1);
-	auto db1 = eteq::derive(err, bias1);
+	auto ders = eteq::derive(err, {weight0, bias0, weight1, bias1});
+	auto dw0 = ders[0];
+	auto db0 = ders[1];
+	auto dw1 = ders[2];
+	auto db1 = ders[3];
 	auto session = eigen::get_session();
 	session.track({dw0, db0, dw1, db1});
 
@@ -347,10 +349,10 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 
 	auto err = tenncor::pow(out - sig1, 2.);
 
-	auto dw0 = eteq::derive(err, weight0);
-	auto db0 = eteq::derive(err, bias0);
-	auto dw1 = eteq::derive(err, weight1);
-	auto db1 = eteq::derive(err, bias1);
+	auto dw0 = eteq::derive(err, {weight0});
+	auto db0 = eteq::derive(err, {bias0});
+	auto dw1 = eteq::derive(err, {weight1});
+	auto db1 = eteq::derive(err, {bias1});
 
 	auto session = eigen::get_session();
 	session.track({dw0, db0, dw1, db1});

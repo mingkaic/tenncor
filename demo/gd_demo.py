@@ -114,7 +114,7 @@ def main(args):
         test_batch, test_batch_out = batch_generate(ninput, 1)
         testin.assign(test_batch)
 
-        sess.update()
+        sess.update_target([untrained_out, trained_out, pretrained_out])
         untrained_data = untrained_out.get()
         trained_data = trained_out.get()
         pretrained_data = pretrained_out.get()

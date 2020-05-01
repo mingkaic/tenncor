@@ -1953,9 +1953,12 @@ api:
           val: |
               //
                   layr::VarMapT<T> out;
-                  for (const auto& x : variables)
+                  auto ders = eteq::derive<T>(error,
+                      eteq::ETensorsT<T>(variables.begin(), variables.end()));
+                  for (size_t i = 0, n = variables.size(); i < n; ++i)
                   {
-                      auto der = eteq::derive<T>(error, x);
+                      auto& x = variables[i];
+                      auto& der = ders[i];
                       if (apply)
                       {
                           der = apply(der);
@@ -1985,9 +1988,12 @@ api:
           val: |
               //
                   layr::VarMapT<T> out;
-                  for (const auto& x : variables)
+                  auto ders = eteq::derive<T>(error,
+                      eteq::ETensorsT<T>(variables.begin(), variables.end()));
+                  for (size_t i = 0, n = variables.size(); i < n; ++i)
                   {
-                      auto der = eteq::derive<T>(error, x);
+                      auto& x = variables[i];
+                      auto& der = ders[i];
                       if (apply)
                       {
                           der = apply(der);
@@ -2043,9 +2049,12 @@ api:
           val: |
               //
                   layr::VarMapT<T> out;
-                  for (const auto& x : variables)
+                  auto ders = eteq::derive<T>(error,
+                      eteq::ETensorsT<T>(variables.begin(), variables.end()));
+                  for (size_t i = 0, n = variables.size(); i < n; ++i)
                   {
-                      auto der = eteq::derive<T>(error, x);
+                      auto& x = variables[i];
+                      auto& der = ders[i];
                       if (apply)
                       {
                           der = apply(der);
@@ -2114,9 +2123,12 @@ api:
           val: |
               //
                   layr::VarMapT<T> out;
-                  for (const auto& x : variables)
+                  auto ders = eteq::derive<T>(error,
+                      eteq::ETensorsT<T>(variables.begin(), variables.end()));
+                  for (size_t i = 0, n = variables.size(); i < n; ++i)
                   {
-                      auto der = eteq::derive<T>(error, x);
+                      auto& x = variables[i];
+                      auto& der = ders[i];
                       if (apply)
                       {
                           der = apply(der);

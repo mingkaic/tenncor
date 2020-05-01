@@ -94,9 +94,9 @@ static teq::TensptrsT rnn_setup (void)
 
 	auto err = tenncor::pow(out - output, 2.);
 
-	auto dw = eteq::derive(err, weight);
-	auto db = eteq::derive(err, bias);
-	auto dstate = eteq::derive(err, istate);
+	auto dw = eteq::derive(err, {weight})[0];
+	auto db = eteq::derive(err, {bias})[0];
+	auto dstate = eteq::derive(err, {istate})[0];
 
 	return teq::TensptrsT{dw, db, dstate, err};
 }

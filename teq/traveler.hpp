@@ -184,6 +184,11 @@ struct PathFinder final : public iOnceTraveler
 		return roadmap_.at(tens);
 	}
 
+	const TensMapT<std::string>& get_targets (void) const
+	{
+		return targets_;
+	}
+
 	/// Map of parent to child indices that lead to target tensor
 	TensPathsT roadmap_;
 
