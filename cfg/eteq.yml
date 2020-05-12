@@ -7,2145 +7,1473 @@ api:
   - '"layr/approx.hpp"'
   - '"layr/init.hpp"'
   - '"layr/layer.hpp"'
+  pyignore_type:
+    - teq::RankT
+    - teq::DimT
+    - eigen::PairVecT<teq::RankT>
+    - eteq::DimPairsT
+    - eteq::EVariable<T>
+    - eteq::ETensorsT<T>
+    - eteq::EVariablesT<T>
+    - layr::UnaryF<T>
+    - layr::InitF<T>
+    - std::set<teq::RankT>
+    - std::vector<teq::DimT>
+    - std::pair<eteq::DimPairsT,eteq::DimPairsT>
   pybind_includes:
   - '"python/tenncor.hpp"'
-  namespaces:
-    tenncor:
-      - template: typename T
-        name: depends
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: dependee
-        - dtype: const eteq::ETensorsT<T>&
-          name: dependencies
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  if (auto dep = std::dynamic_pointer_cast<eigen::Observable>(
-                    (teq::TensptrT) dependee))
-                  {
-                      return eteq::ETensor<T>(teq::TensptrT(eteq::Depends::get(dep,
-                          teq::TensptrsT(dependencies.begin(), dependencies.end()))));
-                  }
-                  teq::warnf("cannot link non-observable %s to dependencies",
-                      dependee->to_string().c_str());
-                  return dependee;
-      - template: typename T
-        name: assign
-        args:
-        - dtype: const eteq::EVariable<T>&
-          name: target
-        - dtype: const eteq::ETensor<T>&
-          name: source
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ASSIGN,teq::TensptrsT{target,source});
-      - template: typename T
-        name: assign_add
-        args:
-        - dtype: const eteq::EVariable<T>&
-          name: target
-        - dtype: const eteq::ETensor<T>&
-          name: source
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ASSIGN_ADD,teq::TensptrsT{target,source});
-      - template: typename T
-        name: assign_sub
-        args:
-        - dtype: const eteq::EVariable<T>&
-          name: target
-        - dtype: const eteq::ETensor<T>&
-          name: source
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ASSIGN_SUB,teq::TensptrsT{target,source});
-      - template: typename T
-        name: assign_mul
-        args:
-        - dtype: const eteq::EVariable<T>&
-          name: target
-        - dtype: const eteq::ETensor<T>&
-          name: source
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ASSIGN_MUL,teq::TensptrsT{target,source});
-      - template: typename T
-        name: assign_div
-        args:
-        - dtype: const eteq::EVariable<T>&
-          name: target
-        - dtype: const eteq::ETensor<T>&
-          name: source
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ASSIGN_DIV,teq::TensptrsT{target,source});
-      - template: typename T
-        name: identity
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::IDENTITY,teq::TensptrsT{arg});
-      - template: typename T
-        name: abs
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ABS,teq::TensptrsT{arg});
-      - template: typename T
-        name: neg
-        operator: "-"
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::NEG,teq::TensptrsT{arg});
-      - template: typename T
-        name: sin
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SIN,teq::TensptrsT{arg});
-      - template: typename T
-        name: cos
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::COS,teq::TensptrsT{arg});
-      - template: typename T
-        name: tan
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::TAN,teq::TensptrsT{arg});
-      - template: typename T
-        name: exp
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::EXP,teq::TensptrsT{arg});
-      - template: typename T
-        name: log
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::LOG,teq::TensptrsT{arg});
-      - template: typename T
-        name: sqrt
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SQRT,teq::TensptrsT{arg});
-      - template: typename T
-        name: round
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ROUND,teq::TensptrsT{arg});
-      - template: typename T
-        name: sigmoid
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SIGMOID,teq::TensptrsT{arg});
-      - template: typename T
-        name: tanh
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::TANH,teq::TensptrsT{arg});
-      - template: typename T
-        name: square
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SQUARE,teq::TensptrsT{arg});
-      - template: typename T
-        name: cube
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::CUBE,teq::TensptrsT{arg});
-      - template: typename T
-        name: pow
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::POW,teq::TensptrsT{a, b});
-      - template: typename T
-        name: pow
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        - dtype: T
-          name: scalar
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::pow(arg1, eteq::make_constant_like<T>(scalar,arg1));
-      - template: typename T
-        name: pow
-        args:
-        - dtype: T
-          name: scalar
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::pow(eteq::make_constant_like<T>(scalar,arg1),arg1);
-      - template: typename T
-        name: add
-        operator: +
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ADD,teq::TensptrsT{a, b});
-      - template: typename T
-        name: add
-        operator: +
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        - dtype: T
-          name: scalar
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::add(arg1,eteq::make_constant_like<T>(scalar,arg1));
-      - template: typename T
-        name: add
-        operator: +
-        args:
-        - dtype: T
-          name: scalar
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::add(eteq::make_constant_like<T>(scalar,arg1),arg1);
-      - template: typename T
-        name: sub
-        operator: "-"
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SUB,teq::TensptrsT{a, b});
-      - template: typename T
-        name: sub
-        operator: "-"
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        - dtype: T
-          name: scalar
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::sub(arg1,eteq::make_constant_like<T>(scalar,arg1));
-      - template: typename T
-        name: sub
-        operator: "-"
-        args:
-        - dtype: T
-          name: scalar
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::sub(eteq::make_constant_like<T>(scalar,arg1),arg1);
-      - template: typename T
-        name: mul
-        operator: "*"
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::MUL,teq::TensptrsT{a, b});
-      - template: typename T
-        name: mul
-        operator: "*"
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        - dtype: T
-          name: scalar
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::mul(arg1,eteq::make_constant_like<T>(scalar,arg1));
-      - template: typename T
-        name: mul
-        operator: "*"
-        args:
-        - dtype: T
-          name: scalar
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::mul(eteq::make_constant_like<T>(scalar,arg1),arg1);
-      - template: typename T
-        name: div
-        operator: /
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::DIV,teq::TensptrsT{a, b});
-      - template: typename T
-        name: div
-        operator: /
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        - dtype: T
-          name: scalar
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::div(arg1,eteq::make_constant_like<T>(scalar,arg1));
-      - template: typename T
-        name: div
-        operator: /
-        args:
-        - dtype: T
-          name: scalar
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::div(eteq::make_constant_like<T>(scalar,arg1),arg1);
-      - template: typename T
-        name: eq
-        operator: ==
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::EQ,teq::TensptrsT{a, b});
-      - template: typename T
-        name: eq
-        operator: ==
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        - dtype: T
-          name: scalar
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::eq(arg1,eteq::make_constant_like<T>(scalar,arg1));
-      - template: typename T
-        name: eq
-        operator: ==
-        args:
-        - dtype: T
-          name: scalar
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::eq(eteq::make_constant_like<T>(scalar,arg1),arg1);
-      - template: typename T
-        name: neq
-        operator: "!="
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::NEQ,teq::TensptrsT{a, b});
-      - template: typename T
-        name: neq
-        operator: "!="
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        - dtype: T
-          name: scalar
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::neq(arg1,eteq::make_constant_like<T>(scalar,arg1));
-      - template: typename T
-        name: neq
-        operator: "!="
-        args:
-        - dtype: T
-          name: scalar
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::neq(eteq::make_constant_like<T>(scalar,arg1),arg1);
-      - template: typename T
-        name: lt
-        operator: <
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::LT,teq::TensptrsT{a, b});
-      - template: typename T
-        name: lt
-        operator: <
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        - dtype: T
-          name: scalar
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::lt(arg1,eteq::make_constant_like<T>(scalar,arg1));
-      - template: typename T
-        name: lt
-        operator: <
-        args:
-        - dtype: T
-          name: scalar
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::lt(eteq::make_constant_like<T>(scalar,arg1),arg1);
-      - template: typename T
-        name: gt
-        operator: ">"
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::GT,teq::TensptrsT{a, b});
-      - template: typename T
-        name: gt
-        operator: ">"
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        - dtype: T
-          name: scalar
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::gt(arg1,eteq::make_constant_like<T>(scalar,arg1));
-      - template: typename T
-        name: gt
-        operator: ">"
-        args:
-        - dtype: T
-          name: scalar
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::gt(eteq::make_constant_like<T>(scalar,arg1),arg1);
-      - template: typename T
-        name: min
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::MIN,teq::TensptrsT{a, b});
-      - template: typename T
-        name: min
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        - dtype: T
-          name: scalar
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::min(arg1,eteq::make_constant_like<T>(scalar,arg1));
-      - template: typename T
-        name: min
-        args:
-        - dtype: T
-          name: scalar
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::min(eteq::make_constant_like<T>(scalar,arg1),arg1);
-      - template: typename T
-        name: min
-        args:
-        - dtype: const eteq::ETensorsT<T>&
-          name: args
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  if (args.empty())
-                  {
-                      teq::fatal("cannot min without arguments");
-                  }
-                  eteq::ETensor<T> out = args[0];
-                  for (size_t i = 1, n = args.size(); i < n; ++i)
-                  {
-                      out = ::tenncor::min(out, args[i]);
-                  }
-                  return out;
-      - template: typename T
-        name: max
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::MAX,teq::TensptrsT{a, b});
-      - template: typename T
-        name: max
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        - dtype: T
-          name: scalar
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::max(arg1,eteq::make_constant_like<T>(scalar,arg1));
-      - template: typename T
-        name: max
-        args:
-        - dtype: T
-          name: scalar
-        - dtype: const eteq::ETensor<T>&
-          name: arg1
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::max(eteq::make_constant_like<T>(scalar,arg1),arg1);
-      - template: typename T
-        name: max
-        args:
-        - dtype: const eteq::ETensorsT<T>&
-          name: args
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  if (args.empty())
-                  {
-                      teq::fatal("cannot max without arguments");
-                  }
-                  eteq::ETensor<T> out = args[0];
-                  for (size_t i = 1, n = args.size(); i < n; ++i)
-                  {
-                      out = ::tenncor::max(out, args[i]);
-                  }
-                  return out;
-      - template: typename T
-        name: if_then_else
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: condition
-        - dtype: const eteq::ETensor<T>&
-          name: then
-        - dtype: const eteq::ETensor<T>&
-          name: otherwise
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  // if then == otherwise and neither are ambiguous, then treat as identity
-                  if (then.get() == otherwise.get())
-                  {
-                      return then;
-                  }
-                  return eteq::make_functor<T>(::egen::SELECT,teq::TensptrsT{condition,then,otherwise});
-      - template: typename T
-        name: reverse
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: const std::set<teq::RankT>&
-          name: dims
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::REVERSE,teq::TensptrsT{arg},dims);
-      - template: typename T
-        name: permute
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: const std::vector<teq::RankT>&
-          name: order
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::PERMUTE,teq::TensptrsT{arg},order);
-      - template: typename T
-        name: extend
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: const std::vector<teq::DimT>&
-          name: bcast
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::EXTEND,teq::TensptrsT{arg},bcast);
-      - template: typename T
-        name: extend
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::RankT
-          name: offset
-        - dtype: const std::vector<teq::DimT>&
-          name: xlist
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  std::vector<teq::DimT> bcast(offset, 1);
-                  bcast.insert(bcast.end(), xlist.begin(), xlist.end());
-                  return eteq::make_functor<T>(::egen::EXTEND,teq::TensptrsT{arg},bcast);
-      - template: typename T
-        name: concat
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: left
-        - dtype: const eteq::ETensor<T>&
-          name: right
-        - dtype: teq::RankT
-          name: axis
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::CONCAT,teq::TensptrsT{left,right},axis);
-      - template: typename T
-        name: concat
-        args:
-        - dtype: const eteq::ETensorsT<T>&
-          name: args
-        - dtype: teq::RankT
-          name: axis
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::CONCAT,eteq::to_tensors(args),axis);
-      - description: Return extended arg so that output shape matches like tensor exactly
-        template: typename T
-        name: extend_like
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: const eteq::ETensor<T>&
-          name: like
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::EXTEND,teq::TensptrsT{arg},(teq::TensptrT) like);
-      - template: typename T
-        name: reshape
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::Shape
-          name: shape
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::RESHAPE,teq::TensptrsT{arg},shape);
-      - description: Return sum of values along dimensions specified
-        template: typename T
-        name: reduce_sum
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: tens
-        - dtype: std::set<teq::RankT>
-          name: dims
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_SUM,teq::TensptrsT{tens},dims);
-      - description: Return product of values along dimensions specified
-        template: typename T
-        name: reduce_prod
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: tens
-        - dtype: std::set<teq::RankT>
-          name: dims
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_PROD,teq::TensptrsT{tens},dims);
-      - description: Return min of values along dimensions specified
-        template: typename T
-        name: reduce_min
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: tens
-        - dtype: std::set<teq::RankT>
-          name: dims
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_MIN,teq::TensptrsT{tens},dims);
-      - description: Return max of values along dimensions specified
-        template: typename T
-        name: reduce_max
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: tens
-        - dtype: std::set<teq::RankT>
-          name: dims
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::REDUCE_MAX,teq::TensptrsT{tens},dims);
-      - description: Return sum of values for ndims dimensions after offset
-        template: typename T
-        name: reduce_sum
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: tens
-        - dtype: teq::RankT
-          name: offset
-          default: "0"
-        - dtype: teq::RankT
-          name: ndims
-          default: teq::rank_cap
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  if (offset >= teq::rank_cap)
-                  {
-                      teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
-                          offset, teq::rank_cap);
-                  }
-                  std::vector<teq::RankT> dims(std::min(ndims,
-                      (teq::RankT) (teq::rank_cap - offset)));
-                  std::iota(dims.begin(), dims.end(), offset);
-                  return eteq::make_functor<T>(::egen::REDUCE_SUM,teq::TensptrsT{tens},
-                      std::set<teq::RankT>(dims.begin(), dims.end()));
-      - description: Return product of values for ndims dimensions after offset
-        template: typename T
-        name: reduce_prod
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: tens
-        - dtype: teq::RankT
-          name: offset
-          default: "0"
-        - dtype: teq::RankT
-          name: ndims
-          default: teq::rank_cap
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  if (offset >= teq::rank_cap)
-                  {
-                      teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
-                          offset, teq::rank_cap);
-                  }
-                  std::vector<teq::RankT> dims(std::min(ndims,
-                      (teq::RankT) (teq::rank_cap - offset)));
-                  std::iota(dims.begin(), dims.end(), offset);
-                  return eteq::make_functor<T>(::egen::REDUCE_PROD,teq::TensptrsT{tens},
-                      std::set<teq::RankT>(dims.begin(), dims.end()));
-      - description: Return min of values for ndims dimensions after offset
-        template: typename T
-        name: reduce_min
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: tens
-        - dtype: teq::RankT
-          name: offset
-          default: "0"
-        - dtype: teq::RankT
-          name: ndims
-          default: teq::rank_cap
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  if (offset >= teq::rank_cap)
-                  {
-                      teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
-                          offset, teq::rank_cap);
-                  }
-                  std::vector<teq::RankT> dims(std::min(ndims,
-                      (teq::RankT) (teq::rank_cap - offset)));
-                  std::iota(dims.begin(), dims.end(), offset);
-                  return eteq::make_functor<T>(::egen::REDUCE_MIN,teq::TensptrsT{tens},
-                      std::set<teq::RankT>(dims.begin(), dims.end()));
-      - description: Return max of values for ndims dimensions after offset
-        template: typename T
-        name: reduce_max
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: tens
-        - dtype: teq::RankT
-          name: offset
-          default: "0"
-        - dtype: teq::RankT
-          name: ndims
-          default: teq::rank_cap
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  if (offset >= teq::rank_cap)
-                  {
-                      teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
-                          offset, teq::rank_cap);
-                  }
-                  std::vector<teq::RankT> dims(std::min(ndims,
-                      (teq::RankT) (teq::rank_cap - offset)));
-                  std::iota(dims.begin(), dims.end(), offset);
-                  return eteq::make_functor<T>(::egen::REDUCE_MAX,teq::TensptrsT{tens},
-                      std::set<teq::RankT>(dims.begin(), dims.end()));
-      - template: typename T
-        name: argmax
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: tens
-        - dtype: teq::RankT
-          name: return_dim
-          default: "8"
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::ARGMAX,teq::TensptrsT{tens},return_dim);
-      - template: typename T
-        name: n_elems
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_constant_scalar<T>(arg->shape().n_elems(), teq::Shape());
-      - template: typename T
-        name: n_dims
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::RankT
-          name: rank
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_constant_scalar<T>(arg->shape().at(rank), teq::Shape());
-      - description: extents vector consists of pairs offset and extent for each dimension
-        template: typename T
-        name: slice
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: eigen::PairVecT<teq::DimT>
-          name: extents
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SLICE,teq::TensptrsT{arg},extents);
-      - template: typename T
-        name: slice
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::DimT
-          name: offset
-        - dtype: teq::DimT
-          name: extent
-        - dtype: teq::RankT
-          name: dimension
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  eigen::PairVecT<teq::DimT> extents(
-                      std::max(teq::rank_cap, dimension),
-                      {0,std::numeric_limits<teq::DimT>::max()});
-                  extents[dimension] = {offset, extent};
-                  return ::tenncor::slice(arg, extents);
-      - template: typename T
-        name: pad
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: eigen::PairVecT<teq::DimT>
-          name: paddings
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::PAD,teq::TensptrsT{arg},paddings);
-      - template: typename T
-        name: pad
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: const eteq::DimPairsT&
-          name: padding
-        - dtype: teq::RankT
-          name: dimension
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  eigen::PairVecT<teq::DimT> paddings(
-                      std::max(teq::rank_cap, dimension), {0,0});
-                  paddings[dimension] = padding;
-                  return ::tenncor::pad(arg, paddings);
-      - template: typename T
-        name: stride
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: const std::vector<teq::DimT>&
-          name: incrs
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::STRIDE,teq::TensptrsT{arg},incrs);
-      - description: populate input values at specific increments along its dimensions to fit specified shape (opposite of stride)
-        template: typename T
-        name: scatter
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: const teq::Shape&
-          name: outshape
-        - dtype: const std::vector<teq::DimT>&
-          name: incrs
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::SCATTER,teq::TensptrsT{arg},outshape,incrs);
-      - description: multiple values across specify dimensions pairs before summing all products (generalization of matrix product), defaults to matrix product
-        template: typename T
-        name: contract
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        - dtype: eigen::PairVecT<teq::RankT>
-          name: dims
-          default: eigen::PairVecT<teq::RankT>{{0, 1}}
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::MATMUL,teq::TensptrsT{a, b}, dims);
-      - template: typename T
-        name: matmul
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::contract(a, b);
-      - template: typename T
-        name: convolution
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: image
-        - dtype: const eteq::ETensor<T>&
-          name: kernel
-        - dtype: const std::vector<teq::RankT>&
-          name: dims
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::CONV,teq::TensptrsT{image,kernel},dims);
-      - template: typename T
-        name: reduce_sum_1d
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::RankT
-          name: dimension
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  auto red = ::tenncor::reduce_sum(arg, dimension, 1);
+  pybind_module: tenncor
+  pyglobal:
+    - name: api
+      type: TenncorAPI<float>
+      decl: |
+          //
+              static TenncorAPI<float> global(eteq::global_context().registry_);
+              return global;
+  funcs:
+    - template: typename T
+      description: Get global tenncor api instance
+      name: tenncor
+      out:
+        type: TenncorAPI<T>&
+        val: |
+            //
+                static TenncorAPI<T> api;
+                return api;
+      pyignores: True
+    - template: typename T
+      description: Negation operator with output ETensor using the same registry as the input
+      operator: "-"
+      args:
+      - type: const eteq::ETensor<T>&
+        name: arg
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).neg(arg);
+    - template: typename T
+      description: Addition operator with output ETensor using the same registry as the left input
+      operator: +
+      args:
+      - type: const eteq::ETensor<T>&
+        name: a
+      - type: const eteq::ETensor<T>&
+        name: b
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*a.get_registry()).add(a,b);
+    - template: typename T
+      description: Addition operator with output ETensor using the same registry as the tensor input
+      operator: +
+      args:
+      - type: const eteq::ETensor<T>&
+        name: arg
+      - type: T
+        name: scalar
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).add(arg,scalar);
+    - template: typename T
+      description: Addition operator with output ETensor using the same registry as the tensor input
+      operator: +
+      args:
+      - type: T
+        name: scalar
+      - type: const eteq::ETensor<T>&
+        name: arg
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).add(scalar,arg);
+    - template: typename T
+      description: Subtraction operator with output ETensor using the same registry as the left input
+      operator: "-"
+      args:
+      - type: const eteq::ETensor<T>&
+        name: a
+      - type: const eteq::ETensor<T>&
+        name: b
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*a.get_registry()).sub(a,b);
+    - template: typename T
+      description: Subtraction operator with output ETensor using the same registry as the tensor input
+      operator: "-"
+      args:
+      - type: const eteq::ETensor<T>&
+        name: arg
+      - type: T
+        name: scalar
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).sub(arg,scalar);
+    - template: typename T
+      description: Subtraction operator with output ETensor using the same registry as the tensor input
+      operator: "-"
+      args:
+      - type: T
+        name: scalar
+      - type: const eteq::ETensor<T>&
+        name: arg
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).sub(scalar,arg);
+    - template: typename T
+      description: Multiplication operator with output ETensor using the same registry as the left input
+      operator: "*"
+      args:
+      - type: const eteq::ETensor<T>&
+        name: a
+      - type: const eteq::ETensor<T>&
+        name: b
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*a.get_registry()).mul(a,b);
+    - template: typename T
+      description: Multiplication operator with output ETensor using the same registry as the tensor input
+      operator: "*"
+      args:
+      - type: const eteq::ETensor<T>&
+        name: arg
+      - type: T
+        name: scalar
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).mul(arg,scalar);
+    - template: typename T
+      description: Multiplication operator with output ETensor using the same registry as the tensor input
+      operator: "*"
+      args:
+      - type: T
+        name: scalar
+      - type: const eteq::ETensor<T>&
+        name: arg
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).mul(scalar,arg);
+    - template: typename T
+      description: Division operator with output ETensor using the same registry as the left input
+      operator: /
+      args:
+      - type: const eteq::ETensor<T>&
+        name: a
+      - type: const eteq::ETensor<T>&
+        name: b
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*a.get_registry()).div(a,b);
+    - template: typename T
+      description: Division operator with output ETensor using the same registry as the tensor input
+      operator: /
+      args:
+      - type: const eteq::ETensor<T>&
+        name: arg
+      - type: T
+        name: scalar
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).div(arg,scalar);
+    - template: typename T
+      description: Division operator with output ETensor using the same registry as the tensor input
+      operator: /
+      args:
+      - type: T
+        name: scalar
+      - type: const eteq::ETensor<T>&
+        name: arg
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).div(scalar,arg);
+    - template: typename T
+      description: Equality operator with output ETensor using the same registry as the left input
+      operator: ==
+      args:
+      - type: const eteq::ETensor<T>&
+        name: a
+      - type: const eteq::ETensor<T>&
+        name: b
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*a.get_registry()).eq(a,b);
+    - template: typename T
+      description: Equality operator with output ETensor using the same registry as the tensor input
+      operator: ==
+      args:
+      - type: const eteq::ETensor<T>&
+        name: arg
+      - type: T
+        name: scalar
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).eq(arg,scalar);
+    - template: typename T
+      description: Equality operator with output ETensor using the same registry as the tensor input
+      operator: ==
+      args:
+      - type: T
+        name: scalar
+      - type: const eteq::ETensor<T>&
+        name: arg
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).eq(scalar,arg);
+    - template: typename T
+      description: Inequality operator with output ETensor using the same registry as the left input
+      operator: "!="
+      args:
+      - type: const eteq::ETensor<T>&
+        name: a
+      - type: const eteq::ETensor<T>&
+        name: b
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*a.get_registry()).neq(a,b);
+    - template: typename T
+      description: Inequality operator with output ETensor using the same registry as the tensor input
+      operator: "!="
+      args:
+      - type: const eteq::ETensor<T>&
+        name: arg
+      - type: T
+        name: scalar
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).neq(arg,scalar);
+    - template: typename T
+      description: Inequality operator with output ETensor using the same registry as the tensor input
+      operator: "!="
+      args:
+      - type: T
+        name: scalar
+      - type: const eteq::ETensor<T>&
+        name: arg
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).neq(scalar,arg);
+    - template: typename T
+      description: Lesser than operator with output ETensor using the same registry as the left input
+      operator: <
+      args:
+      - type: const eteq::ETensor<T>&
+        name: a
+      - type: const eteq::ETensor<T>&
+        name: b
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*a.get_registry()).lt(a,b);
+    - template: typename T
+      description: Lesser than operator with output ETensor using the same registry as the tensor input
+      operator: <
+      args:
+      - type: const eteq::ETensor<T>&
+        name: arg
+      - type: T
+        name: scalar
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).lt(arg,scalar);
+    - template: typename T
+      description: Lesser than operator with output ETensor using the same registry as the tensor input
+      operator: <
+      args:
+      - type: T
+        name: scalar
+      - type: const eteq::ETensor<T>&
+        name: arg
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).lt(scalar,arg);
+    - template: typename T
+      description: Greater than operator with output ETensor using the same registry as the left input
+      operator: ">"
+      args:
+      - type: const eteq::ETensor<T>&
+        name: a
+      - type: const eteq::ETensor<T>&
+        name: b
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*a.get_registry()).gt(a,b);
+    - template: typename T
+      description: Greater than operator with output ETensor using the same registry as the tensor input
+      operator: ">"
+      args:
+      - type: const eteq::ETensor<T>&
+        name: arg
+      - type: T
+        name: scalar
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).gt(arg,scalar);
+    - template: typename T
+      description: Greater than operator with output ETensor using the same registry as the tensor input
+      operator: ">"
+      args:
+      - type: T
+        name: scalar
+      - type: const eteq::ETensor<T>&
+        name: arg
+      out:
+        type: eteq::ETensor<T>
+        val: return TenncorAPI<T>(*arg.get_registry()).gt(scalar,arg);
+  classes:
+    - name: TenncorAPI
+      template: typename T
+      init:
+        args:
+          - name: reg
+            type: eteq::ETensRegistryT&
+            default: eteq::global_context().registry_
+        initlist:
+          random: this
+          nn: this
+          layer: this
+          error: this
+          approx: this
+          registry: "&reg"
+      members:
+        - name: registry
+          type: eteq::ETensRegistryT*
+          public: True
+        - name: random
+          type: RandomAPI<T>
+          public: True
+        - name: nn
+          type: NnAPI<T>
+          public: True
+        - name: layer
+          type: LayerAPI<T>
+          public: True
+        - name: error
+          type: ErrorAPI<T>
+          public: True
+        - name: approx
+          type: ApproxAPI<T>
+          public: True
+      funcs:
+        - name: depends
+          args:
+          - type: const eteq::ETensor<T>&
+            name: dependee
+          - type: const eteq::ETensorsT<T>&
+            name: dependencies
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    if (auto dep = std::dynamic_pointer_cast<eigen::Observable>(
+                      (teq::TensptrT) dependee))
+                    {
+                        return eteq::ETensor<T>(teq::TensptrT(eteq::Depends::get(dep,
+                            teq::TensptrsT(dependencies.begin(),dependencies.end()))),*registry);
+                    }
+                    teq::warnf("cannot link non-observable %s to dependencies",
+                        dependee->to_string().c_str());
+                    return dependee;
+        - name: assign
+          args:
+          - type: const eteq::EVariable<T>&
+            name: target
+          - type: const eteq::ETensor<T>&
+            name: source
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::ASSIGN,teq::TensptrsT{target,source});
+        - name: assign_add
+          args:
+          - type: const eteq::EVariable<T>&
+            name: target
+          - type: const eteq::ETensor<T>&
+            name: source
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::ASSIGN_ADD,teq::TensptrsT{target,source});
+        - name: assign_sub
+          args:
+          - type: const eteq::EVariable<T>&
+            name: target
+          - type: const eteq::ETensor<T>&
+            name: source
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::ASSIGN_SUB,teq::TensptrsT{target,source});
+        - name: assign_mul
+          args:
+          - type: const eteq::EVariable<T>&
+            name: target
+          - type: const eteq::ETensor<T>&
+            name: source
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::ASSIGN_MUL,teq::TensptrsT{target,source});
+        - name: assign_div
+          args:
+          - type: const eteq::EVariable<T>&
+            name: target
+          - type: const eteq::ETensor<T>&
+            name: source
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::ASSIGN_DIV,teq::TensptrsT{target,source});
+        - name: identity
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::IDENTITY,teq::TensptrsT{arg});
+        - name: abs
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::ABS,teq::TensptrsT{arg});
+        - name: neg
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::NEG,teq::TensptrsT{arg});
+        - name: sin
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::SIN,teq::TensptrsT{arg});
+        - name: cos
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::COS,teq::TensptrsT{arg});
+        - name: tan
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::TAN,teq::TensptrsT{arg});
+        - name: exp
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::EXP,teq::TensptrsT{arg});
+        - name: log
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::LOG,teq::TensptrsT{arg});
+        - name: sqrt
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::SQRT,teq::TensptrsT{arg});
+        - name: round
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::ROUND,teq::TensptrsT{arg});
+        - name: sigmoid
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::SIGMOID,teq::TensptrsT{arg});
+        - name: tanh
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::TANH,teq::TensptrsT{arg});
+        - name: square
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::SQUARE,teq::TensptrsT{arg});
+        - name: cube
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::CUBE,teq::TensptrsT{arg});
+        - name: pow
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::POW,teq::TensptrsT{a,b});
+        - name: pow
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: scalar
+          out:
+            type: eteq::ETensor<T>
+            val: return this->pow(arg,eteq::make_constant_like<T>(scalar,arg));
+        - name: pow
+          args:
+          - type: T
+            name: scalar
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->pow(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+        - name: add
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::ADD,teq::TensptrsT{a,b});
+        - name: add
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: scalar
+          out:
+            type: eteq::ETensor<T>
+            val: return this->add(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+        - name: add
+          args:
+          - type: T
+            name: scalar
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->add(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+        - name: sub
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::SUB,teq::TensptrsT{a,b});
+        - name: sub
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: scalar
+          out:
+            type: eteq::ETensor<T>
+            val: return this->sub(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+        - name: sub
+          args:
+          - type: T
+            name: scalar
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->sub(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+        - name: mul
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::MUL,teq::TensptrsT{a,b});
+        - name: mul
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: scalar
+          out:
+            type: eteq::ETensor<T>
+            val: return this->mul(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+        - name: mul
+          args:
+          - type: T
+            name: scalar
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->mul(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+        - name: div
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::DIV,teq::TensptrsT{a,b});
+        - name: div
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: scalar
+          out:
+            type: eteq::ETensor<T>
+            val: return this->div(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+        - name: div
+          args:
+          - type: T
+            name: scalar
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->div(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+        - name: eq
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::EQ,teq::TensptrsT{a,b});
+        - name: eq
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: scalar
+          out:
+            type: eteq::ETensor<T>
+            val: return this->eq(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+        - name: eq
+          args:
+          - type: T
+            name: scalar
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->eq(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+        - name: neq
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::NEQ,teq::TensptrsT{a,b});
+        - name: neq
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: scalar
+          out:
+            type: eteq::ETensor<T>
+            val: return this->neq(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+        - name: neq
+          args:
+          - type: T
+            name: scalar
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->neq(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+        - name: lt
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::LT,teq::TensptrsT{a,b});
+        - name: lt
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: scalar
+          out:
+            type: eteq::ETensor<T>
+            val: return this->lt(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+        - name: lt
+          args:
+          - type: T
+            name: scalar
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->lt(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+        - name: gt
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::GT,teq::TensptrsT{a,b});
+        - name: gt
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: scalar
+          out:
+            type: eteq::ETensor<T>
+            val: return this->gt(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+        - name: gt
+          args:
+          - type: T
+            name: scalar
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->gt(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+        - name: min
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::MIN,teq::TensptrsT{a,b});
+        - name: min
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: scalar
+          out:
+            type: eteq::ETensor<T>
+            val: return this->min(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+        - name: min
+          args:
+          - type: T
+            name: scalar
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->min(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+        - name: min
+          args:
+          - type: const eteq::ETensorsT<T>&
+            name: args
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    if (args.empty())
+                    {
+                        teq::fatal("cannot min without arguments");
+                    }
+                    eteq::ETensor<T> out = args[0];
+                    for (size_t i = 1,n = args.size(); i < n; ++i)
+                    {
+                        out = this->min(out,args[i]);
+                    }
+                    return out;
+        - name: max
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::MAX,teq::TensptrsT{a,b});
+        - name: max
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: scalar
+          out:
+            type: eteq::ETensor<T>
+            val: return this->max(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+        - name: max
+          args:
+          - type: T
+            name: scalar
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->max(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+        - name: max
+          args:
+          - type: const eteq::ETensorsT<T>&
+            name: args
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    if (args.empty())
+                    {
+                        teq::fatal("cannot max without arguments");
+                    }
+                    eteq::ETensor<T> out = args[0];
+                    for (size_t i = 1,n = args.size(); i < n; ++i)
+                    {
+                        out = this->max(out,args[i]);
+                    }
+                    return out;
+        - name: if_then_else
+          args:
+          - type: const eteq::ETensor<T>&
+            name: condition
+          - type: const eteq::ETensor<T>&
+            name: then
+          - type: const eteq::ETensor<T>&
+            name: otherwise
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    // if then == otherwise and neither are ambiguous,then treat as identity
+                    if (then.get() == otherwise.get())
+                    {
+                        return then;
+                    }
+                    return eteq::make_functor<T>(*registry,::egen::SELECT,teq::TensptrsT{condition,then,otherwise});
+        - name: reverse
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: const std::set<teq::RankT>&
+            name: dims
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::REVERSE,teq::TensptrsT{arg},dims);
+        - name: permute
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: const std::vector<teq::RankT>&
+            name: order
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::PERMUTE,teq::TensptrsT{arg},order);
+        - name: extend
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: const std::vector<teq::DimT>&
+            name: bcast
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::EXTEND,teq::TensptrsT{arg},bcast);
+        - name: extend
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::RankT
+            name: offset
+          - type: const std::vector<teq::DimT>&
+            name: xlist
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    std::vector<teq::DimT> bcast(offset,1);
+                    bcast.insert(bcast.end(),xlist.begin(),xlist.end());
+                    return eteq::make_functor<T>(*registry,::egen::EXTEND,teq::TensptrsT{arg},bcast);
+        - name: concat
+          args:
+          - type: const eteq::ETensor<T>&
+            name: left
+          - type: const eteq::ETensor<T>&
+            name: right
+          - type: teq::RankT
+            name: axis
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::CONCAT,teq::TensptrsT{left,right},axis);
+        - name: concat
+          args:
+          - type: const eteq::ETensorsT<T>&
+            name: args
+          - type: teq::RankT
+            name: axis
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::CONCAT,eteq::to_tensors(args),axis);
+        - description: Return extended arg so that output shape matches like tensor exactly
+          name: extend_like
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: const eteq::ETensor<T>&
+            name: like
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::EXTEND,teq::TensptrsT{arg},(teq::TensptrT) like);
+        - name: reshape
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::Shape
+            name: shape
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::RESHAPE,teq::TensptrsT{arg},shape);
+        - description: Return sum of values along dimensions specified
+          name: reduce_sum
+          args:
+          - type: const eteq::ETensor<T>&
+            name: tens
+          - type: std::set<teq::RankT>
+            name: dims
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::REDUCE_SUM,teq::TensptrsT{tens},dims);
+        - description: Return product of values along dimensions specified
+          name: reduce_prod
+          args:
+          - type: const eteq::ETensor<T>&
+            name: tens
+          - type: std::set<teq::RankT>
+            name: dims
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::REDUCE_PROD,teq::TensptrsT{tens},dims);
+        - description: Return min of values along dimensions specified
+          name: reduce_min
+          args:
+          - type: const eteq::ETensor<T>&
+            name: tens
+          - type: std::set<teq::RankT>
+            name: dims
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::REDUCE_MIN,teq::TensptrsT{tens},dims);
+        - description: Return max of values along dimensions specified
+          name: reduce_max
+          args:
+          - type: const eteq::ETensor<T>&
+            name: tens
+          - type: std::set<teq::RankT>
+            name: dims
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::REDUCE_MAX,teq::TensptrsT{tens},dims);
+        - description: Return sum of values for ndims dimensions after offset
+          name: reduce_sum
+          args:
+          - type: const eteq::ETensor<T>&
+            name: tens
+          - type: teq::RankT
+            name: offset
+            default: "0"
+          - type: teq::RankT
+            name: ndims
+            default: teq::rank_cap
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    if (offset >= teq::rank_cap)
+                    {
+                        teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                            offset,teq::rank_cap);
+                    }
+                    std::vector<teq::RankT> dims(std::min(ndims,
+                        (teq::RankT) (teq::rank_cap - offset)));
+                    std::iota(dims.begin(),dims.end(),offset);
+                    return eteq::make_functor<T>(*registry,::egen::REDUCE_SUM,teq::TensptrsT{tens},
+                        std::set<teq::RankT>(dims.begin(),dims.end()));
+        - description: Return product of values for ndims dimensions after offset
+          name: reduce_prod
+          args:
+          - type: const eteq::ETensor<T>&
+            name: tens
+          - type: teq::RankT
+            name: offset
+            default: "0"
+          - type: teq::RankT
+            name: ndims
+            default: teq::rank_cap
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    if (offset >= teq::rank_cap)
+                    {
+                        teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                            offset,teq::rank_cap);
+                    }
+                    std::vector<teq::RankT> dims(std::min(ndims,
+                        (teq::RankT) (teq::rank_cap - offset)));
+                    std::iota(dims.begin(),dims.end(),offset);
+                    return eteq::make_functor<T>(*registry,::egen::REDUCE_PROD,teq::TensptrsT{tens},
+                        std::set<teq::RankT>(dims.begin(),dims.end()));
+        - description: Return min of values for ndims dimensions after offset
+          name: reduce_min
+          args:
+          - type: const eteq::ETensor<T>&
+            name: tens
+          - type: teq::RankT
+            name: offset
+            default: "0"
+          - type: teq::RankT
+            name: ndims
+            default: teq::rank_cap
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    if (offset >= teq::rank_cap)
+                    {
+                        teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                            offset,teq::rank_cap);
+                    }
+                    std::vector<teq::RankT> dims(std::min(ndims,
+                        (teq::RankT) (teq::rank_cap - offset)));
+                    std::iota(dims.begin(),dims.end(),offset);
+                    return eteq::make_functor<T>(*registry,::egen::REDUCE_MIN,teq::TensptrsT{tens},
+                        std::set<teq::RankT>(dims.begin(),dims.end()));
+        - description: Return max of values for ndims dimensions after offset
+          name: reduce_max
+          args:
+          - type: const eteq::ETensor<T>&
+            name: tens
+          - type: teq::RankT
+            name: offset
+            default: "0"
+          - type: teq::RankT
+            name: ndims
+            default: teq::rank_cap
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    if (offset >= teq::rank_cap)
+                    {
+                        teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                            offset,teq::rank_cap);
+                    }
+                    std::vector<teq::RankT> dims(std::min(ndims,
+                        (teq::RankT) (teq::rank_cap - offset)));
+                    std::iota(dims.begin(),dims.end(),offset);
+                    return eteq::make_functor<T>(*registry,::egen::REDUCE_MAX,teq::TensptrsT{tens},
+                        std::set<teq::RankT>(dims.begin(),dims.end()));
+        - name: argmax
+          args:
+          - type: const eteq::ETensor<T>&
+            name: tens
+          - type: teq::RankT
+            name: return_dim
+            default: "8"
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::ARGMAX,teq::TensptrsT{tens},return_dim);
+        - name: n_elems
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_constant_scalar<T>(arg->shape().n_elems(),teq::Shape(),*registry);
+        - name: n_dims
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::RankT
+            name: rank
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_constant_scalar<T>(arg->shape().at(rank),teq::Shape(),*registry);
+        - description: extents vector consists of pairs offset and extent for each dimension
+          name: slice
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: eigen::PairVecT<teq::DimT>
+            name: extents
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::SLICE,teq::TensptrsT{arg},extents);
+        - name: slice
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::DimT
+            name: offset
+          - type: teq::DimT
+            name: extent
+          - type: teq::RankT
+            name: dimension
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    eigen::PairVecT<teq::DimT> extents(
+                        std::max(teq::rank_cap,dimension),
+                        {0,std::numeric_limits<teq::DimT>::max()});
+                    extents[dimension] = {offset,extent};
+                    return this->slice(arg,extents);
+        - name: pad
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: eigen::PairVecT<teq::DimT>
+            name: paddings
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::PAD,teq::TensptrsT{arg},paddings);
+        - name: pad
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: const eteq::DimPairsT&
+            name: padding
+          - type: teq::RankT
+            name: dimension
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    eigen::PairVecT<teq::DimT> paddings(
+                        std::max(teq::rank_cap,dimension),{0,0});
+                    paddings[dimension] = padding;
+                    return this->pad(arg,paddings);
+        - name: stride
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: const std::vector<teq::DimT>&
+            name: incrs
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::STRIDE,teq::TensptrsT{arg},incrs);
+        - description: populate input values at specific increments along its dimensions to fit specified shape (opposite of stride)
+          name: scatter
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: const teq::Shape&
+            name: outshape
+          - type: const std::vector<teq::DimT>&
+            name: incrs
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::SCATTER,teq::TensptrsT{arg},outshape,incrs);
+        - description: multiple values across specify dimensions pairs before summing all products (generalization of matrix product),defaults to matrix product
+          name: contract
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          - type: eigen::PairVecT<teq::RankT>
+            name: dims
+            default: eigen::PairVecT<teq::RankT>{{0,1}}
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::MATMUL,teq::TensptrsT{a,b},dims);
+        - name: matmul
+          args:
+          - type: const eteq::ETensor<T>&
+            name: a
+          - type: const eteq::ETensor<T>&
+            name: b
+          out:
+            type: eteq::ETensor<T>
+            val: return this->contract(a,b);
+        - name: convolution
+          args:
+          - type: const eteq::ETensor<T>&
+            name: image
+          - type: const eteq::ETensor<T>&
+            name: kernel
+          - type: const std::vector<teq::RankT>&
+            name: dims
+          out:
+            type: eteq::ETensor<T>
+            val: return eteq::make_functor<T>(*registry,::egen::CONV,teq::TensptrsT{image,kernel},dims);
+        - name: reduce_sum_1d
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::RankT
+            name: dimension
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    auto red = this->reduce_sum(arg,dimension,1);
 
-                  std::vector<teq::RankT> indices(teq::rank_cap);
-                  auto bt = indices.begin();
-                  auto it = bt + dimension;
-                  std::iota(bt, it, 0);
-                  std::iota(it, indices.end(), dimension + 1);
-                  indices[teq::rank_cap - 1] = dimension;
-                  return ::tenncor::permute(red, indices);
-      - template: typename T
-        name: reduce_prod_1d
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::RankT
-          name: dimension
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  auto red = ::tenncor::reduce_prod(arg, dimension, 1);
+                    std::vector<teq::RankT> indices(teq::rank_cap);
+                    auto bt = indices.begin();
+                    auto it = bt + dimension;
+                    std::iota(bt,it,0);
+                    std::iota(it,indices.end(),dimension + 1);
+                    indices[teq::rank_cap - 1] = dimension;
+                    return this->permute(red,indices);
+        - name: reduce_prod_1d
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::RankT
+            name: dimension
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    auto red = this->reduce_prod(arg,dimension,1);
 
-                  std::vector<teq::RankT> indices(teq::rank_cap);
-                  auto bt = indices.begin();
-                  auto it = bt + dimension;
-                  std::iota(bt, it, 0);
-                  std::iota(it, indices.end(), dimension + 1);
-                  indices[teq::rank_cap - 1] = dimension;
-                  return ::tenncor::permute(red, indices);
-      - template: typename T
-        name: reduce_min_1d
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::RankT
-          name: dimension
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  auto red = ::tenncor::reduce_min(arg, dimension, 1);
+                    std::vector<teq::RankT> indices(teq::rank_cap);
+                    auto bt = indices.begin();
+                    auto it = bt + dimension;
+                    std::iota(bt,it,0);
+                    std::iota(it,indices.end(),dimension + 1);
+                    indices[teq::rank_cap - 1] = dimension;
+                    return this->permute(red,indices);
+        - name: reduce_min_1d
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::RankT
+            name: dimension
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    auto red = this->reduce_min(arg,dimension,1);
 
-                  std::vector<teq::RankT> indices(teq::rank_cap);
-                  auto bt = indices.begin();
-                  auto it = bt + dimension;
-                  std::iota(bt, it, 0);
-                  std::iota(it, indices.end(), dimension + 1);
-                  indices[teq::rank_cap - 1] = dimension;
-                  return ::tenncor::permute(red, indices);
-      - template: typename T
-        name: reduce_max_1d
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::RankT
-          name: dimension
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  auto red = ::tenncor::reduce_max(arg, dimension, 1);
+                    std::vector<teq::RankT> indices(teq::rank_cap);
+                    auto bt = indices.begin();
+                    auto it = bt + dimension;
+                    std::iota(bt,it,0);
+                    std::iota(it,indices.end(),dimension + 1);
+                    indices[teq::rank_cap - 1] = dimension;
+                    return this->permute(red,indices);
+        - name: reduce_max_1d
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::RankT
+            name: dimension
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    auto red = this->reduce_max(arg,dimension,1);
 
-                  std::vector<teq::RankT> indices(teq::rank_cap);
-                  auto bt = indices.begin();
-                  auto it = bt + dimension;
-                  std::iota(bt, it, 0);
-                  std::iota(it, indices.end(), dimension + 1);
-                  indices[teq::rank_cap - 1] = dimension;
-                  return ::tenncor::permute(red, indices);
-      - template: typename T
-        name: transpose
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::permute(arg, {1, 0});
-      - template: typename T
-        name: reduce_mean
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::div(::tenncor::reduce_sum(arg), ::tenncor::n_elems(arg));
-      - template: typename T
-        name: reduce_mean_1d
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::RankT
-          name: dimension
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  auto red = ::tenncor::reduce_sum_1d(arg, dimension);
-                  auto dim = eteq::make_constant_like<T>(arg->shape().at(dimension), red);
-                  return ::tenncor::div(red, dim);
-      - template: typename T
-        name: reduce_l2norm
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::RankT
-          name: offset
-          default: "0"
-        - dtype: teq::RankT
-          name: ndims
-          default: teq::rank_cap
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::sqrt(::tenncor::reduce_sum(::tenncor::square(arg), offset, ndims));
-      - template: typename T
-        name: reduce_l2norm_1d
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::RankT
-          name: dimension
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::sqrt(::tenncor::reduce_sum_1d(::tenncor::square(arg), dimension));
-      - template: typename T
-        name: clip_by_range
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: T
-          name: minval
-        - dtype: T
-          name: maxval
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  if (minval > maxval)
-                  {
-                      teq::fatal("min value is below max");
-                  }
-                  auto lo = eteq::make_constant_like<T>(minval, arg);
-                  auto hi = eteq::make_constant_like<T>(maxval, arg);
-                  return ::tenncor::max(::tenncor::min(arg, hi), lo);
-      - description: clip by l2norm
-        template: typename T
-        name: clip_by_l2norm
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: T
-          name: upper
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  // todo: parameterize l2norm offset and ndims
-                  if (upper == 0)
-                  {
-                      teq::fatal("cannot clip_by_norm with a upper limit of 0");
-                  }
-                  auto norm = ::tenncor::extend_like(
-                      ::tenncor::reduce_l2norm(arg), arg);
-                  auto limit = eteq::make_constant_like<T>(upper, arg);
-                  return ::tenncor::if_then_else(::tenncor::lt(norm, limit),
-                      arg, ::tenncor::div(::tenncor::mul(arg, limit), norm));
-      - template: typename T
-        name: sum
-        args:
-        - dtype: const eteq::ETensorsT<T>&
-          name: args
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  size_t nargs = args.size();
-                  switch (nargs)
-                  {
-                      case 0:
-                          teq::fatal("cannot sum without arguments");
-                      case 1:
-                          return args[0];
-                      case 2:
-                          return ::tenncor::add(args[0], args[1]);
-                      default:
-                          break;
-                  }
-                  return eteq::make_functor<T>(::egen::ADD, eteq::to_tensors(args));
-      - template: typename T
-        name: prod
-        args:
-        - dtype: const eteq::ETensorsT<T>&
-          name: args
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  size_t nargs = args.size();
-                  switch (nargs)
-                  {
-                      case 0:
-                          teq::fatal("cannot prod without arguments");
-                      case 1:
-                          return args[0];
-                      default:
-                          break;
-                  }
-                  return eteq::make_functor<T>(::egen::MUL, eteq::to_tensors(args));
-      - template: typename T
-        name: softmax
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: teq::RankT
-          name: offset
-          default: "0"
-        - dtype: teq::RankT
-          name: ndims
-          default: teq::rank_cap
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  if (offset + ndims > teq::rank_cap)
-                  {
-                      teq::fatalf("cannot perform softmax on dimensions beyond %d",
-                          teq::rank_cap);
-                  }
-                  teq::Shape shape = arg->shape();
-                  auto overflow_preventer = ::tenncor::extend_like(
-                      ::tenncor::reduce_max(arg, offset, ndims), arg);
-                  auto exarg = ::tenncor::exp(::tenncor::sub(arg, overflow_preventer));
-                  auto it = shape.begin() + offset;
-                  std::vector<teq::DimT> xlist(it, it + ndims);
-                  return ::tenncor::div(exarg,
-                      ::tenncor::extend_like(::tenncor::add(
-                          ::tenncor::reduce_sum(exarg, offset, ndims),
-                          std::numeric_limits<T>::epsilon()), exarg));
-      - template: typename T
-        name: relu
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::max(arg, (T) 0);
-      - template: typename T
-        name: softplus
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::log(::tenncor::add((T) 1, ::tenncor::exp(arg)));
-      - template: typename T
-        name: sign
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: x
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::add(::tenncor::mul((T)-2,::tenncor::lt(x,(T)0)),(T)1);
-    tenncor::random:
-      - template: typename T
-        name: rand_unif
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: a
-        - dtype: const eteq::ETensor<T>&
-          name: b
-        out:
-          type: eteq::ETensor<T>
-          val: return eteq::make_functor<T>(::egen::RAND_UNIF,teq::TensptrsT{a, b});
-      - template: typename T
-        name: rand_binom_one
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  auto trial = ::tenncor::random::rand_unif(
-                      eteq::make_variable_like<T>((T) 0, arg),
-                      eteq::make_variable_like<T>((T) 1, arg));
-                  return ::tenncor::lt(trial, arg);
-    tenncor::nn:
-      - template: typename T
-        name: fully_connect
-        args:
-        - dtype: const eteq::ETensorsT<T>&
-          name: lefts
-        - dtype: const eteq::ETensorsT<T>&
-          name: rights
-        - dtype: const eteq::ETensor<T>&
-          name: bias
-          default: eteq::ETensor<T>()
-          check_null: false
-        - dtype: eigen::PairVecT<teq::RankT>
-          name: dims
-          default: eigen::PairVecT<teq::RankT>{{0, 1}}
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  size_t nlefts = lefts.size();
-                  if (nlefts != rights.size())
-                  {
-                      teq::fatalf(
-                          "number of lefts (%d) must equal the number of rights (%d)",
-                          nlefts, rights.size());
-                  }
-                  auto out = ::tenncor::contract(lefts[0], rights[0], dims);
-                  for (size_t i = 1; i < nlefts; ++i)
-                  {
-                      out = ::tenncor::add(out, ::tenncor::contract(lefts[i], rights[i], dims));
-                  }
-                  if (nullptr != bias)
-                  {
-                      out = ::tenncor::add(out, ::tenncor::extend_like(bias, out));
-                  }
-                  return out;
-      - template: typename T
-        name: conv2d
-        description: |
-                    Given image of shape [in, iwidth, iheight, batch]
-                    and kernel of shape [out, in, kwidth, kheight]
-                    Return output of shape [
-                      out,
-                      image.width-kernel.width+1+2*zero_padding.first,
-                      image.height-kernel.height+1+2*zero_padding.second,
-                      batch,
-                    ]
-                    Where image is zero-padded along the width, and height dimensions according to zero_padding argument (
-                    of the form {size of width-pad, size of height-pad}) then convolved with kernel split along the out dimension
-                    for each slice along image's batch dimension
-                    This whole process is similar to tensorflow's conv2d (https://www.tensorflow.org/api_docs/python/tf/nn/conv2d)
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: image
-        - dtype: const eteq::ETensor<T>&
-          name: kernel
-        - dtype: const eteq::ETensor<T>&
-          name: bias
-          default: eteq::ETensor<T>()
-          check_null: false
-        - dtype: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
-          name: zero_paddings
-          default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  eteq::ETensor<T> cimage = image;
-                  if (zero_paddings.first.first > 0 ||
-                      zero_paddings.first.second > 0 ||
-                      zero_paddings.second.first > 0 ||
-                      zero_paddings.second.second > 0)
-                  {
-                      cimage = ::tenncor::pad(cimage, {{0, 0},
-                          {zero_paddings.first.first, zero_paddings.first.second},
-                          {zero_paddings.second.first, zero_paddings.second.second}});
-                  }
-                  teq::DimT img_pad = kernel->shape().at(0) - 1; // out
-                  cimage = ::tenncor::pad(cimage,
-                      eteq::DimPairsT{img_pad, img_pad}, 4);
-
-                  auto out =  ::tenncor::permute(::tenncor::convolution(cimage,
-                      ::tenncor::reverse(kernel, {0}), {4, 0, 1, 2}), {4, 1, 2, 3});
-                  if (nullptr != bias)
-                  {
-                      out = ::tenncor::add(out, ::tenncor::extend_like(bias, out));
-                  }
-                  return out;
-      - template: typename T
-        name: drop_out
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: input
-        - dtype: T
-          name: prob
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  auto p = eteq::make_constant_like<T>(prob, input);
-                  return ::tenncor::mul(input, ::tenncor::div(
-                      ::tenncor::random::rand_binom_one(p), p));
-      - template: typename T
-        name: mean_pool2d
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: std::pair<teq::RankT,teq::RankT>
-          name: dims
-          default: "std::pair<teq::RankT,teq::RankT>{0, 1}"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  teq::Shape shape = arg->shape();
-                  teq::DimT xextent = shape.at(dims.first) - 1;
-                  teq::DimT yextent = shape.at(dims.second) - 1;
-                  std::vector<teq::DimT> strider(teq::rank_cap, 1);
-                  strider[dims.first] = strider[dims.second] = 2;
-                  auto top_left = ::tenncor::stride(arg, strider);
-                  auto top_right = ::tenncor::stride(
-                      ::tenncor::slice(arg, 1, xextent, dims.first), strider);
-                  auto bot_left = ::tenncor::stride(
-                      ::tenncor::slice(arg, 1, yextent, dims.second), strider);
-                  eigen::PairVecT<teq::DimT> pvec(teq::rank_cap,
-                      {0, std::numeric_limits<teq::DimT>::max()});
-                  pvec[dims.first] = {1, xextent};
-                  pvec[dims.second] = {1, yextent};
-                  auto bot_right = ::tenncor::stride(
-                      ::tenncor::slice(arg, pvec), strider);
-
-                  return ::tenncor::div(::tenncor::sum(eteq::ETensorsT<T>{
-                      top_left, top_right, bot_left, bot_right}), (T) 4);
-      - template: typename T
-        name: max_pool2d
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: arg
-        - dtype: std::pair<teq::RankT,teq::RankT>
-          name: dims
-          default: "std::pair<teq::RankT,teq::RankT>{0, 1}"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  teq::Shape shape = arg->shape();
-                  teq::DimT xextent = shape.at(dims.first) - 1;
-                  teq::DimT yextent = shape.at(dims.second) - 1;
-                  std::vector<teq::DimT> strider(teq::rank_cap, 1);
-                  strider[dims.first] = strider[dims.second] = 2;
-                  auto top_left = ::tenncor::stride(arg, strider);
-                  auto top_right = ::tenncor::stride(
-                      ::tenncor::slice(arg, 1, xextent, dims.first), strider);
-                  auto bot_left = ::tenncor::stride(
-                      ::tenncor::slice(arg, 1, yextent, dims.second), strider);
-                  eigen::PairVecT<teq::DimT> pvec(teq::rank_cap,
-                      {0, std::numeric_limits<teq::DimT>::max()});
-                  pvec[dims.first] = {1, xextent};
-                  pvec[dims.second] = {1, yextent};
-                  auto bot_right = ::tenncor::stride(
-                      ::tenncor::slice(arg, pvec), strider);
-
-                  return ::tenncor::max(eteq::ETensorsT<T>{
-                      top_left, top_right, bot_left, bot_right});
-      - template: typename T
-        name: dense
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: input
-        - dtype: const eteq::ETensor<T>&
-          name: weight
-        - dtype: const eteq::ETensor<T>&
-          name: bias
-          default: eteq::ETensor<T>()
-          check_null: false
-        - dtype: eigen::PairVecT<teq::RankT>
-          name: dims
-          default: "eigen::PairVecT<teq::RankT>{{0, 1}}"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  auto output = ::tenncor::nn::fully_connect({input}, {weight}, bias, dims);
-                  auto layer_root = ::tenncor::identity(output);
-                  return eteq::make_layer(layer_root, layr::dense_name, input);
-      - template: typename T
-        name: conv
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: input
-        - dtype: const eteq::ETensor<T>&
-          name: weight
-        - dtype: const eteq::ETensor<T>&
-          name: bias
-          default: eteq::ETensor<T>()
-          check_null: false
-        - dtype: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
-          name: zero_padding
-          default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0, 0},{0, 0}}"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  auto output = ::tenncor::nn::conv2d(input, weight, bias, zero_padding);
-                  auto layer_root = ::tenncor::identity(output);
-                  return eteq::make_layer(layer_root, layr::conv_name, input);
-      - template: typename T
-        name: rnn
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: input
-        - dtype: const eteq::ETensor<T>&
-          name: init_state
-        - dtype: const eteq::ETensor<T>&
-          name: cell
-        - dtype: const layr::UnaryF<T>&
-          name: activation
-        - dtype: teq::RankT
-          name: seq_dim
-          default: "1"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  teq::Shape inshape = input->shape();
-                  teq::DimT nseq = inshape.at(seq_dim);
-                  if (seq_dim == 0)
-                  {
-                      teq::fatal("spliting input across 0th dimension... "
-                          "dense connection will not match");
-                  }
-                  eteq::ETensor<T> inslice;
-                  eteq::ETensor<T> state = init_state;
-                  eteq::ETensorsT<T> states;
-                  for (teq::DimT i = 0; i < nseq; ++i)
-                  {
-                      inslice = ::tenncor::slice(input, i, 1, seq_dim);
-                      state = activation(eteq::connect(cell,
-                          ::tenncor::concat(inslice, state, 0)));
-                      states.push_back(state);
-                  }
-                  auto output = ::tenncor::concat(states, seq_dim);
-                  auto layer_root = ::tenncor::identity(output);
-                  return eteq::make_layer(layer_root, layr::rnn_name, input);
-      - template: typename T
-        name: lstm
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: input
-        - dtype: const eteq::ETensor<T>&
-          name: init_state
-        - dtype: const eteq::ETensor<T>&
-          name: init_hidden
-        - dtype: const eteq::ETensor<T>&
-          name: ggate
-        - dtype: const eteq::ETensor<T>&
-          name: forgate
-        - dtype: const eteq::ETensor<T>&
-          name: ingate
-        - dtype: const eteq::ETensor<T>&
-          name: outgate
-        - dtype: teq::RankT
-          name: seq_dim
-          default: "1"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  teq::Shape inshape = input->shape();
-                  teq::DimT nseq = inshape.at(seq_dim);
-                  if (seq_dim == 0)
-                  {
-                      teq::fatal("spliting input across 0th dimension... "
-                          "dense connection will not match");
-                  }
-                  eteq::ETensor<T> inslice;
-                  eteq::ETensor<T> xc;
-                  eteq::ETensor<T> state = init_state;
-                  eteq::ETensor<T> hidden = init_hidden;
-                  eteq::ETensorsT<T> states;
-                  for (teq::DimT i = 0; i < nseq; ++i)
-                  {
-                      inslice = ::tenncor::slice(input, i, 1, seq_dim);
-                      xc = ::tenncor::concat(inslice, hidden, 0);
-
-                      auto gate = ::tenncor::tanh(eteq::connect(ggate, xc));
-                      auto input = ::tenncor::sigmoid(eteq::connect(ingate, xc));
-                      auto forget = ::tenncor::sigmoid(eteq::connect(forgate, xc));
-                      auto output = ::tenncor::sigmoid(eteq::connect(outgate, xc));
-                      state = ::tenncor::add(::tenncor::mul(gate,input),
-                          ::tenncor::mul(state,forget));
-                      hidden = ::tenncor::mul(state, output);
-                      states.push_back(hidden);
-                  }
-                  auto output = ::tenncor::concat(states, seq_dim);
-                  auto layer_root = ::tenncor::identity(output);
-                  return eteq::make_layer(layer_root, layr::lstm_name, input);
-      - template: typename T
-        name: gru
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: input
-        - dtype: const eteq::ETensor<T>&
-          name: init_state
-        - dtype: const eteq::ETensor<T>&
-          name: ugate
-        - dtype: const eteq::ETensor<T>&
-          name: rgate
-        - dtype: const eteq::ETensor<T>&
-          name: hgate
-        - dtype: teq::RankT
-          name: seq_dim
-          default: "1"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  teq::Shape inshape = input->shape();
-                  teq::DimT nseq = inshape.at(seq_dim);
-                  if (seq_dim == 0)
-                  {
-                      teq::fatal("spliting input across 0th dimension... "
-                          "dense connection will not match");
-                  }
-                  eteq::ETensor<T> inslice;
-                  eteq::ETensor<T> xc;
-                  eteq::ETensor<T> state = init_state;
-                  eteq::ETensorsT<T> states;
-                  for (teq::DimT i = 0; i < nseq; ++i)
-                  {
-                      inslice = ::tenncor::slice(input, i, 1, seq_dim);
-                      xc = ::tenncor::concat(inslice, state, 0);
-
-                      auto update = ::tenncor::sigmoid(eteq::connect(ugate, xc));
-                      auto reset = ::tenncor::sigmoid(eteq::connect(rgate, xc));
-                      auto hidden = ::tenncor::tanh(eteq::connect(hgate,
-                          ::tenncor::concat(inslice,::tenncor::mul(reset,state),0)));
-                      state = ::tenncor::add(::tenncor::mul(update,state),
-                          ::tenncor::mul(::tenncor::sub((T)1,update),hidden));
-                      states.push_back(state);
-                  }
-                  auto output = ::tenncor::concat(states, seq_dim);
-                  auto layer_root = ::tenncor::identity(output);
-                  return eteq::make_layer(layer_root, layr::gru_name, input);
-    tenncor::layer:
-      - template: typename T
-        name: bind
-        args:
-        - dtype: layr::UnaryF<T>
-          name: unary
-        - dtype: const teq::Shape&
-          name: inshape
-          default: teq::Shape()
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
-                    0, inshape, layr::input_label));
-                  auto output = unary(input);
-                  auto layer_root = ::tenncor::identity(output);
-                  return eteq::make_layer(layer_root, layr::bind_name, input);
-      - template: typename T
-        name: link
-        args:
-        - dtype: eteq::ETensorsT<T>
-          name: layers
-        - dtype: eteq::ETensor<T>
-          name: input
-          check_null: false
-          default: eteq::ETensor<T>()
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  if (layers.empty())
-                  {
-                      teq::fatal("cannot link without layers");
-                  }
-                  eteq::ETensor<T> output = input;
-                  if (nullptr == input)
-                  {
-                      output = layers.front();
-                      input = eteq::get_input(output);
-                      layers = eteq::ETensorsT<T>(layers.begin() + 1, layers.end());
-                  }
-                  for (auto layer : layers)
-                  {
-                      if (eteq::get_input(layer).get() == output.get())
-                      {
-                          output = layer;
-                      }
-                      else
-                      {
-                          output = eteq::connect(layer, output);
-                      }
-                  }
-                  auto layer_root = ::tenncor::identity(output);
-                  return eteq::make_layer(layer_root, layr::link_name, input);
-      - template: typename T
-        name: dense
-        args:
-        - dtype: const teq::Shape&
-          name: inshape
-        - dtype: const std::vector<teq::DimT>&
-          name: hidden_dims
-        - dtype: const layr::InitF<T>&
-          name: weight_init
-        - dtype: const layr::InitF<T>&
-          name: bias_init
-          default: layr::zero_init<T>()
-        - dtype: const eigen::PairVecT<teq::RankT>&
-          name: dims
-          default: "eigen::PairVecT<teq::RankT>{{0, 1}}"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  assert(weight_init);
-                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0, inshape, layr::input_label));
-                  eteq::EVariable<T> weight = weight_init(layr::gen_rshape(
-                      hidden_dims, inshape, dims), layr::weight_label);
-                  eteq::EVariable<T> bias;
-                  if (bias_init)
-                  {
-                      bias = bias_init(teq::Shape(hidden_dims), layr::bias_label);
-                  }
-                  return ::tenncor::nn::dense(input, weight, bias, dims);
-      - template: typename T
-        name: conv
-        args:
-        - dtype: const eteq::DimPairsT&
-          name: filter_hw
-        - dtype: teq::DimT
-          name: in_ncol
-        - dtype: teq::DimT
-          name: out_ncol
-        - dtype: const layr::InitF<T>&
-          name: weight_init
-        - dtype: const layr::InitF<T>&
-          name: bias_init
-          default: layr::zero_init<T>()
-        - dtype: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
-          name: zero_padding
-          default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0, 0},{0, 0}}"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  assert(weight_init);
-                  // image must be in form [in, iwidth, iheight, batch]
-                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0, teq::Shape({
-                      in_ncol, filter_hw.second, filter_hw.first, 1}), layr::input_label));
-                  eteq::EVariable<T> weight = weight_init(teq::Shape({out_ncol,
-                      in_ncol, filter_hw.second, filter_hw.first}), layr::weight_label);
-                  eteq::EVariable<T> bias;
-                  if (bias_init)
-                  {
-                      bias = bias_init(teq::Shape({out_ncol}), layr::bias_label);
-                  }
-                  return ::tenncor::nn::conv(input, weight, bias, zero_padding);
-      - template: typename T
-        name: rnn
-        args:
-        - dtype: teq::DimT
-          name: indim
-        - dtype: teq::DimT
-          name: hidden_dim
-        - dtype: const layr::UnaryF<T>&
-          name: activation
-        - dtype: teq::DimT
-          name: nseq
-        - dtype: const layr::InitF<T>&
-          name: weight_init
-        - dtype: const layr::InitF<T>&
-          name: bias_init
-          default: layr::zero_init<T>()
-        - dtype: teq::RankT
-          name: seq_dim
-          default: "1"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  // input needs to specify number of sequences,
-                  // since graph topography can't be traced
-                  std::vector<teq::DimT> inslist(teq::rank_cap, 1);
-                  inslist[0] = indim;
-                  inslist[seq_dim] = nseq;
-                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
-                      0, teq::Shape(inslist), layr::input_label));
-
-                  auto cell = dense<T>(teq::Shape({(teq::DimT) (hidden_dim + indim)}),
-                      {hidden_dim}, weight_init, bias_init);
-
-                  auto init_state = eteq::make_variable<T>(
-                      teq::Shape({hidden_dim}), "init_state");
-                  eteq::ETensor<T> state = ::tenncor::extend_like(init_state,
-                      ::tenncor::slice(input, 0, 1, seq_dim));
-
-                  return ::tenncor::nn::rnn(input, state, cell, activation, seq_dim);
-      - template: typename T
-        name: lstm
-        args:
-        - dtype: const teq::Shape&
-          name: inshape
-        - dtype: teq::DimT
-          name: hidden_dim
-        - dtype: teq::DimT
-          name: nseq
-        - dtype: const layr::InitF<T>&
-          name: weight_init
-        - dtype: const layr::InitF<T>&
-          name: bias_init
-          default: layr::zero_init<T>()
-        - dtype: teq::RankT
-          name: seq_dim
-          default: "1"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  // input needs to specify number of sequences,
-                  // since graph topography can't be traced
-                  std::vector<teq::DimT> inslist(inshape.begin(), inshape.end());
-                  inslist[seq_dim] = nseq;
-                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
-                      0, teq::Shape(inslist), layr::input_label));
-
-                  std::vector<teq::DimT> inputlist(inshape.begin(), inshape.end());
-                  std::vector<teq::DimT> statelist(inshape.begin(), inshape.end());
-                  inputlist[0] += hidden_dim;
-                  statelist[0] = hidden_dim;
-                  inputlist[seq_dim] = statelist[seq_dim] = 1;
-
-                  teq::Shape inputshape(inputlist);
-                  teq::Shape stateshape(statelist);
-                  std::vector<teq::DimT> hid_dims = {hidden_dim};
-                  auto ggate = dense<T>(inputshape, hid_dims, weight_init, bias_init);
-                  auto forgate = dense<T>(inputshape, hid_dims, weight_init, bias_init);
-                  auto ingate = dense<T>(inputshape, hid_dims, weight_init, bias_init);
-                  auto outgate = dense<T>(inputshape, hid_dims, weight_init, bias_init);
-
-                  auto state = eteq::make_constant_scalar<T>(0, stateshape);
-                  auto hidden = eteq::make_constant_scalar<T>(0, stateshape);
-
-                  return ::tenncor::nn::lstm(input, state, hidden,
-                      ggate, forgate, ingate, outgate, seq_dim);
-      - template: typename T
-        name: gru
-        args:
-        - dtype: const teq::Shape&
-          name: inshape
-        - dtype: teq::DimT
-          name: hidden_dim
-        - dtype: teq::DimT
-          name: nseq
-        - dtype: const layr::InitF<T>&
-          name: weight_init
-        - dtype: const layr::InitF<T>&
-          name: bias_init
-          default: layr::zero_init<T>()
-        - dtype: teq::RankT
-          name: seq_dim
-          default: "1"
-        out:
-          type: eteq::ETensor<T>
-          val: |
-              //
-                  // input needs to specify number of sequences,
-                  // since graph topography can't be traced
-                  std::vector<teq::DimT> inslist(inshape.begin(), inshape.end());
-                  inslist[seq_dim] = nseq;
-                  eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
-                      0, teq::Shape(inslist), layr::input_label));
-
-                  std::vector<teq::DimT> inputlist(inshape.begin(), inshape.end());
-                  std::vector<teq::DimT> statelist(inshape.begin(), inshape.end());
-                  inputlist[0] += hidden_dim;
-                  statelist[0] = hidden_dim;
-                  inputlist[seq_dim] = statelist[seq_dim] = 1;
-
-                  teq::Shape inputshape(inputlist);
-                  teq::Shape stateshape(statelist);
-                  std::vector<teq::DimT> hid_dims = {hidden_dim};
-                  auto ugate = dense<T>(inputshape, hid_dims, weight_init, bias_init);
-                  auto rgate = dense<T>(inputshape, hid_dims, weight_init, bias_init);
-                  auto hgate = dense<T>(inputshape, hid_dims, weight_init, bias_init);
-
-                  auto state = eteq::make_constant_scalar<T>(0, stateshape);
-
-                  return ::tenncor::nn::gru(input, state,
-                      ugate, rgate, hgate, seq_dim);
-      - template: typename T
-        name: rbm
-        args:
-        - dtype: teq::DimT
-          name: nvisible
-        - dtype: teq::DimT
-          name: nhidden
-        - dtype: const layr::InitF<T>&
-          name: weight_init
-        - dtype: const layr::InitF<T>&
-          name: bias_init
-          default: layr::zero_init<T>()
-        out:
-          type: layr::RBMLayer<T>
-          val: |
-              //
-                  /// Returns forward builder, and assigns backward builder
-                  eteq::ETensor<T> fwdinput(eteq::make_variable_scalar<T>(
-                      0, teq::Shape({nvisible}), layr::input_label));
-                  eteq::ETensor<T> bwdinput(eteq::make_variable_scalar<T>(
-                      0, teq::Shape({nhidden}), layr::input_label));
-                  eteq::EVariable<T> weight = weight_init(
-                      teq::Shape({nhidden, nvisible}), layr::weight_label);
-                  eteq::EVariable<T> hbias;
-                  eteq::EVariable<T> vbias;
-                  if (bias_init)
-                  {
-                      hbias = bias_init(teq::Shape({nhidden}), "h" + layr::bias_label);
-                      vbias = bias_init(teq::Shape({nvisible}), "v" + layr::bias_label);
-                  }
-                  return layr::RBMLayer<T>{
-                      ::tenncor::nn::dense(fwdinput, weight, hbias, {{0, 1}}),
-                      ::tenncor::nn::dense(bwdinput,
-                          ::tenncor::transpose(weight), vbias, {{0, 1}})
-                  };
-    tenncor::error:
-      - template: typename T
-        name: sqr_diff
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: expect
-        - dtype: const eteq::ETensor<T>&
-          name: got
-        out:
-          type: eteq::ETensor<T>
-          val: return ::tenncor::square(::tenncor::sub(expect, got));
-    tenncor::approx:
-      - template: typename T
-        name: sgd
-        description: |
-                    Return all batches of variables to their corresponding assignment operator
-                    applied using stochastic gradient descent approximation
-                    given the error tenncor node and their corresponding variables
-
-                    :::::: Stochastic Gradient Descent Optimization ::::::
-
-                    Let f be the error
-                    For each variable x in variables
-
-                    x_next = x - learning_rate * f'(x)
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: error
-        - dtype: const eteq::EVariablesT<T>&
-          name: variables
-        - dtype: T
-          name: learning_rate
-          default: 0.5
-        - dtype: layr::UnaryF<T>
-          name: apply
-          default: layr::UnaryF<T>()
-        out:
-          type: layr::VarMapT<T>
-          val: |
-              //
-                  layr::VarMapT<T> out;
-                  auto ders = eteq::derive<T>(error,
-                      eteq::ETensorsT<T>(variables.begin(), variables.end()));
-                  for (size_t i = 0, n = variables.size(); i < n; ++i)
-                  {
-                      auto& x = variables[i];
-                      auto& der = ders[i];
-                      if (apply)
-                      {
-                          der = apply(der);
-                      }
-
-                      out.emplace(x, ::tenncor::assign_sub(x, ::tenncor::mul(der, learning_rate)));
-                  }
-                  return out;
-      - template: typename T
-        name: adagrad
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: error
-        - dtype: const eteq::EVariablesT<T>&
-          name: variables
-        - dtype: T
-          name: learning_rate
-          default: 0.5
-        - dtype: T
-          name: epsilon
-          default: std::numeric_limits<T>::epsilon()
-        - dtype: layr::UnaryF<T>
-          name: apply
-          default: layr::UnaryF<T>()
-        out:
-          type: layr::VarMapT<T>
-          val: |
-              //
-                  layr::VarMapT<T> out;
-                  auto ders = eteq::derive<T>(error,
-                      eteq::ETensorsT<T>(variables.begin(), variables.end()));
-                  for (size_t i = 0, n = variables.size(); i < n; ++i)
-                  {
-                      auto& x = variables[i];
-                      auto& der = ders[i];
-                      if (apply)
-                      {
-                          der = apply(der);
-                      }
-
-                      eteq::EVariable<T> momentum = eteq::make_variable_like<T>(1, der, "momentum");
-                      auto update = ::tenncor::assign_add(momentum, ::tenncor::square(der));
-
-                      // assign momentums before leaves
-                      out.emplace(x, ::tenncor::assign_sub(x, ::tenncor::div(
-                          ::tenncor::mul(der, learning_rate),
-                          ::tenncor::add(tenncor::sqrt(update), epsilon))));
-                  }
-                  return out;
-      - template: typename T
-        name: adadelta
-        description: |
-                    Return all batches of variables to their corresponding assignment operator
-                    applied using adadelta error optimization
-                    given the error tenncor node and their corresponding variables
-
-                    :::::: Adadelta Optimization ::::::
-
-                    Let f be the error, g be short hand for f'(x)
-                    Initialize E(g^2) = 0, E(dx^2) = 0
-                    For each variable x in variables
-
-                    E(g_next^2) = decay * E(g^2) + (1 - decay) * f'(x) ^ 2
-                    dx = step_rate * RMS(dx + offset) / (RMS(g_next + offset)) * f'(x)
-                       = step_rate * sqrt(E(dx^2) + offset) / sqrt(E(g_next^2) + epsilon) * f'(x)
-
-                    E(dx_next^2) = decay * E(dx^2) + (1 - decay) * dx ^ 2
-                    x_next = x - dx
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: error
-        - dtype: const eteq::EVariablesT<T>&
-          name: variables
-        - dtype: T
-          name: step_rate
-          default: 1
-        - dtype: T
-          name: decay
-          default: 0.9
-        - dtype: T
-          name: offset
-          default: 0.0001
-        - dtype: layr::UnaryF<T>
-          name: apply
-          default: layr::UnaryF<T>()
-        out:
-          type: layr::VarMapT<T>
-          val: |
-              //
-                  layr::VarMapT<T> out;
-                  auto ders = eteq::derive<T>(error,
-                      eteq::ETensorsT<T>(variables.begin(), variables.end()));
-                  for (size_t i = 0, n = variables.size(); i < n; ++i)
-                  {
-                      auto& x = variables[i];
-                      auto& der = ders[i];
-                      if (apply)
-                      {
-                          der = apply(der);
-                      }
-
-                      T nodecay = 1. - decay;
-                      eteq::EVariable<T> msg = eteq::make_variable_like<T>(0, der, "ex_sqr_grad");
-                      eteq::EVariable<T> msd = eteq::make_variable_like<T>(0, der, "ex_sqr_delx");
-
-                      auto msg_next = ::tenncor::assign(msg,
-                          ::tenncor::add(
-                              ::tenncor::mul(decay, msg),
-                              ::tenncor::mul(nodecay, ::tenncor::square(der))
-                          )
-                      );
-                      auto delta = ::tenncor::mul(
-                          ::tenncor::mul(step_rate, ::tenncor::div(
-                              ::tenncor::sqrt(::tenncor::add(msd, offset)),
-                              ::tenncor::sqrt(::tenncor::add(msg_next, offset))
-                          )), der);
-
-                      auto msd_next = ::tenncor::assign(msd,
-                          ::tenncor::add(
-                              ::tenncor::mul(decay, msd),
-                              ::tenncor::mul(nodecay, ::tenncor::square(delta))
-                          )
-                      );
-                      out.emplace(x, ::tenncor::depends(
-                          ::tenncor::assign_sub(x, delta), {msd_next}));
-                  }
-                  return out;
-      - template: typename T
-        name: rms_momentum
-        description: |
-                    Return all batches of variable assignments of
-                    momentum-based rms error approximation applied to
-                    particular variables-error associations
-
-                    :::::: Momentum-based Root Mean Square Optimization ::::::
-
-                    Let f be the error
-                    Initialize m = 1
-                    For each x in leaves
-
-                    momentum_next = discount_factor * m + (1 - discount_factor) * f'(x) ^ 2
-                    x_next = x - (learning * f'(x)) / (sqrt(epsilon + momentum_next))
-        args:
-        - dtype: const eteq::ETensor<T>&
-          name: error
-        - dtype: const eteq::EVariablesT<T>&
-          name: variables
-        - dtype: T
-          name: learning_rate
-          default: 0.5
-        - dtype: T
-          name: discount_factor
-          default: 0.99
-        - dtype: T
-          name: epsilon
-          default: std::numeric_limits<T>::epsilon()
-        - dtype: layr::UnaryF<T>
-          name: apply
-          default: layr::UnaryF<T>()
-        out:
-          type: layr::VarMapT<T>
-          val: |
-              //
-                  layr::VarMapT<T> out;
-                  auto ders = eteq::derive<T>(error,
-                      eteq::ETensorsT<T>(variables.begin(), variables.end()));
-                  for (size_t i = 0, n = variables.size(); i < n; ++i)
-                  {
-                      auto& x = variables[i];
-                      auto& der = ders[i];
-                      if (apply)
-                      {
-                          der = apply(der);
-                      }
-
-                      eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
-                          1, der, "momentum");
-                      auto update = ::tenncor::assign(momentum,
-                          ::tenncor::add(
-                              ::tenncor::mul(discount_factor, momentum),
-                              ::tenncor::mul(1-discount_factor,
-                                  ::tenncor::square(der))));
-
-                      // assign momentums before leaves
-                      out.emplace(x, ::tenncor::assign_sub(x,
-                          ::tenncor::div(
-                              ::tenncor::mul(der, learning_rate),
-                              ::tenncor::add(tenncor::sqrt(update), epsilon))));
-                  }
-                  return out;
+                    std::vector<teq::RankT> indices(teq::rank_cap);
+                    auto bt = indices.begin();
+                    auto it = bt + dimension;
+                    std::iota(bt,it,0);
+                    std::iota(it,indices.end(),dimension + 1);
+                    indices[teq::rank_cap - 1] = dimension;
+                    return this->permute(red,indices);
+        - name: transpose
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->permute(arg,{1,0});
+        - name: reduce_mean
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->div(this->reduce_sum(arg),this->n_elems(arg));
+        - name: reduce_mean_1d
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::RankT
+            name: dimension
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    auto red = this->reduce_sum_1d(arg,dimension);
+                    auto dim = eteq::make_constant_like<T>(arg->shape().at(dimension),red,*registry);
+                    return this->div(red,dim);
+        - name: reduce_l2norm
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::RankT
+            name: offset
+            default: "0"
+          - type: teq::RankT
+            name: ndims
+            default: teq::rank_cap
+          out:
+            type: eteq::ETensor<T>
+            val: return this->sqrt(this->reduce_sum(this->square(arg),offset,ndims));
+        - name: reduce_l2norm_1d
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::RankT
+            name: dimension
+          out:
+            type: eteq::ETensor<T>
+            val: return this->sqrt(this->reduce_sum_1d(this->square(arg),dimension));
+        - name: clip_by_range
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: minval
+          - type: T
+            name: maxval
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    if (minval > maxval)
+                    {
+                        teq::fatal("min value is below max");
+                    }
+                    auto lo = eteq::make_constant_like<T>(minval,arg,*registry);
+                    auto hi = eteq::make_constant_like<T>(maxval,arg,*registry);
+                    return this->max(this->min(arg,hi),lo);
+        - description: clip by l2norm
+          name: clip_by_l2norm
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: T
+            name: upper
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    // todo: parameterize l2norm offset and ndims
+                    if (upper == 0)
+                    {
+                        teq::fatal("cannot clip_by_norm with a upper limit of 0");
+                    }
+                    auto norm = this->extend_like(
+                        this->reduce_l2norm(arg),arg);
+                    auto limit = eteq::make_constant_like<T>(upper,arg,*registry);
+                    return this->if_then_else(this->lt(norm,limit),
+                        arg,this->div(this->mul(arg,limit),norm));
+        - name: sum
+          args:
+          - type: const eteq::ETensorsT<T>&
+            name: args
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    size_t nargs = args.size();
+                    switch (nargs)
+                    {
+                        case 0:
+                            teq::fatal("cannot sum without arguments");
+                        case 1:
+                            return args[0];
+                        case 2:
+                            return this->add(args[0],args[1]);
+                        default:
+                            break;
+                    }
+                    return eteq::make_functor<T>(*registry,::egen::ADD,eteq::to_tensors(args));
+        - name: prod
+          args:
+          - type: const eteq::ETensorsT<T>&
+            name: args
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    size_t nargs = args.size();
+                    switch (nargs)
+                    {
+                        case 0:
+                            teq::fatal("cannot prod without arguments");
+                        case 1:
+                            return args[0];
+                        default:
+                            break;
+                    }
+                    return eteq::make_functor<T>(*registry,::egen::MUL,eteq::to_tensors(args));
+        - name: softmax
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          - type: teq::RankT
+            name: offset
+            default: "0"
+          - type: teq::RankT
+            name: ndims
+            default: teq::rank_cap
+          out:
+            type: eteq::ETensor<T>
+            val: |
+                //
+                    if (offset + ndims > teq::rank_cap)
+                    {
+                        teq::fatalf("cannot perform softmax on dimensions beyond %d",
+                            teq::rank_cap);
+                    }
+                    teq::Shape shape = arg->shape();
+                    auto overflow_preventer = this->extend_like(
+                        this->reduce_max(arg,offset,ndims),arg);
+                    auto exarg = this->exp(this->sub(arg,overflow_preventer));
+                    auto it = shape.begin() + offset;
+                    std::vector<teq::DimT> xlist(it,it + ndims);
+                    return this->div(exarg,
+                        this->extend_like(this->add(
+                            this->reduce_sum(exarg,offset,ndims),
+                            std::numeric_limits<T>::epsilon()),exarg));
+        - name: relu
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->max(arg,(T) 0);
+        - name: softplus
+          args:
+          - type: const eteq::ETensor<T>&
+            name: arg
+          out:
+            type: eteq::ETensor<T>
+            val: return this->log(this->add((T) 1,this->exp(arg)));
+        - name: sign
+          args:
+          - type: const eteq::ETensor<T>&
+            name: x
+          out:
+            type: eteq::ETensor<T>
+            val: return this->add(this->mul((T)-2,this->lt(x,(T)0)),(T)1);
+    - cfg/eteq/approx.yml
+    - cfg/eteq/error.yml
+    - cfg/eteq/layer.yml
+    - cfg/eteq/nn.yml
+    - cfg/eteq/random.yml

@@ -71,15 +71,15 @@ def main(args):
     nunits = 9
     nactions = 9
 
-    model = tc.layer.link([
-        tc.layer.dense([nobservations], [nunits],
+    model = tc.api.layer.link([
+        tc.api.layer.dense([nobservations], [nunits],
             weight_init=tc.unif_xavier_init(),
             bias_init=tc.zero_init()),
-        tc.layer.bind(tc.sigmoid),
-        tc.layer.dense([nunits], [nactions],
+        tc.api.layer.bind(tc.api.sigmoid),
+        tc.api.layer.dense([nunits], [nactions],
             weight_init=tc.unif_xavier_init(),
             bias_init=tc.zero_init()),
-        tc.layer.bind(tc.sigmoid),
+        tc.api.layer.bind(tc.api.sigmoid),
     ])
 
     untrained = model.deep_clone()
@@ -92,11 +92,11 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    bgd = lambda error, leaves: tc.approx.rms_momentum(error, leaves,
+    bgd = lambda error, leaves: tc.api.approx.rms_momentum(error, leaves,
         learning_rate = 0.1, discount_factor = 0.5,
-        apply = lambda x: tc.clip_by_l2norm(x, 5))
+        apply = lambda x: tc.api.clip_by_l2norm(x, 5))
 
-    sess = tc.global_default_sess
+    ctx = tc.global_context
 
     params = {
         'optimize_cfg': "cfg/optimizations.json",
@@ -105,11 +105,11 @@ def main(args):
         'discount_rate': 0.99,
         'explore_period': 0.0,
     }
-    untrained_dqn = etc.DQNEnv(untrained, sess, bgd,
+    untrained_dqn = etc.DQNEnv(untrained, ctx, bgd,
         usecase='demo_untrained', **params)
-    trained_dqn = etc.DQNEnv(model, sess, bgd,
+    trained_dqn = etc.DQNEnv(model, ctx, bgd,
         usecase='demo_trained', **params)
-    pretrained_dqn = etc.DQNEnv(trained, sess, bgd,
+    pretrained_dqn = etc.DQNEnv(trained, ctx, bgd,
         usecase='demo_pretrained', **params)
 
     err_msg = None

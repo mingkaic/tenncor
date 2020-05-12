@@ -10,7 +10,7 @@ import tenncor as tc
 prog_description = 'Demo lstm model'
 
 def loss(label, predictions):
-    return tc.pow(tc.transpose(tc.slice(predictions, 0, 1, 0)) - label, 2)
+    return tc.api.pow(tc.api.transpose(tc.api.slice(predictions, 0, 1, 0)) - label, 2)
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -51,9 +51,11 @@ def main(args):
     x_dim = 50
     y_list = [-0.5, 0.2, 0.1, -0.5]
     input_val_arr = [np.random.random(x_dim) for _ in y_list]
-    sess = tc.global_default_sess
 
-    model = tc.layer.lstm(tc.Shape([x_dim]), mem_cell_ct, len(y_list),
+    ctx = tc.global_context
+    sess = ctx.get_session()
+
+    model = tc.api.layer.lstm(tc.Shape([x_dim]), mem_cell_ct, len(y_list),
         weight_init=tc.unif_xavier_init(1),
         bias_init=tc.unif_xavier_init(1))
     untrained_model = model.deep_clone()
@@ -69,19 +71,19 @@ def main(args):
     test_inputs = tc.variable(np.array(input_val_arr), 'test_input')
     test_exout = tc.variable(np.array(y_list), 'test_exout')
 
-    untrained = tc.slice(untrained_model.connect(test_inputs), 0, 1, 0)
-    hiddens = tc.slice(model.connect(test_inputs), 0, 1, 0)
-    pretrained = tc.slice(pretrained_model.connect(test_inputs), 0, 1, 0)
+    untrained = tc.api.slice(untrained_model.connect(test_inputs), 0, 1, 0)
+    hiddens = tc.api.slice(model.connect(test_inputs), 0, 1, 0)
+    pretrained = tc.api.slice(pretrained_model.connect(test_inputs), 0, 1, 0)
 
-    err = tc.reduce_sum(loss(test_exout, hiddens))
+    err = tc.api.reduce_sum(loss(test_exout, hiddens))
     sess.track([untrained, hiddens, pretrained, err])
 
     train_err = tc.apply_update([model],
-        lambda error, leaves: tc.approx.sgd(error, leaves, learning_rate=0.1),
+        lambda error, leaves: tc.api.approx.sgd(error, leaves, learning_rate=0.1),
         lambda models: loss(test_exout, models[0].connect(test_inputs)))
     sess.track([train_err])
 
-    tc.optimize(sess, "cfg/optimizations.json")
+    tc.optimize(ctx, "cfg/optimizations.json")
 
     start = time.time()
     for cur_iter in range(args.n_train):

@@ -11,12 +11,16 @@ eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
 	layr::ApproxF<T> update, layr::ErrorF<T> err_func)
 {
 	auto error = err_func(models);
-	eteq::VarptrsT<T> vars;
+	eteq::EVariablesT<T> vars;
 	for (auto& model : models)
 	{
 		auto temp_vars = eteq::get_storage(model);
-		vars.insert(vars.end(),
-			temp_vars.begin(), temp_vars.end());
+		std::transform(temp_vars.begin(), temp_vars.end(),
+			std::back_inserter(vars),
+			[&](eteq::VarptrT<T> var)
+			{
+				return eteq::EVariable<T>(var, *model.get_registry());
+			});
 	}
 	auto updates = update(error,
 		eteq::EVariablesT<T>(vars.begin(), vars.end()));
@@ -29,7 +33,7 @@ eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
 		deps.push_back(update.second);
 	}
 	// depend on assigns for variables not trailed in error
-	return tenncor::depends(eteq::trail(error, umap), deps);
+	return tenncor<T>().depends(eteq::trail(error, umap), deps);
 }
 
 }

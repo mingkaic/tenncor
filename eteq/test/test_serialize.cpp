@@ -48,13 +48,13 @@ TEST(SERIALIZE, SaveGraph)
 	eteq::ETensor<double> out = eteq::ETensor<double>(eteq::make_variable<double>(
 		std::vector<double>(out_shape.n_elems()).data(), out_shape, "out"));
 
-	auto layer0 = tenncor::matmul(in, weight0) + tenncor::extend(bias0, 1, {3});
-	auto sig0 = 1. / (1. + tenncor::exp(-layer0));
+	auto layer0 = tenncor<double>().matmul(in, weight0) + tenncor<double>().extend(bias0, 1, {3});
+	auto sig0 = 1. / (1. + tenncor<double>().exp(-layer0));
 
-	auto layer1 = tenncor::matmul(sig0, weight1) + tenncor::extend(bias1, 1, {3});
-	auto sig1 = 1. / (1. + tenncor::exp(-layer1));
+	auto layer1 = tenncor<double>().matmul(sig0, weight1) + tenncor<double>().extend(bias1, 1, {3});
+	auto sig1 = 1. / (1. + tenncor<double>().exp(-layer1));
 
-	auto err = tenncor::pow(out - sig1, 2.);
+	auto err = tenncor<double>().pow(out - sig1, 2.);
 
 	auto dw0 = eteq::derive(err, {weight0})[0];
 	auto db0 = eteq::derive(err, {bias0})[0];

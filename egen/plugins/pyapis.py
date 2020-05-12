@@ -6,8 +6,10 @@ from gen.file_rep import FileRep
 
 from plugins.template import build_template
 from plugins.apis import api_header
-
-_pybindt = 'PybindT'
+from plugins.common import order_classes, reference_classes
+from plugins.cformat.funcs import render_defn as cfrender
+from plugins.pformat.clas import render as crender
+from plugins.pformat.funcs import render as frender, process_modname, pybindt
 
 _header_template = '''
 // type to replace template arguments in pybind
@@ -18,253 +20,124 @@ using {pybind} = {pybind_type};
 _source_template = '''
 namespace py = pybind11;
 
-namespace pyegen
-{{
-
-//>>> name_mangling
-{name_mangling}
-
-}}
+//>>> global_decs
+{global_decs}
 
 //>>> modname
 PYBIND11_MODULE({modname}, m_{modname})
 {{
-	LOG_INIT(logs::DefLogger);
-	DEVICE_INIT(eigen::Device);
-	RANDOM_INIT;
 
-	m_{modname}.doc() = "pybind for {modname} api";
+LOG_INIT(logs::DefLogger);
+DEVICE_INIT(eigen::Device);
+RANDOM_INIT;
 
-	//>>> modname
-	py::class_<teq::iTensor,teq::TensptrT> tensor(m_{modname}, "Tensor");
+m_{modname}.doc() = "pybind for {modname} api";
 
-    //>>> class_defs
-    {class_defs}
+//>>> input_defs
+{input_defs}
 
 #ifdef CUSTOM_PYBIND_EXT
-    //>>> modname
-	CUSTOM_PYBIND_EXT(m_{modname})
+//>>> modname
+CUSTOM_PYBIND_EXT(m_{modname})
 #endif
 
-	//>>> defs
-	{defs}
+//>>> content
+{content}
 
 }}
 '''
 
-def _sub_pybind(stmt, source):
-    _type_pattern = '([^\\w]){}([^\\w])'.format(source)
-    _type_replace = '\\1{}\\2'.format(_pybindt)
-    return re.sub(_type_pattern, _type_replace, ' ' + stmt + ' ').strip()
+_content_template = '''
+//>>> class_defs
+{class_defs}
 
-def _strip_template_prefix(template):
-    _template_prefixes = ['typename', 'class']
-    for template_prefix in _template_prefixes:
-        if template.startswith(template_prefix):
-            return template[len(template_prefix):].strip()
-    # todo: parse valued templates variable (e.g.: size_t N)
-    return template
+//>>> global_defs
+{global_defs}
 
-_var_pattern = '\\s*[a-zA-Z_$][a-zA-Z_$0-9]*\\s*'
-_template_pattern = '<{var_pattern}(,{var_pattern})*>'.format(
-    var_pattern=_var_pattern)
-
-def _remove_template(stmt):
-    return re.sub(_template_pattern, '', stmt)
-
-_func_fmt = '''
-{outtype} {funcname}_{idx} ({param_decl})
-{{
-	return {namespace}::{funcname}({args});
-}}
+//>>> func_defs
+{func_defs}
 '''
-def _mangle_func(idx, api, namespace):
-    outtype = 'teq::TensptrT'
-    if isinstance(api['out'], dict) and 'type' in api['out']:
-        outtype = api['out']['type']
 
-    out = _func_fmt.format(
-        outtype=outtype,
-        namespace=namespace,
-        funcname=api['name'],
-        idx=idx,
-        param_decl=', '.join([arg['dtype'] + ' ' + arg['name']
-            for arg in api['args']]),
-        args=', '.join([arg['name'] for arg in api['args']]))
-
-    for typenames in api.get('template', '').split(','):
-        out = _sub_pybind(out, _strip_template_prefix(typenames))
-    return out
-
-def _handle_pybind(pybind_type):
-    return _pybindt
-
-def _handle_pybind_type(pybind_type):
-    return pybind_type
-
-def _handle_name_mangling(pybind_type, apis, namespace):
-    return '\n\n'.join([
-        _mangle_func(i, api, namespace)
-        for i, api in enumerate(apis)]
-    )
-
-def _parse_header_args(arg):
-    if 'default' in arg:
-        defext = ' = {}'.format(arg['default'])
-    else:
-        defext = ''
-    return '{dtype} {name}{defext}'.format(
-        dtype = arg['dtype'],
-        name = arg['name'],
-        defext = defext)
-
-def _parse_description(arg):
-    if 'description' in arg:
-        full_description = ' '.join(arg['description'].split('\n'))
-        description = ': {}'.format(full_description)
-    else:
-        description = ''
-    outtype = 'teq::TensptrT'
-    if isinstance(arg['out'], dict) and 'type' in arg['out']:
-        outtype = arg['out']['type']
-    return '"{outtype} {func} ({args}){description}"'.format(
-        outtype = outtype,
-        func = arg['name'],
-        args = ', '.join([_parse_header_args(arg) for arg in arg['args']]),
-        description = description)
-
-def _parse_pyargs(arg):
-    if 'default' in arg:
-        defext = ' = {}'.format(arg['default'])
-    else:
-        defext = ''
-    return 'py::arg("{name}"){defext}'.format(
-        name = arg['name'],
-        defext = defext)
-
-_py_op = {
-    ('-', 1): '__neg__',
-    ('+', 2): '__add__',
-    ('*', 2): '__mul__',
-    ('-', 2): '__sub__',
-    ('/', 2): '__truediv__',
-    ('==', 2): '__eq__',
-    ('!=', 2): '__ne__',
-    ('<', 2): '__lt__',
-    ('>', 2): '__gt__',
-}
-
-__py_op_rev = {
-    '+': '__radd__',
-    '*': '__rmul__',
-    '-': '__rsub__',
-    '/': '__rtruediv__',
-}
-
-_def_op_tmpl = '{label}.def("{pyop}", []({params}){{ return {operator}; }}, py::is_operator());'
-
-def _def_op(t2labels, api):
-    templates = [_strip_template_prefix(typenames)
-        for typenames in api.get('template', '').split(',')]
-
-    rep_type = 'teq::TensptrT'
-    label = 'tensor'
-    if isinstance(api['out'], dict) and 'type' in api['out']:
-        rep_type = api['out']['type']
-        label_type = rep_type
-        for template in templates:
-            label_type = _sub_pybind(label_type, template)
-        label = t2labels.get(label_type, label)
-
-    op = api['operator']
-    args = [arg['name'] for arg in api['args']]
-    if len(args) == 1:
-        operator = op + args[0]
-    else:
-        operator = op.join(args)
-
-    outtype = 'teq::TensptrT'
-    if isinstance(api['out'], dict) and 'type' in api['out']:
-        outtype = api['out']['type']
-
-    params = [arg['dtype'] + ' ' + arg['name'] for arg in api['args']]
-    if len(api['args']) > 1 and\
-        outtype not in api['args'][0]['dtype'] and op in __py_op_rev:
-        pyop = __py_op_rev[op]
-        params = params[::-1]
-    else:
-        pyop = _py_op[(op, len(api['args']))]
-
-    out = _def_op_tmpl.format(
-        label = label,
-        pyop = pyop,
-        params = ', '.join(params),
-        operator = operator,
-    )
-
-    for typenames in api.get('template', '').split(','):
-        out = _sub_pybind(out, _strip_template_prefix(typenames))
-    return out
-
-# convert statement template occurrences (specified in api) to _pybindt
-def template_pyconvert(api, stmt):
-    templates = [_strip_template_prefix(typenames)
-        for typenames in api.get('template', '').split(',')]
-    for temp in templates:
-        stmt = _sub_pybind(stmt, temp)
-    return stmt
-
-_class_def_tmpl = 'py::class_<{outtype}> {label}(m_{module_name}, "{name}");'
-
-class ClassDef:
-    def __init__(self, outtype, label):
-        self.outtype = outtype
-        self.label = label
-
-    def format(self, modname):
-        return _class_def_tmpl.format(
-            module_name=modname,
-            outtype=self.outtype, label=self.label,
-            name=_remove_template(self.outtype.split('::')[-1]))
-
-def _handle_defs(pybind_type, apis, module_name, class_defs):
-    _mdef_tmpl = 'm_{module_name}.def("{func}", '+\
-        '&pyegen::{func}_{idx}, {description}, {pyargs});'
-
-    outtypes = set()
-    for api in apis:
-        if isinstance(api['out'], dict) and 'type' in api['out']:
-            outtype = template_pyconvert(api, api['out']['type'])
-            outtypes.add(outtype)
-
-    atype_labels = {}
-    for outtype in outtypes:
-        if 'teq::TensptrT' == outtype:
-            continue
-        if outtype not in class_defs:
-            label = 'class_{}'.format(len(class_defs))
-            class_defs[outtype] = ClassDef(outtype, label)
+def render_pyglobal_decl(mems):
+    out = []
+    for mem in mems:
+        assert('name' in mem and 'type' in mem)
+        affix = ''
+        if 'decl' in mem:
+            out.append(cfrender({
+                'name': 'py_' + mem['name'] + '_global',
+                'out': {
+                    'type': mem['type'] + '&',
+                    'val': mem['decl']
+                }
+            }))
         else:
-            label = class_defs[outtype].label
-        atype_labels[outtype] = label
+            if 'val' in mem:
+                affix = '= ' + mem['val']
+            out.append(' '.join([mem['type'], mem['name'], affix + ';']))
+    return out
 
-    func_defs = [_mdef_tmpl.format(
-            module_name=module_name,
-            func=api['name'], idx=i,
-            description=_parse_description(api),
-            pyargs=template_pyconvert(api, ', '.join([
-                _parse_pyargs(arg) for arg in api['args']])))
-        for i, api in enumerate(apis)]
+def render_pyclasses(classes, mod, namespace):
+    classes = reference_classes(classes)
+    class_defs = dict()
+    class_inputs = dict()
+    for clas in classes:
+        class_def, cinputs = crender(clas, mod, namespace)
+        cname = clas['name']
+        class_defs[cname] = class_def
+        class_inputs.update(cinputs)
 
-    operator_defs = [_def_op(atype_labels, api) for api in apis if 'operator' in api]
+    order = order_classes(classes)
+    return [class_defs[clas] for clas in order], class_inputs
 
-    defs = [
-        '\n\n    '.join(func_defs),
-        '\n\n    '.join(operator_defs),
-    ]
-    return '\n\n    '.join([d for d in defs if len(d) > 0])
+def render_pyglobal(mem, mod):
+    global_tmpl = '{mod}.attr("{name}") = &{val};'
+    name = mem['name']
+    if 'decl' in mem:
+        val = 'py_' + name + '_global()'
+    else:
+        val = name
+    return global_tmpl.format(mod=mod, name=name, val=val)
+
+def render_pyapi(api, mod, ns=''):
+    _submodule_def = 'py::module m_{submod} = {mod}.def_submodule("{submod}", "A submodule of \'{mod}\'");'
+
+    global_decls = []
+    content_lines = []
+    input_types = dict()
+
+    if 'namespaces' in api:
+        for ns in api['namespaces']:
+            namespace = ns['name']
+            sub_decls, sub_content, sub_inputs = render_pyapi(ns['content'], 'm_' + namespace, ns + '::' + namespace)
+
+            global_decls += sub_decls
+            content_lines += [_submodule_def.format(submod=namespace, mod=mod)] + sub_content
+            input_types.update(sub_inputs)
+
+    global_mems = api.get('pyglobal', [])
+    funcs = api.get('funcs', [])
+    classes = api.get('classes', [])
+
+    funcs = list(filter(lambda f: not f.get('pyignores', False), funcs))
+
+    global_decls += render_pyglobal_decl(global_mems)
+
+    class_content, class_inputs = render_pyclasses(classes, mod, ns)
+    content_lines += class_content
+    input_types.update(class_inputs)
+
+    content_lines += [render_pyglobal(mem, mod) for mem in global_mems]
+    for f in funcs:
+        fcontent, finputs = frender(f, mod, ns)
+        content_lines.append(fcontent)
+        input_types.update(finputs)
+
+    return global_decls, content_lines, input_types
 
 _plugin_id = 'PYBINDER'
+
+_pyapi_header = 'pyapi.hpp'
 
 @PluginBase.register
 class PyAPIsPlugin:
@@ -273,9 +146,6 @@ class PyAPIsPlugin:
         return _plugin_id
 
     def process(self, generated_files, arguments):
-        _hdr_file = 'pyapi.hpp'
-        _submodule_def = '    py::module m_{name} = m_{prename}.def_submodule("{submod}", "A submodule of \'{prename}\'");\n    '
-
         plugin_key = 'api'
         if plugin_key not in arguments:
             logging.warning(
@@ -283,63 +153,35 @@ class PyAPIsPlugin:
             return
 
         api = arguments[plugin_key]
+
         bindtype = api.get('pybind_type', 'double')
 
-        generated_files[_hdr_file] = FileRep(
-            _header_template.format(
-                pybind=_pybindt, pybind_type=bindtype),
-                user_includes=[
-                    '"eteq/etens.hpp"'
-                ], internal_refs=[])
+        generated_files[_pyapi_header] = FileRep(
+            _header_template.format(pybind=pybindt, pybind_type=bindtype),
+                user_includes=['"eteq/etens.hpp"'], internal_refs=[])
 
-        contents = {}
-        class_defs = dict()
-        for namespace in api['namespaces']:
-            definitions = api['namespaces'][namespace]
-            if namespace == '' or namespace == '_':
-                module = 'egen'
-                namespace = ''
-            else:
-                module = namespace
-            uwraps = _handle_name_mangling(bindtype, definitions, namespace)
+        # split modules by top-level namespaces
+        modname = api['pybind_module']
+        ignore_types = [process_modname(dtype)
+            for dtype in api.get('pyignore_type', [])] + [process_modname(pybindt)]
 
-            mods = module.split('::')
-            mod = mods[0]
-            modname = '_'.join(mods)
-            mod_def = ''
-            if len(mods) > 1:
-                mod_def = _submodule_def.format(
-                    name=modname, prename='_'.join(mods[:-1]), submod=mods[-1])
-            cdefs = class_defs.get(mod, dict())
-            defs = mod_def + _handle_defs(bindtype, definitions, modname, cdefs)
-            if mod in contents:
-                existing_uwraps, existing_defs = contents[mod]
-                contents[mod] = (
-                    '\n\n'.join([existing_uwraps, uwraps]).strip(),
-                    '\n\n'.join([existing_defs, defs]).strip())
-            else:
-                contents[mod] = (uwraps, defs)
-            class_defs[mod] = cdefs
-
-        src_file_tmpl = 'pyapi_{}.cpp'
-        for mod in contents:
-            name_mangling, defs = contents[mod]
-            cdefs = class_defs[mod]
-            src_file = src_file_tmpl.format(mod)
-            generated_files[src_file] = FileRep(
-                _source_template.format(
-                    modname=mod,
-                    name_mangling=''.join(name_mangling),
-                    class_defs='\n    '.join([cdefs[ctype].format(mod) for ctype in cdefs]),
-                    defs=''.join(defs)),
-                user_includes=[
-                    '"pybind11/pybind11.h"',
-                    '"pybind11/stl.h"',
-                    '"pybind11/operators.h"',
-                    '"teq/config.hpp"',
-                    '"eigen/device.hpp"',
-                    '"eigen/random.hpp"',
-                ] + api.get('pybind_includes', []),
-                internal_refs=[_hdr_file, api_header])
+        decls, content_lines, input_types = render_pyapi(api, 'm_' + modname)
+        src_file = 'pyapi_{}.cpp'.format(modname)
+        generated_files[src_file] = FileRep(
+            _source_template.format(
+                modname=modname,
+                input_defs='\n'.join([input_types[input_mod]
+                    for input_mod in input_types if input_mod not in ignore_types]),
+                global_decs='\n'.join(decls),
+                content='\n\n'.join(content_lines)),
+            user_includes=[
+                '"pybind11/pybind11.h"',
+                '"pybind11/stl.h"',
+                '"pybind11/operators.h"',
+                '"teq/config.hpp"',
+                '"eigen/device.hpp"',
+                '"eigen/random.hpp"',
+            ] + api.get('pybind_includes', []),
+            internal_refs=[_pyapi_header, api_header])
 
         return generated_files

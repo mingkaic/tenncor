@@ -515,7 +515,7 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 		assert(data.size() == n);
 		srcs.push_back(eteq::make_constant<double>(data.data(), shape));
 	}
-	eteq::ETensor<double> dest = tenncor::sum(srcs);
+	eteq::ETensor<double> dest = tenncor<double>().sum(srcs);
 
 	auto session = eigen::get_session();
 
@@ -574,8 +574,8 @@ TEST(API, Assign)
 	eteq::EVariable<double> target2 = eteq::make_variable<double>(data.data(), shape);
 	eteq::ETensor<double> src = eteq::make_constant<double>(data2.data(), shape);
 
-	auto ass1 = tenncor::assign(target1, src);
-	auto ass2 = tenncor::assign(target2, -src);
+	auto ass1 = tenncor<double>().assign(target1, src);
+	auto ass2 = tenncor<double>().assign(target2, -src);
 
 	eigen::default_device().calc(*ass1);
 	eigen::default_device().calc(*ass1); // idempotency check
@@ -619,7 +619,7 @@ TEST(API, Assign)
 TEST(API, Identity)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::identity(tenncor::abs(a)); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().identity(tenncor<double>().abs(a)); },
 		[](double d) { return std::abs(d); },
 		[](double d) { return d / std::abs(d); });
 }
@@ -647,7 +647,7 @@ TEST(API, Depends)
 	eteq::ETensor<double> b = eteq::make_constant<double>(data2.data(), shape);
 	auto c = a + b;
 
-	auto ass = tenncor::depends(tenncor::assign(target, b), {c});
+	auto ass = tenncor<double>().depends(tenncor<double>().assign(target, b), {c});
 
 	auto session = eigen::get_session();
 	session.track({ass});
@@ -703,7 +703,7 @@ TEST(API, DependsRunOnce)
 	auto c = a + b;
 
 	// assign add is non-idempotent
-	auto ass = tenncor::depends(tenncor::assign_add(target, b), {c});
+	auto ass = tenncor<double>().depends(tenncor<double>().assign_add(target, b), {c});
 
 	auto session = eigen::get_session();
 	session.track({ass});
@@ -736,7 +736,7 @@ TEST(API, DependsRunOnce)
 TEST(API, Abs)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::abs(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().abs(a); },
 		[](double d) { return std::abs(d); },
 		[](double d) { return d / std::abs(d); });
 }
@@ -747,7 +747,7 @@ TEST(API, Neg)
 	auto fwd = [](double d) { return -d; };
 	auto bwd = [](double d) { return -1.; };
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::neg(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().neg(a); },
 		fwd, bwd);
 	unary_elementary(
 		[](eteq::ETensor<double>& a) { return -a; },
@@ -758,7 +758,7 @@ TEST(API, Neg)
 TEST(API, Sin)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::sin(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().sin(a); },
 		[](double d) { return std::sin(d); },
 		[](double d) { return std::cos(d); });
 }
@@ -767,7 +767,7 @@ TEST(API, Sin)
 TEST(API, Cos)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::cos(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().cos(a); },
 		[](double d) { return std::cos(d); },
 		[](double d) { return -std::sin(d); });
 }
@@ -776,7 +776,7 @@ TEST(API, Cos)
 TEST(API, Tan)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::tan(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().tan(a); },
 		[](double d) { return std::tan(d); },
 		[](double d) {
 			double denom = std::cos(d);
@@ -788,7 +788,7 @@ TEST(API, Tan)
 TEST(API, Exp)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::exp(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().exp(a); },
 		[](double d) { return std::exp(d); },
 		[](double d) { return std::exp(d); });
 }
@@ -797,7 +797,7 @@ TEST(API, Exp)
 TEST(API, Log)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::log(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().log(a); },
 		[](double d) { return std::log(d); },
 		[](double d) { return 1. / d; });
 }
@@ -806,7 +806,7 @@ TEST(API, Log)
 TEST(API, Sqrt)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::sqrt(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().sqrt(a); },
 		[](double d) { return std::sqrt(d); },
 		[](double d) { return 1. / (2 * std::sqrt(d)); });
 }
@@ -815,7 +815,7 @@ TEST(API, Sqrt)
 TEST(API, Round)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::round(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().round(a); },
 		[](double d) { return std::round(d); },
 		[](double d) { return 1.; });
 }
@@ -824,7 +824,7 @@ TEST(API, Round)
 TEST(API, Sigmoid)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::sigmoid(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().sigmoid(a); },
 		[](double d) { return 1 / (1 + std::exp(-d)); },
 		[](double d)
 		{
@@ -837,7 +837,7 @@ TEST(API, Sigmoid)
 TEST(API, Tanh)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::tanh(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().tanh(a); },
 		[](double d)
 		{
 			double e2d = std::exp(2 * d);
@@ -855,7 +855,7 @@ TEST(API, Tanh)
 TEST(API, Square)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::square(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().square(a); },
 		[](double d) { return d * d; },
 		[](double d) { return 2 * d; });
 }
@@ -864,7 +864,7 @@ TEST(API, Square)
 TEST(API, Cube)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor::cube(a); },
+		[](eteq::ETensor<double>& a) { return tenncor<double>().cube(a); },
 		[](double d) { return d * d * d; },
 		[](double d) { return 3 * d * d; });
 }
@@ -874,11 +874,11 @@ TEST(API, Pow)
 {
 	binary_elementary(
 		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
-		{ return tenncor::pow(a, b); },
+		{ return tenncor<double>().pow(a, b); },
 		[](eteq::ETensor<double>& a, double& b)
-		{ return tenncor::pow(a, b); },
+		{ return tenncor<double>().pow(a, b); },
 		[](double& a, eteq::ETensor<double>& b)
-		{ return tenncor::pow(a, b); },
+		{ return tenncor<double>().pow(a, b); },
 		[](double a, double b) { return std::pow(a, b); },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -895,11 +895,11 @@ TEST(API, Add)
 		{ return leftg + rightg; };
 	binary_elementary(
 		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
-		{ return tenncor::add(a, b); },
+		{ return tenncor<double>().add(a, b); },
 		[](eteq::ETensor<double>& a, double& b)
-		{ return tenncor::add(a, b); },
+		{ return tenncor<double>().add(a, b); },
 		[](double& a, eteq::ETensor<double>& b)
-		{ return tenncor::add(a, b); },
+		{ return tenncor<double>().add(a, b); },
 		fwd, bwd);
 	binary_elementary(
 		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
@@ -919,11 +919,11 @@ TEST(API, Sub)
 		{ return leftg - rightg; };
 	binary_elementary(
 		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
-		{ return tenncor::sub(a, b); },
+		{ return tenncor<double>().sub(a, b); },
 		[](eteq::ETensor<double>& a, double& b)
-		{ return tenncor::sub(a, b); },
+		{ return tenncor<double>().sub(a, b); },
 		[](double& a, eteq::ETensor<double>& b)
-		{ return tenncor::sub(a, b); },
+		{ return tenncor<double>().sub(a, b); },
 		fwd, bwd);
 	binary_elementary(
 		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
@@ -945,11 +945,11 @@ TEST(API, Mul)
 		};
 	binary_elementary(
 		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
-		{ return tenncor::mul(a, b); },
+		{ return tenncor<double>().mul(a, b); },
 		[](eteq::ETensor<double>& a, double& b)
-		{ return tenncor::mul(a, b); },
+		{ return tenncor<double>().mul(a, b); },
 		[](double& a, eteq::ETensor<double>& b)
-		{ return tenncor::mul(a, b); },
+		{ return tenncor<double>().mul(a, b); },
 		fwd, bwd);
 	binary_elementary(
 		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
@@ -971,11 +971,11 @@ TEST(API, Div)
 		};
 	binary_elementary(
 		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
-		{ return tenncor::div(a, b); },
+		{ return tenncor<double>().div(a, b); },
 		[](eteq::ETensor<double>& a, double& b)
-		{ return tenncor::div(a, b); },
+		{ return tenncor<double>().div(a, b); },
 		[](double& a, eteq::ETensor<double>& b)
-		{ return tenncor::div(a, b); },
+		{ return tenncor<double>().div(a, b); },
 		fwd, bwd);
 	binary_elementary(
 		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
@@ -992,11 +992,11 @@ TEST(API, Min)
 {
 	binary_elementary(
 		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
-		{ return tenncor::min(a, b); },
+		{ return tenncor<double>().min(a, b); },
 		[](eteq::ETensor<double>& a, double& b)
-		{ return tenncor::min(a, b); },
+		{ return tenncor<double>().min(a, b); },
 		[](double& a, eteq::ETensor<double>& b)
-		{ return tenncor::min(a, b); },
+		{ return tenncor<double>().min(a, b); },
 		[](double a, double b) { return std::min(a, b); },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -1018,11 +1018,11 @@ TEST(API, Max)
 {
 	binary_elementary(
 		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
-		{ return tenncor::max(a, b); },
+		{ return tenncor<double>().max(a, b); },
 		[](eteq::ETensor<double>& a, double& b)
-		{ return tenncor::max(a, b); },
+		{ return tenncor<double>().max(a, b); },
 		[](double& a, eteq::ETensor<double>& b)
-		{ return tenncor::max(a, b); },
+		{ return tenncor<double>().max(a, b); },
 		[](double a, double b) { return std::max(a, b); },
 		[](double a, double b, double leftg, double rightg)
 		{
@@ -1095,7 +1095,7 @@ TEST(API, Select)
 		eteq::ETensor<double> src2 =
 			eteq::make_constant<double>(data2.data(), shape);
 		eteq::ETensor<double> dest =
-			tenncor::if_then_else(cond_src, src, src2);
+			tenncor<double>().if_then_else(cond_src, src, src2);
 
 		auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 		ASSERT_NE(nullptr, dtens);
@@ -1114,7 +1114,7 @@ TEST(API, Select)
 
 		auto session = eigen::get_session();
 
-		eteq::ETensor<double> dest2 = tenncor::if_then_else(cond_src, src, src);
+		eteq::ETensor<double> dest2 = tenncor<double>().if_then_else(cond_src, src, src);
 		EXPECT_EQ(dest2.get(), src.get());
 
 		eteq::ETensorsT<double> gleft = eteq::derive(dest, {src});
@@ -1167,7 +1167,7 @@ TEST(API, Slice)
 
 	eteq::ETensor<double> src =
 		eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> dest = tenncor::slice(src, {{0, 3}, {1, 1}});
+	eteq::ETensor<double> dest = tenncor<double>().slice(src, {{0, 3}, {1, 1}});
 
 	teq::Shape exshape({3, 1, 4});
 	std::vector<double> exdata = {
@@ -1212,11 +1212,11 @@ TEST(API, Eq)
 		{ return 0; };
 	binary_elementary_int(
 		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
-		{ return tenncor::eq(a, b); },
+		{ return tenncor<int32_t>().eq(a, b); },
 		[](eteq::ETensor<int32_t>& a, int32_t& b)
-		{ return tenncor::eq(a, b); },
+		{ return tenncor<int32_t>().eq(a, b); },
 		[](int32_t& a, eteq::ETensor<int32_t>& b)
-		{ return tenncor::eq(a, b); },
+		{ return tenncor<int32_t>().eq(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
 		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
@@ -1236,11 +1236,11 @@ TEST(API, Neq)
 		{ return 0; };
 	binary_elementary_int(
 		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
-		{ return tenncor::neq(a, b); },
+		{ return tenncor<int32_t>().neq(a, b); },
 		[](eteq::ETensor<int32_t>& a, int32_t& b)
-		{ return tenncor::neq(a, b); },
+		{ return tenncor<int32_t>().neq(a, b); },
 		[](int32_t& a, eteq::ETensor<int32_t>& b)
-		{ return tenncor::neq(a, b); },
+		{ return tenncor<int32_t>().neq(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
 		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
@@ -1260,11 +1260,11 @@ TEST(API, Lt)
 		{ return 0; };
 	binary_elementary_int(
 		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
-		{ return tenncor::lt(a, b); },
+		{ return tenncor<int32_t>().lt(a, b); },
 		[](eteq::ETensor<int32_t>& a, int32_t& b)
-		{ return tenncor::lt(a, b); },
+		{ return tenncor<int32_t>().lt(a, b); },
 		[](int32_t& a, eteq::ETensor<int32_t>& b)
-		{ return tenncor::lt(a, b); },
+		{ return tenncor<int32_t>().lt(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
 		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
@@ -1284,11 +1284,11 @@ TEST(API, Gt)
 		{ return 0; };
 	binary_elementary_int(
 		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
-		{ return tenncor::gt(a, b); },
+		{ return tenncor<int32_t>().gt(a, b); },
 		[](eteq::ETensor<int32_t>& a, int32_t& b)
-		{ return tenncor::gt(a, b); },
+		{ return tenncor<int32_t>().gt(a, b); },
 		[](int32_t& a, eteq::ETensor<int32_t>& b)
-		{ return tenncor::gt(a, b); },
+		{ return tenncor<int32_t>().gt(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
 		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
@@ -1304,7 +1304,7 @@ TEST(API, Gt)
 TEST(API, NElems)
 {
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor::n_elems(src); },
+		[](eteq::ETensor<double>& src) { return tenncor<double>().n_elems(src); },
 		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>&)
 		{
 			ASSERT_EQ(1, out->shape().n_elems());
@@ -1326,7 +1326,7 @@ TEST(API, NDims)
 {
 	teq::RankT dim = 2;
 	unary_generic(
-		[dim](eteq::ETensor<double>& src) { return tenncor::n_dims(src, dim); },
+		[dim](eteq::ETensor<double>& src) { return tenncor<double>().n_dims(src, dim); },
 		[dim](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>&)
 		{
 			ASSERT_EQ(1, out->shape().n_elems());
@@ -1353,7 +1353,7 @@ TEST(API, Argmax)
 	};
 
 	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> dest = tenncor::argmax(src);
+	eteq::ETensor<double> dest = tenncor<double>().argmax(src);
 
 	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
 	{
@@ -1373,7 +1373,7 @@ TEST(API, Argmax)
 TEST(API, Rsum)
 {
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor::reduce_sum(src); },
+		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_sum(src); },
 		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
@@ -1393,7 +1393,7 @@ TEST(API, Rsum)
 			}
 		});
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor::reduce_sum(src, 1, 1); },
+		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_sum(src, 1, 1); },
 		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
@@ -1442,8 +1442,8 @@ TEST(API, Rprod)
 	};
 
 	eteq::ETensor<int32_t> src = eteq::make_constant<int32_t>(data.data(), shape);
-	eteq::ETensor<int32_t> dest = tenncor::reduce_prod(src);
-	eteq::ETensor<int32_t> dest2 = tenncor::reduce_prod(src, 1, 1);
+	eteq::ETensor<int32_t> dest = tenncor<int32_t>().reduce_prod(src);
+	eteq::ETensor<int32_t> dest2 = tenncor<int32_t>().reduce_prod(src, 1, 1);
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -1538,7 +1538,7 @@ TEST(API, Rprod)
 TEST(API, Rmin)
 {
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor::reduce_min(src); },
+		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_min(src); },
 		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
@@ -1564,7 +1564,7 @@ TEST(API, Rmin)
 			}
 		});
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor::reduce_min(src, 1, 1); },
+		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_min(src, 1, 1); },
 		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
@@ -1620,7 +1620,7 @@ TEST(API, Rmin)
 TEST(API, Rmax)
 {
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor::reduce_max(src); },
+		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_max(src); },
 		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
@@ -1646,7 +1646,7 @@ TEST(API, Rmax)
 			}
 		});
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor::reduce_max(src, 1, 1); },
+		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_max(src, 1, 1); },
 		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
@@ -1711,7 +1711,7 @@ TEST(API, Permute)
 	};
 
 	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> dest = tenncor::permute(src, pidx);
+	eteq::ETensor<double> dest = tenncor<double>().permute(src, pidx);
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -1761,7 +1761,7 @@ TEST(API, Extend)
 	};
 
 	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> dest = tenncor::extend(src, slist.size(), ext);
+	eteq::ETensor<double> dest = tenncor<double>().extend(src, slist.size(), ext);
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -1835,7 +1835,7 @@ TEST(API, Matmul)
 
 	eteq::ETensor<int32_t> a = eteq::make_constant<int32_t>(data.data(), ashape);
 	eteq::ETensor<int32_t> b = eteq::make_constant<int32_t>(data2.data(), bshape);
-	eteq::ETensor<int32_t> dest = tenncor::matmul(a, b);
+	eteq::ETensor<int32_t> dest = tenncor<int32_t>().matmul(a, b);
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -1855,7 +1855,7 @@ TEST(API, Matmul)
 	auto session = eigen::get_session();
 
 	eteq::ETensor<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
-	eteq::ETensor<int32_t> dest2 = tenncor::matmul(c, c);
+	eteq::ETensor<int32_t> dest2 = tenncor<int32_t>().matmul(c, c);
 	eteq::ETensorsT<int32_t> gsame = eteq::derive(dest2, {c});
 	session.track(teq::TensptrsT(gsame.begin(), gsame.end()));
 	session.update();
@@ -1925,7 +1925,7 @@ TEST(API, Contract)
 
 	eteq::ETensor<int32_t> a = eteq::make_constant<int32_t>(data.data(), ashape);
 	eteq::ETensor<int32_t> b = eteq::make_constant<int32_t>(data2.data(), bshape);
-	eteq::ETensor<int32_t> dest = tenncor::contract(a, b, {{0, 2}});
+	eteq::ETensor<int32_t> dest = tenncor<int32_t>().contract(a, b, {{0, 2}});
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -1947,7 +1947,7 @@ TEST(API, Contract)
 	auto session = eigen::get_session();
 
 	eteq::ETensor<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
-	eteq::ETensor<int32_t> dest2 = tenncor::contract(c, c, {{0, 0}});
+	eteq::ETensor<int32_t> dest2 = tenncor<int32_t>().contract(c, c, {{0, 0}});
 	eteq::ETensorsT<int32_t> gsame = eteq::derive(dest2, {c});
 	session.track(teq::TensptrsT(gsame.begin(), gsame.end()));
 	session.update();
@@ -1991,7 +1991,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 
 	eteq::ETensor<double> src = eteq::make_constant_scalar<double>(lo, shape);
 	eteq::ETensor<double> src2 = eteq::make_constant_scalar<double>(hi, shape);
-	eteq::ETensor<double> dest = tenncor::random::rand_unif(src, src2);
+	eteq::ETensor<double> dest = tenncor<double>().random.rand_unif(src, src2);
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -2106,7 +2106,7 @@ TEST(API, Convolution)
 	eteq::ETensor<double> kernel = eteq::make_constant<double>(data2.data(), kshape);
 	std::vector<teq::RankT> dims(teq::rank_cap);
 	std::iota(dims.begin(), dims.end(), 0);
-	eteq::ETensor<double> dest = tenncor::convolution(img, kernel, dims);
+	eteq::ETensor<double> dest = tenncor<double>().convolution(img, kernel, dims);
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);

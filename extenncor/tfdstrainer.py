@@ -20,7 +20,7 @@ _tfds_args = {
 
 @ecache.EnvManager.register
 class TfdsEnv(ecache.EnvManager):
-    def __init__(self, name, sess, train_inputs,
+    def __init__(self, name, ctx, train_inputs,
                  connect_fn, trainstep_fn,
                  clean_startup=False, cachedir='/tmp',
                  optimize_cfg='', display_name = None,
@@ -38,12 +38,12 @@ class TfdsEnv(ecache.EnvManager):
             self.step = self.dataset.as_numpy_iterator()
 
             self.train_inputs = train_inputs
-            labelled_inputs = [tc.identity(train_input) for train_input in self.train_inputs]
+            labelled_inputs = [tc.api.identity(train_input) for train_input in self.train_inputs]
 
             outputs = connect_fn(labelled_inputs)
             if not isinstance(outputs, Iterable):
                 outputs = [outputs]
-            self.train_outputs = [tc.identity(train_output) for train_output in outputs]
+            self.train_outputs = [tc.api.identity(train_output) for train_output in outputs]
 
             for i, linput in enumerate(labelled_inputs):
                 linput.tag('recovery', 'input_{}'.format(i))
@@ -51,12 +51,12 @@ class TfdsEnv(ecache.EnvManager):
             for i, loutput in enumerate(self.train_outputs):
                 loutput.tag('recovery', 'output_{}'.format(i))
 
-            self.sess.track(self.train_outputs)
-            tc.optimize(self.sess, optimize_cfg)
+            self.ctx.get_session().track(self.train_outputs)
+            tc.optimize(self.ctx, optimize_cfg)
 
         if display_name is None:
             display_name = name
-        super().__init__('tfds_' + display_name, sess,
+        super().__init__('tfds_' + display_name, ctx,
                          default_init=default_init,
                          clean=clean_startup,
                          cacheroot=cachedir)
@@ -81,7 +81,7 @@ class TfdsEnv(ecache.EnvManager):
         return False
 
     def _recover_env(self, fpath: str) -> bool:
-        query = tc.Statement(self.sess.get_tracked())
+        query = tc.Statement(self.ctx.get_actives())
         self.train_inputs = []
         self.train_outputs = []
 
@@ -149,7 +149,7 @@ class TfdsEnv(ecache.EnvManager):
     def train(self):
         try:
             data = next(self.step)
-            self.trainstep_fn(self.dataset_idx, self.sess, data, self.train_inputs, self.train_outputs)
+            self.trainstep_fn(self.dataset_idx, self.ctx.get_session(), data, self.train_inputs, self.train_outputs)
             self.dataset_idx += 1
             return True
         except StopIteration:

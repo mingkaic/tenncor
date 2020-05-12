@@ -19,11 +19,51 @@ namespace eteq
 template <typename T>
 struct ETensor
 {
-	ETensor (void) : tens_(nullptr) {}
+	ETensor (void) = default;
 
-	ETensor (teq::TensptrT tens) : tens_(tens) {}
+	ETensor (teq::TensptrT tens,
+		ETensRegistryT& registry = global_context().registry_) :
+		registry_(&registry)
+	{
+		registry_->emplace(this, tens);
+	}
 
-	virtual ~ETensor (void) = default;
+	virtual ~ETensor (void)
+	{
+		cleanup();
+	}
+
+	ETensor (const ETensor<T>& other)
+	{
+		copy(other);
+	}
+
+	ETensor (ETensor<T>&& other)
+	{
+		copy(other);
+		other.cleanup();
+	}
+
+	ETensor& operator = (const ETensor<T>& other)
+	{
+		if (this != &other)
+		{
+			cleanup();
+			copy(other);
+		}
+		return *this;
+	}
+
+	ETensor& operator = (ETensor<T>&& other)
+	{
+		if (this != &other)
+		{
+			cleanup();
+			copy(other);
+			other.cleanup();
+		}
+		return *this;
+	}
 
 	friend bool operator == (const ETensor<T>& l, const std::nullptr_t&)
 	{
@@ -47,26 +87,49 @@ struct ETensor
 
 	operator teq::TensptrT() const
 	{
-		return tens_;
+		return nullptr == registry_ ? nullptr :
+			estd::try_get(*registry_, (void*) this, nullptr);
 	}
 
 	teq::iTensor& operator* () const
 	{
-		return *tens_;
+		return *get();
 	}
 
 	teq::iTensor* operator-> () const
 	{
-		return tens_.get();
+		return get();
 	}
 
 	teq::iTensor* get (void) const
 	{
-		return tens_.get();
+		return teq::TensptrT(*this).get();
+	}
+
+	ETensRegistryT* get_registry (void) const
+	{
+		return registry_;
 	}
 
 private:
-	teq::TensptrT tens_;
+	void copy (const ETensor<T>& other)
+	{
+		if ((registry_ = other.registry_))
+		{
+			registry_->emplace(this, teq::TensptrT(other));
+		}
+	}
+
+	void cleanup (void)
+	{
+		if (nullptr != registry_)
+		{
+			registry_->erase(this);
+			registry_ = nullptr;
+		}
+	}
+
+	mutable ETensRegistryT* registry_ = nullptr;
 };
 
 template <typename T>
@@ -74,7 +137,9 @@ struct EVariable final : public ETensor<T>
 {
 	EVariable (void) = default;
 
-	EVariable (VarptrT<T> vars) : ETensor<T>(vars) {}
+	EVariable (VarptrT<T> vars,
+		ETensRegistryT& registry = global_context().registry_) :
+		ETensor<T>(vars, registry) {}
 
 	friend bool operator == (const EVariable<T>& l, const EVariable<T>& r)
 	{
@@ -109,7 +174,8 @@ teq::TensptrsT to_tensors (const ETensorsT<T>& etensors)
 {
 	teq::TensptrsT tensors;
 	tensors.reserve(etensors.size());
-	std::transform(etensors.begin(), etensors.end(), std::back_inserter(tensors),
+	std::transform(etensors.begin(), etensors.end(),
+		std::back_inserter(tensors),
 		[](ETensor<T> etens)
 		{
 			return (teq::TensptrT) etens;

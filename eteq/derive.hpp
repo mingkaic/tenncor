@@ -72,7 +72,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 	{
 		auto args = op->get_children();
 		teq::Opcode opcode = op->get_opcode();
-		ETensor<T> out;
+		teq::TensptrT out;
 		switch (opcode.code_)
 		{
 			case egen::IDENTITY:
@@ -125,7 +125,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 							make_functor<T>(egen::SIN, {args.front()})});
 						break;
 					case egen::EXP:
-						local_der = ETensor<T>(op);
+						local_der = op;
 						break;
 					case egen::SQUARE:
 						local_der = make_functor<T>(egen::MUL, {
@@ -191,7 +191,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				out = supgrad;
 				break;
 			case egen::SUB:
-				out = arg_idx == 0 ? ETensor<T>(supgrad) : make_functor<T>(egen::NEG, {supgrad});
+				out = arg_idx == 0 ? supgrad : make_functor<T>(egen::NEG, {supgrad});
 				break;
 			case egen::DIV:
 				out = arg_idx == 0 ? make_functor<T>(egen::DIV, {supgrad, args[1]}) :
@@ -559,9 +559,17 @@ template <typename T>
 ETensorsT<T> derive (ETensor<T> root, const ETensorsT<T>& targets)
 {
 	DerivativeFuncs<T> builder;
-	teq::TensptrsT derivatives = teq::derive(root,
-		teq::TensptrsT(targets.begin(), targets.end()), builder);
-	return ETensorsT<T>(derivatives.begin(), derivatives.end());
+	teq::TensptrsT targs(targets.begin(), targets.end());
+	teq::TensptrsT derivatives = teq::derive(root, targs, builder);
+	ETensorsT<T> out;
+	out.reserve(derivatives.size());
+	std::transform(derivatives.begin(), derivatives.end(),
+		std::back_inserter(out),
+		[&root](teq::TensptrT tens)
+		{
+			return ETensor<T>(tens, *root.get_registry());
+		});
+	return out;
 }
 
 }

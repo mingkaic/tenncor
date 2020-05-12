@@ -51,6 +51,65 @@ struct iDevice
 	virtual void calc (iTensor& tens) = 0;
 };
 
+// struct DynamicSession : public iSession
+// {
+// 	DynamicSession (iDevice& device) : device_(&device) {}
+
+// 	virtual ~DynamicSession (void) = default;
+
+// 	/// Implementation of iSession
+// 	void track (TensptrsT roots) override
+// 	{
+// 		tracked_.insert(roots.begin(), roots.end());
+
+// 		GraphStat stat;
+// 		for (const TensptrT& root : tracked_)
+// 		{
+// 			root->accept(stat);
+// 		}
+// 		auto& statmap = stat.graphsize_;
+
+// 		for (auto& statpair : statmap)
+// 		{
+// 			if (0 < statpair.second.upper_)
+// 			{
+// 				ops_.push_back(static_cast<iFunctor*>(statpair.first));
+// 			}
+// 		}
+// 		std::sort(ops_.begin(), ops_.end(),
+// 			[&statmap](iFunctor* a, iFunctor* b)
+// 			{ return statmap[a].upper_ < statmap[b].upper_; });
+// 	}
+
+//     /// Implementation of iSession
+//     void update (TensSetT ignored = {}) override
+// 	{}
+
+// 	/// Implementation of iSession
+// 	void update_target (TensSetT target, TensSetT ignored = {}) override
+// 	{}
+
+// 	/// Implementation of iSession
+// 	void clear (void) override
+// 	{}
+
+// 	/// Implementation of iSession
+// 	TensptrSetT get_tracked (void) const override
+// 	{
+// 		return tracked_;
+// 	}
+
+// 	/// Set of all tensors input through tracked function
+// 	/// The set of roots of all session graphs is a possible subset
+// 	TensptrSetT tracked_;
+
+// 	/// Operable functors ordered by height in the tracked graph
+// 	std::vector<FuncSetT> ops_;
+
+// private:
+// 	iDevice* device_;
+// };
+
 /// iSession implementation that tracks subgraphs by ordering operable functors
 /// in a vector such that parents are visited after children
 struct Session : public iSession

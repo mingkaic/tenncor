@@ -71,7 +71,7 @@ This is a generic generator for creating files from dictionary of objects and ex
 
 This is the generator for EIGEN/ETEQ module. Generated files include:
 - opcode: which defines OPERATION enum, operator metadata, switch case macros, and Eigen operator creation
-- dtype: which defines DATA TYPE enum, type metadata, and switch case macros
+- type: which defines DATA TYPE enum, type metadata, and switch case macros
 - api, and pyapi: which defines APIs in C++ and python (through Pybind11)
 
 ## Building

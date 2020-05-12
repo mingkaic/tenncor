@@ -31,7 +31,8 @@ void query_ext(py::module& m)
 						[&](query::QueryResult& result)
 						{
 							return eteq::ETensor<PybindT>(
-								owners.at(result.root_).lock());
+								owners.at(result.root_).lock(),
+								eteq::global_context().registry_);
 						});
 				}
 				else
@@ -42,7 +43,8 @@ void query_ext(py::module& m)
 						if (estd::get(res, result.symbs_, sym_cap))
 						{
 							eresults.push_back(eteq::ETensor<PybindT>(
-								owners.at(res).lock()));
+								owners.at(res).lock(),
+								eteq::global_context().registry_));
 						}
 					}
 				}

@@ -41,7 +41,7 @@ for matrix_dim in matrix_dims:
     tfsess.run(tf_var2.initializer)
 
     # regular matmul
-    out = tc.matmul(var, var2)
+    out = tc.api.matmul(var, var2)
 
     # tensorflow matmul
     tf_out = tf.matmul(tf_var, tf_var2)

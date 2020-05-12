@@ -41,7 +41,7 @@ def old_winit(shape, label):
     return tc.variable(np.random.uniform(-0.05, 0.05, shape.as_list()), label)
 
 def encoded_loss(encoded_expect, encoded_result):
-    return tc.reduce_sum(-tc.log(tc.reduce_sum(encoded_result * encoded_expect, 0, 1)))
+    return tc.api.reduce_sum(-tc.api.log(tc.api.reduce_sum(encoded_result * encoded_expect, 0, 1)))
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -92,14 +92,14 @@ def main(args):
 
     print_interval = 100
 
-    model = tc.layer.link([
-        tc.layer.lstm(tc.Shape([N]), h_size, seq_length,
+    model = tc.api.layer.link([
+        tc.api.layer.lstm(tc.Shape([N]), h_size, seq_length,
             weight_init=old_winit,
             bias_init=tc.zero_init()),
-        tc.layer.dense([h_size], [o_size],
+        tc.api.layer.dense([h_size], [o_size],
             weight_init=old_winit,
             bias_init=tc.zero_init()),
-        tc.layer.bind(lambda x: tc.softmax(x, 0, 1)),
+        tc.api.layer.bind(lambda x: tc.api.softmax(x, 0, 1)),
     ])
     untrained_model = model.deep_clone()
     pretrained_model = model.deep_clone()
@@ -111,24 +111,25 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.global_default_sess
+    ctx = tc.global_context
+    sess = ctx.get_session()
 
     sample_inp = tc.EVariable([1, vocab_size], 0)
 
-    trained_prob = tc.slice(model.connect(sample_inp), 0, 1, 1)
-    untrained_prob = tc.slice(untrained_model.connect(sample_inp), 0, 1, 1)
-    pretrained_prob = tc.slice(pretrained_model.connect(sample_inp), 0, 1, 1)
+    trained_prob = tc.api.slice(model.connect(sample_inp), 0, 1, 1)
+    untrained_prob = tc.api.slice(untrained_model.connect(sample_inp), 0, 1, 1)
+    pretrained_prob = tc.api.slice(pretrained_model.connect(sample_inp), 0, 1, 1)
     sess.track([trained_prob, untrained_prob, pretrained_prob])
 
     train_inps = tc.EVariable([seq_length, vocab_size], 0)
     train_exout = tc.EVariable([seq_length, vocab_size], 0)
 
     train_err = tc.apply_update([model],
-        lambda error, leaves: tc.approx.adagrad(error, leaves, learning_rate=learning_rate, epsilon=1e-8),
+        lambda error, leaves: tc.api.approx.adagrad(error, leaves, learning_rate=learning_rate, epsilon=1e-8),
         lambda models: encoded_loss(train_exout, models[0].connect(train_inps)))
     sess.track([train_err])
 
-    tc.optimize(sess, "cfg/optimizations.json")
+    tc.optimize(ctx, "cfg/optimizations.json")
 
     smooth_loss = -np.log(1.0/vocab_size)*seq_length
     p = 0

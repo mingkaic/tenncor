@@ -1,34 +1,10 @@
+#include "python/eteq_ext.hpp"
 #include "python/layr_ext.hpp"
-
-namespace pylayr
-{
-
-layr::VarMapT<PybindT> convert (const VPairsT& op)
-{
-	layr::VarMapT<PybindT> out;
-	for (auto& o : op)
-	{
-		out.emplace(o.first, o.second);
-	}
-	return out;
-}
-
-VPairsT convert (const layr::VarMapT<PybindT>& op)
-{
-	VPairsT out;
-	for (auto& o : op)
-	{
-		out.push_back({eteq::EVariable<PybindT>(o.first), o.second});
-	}
-	return out;
-}
-
-}
 
 void layr_ext(py::module& m)
 {
 	// ==== layer ====
-	auto rbmlayer = (py::class_<layr::RBMLayer<PybindT>>) m.attr("RBMLayer");
+	py::class_<layr::RBMLayer<PybindT>> rbmlayer(m, "RBMLayer");
 
 	rbmlayer
 		.def(py::init(
@@ -56,9 +32,11 @@ void layr_ext(py::module& m)
 	dbntrainer
 		.def(py::init<
 			const std::vector<layr::RBMLayer<PybindT>>&,eteq::ETensor<PybindT>,
-			teq::RankT,teq::DimT,PybindT,PybindT,size_t,PybindT,PybindT>(),
-			py::arg("rbms"), py::arg("dense"), py::arg("softmax_dim"),
-			py::arg("batch_size"), py::arg("pretrain_lr") = 0.1,
+			eteq::ETensContext&,teq::RankT,teq::DimT,
+			PybindT,PybindT,size_t,PybindT,PybindT>(),
+			py::arg("rbms"), py::arg("dense"), py::arg("context"),
+			py::arg("softmax_dim"), py::arg("batch_size"),
+			py::arg("pretrain_lr") = 0.1,
 			py::arg("train_lr") = 0.1, py::arg("cdk") = 10,
 			py::arg("l2_reg") = 0., py::arg("lr_scaling") = 0.95)
 		.def("pretrain",
@@ -101,20 +79,21 @@ void layr_ext(py::module& m)
 			},
 			"Return labelled variable containing data created from initializer",
 			py::arg("init"), py::arg("slist"), py::arg("label") = "")
-		.def("zero_init", layr::zero_init<PybindT>)
-		.def("variance_scaling_init",
-			[](PybindT factor)
-			{
-				return layr::variance_scaling_init<PybindT>(factor);
-			},
+		.def("zero_init", &layr::zero_init<PybindT>,
+			py::arg("registry") = eteq::global_context().registry_)
+		.def("variance_scaling_init", &layr::variance_scaling_init<PybindT>,
 			"truncated_normal(shape, 0, sqrt(factor / ((fanin + fanout)/2))",
-			py::arg("factor"))
+			py::arg("factor"),
+			py::arg("sfactor") = layr::ShapeFactorF<PybindT>(layr::fanavg<PybindT>),
+			py::arg("registry") = eteq::global_context().registry_)
 		.def("unif_xavier_init", &layr::unif_xavier_init<PybindT>,
 			"uniform xavier initializer",
-			py::arg("factor") = 1)
+			py::arg("factor") = 1,
+			py::arg("registry") = eteq::global_context().registry_)
 		.def("norm_xavier_init", &layr::norm_xavier_init<PybindT>,
 			"normal xavier initializer",
-			py::arg("factor") = 1)
+			py::arg("factor") = 1,
+			py::arg("registry") = eteq::global_context().registry_)
 
 		// ==== layer training ====
 		.def("apply_update", [](const eteq::ETensorsT<PybindT>& models,
@@ -125,6 +104,11 @@ void layr_ext(py::module& m)
 		.def("rbm_train", &trainer::rbm<PybindT>,
 			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
-			py::arg("err_func") = layr::BErrorF<PybindT>(tenncor::error::sqr_diff<PybindT>),
-			py::arg("cdk") = 1);
+			py::arg("err_func") = layr::BErrorF<PybindT>(
+				[](const pyeteq::ETensT& l, const pyeteq::ETensT& r)
+				{
+					return tenncor<PybindT>().error.sqr_diff(l, r);
+				}),
+			py::arg("cdk") = 1,
+			py::arg("registry") = eteq::global_context().registry_);
 }

@@ -32,7 +32,7 @@ cifar_name = 'cifar10'
 assert cifar_name in tfds.list_builders()
 
 def cross_entropy_loss(Label, Pred):
-    return -tc.reduce_sum(Label * tc.log(Pred + np.finfo(float).eps), set([0]))
+    return -tc.api.reduce_sum(Label * tc.api.log(Pred + np.finfo(float).eps), set([0]))
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -77,7 +77,8 @@ def main(args):
     ds = tfds.load('cifar10', split='train', batch_size=nbatch, shuffle_files=True)
     cifar = tfds.as_numpy(ds)
 
-    sess = tc.global_default_sess
+    ctx = tc.global_context
+    sess = ctx.get_session()
 
     # batch, height, width, in
     raw_inshape = list(ds.output_shapes['image'][1:])
@@ -88,32 +89,32 @@ def main(args):
 
     # construct CNN
     padding = ((2, 2), (2, 2))
-    model = tc.layer.link([ # minimum input shape of [1, 32, 32, 3]
-        tc.layer.bind(lambda x: x / 255. - 0.5), # normalization
-        tc.layer.conv([5, 5], 3, 16,
+    model = tc.api.layer.link([ # minimum input shape of [1, 32, 32, 3]
+        tc.api.layer.bind(lambda x: x / 255. - 0.5), # normalization
+        tc.api.layer.conv([5, 5], 3, 16,
             weight_init=tc.norm_xavier_init(0.5),
             zero_padding=padding), # outputs [nbatch, 32, 32, 16]
-        tc.layer.bind(tc.relu),
-        tc.layer.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
+        tc.api.layer.bind(tc.api.relu),
+        tc.api.layer.bind(lambda x: tc.api.nn.max_pool2d(x, [1, 2]),
             inshape=tc.Shape([1, 32, 32, 16])), # outputs [nbatch, 16, 16, 16]
-        tc.layer.conv([5, 5], 16, 20,
+        tc.api.layer.conv([5, 5], 16, 20,
             weight_init=tc.norm_xavier_init(0.3),
             zero_padding=padding), # outputs [nbatch, 16, 16, 20]
-        tc.layer.bind(tc.relu),
-        tc.layer.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
+        tc.api.layer.bind(tc.api.relu),
+        tc.api.layer.bind(lambda x: tc.api.nn.max_pool2d(x, [1, 2]),
             inshape=tc.Shape([1, 16, 16, 20])), # outputs [nbatch, 8, 8, 20]
-        tc.layer.conv([5, 5], 20, 20,
+        tc.api.layer.conv([5, 5], 20, 20,
             weight_init=tc.norm_xavier_init(0.1),
             zero_padding=padding), # outputs [nbatch, 8, 8, 20]
-        tc.layer.bind(tc.relu),
-        tc.layer.bind(lambda x: tc.nn.max_pool2d(x, [1, 2]),
+        tc.api.layer.bind(tc.api.relu),
+        tc.api.layer.bind(lambda x: tc.api.nn.max_pool2d(x, [1, 2]),
             inshape=tc.Shape([1, 8, 8, 20])), # outputs [nbatch, 4, 4, 20]
 
-        tc.layer.dense([4, 4, 20], [10], # weight has shape [10, 4, 4, 20]
+        tc.api.layer.dense([4, 4, 20], [10], # weight has shape [10, 4, 4, 20]
             weight_init=tc.norm_xavier_init(0.5),
             bias_init=tc.zero_init(),
             dims=[[0, 1], [1, 2], [2, 3]]), # outputs [nbatch, 10]
-        tc.layer.bind(lambda x: tc.softmax(x, 0, 1))
+        tc.api.layer.bind(lambda x: tc.api.softmax(x, 0, 1))
     ], train_in)
     untrained = model.deep_clone()
     trained = model.deep_clone()
@@ -126,7 +127,7 @@ def main(args):
         print('failed to load from "{}"'.format(args.load))
 
     opt = lambda error, leaves: \
-        tc.approx.adadelta(error, leaves, step_rate=learning_rate, decay=l2_decay)
+        tc.api.approx.adadelta(error, leaves, step_rate=learning_rate, decay=l2_decay)
 
     train_err = tc.apply_update([model], opt,
         lambda models: cross_entropy_loss(train_exout, models[0]))
@@ -134,7 +135,7 @@ def main(args):
     test_in = tc.EVariable([1] + raw_inshape, label="test_in")
     test_exout = tc.EVariable([10], label='test_exout')
     test_prob = model.connect(test_in)
-    test_idx = tc.argmax(test_prob)
+    test_idx = tc.api.argmax(test_prob)
     test_err = cross_entropy_loss(test_exout, test_prob)
 
     test_ds = tfds.load('cifar10', split='test', batch_size=1, shuffle_files=True)
@@ -196,7 +197,7 @@ def main(args):
             test_iteration()
 
     def error_connect(input_vars):
-        opt = lambda error, leaves: tc.approx.adadelta(error, leaves, step_rate=learning_rate, decay=l2_decay)
+        opt = lambda error, leaves: tc.api.approx.adadelta(error, leaves, step_rate=learning_rate, decay=l2_decay)
         invar, exout = tuple(input_vars)
 
         output_prob = model.connect(invar)
@@ -205,7 +206,7 @@ def main(args):
 
         return [train_err, output_prob]
 
-    env = TfdsEnv('cifar10', sess, [train_in, train_exout],
+    env = TfdsEnv('cifar10', ctx, [train_in, train_exout],
                 error_connect, cifar_trainstep,
                 split='train', batch_size=nbatch,
                 display_name='demo_cifar10',

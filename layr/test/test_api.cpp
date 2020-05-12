@@ -12,12 +12,26 @@
 #include "generated/api.hpp"
 
 
+template <typename T=float>
+static eteq::ETensor<T> tc_tanh (const eteq::ETensor<T>& x)
+{
+	return tenncor<T>().tanh(x);
+}
+
+
+template <typename T=float>
+static eteq::ETensor<T> tc_sigmoid (const eteq::ETensor<T>& x)
+{
+	return tenncor<T>().sigmoid(x);
+}
+
+
 TEST(DENSE, Connection)
 {
 	teq::Shape shape({6});
 	teq::Shape shape2({7});
-	auto biased_dense = tenncor::layer::dense<float>(shape, {5}, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
-	auto dense = tenncor::layer::dense<float>(shape2, {6}, layr::unif_xavier_init<float>(3), layr::InitF<float>());
+	auto biased_dense = tenncor<float>().layer.dense(shape, {5}, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
+	auto dense = tenncor<float>().layer.dense(shape2, {6}, layr::unif_xavier_init<float>(3), layr::InitF<float>());
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({6, 2}), "x");
@@ -45,7 +59,7 @@ TEST(DENSE, Connection)
 
 TEST(CONV, Connection)
 {
-	auto conv = tenncor::layer::conv<float>({6, 5}, 4, 3,
+	auto conv = tenncor<float>().layer.conv({6, 5}, 4, 3,
 		layr::unif_xavier_init<float>(1), layr::zero_init<float>());
 
 	auto x = eteq::make_variable_scalar<float>(
@@ -68,8 +82,8 @@ TEST(CONV, Connection)
 
 TEST(RBM, Connection)
 {
-	auto rrbm = tenncor::layer::rbm<float>(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
-	auto nobias = tenncor::layer::rbm<float>(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
+	auto rrbm = tenncor<float>().layer.rbm(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
+	auto nobias = tenncor<float>().layer.rbm(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<float>(0, teq::Shape({7, 2}), "x2");
@@ -95,8 +109,8 @@ TEST(RBM, Connection)
 
 TEST(RBM, BackwardConnection)
 {
-	auto rrbm = tenncor::layer::rbm<float>(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
-	auto nobias = tenncor::layer::rbm<float>(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
+	auto rrbm = tenncor<float>().layer.rbm(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
+	auto nobias = tenncor<float>().layer.rbm(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
 
 	auto y = eteq::make_variable_scalar<float>(0, teq::Shape({5, 2}), "y");
 	auto y2 = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "y2");
@@ -124,7 +138,7 @@ TEST(RBM, BackwardConnection)
 
 TEST(BIND, Sigmoid)
 {
-	auto sgm = tenncor::layer::bind(layr::UnaryF<float>(tenncor::sigmoid<float>));
+	auto sgm = tenncor<float>().layer.bind(tc_sigmoid<float>);
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
 	auto s = eteq::connect(sgm, eteq::ETensor<float>(x));
@@ -138,16 +152,16 @@ TEST(BIND, Sigmoid)
 
 TEST(BIND, Softmax)
 {
-	auto sft0 = tenncor::layer::bind<float>(
+	auto sft0 = tenncor<float>().layer.bind(
 		[](eteq::ETensor<float> e)
 		{
-			return tenncor::softmax(e, 0, 1);
+			return tenncor<float>().softmax(e, 0, 1);
 		});
 
-	auto sft1 = tenncor::layer::bind<float>(
+	auto sft1 = tenncor<float>().layer.bind(
 		[](eteq::ETensor<float> e)
 		{
-			return tenncor::softmax(e, 1, 1);
+			return tenncor<float>().softmax(e, 1, 1);
 		});
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
@@ -263,7 +277,7 @@ TEST(CONNECT, TanhRNN)
 	eteq::ETensor<double> out = eteq::ETensor<double>(
 		eteq::make_variable<double>(out_data.data(), out_shape));
 
-	auto layer = tenncor::layer::rnn<double>(indim, hidden_dim, tenncor::tanh<double>, nseq,
+	auto layer = tenncor<double>().layer.rnn(indim, hidden_dim, tc_tanh<double>, nseq,
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(weight_data.data(), wshape, label);
@@ -274,7 +288,7 @@ TEST(CONNECT, TanhRNN)
 		}, seq_dim);
 
 	auto output = eteq::connect(layer, in);
-	auto err = tenncor::pow(out - output, 2.);
+	auto err = tenncor<double>().pow(out - output, 2.);
 	auto contents = eteq::get_storage(layer);
 	auto istate = contents[0];
 	auto weight = contents[1];
@@ -401,7 +415,7 @@ TEST(CONNECT, DenseTanhRNN)
 	eteq::ETensor<double> out = eteq::ETensor<double>(
 		eteq::make_variable<double>(out_data.data(), out_shape));
 
-	auto indense = tenncor::layer::dense<double>(teq::Shape({indim}), {hidden_dim},
+	auto indense = tenncor<double>().layer.dense(teq::Shape({indim}), {hidden_dim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w0_data.data(), wshape, label);
@@ -410,7 +424,7 @@ TEST(CONNECT, DenseTanhRNN)
 		{
 			return eteq::make_variable<double>(b0_data.data(), bshape, label);
 		});
-	auto rnn = tenncor::layer::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
+	auto rnn = tenncor<double>().layer.rnn(hidden_dim, hidden_dim, tc_tanh<double>, nseq,
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w1_data.data(), wshape, label);
@@ -420,11 +434,11 @@ TEST(CONNECT, DenseTanhRNN)
 			return eteq::make_variable<double>(b1_data.data(), bshape, label);
 		}, seq_dim);
 
-	auto layer = tenncor::layer::link<double>({indense, rnn});
+	auto layer = tenncor<double>().layer.link({indense, rnn});
 
 	auto output = eteq::connect(layer, in);
 
-	auto err = tenncor::pow(out - output, 2.);
+	auto err = tenncor<double>().pow(out - output, 2.);
 	auto contents = eteq::get_storage(layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
@@ -606,7 +620,7 @@ TEST(CONNECT, TanhRNNFull)
 	eteq::ETensor<double> out = eteq::ETensor<double>(
 		eteq::make_variable<double>(out_data.data(), out_shape));
 
-	auto indense = tenncor::layer::dense<double>(teq::Shape({indim}), {hidden_dim},
+	auto indense = tenncor<double>().layer.dense(teq::Shape({indim}), {hidden_dim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w0_data.data(), wshape, label);
@@ -615,7 +629,7 @@ TEST(CONNECT, TanhRNNFull)
 		{
 			return eteq::make_variable<double>(b0_data.data(), bshape, label);
 		});
-	auto rnn = tenncor::layer::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
+	auto rnn = tenncor<double>().layer.rnn(hidden_dim, hidden_dim, tc_tanh<double>, nseq,
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w1_data.data(), wshape, label);
@@ -624,7 +638,7 @@ TEST(CONNECT, TanhRNNFull)
 		{
 			return eteq::make_variable<double>(b1_data.data(), bshape, label);
 		}, seq_dim);
-	auto outdense = tenncor::layer::dense<double>(teq::Shape({hidden_dim}), {outdim},
+	auto outdense = tenncor<double>().layer.dense(teq::Shape({hidden_dim}), {outdim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w2_data.data(), wshape, label);
@@ -634,14 +648,14 @@ TEST(CONNECT, TanhRNNFull)
 			return eteq::make_variable<double>(b2_data.data(), bshape, label);
 		});
 
-	auto layer = tenncor::layer::link<double>({
+	auto layer = tenncor<double>().layer.link({
 		indense, rnn, outdense,
-		tenncor::layer::bind(layr::UnaryF<double>(tenncor::sigmoid<double>)),
+		tenncor<double>().layer.bind(tc_sigmoid<double>),
 	});
 
 	auto output = eteq::connect(layer, in);
 
-	auto err = tenncor::pow(out - output, 2.);
+	auto err = tenncor<double>().pow(out - output, 2.);
 	auto contents = eteq::get_storage(layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
@@ -844,7 +858,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 	eteq::ETensor<double> out = eteq::ETensor<double>(
 		eteq::make_variable<double>(out_data.data(), out_shape));
 
-	auto indense = tenncor::layer::dense<double>(teq::Shape({indim}), {hidden_dim},
+	auto indense = tenncor<double>().layer.dense(teq::Shape({indim}), {hidden_dim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w0_data.data(), wshape, label);
@@ -853,7 +867,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		{
 			return eteq::make_variable<double>(b0_data.data(), bshape, label);
 		});
-	auto rnn = tenncor::layer::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
+	auto rnn = tenncor<double>().layer.rnn(hidden_dim, hidden_dim, tc_tanh<double>, nseq,
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w1_data.data(), wshape, label);
@@ -862,7 +876,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		{
 			return eteq::make_variable<double>(b1_data.data(), bshape, label);
 		}, seq_dim);
-	auto outdense = tenncor::layer::dense<double>(teq::Shape({hidden_dim}), {outdim},
+	auto outdense = tenncor<double>().layer.dense(teq::Shape({hidden_dim}), {outdim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w2_data.data(), wshape, label);
@@ -872,16 +886,16 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 			return eteq::make_variable<double>(b2_data.data(), bshape, label);
 		});
 
-	auto layer = tenncor::layer::link<double>({
+	auto layer = tenncor<double>().layer.link({
 		indense, rnn, outdense,
-		tenncor::layer::bind<double>(tenncor::sigmoid<double>),
+		tenncor<double>().layer.bind(tc_sigmoid<double>),
 	});
 
 	auto output = eteq::connect(layer, in);
 
 	double epsilon = 1e-5;
 	auto common = output + epsilon;
-	auto err = tenncor::reduce_mean(-(out * tenncor::log(common) + (1. - out) * tenncor::log(1. - common)));
+	auto err = tenncor<double>().reduce_mean(-(out * tenncor<double>().log(common) + (1. - out) * tenncor<double>().log(1. - common)));
 
 	auto contents = eteq::get_storage(layer);
 	auto weight0 = contents[0];
@@ -1273,7 +1287,7 @@ TEST(CONNECT, TanhRNNTraining)
 	eteq::ETensor<double> out = eteq::ETensor<double>(
 		eteq::make_variable<double>(out_data.data(), out_shape, "output"));
 
-	auto indense = tenncor::layer::dense<double>(teq::Shape({indim}), {hidden_dim},
+	auto indense = tenncor<double>().layer.dense(teq::Shape({indim}), {hidden_dim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w0_data.data(), wshape, label);
@@ -1282,7 +1296,7 @@ TEST(CONNECT, TanhRNNTraining)
 		{
 			return eteq::make_variable<double>(b0_data.data(), bshape, label);
 		});
-	auto rnn = tenncor::layer::rnn<double>(hidden_dim, hidden_dim, tenncor::tanh<double>, nseq,
+	auto rnn = tenncor<double>().layer.rnn(hidden_dim, hidden_dim, tc_tanh<double>, nseq,
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w1_data.data(), wshape, label);
@@ -1291,7 +1305,7 @@ TEST(CONNECT, TanhRNNTraining)
 		{
 			return eteq::make_variable<double>(b1_data.data(), bshape, label);
 		}, seq_dim);
-	auto outdense = tenncor::layer::dense<double>(teq::Shape({hidden_dim}), {outdim},
+	auto outdense = tenncor<double>().layer.dense(teq::Shape({hidden_dim}), {outdim},
 		[&](teq::Shape wshape, std::string label)
 		{
 			return eteq::make_variable<double>(w2_data.data(), wshape, label);
@@ -1301,16 +1315,16 @@ TEST(CONNECT, TanhRNNTraining)
 			return eteq::make_variable<double>(b2_data.data(), bshape, label);
 		});
 
-	auto layer = tenncor::layer::link<double>({
+	auto layer = tenncor<double>().layer.link({
 		indense, rnn, outdense,
-		tenncor::layer::bind<double>(tenncor::sigmoid<double>),
+		tenncor<double>().layer.bind(tc_sigmoid<double>),
 	});
 
 	auto output = eteq::connect(layer, in);
 
 	double epsilon = 1e-5;
 	auto common = output + epsilon;
-	auto err = tenncor::reduce_mean(-(out * tenncor::log(common) + (1. - out) * tenncor::log(1. - common)));
+	auto err = tenncor<double>().reduce_mean(-(out * tenncor<double>().log(common) + (1. - out) * tenncor<double>().log(1. - common)));
 
 	auto contents = eteq::get_storage(layer);
 	auto weight0 = contents[0];
@@ -1365,7 +1379,7 @@ TEST(CONNECT, TanhRNNTraining)
 	for (size_t i = 0; i < nders; ++i)
 	{
 		auto right = lmbd * eteq::ETensor<double>(mvavg_sqrs[i]) +
-			(1. - lmbd) * tenncor::pow(ders[i], 2.);
+			(1. - lmbd) * tenncor<double>().pow(ders[i], 2.);
 		group2_left.push_back(mvavg_sqrs[i]);
 		group2_right.push_back(right);
 		to_track.push_back(right);
@@ -1379,7 +1393,7 @@ TEST(CONNECT, TanhRNNTraining)
 		for (size_t i = 0; i < nders; ++i)
 		{
 			pgrad_norm_nodes.push_back((learning_rate * ders[i]) /
-				(tenncor::sqrt(eteq::ETensor<double>(mvavg_sqrs[i])) + eps));
+				(tenncor<double>().sqrt(eteq::ETensor<double>(mvavg_sqrs[i])) + eps));
 		}
 
 		for (size_t i = 0; i < nders; ++i)
@@ -1432,7 +1446,8 @@ TEST(CONNECT, TanhRNNTraining)
 		session.update_target(rights);
 		for (size_t i = 0; i < nders; ++i)
 		{
-			group1_left[i]->assign(*group1_right[i], session);
+			group1_left[i]->assign(*group1_right[i],
+				eteq::global_context().registry_);
 		}
 
 		for (size_t i = 0; i < nders; ++i)
@@ -1477,7 +1492,8 @@ TEST(CONNECT, TanhRNNTraining)
 		session.update_target(rights);
 		for (size_t i = 0; i < nders; ++i)
 		{
-			group2_left[i]->assign(*group2_right[i], session);
+			group2_left[i]->assign(*group2_right[i],
+				eteq::global_context().registry_);
 		}
 
 		for (size_t i = 0; i < nders; ++i)
@@ -1502,7 +1518,8 @@ TEST(CONNECT, TanhRNNTraining)
 		session.update_target(rights);
 		for (size_t i = 0; i < group3_left.size(); ++i)
 		{
-			group3_left[i]->assign(*group3_right[i], session);
+			group3_left[i]->assign(*group3_right[i],
+				eteq::global_context().registry_);
 		}
 
 		for (size_t i = 0, ng3 = group3_left.size(); i < ng3; ++i)

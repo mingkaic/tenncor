@@ -25,9 +25,9 @@ TEST(APPROX, StochasticGD)
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "leaf");
-	auto err = tenncor::abs(leaf);
+	auto err = tenncor<PybindT>().abs(leaf);
 
-	auto groups = tenncor::approx::sgd<PybindT>(
+	auto groups = tenncor<PybindT>().approx.sgd(
 		err, eteq::EVariablesT<PybindT>{leaf}, 0.67);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
@@ -52,9 +52,9 @@ TEST(APPROX, Adagrad)
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "leaf");
-	auto err = tenncor::abs(leaf);
+	auto err = tenncor<PybindT>().abs(leaf);
 
-	auto groups = tenncor::approx::adagrad<PybindT>(
+	auto groups = tenncor<PybindT>().approx.adagrad(
 		err, eteq::EVariablesT<PybindT>{leaf}, 0.67);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
@@ -94,12 +94,12 @@ TEST(APPROX, Adadelta)
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(
 		0, shape, "leaf");
-	auto err = tenncor::sin(leaf);
+	auto err = tenncor<PybindT>().sin(leaf);
 
 	PybindT step_rate = 1;
 	PybindT decay = 0.91;
 	PybindT offset = 0.16;
-	auto groups = tenncor::approx::adadelta<PybindT>(
+	auto groups = tenncor<PybindT>().approx.adadelta(
 		err, eteq::EVariablesT<PybindT>{leaf}, step_rate, decay, offset);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
@@ -284,11 +284,11 @@ TEST(APPROX, RmsMomentum)
 	teq::Shape shape({5});
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(0, shape, "leaf");
-	auto err = tenncor::sin(leaf) / 2.f;
+	auto err = tenncor<PybindT>().sin(leaf) / 2.f;
 
 	PybindT learning_rate = 1.;
 	PybindT discount_rate = 0.52;
-	layr::VarMapT<PybindT> groups = tenncor::approx::rms_momentum<PybindT>(
+	layr::VarErrsT<PybindT> groups = tenncor<PybindT>().approx.rms_momentum(
 		err, eteq::EVariablesT<PybindT>{leaf},
 		learning_rate, discount_rate,
 		std::numeric_limits<PybindT>::epsilon());
@@ -329,11 +329,11 @@ TEST(APPROX, RmsMomentum)
 		"_________|_______________________________`--(constant:2[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		"_________`--(EXTEND[5\\1\\1\\1\\1\\1\\1\\1])\n"
 		"_____________`--(constant:1.19209e-07[1\\1\\1\\1\\1\\1\\1\\1])",
-		groups.begin()->second);
+		groups[0].second);
 
 	// evaluating execution order
 	auto sess = eigen::get_session();
-	sess.track(teq::TensptrsT{groups.begin()->second});
+	sess.track(teq::TensptrsT{groups[0].second});
 	sess.update();
 
 	eteq::Variable<PybindT>* momentum;
@@ -341,7 +341,7 @@ TEST(APPROX, RmsMomentum)
 		std::stringstream ss;
 		ss << "{\"leaf\":{\"label\":\"momentum\"}}";
 		query::Query itable;
-		groups.begin()->second->accept(itable);
+		groups[0].second->accept(itable);
 		query::Node cond;
 		query::json_parse(cond, ss);
 		auto results = itable.match(cond);

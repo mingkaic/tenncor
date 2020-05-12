@@ -10,7 +10,7 @@ import tenncor as tc
 import extenncor.trainer_cache as ecache
 import extenncor.dqntrainer_pb2 as dqn_pb
 
-_get_random = tc.unif_gen(0, 1)
+_get_random = tc.api.unif_gen(0, 1)
 
 def get_dqnupdate(update_fn, update_rate):
     def dqnupdate(err, vars):
@@ -23,7 +23,7 @@ def get_dqnupdate(update_fn, update_rate):
         assigns = dict()
         for nxt_var, src_var in zip(nxt_vars, src_vars):
             diff = nxt_var - src_updates[src_var]
-            assigns[nxt_var] = tc.assign_sub(nxt_var, update_rate * diff)
+            assigns[nxt_var] = tc.api.assign_sub(nxt_var, update_rate * diff)
         return assigns
     return dqnupdate
 
@@ -36,18 +36,18 @@ def get_dqnerror(env, discount_rate):
 
         # predicting target future rewards
         nxt_act = nxt_model.connect(env.nxt_obs)
-        target_vals = env.nxt_outmask * tc.reduce_max_1d(nxt_act, 0)
+        target_vals = env.nxt_outmask * tc.api.reduce_max_1d(nxt_act, 0)
 
         future_reward = env.rewards + discount_rate * target_vals
 
-        masked_output_score = tc.reduce_sum_1d(src_act * env.src_outmask, 0)
-        return tc.reduce_mean(tc.square(masked_output_score - future_reward))
+        masked_output_score = tc.api.reduce_sum_1d(src_act * env.src_outmask, 0)
+        return tc.api.reduce_mean(tc.api.square(masked_output_score - future_reward))
     return dqnerror
 
 # generalize as feedback class
 @ecache.EnvManager.register
 class DQNEnv(ecache.EnvManager):
-    def __init__(self, src_model, sess, update_fn,
+    def __init__(self, src_model, ctx, update_fn,
         optimize_cfg = "", max_exp = 30000,
         train_interval = 5, store_interval = 5,
         explore_period = 1000, action_prob = 0.05,
@@ -74,7 +74,7 @@ class DQNEnv(ecache.EnvManager):
 
             # environment interaction
             self.obs = tc.EVariable(inshape, 0, 'obs')
-            self.act_idx = tc.argmax(src_model.connect(self.obs))
+            self.act_idx = tc.api.argmax(src_model.connect(self.obs))
             self.act_idx.tag("recovery", "act_idx")
 
             # training
@@ -88,11 +88,11 @@ class DQNEnv(ecache.EnvManager):
                 get_dqnupdate(update_fn, target_update_rate),
                 get_dqnerror(self, discount_rate))
 
-            self.sess.track([self.prediction_err, self.act_idx])
-            tc.optimize(self.sess, optimize_cfg)
+            self.ctx.get_session().track([self.prediction_err, self.act_idx])
+            tc.optimize(self.ctx, optimize_cfg)
 
         super().__init__(os.path.join(usecase, 'dqn'),
-            sess, default_init=default_init,
+            ctx, default_init=default_init,
             clean=clean_startup,  cacheroot=cachedir)
         self.src_shape = self.src_outmask.shape()
         self.mbatch_size = self.rewards.shape()
@@ -123,7 +123,7 @@ class DQNEnv(ecache.EnvManager):
 
     def _recover_env(self, fpath: str) -> bool:
         # recover object members from recovered session
-        query = tc.Statement(self.sess.get_tracked())
+        query = tc.Statement(self.ctx.get_actives())
         self.obs = query.find('{ "leaf":{ "label":"obs" } }')[0]
         self.act_idx = query.find('''{
             "op":{
@@ -165,8 +165,8 @@ class DQNEnv(ecache.EnvManager):
         if _get_random() < exploration:
             return math.floor(_get_random() * self.src_shape[-1])
 
-        self.obs.assign(obs, self.sess)
-        self.sess.update_target([self.act_idx])
+        self.obs.assign(obs, self.ctx)
+        self.ctx.get_session().update_target([self.act_idx])
         return int(self.act_idx.get())
 
     def store(self, observation, act_idx, reward, new_obs):
@@ -203,12 +203,12 @@ class DQNEnv(ecache.EnvManager):
             new_states = np.array(new_states)
             action_mask = np.array(action_mask)
             rewards = np.array(rewards)
-            self.src_obs.assign(states, self.sess)
-            self.src_outmask.assign(action_mask, self.sess)
-            self.nxt_obs.assign(new_states, self.sess)
-            self.rewards.assign(rewards, self.sess)
+            self.src_obs.assign(states, self.ctx)
+            self.src_outmask.assign(action_mask, self.ctx)
+            self.nxt_obs.assign(new_states, self.ctx)
+            self.rewards.assign(rewards, self.ctx)
 
-            self.sess.update_target([self.prediction_err])
+            self.ctx.get_session().update_target([self.prediction_err])
         self.ntrain_called += 1
 
     def _linear_annealing(self, initial_prob):

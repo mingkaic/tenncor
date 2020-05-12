@@ -39,7 +39,7 @@ TEST(OPTIMIZE, Depends)
 	auto c = a + b;
 	eteq::ETensor<double> d = eteq::make_constant_scalar<double>(4, shape);
 
-	auto ass = tenncor::depends(tenncor::assign(target, b * d), {c});
+	auto ass = tenncor<double>().depends(tenncor<double>().assign(target, b * d), {c});
 
 	eteq::ETensorsT<double> roots = {ass};
 
@@ -79,7 +79,7 @@ TEST(OPTIMIZE, DependsNnary)
 	auto c = a + b;
 	eteq::ETensor<double> d = eteq::make_constant_scalar<double>(4, shape);
 
-	auto add = tenncor::depends(tenncor::add(target, b * d), {c});
+	auto add = tenncor<double>().depends(tenncor<double>().add(target, b * d), {c});
 
 	teq::Session sess = eigen::get_session();
 	sess.track({teq::TensptrT(add)});
@@ -179,15 +179,18 @@ TEST(OPTIMIZE, RNNLayer)
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell = tenncor::nn::dense(cell_in, weight, bias);
+	auto cell = tenncor<double>().nn.dense(cell_in, weight, bias);
 
-	auto state = tenncor::extend_like(istate,
-		tenncor::slice(in, 0, 1, seq_dim));
+	auto state = tenncor<double>().extend_like(istate,
+		tenncor<double>().slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor::nn::rnn(in, state, cell,
-		layr::UnaryF<double>(tenncor::tanh<double>), seq_dim);
+	auto output = tenncor<double>().nn.rnn(in, state, cell,
+		[](const eteq::ETensor<double>& x)
+		{
+			return tenncor<double>().tanh(x);
+		}, seq_dim);
 
-	auto err = tenncor::pow(out - output, 2.);
+	auto err = tenncor<double>().pow(out - output, 2.);
 
 	auto ders = eteq::derive(err, {weight, bias, istate});
 	eteq::ETensorsT<double> roots = {ders[0], ders[1], ders[2], err};
@@ -307,8 +310,8 @@ TEST(OPTIMIZE, CNNLayer)
 		out_data.data(), out_shape, "outvar");
 
 	// construct CNN
-	auto model = tenncor::layer::link({ // input [2\4\4]
-		tenncor::layer::conv<double>({3, 3}, 2, 2,
+	auto model = tenncor<double>().layer.link({ // input [2\4\4]
+		tenncor<double>().layer.conv({3, 3}, 2, 2,
 			[&](teq::Shape shape, std::string label) -> eteq::EVariable<double>
 			{
 				return eteq::make_variable<double>(cweight_data.data(), shape, label);
@@ -318,7 +321,11 @@ TEST(OPTIMIZE, CNNLayer)
 				return eteq::make_variable<double>(cbias_data.data(), shape, label);
 			},
 			{{1, 1}, {1, 1}}), // outputs [2\4\4]
-		tenncor::layer::bind(layr::UnaryF<double>(tenncor::relu<double>)),
+		tenncor<double>().layer.bind(
+			[](const eteq::ETensor<double>& x)
+			{
+				return tenncor<double>().relu(x);
+			}),
 	}, invar);
 
 	double learning_rate = 0.01;
@@ -326,11 +333,11 @@ TEST(OPTIMIZE, CNNLayer)
 
 	auto normalized = invar / 255. - 0.5;
 	eteq::ETensor<double> train_out = eteq::connect(model, normalized);
-	auto error = -tenncor::reduce_sum(outvar *
-		tenncor::log(train_out + std::numeric_limits<double>::epsilon()));
+	auto error = -tenncor<double>().reduce_sum(outvar *
+		tenncor<double>().log(train_out + std::numeric_limits<double>::epsilon()));
 
 	eteq::VarptrsT<double> vars = eteq::get_storage(model);
-	auto updates = tenncor::approx::adadelta<double>(
+	auto updates = tenncor<double>().approx.adadelta(
 		error, eteq::EVariablesT<double>(vars.begin(), vars.end()),
 		learning_rate, l2_decay);
 	teq::TensMapT<teq::TensptrT> umap;
@@ -341,7 +348,7 @@ TEST(OPTIMIZE, CNNLayer)
 		umap.emplace(update.first.get(), update.second);
 		deps.push_back(update.second);
 	}
-	auto err = tenncor::identity(tenncor::depends(eteq::trail(error, umap), deps));
+	auto err = tenncor<double>().identity(tenncor<double>().depends(eteq::trail(error, umap), deps));
 
 	eteq::ETensorsT<double> roots = {err};
 	std::ifstream rulefile("cfg/optimizations.json");

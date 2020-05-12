@@ -44,6 +44,11 @@ static teq::ShapedArr<PybindT> avgevry2 (teq::ShapedArr<PybindT>& in)
 	return out;
 }
 
+static inline eteq::ETensor<PybindT> sigmoid (const eteq::ETensor<PybindT>& x)
+{
+	return tenncor<PybindT>().sigmoid(x);
+}
+
 int main (int argc, const char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -96,13 +101,13 @@ int main (int argc, const char** argv)
 	uint8_t n_hid = 9;
 	uint8_t n_out = n_in / 2;
 
-	eteq::ETensor<PybindT> trained_model = tenncor::layer::link<PybindT>({
-		tenncor::layer::dense<PybindT>(teq::Shape({n_in}), {n_hid},
+	eteq::ETensor<PybindT> trained_model = tenncor<PybindT>().layer.link({
+		tenncor<PybindT>().layer.dense(teq::Shape({n_in}), {n_hid},
 			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
-		tenncor::layer::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
-		tenncor::layer::dense<PybindT>(teq::Shape({n_hid}), {n_out},
+		tenncor<PybindT>().layer.bind(sigmoid),
+		tenncor<PybindT>().layer.dense(teq::Shape({n_hid}), {n_out},
 			layr::unif_xavier_init<PybindT>(1), layr::zero_init<PybindT>()),
-		tenncor::layer::bind(layr::UnaryF<PybindT>(tenncor::sigmoid<PybindT>)),
+		tenncor<PybindT>().layer.bind(sigmoid),
 	});
 	eteq::ETensor<PybindT> untrained_model = eteq::deep_clone(trained_model);
 	eteq::ETensor<PybindT> pretrained_model = eteq::deep_clone(trained_model);
@@ -135,7 +140,7 @@ int main (int argc, const char** argv)
 		[](const eteq::ETensor<PybindT>& error,
 			const eteq::EVariablesT<PybindT>& leaves)
 		{
-			return tenncor::approx::sgd<PybindT>(error, leaves, 0.9); // learning rate = 0.9
+			return tenncor<PybindT>().approx.sgd(error, leaves, 0.9); // learning rate = 0.9
 		};
 	// emit::Emitter emitter("localhost:50051");
 	// dbg::PluginSession sess(eigen::default_device());
@@ -158,7 +163,7 @@ int main (int argc, const char** argv)
 	auto train_err = trainer::apply_update<PybindT>({trained_model}, approx,
 		[&](const eteq::ETensorsT<PybindT>& models)
 		{
-			return tenncor::error::sqr_diff<PybindT>(train_exout,
+			return tenncor<PybindT>().error.sqr_diff(train_exout,
 				eteq::connect(models.front(), train_input));
 		});
 	sess.track({train_err});
@@ -173,7 +178,7 @@ int main (int argc, const char** argv)
 		pretrained_model, eteq::ETensor<PybindT>(testin));
 	sess.track({untrained_out, trained_out, pretrained_out});
 
-	eteq::optimize<PybindT>(sess, "cfg/optimizations.json");
+	eteq::optimize<PybindT>(eteq::global_context(), "cfg/optimizations.json");
 
 	// train mlp to output input
 	start = std::clock();
@@ -181,8 +186,8 @@ int main (int argc, const char** argv)
 	{
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		train_input->assign(batch, sess);
-		train_exout->assign(batch_out, sess);
+		train_input->assign(batch, eteq::global_context().registry_);
+		train_exout->assign(batch_out, eteq::global_context().registry_);
 		sess.update_target({train_err.get()});
 		if (i % show_every_n == show_every_n - 1)
 		{
@@ -215,7 +220,7 @@ int main (int argc, const char** argv)
 		}
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		testin->assign(batch, sess);
+		testin->assign(batch, eteq::global_context().registry_);
 		sess.update_target(teq::TensSetT{
 			untrained_out.get(),
 			trained_out.get(),

@@ -35,9 +35,9 @@ TEST(DEPEND, Chaining)
 	auto op = src + src2;
 	auto happen_first = src * src2;
 
-	EXPECT_FATAL(tenncor::depends(op, eteq::ETensorsT<double>{}), "cannot depend on nothing");
+	EXPECT_FATAL(tenncor<double>().depends(op, eteq::ETensorsT<double>{}), "cannot depend on nothing");
 
-	auto depped = tenncor::depends(op, {happen_first});
+	auto depped = tenncor<double>().depends(op, {happen_first});
 
 	auto fdep = dynamic_cast<teq::iFunctor*>(depped.get());
 	ASSERT_NE(nullptr, fdep);
@@ -60,7 +60,7 @@ TEST(DEPEND, Chaining)
 	EXPECT_FATAL(fdep->update_child(src3, 0), "cannot reassign non-observable dependee of depend (index 0)");
 
 	eteq::EVariable<double> buffer = eteq::make_variable<double>(data.data(), shape);
-	auto ass = tenncor::assign(buffer, happen_first);
+	auto ass = tenncor<double>().assign(buffer, happen_first);
 
 	static_cast<teq::iFunctor*>(op.get())->update_child(buffer, 0);
 	fdep->update_child(ass, 1); // assign replaces happen_first

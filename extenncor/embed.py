@@ -7,13 +7,13 @@ def embedding_init(shape, label):
         -1, 1, tuple(shape.as_list())), label)
 
 def make_embedding(nwords, ndims):
-    embedding = tc.layer.dense([nwords], [ndims],
+    embedding = tc.api.layer.dense([nwords], [ndims],
         weight_init=embedding_init, bias_init=None)
-    model = tc.layer.link([
+    model = tc.api.layer.link([
         embedding,
-        tc.layer.dense([ndims], [nwords],
+        tc.api.layer.dense([ndims], [nwords],
             weight_init=embedding_init, bias_init=None),
-        tc.layer.bind(tc.softmax),
+        tc.api.layer.bind(tc.api.softmax),
     ])
     weight = embedding.get_storage()[0]
     return weight, model

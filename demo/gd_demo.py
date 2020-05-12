@@ -56,20 +56,20 @@ def main(args):
 
     train_input = tc.EVariable([nbatch, ninput])
     train_exout = tc.EVariable([nbatch, noutput])
-    model = tc.layer.link([
-        tc.layer.dense([ninput], [nunits],
+    model = tc.api.layer.link([
+        tc.api.layer.dense([ninput], [nunits],
             weight_init=tc.unif_xavier_init(),
             bias_init=tc.zero_init()),
-        tc.layer.bind(tc.sigmoid),
-        tc.layer.dense([nunits], [noutput],
+        tc.api.layer.bind(tc.api.sigmoid),
+        tc.api.layer.dense([nunits], [noutput],
             weight_init=tc.unif_xavier_init(),
             bias_init=tc.zero_init()),
-        tc.layer.bind(tc.sigmoid),
+        tc.api.layer.bind(tc.api.sigmoid),
     ], train_input)
 
     train_err = tc.apply_update([model],
-        lambda err, leaves: tc.approx.sgd(err, leaves, learning_rate=0.9),
-        lambda models: tc.error.sqr_diff(train_exout, models[0].connect(train_input)))
+        lambda err, leaves: tc.api.approx.sgd(err, leaves, learning_rate=0.9),
+        lambda models: tc.api.error.sqr_diff(train_exout, models[0].connect(train_input)))
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
@@ -80,14 +80,15 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.global_default_sess
+    ctx = tc.global_context
+    sess = ctx.get_session()
     testin = tc.EVariable([ninput], label='testin')
     untrained_out = untrained.connect(testin)
     trained_out = model.connect(testin)
     pretrained_out = trained.connect(testin)
 
     sess.track([train_err, untrained_out, trained_out, pretrained_out])
-    tc.optimize(sess, "cfg/optimizations.json")
+    tc.optimize(ctx, "cfg/optimizations.json")
 
     show_every_n = 500
     start = time.time()

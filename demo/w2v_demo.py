@@ -73,7 +73,8 @@ training_data, word_index, index_word = generate_training_data(corpus)
 
 w1, model = make_embedding(len(word_index), n)
 
-sess = tc.global_default_sess
+ctx = tc.global_context
+sess = ctx.get_session()
 
 winput = tc.variable(np.random.rand(len(word_index)) * 2 - 1, 'input')
 woutput = tc.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'output')
@@ -81,11 +82,11 @@ woutput = tc.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'outp
 y_pred = model.connect(winput)
 
 train_err = tc.apply_update([model],
-    lambda error, leaves: tc.approx.sgd(error, leaves, lr),
-    lambda models: tc.reduce_sum(tc.pow(tc.extend(models[0].connect(winput), [1, 2 * window]) - woutput, 2.)))
+    lambda error, leaves: tc.api.approx.sgd(error, leaves, lr),
+    lambda models: tc.api.reduce_sum(tc.api.pow(tc.api.extend(models[0].connect(winput), [1, 2 * window]) - woutput, 2.)))
 sess.track([y_pred, train_err])
 
-tc.optimize(sess, "cfg/optimizations.json")
+tc.optimize(ctx, "cfg/optimizations.json")
 
 # Cycle through each epoch
 for i in range(epochs):
