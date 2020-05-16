@@ -95,10 +95,10 @@ def main(args):
     model = tc.api.layer.link([
         tc.api.layer.lstm(tc.Shape([N]), h_size, seq_length,
             weight_init=old_winit,
-            bias_init=tc.zero_init()),
+            bias_init=tc.api.layer.zero_init()),
         tc.api.layer.dense([h_size], [o_size],
             weight_init=old_winit,
-            bias_init=tc.zero_init()),
+            bias_init=tc.api.layer.zero_init()),
         tc.api.layer.bind(lambda x: tc.api.softmax(x, 0, 1)),
     ])
     untrained_model = model.deep_clone()

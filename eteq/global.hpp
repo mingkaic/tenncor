@@ -10,12 +10,16 @@ using ETensRegistryT = std::unordered_map<void*,teq::TensptrT>;
 
 struct ETensContext final
 {
-    teq::Session sess_ = eigen::get_session();
+    eigen::iSessptrT sess_ = eigen::get_sessptr();
 
     ETensRegistryT registry_;
 };
 
-ETensContext& global_context (void);
+using ECtxptrT = std::shared_ptr<ETensContext>;
+
+using ECtxrefT = std::weak_ptr<ETensContext>;
+
+ECtxptrT& global_context (void);
 
 }
 

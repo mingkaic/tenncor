@@ -92,27 +92,27 @@ def main(args):
     model = tc.api.layer.link([ # minimum input shape of [1, 32, 32, 3]
         tc.api.layer.bind(lambda x: x / 255. - 0.5), # normalization
         tc.api.layer.conv([5, 5], 3, 16,
-            weight_init=tc.norm_xavier_init(0.5),
+            weight_init=tc.api.layer.norm_xavier_init(0.5),
             zero_padding=padding), # outputs [nbatch, 32, 32, 16]
         tc.api.layer.bind(tc.api.relu),
         tc.api.layer.bind(lambda x: tc.api.nn.max_pool2d(x, [1, 2]),
             inshape=tc.Shape([1, 32, 32, 16])), # outputs [nbatch, 16, 16, 16]
         tc.api.layer.conv([5, 5], 16, 20,
-            weight_init=tc.norm_xavier_init(0.3),
+            weight_init=tc.api.layer.norm_xavier_init(0.3),
             zero_padding=padding), # outputs [nbatch, 16, 16, 20]
         tc.api.layer.bind(tc.api.relu),
         tc.api.layer.bind(lambda x: tc.api.nn.max_pool2d(x, [1, 2]),
             inshape=tc.Shape([1, 16, 16, 20])), # outputs [nbatch, 8, 8, 20]
         tc.api.layer.conv([5, 5], 20, 20,
-            weight_init=tc.norm_xavier_init(0.1),
+            weight_init=tc.api.layer.norm_xavier_init(0.1),
             zero_padding=padding), # outputs [nbatch, 8, 8, 20]
         tc.api.layer.bind(tc.api.relu),
         tc.api.layer.bind(lambda x: tc.api.nn.max_pool2d(x, [1, 2]),
             inshape=tc.Shape([1, 8, 8, 20])), # outputs [nbatch, 4, 4, 20]
 
         tc.api.layer.dense([4, 4, 20], [10], # weight has shape [10, 4, 4, 20]
-            weight_init=tc.norm_xavier_init(0.5),
-            bias_init=tc.zero_init(),
+            weight_init=tc.api.layer.norm_xavier_init(0.5),
+            bias_init=tc.api.layer.zero_init(),
             dims=[[0, 1], [1, 2], [2, 3]]), # outputs [nbatch, 10]
         tc.api.layer.bind(lambda x: tc.api.softmax(x, 0, 1))
     ], train_in)
@@ -214,8 +214,9 @@ def main(args):
 
     # train
     ntraining = 50
-    for _ in zip(env.train(), range(ntraining)):
-        pass
+    for _ in range(ntraining):
+        if not env.train():
+            break
 
     plt.plot(list(range(len(terrs))), terrs)
 

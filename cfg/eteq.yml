@@ -28,7 +28,7 @@ api:
       type: TenncorAPI<float>
       decl: |
           //
-              static TenncorAPI<float> global(eteq::global_context().registry_);
+              static TenncorAPI<float> global(eteq::global_context());
               return global;
   funcs:
     - template: typename T
@@ -42,16 +42,16 @@ api:
                 return api;
       pyignores: True
     - template: typename T
-      description: Negation operator with output ETensor using the same registry as the input
+      description: Negation operator with output ETensor using the same context as the input
       operator: "-"
       args:
       - type: const eteq::ETensor<T>&
         name: arg
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).neg(arg);
+        val: return TenncorAPI<T>(arg.get_context()).neg(arg);
     - template: typename T
-      description: Addition operator with output ETensor using the same registry as the left input
+      description: Addition operator with output ETensor using the same context as the left input
       operator: +
       args:
       - type: const eteq::ETensor<T>&
@@ -60,9 +60,9 @@ api:
         name: b
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*a.get_registry()).add(a,b);
+        val: return TenncorAPI<T>(a.get_context()).add(a,b);
     - template: typename T
-      description: Addition operator with output ETensor using the same registry as the tensor input
+      description: Addition operator with output ETensor using the same context as the tensor input
       operator: +
       args:
       - type: const eteq::ETensor<T>&
@@ -71,9 +71,9 @@ api:
         name: scalar
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).add(arg,scalar);
+        val: return TenncorAPI<T>(arg.get_context()).add(arg,scalar);
     - template: typename T
-      description: Addition operator with output ETensor using the same registry as the tensor input
+      description: Addition operator with output ETensor using the same context as the tensor input
       operator: +
       args:
       - type: T
@@ -82,9 +82,9 @@ api:
         name: arg
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).add(scalar,arg);
+        val: return TenncorAPI<T>(arg.get_context()).add(scalar,arg);
     - template: typename T
-      description: Subtraction operator with output ETensor using the same registry as the left input
+      description: Subtraction operator with output ETensor using the same context as the left input
       operator: "-"
       args:
       - type: const eteq::ETensor<T>&
@@ -93,9 +93,9 @@ api:
         name: b
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*a.get_registry()).sub(a,b);
+        val: return TenncorAPI<T>(a.get_context()).sub(a,b);
     - template: typename T
-      description: Subtraction operator with output ETensor using the same registry as the tensor input
+      description: Subtraction operator with output ETensor using the same context as the tensor input
       operator: "-"
       args:
       - type: const eteq::ETensor<T>&
@@ -104,9 +104,9 @@ api:
         name: scalar
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).sub(arg,scalar);
+        val: return TenncorAPI<T>(arg.get_context()).sub(arg,scalar);
     - template: typename T
-      description: Subtraction operator with output ETensor using the same registry as the tensor input
+      description: Subtraction operator with output ETensor using the same context as the tensor input
       operator: "-"
       args:
       - type: T
@@ -115,9 +115,9 @@ api:
         name: arg
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).sub(scalar,arg);
+        val: return TenncorAPI<T>(arg.get_context()).sub(scalar,arg);
     - template: typename T
-      description: Multiplication operator with output ETensor using the same registry as the left input
+      description: Multiplication operator with output ETensor using the same context as the left input
       operator: "*"
       args:
       - type: const eteq::ETensor<T>&
@@ -126,9 +126,9 @@ api:
         name: b
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*a.get_registry()).mul(a,b);
+        val: return TenncorAPI<T>(a.get_context()).mul(a,b);
     - template: typename T
-      description: Multiplication operator with output ETensor using the same registry as the tensor input
+      description: Multiplication operator with output ETensor using the same context as the tensor input
       operator: "*"
       args:
       - type: const eteq::ETensor<T>&
@@ -137,9 +137,9 @@ api:
         name: scalar
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).mul(arg,scalar);
+        val: return TenncorAPI<T>(arg.get_context()).mul(arg,scalar);
     - template: typename T
-      description: Multiplication operator with output ETensor using the same registry as the tensor input
+      description: Multiplication operator with output ETensor using the same context as the tensor input
       operator: "*"
       args:
       - type: T
@@ -148,9 +148,9 @@ api:
         name: arg
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).mul(scalar,arg);
+        val: return TenncorAPI<T>(arg.get_context()).mul(scalar,arg);
     - template: typename T
-      description: Division operator with output ETensor using the same registry as the left input
+      description: Division operator with output ETensor using the same context as the left input
       operator: /
       args:
       - type: const eteq::ETensor<T>&
@@ -159,9 +159,9 @@ api:
         name: b
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*a.get_registry()).div(a,b);
+        val: return TenncorAPI<T>(a.get_context()).div(a,b);
     - template: typename T
-      description: Division operator with output ETensor using the same registry as the tensor input
+      description: Division operator with output ETensor using the same context as the tensor input
       operator: /
       args:
       - type: const eteq::ETensor<T>&
@@ -170,9 +170,9 @@ api:
         name: scalar
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).div(arg,scalar);
+        val: return TenncorAPI<T>(arg.get_context()).div(arg,scalar);
     - template: typename T
-      description: Division operator with output ETensor using the same registry as the tensor input
+      description: Division operator with output ETensor using the same context as the tensor input
       operator: /
       args:
       - type: T
@@ -181,9 +181,9 @@ api:
         name: arg
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).div(scalar,arg);
+        val: return TenncorAPI<T>(arg.get_context()).div(scalar,arg);
     - template: typename T
-      description: Equality operator with output ETensor using the same registry as the left input
+      description: Equality operator with output ETensor using the same context as the left input
       operator: ==
       args:
       - type: const eteq::ETensor<T>&
@@ -192,9 +192,9 @@ api:
         name: b
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*a.get_registry()).eq(a,b);
+        val: return TenncorAPI<T>(a.get_context()).eq(a,b);
     - template: typename T
-      description: Equality operator with output ETensor using the same registry as the tensor input
+      description: Equality operator with output ETensor using the same context as the tensor input
       operator: ==
       args:
       - type: const eteq::ETensor<T>&
@@ -203,9 +203,9 @@ api:
         name: scalar
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).eq(arg,scalar);
+        val: return TenncorAPI<T>(arg.get_context()).eq(arg,scalar);
     - template: typename T
-      description: Equality operator with output ETensor using the same registry as the tensor input
+      description: Equality operator with output ETensor using the same context as the tensor input
       operator: ==
       args:
       - type: T
@@ -214,9 +214,9 @@ api:
         name: arg
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).eq(scalar,arg);
+        val: return TenncorAPI<T>(arg.get_context()).eq(scalar,arg);
     - template: typename T
-      description: Inequality operator with output ETensor using the same registry as the left input
+      description: Inequality operator with output ETensor using the same context as the left input
       operator: "!="
       args:
       - type: const eteq::ETensor<T>&
@@ -225,9 +225,9 @@ api:
         name: b
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*a.get_registry()).neq(a,b);
+        val: return TenncorAPI<T>(a.get_context()).neq(a,b);
     - template: typename T
-      description: Inequality operator with output ETensor using the same registry as the tensor input
+      description: Inequality operator with output ETensor using the same context as the tensor input
       operator: "!="
       args:
       - type: const eteq::ETensor<T>&
@@ -236,9 +236,9 @@ api:
         name: scalar
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).neq(arg,scalar);
+        val: return TenncorAPI<T>(arg.get_context()).neq(arg,scalar);
     - template: typename T
-      description: Inequality operator with output ETensor using the same registry as the tensor input
+      description: Inequality operator with output ETensor using the same context as the tensor input
       operator: "!="
       args:
       - type: T
@@ -247,9 +247,9 @@ api:
         name: arg
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).neq(scalar,arg);
+        val: return TenncorAPI<T>(arg.get_context()).neq(scalar,arg);
     - template: typename T
-      description: Lesser than operator with output ETensor using the same registry as the left input
+      description: Lesser than operator with output ETensor using the same context as the left input
       operator: <
       args:
       - type: const eteq::ETensor<T>&
@@ -258,9 +258,9 @@ api:
         name: b
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*a.get_registry()).lt(a,b);
+        val: return TenncorAPI<T>(a.get_context()).lt(a,b);
     - template: typename T
-      description: Lesser than operator with output ETensor using the same registry as the tensor input
+      description: Lesser than operator with output ETensor using the same context as the tensor input
       operator: <
       args:
       - type: const eteq::ETensor<T>&
@@ -269,9 +269,9 @@ api:
         name: scalar
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).lt(arg,scalar);
+        val: return TenncorAPI<T>(arg.get_context()).lt(arg,scalar);
     - template: typename T
-      description: Lesser than operator with output ETensor using the same registry as the tensor input
+      description: Lesser than operator with output ETensor using the same context as the tensor input
       operator: <
       args:
       - type: T
@@ -280,9 +280,9 @@ api:
         name: arg
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).lt(scalar,arg);
+        val: return TenncorAPI<T>(arg.get_context()).lt(scalar,arg);
     - template: typename T
-      description: Greater than operator with output ETensor using the same registry as the left input
+      description: Greater than operator with output ETensor using the same context as the left input
       operator: ">"
       args:
       - type: const eteq::ETensor<T>&
@@ -291,9 +291,9 @@ api:
         name: b
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*a.get_registry()).gt(a,b);
+        val: return TenncorAPI<T>(a.get_context()).gt(a,b);
     - template: typename T
-      description: Greater than operator with output ETensor using the same registry as the tensor input
+      description: Greater than operator with output ETensor using the same context as the tensor input
       operator: ">"
       args:
       - type: const eteq::ETensor<T>&
@@ -302,9 +302,9 @@ api:
         name: scalar
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).gt(arg,scalar);
+        val: return TenncorAPI<T>(arg.get_context()).gt(arg,scalar);
     - template: typename T
-      description: Greater than operator with output ETensor using the same registry as the tensor input
+      description: Greater than operator with output ETensor using the same context as the tensor input
       operator: ">"
       args:
       - type: T
@@ -313,25 +313,65 @@ api:
         name: arg
       out:
         type: eteq::ETensor<T>
-        val: return TenncorAPI<T>(*arg.get_registry()).gt(scalar,arg);
+        val: return TenncorAPI<T>(arg.get_context()).gt(scalar,arg);
   classes:
     - name: TenncorAPI
       template: typename T
       init:
         args:
-          - name: reg
-            type: eteq::ETensRegistryT&
-            default: eteq::global_context().registry_
+          - name: context
+            type: eteq::ECtxptrT
+            default: eteq::global_context()
         initlist:
           random: this
           nn: this
           layer: this
           error: this
           approx: this
-          registry: "&reg"
+          ctx: context
+      copy:
+        other: other
+        initlist:
+          random: this
+          nn: this
+          layer: this
+          error: this
+          approx: this
+          ctx: other.ctx
+        do: |
+          //
+              if (&other != this)
+              {
+                  this->ctx = other.ctx;
+                  this->random = RandomAPI<T>(this);
+                  this->nn = NnAPI<T>(this);
+                  this->layer = LayerAPI<T>(this);
+                  this->error = ErrorAPI<T>(this);
+                  this->approx = ApproxAPI<T>(this);
+              }
+      move:
+        other: other
+        initlist:
+          random: this
+          nn: this
+          layer: this
+          error: this
+          approx: this
+          ctx: other.ctx
+        do: |
+          //
+              if (&other != this)
+              {
+                  this->ctx = other.ctx;
+                  this->random = RandomAPI<T>(this);
+                  this->nn = NnAPI<T>(this);
+                  this->layer = LayerAPI<T>(this);
+                  this->error = ErrorAPI<T>(this);
+                  this->approx = ApproxAPI<T>(this);
+              }
       members:
-        - name: registry
-          type: eteq::ETensRegistryT*
+        - name: ctx
+          type: eteq::ECtxptrT
           public: True
         - name: random
           type: RandomAPI<T>
@@ -363,7 +403,7 @@ api:
                       (teq::TensptrT) dependee))
                     {
                         return eteq::ETensor<T>(teq::TensptrT(eteq::Depends::get(dep,
-                            teq::TensptrsT(dependencies.begin(),dependencies.end()))),*registry);
+                            teq::TensptrsT(dependencies.begin(),dependencies.end()))),ctx);
                     }
                     teq::warnf("cannot link non-observable %s to dependencies",
                         dependee->to_string().c_str());
@@ -376,7 +416,7 @@ api:
             name: source
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::ASSIGN,teq::TensptrsT{target,source});
+            val: return eteq::make_functor<T>(ctx,::egen::ASSIGN,teq::TensptrsT{target,source});
         - name: assign_add
           args:
           - type: const eteq::EVariable<T>&
@@ -385,7 +425,7 @@ api:
             name: source
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::ASSIGN_ADD,teq::TensptrsT{target,source});
+            val: return eteq::make_functor<T>(ctx,::egen::ASSIGN_ADD,teq::TensptrsT{target,source});
         - name: assign_sub
           args:
           - type: const eteq::EVariable<T>&
@@ -394,7 +434,7 @@ api:
             name: source
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::ASSIGN_SUB,teq::TensptrsT{target,source});
+            val: return eteq::make_functor<T>(ctx,::egen::ASSIGN_SUB,teq::TensptrsT{target,source});
         - name: assign_mul
           args:
           - type: const eteq::EVariable<T>&
@@ -403,7 +443,7 @@ api:
             name: source
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::ASSIGN_MUL,teq::TensptrsT{target,source});
+            val: return eteq::make_functor<T>(ctx,::egen::ASSIGN_MUL,teq::TensptrsT{target,source});
         - name: assign_div
           args:
           - type: const eteq::EVariable<T>&
@@ -412,105 +452,105 @@ api:
             name: source
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::ASSIGN_DIV,teq::TensptrsT{target,source});
+            val: return eteq::make_functor<T>(ctx,::egen::ASSIGN_DIV,teq::TensptrsT{target,source});
         - name: identity
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::IDENTITY,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::IDENTITY,teq::TensptrsT{arg});
         - name: abs
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::ABS,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::ABS,teq::TensptrsT{arg});
         - name: neg
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::NEG,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::NEG,teq::TensptrsT{arg});
         - name: sin
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::SIN,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::SIN,teq::TensptrsT{arg});
         - name: cos
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::COS,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::COS,teq::TensptrsT{arg});
         - name: tan
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::TAN,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::TAN,teq::TensptrsT{arg});
         - name: exp
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::EXP,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::EXP,teq::TensptrsT{arg});
         - name: log
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::LOG,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::LOG,teq::TensptrsT{arg});
         - name: sqrt
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::SQRT,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::SQRT,teq::TensptrsT{arg});
         - name: round
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::ROUND,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::ROUND,teq::TensptrsT{arg});
         - name: sigmoid
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::SIGMOID,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::SIGMOID,teq::TensptrsT{arg});
         - name: tanh
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::TANH,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::TANH,teq::TensptrsT{arg});
         - name: square
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::SQUARE,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::SQUARE,teq::TensptrsT{arg});
         - name: cube
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::CUBE,teq::TensptrsT{arg});
+            val: return eteq::make_functor<T>(ctx,::egen::CUBE,teq::TensptrsT{arg});
         - name: pow
           args:
           - type: const eteq::ETensor<T>&
@@ -519,7 +559,7 @@ api:
             name: b
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::POW,teq::TensptrsT{a,b});
+            val: return eteq::make_functor<T>(ctx,::egen::POW,teq::TensptrsT{a,b});
         - name: pow
           args:
           - type: const eteq::ETensor<T>&
@@ -537,7 +577,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return this->pow(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+            val: return this->pow(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
         - name: add
           args:
           - type: const eteq::ETensor<T>&
@@ -546,7 +586,7 @@ api:
             name: b
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::ADD,teq::TensptrsT{a,b});
+            val: return eteq::make_functor<T>(ctx,::egen::ADD,teq::TensptrsT{a,b});
         - name: add
           args:
           - type: const eteq::ETensor<T>&
@@ -555,7 +595,7 @@ api:
             name: scalar
           out:
             type: eteq::ETensor<T>
-            val: return this->add(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+            val: return this->add(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
         - name: add
           args:
           - type: T
@@ -564,7 +604,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return this->add(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+            val: return this->add(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
         - name: sub
           args:
           - type: const eteq::ETensor<T>&
@@ -573,7 +613,7 @@ api:
             name: b
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::SUB,teq::TensptrsT{a,b});
+            val: return eteq::make_functor<T>(ctx,::egen::SUB,teq::TensptrsT{a,b});
         - name: sub
           args:
           - type: const eteq::ETensor<T>&
@@ -582,7 +622,7 @@ api:
             name: scalar
           out:
             type: eteq::ETensor<T>
-            val: return this->sub(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+            val: return this->sub(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
         - name: sub
           args:
           - type: T
@@ -591,7 +631,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return this->sub(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+            val: return this->sub(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
         - name: mul
           args:
           - type: const eteq::ETensor<T>&
@@ -600,7 +640,7 @@ api:
             name: b
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::MUL,teq::TensptrsT{a,b});
+            val: return eteq::make_functor<T>(ctx,::egen::MUL,teq::TensptrsT{a,b});
         - name: mul
           args:
           - type: const eteq::ETensor<T>&
@@ -609,7 +649,7 @@ api:
             name: scalar
           out:
             type: eteq::ETensor<T>
-            val: return this->mul(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+            val: return this->mul(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
         - name: mul
           args:
           - type: T
@@ -618,7 +658,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return this->mul(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+            val: return this->mul(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
         - name: div
           args:
           - type: const eteq::ETensor<T>&
@@ -627,7 +667,7 @@ api:
             name: b
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::DIV,teq::TensptrsT{a,b});
+            val: return eteq::make_functor<T>(ctx,::egen::DIV,teq::TensptrsT{a,b});
         - name: div
           args:
           - type: const eteq::ETensor<T>&
@@ -636,7 +676,7 @@ api:
             name: scalar
           out:
             type: eteq::ETensor<T>
-            val: return this->div(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+            val: return this->div(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
         - name: div
           args:
           - type: T
@@ -645,7 +685,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return this->div(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+            val: return this->div(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
         - name: eq
           args:
           - type: const eteq::ETensor<T>&
@@ -654,7 +694,7 @@ api:
             name: b
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::EQ,teq::TensptrsT{a,b});
+            val: return eteq::make_functor<T>(ctx,::egen::EQ,teq::TensptrsT{a,b});
         - name: eq
           args:
           - type: const eteq::ETensor<T>&
@@ -663,7 +703,7 @@ api:
             name: scalar
           out:
             type: eteq::ETensor<T>
-            val: return this->eq(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+            val: return this->eq(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
         - name: eq
           args:
           - type: T
@@ -672,7 +712,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return this->eq(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+            val: return this->eq(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
         - name: neq
           args:
           - type: const eteq::ETensor<T>&
@@ -681,7 +721,7 @@ api:
             name: b
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::NEQ,teq::TensptrsT{a,b});
+            val: return eteq::make_functor<T>(ctx,::egen::NEQ,teq::TensptrsT{a,b});
         - name: neq
           args:
           - type: const eteq::ETensor<T>&
@@ -690,7 +730,7 @@ api:
             name: scalar
           out:
             type: eteq::ETensor<T>
-            val: return this->neq(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+            val: return this->neq(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
         - name: neq
           args:
           - type: T
@@ -699,7 +739,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return this->neq(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+            val: return this->neq(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
         - name: lt
           args:
           - type: const eteq::ETensor<T>&
@@ -708,7 +748,7 @@ api:
             name: b
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::LT,teq::TensptrsT{a,b});
+            val: return eteq::make_functor<T>(ctx,::egen::LT,teq::TensptrsT{a,b});
         - name: lt
           args:
           - type: const eteq::ETensor<T>&
@@ -717,7 +757,7 @@ api:
             name: scalar
           out:
             type: eteq::ETensor<T>
-            val: return this->lt(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+            val: return this->lt(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
         - name: lt
           args:
           - type: T
@@ -726,7 +766,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return this->lt(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+            val: return this->lt(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
         - name: gt
           args:
           - type: const eteq::ETensor<T>&
@@ -735,7 +775,7 @@ api:
             name: b
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::GT,teq::TensptrsT{a,b});
+            val: return eteq::make_functor<T>(ctx,::egen::GT,teq::TensptrsT{a,b});
         - name: gt
           args:
           - type: const eteq::ETensor<T>&
@@ -744,7 +784,7 @@ api:
             name: scalar
           out:
             type: eteq::ETensor<T>
-            val: return this->gt(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+            val: return this->gt(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
         - name: gt
           args:
           - type: T
@@ -753,7 +793,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return this->gt(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+            val: return this->gt(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
         - name: min
           args:
           - type: const eteq::ETensor<T>&
@@ -762,7 +802,7 @@ api:
             name: b
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::MIN,teq::TensptrsT{a,b});
+            val: return eteq::make_functor<T>(ctx,::egen::MIN,teq::TensptrsT{a,b});
         - name: min
           args:
           - type: const eteq::ETensor<T>&
@@ -771,7 +811,7 @@ api:
             name: scalar
           out:
             type: eteq::ETensor<T>
-            val: return this->min(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+            val: return this->min(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
         - name: min
           args:
           - type: T
@@ -780,7 +820,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return this->min(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+            val: return this->min(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
         - name: min
           args:
           - type: const eteq::ETensorsT<T>&
@@ -807,7 +847,7 @@ api:
             name: b
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::MAX,teq::TensptrsT{a,b});
+            val: return eteq::make_functor<T>(ctx,::egen::MAX,teq::TensptrsT{a,b});
         - name: max
           args:
           - type: const eteq::ETensor<T>&
@@ -816,7 +856,7 @@ api:
             name: scalar
           out:
             type: eteq::ETensor<T>
-            val: return this->max(arg,eteq::make_constant_like<T>(scalar,arg,*registry));
+            val: return this->max(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
         - name: max
           args:
           - type: T
@@ -825,7 +865,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return this->max(eteq::make_constant_like<T>(scalar,arg,*registry),arg);
+            val: return this->max(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
         - name: max
           args:
           - type: const eteq::ETensorsT<T>&
@@ -861,7 +901,7 @@ api:
                     {
                         return then;
                     }
-                    return eteq::make_functor<T>(*registry,::egen::SELECT,teq::TensptrsT{condition,then,otherwise});
+                    return eteq::make_functor<T>(ctx,::egen::SELECT,teq::TensptrsT{condition,then,otherwise});
         - name: reverse
           args:
           - type: const eteq::ETensor<T>&
@@ -870,7 +910,7 @@ api:
             name: dims
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::REVERSE,teq::TensptrsT{arg},dims);
+            val: return eteq::make_functor<T>(ctx,::egen::REVERSE,teq::TensptrsT{arg},dims);
         - name: permute
           args:
           - type: const eteq::ETensor<T>&
@@ -879,7 +919,7 @@ api:
             name: order
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::PERMUTE,teq::TensptrsT{arg},order);
+            val: return eteq::make_functor<T>(ctx,::egen::PERMUTE,teq::TensptrsT{arg},order);
         - name: extend
           args:
           - type: const eteq::ETensor<T>&
@@ -888,7 +928,7 @@ api:
             name: bcast
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::EXTEND,teq::TensptrsT{arg},bcast);
+            val: return eteq::make_functor<T>(ctx,::egen::EXTEND,teq::TensptrsT{arg},bcast);
         - name: extend
           args:
           - type: const eteq::ETensor<T>&
@@ -903,7 +943,7 @@ api:
                 //
                     std::vector<teq::DimT> bcast(offset,1);
                     bcast.insert(bcast.end(),xlist.begin(),xlist.end());
-                    return eteq::make_functor<T>(*registry,::egen::EXTEND,teq::TensptrsT{arg},bcast);
+                    return eteq::make_functor<T>(ctx,::egen::EXTEND,teq::TensptrsT{arg},bcast);
         - name: concat
           args:
           - type: const eteq::ETensor<T>&
@@ -914,7 +954,7 @@ api:
             name: axis
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::CONCAT,teq::TensptrsT{left,right},axis);
+            val: return eteq::make_functor<T>(ctx,::egen::CONCAT,teq::TensptrsT{left,right},axis);
         - name: concat
           args:
           - type: const eteq::ETensorsT<T>&
@@ -923,7 +963,7 @@ api:
             name: axis
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::CONCAT,eteq::to_tensors(args),axis);
+            val: return eteq::make_functor<T>(ctx,::egen::CONCAT,eteq::to_tensors(args),axis);
         - description: Return extended arg so that output shape matches like tensor exactly
           name: extend_like
           args:
@@ -933,7 +973,7 @@ api:
             name: like
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::EXTEND,teq::TensptrsT{arg},(teq::TensptrT) like);
+            val: return eteq::make_functor<T>(ctx,::egen::EXTEND,teq::TensptrsT{arg},(teq::TensptrT) like);
         - name: reshape
           args:
           - type: const eteq::ETensor<T>&
@@ -942,7 +982,7 @@ api:
             name: shape
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::RESHAPE,teq::TensptrsT{arg},shape);
+            val: return eteq::make_functor<T>(ctx,::egen::RESHAPE,teq::TensptrsT{arg},shape);
         - description: Return sum of values along dimensions specified
           name: reduce_sum
           args:
@@ -952,7 +992,7 @@ api:
             name: dims
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::REDUCE_SUM,teq::TensptrsT{tens},dims);
+            val: return eteq::make_functor<T>(ctx,::egen::REDUCE_SUM,teq::TensptrsT{tens},dims);
         - description: Return product of values along dimensions specified
           name: reduce_prod
           args:
@@ -962,7 +1002,7 @@ api:
             name: dims
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::REDUCE_PROD,teq::TensptrsT{tens},dims);
+            val: return eteq::make_functor<T>(ctx,::egen::REDUCE_PROD,teq::TensptrsT{tens},dims);
         - description: Return min of values along dimensions specified
           name: reduce_min
           args:
@@ -972,7 +1012,7 @@ api:
             name: dims
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::REDUCE_MIN,teq::TensptrsT{tens},dims);
+            val: return eteq::make_functor<T>(ctx,::egen::REDUCE_MIN,teq::TensptrsT{tens},dims);
         - description: Return max of values along dimensions specified
           name: reduce_max
           args:
@@ -982,7 +1022,7 @@ api:
             name: dims
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::REDUCE_MAX,teq::TensptrsT{tens},dims);
+            val: return eteq::make_functor<T>(ctx,::egen::REDUCE_MAX,teq::TensptrsT{tens},dims);
         - description: Return sum of values for ndims dimensions after offset
           name: reduce_sum
           args:
@@ -1006,7 +1046,7 @@ api:
                     std::vector<teq::RankT> dims(std::min(ndims,
                         (teq::RankT) (teq::rank_cap - offset)));
                     std::iota(dims.begin(),dims.end(),offset);
-                    return eteq::make_functor<T>(*registry,::egen::REDUCE_SUM,teq::TensptrsT{tens},
+                    return eteq::make_functor<T>(ctx,::egen::REDUCE_SUM,teq::TensptrsT{tens},
                         std::set<teq::RankT>(dims.begin(),dims.end()));
         - description: Return product of values for ndims dimensions after offset
           name: reduce_prod
@@ -1031,7 +1071,7 @@ api:
                     std::vector<teq::RankT> dims(std::min(ndims,
                         (teq::RankT) (teq::rank_cap - offset)));
                     std::iota(dims.begin(),dims.end(),offset);
-                    return eteq::make_functor<T>(*registry,::egen::REDUCE_PROD,teq::TensptrsT{tens},
+                    return eteq::make_functor<T>(ctx,::egen::REDUCE_PROD,teq::TensptrsT{tens},
                         std::set<teq::RankT>(dims.begin(),dims.end()));
         - description: Return min of values for ndims dimensions after offset
           name: reduce_min
@@ -1056,7 +1096,7 @@ api:
                     std::vector<teq::RankT> dims(std::min(ndims,
                         (teq::RankT) (teq::rank_cap - offset)));
                     std::iota(dims.begin(),dims.end(),offset);
-                    return eteq::make_functor<T>(*registry,::egen::REDUCE_MIN,teq::TensptrsT{tens},
+                    return eteq::make_functor<T>(ctx,::egen::REDUCE_MIN,teq::TensptrsT{tens},
                         std::set<teq::RankT>(dims.begin(),dims.end()));
         - description: Return max of values for ndims dimensions after offset
           name: reduce_max
@@ -1081,7 +1121,7 @@ api:
                     std::vector<teq::RankT> dims(std::min(ndims,
                         (teq::RankT) (teq::rank_cap - offset)));
                     std::iota(dims.begin(),dims.end(),offset);
-                    return eteq::make_functor<T>(*registry,::egen::REDUCE_MAX,teq::TensptrsT{tens},
+                    return eteq::make_functor<T>(ctx,::egen::REDUCE_MAX,teq::TensptrsT{tens},
                         std::set<teq::RankT>(dims.begin(),dims.end()));
         - name: argmax
           args:
@@ -1092,14 +1132,14 @@ api:
             default: "8"
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::ARGMAX,teq::TensptrsT{tens},return_dim);
+            val: return eteq::make_functor<T>(ctx,::egen::ARGMAX,teq::TensptrsT{tens},return_dim);
         - name: n_elems
           args:
           - type: const eteq::ETensor<T>&
             name: arg
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_constant_scalar<T>(arg->shape().n_elems(),teq::Shape(),*registry);
+            val: return eteq::make_constant_scalar<T>(arg->shape().n_elems(),teq::Shape(),ctx);
         - name: n_dims
           args:
           - type: const eteq::ETensor<T>&
@@ -1108,7 +1148,7 @@ api:
             name: rank
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_constant_scalar<T>(arg->shape().at(rank),teq::Shape(),*registry);
+            val: return eteq::make_constant_scalar<T>(arg->shape().at(rank),teq::Shape(),ctx);
         - description: extents vector consists of pairs offset and extent for each dimension
           name: slice
           args:
@@ -1118,7 +1158,7 @@ api:
             name: extents
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::SLICE,teq::TensptrsT{arg},extents);
+            val: return eteq::make_functor<T>(ctx,::egen::SLICE,teq::TensptrsT{arg},extents);
         - name: slice
           args:
           - type: const eteq::ETensor<T>&
@@ -1146,7 +1186,7 @@ api:
             name: paddings
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::PAD,teq::TensptrsT{arg},paddings);
+            val: return eteq::make_functor<T>(ctx,::egen::PAD,teq::TensptrsT{arg},paddings);
         - name: pad
           args:
           - type: const eteq::ETensor<T>&
@@ -1171,7 +1211,7 @@ api:
             name: incrs
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::STRIDE,teq::TensptrsT{arg},incrs);
+            val: return eteq::make_functor<T>(ctx,::egen::STRIDE,teq::TensptrsT{arg},incrs);
         - description: populate input values at specific increments along its dimensions to fit specified shape (opposite of stride)
           name: scatter
           args:
@@ -1183,7 +1223,7 @@ api:
             name: incrs
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::SCATTER,teq::TensptrsT{arg},outshape,incrs);
+            val: return eteq::make_functor<T>(ctx,::egen::SCATTER,teq::TensptrsT{arg},outshape,incrs);
         - description: multiple values across specify dimensions pairs before summing all products (generalization of matrix product),defaults to matrix product
           name: contract
           args:
@@ -1196,7 +1236,7 @@ api:
             default: eigen::PairVecT<teq::RankT>{{0,1}}
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::MATMUL,teq::TensptrsT{a,b},dims);
+            val: return eteq::make_functor<T>(ctx,::egen::MATMUL,teq::TensptrsT{a,b},dims);
         - name: matmul
           args:
           - type: const eteq::ETensor<T>&
@@ -1216,7 +1256,7 @@ api:
             name: dims
           out:
             type: eteq::ETensor<T>
-            val: return eteq::make_functor<T>(*registry,::egen::CONV,teq::TensptrsT{image,kernel},dims);
+            val: return eteq::make_functor<T>(ctx,::egen::CONV,teq::TensptrsT{image,kernel},dims);
         - name: reduce_sum_1d
           args:
           - type: const eteq::ETensor<T>&
@@ -1318,7 +1358,7 @@ api:
             val: |
                 //
                     auto red = this->reduce_sum_1d(arg,dimension);
-                    auto dim = eteq::make_constant_like<T>(arg->shape().at(dimension),red,*registry);
+                    auto dim = eteq::make_constant_like<T>(arg->shape().at(dimension),red,ctx);
                     return this->div(red,dim);
         - name: reduce_l2norm
           args:
@@ -1358,8 +1398,8 @@ api:
                     {
                         teq::fatal("min value is below max");
                     }
-                    auto lo = eteq::make_constant_like<T>(minval,arg,*registry);
-                    auto hi = eteq::make_constant_like<T>(maxval,arg,*registry);
+                    auto lo = eteq::make_constant_like<T>(minval,arg,ctx);
+                    auto hi = eteq::make_constant_like<T>(maxval,arg,ctx);
                     return this->max(this->min(arg,hi),lo);
         - description: clip by l2norm
           name: clip_by_l2norm
@@ -1379,7 +1419,7 @@ api:
                     }
                     auto norm = this->extend_like(
                         this->reduce_l2norm(arg),arg);
-                    auto limit = eteq::make_constant_like<T>(upper,arg,*registry);
+                    auto limit = eteq::make_constant_like<T>(upper,arg,ctx);
                     return this->if_then_else(this->lt(norm,limit),
                         arg,this->div(this->mul(arg,limit),norm));
         - name: sum
@@ -1402,7 +1442,7 @@ api:
                         default:
                             break;
                     }
-                    return eteq::make_functor<T>(*registry,::egen::ADD,eteq::to_tensors(args));
+                    return eteq::make_functor<T>(ctx,::egen::ADD,eteq::to_tensors(args));
         - name: prod
           args:
           - type: const eteq::ETensorsT<T>&
@@ -1421,7 +1461,7 @@ api:
                         default:
                             break;
                     }
-                    return eteq::make_functor<T>(*registry,::egen::MUL,eteq::to_tensors(args));
+                    return eteq::make_functor<T>(ctx,::egen::MUL,eteq::to_tensors(args));
         - name: softmax
           args:
           - type: const eteq::ETensor<T>&

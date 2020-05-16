@@ -30,27 +30,17 @@ def _sub_pybind(stmt, source):
     type_replace = '\\1{}\\2'.format(pybindt)
     return re.sub(type_pattern, type_replace, ' ' + stmt + ' ').strip()
 
-def _clean_templates(s, templates):
-    for typenames in templates:
-        s = _sub_pybind(s, strip_template_prefix(typenames))
-    return s
-
 def _render_pyarg(arg, templates):
     affix = ''
     if arg.get('default', None) is not None:
-        affix = '=' + _clean_templates(str(arg['default']), templates)
+        affix = '=' + clean_templates(str(arg['default']), templates)
     return 'py::arg("{name}"){affix}'.format(name=arg['name'], affix=affix)
 
-def clean_type(atype):
+def _clean_type(atype):
     segs = re.split(r'\*|\&|\s', atype)
     return ' '.join(filter(lambda s: len(s) > 0 and s != 'const', segs))
 
-def process_modname(atype):
-    # trim off template and namespace
-    endtype = atype.split('<', 1)[0].split('::')[-1]
-    return 'm_' + endtype
-
-def defntype(atype, mod):
+def _defn_type(atype, mod):
     mname = process_modname(atype)
     return 'py::class_<{fulltype}> {modname}({mod}, "{strname}");'.format(
         fulltype=atype,
@@ -58,14 +48,24 @@ def defntype(atype, mod):
         mod=mod,
         strname=mname[2:])
 
-def defn_intypes(args, mod):
-    func_inputs = [clean_type(a['type']) for a in args]
-    return dict([(process_modname(atype), defntype(atype, mod)) for atype in func_inputs])
+def _defn_intypes(args, mod):
+    func_inputs = [_clean_type(a['type']) for a in args]
+    return dict([(process_modname(atype), _defn_type(atype, mod)) for atype in func_inputs])
 
 def _render_func(params, args, block, description):
     description = '\n'.join(['"' + line + '"' for line in description.split('\n')])
     func = '[]({params}) {{{block}}}'.format(params=params, block=block)
     return ', '.join(filter(lambda s: len(s) > 0, [func, args, description]))
+
+def clean_templates(s, templates):
+    for typenames in templates:
+        s = _sub_pybind(s, strip_template_prefix(typenames))
+    return s
+
+def process_modname(atype):
+    # trim off template and namespace
+    endtype = atype.split('<', 1)[0].split('::')[-1]
+    return 'm_' + endtype
 
 def render_classfunc(obj, class_type, namespace, mod):
     templates = class_type.get('template', '').split(',')
@@ -76,17 +76,17 @@ def render_classfunc(obj, class_type, namespace, mod):
     out = obj['out']
     if isinstance(out, dict):
         otype = out.get('type', None)
-    if otype is None:
+    if otype is None and 'operator' in obj:
         raise Exception('conversion operator not supported for inline functions')
 
     # process args
     args = obj.get('args', [])
     # common template cleanup for all args
     for arg in args:
-        arg['type'] = _clean_templates(arg['type'], templates)
+        arg['type'] = clean_templates(arg['type'], templates)
 
     # auto-define input types
-    func_inputs = defn_intypes(args, mod)
+    func_inputs = _defn_intypes(args, mod)
 
     selftype = namespace + "::" + class_type['name']
     if 'template' in class_type:
@@ -147,16 +147,16 @@ def render(obj, mod, namespace):
         otype = out.get('type', None)
     if otype is None:
         raise Exception('conversion operator not supported for inline functions')
-    otype = _clean_templates(otype, templates)
+    otype = clean_templates(otype, templates)
 
     # process args
     params = obj.get('args', [])
     # common template cleanup for all args
     for param in params:
-        param['type'] = _clean_templates(param['type'], templates)
+        param['type'] = clean_templates(param['type'], templates)
 
     # auto-define input types
-    func_inputs = defn_intypes(params, mod)
+    func_inputs = _defn_intypes(params, mod)
 
     # process name
     assert(('name' in obj) != ('operator' in obj))

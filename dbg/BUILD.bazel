@@ -106,6 +106,16 @@ pybind_py_library(
 )
 
 pybind_py_library(
+    name = "compare_py",
+    cc_srcs = ["python/compare.cpp"],
+    cc_deps = [
+        "//dbg:compare",
+        "//:tenncor",
+    ],
+    copts = ["-std=c++17"],
+)
+
+pybind_py_library(
     name = "psess_py",
     cc_srcs = ["python/psess.cpp"],
     cc_deps = [

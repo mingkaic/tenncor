@@ -40,7 +40,7 @@ cc_library(
 ######### TEST #########
 
 cc_test(
-    name = "test",
+    name = "ctest",
     srcs = ["//layr:test_srcs"],
     copts = ["-std=c++17"],
     deps = [

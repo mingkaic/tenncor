@@ -56,8 +56,8 @@ def main(args):
     sess = ctx.get_session()
 
     model = tc.api.layer.lstm(tc.Shape([x_dim]), mem_cell_ct, len(y_list),
-        weight_init=tc.unif_xavier_init(1),
-        bias_init=tc.unif_xavier_init(1))
+        weight_init=tc.api.layer.unif_xavier_init(1),
+        bias_init=tc.api.layer.unif_xavier_init(1))
     untrained_model = model.deep_clone()
     pretrained_model = model.deep_clone()
     try:

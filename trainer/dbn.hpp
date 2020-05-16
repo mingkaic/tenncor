@@ -12,23 +12,22 @@ template <typename T>
 struct DBNTrainer final
 {
 	DBNTrainer (const std::vector<layr::RBMLayer<T>>& rbms,
-		eteq::ETensor<T> dense, eteq::ETensContext& context,
+		eteq::ETensor<T> dense, eteq::ECtxptrT context,
 		teq::RankT softmax_dim, teq::DimT batch_size,
 		T pretrain_lr = 0.1, T train_lr = 0.1,
 		size_t cdk = 10, T l2_reg = 0.,
-		T lr_scaling = 0.95,
-		eteq::ETensRegistryT& registry = eteq::global_context().registry_) :
+		T lr_scaling = 0.95) :
 		nlayers_(rbms.size()),
 		batch_size_(batch_size),
-		context_(&context)
+		context_(context)
 	{
 		input_size_ = eteq::get_input(rbms.front().fwd_)->shape().at(0);
 		output_size_ = dense->shape().at(0);
 
 		teq::Shape inshape({(teq::DimT) input_size_, batch_size});
 		teq::Shape outshape({(teq::DimT) output_size_, batch_size});
-		trainx_ = eteq::make_variable_scalar<T>(0, inshape, "trainx", registry);
-		trainy_ = eteq::make_variable_scalar<T>(0, outshape, "trainy", registry);
+		trainx_ = eteq::make_variable_scalar<T>(0, inshape, "trainx", context);
+		trainy_ = eteq::make_variable_scalar<T>(0, outshape, "trainy", context);
 
 		// setups:
 		// general rbm sampling
@@ -58,7 +57,7 @@ struct DBNTrainer final
 			}
 
 			CDChainIO<T> io(rx, ry);
-			layr::VarErrsT<T> varerrs = cd_grad_approx<T>(io, rbm, cdk, nullptr, registry); // todo: add persistent option
+			layr::VarErrsT<T> varerrs = cd_grad_approx<T>(io, rbm, cdk, nullptr, context); // todo: add persistent option
 			teq::TensSetT assigns;
 			for (auto varerr : varerrs)
 			{
@@ -81,7 +80,7 @@ struct DBNTrainer final
 			to_track.push_back(rcost);
 		}
 		to_track.push_back(sample_pipes_.back());
-		context_->sess_.track(to_track);
+		context_->sess_->track(to_track);
 
 		// logistic layer training
 		// todo: improve this adhoc way of training log layer
@@ -91,12 +90,12 @@ struct DBNTrainer final
 		auto final_out = tenncor<T>().softmax(eteq::connect(dense, sample_pipes_.back()), softmax_dim, 1);
 		auto diff = trainy_ - final_out;
 		auto l2_regularized = tenncor<T>().matmul(tenncor<T>().transpose(
-			sample_pipes_.back()), diff) - l2_reg * eteq::ETensor<T>(w, registry);
+			sample_pipes_.back()), diff) - l2_reg * eteq::ETensor<T>(w, context);
 
 		auto wshape = w->shape();
 		auto bshape = b->shape();
 		auto tlr_placeholder = eteq::make_variable_scalar<T>(
-			train_lr, teq::Shape(), "learning_rate", registry);
+			train_lr, teq::Shape(), "learning_rate", context);
 		auto dw =
 			tenncor<T>().extend(tlr_placeholder, 0,
 				std::vector<teq::DimT>(wshape.begin(), wshape.end())) *
@@ -109,14 +108,14 @@ struct DBNTrainer final
 
 		tupdate_ = tenncor<T>().depends(tenncor<T>().assign(tlr_placeholder, dtrain_lr),
 		eteq::ETensorsT<T>{
-			tenncor<T>().assign_add(eteq::EVariable<T>(w, registry), dw),
-			tenncor<T>().assign_add(eteq::EVariable<T>(b, registry), db),
+			tenncor<T>().assign_add(eteq::EVariable<T>(w, context), dw),
+			tenncor<T>().assign_add(eteq::EVariable<T>(b, context), db),
 		});
 		tcost_ = -tenncor<T>().reduce_mean(
 			tenncor<T>().reduce_sum_1d(trainy_ * tenncor<T>().log(final_out) +
 			((T) 1 - trainy_) * tenncor<T>().log((T) 1 - final_out), 0));
 
-		context_->sess_.track({
+		context_->sess_->track({
 			(teq::TensptrT) sample_pipes_.back(),
 			(teq::TensptrT) tupdate_,
 			(teq::TensptrT) tcost_,
@@ -138,7 +137,7 @@ struct DBNTrainer final
 			for (size_t epoch = 0; epoch < nepochs; ++epoch)
 			{
 				// train rbm layers (reconstruction)
-				context_->sess_.update_target(updates, {to_ignore});
+				context_->sess_->update_target(updates, {to_ignore});
 				if (logger)
 				{
 					logger(epoch, i);
@@ -147,7 +146,7 @@ struct DBNTrainer final
 
 			if (i < nlayers_ - 1)
 			{
-				context_->sess_.update_target(
+				context_->sess_->update_target(
 					{sample_pipes_[i + 1].get()}, {to_ignore});
 			}
 		}
@@ -164,12 +163,12 @@ struct DBNTrainer final
 		auto to_ignore = sample_pipes_.back().get();
 		auto prev_ignore = sample_pipes_[nlayers_ - 1].get();
 		assert(static_cast<eteq::Functor<T>*>(prev_ignore)->has_data());
-		context_->sess_.update_target({to_ignore}, {prev_ignore});
+		context_->sess_->update_target({to_ignore}, {prev_ignore});
 
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)
 		{
 			// train log layer
-			context_->sess_.update_target({tupdate_.get()}, {to_ignore});
+			context_->sess_->update_target({tupdate_.get()}, {to_ignore});
 			if (logger)
 			{
 				logger(epoch);
@@ -180,14 +179,14 @@ struct DBNTrainer final
 	T reconstruction_cost (size_t layer)
 	{
 		auto rcost = rcosts_[layer];
-		context_->sess_.update_target(
+		context_->sess_->update_target(
 			{rcost.get()}, {sample_pipes_[layer].get()});
 		return *((T*) rcost->device().data());
 	}
 
 	T training_cost (void)
 	{
-		context_->sess_.update_target(
+		context_->sess_->update_target(
 			{tcost_.get()}, {sample_pipes_.back().get()});
 		return *((T*) tcost_->device().data());
 	}
@@ -214,7 +213,7 @@ struct DBNTrainer final
 
 	eteq::ETensor<T> tcost_;
 
-	eteq::ETensContext* context_;
+	eteq::ECtxptrT context_;
 };
 
 }

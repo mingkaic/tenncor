@@ -41,17 +41,15 @@ TEST(OPTIMIZE, Depends)
 
 	auto ass = tenncor<double>().depends(tenncor<double>().assign(target, b * d), {c});
 
-	eteq::ETensorsT<double> roots = {ass};
-
 	std::ifstream rulefile("cfg/optimizations.json");
-	eteq::optimize(roots, rulefile);
+	ass = eteq::optimize<double>({ass}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
 		"(DEPEND[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		"_`--(ASSIGN[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		"_|___`--(variable:[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		"_|___`--(constant:[88\\60\\296\\152\\244\\...][2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:[81\\25\\102\\48\\128\\...][2\\3\\4\\1\\1\\1\\1\\1])\n", roots[0]);
+		"_`--(constant:[81\\25\\102\\48\\128\\...][2\\3\\4\\1\\1\\1\\1\\1])\n", ass);
 }
 
 
@@ -88,22 +86,20 @@ TEST(OPTIMIZE, DependsNnary)
 	double* expect_data = (double*) add->device().data();
 	std::vector<double> evdata(expect_data, expect_data + exshape.n_elems());
 
-	eteq::ETensorsT<double> roots = {add};
-
 	std::ifstream rulefile("cfg/optimizations.json");
-	eteq::optimize(roots, rulefile);
+	add = eteq::optimize<double>({add}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
 		"(DEPEND[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		"_`--(ADD[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		"_|___`--(variable:[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		"_|___`--(constant:[88\\60\\296\\152\\244\\...][2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:[81\\25\\102\\48\\128\\...][2\\3\\4\\1\\1\\1\\1\\1])\n", roots[0]);
+		"_`--(constant:[81\\25\\102\\48\\128\\...][2\\3\\4\\1\\1\\1\\1\\1])\n", add);
 
-	sess.track({teq::TensptrT(roots[0])});
-	sess.update_target({roots[0].get()});
-	teq::Shape gotshape = roots[0]->shape();
-	double* got_data = (double*) roots[0]->device().data();
+	sess.track({teq::TensptrT(add)});
+	sess.update_target({add.get()});
+	teq::Shape gotshape = add->shape();
+	double* got_data = (double*) add->device().data();
 	std::vector<double> gvdata(got_data, got_data + gotshape.n_elems());
 
 	ASSERT_ARREQ(exshape, gotshape);
@@ -193,10 +189,10 @@ TEST(OPTIMIZE, RNNLayer)
 	auto err = tenncor<double>().pow(out - output, 2.);
 
 	auto ders = eteq::derive(err, {weight, bias, istate});
-	eteq::ETensorsT<double> roots = {ders[0], ders[1], ders[2], err};
+	teq::TensptrsT roots = {ders[0], ders[1], ders[2], err};
 
 	std::ifstream rulefile("cfg/optimizations.json");
-	eteq::optimize(roots, rulefile);
+	roots = eteq::optimize<double>(roots, rulefile);
 
 	{
 		std::string expect_pbfile = testdir + "/opt0.txt";
@@ -348,12 +344,11 @@ TEST(OPTIMIZE, CNNLayer)
 		umap.emplace(update.first.get(), update.second);
 		deps.push_back(update.second);
 	}
-	auto err = tenncor<double>().identity(tenncor<double>().depends(eteq::trail(error, umap), deps));
+	auto err = tenncor<double>().identity(tenncor<double>().depends(
+		eteq::trail(error, umap), deps));
 
-	eteq::ETensorsT<double> roots = {err};
 	std::ifstream rulefile("cfg/optimizations.json");
-	eteq::optimize(roots, rulefile);
-	err = roots[0];
+	err = eteq::optimize<double>({err}, rulefile)[0];
 
 	std::string expect_pbfile = testdir + "/cnn_opt.txt";
 	std::ifstream expect_ifs(expect_pbfile);

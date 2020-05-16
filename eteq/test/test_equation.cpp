@@ -987,11 +987,10 @@ TEST(EQUATION, TanhRNNLayerConnect)
 TEST(EQUATION, OptimizedMatmulComplex)
 {
 	matmul_complex(
-		[](teq::TensptrsT roots)
+		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			eteq::ETensorsT<float> eroots(roots.begin(), roots.end());
-			eteq::optimize<float>(eroots, file);
+			roots = eteq::optimize<float>(roots, file);
 		});
 }
 
@@ -999,11 +998,10 @@ TEST(EQUATION, OptimizedMatmulComplex)
 TEST(EQUATION, OptimizedSlowSigmoidMLP)
 {
 	sigmoid_MLP_slow(
-		[](teq::TensptrsT roots)
+		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
-			eteq::optimize<double>(eroots, file);
+			roots = eteq::optimize<double>(roots, file);
 		});
 }
 
@@ -1011,11 +1009,10 @@ TEST(EQUATION, OptimizedSlowSigmoidMLP)
 TEST(EQUATION, OptimizedFastSigmoidMLP)
 {
 	sigmoid_MLP_fast(
-		[](teq::TensptrsT roots)
+		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
-			eteq::optimize<double>(eroots, file);
+			roots = eteq::optimize<double>(roots, file);
 		});
 }
 
@@ -1023,11 +1020,10 @@ TEST(EQUATION, OptimizedFastSigmoidMLP)
 TEST(EQUATION, OptimizedTanhRNN)
 {
 	tanh_RNN(
-		[](teq::TensptrsT roots)
+		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
-			eteq::optimize<double>(eroots, file);
+			roots = eteq::optimize<double>(roots, file);
 		});
 }
 
@@ -1035,11 +1031,10 @@ TEST(EQUATION, OptimizedTanhRNN)
 TEST(EQUATION, OptimizedTanhRNNLayer)
 {
 	tanh_RNN_layer(
-		[](teq::TensptrsT roots)
+		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			eteq::ETensorsT<double> eroots(roots.begin(), roots.end());
-			eteq::optimize<double>(eroots, file);
+			roots = eteq::optimize<double>(roots, file);
 		});
 }
 

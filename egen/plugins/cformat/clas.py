@@ -1,4 +1,5 @@
 from plugins.template import build_template
+from plugins.common import strip_template_prefix
 from plugins.cformat.args import render as arender
 from plugins.cformat.funcs import render_decl as fdecl_render, render_defn as fdefn_render
 
@@ -7,6 +8,9 @@ _template_hdr = '''
 {{
 //>>> init
 {init}
+
+//>>> copynmove
+{copynmove}
 
 //>>> funcs
 {funcs}
@@ -55,6 +59,96 @@ def _handle_init(obj):
             cname=obj['name'],
             args=args, initlist=ilist, do = doblock)
     return ''
+
+_template_defcopy = '''
+{name} (const {typename}& other) = default;
+{typename}& operator = (const {typename}& other) = default;
+'''
+
+_template_copy = '''
+{name} (const {typename}& {oname}{args}){ilist} {{
+    {do}
+}}
+{typename}& operator = (const {typename}& {oname}) {{
+    {do}
+    return *this;
+}}
+'''
+
+_template_defmove = '''
+{name} ({typename}&& other) = default;
+{typename}& operator = ({typename}&& other) = default;
+'''
+
+_template_move = '''
+{name} ({typename}&& {oname}{args}){ilist} {{
+    {do}
+}}
+{typename}& operator = ({typename}&& {oname}) {{
+    {do}
+    return *this;
+}}
+'''
+
+def _handle_copynmove(obj):
+    cp = obj.get('copy', None)
+    mv = obj.get('move', None)
+    if cp is None and mv is None:
+        return ''
+
+    name = obj['name']
+    templates = [strip_template_prefix(tmp)
+        for tmp in obj.get('template', '').strip().split(',')]
+    if len(templates) > 0:
+        typename = name + '<' + ','.join(templates) + '>'
+    else:
+        typename = name
+
+    if cp is None:
+        cp = _template_defcopy.format(name=name, typename=typename)
+    else:
+        oname = cp.get('other', 'other')
+        args = ', '.join([''] + [
+            arender(arg, accept_def=True)
+            for arg in cp.get('args', [])
+        ])
+        ilist = cp.get('initlist', {})
+        if len(ilist) > 0:
+            ilist = [
+                '{key}({val})'.format(key=k, val=ilist[k])
+                for k in ilist
+            ]
+            ilist = ': ' + ', '.join(ilist)
+        else:
+            ilist = ''
+
+        cp = _template_copy.format(name=name,
+            typename=typename, oname=oname,
+            args=args, do=cp['do'], ilist=ilist)
+
+    if mv is None:
+        mv = _template_defmove.format(name=name, typename=typename)
+    else:
+        oname = mv.get('other', 'other')
+        args = ', '.join([''] + [
+            arender(arg, accept_def=True)
+            for arg in mv.get('args', [])
+        ])
+        ilist = mv.get('initlist', {})
+        if len(ilist) > 0:
+            ilist = [
+                '{key}({val})'.format(key=k, val=ilist[k])
+                for k in ilist
+            ]
+            ilist = ': ' + ', '.join(ilist)
+        else:
+            ilist = ''
+
+        mv = _template_move.format(name=name,
+            typename=typename, oname=oname,
+            args=args, do=mv['do'], ilist=ilist)
+
+    return cp + '\n\n' + mv
 
 def _handle_funcs(obj):
     funcs = obj.get('funcs', [])

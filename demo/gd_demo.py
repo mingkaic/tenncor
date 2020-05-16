@@ -6,6 +6,8 @@ import numpy as np
 
 import tenncor as tc
 
+import dbg.compare as cmp
+
 prog_description = 'Demo sgd trainer'
 
 def batch_generate(n, batchsize):
@@ -58,12 +60,12 @@ def main(args):
     train_exout = tc.EVariable([nbatch, noutput])
     model = tc.api.layer.link([
         tc.api.layer.dense([ninput], [nunits],
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
         tc.api.layer.bind(tc.api.sigmoid),
         tc.api.layer.dense([nunits], [noutput],
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
         tc.api.layer.bind(tc.api.sigmoid),
     ], train_input)
 
@@ -130,6 +132,8 @@ def main(args):
     print('untrained mlp error rate: {}%'.format(untrained_err * 100))
     print('trained mlp error rate: {}%'.format(trained_err * 100))
     print('pretrained mlp error rate: {}%'.format(pretrained_err * 100))
+    print('is structurally equal?:', cmp.is_equal(pretrained_out, trained_out))
+    print('%% data equal:', cmp.percent_dataeq(pretrained_out, trained_out))
 
     try:
         print('saving')

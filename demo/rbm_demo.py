@@ -66,14 +66,14 @@ def main(args):
     momentum = 0.95
 
     model = tc.api.layer.rbm(n_visible, n_hidden,
-        weight_init=tc.unif_xavier_init(args.xavier_const),
-        bias_init=tc.zero_init())
+        weight_init=tc.api.layer.unif_xavier_init(args.xavier_const),
+        bias_init=tc.api.layer.zero_init())
 
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
         print('loading ' + args.load)
-        trained = tc.api.RBMLayer(*tc.load_from_file(
+        trained = tc.RBMLayer(*tc.load_from_file(
             args.load, key_prec={'fwd': 0, 'bwd': 1}))
         print('successfully loaded from ' + args.load)
     except Exception as e:
@@ -85,13 +85,13 @@ def main(args):
     n_batch = 10
 
     train_input = tc.EVariable([n_batch, n_visible])
-    train_err = tc.api.rbm_train(model, train_input,
+    train_err = tc.rbm_train(model, train_input,
         learning_rate=learning_rate,
         discount_factor=momentum,
         err_func=mse_errfunc)
     sess.track([train_err])
 
-    x = tc.api.scalar_variable(0, [1, n_visible])
+    x = tc.scalar_variable(0, [1, n_visible])
     genx = tc.api.sigmoid(model.backward_connect(
         tc.api.random.rand_binom_one(tc.api.sigmoid(model.connect(x)))))
 

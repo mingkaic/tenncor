@@ -6,25 +6,20 @@
 
 using ETensKeysT = std::unordered_map<std::string,eteq::ETensor<PybindT>>;
 
-eteq::ETensContext& pyglobal_context (void)
-{
-	return eteq::global_context();
-}
-
 void eteq_ext (py::module& m)
 {
-	py::class_<eteq::ETensContext> context(m, "Context");
+	py::class_<eteq::ETensContext,eteq::ECtxptrT> context(m, "Context");
 
 	context
-		.def(py::init<>())
-		.def("get_session", [](eteq::ETensContext& ctx)
+		.def(py::init<>([]() { return std::make_shared<eteq::ETensContext>(); }))
+		.def("get_session", [](eteq::ECtxptrT& ctx)
 		{
-			return ctx.sess_;
+			return ctx->sess_;
 		})
-		.def("get_active", [](eteq::ETensContext& ctx)
+		.def("get_actives", [](eteq::ECtxptrT& ctx)
 		{
 			teq::TensptrSetT actives;
-			for (auto& r : ctx.registry_)
+			for (auto& r : ctx->registry_)
 			{
 				actives.emplace(r.second);
 			}
@@ -32,12 +27,12 @@ void eteq_ext (py::module& m)
 			out.reserve(actives.size());
 			for (auto& tens : actives)
 			{
-				out.push_back(pyeteq::ETensT(tens, ctx.registry_));
+				out.push_back(pyeteq::ETensT(tens, ctx));
 			}
 			return out;
 		});
 
-	m.attr("global_context") = &pyglobal_context();
+	m.attr("global_context") = eteq::global_context();
 
 	// ==== data and shape ====
 	auto shape = (py::class_<teq::Shape>) m.attr("Shape");
@@ -77,12 +72,12 @@ void eteq_ext (py::module& m)
 	auto etens = (py::class_<pyeteq::ETensT>) m.attr("ETensor");
 
 	etens
-		.def(py::init([](teq::TensptrT tens, eteq::ETensContext& context)
+		.def(py::init([](teq::TensptrT tens, eteq::ECtxptrT& context)
 			{
-				return pyeteq::ETensT(tens, context.registry_);
+				return pyeteq::ETensT(tens, context);
 			}),
 			py::arg("tens"),
-			py::arg("context") = pyglobal_context())
+			py::arg("context") = eteq::global_context())
 		.def("__str__",
 			[](const pyeteq::ETensT& self)
 			{
@@ -124,7 +119,7 @@ void eteq_ext (py::module& m)
 					[](eteq::VarptrT<PybindT> var)
 					{
 						return eteq::EVariable<PybindT>(var,
-							eteq::global_context().registry_);
+							eteq::global_context());
 					});
 				return vars;
 			})
@@ -141,12 +136,12 @@ void eteq_ext (py::module& m)
 			});
 
 	// ==== session ====
-	py::class_<teq::iSession> isess(m, "iSession");
-	py::class_<teq::Session> session(m, "Session", isess);
+	py::class_<teq::iSession,eigen::iSessptrT> isess(m, "iSession");
+	py::class_<teq::Session,eigen::SessptrT> session(m, "Session", isess);
 
 	isess
 		.def("track",
-			[](teq::iSession* self, eteq::ETensorsT<PybindT> roots)
+			[](teq::iSession& self, eteq::ETensorsT<PybindT> roots)
 			{
 				teq::TensptrsT troots;
 				troots.reserve(roots.size());
@@ -156,10 +151,10 @@ void eteq_ext (py::module& m)
 					{
 						return etens;
 					});
-				self->track(troots);
+				self.track(troots);
 			})
 		.def("update",
-			[](teq::iSession* self,
+			[](teq::iSession& self,
 				std::vector<pyeteq::ETensT> ignored)
 			{
 				teq::TensSetT ignored_set;
@@ -167,12 +162,12 @@ void eteq_ext (py::module& m)
 				{
 					ignored_set.emplace(etens.get());
 				}
-				self->update(ignored_set);
+				self.update(ignored_set);
 			},
 			"Calculate every etens in the graph given list of nodes to ignore",
 			py::arg("ignored") = std::vector<pyeteq::ETensT>{})
 		.def("update_target",
-			[](teq::iSession* self,
+			[](teq::iSession& self,
 				std::vector<pyeteq::ETensT> targeted,
 				std::vector<pyeteq::ETensT> ignored)
 			{
@@ -186,7 +181,7 @@ void eteq_ext (py::module& m)
 				{
 					ignored_set.emplace(etens.get());
 				}
-				self->update_target(targeted_set, ignored_set);
+				self.update_target(targeted_set, ignored_set);
 			},
 			"Calculate etens relevant to targets in the "
 			"graph given list of nodes to ignore",
@@ -200,7 +195,7 @@ void eteq_ext (py::module& m)
 				out.reserve(tracked.size());
 				for (auto& tens : tracked)
 				{
-					out.push_back(pyeteq::ETensT(tens, eteq::global_context().registry_));
+					out.push_back(pyeteq::ETensT(tens, eteq::global_context()));
 				}
 				return out;
 			})
@@ -223,7 +218,7 @@ void eteq_ext (py::module& m)
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
-		.def(py::init(&eigen::get_session));
+		.def(py::init(&eigen::get_sessptr));
 
 	// ==== variable ====
 	py::class_<eteq::EVariable<PybindT>,pyeteq::ETensT> evar(m, "EVariable");
@@ -231,16 +226,15 @@ void eteq_ext (py::module& m)
 	evar
 		.def(py::init(
 			[](py::list slist, PybindT scalar,
-				const std::string& label, eteq::ETensContext& context)
+				const std::string& label, eteq::ECtxptrT context)
 			{
 				return eteq::make_variable_scalar<PybindT>(
-					scalar, pyutils::p2cshape(slist), label,
-					context.registry_);
+					scalar, pyutils::p2cshape(slist), label, context);
 			}),
 			py::arg("shape"),
 			py::arg("scalar") = 0,
 			py::arg("label") = "",
-			py::arg("context") = pyglobal_context())
+			py::arg("context") = eteq::global_context())
 		.def("assign",
 			[](eteq::EVariable<PybindT>& self, py::array data,
 				eteq::ETensContext& ctx)
@@ -251,7 +245,7 @@ void eteq_ext (py::module& m)
 			},
 			"Assign numpy data array to variable",
 			py::arg("data"),
-			py::arg("ctx") = pyglobal_context());
+			py::arg("ctx") = eteq::global_context());
 
 	// ==== inline functions ====
 	m
@@ -274,57 +268,57 @@ void eteq_ext (py::module& m)
 		// ==== variable creation ====
 		.def("scalar_variable",
 			[](PybindT scalar, py::list slist,
-				const std::string& label, eteq::ETensContext& context)
+				const std::string& label, eteq::ECtxptrT context)
 			{
 				return eteq::make_variable_scalar<PybindT>(
 					scalar, pyutils::p2cshape(slist), label,
-					context.registry_);
+					context);
 			},
 			"Return labelled variable containing numpy data array",
 			py::arg("scalar"),
 			py::arg("slist"),
 			py::arg("label") = "",
-			py::arg("ctx") = pyglobal_context())
+			py::arg("ctx") = eteq::global_context())
 		.def("variable_like",
 			[](PybindT scalar, pyeteq::ETensT like,
-				const std::string& label, eteq::ETensContext& context)
+				const std::string& label, eteq::ECtxptrT context)
 			{
 				return eteq::make_variable_like<PybindT>(
 					scalar, (teq::TensptrT) like, label,
-					context.registry_);
+					context);
 			},
 			"Return labelled variable containing numpy data array",
 			py::arg("scalar"),
 			py::arg("like"),
 			py::arg("label") = "",
-			py::arg("ctx") = pyglobal_context())
+			py::arg("ctx") = eteq::global_context())
 		.def("variable",
 			[](py::array data,
-				const std::string& label, eteq::ETensContext& context)
+				const std::string& label, eteq::ECtxptrT context)
 			{
 				teq::ShapedArr<PybindT> arr;
 				pyutils::arr2shapedarr(arr, data);
 				return eteq::make_variable(
 					arr.data_.data(), arr.shape_, label,
-					context.registry_);
+					context);
 			},
 			"Return labelled variable containing numpy data array",
 			py::arg("data"),
 			py::arg("label") = "",
-			py::arg("ctx") = pyglobal_context())
+			py::arg("ctx") = eteq::global_context())
 		.def("to_variable",
-			[](const pyeteq::ETensT& tens, eteq::ETensContext& context)
+			[](const pyeteq::ETensT& tens, eteq::ECtxptrT context)
 			{
-				auto reg = tens.get_registry();
-				if (nullptr == reg)
+				auto ctx = tens.get_context();
+				if (nullptr == ctx)
 				{
-					reg = &context.registry_;
+					ctx = context;
 				}
 				return eteq::EVariable<PybindT>(std::dynamic_pointer_cast<
-					eteq::Variable<PybindT>>((teq::TensptrT) tens), *reg);
+					eteq::Variable<PybindT>>((teq::TensptrT) tens), ctx);
 			},
 			py::arg("tens"),
-			py::arg("ctx") = pyglobal_context())
+			py::arg("ctx") = eteq::global_context())
 
 		// ==== other stuff ====
 		.def("derive", [](eteq::ETensor<PybindT> root,
@@ -347,7 +341,7 @@ void eteq_ext (py::module& m)
 
 		// ==== optimization ====
 		.def("optimize",
-			[](eteq::ETensContext& context, const std::string& filename)
+			[](eteq::ECtxptrT context, const std::string& filename)
 			{
 				eteq::optimize<PybindT>(context, filename);
 			},
@@ -456,11 +450,11 @@ void eteq_ext (py::module& m)
 				out.reserve(roots.size());
 				for (const std::string& id : precids)
 				{
-					out.push_back(pyeteq::ETensT(ids.right.at(id), eteq::global_context().registry_));
+					out.push_back(pyeteq::ETensT(ids.right.at(id), eteq::global_context()));
 				}
 				for (const std::string& id : root_ids)
 				{
-					out.push_back(pyeteq::ETensT(ids.right.at(id), eteq::global_context().registry_));
+					out.push_back(pyeteq::ETensT(ids.right.at(id), eteq::global_context()));
 				}
 				return out;
 			},
@@ -504,7 +498,7 @@ void eteq_ext (py::module& m)
 				}
 				onnx::TensptrIdT ids;
 				auto roots = eteq::load_model(ids, pb_model);
-				ctx.sess_.track(roots);
+				ctx.sess_->track(roots);
 				input.close();
 			})
 		.def("save_context_file",

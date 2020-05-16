@@ -144,7 +144,7 @@ ETensor<T> trail (const ETensor<T>& root,
 	Trailer<T> trailer(inputs);
 	root->accept(trailer);
 	return ETensor<T>(estd::try_get(trailer.trailed_, root.get(), nullptr),
-		*root.get_registry());
+		root.get_context());
 }
 
 template <typename T>
@@ -156,7 +156,7 @@ ETensor<T> get_input (const ETensor<T>& root)
 	}
 	auto froot = estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root);
 	auto layerattr = estd::must_cast<teq::LayerObj>(froot->get_attr(teq::layer_key));
-	return ETensor<T>(layerattr->get_tensor(), *root.get_registry());
+	return ETensor<T>(layerattr->get_tensor(), root.get_context());
 }
 
 template <typename T>
@@ -193,7 +193,7 @@ ETensor<T> deep_clone (const ETensor<T>& root)
 {
 	teq::Copier kamino({get_input(root).get()});
 	root->accept(kamino);
-	return ETensor<T>(kamino.clones_.at(root.get()), *root.get_registry());
+	return ETensor<T>(kamino.clones_.at(root.get()), root.get_context());
 }
 
 }

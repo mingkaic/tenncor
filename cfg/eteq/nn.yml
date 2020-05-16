@@ -108,7 +108,7 @@ funcs:
       type: eteq::ETensor<T>
       val: |
           //
-              auto p = eteq::make_constant_like<T>(prob,input,*super->registry);
+              auto p = eteq::make_constant_like<T>(prob,input,super->ctx);
               return super->mul(input,super->div(
                   super->random.rand_binom_one(p),p));
   - name: mean_pool2d
@@ -191,7 +191,7 @@ funcs:
               auto output = this->fully_connect({input},{weight},bias,dims);
               auto layer_root = super->identity(output);
               return eteq::ETensor<T>(eteq::make_layer(
-                  layer_root,layr::dense_name,input),*super->registry);
+                  layer_root,layr::dense_name,input),super->ctx);
   - name: conv
     args:
     - type: const eteq::ETensor<T>&
@@ -212,7 +212,7 @@ funcs:
               auto output = this->conv2d(input,weight,bias,zero_padding);
               auto layer_root = super->identity(output);
               return eteq::ETensor<T>(eteq::make_layer(
-                  layer_root,layr::conv_name,input),*super->registry);
+                  layer_root,layr::conv_name,input),super->ctx);
   - name: rnn
     args:
     - type: const eteq::ETensor<T>&
@@ -250,7 +250,7 @@ funcs:
               auto output = super->concat(states,seq_dim);
               auto layer_root = super->identity(output);
               return eteq::ETensor<T>(eteq::make_layer(
-                  layer_root,layr::rnn_name,input),*super->registry);
+                  layer_root,layr::rnn_name,input),super->ctx);
   - name: lstm
     args:
     - type: const eteq::ETensor<T>&
@@ -303,7 +303,7 @@ funcs:
               auto output = super->concat(states,seq_dim);
               auto layer_root = super->identity(output);
               return eteq::ETensor<T>(eteq::make_layer(
-                  layer_root,layr::lstm_name,input),*super->registry);
+                  layer_root,layr::lstm_name,input),super->ctx);
   - name: gru
     args:
     - type: const eteq::ETensor<T>&
@@ -350,4 +350,4 @@ funcs:
               auto output = super->concat(states,seq_dim);
               auto layer_root = super->identity(output);
               return eteq::ETensor<T>(eteq::make_layer(
-                  layer_root,layr::gru_name,input),*super->registry);
+                  layer_root,layr::gru_name,input),super->ctx);

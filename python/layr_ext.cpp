@@ -32,7 +32,7 @@ void layr_ext(py::module& m)
 	dbntrainer
 		.def(py::init<
 			const std::vector<layr::RBMLayer<PybindT>>&,eteq::ETensor<PybindT>,
-			eteq::ETensContext&,teq::RankT,teq::DimT,
+			eteq::ECtxptrT,teq::RankT,teq::DimT,
 			PybindT,PybindT,size_t,PybindT,PybindT>(),
 			py::arg("rbms"), py::arg("dense"), py::arg("context"),
 			py::arg("softmax_dim"), py::arg("batch_size"),
@@ -79,28 +79,13 @@ void layr_ext(py::module& m)
 			},
 			"Return labelled variable containing data created from initializer",
 			py::arg("init"), py::arg("slist"), py::arg("label") = "")
-		.def("zero_init", &layr::zero_init<PybindT>,
-			py::arg("registry") = eteq::global_context().registry_)
-		.def("variance_scaling_init", &layr::variance_scaling_init<PybindT>,
-			"truncated_normal(shape, 0, sqrt(factor / ((fanin + fanout)/2))",
-			py::arg("factor"),
-			py::arg("sfactor") = layr::ShapeFactorF<PybindT>(layr::fanavg<PybindT>),
-			py::arg("registry") = eteq::global_context().registry_)
-		.def("unif_xavier_init", &layr::unif_xavier_init<PybindT>,
-			"uniform xavier initializer",
-			py::arg("factor") = 1,
-			py::arg("registry") = eteq::global_context().registry_)
-		.def("norm_xavier_init", &layr::norm_xavier_init<PybindT>,
-			"normal xavier initializer",
-			py::arg("factor") = 1,
-			py::arg("registry") = eteq::global_context().registry_)
 
 		// ==== layer training ====
 		.def("apply_update", [](const eteq::ETensorsT<PybindT>& models,
-				layr::ApproxF<PybindT> update, layr::ErrorF<PybindT> err_func)
+				layr::ApproxF<PybindT> update, layr::ErrorF<PybindT> err_func, eteq::ECtxptrT ctx)
 			{
-				return trainer::apply_update<PybindT>(models, update, err_func);
-			}, py::arg("models"), py::arg("update"), py::arg("err_func"))
+				return trainer::apply_update<PybindT>(models, update, err_func, ctx);
+			}, py::arg("models"), py::arg("update"), py::arg("err_func"), py::arg("ctx")=eteq::global_context())
 		.def("rbm_train", &trainer::rbm<PybindT>,
 			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
@@ -110,5 +95,5 @@ void layr_ext(py::module& m)
 					return tenncor<PybindT>().error.sqr_diff(l, r);
 				}),
 			py::arg("cdk") = 1,
-			py::arg("registry") = eteq::global_context().registry_);
+			py::arg("ctx") = eteq::global_context());
 }

@@ -41,7 +41,7 @@ eteq::ETensor<T> gibbs_hvh (
 template <typename T>
 layr::VarErrsT<T> bbernoulli_approx (const layr::VarErrsT<T>& assocs,
 	T learning_rate, T discount_factor,
-	eteq::ETensRegistryT& registry = eteq::global_context().registry_)
+	eteq::ECtxptrT context = eteq::global_context())
 {
 	// assign momentums before leaves
 	layr::VarErrsT<T> assigns;
@@ -51,7 +51,7 @@ layr::VarErrsT<T> bbernoulli_approx (const layr::VarErrsT<T>& assocs,
 		auto slist = teq::narrow_shape(err->shape());
 		teq::DimT shape_factor = slist.empty() ? 1 : slist.back();
 
-		auto momentum = eteq::make_variable_like<T>(0, err, "momentum", registry);
+		auto momentum = eteq::make_variable_like<T>(0, err, "momentum", context);
 		auto momentum_next = discount_factor * momentum +
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
 
@@ -85,7 +85,7 @@ template <typename T>
 layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 	const layr::RBMLayer<T>& model, size_t cdk = 1,
 	eteq::VarptrT<T> persistent = nullptr,
-	eteq::ETensRegistryT& registry = eteq::global_context().registry_)
+	eteq::ECtxptrT context = eteq::global_context())
 {
 	if (nullptr == io.visible_)
 	{
@@ -96,7 +96,7 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 		io.hidden_ = sample_v2h(model, io.visible_);
 	}
 	auto chain_it = nullptr == persistent ?
-		io.hidden_ : eteq::ETensor<T>(persistent, registry);
+		io.hidden_ : eteq::ETensor<T>(persistent, context);
 	for (size_t i = 0; i < cdk - 1; ++i)
 	{
 		chain_it = gibbs_hvh(model, chain_it);
@@ -121,7 +121,7 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 		tenncor<T>().matmul(tenncor<T>().transpose(io.visible_), io.hidden_) -
 		tenncor<T>().matmul(tenncor<T>().transpose(io.visible_mean_), io.hidden_mean_);
 	layr::VarErrsT<T> varerrs = {
-		{eteq::EVariable<T>(vars[layr::weight_label], registry), grad_w},
+		{eteq::EVariable<T>(vars[layr::weight_label], context), grad_w},
 	};
 
 	std::string hid_key = "h" + layr::bias_label;
@@ -129,16 +129,16 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 	if (estd::has(vars, hid_key))
 	{
 		auto grad_hb = tenncor<T>().reduce_mean_1d(io.hidden_ - io.hidden_mean_, 1);
-		varerrs.push_back({eteq::EVariable<T>(vars[hid_key], registry), grad_hb});
+		varerrs.push_back({eteq::EVariable<T>(vars[hid_key], context), grad_hb});
 	}
 	if (estd::has(vars, vis_key))
 	{
 		auto grad_vb = tenncor<T>().reduce_mean_1d(io.visible_ - io.visible_mean_, 1);
-		varerrs.push_back({eteq::EVariable<T>(vars[vis_key], registry), grad_vb});
+		varerrs.push_back({eteq::EVariable<T>(vars[vis_key], context), grad_vb});
 	}
 	if (nullptr != persistent)
 	{
-		varerrs.push_back({eteq::EVariable<T>(persistent, registry), gibbs_hvh(model, chain_it)});
+		varerrs.push_back({eteq::EVariable<T>(persistent, context), gibbs_hvh(model, chain_it)});
 	}
 	return varerrs;
 }
@@ -147,11 +147,11 @@ template <typename T>
 eteq::ETensor<T> rbm (const layr::RBMLayer<T>& model,
 	eteq::ETensor<T> visible, T learning_rate, T discount_factor,
 	layr::BErrorF<T> err_func = tenncor<T>().error.sqr_diff, size_t cdk = 1,
-	eteq::ETensRegistryT& registry = eteq::global_context().registry_)
+	eteq::ECtxptrT context = eteq::global_context())
 {
 	CDChainIO<T> chain_io(visible);
-	layr::VarErrsT<T> varerrs = cd_grad_approx<T>(chain_io, model, cdk, nullptr, registry);
-	auto updates = bbernoulli_approx<T>(varerrs, learning_rate, discount_factor, registry);
+	layr::VarErrsT<T> varerrs = cd_grad_approx<T>(chain_io, model, cdk, nullptr, context);
+	auto updates = bbernoulli_approx<T>(varerrs, learning_rate, discount_factor, context);
 	teq::TensMapT<teq::TensptrT> umap;
 	eteq::ETensorsT<T> deps;
 	deps.reserve(updates.size());

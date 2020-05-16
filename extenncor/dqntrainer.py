@@ -10,7 +10,7 @@ import tenncor as tc
 import extenncor.trainer_cache as ecache
 import extenncor.dqntrainer_pb2 as dqn_pb
 
-_get_random = tc.api.unif_gen(0, 1)
+_get_random = tc.unif_gen(0, 1)
 
 def get_dqnupdate(update_fn, update_rate):
     def dqnupdate(err, vars):
@@ -20,10 +20,11 @@ def get_dqnupdate(update_fn, update_rate):
 
         src_updates = dict(update_fn(err, src_vars))
 
-        assigns = dict()
+        assigns = []
         for nxt_var, src_var in zip(nxt_vars, src_vars):
             diff = nxt_var - src_updates[src_var]
-            assigns[nxt_var] = tc.api.assign_sub(nxt_var, update_rate * diff)
+            assigns.append((nxt_var,
+                tc.api.assign_sub(nxt_var, update_rate * diff)))
         return assigns
     return dqnupdate
 

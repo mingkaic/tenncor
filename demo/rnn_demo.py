@@ -57,8 +57,8 @@ def create_dataset(nb_samples, sequence_len):
 
 def make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps):
     gs = tc.derive(error, leaves)
-    momentums = [tc.api.variable_like(0, target, label='momentum_' + str(target)) for target in leaves]
-    mvavg_sqrs = [tc.api.variable_like(0, target, label='mving_avg_' + str(target)) for target in leaves]
+    momentums = [tc.variable_like(0, target, label='momentum_' + str(target)) for target in leaves]
+    mvavg_sqrs = [tc.variable_like(0, target, label='mving_avg_' + str(target)) for target in leaves]
 
     momentum_tmps = [momentum * momentum_term for momentum in momentums]
     target_incrs = [tc.api.assign_add(target, momentum_tmp)
@@ -66,7 +66,7 @@ def make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps):
 
     # trail grads as increment in grads operation
     tincr_mapping = list(zip(leaves, target_incrs))
-    grad_deps = [tc.api.trail(grad, tincr_mapping)for grad in gs]
+    grad_deps = [tc.trail(grad, tincr_mapping)for grad in gs]
 
     # update moving average, dependent on target incr
     umvavg_sqrs = [tc.api.assign(mvavg_sqr,
@@ -83,7 +83,7 @@ def make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps):
     assigns += [(target, tc.api.assign_sub(target, pgrad_norm))
         for target, pgrad_norm in zip(leaves, pgrad_norms)]
 
-    return dict(assigns)
+    return assigns
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -143,7 +143,7 @@ def main(args):
     model = tc.api.layer.link([
         tc.api.layer.dense([ninput], [nunits], weight_init),
         tc.api.layer.rnn(nunits, nunits, tc.api.tanh, sequence_len,
-            weight_init=weight_init, bias_init=tc.zero_init(),
+            weight_init=weight_init, bias_init=tc.api.layer.zero_init(),
             seq_dim=2),
         tc.api.layer.dense([nunits], [noutput], weight_init),
         tc.api.layer.bind(tc.api.sigmoid),

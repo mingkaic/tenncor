@@ -129,12 +129,12 @@ for matrix_dim in matrix_dims:
     # regular mlp
     brain = tc.api.layer.link([
         tc.api.dense([n_in], [matrix_dim],
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
         tc.api.layer.bind(tc.api.sigmoid),
         tc.api.dense([matrix_dim], [n_out],
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
         tc.api.layer.bind(tc.api.sigmoid),
     ])
 

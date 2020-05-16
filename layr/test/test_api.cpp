@@ -30,8 +30,8 @@ TEST(DENSE, Connection)
 {
 	teq::Shape shape({6});
 	teq::Shape shape2({7});
-	auto biased_dense = tenncor<float>().layer.dense(shape, {5}, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
-	auto dense = tenncor<float>().layer.dense(shape2, {6}, layr::unif_xavier_init<float>(3), layr::InitF<float>());
+	auto biased_dense = tenncor<float>().layer.dense(shape, {5}, tenncor<float>().layer.unif_xavier_init(2), tenncor<float>().layer.unif_xavier_init(4));
+	auto dense = tenncor<float>().layer.dense(shape2, {6}, tenncor<float>().layer.unif_xavier_init(3), layr::InitF<float>());
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({6, 2}), "x");
@@ -60,7 +60,7 @@ TEST(DENSE, Connection)
 TEST(CONV, Connection)
 {
 	auto conv = tenncor<float>().layer.conv({6, 5}, 4, 3,
-		layr::unif_xavier_init<float>(1), layr::zero_init<float>());
+		tenncor<float>().layer.unif_xavier_init(1), tenncor<float>().layer.zero_init());
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({4, 10, 9, 2}), "x");
@@ -82,8 +82,8 @@ TEST(CONV, Connection)
 
 TEST(RBM, Connection)
 {
-	auto rrbm = tenncor<float>().layer.rbm(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
-	auto nobias = tenncor<float>().layer.rbm(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
+	auto rrbm = tenncor<float>().layer.rbm(6, 5, tenncor<float>().layer.unif_xavier_init(2), tenncor<float>().layer.unif_xavier_init(4));
+	auto nobias = tenncor<float>().layer.rbm(7, 6, tenncor<float>().layer.unif_xavier_init(3), layr::InitF<float>());
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<float>(0, teq::Shape({7, 2}), "x2");
@@ -109,8 +109,8 @@ TEST(RBM, Connection)
 
 TEST(RBM, BackwardConnection)
 {
-	auto rrbm = tenncor<float>().layer.rbm(6, 5, layr::unif_xavier_init<float>(2), layr::unif_xavier_init<float>(4));
-	auto nobias = tenncor<float>().layer.rbm(7, 6, layr::unif_xavier_init<float>(3), layr::InitF<float>());
+	auto rrbm = tenncor<float>().layer.rbm(6, 5, tenncor<float>().layer.unif_xavier_init(2), tenncor<float>().layer.unif_xavier_init(4));
+	auto nobias = tenncor<float>().layer.rbm(7, 6, tenncor<float>().layer.unif_xavier_init(3), layr::InitF<float>());
 
 	auto y = eteq::make_variable_scalar<float>(0, teq::Shape({5, 2}), "y");
 	auto y2 = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "y2");
@@ -1447,7 +1447,7 @@ TEST(CONNECT, TanhRNNTraining)
 		for (size_t i = 0; i < nders; ++i)
 		{
 			group1_left[i]->assign(*group1_right[i],
-				eteq::global_context().registry_);
+				eteq::global_context()->registry_);
 		}
 
 		for (size_t i = 0; i < nders; ++i)
@@ -1493,7 +1493,7 @@ TEST(CONNECT, TanhRNNTraining)
 		for (size_t i = 0; i < nders; ++i)
 		{
 			group2_left[i]->assign(*group2_right[i],
-				eteq::global_context().registry_);
+				eteq::global_context()->registry_);
 		}
 
 		for (size_t i = 0; i < nders; ++i)
@@ -1519,7 +1519,7 @@ TEST(CONNECT, TanhRNNTraining)
 		for (size_t i = 0; i < group3_left.size(); ++i)
 		{
 			group3_left[i]->assign(*group3_right[i],
-				eteq::global_context().registry_);
+				eteq::global_context()->registry_);
 		}
 
 		for (size_t i = 0, ng3 = group3_left.size(); i < ng3; ++i)

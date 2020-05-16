@@ -84,7 +84,7 @@ funcs:
                       der = apply(der);
                   }
 
-                  eteq::EVariable<T> momentum = eteq::make_variable_like<T>(1,der,"momentum",*super->registry);
+                  eteq::EVariable<T> momentum = eteq::make_variable_like<T>(1,der,"momentum",super->ctx);
                   auto update = super->assign_add(momentum,super->square(der));
 
                   // assign momentums before leaves
@@ -145,8 +145,8 @@ funcs:
                   }
 
                   T nodecay = 1. - decay;
-                  eteq::EVariable<T> msg = eteq::make_variable_like<T>(0,der,"ex_sqr_grad",*super->registry);
-                  eteq::EVariable<T> msd = eteq::make_variable_like<T>(0,der,"ex_sqr_delx",*super->registry);
+                  eteq::EVariable<T> msg = eteq::make_variable_like<T>(0,der,"ex_sqr_grad",super->ctx);
+                  eteq::EVariable<T> msd = eteq::make_variable_like<T>(0,der,"ex_sqr_delx",super->ctx);
 
                   auto msg_next = super->assign(msg,
                       super->add(
@@ -218,7 +218,7 @@ funcs:
                   }
 
                   eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
-                      1,der,"momentum",*super->registry);
+                      1,der,"momentum",super->ctx);
                   auto update = super->assign(momentum,
                       super->add(
                           super->mul(discount_factor,momentum),

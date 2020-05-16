@@ -19,7 +19,7 @@ funcs:
       name: b
     out:
       type: eteq::ETensor<T>
-      val: return eteq::make_functor<T>(*super->registry,::egen::RAND_UNIF,teq::TensptrsT{a,b});
+      val: return eteq::make_functor<T>(super->ctx,::egen::RAND_UNIF,teq::TensptrsT{a,b});
   - name: rand_binom_one
     args:
     - type: const eteq::ETensor<T>&
@@ -29,6 +29,6 @@ funcs:
       val: |
           //
               auto trial = this->rand_unif(
-                  eteq::make_variable_like<T>((T) 0,arg,"0",*super->registry),
-                  eteq::make_variable_like<T>((T) 1,arg,"1",*super->registry));
+                  eteq::make_variable_like<T>((T) 0,arg,"0",super->ctx),
+                  eteq::make_variable_like<T>((T) 1,arg,"1",super->ctx));
               return super->lt(trial,arg);

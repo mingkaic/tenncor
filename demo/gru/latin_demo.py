@@ -95,10 +95,10 @@ def main(args):
     model = tc.api.layer.link([
         tc.api.layer.gru(tc.Shape([N]), h_size, seq_length,
             weight_init=old_winit,
-            bias_init=tc.zero_init()),
+            bias_init=tc.api.layer.zero_init()),
         tc.api.layer.dense([h_size], [o_size],
             weight_init=old_winit,
-            bias_init=tc.zero_init()),
+            bias_init=tc.api.layer.zero_init()),
         tc.api.layer.bind(lambda x: tc.api.softmax(x, 0, 1)),
     ])
     untrained_model = model.deep_clone()
@@ -111,7 +111,8 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.global_context.get_session()
+    ctx = tc.global_context
+    sess = ctx.get_session()
 
     sample_inp = tc.EVariable([1, vocab_size], 0)
 

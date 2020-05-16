@@ -250,11 +250,11 @@ static void BM_MatmulComplex(benchmark::State& state)
 		std::vector<int32_t> data3(ddata3.begin(), ddata3.end());
 		state.ResumeTiming();
 		a->assign(data.data(), a->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		b->assign(data2.data(), b->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		c->assign(data3.data(), c->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		session.update();
 	}
 }
@@ -309,17 +309,17 @@ static void BM_SigmoidMLP(benchmark::State& state)
 		std::vector<double> out_data = random_data(out_shape.n_elems(), 0, 1);
 		state.ResumeTiming();
 		in->assign(in_data.data(), in->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		out->assign(out_data.data(), out->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		weight0->assign(w0_data.data(), weight0->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		bias0->assign(b0_data.data(), bias0->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		weight1->assign(w1_data.data(), weight1->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		bias1->assign(b1_data.data(), bias1->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		session.update();
 	}
 }
@@ -380,17 +380,17 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 		std::vector<double> out_data = random_data(out_shape.n_elems(), 0, 1);
 		state.ResumeTiming();
 		in->assign(in_data.data(), in->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		out->assign(out_data.data(), out->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		weight0->assign(w0_data.data(), weight0->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		bias0->assign(b0_data.data(), bias0->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		weight1->assign(w1_data.data(), weight1->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		bias1->assign(b1_data.data(), bias1->shape(),
-			eteq::global_context().registry_);
+			eteq::global_context()->registry_);
 		session.update();
 	}
 }

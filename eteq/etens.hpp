@@ -22,10 +22,14 @@ struct ETensor
 	ETensor (void) = default;
 
 	ETensor (teq::TensptrT tens,
-		ETensRegistryT& registry = global_context().registry_) :
-		registry_(&registry)
+		ECtxptrT ctx = global_context()) :
+		ctx_(ctx)
 	{
-		registry_->emplace(this, tens);
+		if (nullptr != ctx)
+		{
+			registry_ = &ctx->registry_;
+			registry_->emplace(this, tens);
+		}
 	}
 
 	virtual ~ETensor (void)
@@ -106,9 +110,13 @@ struct ETensor
 		return teq::TensptrT(*this).get();
 	}
 
-	ETensRegistryT* get_registry (void) const
+	ECtxptrT get_context (void) const
 	{
-		return registry_;
+		if (ctx_.expired())
+		{
+			return nullptr;
+		}
+		return ctx_.lock();
 	}
 
 private:
@@ -116,18 +124,22 @@ private:
 	{
 		if ((registry_ = other.registry_))
 		{
+			ctx_ = other.ctx_;
 			registry_->emplace(this, teq::TensptrT(other));
 		}
 	}
 
 	void cleanup (void)
 	{
-		if (nullptr != registry_)
+		if (false == ctx_.expired() && nullptr != registry_)
 		{
+			ctx_ = ECtxptrT(nullptr);
 			registry_->erase(this);
 			registry_ = nullptr;
 		}
 	}
+
+	mutable ECtxrefT ctx_;
 
 	mutable ETensRegistryT* registry_ = nullptr;
 };
@@ -137,9 +149,8 @@ struct EVariable final : public ETensor<T>
 {
 	EVariable (void) = default;
 
-	EVariable (VarptrT<T> vars,
-		ETensRegistryT& registry = global_context().registry_) :
-		ETensor<T>(vars, registry) {}
+	EVariable (VarptrT<T> vars, ECtxptrT ctx = global_context()) :
+		ETensor<T>(vars, ctx) {}
 
 	friend bool operator == (const EVariable<T>& l, const EVariable<T>& r)
 	{

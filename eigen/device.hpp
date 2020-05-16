@@ -263,6 +263,22 @@ inline teq::Session get_session (void)
 	return teq::Session(*device);
 }
 
+using iSessptrT = std::shared_ptr<teq::iSession>;
+
+using SessptrT = std::shared_ptr<teq::Session>;
+
+inline SessptrT get_sessptr (void)
+{
+	auto device = static_cast<teq::iDevice*>(
+		config::global_config.get_obj(teq::device_key));
+	if (nullptr == device)
+	{
+		teq::error("missing device in global config");
+		device = &default_device();
+	}
+	return std::make_shared<teq::Session>(*device);
+}
+
 }
 
 #endif // EIGEN_DEVICE_HPP

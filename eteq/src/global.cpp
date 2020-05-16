@@ -5,9 +5,9 @@
 namespace eteq
 {
 
-ETensContext& global_context (void)
+ECtxptrT& global_context (void)
 {
-	static ETensContext registry;
+	static ECtxptrT registry = std::make_shared<ETensContext>();
 	return registry;
 }
 

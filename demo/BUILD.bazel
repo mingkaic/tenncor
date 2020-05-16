@@ -24,6 +24,7 @@ py_binary(
     srcs = ["gd_demo.py"],
     deps = [
         "//:tenncor_py",
+        "//dbg:compare_py",
     ],
     data = ["//:models", "//cfg:optimizations"],
 )

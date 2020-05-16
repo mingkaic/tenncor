@@ -1,4 +1,4 @@
-from plugins.pformat.funcs import render_classfunc, pybindt
+from plugins.pformat.funcs import render_classfunc, pybindt, clean_templates
 
 _template = 'py::class_<{cname}> cls_{name}({mod}, "{name}");'
 
@@ -8,11 +8,11 @@ def _render_classmems(obj, name, cname):
         name=name, cname=cname, mem=mem)
 
 def render(obj, mod, namespace):
-    ntemplates = len(obj.get('template', '').split(','))
+    templates = obj.get('template', '').strip().split(',')
+    ntemplates = len(templates)
     name = obj['name']
-    temp = obj.get('template', '').strip()
     cname = namespace + '::' + name
-    if len(temp) > 0:
+    if ntemplates > 0:
         cname += '<' + ','.join([pybindt] * ntemplates) + '>'
     funcs = obj.get('funcs', [])
     mems = obj.get('members', [])
@@ -24,6 +24,19 @@ def render(obj, mod, namespace):
             fdef, finputs = render_classfunc(f, obj, namespace, mod)
             func_defs.append(fdef)
             class_inputs.update(finputs)
+
+    if 'init' in obj:
+        init_args = obj['init'].get('args', [])
+        init_args = [arg['pyreplace'] if 'pyreplace' in arg else arg for arg in init_args]
+        for arg in init_args:
+            arg['type'] = clean_templates(arg['type'], templates)
+
+        params = ', '.join([arg['type'] + ' ' + arg['name'] for arg in init_args])
+        pnames = ', '.join([arg['convert'] if 'convert' in arg else arg['name'] for arg in init_args])
+        args = ', '.join([''] + ['py::arg("{}")={}'.format(arg['name'], str(arg['default']))
+            if 'default' in arg else 'py::arg("{}")'.format(arg['name']) for arg in init_args])
+        func_defs.append('cls_{name}.def(py::init([]({params}){{ return {cname}({pnames}); }}){args});'.format(
+            name=name, cname=cname, params=params, pnames=pnames, args=args))
 
     return '\n\n'.join([_template.format(cname=cname, name=name, mod=mod)] + func_defs +
         [_render_classmems(mem, name, cname) for mem in mems if mem.get('public', False)]), class_inputs

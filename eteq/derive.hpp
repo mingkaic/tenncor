@@ -567,7 +567,7 @@ ETensorsT<T> derive (ETensor<T> root, const ETensorsT<T>& targets)
 		std::back_inserter(out),
 		[&root](teq::TensptrT tens)
 		{
-			return ETensor<T>(tens, *root.get_registry());
+			return ETensor<T>(tens, root.get_context());
 		});
 	return out;
 }

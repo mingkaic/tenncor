@@ -64,15 +64,15 @@ def main(args):
     # construct DBN
     rbms = [
         tc.api.layer.rbm(6, 3,
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
         tc.api.layer.rbm(3, 3,
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init())
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init())
     ]
     dense = tc.api.layer.dense([3], [2],
-        weight_init=tc.zero_init(),
-        bias_init=tc.zero_init())
+        weight_init=tc.api.layer.zero_init(),
+        bias_init=tc.api.layer.zero_init())
     softmax_dim = 0
 
     rbm_interlace = zip([rbm.fwd() for rbm in rbms], len(rbms) * [tc.api.layer.bind(tc.api.sigmoid)])

@@ -8,7 +8,8 @@ namespace trainer
 
 template <typename T>
 eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
-	layr::ApproxF<T> update, layr::ErrorF<T> err_func)
+	layr::ApproxF<T> update, layr::ErrorF<T> err_func,
+	eteq::ECtxptrT ctx = eteq::global_context())
 {
 	auto error = err_func(models);
 	eteq::EVariablesT<T> vars;
@@ -19,7 +20,7 @@ eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
 			std::back_inserter(vars),
 			[&](eteq::VarptrT<T> var)
 			{
-				return eteq::EVariable<T>(var, *model.get_registry());
+				return eteq::EVariable<T>(var, model.get_context());
 			});
 	}
 	auto updates = update(error,
@@ -33,7 +34,7 @@ eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
 		deps.push_back(update.second);
 	}
 	// depend on assigns for variables not trailed in error
-	return tenncor<T>().depends(eteq::trail(error, umap), deps);
+	return TenncorAPI<T>(ctx).depends(eteq::trail(error, umap), deps);
 }
 
 }

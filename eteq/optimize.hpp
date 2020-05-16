@@ -23,10 +23,10 @@ namespace eteq
 const size_t convert_round_limit = 50;
 
 template <typename T>
-void optimize (eteq::ETensorsT<T>& roots, std::istream& rulestr)
+teq::TensptrsT optimize (teq::TensptrsT roots, std::istream& rulestr)
 {
 	opt::OptRulesT rules;
-	opt::GraphInfo graph(teq::TensptrsT(roots.begin(), roots.end()));
+	opt::GraphInfo graph(roots);
 	merge_dups<T>(graph); // remove duplicates to reduce search space
 
 	eteq::TargetFactory<T> impl_factory(graph);
@@ -38,19 +38,15 @@ void optimize (eteq::ETensorsT<T>& roots, std::istream& rulestr)
 		converted = opt::optimize(graph, rules);
 	}
 	// apply new roots
-	auto oroots = graph.get_roots();
-	for (size_t i = 0, n = roots.size(); i < n; ++i)
-	{
-		roots[i] = eteq::ETensor<T>(oroots[i], *roots[i].get_registry());
-	}
+	return graph.get_roots();
 }
 
 /// Apply optimization to graph roots tracked by session
 template <typename T>
-void optimize (eteq::ETensContext& context, std::string filename)
+void optimize (eteq::ECtxptrT context, std::string filename)
 {
 	std::ifstream rulefile(filename);
-	auto& reg = context.registry_;
+	auto& reg = context->registry_;
 	teq::TensptrSetT roots;
 	for (auto& rpairs : reg)
 	{
@@ -58,27 +54,20 @@ void optimize (eteq::ETensContext& context, std::string filename)
 	}
 
 	teq::TensMapT<teq::TensptrT> changed;
+	teq::TensptrsT inroots(roots.begin(), roots.end());
+	auto outroots = optimize<T>(inroots, rulefile);
+	assert(inroots.size() == outroots.size());
+	for (size_t i = 0, n = inroots.size(); i < n; ++i)
 	{
-		teq::TensptrsT rootvec(roots.begin(), roots.end());
-		eteq::ETensorsT<T> order;
-		order.reserve(rootvec.size());
-		std::transform(rootvec.begin(), rootvec.end(),
-			std::back_inserter(order),
-			[&](teq::TensptrT root)
-			{
-				return eteq::ETensor<T>(root, reg);
-			});
-		optimize<T>(order, rulefile);
-		for (size_t i = 0, n = rootvec.size(); i < n; ++i)
-		{
-			changed.emplace(rootvec[i].get(), order[i]);
-		}
+		changed.emplace(inroots[i].get(), outroots[i]);
 	}
 
 	for (auto& rpairs : reg)
 	{
 		rpairs.second = changed[rpairs.second.get()];
 	}
+	context->sess_->clear();
+	context->sess_->track(outroots);
 }
 
 }

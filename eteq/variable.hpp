@@ -195,23 +195,23 @@ struct EVariable;
 template <typename T>
 EVariable<T> make_variable_scalar (T scalar,
 	teq::Shape shape, std::string label = "",
-	ETensRegistryT& registry = global_context().registry_);
+	ECtxptrT ctx = global_context());
 
 /// Return variable node filled with scalar matching link shape
 template <typename T>
 EVariable<T> make_variable_like (T scalar,
 	teq::TensptrT like, std::string label = "",
-	ETensRegistryT& registry = global_context().registry_);
+	ECtxptrT ctx = global_context());
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>
 EVariable<T> make_variable (teq::Shape shape, std::string label = "",
-	ETensRegistryT& registry = global_context().registry_);
+	ECtxptrT ctx = global_context());
 
 /// Return variable node given raw array and shape
 template <typename T>
 EVariable<T> make_variable (T* data, teq::Shape shape, std::string label = "",
-	ETensRegistryT& registry = global_context().registry_);
+	ECtxptrT ctx = global_context());
 
 }
 
