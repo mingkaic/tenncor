@@ -79,8 +79,8 @@ TEST(OPTIMIZE, DependsNnary)
 
 	auto add = tenncor<double>().depends(tenncor<double>().add(target, b * d), {c});
 
-	teq::Session sess = eigen::get_session();
-	sess.track({teq::TensptrT(add)});
+	teq::DynamicSession sess = eigen::get_session();
+	sess.track({add});
 	sess.update_target({add.get()});
 	teq::Shape exshape = add->shape();
 	double* expect_data = (double*) add->device().data();
@@ -96,7 +96,7 @@ TEST(OPTIMIZE, DependsNnary)
 		"_|___`--(constant:[88\\60\\296\\152\\244\\...][2\\3\\4\\1\\1\\1\\1\\1])\n"
 		"_`--(constant:[81\\25\\102\\48\\128\\...][2\\3\\4\\1\\1\\1\\1\\1])\n", add);
 
-	sess.track({teq::TensptrT(add)});
+	sess.track({add});
 	sess.update_target({add.get()});
 	teq::Shape gotshape = add->shape();
 	double* got_data = (double*) add->device().data();
@@ -357,7 +357,7 @@ TEST(OPTIMIZE, CNNLayer)
 		(std::istreambuf_iterator<char>()));
 	EXPECT_GRAPHEQ(expect.c_str(), err);
 
-	teq::Session sess = eigen::get_session();
+	teq::DynamicSession sess = eigen::get_session();
 	sess.track({err});
 	sess.update_target({err.get()});
 

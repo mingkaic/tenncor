@@ -10,9 +10,9 @@ using ETensRegistryT = std::unordered_map<void*,teq::TensptrT>;
 
 struct ETensContext final
 {
-    eigen::iSessptrT sess_ = eigen::get_sessptr();
+	eigen::iSessptrT sess_ = eigen::get_sessptr();
 
-    ETensRegistryT registry_;
+	ETensRegistryT registry_;
 };
 
 using ECtxptrT = std::shared_ptr<ETensContext>;

@@ -304,7 +304,7 @@ TEST(CONNECT, TanhRNN)
 	auto dstate = ders[2];
 
 	auto session = eigen::get_session();
-	session.track(teq::TensptrsT(ders.begin(), ders.end()));
+	session.track({dw, db, dstate});
 	session.update();
 
 	teq::Shape weight_shape({hidden_dim, (teq::DimT) (indim + hidden_dim)});
@@ -460,7 +460,7 @@ TEST(CONNECT, DenseTanhRNN)
 	auto db0 = ders[4];
 
 	auto session = eigen::get_session();
-	session.track(teq::TensptrsT(ders.begin(), ders.end()));
+	session.track({dw1, db1, dstate, dw0, db0});
 	session.update();
 
 	teq::Shape weight0_shape({hidden_dim, indim});
@@ -684,7 +684,7 @@ TEST(CONNECT, TanhRNNFull)
 	auto db2 = ders[6];
 
 	auto session = eigen::get_session();
-	session.track(teq::TensptrsT(ders.begin(), ders.end()));
+	session.track(teq::TensptrSetT(ders.begin(), ders.end()));
 	session.update();
 
 	{
@@ -925,7 +925,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 	auto db2 = ders[6];
 
 	auto session = eigen::get_session();
-	session.track(teq::TensptrsT(ders.begin(), ders.end()));
+	session.track(teq::TensptrSetT(ders.begin(), ders.end()));
 	session.update();
 
 	{
@@ -1355,7 +1355,7 @@ TEST(CONNECT, TanhRNNTraining)
 		mvavg_sqrs.push_back(eteq::make_variable_like<double>(0, root, "mvavg_sqrs_" + root->to_string()));
 	}
 
-	teq::TensptrsT to_track;
+	teq::TensptrSetT to_track;
 
 	// group 1
 	eteq::ETensorsT<double> momentum_tmps;
@@ -1370,7 +1370,7 @@ TEST(CONNECT, TanhRNNTraining)
 		auto right = eteq::ETensor<double>(targets[i]) + momentum_tmps[i];
 		group1_left.push_back(targets[i]);
 		group1_right.push_back(right);
-		to_track.push_back(right);
+		to_track.emplace(right);
 	}
 
 	// group 2
@@ -1382,7 +1382,7 @@ TEST(CONNECT, TanhRNNTraining)
 			(1. - lmbd) * tenncor<double>().pow(ders[i], 2.);
 		group2_left.push_back(mvavg_sqrs[i]);
 		group2_right.push_back(right);
-		to_track.push_back(right);
+		to_track.emplace(right);
 	}
 
 	// group 3
@@ -1401,7 +1401,7 @@ TEST(CONNECT, TanhRNNTraining)
 			auto right = momentum_tmps[i] - pgrad_norm_nodes[i];
 			group3_left.push_back(momentums[i]);
 			group3_right.push_back(right);
-			to_track.push_back(right);
+			to_track.emplace(right);
 		}
 
 		for (size_t i = 0; i < nders; ++i)
@@ -1409,7 +1409,7 @@ TEST(CONNECT, TanhRNNTraining)
 			auto right = eteq::ETensor<double>(targets[i]) - pgrad_norm_nodes[i];
 			group3_left.push_back(targets[i]);
 			group3_right.push_back(right);
-			to_track.push_back(right);
+			to_track.emplace(right);
 		}
 	}
 

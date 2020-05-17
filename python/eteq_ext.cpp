@@ -12,14 +12,14 @@ void eteq_ext (py::module& m)
 
 	context
 		.def(py::init<>([]() { return std::make_shared<eteq::ETensContext>(); }))
-		.def("get_session", [](eteq::ECtxptrT& ctx)
+		.def("get_session", [](eteq::ECtxptrT& self)
 		{
-			return ctx->sess_;
+			return self->sess_;
 		})
-		.def("get_actives", [](eteq::ECtxptrT& ctx)
+		.def("get_actives", [](eteq::ECtxptrT& self)
 		{
 			teq::TensptrSetT actives;
-			for (auto& r : ctx->registry_)
+			for (auto& r : self->registry_)
 			{
 				actives.emplace(r.second);
 			}
@@ -27,10 +27,30 @@ void eteq_ext (py::module& m)
 			out.reserve(actives.size());
 			for (auto& tens : actives)
 			{
-				out.push_back(pyeteq::ETensT(tens, ctx));
+				out.push_back(pyeteq::ETensT(tens, self));
 			}
 			return out;
-		});
+		})
+		.def("replace",
+			[](eteq::ECtxptrT& self, const std::vector<std::pair<
+				pyeteq::ETensT,pyeteq::ETensT>>& converts)
+			{
+				teq::TensptrsT actives;
+				for (auto& r : self->registry_)
+				{
+					actives.push_back(r.second);
+				}
+				opt::GraphInfo graph(actives);
+				teq::TensMapT<teq::TensptrT> conversions;
+				for (auto& convert : converts)
+				{
+					conversions.emplace(convert.first.get(), convert.second);
+				}
+				graph.replace(conversions);
+				self->sess_->clear();
+				auto roots = graph.get_roots();
+				self->sess_->track(teq::TensptrSetT(roots.begin(), roots.end()));
+			});;
 
 	m.attr("global_context") = eteq::global_context();
 
@@ -137,21 +157,13 @@ void eteq_ext (py::module& m)
 
 	// ==== session ====
 	py::class_<teq::iSession,eigen::iSessptrT> isess(m, "iSession");
-	py::class_<teq::Session,eigen::SessptrT> session(m, "Session", isess);
+	py::class_<teq::DynamicSession,eigen::SessptrT> session(m, "Session", isess);
 
 	isess
 		.def("track",
 			[](teq::iSession& self, eteq::ETensorsT<PybindT> roots)
 			{
-				teq::TensptrsT troots;
-				troots.reserve(roots.size());
-				std::transform(roots.begin(), roots.end(),
-					std::back_inserter(troots),
-					[](pyeteq::ETensT& etens)
-					{
-						return etens;
-					});
-				self.track(troots);
+				self.track(teq::TensptrSetT(roots.begin(), roots.end()));
 			})
 		.def("update",
 			[](teq::iSession& self,
@@ -186,37 +198,9 @@ void eteq_ext (py::module& m)
 			"Calculate etens relevant to targets in the "
 			"graph given list of nodes to ignore",
 			py::arg("targeted"),
-			py::arg("ignored") = std::vector<pyeteq::ETensT>{})
-		.def("get_tracked",
-			[](teq::iSession& self)
-			{
-				auto tracked = self.get_tracked();
-				pyeteq::ETensorsT out;
-				out.reserve(tracked.size());
-				for (auto& tens : tracked)
-				{
-					out.push_back(pyeteq::ETensT(tens, eteq::global_context()));
-				}
-				return out;
-			})
-		.def("replace",
-			[](teq::iSession& self, const std::vector<std::pair<
-				pyeteq::ETensT,pyeteq::ETensT>>& converts)
-			{
-				auto tracked = self.get_tracked();
-				opt::GraphInfo graph(teq::TensptrsT(
-					tracked.begin(), tracked.end()));
-				teq::TensMapT<teq::TensptrT> conversions;
-				for (auto& convert : converts)
-				{
-					conversions.emplace(convert.first.get(), convert.second);
-				}
-				graph.replace(conversions);
-				self.clear();
-				self.track(graph.get_roots());
-			});
+			py::arg("ignored") = std::vector<pyeteq::ETensT>{});
 
-	py::implicitly_convertible<teq::iSession,teq::Session>();
+	py::implicitly_convertible<teq::iSession,teq::DynamicSession>();
 	session
 		.def(py::init(&eigen::get_sessptr));
 
@@ -483,7 +467,7 @@ void eteq_ext (py::module& m)
 			py::arg("filename"), py::arg("models"),
 			py::arg("keys") = ETensKeysT{})
 		.def("load_context_file",
-			[](const std::string& filename, eteq::ETensContext& ctx)
+			[](const std::string& filename, eteq::ECtxptrT& ctx)
 			{
 				std::ifstream input(filename);
 				if (false == input.is_open())
@@ -498,8 +482,17 @@ void eteq_ext (py::module& m)
 				}
 				onnx::TensptrIdT ids;
 				auto roots = eteq::load_model(ids, pb_model);
-				ctx.sess_->track(roots);
+				ctx->sess_->track(teq::TensptrSetT(roots.begin(), roots.end()));
 				input.close();
+				pyeteq::ETensorsT out;
+				out.reserve(roots.size());
+				std::transform(roots.begin(), roots.end(),
+					std::back_inserter(out),
+					[&](teq::TensptrT tens)
+					{
+						return pyeteq::ETensT(tens, ctx);
+					});
+				return out;
 			})
 		.def("save_context_file",
 			[](const std::string& filename, const eteq::ETensContext& context)

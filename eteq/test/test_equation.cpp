@@ -81,7 +81,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 	}
 
 	auto session = eigen::get_session();
-	session.track(roots);
+	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
 	session.update();
 
 	{
@@ -297,7 +297,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 	}
 
 	auto session = eigen::get_session();
-	session.track(roots);
+	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
 	session.update();
 
 	{
@@ -520,7 +520,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 	}
 
 	auto session = eigen::get_session();
-	session.track(roots);
+	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
 	session.update();
 
 	{
@@ -659,7 +659,7 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 	}
 
 	auto session = eigen::get_session();
-	session.track(roots);
+	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
 	session.update();
 
 	{
@@ -785,7 +785,7 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 	}
 
 	auto session = eigen::get_session();
-	session.track(roots);
+	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
 	session.update();
 
 	{
@@ -913,7 +913,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 	}
 
 	auto session = eigen::get_session();
-	session.track(roots);
+	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
 	session.update();
 
 	{

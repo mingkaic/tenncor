@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_SESSION_TEST
+#ifndef DISABLE_DYNAMIC_SESSION_TEST
 
 
 #include "gtest/gtest.h"
@@ -15,7 +15,7 @@
 static MockDevice mdevice;
 
 
-TEST(SESSION, Track)
+TEST(DYNAMIC_SESSION, Track)
 {
 	teq::Shape shape;
 
@@ -29,34 +29,29 @@ TEST(SESSION, Track)
 	teq::TensptrT target2(new MockFunctor(teq::TensptrsT{x, d}));
 
 	// this tests if session can track be called multiple times
-	teq::Session session(mdevice);
+	teq::DynamicSession session(mdevice);
 	session.track({target});
 
 	// expect session.ops_ to contain x and target
-	EXPECT_ARRHAS(session.ops_, x.get());
-	EXPECT_ARRHAS(session.ops_, target.get());
-	EXPECT_EQ(2, session.ops_.size());
-
-	// expect target to be tracked
-	EXPECT_HAS(session.tracked_, target);
-	EXPECT_EQ(1, session.tracked_.size());
+	ASSERT_EQ(2, session.ops_.size());
+	EXPECT_EQ(1, session.ops_[0].size());
+	EXPECT_EQ(1, session.ops_[1].size());
+	EXPECT_ARRHAS(session.ops_[0], x.get());
+	EXPECT_ARRHAS(session.ops_[1], target.get());
 
 	session.track({target2});
 
 	// expect session.ops_ to contain all the ops
-	EXPECT_ARRHAS(session.ops_, x.get());
-	EXPECT_ARRHAS(session.ops_, target.get());
-	EXPECT_ARRHAS(session.ops_, target2.get());
-	EXPECT_EQ(3, session.ops_.size());
-
-	// expect both targets to be tracked
-	EXPECT_HAS(session.tracked_, target);
-	EXPECT_HAS(session.tracked_, target2);
-	EXPECT_EQ(2, session.tracked_.size());
+	EXPECT_EQ(2, session.ops_.size());
+	EXPECT_EQ(1, session.ops_[0].size());
+	EXPECT_EQ(2, session.ops_[1].size());
+	EXPECT_ARRHAS(session.ops_[0], x.get());
+	EXPECT_ARRHAS(session.ops_[1], target.get());
+	EXPECT_ARRHAS(session.ops_[1], target2.get());
 }
 
 
-TEST(SESSION, Update)
+TEST(DYNAMIC_SESSION, Update)
 {
 	teq::Shape shape;
 
@@ -76,7 +71,7 @@ TEST(SESSION, Update)
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session(mdevice);
+	teq::DynamicSession session(mdevice);
 	session.track({target});
 	session.update();
 
@@ -92,7 +87,7 @@ TEST(SESSION, Update)
 }
 
 
-TEST(SESSION, UpdateIgnore)
+TEST(DYNAMIC_SESSION, UpdateIgnore)
 {
 	teq::Shape shape;
 
@@ -101,9 +96,9 @@ TEST(SESSION, UpdateIgnore)
 	teq::TensptrT c(new MockLeaf(shape));
 	teq::TensptrT d(new MockLeaf(shape));
 
-	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b});
-	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{x, c});
-	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d});
+	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b}, teq::Opcode{"+", 0});
+	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{x, c}, teq::Opcode{"*", 1});
+	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d}, teq::Opcode{"-", 2});
 
 	// - (target) = not updated
 	// `-- * (y) = not updated
@@ -117,7 +112,7 @@ TEST(SESSION, UpdateIgnore)
 	ASSERT_FALSE(y->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session(mdevice);
+	teq::DynamicSession session(mdevice);
 	session.track({target});
 	session.update({y.get()});
 
@@ -153,7 +148,7 @@ TEST(SESSION, UpdateIgnore)
 }
 
 
-TEST(SESSION, UpdateIgnoreCommonDesc)
+TEST(DYNAMIC_SESSION, UpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
@@ -181,7 +176,7 @@ TEST(SESSION, UpdateIgnoreCommonDesc)
 	ASSERT_FALSE(x->data_.ref_.updated_);
 	ASSERT_FALSE(u->data_.ref_.updated_);
 
-	teq::Session session(mdevice);
+	teq::DynamicSession session(mdevice);
 	session.track({target});
 	session.update({y.get()});
 
@@ -203,7 +198,7 @@ TEST(SESSION, UpdateIgnoreCommonDesc)
 }
 
 
-TEST(SESSION, TargetedUpdate)
+TEST(DYNAMIC_SESSION, TargetedUpdate)
 {
 	teq::Shape shape;
 
@@ -223,7 +218,7 @@ TEST(SESSION, TargetedUpdate)
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session(mdevice);
+	teq::DynamicSession session(mdevice);
 	session.track({target});
 	session.update_target(teq::TensSetT{x.get()});
 
@@ -240,7 +235,7 @@ TEST(SESSION, TargetedUpdate)
 }
 
 
-TEST(SESSION, TargetedUpdateIgnore)
+TEST(DYNAMIC_SESSION, TargetedUpdateIgnore)
 {
 	teq::Shape shape;
 
@@ -265,7 +260,7 @@ TEST(SESSION, TargetedUpdateIgnore)
 	ASSERT_FALSE(y->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session(mdevice);
+	teq::DynamicSession session(mdevice);
 	session.track({target});
 	session.update_target({y.get()}, {x.get()});
 
@@ -284,7 +279,7 @@ TEST(SESSION, TargetedUpdateIgnore)
 }
 
 
-TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
+TEST(DYNAMIC_SESSION, TargetedUpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
@@ -317,7 +312,7 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 	ASSERT_FALSE(x->data_.ref_.updated_);
 	ASSERT_FALSE(u->data_.ref_.updated_);
 
-	teq::Session session(mdevice);
+	teq::DynamicSession session(mdevice);
 	session.track({target});
 	session.update_target({z.get()}, {y.get()});
 
@@ -342,7 +337,7 @@ TEST(SESSION, TargetedUpdateIgnoreCommonDesc)
 }
 
 
-TEST(SESSION, Clear)
+TEST(DYNAMIC_SESSION, Clear)
 {
 	teq::Shape shape;
 
@@ -357,9 +352,13 @@ TEST(SESSION, Clear)
 	auto z = std::make_shared<MockFunctor>(teq::TensptrsT{y, x});
 	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d});
 
-	teq::Session session(mdevice);
+	teq::DynamicSession session(mdevice);
 	session.track({target});
-	EXPECT_EQ(5, session.ops_.size());
+	ASSERT_EQ(4, session.ops_.size());
+	EXPECT_EQ(1, session.ops_[0].size());
+	EXPECT_EQ(2, session.ops_[1].size());
+	EXPECT_EQ(1, session.ops_[2].size());
+	EXPECT_EQ(1, session.ops_[3].size());
 	session.clear();
 	EXPECT_EQ(0, session.ops_.size());
 	session.update();
@@ -372,4 +371,4 @@ TEST(SESSION, Clear)
 }
 
 
-#endif // DISABLE_SESSION_TEST
+#endif // DISABLE_DYNAMIC_SESSION_TEST

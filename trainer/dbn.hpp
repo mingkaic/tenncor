@@ -38,7 +38,7 @@ struct DBNTrainer final
 		}
 
 		// layer-wise rbm reconstruction
-		teq::TensptrsT to_track;
+		teq::TensptrSetT to_track;
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			auto& rbm = rbms[i];
@@ -67,7 +67,7 @@ struct DBNTrainer final
 					tenncor<T>().assign_add(eteq::EVariable<T>(varerr.first), pretrain_lr * varerr.second) :
 					tenncor<T>().assign(eteq::EVariable<T>(varerr.first), varerr.second);
 				assigns.emplace(assign.get());
-				to_track.push_back(assign);
+				to_track.emplace(assign);
 			}
 			rupdates_.push_back(assigns);
 
@@ -77,9 +77,9 @@ struct DBNTrainer final
 				rx * tenncor<T>().log(vhv) + ((T) 1 - rx) *
 				tenncor<T>().log((T) 1 - vhv), 0));
 			rcosts_.push_back(rcost);
-			to_track.push_back(rcost);
+			to_track.emplace(rcost);
 		}
-		to_track.push_back(sample_pipes_.back());
+		to_track.emplace(sample_pipes_.back());
 		context_->sess_->track(to_track);
 
 		// logistic layer training
@@ -115,11 +115,7 @@ struct DBNTrainer final
 			tenncor<T>().reduce_sum_1d(trainy_ * tenncor<T>().log(final_out) +
 			((T) 1 - trainy_) * tenncor<T>().log((T) 1 - final_out), 0));
 
-		context_->sess_->track({
-			(teq::TensptrT) sample_pipes_.back(),
-			(teq::TensptrT) tupdate_,
-			(teq::TensptrT) tcost_,
-		});
+		context_->sess_->track({sample_pipes_.back(), tupdate_, tcost_});
 	}
 
 	void pretrain (teq::ShapedArr<T>& train_in, size_t nepochs = 100,

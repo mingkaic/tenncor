@@ -42,7 +42,7 @@ struct Session final : public teq::iSession
 		nthreads_(nthreads), weights_(weights) {}
 
 	/// Implementation of iSession
-	void track (teq::TensptrsT roots) override
+	void track (const teq::TensptrSetT& roots) override
 	{
 		tracked_.insert(roots.begin(), roots.end());
 
@@ -52,7 +52,7 @@ struct Session final : public teq::iSession
 			trac->accept(stat);
 		}
 		teq::ParentFinder pfinder;
-		for (teq::TensptrT& root : roots)
+		for (teq::iTensor* root : roots)
 		{
 			root->accept(pfinder);
 		}
@@ -273,12 +273,6 @@ struct Session final : public teq::iSession
 		tracked_.clear();
 		parents_.clear();
 		requirements_.clear();
-	}
-
-	/// Implementation of iSession
-	teq::TensptrSetT get_tracked (void) const override
-	{
-		return tracked_;
 	}
 
 	/// Set of all tensors input through tracked function

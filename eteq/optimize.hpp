@@ -67,7 +67,7 @@ void optimize (eteq::ECtxptrT context, std::string filename)
 		rpairs.second = changed[rpairs.second.get()];
 	}
 	context->sess_->clear();
-	context->sess_->track(outroots);
+	context->sess_->track(teq::TensptrSetT(outroots.begin(), outroots.end()));
 }
 
 }

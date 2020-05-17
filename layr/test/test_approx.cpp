@@ -187,7 +187,7 @@ TEST(APPROX, Adadelta)
 
 	// evaluating execution order
 	auto sess = eigen::get_session();
-	sess.track(teq::TensptrsT{groups.begin()->second});
+	sess.track(teq::TensptrSetT{groups.begin()->second});
 	sess.update();
 
 	eteq::Variable<PybindT>* g;
@@ -333,7 +333,7 @@ TEST(APPROX, RmsMomentum)
 
 	// evaluating execution order
 	auto sess = eigen::get_session();
-	sess.track(teq::TensptrsT{groups[0].second});
+	sess.track(teq::TensptrSetT{groups[0].second});
 	sess.update();
 
 	eteq::Variable<PybindT>* momentum;

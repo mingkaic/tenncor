@@ -49,7 +49,7 @@ struct ConstantTarget final : public opt::iTarget
 	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
 		teq::iTensor* root = candidates.at("root");
-		teq::Session sess = eigen::get_session();
+		teq::DynamicSession sess = eigen::get_session();
 		sess.track({graph_->get_owner(root)});
 		sess.update_target({root});
 		T* data = (T*) root->device().data();

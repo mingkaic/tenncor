@@ -156,7 +156,7 @@ static void unary_generic (UnaryOpF<double> op,
 	eteq::ETensorsT<double> gsrc = eteq::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
-	session.track(teq::TensptrsT(gsrc.begin(), gsrc.end()));
+	session.track({gsrc[0]});
 	session.update();
 	session.update(); // idempotency check
 
@@ -202,7 +202,7 @@ static void unar_elem (std::vector<double> data,
 	eteq::ETensorsT<double> gsrc = eteq::derive(uninit_dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
-	session.track(teq::TensptrsT(gsrc.begin(), gsrc.end()));
+	session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -295,7 +295,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	eteq::ETensorsT<double> gsame = eteq::derive(dest2, {src});
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
-	session.track(teq::TensptrsT(gsame.begin(), gsame.end()));
+	session.track({gsame.front()});
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -311,7 +311,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	eteq::ETensorsT<double> gleft = eteq::derive(dest, {src});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
-	session.track(teq::TensptrsT(gleft.begin(), gleft.end()));
+	session.track({gleft.front()});
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -327,7 +327,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	eteq::ETensorsT<double> gright = eteq::derive(dest, {src2});
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
-	session.track(teq::TensptrsT(gright.begin(), gright.end()));
+	session.track({gright.front()});
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -434,7 +434,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	eteq::ETensorsT<int32_t> gsame = eteq::derive(dest2, {src});
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
-	session.track(teq::TensptrsT(gsame.begin(), gsame.end()));
+	session.track({gsame.front()});
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -450,7 +450,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	eteq::ETensorsT<int32_t> gleft = eteq::derive(dest, {src});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
-	session.track(teq::TensptrsT(gleft.begin(), gleft.end()));
+	session.track({gleft.front()});
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -466,7 +466,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	eteq::ETensorsT<int32_t> gright = eteq::derive(dest, {src2});
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
-	session.track(teq::TensptrsT(gright.begin(), gright.end()));
+	session.track({gright.front()});
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -553,7 +553,7 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 		eteq::ETensorsT<double> gsrc = eteq::derive(dest, {srcs[i]});
 		ASSERT_EQ(1, gsrc.size());
 		ASSERT_NE(nullptr, gsrc.front());
-		session.track(teq::TensptrsT(gsrc.begin(), gsrc.end()));
+		session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
 		session.update();
 		session.update(); // idempotency check
 		{
@@ -1137,7 +1137,7 @@ TEST(API, Select)
 		eteq::ETensorsT<double> gleft = eteq::derive(dest, {src});
 		ASSERT_EQ(1, gleft.size());
 		ASSERT_NE(nullptr, gleft.front());
-		session.track(teq::TensptrsT(gleft.begin(), gleft.end()));
+		session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
 		session.update();
 		session.update(); // idempotency check
 		{
@@ -1153,7 +1153,7 @@ TEST(API, Select)
 		eteq::ETensorsT<double> gright = eteq::derive(dest, {src2});
 		ASSERT_EQ(1, gright.size());
 		ASSERT_NE(nullptr, gright.front());
-		session.track(teq::TensptrsT(gright.begin(), gright.end()));
+		session.track(teq::TensptrSetT(gright.begin(), gright.end()));
 		session.update();
 		session.update(); // idempotency check
 		{
@@ -1215,7 +1215,7 @@ TEST(API, Slice)
 	};
 	auto session = eigen::get_session();
 	eteq::ETensorsT<double> g = eteq::derive(dest, {src});
-	session.track(teq::TensptrsT(g.begin(), g.end()));
+	session.track(teq::TensptrSetT(g.begin(), g.end()));
 	session.update();
 	session.update(); // idempotency check
 	auto gotshape2 = g[0]->shape();
@@ -1760,7 +1760,12 @@ TEST(API, Permute)
 	eteq::ETensorsT<double> gsrc = eteq::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
-	session.track(teq::TensptrsT(gsrc.begin(), gsrc.end()));
+	teq::TensSetT tset;
+	for (auto& g : gsrc)
+	{
+		tset.emplace(g.get());
+	}
+	session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -1812,7 +1817,7 @@ TEST(API, Extend)
 	eteq::ETensorsT<double> gsrc = eteq::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
-	session.track(teq::TensptrsT(gsrc.begin(), gsrc.end()));
+	session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -1886,7 +1891,7 @@ TEST(API, Matmul)
 	eteq::ETensorsT<int32_t> gsame = eteq::derive(dest2, {c});
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
-	session.track(teq::TensptrsT(gsame.begin(), gsame.end()));
+	session.track(teq::TensptrSetT(gsame.begin(), gsame.end()));
 	session.update();
 	session.update(); // idempotency check
 	teq::Shape gcshape = gsame[0]->shape();
@@ -1895,7 +1900,7 @@ TEST(API, Matmul)
 	eteq::ETensorsT<int32_t> gleft = eteq::derive(dest, {a});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
-	session.track(teq::TensptrsT(gleft.begin(), gleft.end()));
+	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
 	session.update();
 	session.update(); // idempotency check
 	teq::Shape gashape = gleft[0]->shape();
@@ -1910,7 +1915,7 @@ TEST(API, Matmul)
 	eteq::ETensorsT<int32_t> gright = eteq::derive(dest, {b});
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
-	session.track(teq::TensptrsT(gright.begin(), gright.end()));
+	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
 	session.update();
 	session.update(); // idempotency check
 	teq::Shape gbshape = gright[0]->shape();
@@ -1984,7 +1989,7 @@ TEST(API, Contract)
 	eteq::ETensorsT<int32_t> gsame = eteq::derive(dest2, {c});
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
-	session.track(teq::TensptrsT(gsame.begin(), gsame.end()));
+	session.track(teq::TensptrSetT(gsame.begin(), gsame.end()));
 	session.update();
 	session.update(); // idempotency check
 	teq::Shape gcshape = gsame[0]->shape();
@@ -1993,7 +1998,7 @@ TEST(API, Contract)
 	eteq::ETensorsT<int32_t> gleft = eteq::derive(dest, {a});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
-	session.track(teq::TensptrsT(gleft.begin(), gleft.end()));
+	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
 	session.update();
 	session.update(); // idempotency check
 	teq::Shape gashape = gleft[0]->shape();
@@ -2008,7 +2013,7 @@ TEST(API, Contract)
 	eteq::ETensorsT<int32_t> gright = eteq::derive(dest, {b});
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
-	session.track(teq::TensptrsT(gright.begin(), gright.end()));
+	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
 	session.update();
 	session.update(); // idempotency check
 	teq::Shape gbshape = gright[0]->shape();
@@ -2053,7 +2058,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	eteq::ETensorsT<double> gleft = eteq::derive(dest, {src});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
-	session.track(teq::TensptrsT(gleft.begin(), gleft.end()));
+	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -2066,7 +2071,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	eteq::ETensorsT<double> gright = eteq::derive(dest, {src});
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
-	session.track(teq::TensptrsT(gright.begin(), gright.end()));
+	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -2171,7 +2176,7 @@ TEST(API, Convolution)
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	ASSERT_NE(nullptr, gleft[0].get());
-	session.track(teq::TensptrsT(gleft.begin(), gleft.end()));
+	session.track({gleft[0]});
 	session.update();
 	session.update(); // idempotency check
 	{
@@ -2186,7 +2191,7 @@ TEST(API, Convolution)
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	ASSERT_NE(nullptr, gright[0].get());
-	session.track(teq::TensptrsT(gright.begin(), gright.end()));
+	session.track({gright[0]});
 	session.update();
 	session.update(); // idempotency check
 	{

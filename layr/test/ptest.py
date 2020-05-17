@@ -39,9 +39,7 @@ class LAYRTest(unittest.TestCase):
         tc.save_context_file(test_file, context)
 
         context2 = tc.Context()
-        tc.load_context_file(test_file, context2)
-        sess2 = context2.get_session()
-        roots = sess2.get_tracked()
+        roots = tc.load_context_file(test_file, context2)
         self.assertEqual(1, len(roots))
         root_str = graph_to_str(list(roots)[0])
         self.assertEqual(err_str, root_str)
