@@ -1446,8 +1446,7 @@ TEST(CONNECT, TanhRNNTraining)
 		session.update_target(rights);
 		for (size_t i = 0; i < nders; ++i)
 		{
-			group1_left[i]->assign(*group1_right[i],
-				eteq::global_context()->registry_);
+			group1_left[i]->assign(*group1_right[i], eteq::global_context());
 		}
 
 		for (size_t i = 0; i < nders; ++i)
@@ -1492,8 +1491,7 @@ TEST(CONNECT, TanhRNNTraining)
 		session.update_target(rights);
 		for (size_t i = 0; i < nders; ++i)
 		{
-			group2_left[i]->assign(*group2_right[i],
-				eteq::global_context()->registry_);
+			group2_left[i]->assign(*group2_right[i], eteq::global_context());
 		}
 
 		for (size_t i = 0; i < nders; ++i)
@@ -1518,8 +1516,7 @@ TEST(CONNECT, TanhRNNTraining)
 		session.update_target(rights);
 		for (size_t i = 0; i < group3_left.size(); ++i)
 		{
-			group3_left[i]->assign(*group3_right[i],
-				eteq::global_context()->registry_);
+			group3_left[i]->assign(*group3_right[i], eteq::global_context());
 		}
 
 		for (size_t i = 0, ng3 = group3_left.size(); i < ng3; ++i)

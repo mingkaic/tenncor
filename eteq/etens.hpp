@@ -8,6 +8,7 @@
 
 #include "eigen/generated/dtype.hpp"
 
+#include "eteq/global.hpp"
 #include "eteq/variable.hpp"
 
 #ifndef ETEQ_ETENS_HPP
@@ -25,10 +26,11 @@ struct ETensor
 		ECtxptrT ctx = global_context()) :
 		ctx_(ctx)
 	{
-		if (nullptr != ctx)
+		if (nullptr != ctx && nullptr != tens)
 		{
 			registry_ = &ctx->registry_;
 			registry_->emplace(this, tens);
+			ctx->sess_->track({tens});
 		}
 	}
 
@@ -108,6 +110,17 @@ struct ETensor
 	teq::iTensor* get (void) const
 	{
 		return teq::TensptrT(*this).get();
+	}
+
+	T* calc (void)
+	{
+		if (auto ctx = get_context())
+		{
+			auto tens = get();
+			ctx->sess_->update_target({tens});
+			return (T*) tens->device().data();
+		}
+		return nullptr;
 	}
 
 	ECtxptrT get_context (void) const

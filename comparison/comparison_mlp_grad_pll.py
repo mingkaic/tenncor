@@ -132,7 +132,7 @@ for matrix_dim in matrix_dims:
     n_out = int(n_in / 2)
     batch_size = 1
 
-    sess = ccur.Session(nthread=4)
+    tc.global_context.set_session(ccur.Session(nthread=4))
     tfsess = tf.compat.v1.Session()
 
     # regular mlp
@@ -212,7 +212,7 @@ for matrix_dim in matrix_dims:
     start = time.time()
     train_input.assign(test_batch)
     train_output.assign(test_batch_out)
-    sess.update_target([train_err])
+    train_err.get()
     eteq_dur = time.time() - start
 
     start = time.time()

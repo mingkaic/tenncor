@@ -151,32 +151,27 @@ for matrix_dim in matrix_dims:
     tf_expected_out = tf.compat.v1.placeholder(tf.float32, [batch_size, n_out], name='tf_expected_out')
     tf_err = tf.square(tf_expected_out - tf_out)
 
-    sess = tc.Session()
-    sess.track([err])
-
-    tfsess = tf.compat.v1.Session()
-    tfsess.run(tf.compat.v1.global_variables_initializer())
+    sess = tf.compat.v1.Session()
+    sess.run(tf.compat.v1.global_variables_initializer())
 
     test_batch = batch_generate(n_in, batch_size)
     test_batch_out = avgevry2(test_batch)
     test_batch = test_batch.reshape([batch_size, n_in])
     test_batch_out = test_batch_out.reshape([batch_size, n_out])
 
+    # tenncor mlp
     start = time.time()
-
     invar.assign(test_batch)
     expected_out.assign(test_batch_out)
-    sess.update()
-
+    err.get()
     tc_dur = time.time() - start
 
+    # tensorflow mlp
     start = time.time()
-
-    tfsess.run(tf_err, {
+    sess.run(tf_err, {
         tf_invar: test_batch,
         tf_expected_out: test_batch_out
     })
-
     tf_dur = time.time() - start
 
     tc_durs.append(tc_dur)

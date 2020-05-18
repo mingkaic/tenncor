@@ -6,6 +6,8 @@
 namespace trainer
 {
 
+/// Return node that needs to be calculated for every training step
+/// The node value contains the error computed from the err_func input
 template <typename T>
 eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
 	layr::ApproxF<T> update, layr::ErrorF<T> err_func,

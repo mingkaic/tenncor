@@ -20,10 +20,11 @@ _tfds_args = {
 
 @ecache.EnvManager.register
 class TfdsEnv(ecache.EnvManager):
-    def __init__(self, name, ctx, train_inputs,
+    def __init__(self, name, train_inputs,
                  connect_fn, trainstep_fn,
                  clean_startup=False, cachedir='/tmp',
                  optimize_cfg='', display_name = None,
+                 ctx = tc.global_context,
                  **kwargs):
         def default_init():
             self.name = name
@@ -52,7 +53,7 @@ class TfdsEnv(ecache.EnvManager):
                 loutput.tag('recovery', 'output_{}'.format(i))
 
             self.ctx.get_session().track(self.train_outputs)
-            tc.optimize(self.ctx, optimize_cfg)
+            tc.optimize(optimize_cfg, self.ctx)
 
         if display_name is None:
             display_name = name

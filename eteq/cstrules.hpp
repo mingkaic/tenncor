@@ -44,19 +44,22 @@ namespace eteq
 template <typename T>
 struct ConstantTarget final : public opt::iTarget
 {
-	ConstantTarget (const opt::GraphInfo& graph) : graph_(&graph) {}
+	ConstantTarget (const opt::GraphInfo& graph,
+		ECtxptrT context = global_context()) : graph_(&graph), ctx_(context) {}
 
 	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
 		teq::iTensor* root = candidates.at("root");
-		teq::DynamicSession sess = eigen::get_session();
-		sess.track({graph_->get_owner(root)});
-		sess.update_target({root});
+		auto sess = ctx_->sess_;
+		sess->track({graph_->get_owner(root)});
+		sess->update_target({root});
 		T* data = (T*) root->device().data();
 		return make_constant<T>(data, root->shape());
 	}
 
 	const opt::GraphInfo* graph_;
+
+	ECtxptrT ctx_;
 };
 
 // source graph for certain branching factor of certain operator
@@ -76,7 +79,8 @@ static inline void get_cstsource (query::Node& node, std::string opname, size_t 
 // gather branching factor of all operators,
 // then append rule converting constant source to constant target
 template <typename T>
-void generate_cstrules (opt::OptRulesT& rules, const opt::GraphInfo& graph)
+void generate_cstrules (opt::OptRulesT& rules,
+	const opt::GraphInfo& graph, ECtxptrT context = global_context())
 {
 	std::unordered_map<std::string,std::unordered_set<size_t>> branches;
 	for (const auto& owner : graph.get_owners())
@@ -100,7 +104,8 @@ void generate_cstrules (opt::OptRulesT& rules, const opt::GraphInfo& graph)
 			get_cstsource(*src, branch.first, bfactor);
 		}
 	}
-	rules.push_back(opt::OptRule{srcs, std::make_shared<ConstantTarget<T>>(graph)});
+	rules.push_back(opt::OptRule{srcs,
+		std::make_shared<ConstantTarget<T>>(graph, context)});
 }
 
 }

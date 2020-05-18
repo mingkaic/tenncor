@@ -26,7 +26,8 @@ def str2bool(opt):
 
 def main(args):
 
-    default_ts = time.time()
+    # default_ts = time.time()
+    default_ts = 0
 
     parser = argparse.ArgumentParser(description=prog_description)
     parser.add_argument('--seed', dest='seed',
@@ -69,7 +70,7 @@ def main(args):
         tc.api.layer.bind(tc.api.sigmoid),
     ], train_input)
 
-    train_err = tc.apply_update([model],
+    train = tc.apply_update([model],
         lambda err, leaves: tc.api.approx.sgd(err, leaves, learning_rate=0.9),
         lambda models: tc.api.error.sqr_diff(train_exout, models[0].connect(train_input)))
     untrained = model.deep_clone()
@@ -82,15 +83,12 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    ctx = tc.global_context
-    sess = ctx.get_session()
     testin = tc.EVariable([ninput], label='testin')
     untrained_out = untrained.connect(testin)
     trained_out = model.connect(testin)
     pretrained_out = trained.connect(testin)
 
-    sess.track([train_err, untrained_out, trained_out, pretrained_out])
-    tc.optimize(ctx, "cfg/optimizations.json")
+    tc.optimize("cfg/optimizations.json")
 
     show_every_n = 500
     start = time.time()
@@ -98,8 +96,7 @@ def main(args):
         batch, batch_out = batch_generate(ninput, nbatch)
         train_input.assign(batch.reshape(nbatch, ninput))
         train_exout.assign(batch_out.reshape(nbatch, noutput))
-        sess.update_target([train_err])
-        err = train_err.get()
+        err = train.get()
         if i % show_every_n == show_every_n - 1:
             print('training {}\ntraining error:\n{}'
                 .format(i + 1, err))
@@ -117,7 +114,6 @@ def main(args):
         test_batch, test_batch_out = batch_generate(ninput, 1)
         testin.assign(test_batch)
 
-        sess.update_target([untrained_out, trained_out, pretrained_out])
         untrained_data = untrained_out.get()
         trained_data = trained_out.get()
         pretrained_data = pretrained_out.get()
@@ -133,7 +129,7 @@ def main(args):
     print('trained mlp error rate: {}%'.format(trained_err * 100))
     print('pretrained mlp error rate: {}%'.format(pretrained_err * 100))
     print('is structurally equal?:', cmp.is_equal(pretrained_out, trained_out))
-    print('%% data equal:', cmp.percent_dataeq(pretrained_out, trained_out))
+    print('% data equal:', cmp.percent_dataeq(pretrained_out, trained_out))
 
     try:
         print('saving')

@@ -48,13 +48,14 @@ def get_dqnerror(env, discount_rate):
 # generalize as feedback class
 @ecache.EnvManager.register
 class DQNEnv(ecache.EnvManager):
-    def __init__(self, src_model, ctx, update_fn,
+    def __init__(self, src_model, update_fn,
         optimize_cfg = "", max_exp = 30000,
         train_interval = 5, store_interval = 5,
         explore_period = 1000, action_prob = 0.05,
         mbatch_size = 32, discount_rate = 0.95,
         target_update_rate = 0.01, clean_startup = False,
-        usecase = '', cachedir = '/tmp'):
+        usecase = '', cachedir = '/tmp',
+        ctx = tc.global_context):
 
         self.max_exp = max_exp
         self.train_interval = train_interval
@@ -74,23 +75,23 @@ class DQNEnv(ecache.EnvManager):
             batchin = [mbatch_size] + inshape
 
             # environment interaction
-            self.obs = tc.EVariable(inshape, 0, 'obs')
-            self.act_idx = tc.api.argmax(src_model.connect(self.obs))
+            self.obs = tc.EVariable(inshape, 0, 'obs', ctx=self.ctx)
+            self.act_idx = tc.TenncorAPI(self.ctx).argmax(src_model.connect(self.obs))
             self.act_idx.tag("recovery", "act_idx")
 
             # training
-            self.src_obs = tc.EVariable(batchin, 0, 'src_obs')
-            self.nxt_obs = tc.EVariable(batchin, 0, 'nxt_obs')
-            self.src_outmask = tc.EVariable([mbatch_size] + list(src_model.shape()), 1, 'src_outmask')
-            self.nxt_outmask = tc.EVariable([mbatch_size], 1, 'nxt_outmask')
-            self.rewards = tc.EVariable([mbatch_size], 0, 'rewards')
+            self.src_obs = tc.EVariable(batchin, 0, 'src_obs', ctx=self.ctx)
+            self.nxt_obs = tc.EVariable(batchin, 0, 'nxt_obs', ctx=self.ctx)
+            self.src_outmask = tc.EVariable([mbatch_size] + list(src_model.shape()), 1, 'src_outmask', ctx=self.ctx)
+            self.nxt_outmask = tc.EVariable([mbatch_size], 1, 'nxt_outmask', ctx=self.ctx)
+            self.rewards = tc.EVariable([mbatch_size], 0, 'rewards', ctx=self.ctx)
 
             self.prediction_err = tc.apply_update([src_model, nxt_model],
                 get_dqnupdate(update_fn, target_update_rate),
-                get_dqnerror(self, discount_rate))
+                get_dqnerror(self, discount_rate), ctx=self.ctx)
 
             self.ctx.get_session().track([self.prediction_err, self.act_idx])
-            tc.optimize(self.ctx, optimize_cfg)
+            tc.optimize(optimize_cfg, self.ctx)
 
         super().__init__(os.path.join(usecase, 'dqn'),
             ctx, default_init=default_init,

@@ -105,11 +105,11 @@ def main(args):
         'discount_rate': 0.99,
         'explore_period': 0.0,
     }
-    untrained_dqn = etc.DQNEnv(untrained, ctx, bgd,
+    untrained_dqn = etc.DQNEnv(untrained, bgd,
         usecase='demo_untrained', **params)
-    trained_dqn = etc.DQNEnv(model, ctx, bgd,
+    trained_dqn = etc.DQNEnv(model, bgd,
         usecase='demo_trained', **params)
-    pretrained_dqn = etc.DQNEnv(trained, ctx, bgd,
+    pretrained_dqn = etc.DQNEnv(trained, bgd,
         usecase='demo_pretrained', **params)
 
     err_msg = None

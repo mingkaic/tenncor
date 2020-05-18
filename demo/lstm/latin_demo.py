@@ -17,7 +17,7 @@ def one_encode(indices, vocab_size):
         encoding.append(enc)
     return np.array(encoding)
 
-def sample(sess, inp, prob, seed_ix, n):
+def sample(inp, prob, seed_ix, n):
     # Initialize first word of sample ('seed') as one-hot encoded vector.
     x = np.zeros(inp.shape())
     x[seed_ix] = 1
@@ -25,7 +25,6 @@ def sample(sess, inp, prob, seed_ix, n):
 
     for _ in range(n):
         inp.assign(x.T)
-        sess.update_target([prob])
         p = prob.get()
         p /= p.sum() # normalize
 
@@ -111,15 +110,11 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    ctx = tc.global_context
-    sess = ctx.get_session()
-
     sample_inp = tc.EVariable([1, vocab_size], 0)
 
     trained_prob = tc.api.slice(model.connect(sample_inp), 0, 1, 1)
     untrained_prob = tc.api.slice(untrained_model.connect(sample_inp), 0, 1, 1)
     pretrained_prob = tc.api.slice(pretrained_model.connect(sample_inp), 0, 1, 1)
-    sess.track([trained_prob, untrained_prob, pretrained_prob])
 
     train_inps = tc.EVariable([seq_length, vocab_size], 0)
     train_exout = tc.EVariable([seq_length, vocab_size], 0)
@@ -127,9 +122,8 @@ def main(args):
     train_err = tc.apply_update([model],
         lambda error, leaves: tc.api.approx.adagrad(error, leaves, learning_rate=learning_rate, epsilon=1e-8),
         lambda models: encoded_loss(train_exout, models[0].connect(train_inps)))
-    sess.track([train_err])
 
-    tc.optimize(ctx, "cfg/optimizations.json")
+    tc.optimize("cfg/optimizations.json")
 
     smooth_loss = -np.log(1.0/vocab_size)*seq_length
     p = 0
@@ -147,13 +141,12 @@ def main(args):
 
         # Occasionally sample from oldModel and print result
         if i % print_interval == 0:
-            sample_ix = sample(sess, sample_inp, trained_prob, inputs[0], 1000)
+            sample_ix = sample(sample_inp, trained_prob, inputs[0], 1000)
             print('----\n%s\n----' % (''.join(ix_to_char[ix] for ix in sample_ix)))
 
         # Get gradients for current oldModel based on input and target sequences
         train_inps.assign(encoded_inp)
         train_exout.assign(encoded_out)
-        sess.update_target([train_err])
         loss = train_err.get()
 
         smooth_loss = smooth_loss * 0.999 + loss * 0.001
@@ -167,9 +160,9 @@ def main(args):
         # Prepare for next iteration
         p += seq_length
 
-    untrained_sample = sample(sess, sample_inp, untrained_prob, char_to_ix[data[0]], 1000)
-    trained_sample = sample(sess, sample_inp, trained_prob, char_to_ix[data[0]], 1000)
-    pretrained_sample = sample(sess, sample_inp, pretrained_prob, char_to_ix[data[0]], 1000)
+    untrained_sample = sample(sample_inp, untrained_prob, char_to_ix[data[0]], 1000)
+    trained_sample = sample(sample_inp, trained_prob, char_to_ix[data[0]], 1000)
+    pretrained_sample = sample(sample_inp, pretrained_prob, char_to_ix[data[0]], 1000)
     print('--untrained--\n%s\n----' % (''.join(ix_to_char[ix] for ix in untrained_sample)))
     print('--trained--\n%s\n----' % (''.join(ix_to_char[ix] for ix in trained_sample)))
     print('--pretrained--\n%s\n----' % (''.join(ix_to_char[ix] for ix in pretrained_sample)))

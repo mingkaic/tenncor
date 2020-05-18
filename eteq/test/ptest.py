@@ -66,10 +66,6 @@ class EADTest(unittest.TestCase):
         ass1 = api(var, src)
         ass2 = api(var2, tc.api.neg(src))
 
-        sess = tc.Session()
-        sess.track([ass1, ass2])
-        sess.update()
-
         expect_a1 = real(data, data2)
         expect_a2 = real(data, -data2)
 
@@ -81,18 +77,11 @@ class EADTest(unittest.TestCase):
         var = tc.variable(data, 'var')
         out = api(var)
 
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         fout = out.get()
         self._array_close(real(data), fout)
 
         var2 = tc.variable(data, 'var2')
         ex, zero = tuple(tc.derive(out, [var, var2]))
-
-        sess.track([ex, zero])
-        sess.update()
 
         data0 = np.zeros(shape, dtype=np.float32)
         der = ex.get()
@@ -112,10 +101,6 @@ class EADTest(unittest.TestCase):
         tfsess = tfSess()
         tfsess.run(tf_var.initializer)
 
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         fout = out.get()
         real = tfsess.run(tf_out)
         self._array_close(real, fout)
@@ -124,9 +109,6 @@ class EADTest(unittest.TestCase):
         ex, zero = tuple(tc.derive(out, [var, var2]))
 
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex, zero])
-        sess.update()
 
         data0 = np.zeros(shape, dtype=np.float32)
         der = ex.get()
@@ -148,10 +130,6 @@ class EADTest(unittest.TestCase):
         clhs = api(var, cst)
         crhs = api(cst2, var2)
 
-        sess = tc.Session()
-        sess.track([out, both, clhs, crhs])
-        sess.update()
-
         fout = out.get()
         fboth = both.get()
         fclhs = clhs.get()
@@ -167,9 +145,6 @@ class EADTest(unittest.TestCase):
         ex3 = tc.derive(both, [var])[0]
         ex4 = tc.derive(clhs, [var])[0]
         ex5 = tc.derive(crhs, [var2])[0]
-
-        sess.track([zero, ex, ex2, ex3, ex4, ex5])
-        sess.update()
 
         rej = zero.get()
         der = ex.get()
@@ -209,10 +184,6 @@ class EADTest(unittest.TestCase):
         out = dim_reduce(var, 1)
         tf_out = tf_reduce(tf_var, [1])
 
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         fout = out.get()
         tf_fout = tfsess.run(tf_out)
 
@@ -220,8 +191,6 @@ class EADTest(unittest.TestCase):
 
         var2 = tc.variable(data, 'var2')
         ex, zero = tuple(tc.derive(out, [var, var2]))
-        sess.track([ex, zero])
-        sess.update()
 
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
@@ -252,10 +221,6 @@ class EADTest(unittest.TestCase):
             tf_out = tf_reduce(tf_var)
             tf_out2 = tf_reduce(tf_var, [0, 1])
 
-            sess = tc.Session()
-            sess.track([out, out2])
-            sess.update()
-
             fout = out.get()
             fout2 = out2.get()
             tf_fout = np.array(tfsess.run(tf_out))
@@ -267,8 +232,6 @@ class EADTest(unittest.TestCase):
             var2 = tc.variable(data, 'var2')
             ex, zero = tuple(tc.derive(out, [var, var2]))
             ex2 = tc.derive(out2, [var])[0]
-            sess.track([ex, ex2, zero])
-            sess.update()
 
             tf_grad = tf.gradients(tf_out, [tf_var])[0]
             tf_grad2 = tf.gradients(tf_out2, [tf_var])[0]
@@ -302,10 +265,6 @@ class EADTest(unittest.TestCase):
                 return_dim=1), [0, 2, 1])
             tf_out = tf_reduce(tf_var, 1)
 
-            sess = tc.Session()
-            sess.track([out])
-            sess.update()
-
             fout = out.get()
             tf_fout = tfsess.run(tf_out)
 
@@ -322,9 +281,6 @@ class EADTest(unittest.TestCase):
             data = np.random.rand(*shape) * 234
             var = tc.variable(data, 'var')
 
-            sess = tc.Session()
-            sess.track([var])
-            sess.update()
             fout = var.get()
 
             pad_removed = len(shape) - len(fout.shape)
@@ -334,8 +290,6 @@ class EADTest(unittest.TestCase):
 
             var2 = tc.variable(data, 'var2')
             one, zero = tuple(tc.derive(var, [var, var2]))
-            sess.track([one, zero])
-            sess.update()
 
             out1 = one.get()
             out0 = zero.get()
@@ -683,16 +637,11 @@ class EADTest(unittest.TestCase):
         var = tc.variable(data, 'var')
 
         out = tc.api.extend(var, 1, [3])
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
 
         fout = out.get()
         self._array_close(expected_out, fout)
 
         ex = tc.derive(out, [var])[0]
-        sess.track([ex])
-        sess.update()
 
         der = ex.get()
         self._array_close(np.array([3, 3]), der)
@@ -740,10 +689,6 @@ class EADTest(unittest.TestCase):
             out = tc.api.reduce_l2norm(var)
             tf_out = tf.norm(tf_var)
 
-            sess = tc.Session()
-            sess.track([out])
-            sess.update()
-
             fout = out.get()
             tf_fout = np.array(tfsess.run(tf_out))
 
@@ -751,8 +696,6 @@ class EADTest(unittest.TestCase):
 
             var2 = tc.variable(data, 'var2')
             ex, zero = tuple(tc.derive(out, [var, var2]))
-            sess.track([ex, zero])
-            sess.update()
 
             tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
@@ -805,9 +748,6 @@ class EADTest(unittest.TestCase):
             tf_out = tf.matmul(tf_var, tf_var2)
 
             # evaluate regular matmul
-            sess = tc.Session()
-            sess.track([out])
-            sess.update()
             fout = out.get()
 
             # evaluate tensorflow matmul
@@ -819,9 +759,6 @@ class EADTest(unittest.TestCase):
             var3 = tc.variable(data, 'var3')
 
             zero, ex, ex2 = tuple(tc.derive(out, [var3, var, var2]))
-
-            sess.track([zero, ex, ex2])
-            sess.update()
 
             # eval derivative of regular matmul
             rej = zero.get()
@@ -846,8 +783,6 @@ class EADTest(unittest.TestCase):
 
                 tf_both = tf.matmul(tf_var, tf_var)
 
-                sess.track([both])
-                sess.update()
                 fboth = both.get()
 
                 tf_fboth = tfsess.run(tf_both)
@@ -855,8 +790,6 @@ class EADTest(unittest.TestCase):
                 self._array_close(tf_fboth, fboth)
 
                 ex3 = tc.derive(both, [var])[0]
-                sess.track([ex3])
-                sess.update()
 
                 der3 = ex3.get()
 
@@ -888,10 +821,6 @@ class EADTest(unittest.TestCase):
 
             out = tc.api.convolution(var, vkernel, list(range(8)))
 
-            sess = tc.Session()
-            sess.track([out])
-            sess.update()
-
             fout = out.get()
 
             tfsess = tfSess()
@@ -906,9 +835,6 @@ class EADTest(unittest.TestCase):
 
             var2 = tc.variable(data, 'var2')
             zero, ex, ex2 = tuple(tc.derive(out, [var2, var, vkernel]))
-
-            sess.track([zero, ex, ex2])
-            sess.update()
 
             rej = zero.get()
             der = ex.get()
@@ -944,10 +870,6 @@ class EADTest(unittest.TestCase):
 
         out = tc.api.nn.conv2d(image, kernel)
 
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         tfsess = tfSess()
 
         tfoutput = tf.nn.conv2d(tfimage, tfkernel, [1, 1, 1, 1], 'VALID')
@@ -960,9 +882,6 @@ class EADTest(unittest.TestCase):
 
         var2 = tc.variable(data, 'var2')
         zero, ex, ex2 = tuple(tc.derive(out, [var2, image, kernel]))
-
-        sess.track([zero, ex, ex2])
-        sess.update()
 
         rej = zero.get()
         der = ex.get()
@@ -985,9 +904,6 @@ class EADTest(unittest.TestCase):
 
         image = tc.variable(data, 'image')
         out = tc.api.nn.mean_pool2d(image, [1, 2])
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
         output = out.get()
 
         tfsess = tfSess()
@@ -1000,9 +916,6 @@ class EADTest(unittest.TestCase):
 
         var2 = tc.variable(data, 'var2')
         zero, ex = tuple(tc.derive(out, [var2, image]))
-
-        sess.track([zero, ex])
-        sess.update()
 
         rej = zero.get()
         der = ex.get()
@@ -1032,9 +945,6 @@ class EADTest(unittest.TestCase):
 
         image = tc.variable(data, 'image')
         out = tc.api.nn.max_pool2d(image, [1, 2])
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
         output = out.get()
 
         tfsess = tfSess()
@@ -1047,9 +957,6 @@ class EADTest(unittest.TestCase):
 
         var2 = tc.variable(data, 'var2')
         zero, ex = tuple(tc.derive(out, [var2, image]))
-
-        sess.track([zero, ex])
-        sess.update()
 
         rej = zero.get()
         der = ex.get()
@@ -1078,11 +985,6 @@ class EADTest(unittest.TestCase):
         out = tc.api.mul(tc.api.reduce_sum(var, offset=1, ndims=1), var2)
         tf_out = tf.multiply(tf.reduce_sum(tf_var, 0), tf_var2)
 
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
 
@@ -1091,9 +993,6 @@ class EADTest(unittest.TestCase):
 
         ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1114,11 +1013,6 @@ class EADTest(unittest.TestCase):
         out = tc.api.mul(tc.api.extend(var, 1, [3]), var2)
         tf_out = tf_var * tf_var2
 
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
 
@@ -1127,9 +1021,6 @@ class EADTest(unittest.TestCase):
 
         ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1150,11 +1041,6 @@ class EADTest(unittest.TestCase):
         out = tc.api.mul(tc.api.permute(var, [1,0]), var2)
         tf_out = tf.transpose(tf_var) * tf_var2
 
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
 
@@ -1163,9 +1049,6 @@ class EADTest(unittest.TestCase):
 
         ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1190,11 +1073,6 @@ class EADTest(unittest.TestCase):
         out = tc.api.mul(tc.api.matmul(var, var2), var3)
         tf_out = tf.multiply(tf.matmul(tf_var, tf_var2), tf_var3)
 
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
 
@@ -1203,9 +1081,6 @@ class EADTest(unittest.TestCase):
 
         ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1230,11 +1105,6 @@ class EADTest(unittest.TestCase):
         out = tc.api.matmul(tc.api.matmul(var, var2), var3)
         tf_out = tf.matmul(tf.matmul(tf_var, tf_var2), tf_var3)
 
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
 
@@ -1243,9 +1113,6 @@ class EADTest(unittest.TestCase):
 
         ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1266,11 +1133,6 @@ class EADTest(unittest.TestCase):
         out = tc.api.matmul(tc.api.reduce_sum(var, offset=2, ndims=1), var2)
         tf_out = tf.matmul(tf.reduce_sum(tf_var, 0), tf_var2)
 
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
 
@@ -1279,9 +1141,6 @@ class EADTest(unittest.TestCase):
 
         ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1303,11 +1162,6 @@ class EADTest(unittest.TestCase):
         out = tc.api.matmul(tc.api.extend(var, 1, [10]), var2)
         tf_out = tf.matmul(tf_var * ones, tf_var2)
 
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
 
@@ -1316,9 +1170,6 @@ class EADTest(unittest.TestCase):
 
         ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1342,11 +1193,6 @@ class EADTest(unittest.TestCase):
             tc.api.permute(tc.api.extend(var, 1, [3]), [1, 0]))
         tf_out = tf.matmul(tf_var * ones, tf.transpose(tf_var * ones2))
 
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
 
@@ -1355,9 +1201,6 @@ class EADTest(unittest.TestCase):
 
         ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1395,10 +1238,6 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_a.initializer)
         tfsess.run(tf_b.initializer)
         tfsess.run(tf_c.initializer)
-
-        sess = tc.Session()
-        sess.track([dest, da, db, dc])
-        sess.update()
 
         exa = tfsess.run(tf_da)
         exb = tfsess.run(tf_db)

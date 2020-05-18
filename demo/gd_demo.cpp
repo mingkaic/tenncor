@@ -24,7 +24,7 @@ static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
 	// Specify the engine and distribution.
 	std::mt19937 mersenne_engine(eigen::default_engine()());
-	std::uniform_real_distribution<float> dist(0, 1);
+	std::uniform_real_distribution<PybindT> dist(0, 1);
 
 	auto gen = std::bind(dist, mersenne_engine);
 	teq::ShapedArr<PybindT> out(teq::Shape({n, batchsize}));
@@ -86,7 +86,7 @@ int main (int argc, const char** argv)
 
 	int exit_status = 0;
 	std::clock_t start;
-	float duration;
+	PybindT duration;
 
 	if (false == flags.parse(argc, argv))
 	{
@@ -145,9 +145,9 @@ int main (int argc, const char** argv)
 			return tc.approx.sgd(error, leaves, 0.9); // learning rate = 0.9
 		};
 	// emit::Emitter emitter("localhost:50051");
-	// dbg::PluginSession sess(eigen::default_device());
-	// sess.plugins_.push_back(emitter);
-	auto sess = eigen::get_session();
+	// auto sess = std::make_shared<dbg::PluginSession>(eigen::default_device());
+	// eteq::global_context()->sess_ = sess;
+	// sess->plugins_.push_back(emitter);
 	{
 
 	// jobs::ScopeGuard defer(
@@ -169,14 +169,13 @@ int main (int argc, const char** argv)
 				eteq::connect(models.front(), train_input));
 		});
 
-	eteq::EVariable<PybindT> testin = eteq::make_variable_scalar<float>(
+	eteq::EVariable<PybindT> testin = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape({n_in}), "testin");
 	auto untrained_out = eteq::connect(untrained_model, testin);
 	auto trained_out = eteq::connect(trained_model, testin);
 	auto pretrained_out = eteq::connect(pretrained_model, testin);
-	sess.track({train_err, untrained_out, trained_out, pretrained_out});
 
-	eteq::optimize<PybindT>(eteq::global_context(), "cfg/optimizations.json");
+	eteq::optimize<PybindT>("cfg/optimizations.json");
 
 	// train mlp to output input
 	start = std::clock();
@@ -184,32 +183,28 @@ int main (int argc, const char** argv)
 	{
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		train_input->assign(batch, eteq::global_context()->registry_);
-		train_exout->assign(batch_out, eteq::global_context()->registry_);
-		sess.update_target({train_err.get()});
+		train_input->assign(batch, eteq::global_context());
+		train_exout->assign(batch_out, eteq::global_context());
+		PybindT* data = (PybindT*) train_err.calc();
 		if (i % show_every_n == show_every_n - 1)
 		{
-			PybindT* data = (PybindT*) train_err->device().data();
 			PybindT* data_end = data + train_err->shape().n_elems();
-			float ferr = std::accumulate(data, data_end, 0.f);
+			PybindT ferr = std::accumulate(data, data_end, 0.f);
 			std::cout << "training " << i + 1 << '\n';
 			std::cout << "trained error: "
 				<< fmts::to_string(data, data_end) << "~" << ferr << '\n';
 		}
 	}
-	duration = (std::clock() - start) / (float) CLOCKS_PER_SEC;
+	duration = (std::clock() - start) / (PybindT) CLOCKS_PER_SEC;
 	std::cout << "training time: " << duration << " seconds" << '\n';
 
 	// exit code:
 	//	0 = fine
 	//	1 = training error rate is wrong
-	float untrained_err = 0;
-	float trained_err = 0;
-	float pretrained_err = 0;
+	PybindT untrained_err = 0;
+	PybindT trained_err = 0;
+	PybindT pretrained_err = 0;
 
-	float* untrained_res = (PybindT*) untrained_out->device().data();
-	float* trained_res = (PybindT*) trained_out->device().data();
-	float* pretrained_res = (PybindT*) pretrained_out->device().data();
 	for (size_t i = 0; i < n_test; i++)
 	{
 		if (i % show_every_n == show_every_n - 1)
@@ -218,16 +213,14 @@ int main (int argc, const char** argv)
 		}
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		testin->assign(batch, eteq::global_context()->registry_);
-		sess.update_target(teq::TensSetT{
-			untrained_out.get(),
-			trained_out.get(),
-			pretrained_out.get(),
-		});
+		testin->assign(batch, eteq::global_context());
+		PybindT* untrained_res = untrained_out.calc();
+		PybindT* trained_res = trained_out.calc();
+		PybindT* pretrained_res = pretrained_out.calc();
 
-		float untrained_avgerr = 0;
-		float trained_avgerr = 0;
-		float pretrained_avgerr = 0;
+		PybindT untrained_avgerr = 0;
+		PybindT trained_avgerr = 0;
+		PybindT pretrained_avgerr = 0;
 		for (size_t i = 0; i < n_out; i++)
 		{
 			untrained_avgerr += std::abs(untrained_res[i] - batch_out.data_[i]);
@@ -238,9 +231,9 @@ int main (int argc, const char** argv)
 		trained_err += trained_avgerr / n_out;
 		pretrained_err += pretrained_avgerr / n_out;
 	}
-	untrained_err /= (float) n_test;
-	trained_err /= (float) n_test;
-	pretrained_err /= (float) n_test;
+	untrained_err /= (PybindT) n_test;
+	trained_err /= (PybindT) n_test;
+	pretrained_err /= (PybindT) n_test;
 	std::cout << "untrained mlp error rate: " << untrained_err * 100 << "%\n";
 	std::cout << "trained mlp error rate: " << trained_err * 100 << "%\n";
 	std::cout << "pretrained mlp error rate: " << pretrained_err * 100 << "%\n";

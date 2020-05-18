@@ -20,10 +20,10 @@
 namespace eteq
 {
 
-static inline size_t get_lastvers (ETensRegistryT& reg)
+static inline size_t get_lastvers (ECtxptrT& ctx)
 {
 	size_t mvers = 0;
-	for (auto& r : reg)
+	for (auto& r : ctx->registry_)
 	{
 		mvers = std::max(mvers, r.second->get_meta().state_version());
 	}
@@ -57,23 +57,23 @@ struct Variable final : public eigen::iMutableLeaf
 
 	Variable<T>& operator = (Variable<T>&& other) = delete;
 
-	void assign (const eigen::TensMapT<T>& input, ETensRegistryT& reg)
+	void assign (const eigen::TensMapT<T>& input, ECtxptrT ctx)
 	{
-		size_t last_version = get_lastvers(reg);
+		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
 		this->ref_.data_ = input;
 	}
 
-	void assign (const eigen::TensorT<T>& input, ETensRegistryT& reg)
+	void assign (const eigen::TensorT<T>& input, ECtxptrT ctx)
 	{
-		size_t last_version = get_lastvers(reg);
+		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
 		this->ref_.data_ = input;
 	}
 
 	/// Assign void pointer of specified data type enum and shape
 	void assign (const void* input, egen::_GENERATED_DTYPE dtype,
-		teq::Shape shape, ETensRegistryT& reg)
+		teq::Shape shape, ECtxptrT ctx)
 	{
 		if (false == shape.compatible_after(this->shape_, 0))
 		{
@@ -82,27 +82,27 @@ struct Variable final : public eigen::iMutableLeaf
 		}
 		std::vector<T> data;
 		egen::type_convert(data, input, dtype, shape.n_elems());
-		assign(eigen::make_tensmap<T>(data.data(), shape), reg);
+		assign(eigen::make_tensmap<T>(data.data(), shape), ctx);
 	}
 
-	void assign (const teq::iTensor& tens, ETensRegistryT& reg)
+	void assign (const teq::iTensor& tens, ECtxptrT ctx)
 	{
 		const void* input = tens.device().data();
 		teq::Shape inshape = tens.shape();
 		egen::_GENERATED_DTYPE dtype =
 			(egen::_GENERATED_DTYPE) tens.get_meta().type_code();
-		assign(input, dtype, inshape, reg);
+		assign(input, dtype, inshape, ctx);
 	}
 
-	void assign (const T* input, teq::Shape shape, ETensRegistryT& reg)
+	void assign (const T* input, teq::Shape shape, ECtxptrT ctx)
 	{
-		assign(input, egen::get_type<T>(), shape, reg);
+		assign(input, egen::get_type<T>(), shape, ctx);
 	}
 
-	void assign (const teq::ShapedArr<T>& arr, ETensRegistryT& reg)
+	void assign (const teq::ShapedArr<T>& arr, ECtxptrT ctx)
 	{
 		assign((T*) arr.data_.data(),
-			egen::get_type<T>(), arr.shape_, reg);
+			egen::get_type<T>(), arr.shape_, ctx);
 	}
 
 	/// Implementation of iTensor

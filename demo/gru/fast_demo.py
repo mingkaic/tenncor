@@ -52,9 +52,6 @@ def main(args):
     y_list = [-0.5, 0.2, 0.1, -0.5]
     input_val_arr = [np.random.random(x_dim) for _ in y_list]
 
-    ctx = tc.global_context
-    sess = ctx.get_session()
-
     model = tc.api.layer.gru(tc.Shape([x_dim]), mem_cell_ct, len(y_list),
         weight_init=tc.api.layer.unif_xavier_init(1),
         bias_init=tc.api.layer.unif_xavier_init(1))
@@ -76,24 +73,19 @@ def main(args):
     pretrained = tc.api.slice(pretrained_model.connect(test_inputs), 0, 1, 0)
 
     err = tc.api.reduce_sum(loss(test_exout, hiddens))
-    sess.track([untrained, hiddens, pretrained, err])
 
-    train_err = tc.apply_update([model],
+    train = tc.apply_update([model],
         lambda error, leaves: tc.api.approx.sgd(error, leaves, learning_rate=0.1),
         lambda models: loss(test_exout, models[0].connect(test_inputs)))
-    sess.track([train_err])
 
-    tc.optimize(ctx, "cfg/optimizations.json")
+    tc.optimize("cfg/optimizations.json")
 
     start = time.time()
     for cur_iter in range(args.n_train):
-        sess.update_target([train_err])
-
-        sess.update_target([hiddens, err])
+        train.get()
         print("iter {}: y_pred = {}, loss: {}".format(
             cur_iter, hiddens.get().flatten(), err.get()))
 
-    sess.update_target([untrained, hiddens, pretrained])
     print("expecting = {}".format(np.array(y_list)))
     print("untrained_y_pred = {}".format(untrained.get().flatten()))
     print("trained_y_pred = {}".format(hiddens.get().flatten()))

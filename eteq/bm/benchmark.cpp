@@ -61,10 +61,8 @@ static void NAME(benchmark::State& state)\
 		std::vector<T> convdata(data.begin(), data.end());\
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
 		eteq::ETensor<T> out = FUNC(var);\
-		auto session = eigen::get_session();\
-		session.track({out});\
 		state.ResumeTiming();\
-		session.update();\
+		out.calc();\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
@@ -83,10 +81,8 @@ static void NAME(benchmark::State& state)\
 		std::vector<T> convdata(data.begin(), data.end());\
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
 		eteq::ETensor<T> out = FUNC(var);\
-		auto session = eigen::get_session();\
-		session.track({out});\
 		state.ResumeTiming();\
-		session.update();\
+		out.calc();\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
@@ -135,10 +131,8 @@ static void NAME(benchmark::State& state)\
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
 		eteq::EVariable<T> var2 = eteq::make_variable<T>(convdata2.data(), shape, "var2");\
 		eteq::ETensor<T> out = FUNC(var, var2);\
-		auto session = eigen::get_session();\
-		session.track({out});\
 		state.ResumeTiming();\
-		session.update();\
+		out.calc();\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
@@ -193,10 +187,8 @@ static void BM_Matmul(benchmark::State& state)
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), leftshape, "var");
 		eteq::EVariable<T> var2 = eteq::make_variable<T>(convdata2.data(), rightshape, "var2");
 		eteq::ETensor<T> out = tenncor<T>().matmul(var, var2);
-		auto session = eigen::get_session();
-		session.track({out});
 		state.ResumeTiming();
-		session.update();
+		out.calc();
 	}
 	state.SetComplexityN(state.range(0));
 }
@@ -236,8 +228,6 @@ static void BM_MatmulComplex(benchmark::State& state)
 	auto da = ders[0];
 	auto db = ders[1];
 	auto dc = ders[2];
-	auto session = eigen::get_session();
-	session.track({da, db, dc});
 
 	for (auto _ : state)
 	{
@@ -249,13 +239,12 @@ static void BM_MatmulComplex(benchmark::State& state)
 		std::vector<int32_t> data2(ddata2.begin(), ddata2.end());
 		std::vector<int32_t> data3(ddata3.begin(), ddata3.end());
 		state.ResumeTiming();
-		a->assign(data.data(), a->shape(),
-			eteq::global_context()->registry_);
-		b->assign(data2.data(), b->shape(),
-			eteq::global_context()->registry_);
-		c->assign(data3.data(), c->shape(),
-			eteq::global_context()->registry_);
-		session.update();
+		a->assign(data.data(), a->shape(), eteq::global_context());
+		b->assign(data2.data(), b->shape(), eteq::global_context());
+		c->assign(data3.data(), c->shape(), eteq::global_context());
+		da.calc();
+		db.calc();
+		dc.calc();
 	}
 }
 
@@ -295,8 +284,6 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	auto db0 = ders[1];
 	auto dw1 = ders[2];
 	auto db1 = ders[3];
-	auto session = eigen::get_session();
-	session.track({dw0, db0, dw1, db1});
 
 	for (auto _ : state)
 	{
@@ -308,19 +295,16 @@ static void BM_SigmoidMLP(benchmark::State& state)
 		std::vector<double> b1_data = random_data(bias1_shape.n_elems(), 0, 1);
 		std::vector<double> out_data = random_data(out_shape.n_elems(), 0, 1);
 		state.ResumeTiming();
-		in->assign(in_data.data(), in->shape(),
-			eteq::global_context()->registry_);
-		out->assign(out_data.data(), out->shape(),
-			eteq::global_context()->registry_);
-		weight0->assign(w0_data.data(), weight0->shape(),
-			eteq::global_context()->registry_);
-		bias0->assign(b0_data.data(), bias0->shape(),
-			eteq::global_context()->registry_);
-		weight1->assign(w1_data.data(), weight1->shape(),
-			eteq::global_context()->registry_);
-		bias1->assign(b1_data.data(), bias1->shape(),
-			eteq::global_context()->registry_);
-		session.update();
+		in->assign(in_data.data(), in->shape(), eteq::global_context());
+		out->assign(out_data.data(), out->shape(), eteq::global_context());
+		weight0->assign(w0_data.data(), weight0->shape(), eteq::global_context());
+		bias0->assign(b0_data.data(), bias0->shape(), eteq::global_context());
+		weight1->assign(w1_data.data(), weight1->shape(), eteq::global_context());
+		bias1->assign(b1_data.data(), bias1->shape(), eteq::global_context());
+		dw0.calc();
+		db0.calc();
+		dw1.calc();
+		db1.calc();
 	}
 }
 
@@ -363,11 +347,8 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	auto dw1 = eteq::derive(err, {weight1});
 	auto db1 = eteq::derive(err, {bias1});
 
-	auto session = eigen::get_session();
-	session.track({dw0, db0, dw1, db1});
-
 	// optimize
-	eteq::optimize(ctx, "cfg/optimizations.json");
+	eteq::optimize("cfg/optimizations.json");
 
 	for (auto _ : state)
 	{
@@ -379,19 +360,16 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 		std::vector<double> b1_data = random_data(bias1_shape.n_elems(), 0, 1);
 		std::vector<double> out_data = random_data(out_shape.n_elems(), 0, 1);
 		state.ResumeTiming();
-		in->assign(in_data.data(), in->shape(),
-			eteq::global_context()->registry_);
-		out->assign(out_data.data(), out->shape(),
-			eteq::global_context()->registry_);
-		weight0->assign(w0_data.data(), weight0->shape(),
-			eteq::global_context()->registry_);
-		bias0->assign(b0_data.data(), bias0->shape(),
-			eteq::global_context()->registry_);
-		weight1->assign(w1_data.data(), weight1->shape(),
-			eteq::global_context()->registry_);
-		bias1->assign(b1_data.data(), bias1->shape(),
-			eteq::global_context()->registry_);
-		session.update();
+		in->assign(in_data.data(), in->shape(), eteq::global_context());
+		out->assign(out_data.data(), out->shape(), eteq::global_context());
+		weight0->assign(w0_data.data(), weight0->shape(), eteq::global_context());
+		bias0->assign(b0_data.data(), bias0->shape(), eteq::global_context());
+		weight1->assign(w1_data.data(), weight1->shape(), eteq::global_context());
+		bias1->assign(b1_data.data(), bias1->shape(), eteq::global_context());
+		dw0.calc();
+		db0.calc();
+		dw1.calc();
+		db1.calc();
 	}
 }
 

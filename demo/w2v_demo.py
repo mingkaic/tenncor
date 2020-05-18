@@ -73,9 +73,6 @@ training_data, word_index, index_word = generate_training_data(corpus)
 
 w1, model = make_embedding(len(word_index), n)
 
-ctx = tc.global_context
-sess = ctx.get_session()
-
 winput = tc.variable(np.random.rand(len(word_index)) * 2 - 1, 'input')
 woutput = tc.variable(np.random.rand(2 * window, len(word_index)) * 2 - 1, 'output')
 
@@ -84,9 +81,8 @@ y_pred = model.connect(winput)
 train_err = tc.apply_update([model],
     lambda error, leaves: tc.api.approx.sgd(error, leaves, lr),
     lambda models: tc.api.reduce_sum(tc.api.pow(tc.api.extend(models[0].connect(winput), [1, 2 * window]) - woutput, 2.)))
-sess.track([y_pred, train_err])
 
-tc.optimize(ctx, "cfg/optimizations.json")
+tc.optimize("cfg/optimizations.json")
 
 # Cycle through each epoch
 for i in range(epochs):
@@ -97,12 +93,11 @@ for i in range(epochs):
     # w_t = vector for target word, w_c = vectors for context words
     for w_t, w_c in training_data:
         wcdata = np.array(w_c)
-        sess.update_target([y_pred])
+        ydata = y_pred.get().reshape(1, len(word_index))
         for j in range(2 * window - wcdata.shape[0]):
-            wcdata = np.concatenate((wcdata, y_pred.get().reshape(1, len(word_index))), 0)
+            wcdata = np.concatenate((wcdata, ydata), 0)
         winput.assign(np.array(w_t))
         woutput.assign(wcdata)
-        sess.update_target([train_err])
         loss += train_err.get()
     print('Epoch:', i, "Loss:", loss)
 

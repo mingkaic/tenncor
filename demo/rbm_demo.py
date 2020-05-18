@@ -80,8 +80,6 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    ctx = tc.global_context
-    sess = ctx.get_session()
     n_batch = 10
 
     train_input = tc.EVariable([n_batch, n_visible])
@@ -89,7 +87,6 @@ def main(args):
         learning_rate=learning_rate,
         discount_factor=momentum,
         err_func=mse_errfunc)
-    sess.track([train_err])
 
     x = tc.scalar_variable(0, [1, n_visible])
     genx = tc.api.sigmoid(model.backward_connect(
@@ -111,9 +108,8 @@ def main(args):
     mnist_images = np.array(mnist_images) / 255.
 
     image = random.choice(mnist_images)
-    sess.track([genx, trained_genx, untrained_genx])
 
-    tc.optimize(ctx, "cfg/optimizations.json")
+    tc.optimize("cfg/optimizations.json")
 
     n_epoches = 30
     shuffle = True
@@ -149,7 +145,6 @@ def main(args):
         for b in r_batches:
             batch_x = mnist_images[b * n_batch:(b + 1) * n_batch]
             train_input.assign(batch_x)
-            sess.update_target([train_err])
             epoch_errs.append(train_err.get())
 
         epoch_errs = np.array(epoch_errs)
@@ -169,7 +164,6 @@ def main(args):
     plt.show()
 
     x.assign(image.reshape(1,-1))
-    sess.update_target([genx, trained_genx, untrained_genx])
     image_rec = genx.get()
     image_rec_trained = trained_genx.get()
     image_rec_untrained = untrained_genx.get()

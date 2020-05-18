@@ -36,31 +36,29 @@ for matrix_dim in matrix_dims:
     tf_var = tf.Variable(data)
     tf_var2 = tf.Variable(data2)
 
-    tfsess = tf.compat.v1.Session()
-    tfsess.run(tf_var.initializer)
-    tfsess.run(tf_var2.initializer)
+    sess = tf.compat.v1.Session()
+    sess.run(tf_var.initializer)
+    sess.run(tf_var2.initializer)
 
-    # regular matmul
+    # tenncor matmul setup
     out = tc.api.matmul(var, var2)
 
-    # tensorflow matmul
+    # tensorflow matmul setup
     tf_out = tf.matmul(tf_var, tf_var2)
 
-    # numpy matmul
+    # numpy matmul calculate
     start = time.time()
     print(data.dot(data2))
     np_dur = time.time() - start
 
-    sess = eteq.Session()
-    sess.track([out])
-
+    # tenncor matmul calculate
     start = time.time()
-    sess.update()
     print(out.get())
     eteq_dur = time.time() - start
 
+    # tensorflow matmul calculate
     start = time.time()
-    tf_fout = tfsess.run(tf_out)
+    tf_fout = sess.run(tf_out)
     print(tf_fout)
     tf_dur = time.time() - start
 

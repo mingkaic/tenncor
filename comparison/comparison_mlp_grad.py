@@ -127,8 +127,7 @@ for matrix_dim in matrix_dims:
     n_out = int(n_in / 2)
     batch_size = 1
 
-    sess = tc.Session()
-    tfsess = tf.compat.v1.Session()
+    sess = tf.compat.v1.Session()
 
     # regular mlp
     brain = tc.api.layer.link([
@@ -153,7 +152,6 @@ for matrix_dim in matrix_dims:
     train_err = tc.apply_update([brain],
         tc.api.approx.sgd(learning_rate),
         lambda models: tc.api.error.sqr_diff(train_output, models[0].connect(train_input)))
-    sess.track([train_err])
 
     # tensorflow mlp
     tf_brain = MLP([n_in], [matrix_dim, n_out], [tf.sigmoid, tf.sigmoid], scope='brain_' + str(matrix_dim))
@@ -183,7 +181,7 @@ for matrix_dim in matrix_dims:
     b1_update = tf_b1.assign_sub(learning_rate * tf_db1)
 
     def calculate_update(batch, batch_out):
-        out, _, _, _, _ = tfsess.run([
+        out, _, _, _, _ = sess.run([
             tf_err,
             w0_update,
             b0_update,
@@ -196,20 +194,21 @@ for matrix_dim in matrix_dims:
 
         return out
 
-    sess.track([err])
-    tfsess.run(tf.compat.v1.global_variables_initializer())
+    sess.run(tf.compat.v1.global_variables_initializer())
 
     test_batch = batch_generate(n_in, batch_size)
     test_batch_out = avgevry2(test_batch)
     tf_test_batch = test_batch.reshape([batch_size, n_in])
     tf_test_batch_out = test_batch_out.reshape([batch_size, n_out])
 
+    # tenncor mlp error calculate
     start = time.time()
     train_input.assign(test_batch)
     train_output.assign(test_batch_out)
-    sess.update_target([train_err])
+    train_err.get()
     tc_dur = time.time() - start
 
+    # tensorflow error calculate
     start = time.time()
     calculate_update(tf_test_batch, tf_test_batch_out)
     tf_dur = time.time() - start

@@ -158,9 +158,6 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    ctx = tc.global_context
-    sess = ctx.get_session()
-
     train_invar = tc.EVariable([n_batch, sequence_len, ninput])
     train_exout = tc.EVariable([n_batch, sequence_len, noutput])
     tinput = tc.api.permute(train_invar, [0, 2, 1])
@@ -169,7 +166,6 @@ def main(args):
     train_err = tc.apply_update([model],
         lambda error, leaves: make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps),
         lambda models: loss(toutput, models[0].connect(tinput)))
-    sess.track([train_err])
 
     # create training samples
     train_input, train_output = create_dataset(n_train, sequence_len)
@@ -181,13 +177,8 @@ def main(args):
     untrained_out = tc.api.round(untrained.connect(tin))
     trained_out = tc.api.round(model.connect(tin))
     pretrained_out = tc.api.round(trained.connect(tin))
-    sess.track([
-        untrained_out,
-        trained_out,
-        pretrained_out,
-    ])
 
-    tc.optimize(ctx, "cfg/optimizations.json")
+    tc.optimize("cfg/optimizations.json")
 
     ls_of_loss = []
     start = time.time()
@@ -198,7 +189,6 @@ def main(args):
             train_invar.assign(xbatch)
             train_exout.assign(tbatch)
 
-            sess.update_target([train_err])
             # Add loss to list to plot
             ls_of_loss.append(train_err.get())
     print('training time: {} seconds'.format(time.time() - start))
@@ -216,11 +206,6 @@ def main(args):
     test_input, test_output = create_dataset(n_test, sequence_len)
 
     test_invar.assign(test_input)
-    sess.update_target([
-        untrained_out,
-        trained_out,
-        pretrained_out,
-    ])
     got_untrained = untrained_out.get()
     got_trained = trained_out.get()
     got_pretrained = pretrained_out.get()

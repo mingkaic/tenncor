@@ -122,7 +122,7 @@ struct DBNTrainer final
 		std::function<void(size_t,size_t)> logger =
 			std::function<void(size_t,size_t)>())
 	{
-		trainx_->assign(train_in, context_->registry_);
+		trainx_->assign(train_in, context_);
 
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
@@ -152,8 +152,8 @@ struct DBNTrainer final
 		size_t nepochs = 100, std::function<void(size_t)> logger =
 			std::function<void(size_t)>())
 	{
-		trainx_->assign(train_in, context_->registry_);
-		trainy_->assign(train_out, context_->registry_);
+		trainx_->assign(train_in, context_);
+		trainy_->assign(train_out, context_);
 
 		// assert len(self.sample_pipes) > 1, since self.n_layers > 0
 		auto to_ignore = sample_pipes_.back().get();

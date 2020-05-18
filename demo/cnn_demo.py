@@ -77,9 +77,6 @@ def main(args):
     ds = tfds.load('cifar10', split='train', batch_size=nbatch, shuffle_files=True)
     cifar = tfds.as_numpy(ds)
 
-    ctx = tc.global_context
-    sess = ctx.get_session()
-
     # batch, height, width, in
     raw_inshape = list(ds.output_shapes['image'][1:])
     train_outshape = [nbatch, 10]
@@ -139,7 +136,6 @@ def main(args):
     test_err = cross_entropy_loss(test_exout, test_prob)
 
     test_ds = tfds.load('cifar10', split='test', batch_size=1, shuffle_files=True)
-    sess.track([test_idx, test_prob, train_err])
 
     test_gen = tfds.as_numpy(test_ds)
     def test_iteration(show=False):
@@ -149,7 +145,6 @@ def main(args):
 
         test_in.assign(test_sample['image'].astype(np.float))
         test_exout.assign(labels.astype(np.float))
-        sess.update_target([test_idx, test_prob, test_err])
         print('expect: {}'.format(names[test_sample['label'][0]]))
         print('got: {}'.format(names[int(test_idx.get())]))
         print('probability: {}'.format(test_prob.get()))
@@ -173,7 +168,6 @@ def main(args):
         exout.assign(labels.astype(np.float))
         epoch_errs = []
         for j in range(nepochs):
-            sess.update_target(trainouts)
             prob = trainprob.get()
             err = trainerr.get()
             epoch_errs.append(np.average(err))
@@ -206,7 +200,7 @@ def main(args):
 
         return [train_err, output_prob]
 
-    env = TfdsEnv('cifar10', ctx, [train_in, train_exout],
+    env = TfdsEnv('cifar10', [train_in, train_exout],
                 error_connect, cifar_trainstep,
                 split='train', batch_size=nbatch,
                 display_name='demo_cifar10',
@@ -224,7 +218,6 @@ def main(args):
     tds = tfds.load('cifar10', split='test', batch_size=1, shuffle_files=True)
     image = next(tfds.as_numpy(tds))
     test_in.assign(image['image'].astype(np.float))
-    sess.update_target([test_idx])
     print('expect: {}'.format(names[image['label'][0]]))
     print('got: {}'.format(names[int(test_idx.get())]))
     print('probability: {}'.format(test_prob.get()))
