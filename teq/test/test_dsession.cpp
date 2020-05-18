@@ -29,7 +29,7 @@ TEST(DYNAMIC_SESSION, Track)
 	teq::TensptrT target2(new MockFunctor(teq::TensptrsT{x, d}));
 
 	// this tests if session can track be called multiple times
-	teq::DynamicSession session(mdevice);
+	teq::Session session(mdevice);
 	session.track({target});
 
 	// expect session.ops_ to contain x and target
@@ -71,7 +71,7 @@ TEST(DYNAMIC_SESSION, Update)
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::DynamicSession session(mdevice);
+	teq::Session session(mdevice);
 	session.track({target});
 	session.update();
 
@@ -112,7 +112,7 @@ TEST(DYNAMIC_SESSION, UpdateIgnore)
 	ASSERT_FALSE(y->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::DynamicSession session(mdevice);
+	teq::Session session(mdevice);
 	session.track({target});
 	session.update({y.get()});
 
@@ -176,7 +176,7 @@ TEST(DYNAMIC_SESSION, UpdateIgnoreCommonDesc)
 	ASSERT_FALSE(x->data_.ref_.updated_);
 	ASSERT_FALSE(u->data_.ref_.updated_);
 
-	teq::DynamicSession session(mdevice);
+	teq::Session session(mdevice);
 	session.track({target});
 	session.update({y.get()});
 
@@ -218,7 +218,7 @@ TEST(DYNAMIC_SESSION, TargetedUpdate)
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::DynamicSession session(mdevice);
+	teq::Session session(mdevice);
 	session.track({target});
 	session.update_target(teq::TensSetT{x.get()});
 
@@ -260,7 +260,7 @@ TEST(DYNAMIC_SESSION, TargetedUpdateIgnore)
 	ASSERT_FALSE(y->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::DynamicSession session(mdevice);
+	teq::Session session(mdevice);
 	session.track({target});
 	session.update_target({y.get()}, {x.get()});
 
@@ -312,7 +312,7 @@ TEST(DYNAMIC_SESSION, TargetedUpdateIgnoreCommonDesc)
 	ASSERT_FALSE(x->data_.ref_.updated_);
 	ASSERT_FALSE(u->data_.ref_.updated_);
 
-	teq::DynamicSession session(mdevice);
+	teq::Session session(mdevice);
 	session.track({target});
 	session.update_target({z.get()}, {y.get()});
 
@@ -352,7 +352,7 @@ TEST(DYNAMIC_SESSION, Clear)
 	auto z = std::make_shared<MockFunctor>(teq::TensptrsT{y, x});
 	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d});
 
-	teq::DynamicSession session(mdevice);
+	teq::Session session(mdevice);
 	session.track({target});
 	ASSERT_EQ(4, session.ops_.size());
 	EXPECT_EQ(1, session.ops_[0].size());

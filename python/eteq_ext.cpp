@@ -165,7 +165,7 @@ void eteq_ext (py::module& m)
 
 	// ==== session ====
 	py::class_<teq::iSession,eigen::iSessptrT> isess(m, "iSession");
-	py::class_<teq::DynamicSession,eigen::SessptrT> session(m, "Session", isess);
+	py::class_<teq::Session,eigen::SessptrT> session(m, "Session", isess);
 
 	isess
 		.def("track",
@@ -208,7 +208,7 @@ void eteq_ext (py::module& m)
 		py::arg("targeted"),
 		py::arg("ignored") = std::vector<pyeteq::ETensT>{});
 
-	py::implicitly_convertible<teq::iSession,teq::DynamicSession>();
+	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
 		.def(py::init(&eigen::get_sessptr));
 

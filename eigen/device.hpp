@@ -251,7 +251,7 @@ inline Device& default_device (void)
 	return device;
 }
 
-inline teq::DynamicSession get_session (void)
+inline teq::Session get_session (void)
 {
 	auto device = static_cast<teq::iDevice*>(
 		config::global_config.get_obj(teq::device_key));
@@ -260,12 +260,12 @@ inline teq::DynamicSession get_session (void)
 		teq::error("missing device in global config");
 		device = &default_device();
 	}
-	return teq::DynamicSession(*device);
+	return teq::Session(*device);
 }
 
 using iSessptrT = std::shared_ptr<teq::iSession>;
 
-using SessptrT = std::shared_ptr<teq::DynamicSession>;
+using SessptrT = std::shared_ptr<teq::Session>;
 
 inline SessptrT get_sessptr (void)
 {
@@ -276,7 +276,7 @@ inline SessptrT get_sessptr (void)
 		teq::error("missing device in global config");
 		device = &default_device();
 	}
-	return std::make_shared<teq::DynamicSession>(*device);
+	return std::make_shared<teq::Session>(*device);
 }
 
 }
