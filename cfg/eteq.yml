@@ -1512,8 +1512,8 @@ api:
           out:
             type: eteq::ETensor<T>
             val: return this->add(this->mul((T)-2,this->lt(x,(T)0)),(T)1);
-    - cfg/eteq/approx.yml
-    - cfg/eteq/error.yml
-    - cfg/eteq/layer.yml
-    - cfg/eteq/nn.yml
-    - cfg/eteq/random.yml
+    - approx.yml
+    - error.yml
+    - layer.yml
+    - nn.yml
+    - random.yml
