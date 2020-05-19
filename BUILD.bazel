@@ -49,7 +49,7 @@ plugins.apis:APIsPlugin \
 plugins.pyapis:PyAPIsPlugin \
 --out $(@D)/generated \
 --strip_prefix=$(@D) \
---ext_path=`dirname $$(echo "$(locations //cfg:eteq_classes)" | awk {{print $$1}})` \
+--ext_path=`dirname $$(echo '$(locations //cfg:eteq_classes)' | awk '{{print $$1}}')` \
 --cfgs $(locations //cfg:{})"""
 
 GEN_HDRS = [
