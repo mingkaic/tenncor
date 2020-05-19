@@ -47,6 +47,7 @@ def main(args):
     parser.add_argument('--strip_prefix', dest='strip_prefix', nargs='?', default='',
         help='Directory path to dump output files (default: write to stdin)')
     args = parser.parse_args(args)
+    print(args)
 
     cfgpaths = args.cfgpaths
     if cfgpaths and len(cfgpaths) > 0:
