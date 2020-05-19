@@ -190,7 +190,7 @@ class OpcodesPlugin:
     def plugin_id(self):
         return _plugin_id
 
-    def process(self, generated_files, arguments):
+    def process(self, generated_files, arguments, **kwargs):
         _hdr_file = 'opcode.hpp'
         _src_file = 'opcode.cpp'
         plugin_key = 'opcode'

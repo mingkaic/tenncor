@@ -1,3 +1,4 @@
+import os.path
 import yaml
 
 _template_prefixes = ['typename', 'class']
@@ -9,11 +10,11 @@ def strip_template_prefix(template):
     # todo: parse valued templates variable (e.g.: size_t N)
     return template
 
-def reference_classes(classes):
+def reference_classes(classes, ext_path):
     out = []
     for clas in classes:
         if isinstance(clas, str):
-            with open(clas) as f:
+            with open(os.path.join(ext_path, clas)) as f:
                 obj = yaml.safe_load(f.read())
                 if type(obj) != dict:
                     raise Exception('cannot treat non-dictionary object as class: {}'.format(clas))

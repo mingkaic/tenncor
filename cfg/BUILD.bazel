@@ -4,7 +4,12 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
-COMMON_CFGS = ["ops.yml", "eteq.yml"] + glob(["eteq/*.yml"])
+COMMON_CFGS = ["ops.yml", "eteq.yml"]
+
+filegroup(
+    name = "eteq_classes",
+    srcs = glob(["eteq/*.yml"]),
+)
 
 filegroup(
     name = "eteq",

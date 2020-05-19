@@ -59,18 +59,18 @@ def render_globals(mems, hdr):
             prefix, mem['type'], mem['name'], affix + ';']))
     return out
 
-def render_api(api, hdr):
+def render_api(api, ext_path, hdr):
     lines = []
     if 'namespaces' in api:
         for ns in api['namespaces']:
             namespace = ns['name']
             lines += ['namespace ' + namespace + '{', ''] +\
-                render_api(ns['content'], hdr) + ['', '}', '']
+                render_api(ns['content'], ext_path, hdr) + ['', '}', '']
 
     global_mems = api.get('global', [])
     funcs = api.get('funcs', [])
     classes = api.get('classes', [])
-    classes = reference_classes(classes)
+    classes = reference_classes(classes, ext_path)
 
     temp_funcs = [f for f in funcs if len(f.get('template', '')) > 0]
     norm_funcs = [f for f in funcs if len(f.get('template', '')) == 0]
@@ -101,7 +101,7 @@ class APIsPlugin:
     def plugin_id(self):
         return _plugin_id
 
-    def process(self, generated_files, arguments):
+    def process(self, generated_files, arguments, **kwargs):
         _src_file = 'api.cpp'
         plugin_key = 'api'
         if plugin_key not in arguments:
@@ -109,10 +109,13 @@ class APIsPlugin:
                 'no relevant arguments found for plugin %s', _plugin_id)
             return
 
+        assert('ext_path' in kwargs)
+        ext_path = kwargs['ext_path']
+
         api = arguments[plugin_key]
 
-        hdr_lines = render_api(api, hdr=True)
-        src_lines = render_api(api, hdr=False)
+        hdr_lines = render_api(api, ext_path, hdr=True)
+        src_lines = render_api(api, ext_path, hdr=False)
 
         generated_files[api_header] = FileRep(
             _header_template.format(content='\n\n'.join(hdr_lines)),

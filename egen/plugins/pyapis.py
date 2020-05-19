@@ -77,8 +77,8 @@ def render_pyglobal_decl(mems):
             out.append(' '.join([mem['type'], mem['name'], affix + ';']))
     return out
 
-def render_pyclasses(classes, mod, namespace):
-    classes = reference_classes(classes)
+def render_pyclasses(classes, ext_path, mod, namespace):
+    classes = reference_classes(classes, ext_path)
     class_defs = dict()
     class_inputs = dict()
     for clas in classes:
@@ -99,7 +99,7 @@ def render_pyglobal(mem, mod):
         val = name
     return global_tmpl.format(mod=mod, name=name, val=val)
 
-def render_pyapi(api, mod, ns=''):
+def render_pyapi(api, ext_path, mod, ns=''):
     _submodule_def = 'py::module m_{submod} = {mod}.def_submodule("{submod}", "A submodule of \'{mod}\'");'
 
     global_decls = []
@@ -109,7 +109,8 @@ def render_pyapi(api, mod, ns=''):
     if 'namespaces' in api:
         for ns in api['namespaces']:
             namespace = ns['name']
-            sub_decls, sub_content, sub_inputs = render_pyapi(ns['content'], 'm_' + namespace, ns + '::' + namespace)
+            sub_decls, sub_content, sub_inputs = render_pyapi(
+                ns['content'], ext_path, 'm_' + namespace, ns + '::' + namespace)
 
             global_decls += sub_decls
             content_lines += [_submodule_def.format(submod=namespace, mod=mod)] + sub_content
@@ -123,7 +124,7 @@ def render_pyapi(api, mod, ns=''):
 
     global_decls += render_pyglobal_decl(global_mems)
 
-    class_content, class_inputs = render_pyclasses(classes, mod, ns)
+    class_content, class_inputs = render_pyclasses(classes, ext_path, mod, ns)
     content_lines += class_content
     input_types.update(class_inputs)
 
@@ -145,7 +146,7 @@ class PyAPIsPlugin:
     def plugin_id(self):
         return _plugin_id
 
-    def process(self, generated_files, arguments):
+    def process(self, generated_files, arguments, **kwargs):
         plugin_key = 'api'
         if plugin_key not in arguments:
             logging.warning(
@@ -165,7 +166,10 @@ class PyAPIsPlugin:
         ignore_types = [process_modname(dtype)
             for dtype in api.get('pyignore_type', [])] + [process_modname(pybindt)]
 
-        decls, content_lines, input_types = render_pyapi(api, 'm_' + modname)
+        assert('ext_path' in kwargs)
+        ext_path = kwargs['ext_path']
+
+        decls, content_lines, input_types = render_pyapi(api, ext_path, 'm_' + modname)
         src_file = 'pyapi_{}.cpp'.format(modname)
         generated_files[src_file] = FileRep(
             _source_template.format(

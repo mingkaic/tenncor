@@ -40,6 +40,8 @@ def main(args):
         required=True, help='Plugin in the form of <plugin module>:<plugin class>')
     parser.add_argument('--cfgs', dest='cfgpaths', nargs='+',
         help='Configuration yaml files on mapping info (default: read from stdin)')
+    parser.add_argument('--ext_path', dest='ext_path', nargs='?', default='',
+        help='Configuration yaml path to look for configuration extensions')
     parser.add_argument('--out', dest='outpath', nargs='?', default='',
         help='Directory path to dump output files (default: write to stdin)')
     parser.add_argument('--strip_prefix', dest='strip_prefix', nargs='?', default='',
@@ -74,7 +76,8 @@ def main(args):
     plugins = dict(args.plugins)
     generate(fields, out=out, plugins=[
         getattr(importlib.import_module(mod), plugins[mod])()
-        for mod in plugins])
+        for mod in plugins],
+        ext_path=args.ext_path)
 
 if '__main__' == __name__:
     main(sys.argv[1:])
