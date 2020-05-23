@@ -95,7 +95,7 @@ class DQNEnv(ecache.EnvManager):
             tc.optimize(optimize_cfg, self.ctx)
 
         super().__init__(os.path.join(usecase, 'dqn'),
-            ctx, default_init=default_init,
+            ctx=ctx, default_init=default_init,
             clean=clean_startup,  cacheroot=cachedir)
         self.src_shape = self.src_outmask.shape()
         self.mbatch_size = self.rewards.shape()

@@ -75,10 +75,11 @@ class EnvManager(metaclass=abc.ABCMeta):
     If clean is set to True, do not recover from existing cache, defaults to recovering
 
     '''
-    def __init__(self, name, ctx,
-        default_init = None,
-        clean = False,
-        cacheroot = _default_cachedir):
+    def __init__(self, name,
+        ctx=tc.global_context,
+        default_init=None,
+        clean=False,
+        cacheroot=_default_cachedir):
 
         self.dirpath = os.path.join(cacheroot, name)
         if not os.path.isdir(self.dirpath):

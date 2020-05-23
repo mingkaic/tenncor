@@ -33,18 +33,19 @@ class TfdsEnv(ecache.EnvManager):
                 for key in ds_params
                 if key in _tfds_args])
             self.dataset_idx = 0
+            self.api = tc.TenncorAPI(self.ctx)
 
             # prevent shuffling to allow predictable recovery
             self.dataset = tfds.load(name, shuffle_files=False, **self.ds_params)
             self.step = self.dataset.as_numpy_iterator()
 
             self.train_inputs = train_inputs
-            labelled_inputs = [tc.api.identity(train_input) for train_input in self.train_inputs]
+            labelled_inputs = [self.api.identity(train_input) for train_input in self.train_inputs]
 
-            outputs = connect_fn(labelled_inputs)
+            outputs = connect_fn(labelled_inputs, self.ctx)
             if not isinstance(outputs, Iterable):
                 outputs = [outputs]
-            self.train_outputs = [tc.api.identity(train_output) for train_output in outputs]
+            self.train_outputs = [self.api.identity(train_output) for train_output in outputs]
 
             for i, linput in enumerate(labelled_inputs):
                 linput.tag('recovery', 'input_{}'.format(i))
@@ -52,15 +53,13 @@ class TfdsEnv(ecache.EnvManager):
             for i, loutput in enumerate(self.train_outputs):
                 loutput.tag('recovery', 'output_{}'.format(i))
 
-            self.ctx.get_session().track(self.train_outputs)
             tc.optimize(optimize_cfg, self.ctx)
 
         if display_name is None:
             display_name = name
-        super().__init__('tfds_' + display_name, ctx,
-                         default_init=default_init,
-                         clean=clean_startup,
-                         cacheroot=cachedir)
+        super().__init__('tfds_' + display_name,
+            ctx=ctx, default_init=default_init,
+            clean=clean_startup, cacheroot=cachedir)
         self.trainstep_fn = trainstep_fn
 
     def _backup_env(self, fpath: str) -> bool:
@@ -150,7 +149,7 @@ class TfdsEnv(ecache.EnvManager):
     def train(self):
         try:
             data = next(self.step)
-            self.trainstep_fn(self.dataset_idx, self.ctx.get_session(), data, self.train_inputs, self.train_outputs)
+            self.trainstep_fn(self.dataset_idx, self.ctx, data, self.train_inputs, self.train_outputs)
             self.dataset_idx += 1
             return True
         except StopIteration:
