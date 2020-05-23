@@ -55,13 +55,13 @@ class CtxCache:
             CtxCache._format_cachefile(self.cur_id))
         try:
             print('loading model from "{}"'.format(cache_fpath))
-            tc.load_context_file(cache_fpath, ctx)
+            roots = tc.load_context_file(cache_fpath, ctx)
             print('successfully recovered context from "{}"'.format(cache_fpath))
-            return True
+            return roots
         except Exception as e:
             print(e)
             print('failed recover from "{}"'.format(cache_fpath))
-        return False
+        return None
 
 class EnvManager(metaclass=abc.ABCMeta):
     @staticmethod
@@ -97,13 +97,15 @@ class EnvManager(metaclass=abc.ABCMeta):
                 self.env_id = max(self.env_id, fileid)
 
         try:
-            if not clean and self.ctx_cache.recover(self.ctx) and \
-                self._recover_env(os.path.join(self.dirpath,
-                    EnvManager._format_cachefile(self.env_id))):
-                print('successful recovery')
-                print('recover session {}'.format(self.ctx_cache.cur_id))
-                print('recover environment {}'.format(self.env_id))
-                return
+            if not clean:
+                roots = self.ctx_cache.recover(self.ctx)
+                if roots is not None and \
+                    self._recover_env(os.path.join(self.dirpath,
+                        EnvManager._format_cachefile(self.env_id))):
+                    print('successful recovery')
+                    print('recover session {}'.format(self.ctx_cache.cur_id))
+                    print('recover environment {}'.format(self.env_id))
+                    return
         except Exception as e:
             print('recovery error: {}'.format(e))
 

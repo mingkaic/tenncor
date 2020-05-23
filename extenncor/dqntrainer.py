@@ -89,6 +89,7 @@ class DQNEnv(ecache.EnvManager):
             self.prediction_err = tc.apply_update([src_model, nxt_model],
                 get_dqnupdate(update_fn, target_update_rate),
                 get_dqnerror(self, discount_rate), ctx=self.ctx)
+            self.prediction_err.tag("recovery", "prediction_err")
 
             self.ctx.get_session().track([self.prediction_err, self.act_idx])
             tc.optimize(optimize_cfg, self.ctx)
@@ -126,7 +127,19 @@ class DQNEnv(ecache.EnvManager):
     def _recover_env(self, fpath: str) -> bool:
         # recover object members from recovered session
         query = tc.Statement(self.ctx.get_actives())
-        self.obs = query.find('{ "leaf":{ "label":"obs" } }')[0]
+        self.obs = tc.to_variable(
+            query.find('{ "leaf":{ "label":"obs" } }')[0], self.ctx)
+        self.src_obs = tc.to_variable(
+            query.find('{ "leaf":{ "label":"src_obs" } }')[0], self.ctx)
+        self.nxt_obs = tc.to_variable(
+            query.find('{ "leaf":{ "label":"nxt_obs" } }')[0], self.ctx)
+        self.src_outmask = tc.to_variable(
+            query.find('{ "leaf":{ "label":"src_outmask" } }')[0], self.ctx)
+        self.nxt_outmask = tc.to_variable(
+            query.find('{ "leaf":{ "label":"nxt_outmask" } }')[0], self.ctx)
+        self.rewards = tc.to_variable(
+            query.find('{ "leaf":{ "label":"rewards" } }')[0], self.ctx)
+
         self.act_idx = query.find('''{
             "op":{
                 "opname":"ARGMAX",
@@ -137,11 +150,16 @@ class DQNEnv(ecache.EnvManager):
                 }
             }
         }''')[0]
-        self.src_obs = query.find('{ "leaf":{ "label":"src_obs" } }')[0]
-        self.nxt_obs = query.find('{ "leaf":{ "label":"nxt_obs" } }')[0]
-        self.src_outmask = query.find('{ "leaf":{ "label":"src_outmask" } }')[0]
-        self.nxt_outmask = query.find('{ "leaf":{ "label":"nxt_outmask" } }')[0]
-        self.rewards = query.find('{ "leaf":{ "label":"rewards" } }')[0]
+        self.prediction_err = query.find('''{
+            "op":{
+                "opname":"IDENTITY",
+                "attrs":{
+                    "recovery":{
+                        "str":"prediction_err"
+                    }
+                }
+            }
+        }''')[0]
 
         print('loading environment from "{}"'.format(fpath))
         with open(fpath, 'rb') as envfile:

@@ -152,6 +152,12 @@ void eteq_ext (py::module& m)
 			return vars;
 		})
 
+		.def("get_version",
+		[](const pyeteq::ETensT& self)
+		{
+			return self->get_meta().state_version();
+		})
+
 		// useful for debugging
 		.def("tag",
 		[](pyeteq::ETensT& self,
@@ -492,7 +498,6 @@ void eteq_ext (py::module& m)
 			}
 			onnx::TensptrIdT ids;
 			auto roots = eteq::load_model(ids, pb_model);
-			ctx->sess_->track(teq::TensptrSetT(roots.begin(), roots.end()));
 			input.close();
 			pyeteq::ETensorsT out;
 			out.reserve(roots.size());
