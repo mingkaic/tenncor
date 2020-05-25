@@ -87,7 +87,7 @@ void generate_cstrules (opt::OptRulesT& rules,
 	{
 		if (auto f = dynamic_cast<const teq::iFunctor*>(owner.first))
 		{
-			branches[f->to_string()].emplace(f->get_children().size());
+			branches[f->to_string()].emplace(f->get_args().size());
 		}
 	}
 	if (branches.empty())

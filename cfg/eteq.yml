@@ -390,6 +390,9 @@ api:
           public: True
       funcs:
         - name: depends
+          description: |
+                      Return a node that takes on the identity of dependee except dependencies are children of the node.
+                      Meaning, in order to calculate the latest value of dependee, dependencies needs to be calculated as well.
           args:
           - type: const eteq::ETensor<T>&
             name: dependee
@@ -399,14 +402,16 @@ api:
             type: eteq::ETensor<T>
             val: |
                 //
+                    if (dependencies.empty())
+                    {
+                        teq::fatal("cannot depend on nothing");
+                    }
                     if (auto dep = std::dynamic_pointer_cast<eigen::Observable>(
                       (teq::TensptrT) dependee))
                     {
-                        return eteq::ETensor<T>(teq::TensptrT(eteq::Depends::get(dep,
-                            teq::TensptrsT(dependencies.begin(),dependencies.end()))),ctx);
+                        eteq::add_dependencies(dependee, teq::TensptrsT(
+                            dependencies.begin(), dependencies.end()));
                     }
-                    teq::warnf("cannot link non-observable %s to dependencies",
-                        dependee->to_string().c_str());
                     return dependee;
         - name: assign
           args:

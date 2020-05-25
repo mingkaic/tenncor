@@ -43,8 +43,8 @@ bool is_equal (const eteq::ETensor<T>& lroot, const eteq::ETensor<T>& rroot)
 	eteq::Hasher<T> hasher;
 	for (auto& ords : orders)
 	{
-		auto& lheights = lstat.graphsize_.at(ords.first);
-		auto& rheights = rstat.graphsize_.at(ords.second);
+		auto& lheights = lstat.at(ords.first);
+		auto& rheights = rstat.at(ords.second);
 		if (lheights.upper_ != rheights.upper_ ||
 			lheights.lower_ != rheights.lower_)
 		{
@@ -62,7 +62,7 @@ bool is_equal (const eteq::ETensor<T>& lroot, const eteq::ETensor<T>& rroot)
 	lroot->accept(hasher);
 	rroot->accept(hasher);
 
-	return hasher.hashes_.at(lroot.get()) == hasher.hashes_.at(rroot.get());
+	return hasher.at(lroot.get()) == hasher.at(rroot.get());
 }
 
 /// Return true if lroot and rroot graphs have the same data

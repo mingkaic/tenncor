@@ -170,7 +170,7 @@ private:
 	void visit_func (teq::iFunctor& func) override
 	{
 		sindex_[func.get_opcode().name_].push_back(&func);
-		auto children = func.get_children();
+		auto children = func.get_dependencies();
 		for (auto& arg : children)
 		{
 			arg->accept(*this);
@@ -187,7 +187,7 @@ private:
 		std::string cop = cond.opname();
 		size_t ncargs = cond.args().size();
 		return func->get_opcode().name_ == cop &&
-			ncargs <= func->get_children().size() &&
+			ncargs <= func->get_args().size() &&
 			std::all_of(pb_attrs.begin(), pb_attrs.end(),
 				[&](const auto& pb_attr)
 				{

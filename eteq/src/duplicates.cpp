@@ -23,7 +23,7 @@ void merge_dups (opt::GraphInfo& graph, EqualF equals)
 		if (0 == height)
 		{
 			auto leaf = std::static_pointer_cast<teq::iLeaf>(
-				graph.owners_.at(tens));
+				graph.get_owner(tens));
 			if (teq::IMMUTABLE == leaf->get_usage())
 			{
 				csts.push_back(leaf);
@@ -32,7 +32,7 @@ void merge_dups (opt::GraphInfo& graph, EqualF equals)
 		else
 		{
 			functors.push_back(std::static_pointer_cast<teq::iFunctor>(
-				graph.owners_.at(tens)));
+				graph.get_owner(tens)));
 		}
 	}
 

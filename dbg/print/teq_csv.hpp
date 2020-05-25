@@ -109,7 +109,7 @@ private:
 			funcstr += func.shape().to_string();
 		}
 		nodes_.emplace(&func, Node{funcstr, get_ftype_(func), nodes_.size()});
-		auto children = func.get_children();
+		auto children = func.get_args();
 		for (size_t i = 0, nchildren = children.size(); i < nchildren; ++i)
 		{
 			auto tens = children[i].get();

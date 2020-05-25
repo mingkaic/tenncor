@@ -46,7 +46,10 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 	virtual Opcode get_opcode (void) const = 0;
 
 	/// Return vector of functor arguments
-	virtual TensptrsT get_children (void) const = 0;
+	virtual TensptrsT get_args (void) const = 0;
+
+	/// Return vector of functor dependencies
+	virtual TensptrsT get_dependencies (void) const = 0;
 
 	/// Update child at specified index
 	virtual void update_child (TensptrT arg, size_t index) = 0;

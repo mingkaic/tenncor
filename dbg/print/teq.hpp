@@ -17,15 +17,107 @@
 /// Map tensor to label
 using LabelsMapT = teq::TensMapT<std::string>;
 
+const std::string dummy_label = "DEPENDENCIES";
+
+struct DummyFunctor final : public teq::iFunctor
+{
+	DummyFunctor (teq::TensptrsT dependencies) :
+		dependencies_(dependencies) {}
+
+	/// Implementation of iTensor
+	teq::Shape shape (void) const override
+	{
+		return teq::Shape();
+	}
+
+	/// Implementation of iTensor
+	std::string to_string (void) const override
+	{
+		return dummy_label;
+	}
+
+	/// Implementation of iFunctor
+	teq::Opcode get_opcode (void) const override
+	{
+		return teq::Opcode{dummy_label, 0};
+	}
+
+	/// Implementation of iFunctor
+	teq::TensptrsT get_args (void) const override
+	{
+		return dependencies_;
+	}
+
+	/// Implementation of iFunctor
+	teq::TensptrsT get_dependencies (void) const override
+	{
+		return dependencies_;
+	}
+
+	/// Implementation of iFunctor
+	void update_child (teq::TensptrT arg, size_t index) override {}
+
+	/// Implementation of iTensor
+	teq::iDeviceRef& device (void) override
+	{
+		teq::fatal("shouldn't be called");
+	}
+
+	/// Implementation of iTensor
+	const teq::iDeviceRef& device (void) const override
+	{
+		teq::fatal("shouldn't be called");
+	}
+
+	/// Implementation of iTensor
+	const teq::iMetadata& get_meta (void) const override
+	{
+		teq::fatal("shouldn't be called");
+	}
+
+	/// Implementation of iTensor
+	size_t nbytes (void) const override
+	{
+		teq::fatal("shouldn't be called");
+	}
+
+	std::vector<std::string> ls_attrs (void) const override
+	{
+		return {};
+	}
+
+	const marsh::iObject* get_attr (const std::string& attr_key) const override
+	{
+		return nullptr;
+	}
+
+	marsh::iObject* get_attr (const std::string& attr_key) override
+	{
+		return nullptr;
+	}
+
+	void add_attr (const std::string& attr_key, marsh::ObjptrT&& attr_val) override {}
+
+	void rm_attr (const std::string& attr_key) override {}
+
+private:
+	teq::iTensor* clone_impl (void) const override
+	{
+		teq::fatal("shouldn't be called");
+	}
+
+	teq::TensptrsT dependencies_;
+};
+
 /// Use PrettyTree to render teq::TensptrT graph as an ascii art
 struct PrettyEquation final
 {
 	PrettyEquation (void) : drawer_(
-		[](teq::iTensor*& root, size_t depth) -> std::vector<teq::iTensor*>
+		[this](teq::iTensor*& root, size_t depth) -> teq::TensT
 		{
 			if (auto f = dynamic_cast<teq::iFunctor*>(root))
 			{
-				auto children = f->get_children();
+				auto children = f->get_args();
 				std::vector<teq::iTensor*> tens;
 				tens.reserve(children.size());
 				std::transform(children.begin(), children.end(),
@@ -34,6 +126,14 @@ struct PrettyEquation final
 					{
 						return child.get();
 					});
+				auto deps = f->get_dependencies();
+				if (deps.size() > children.size())
+				{
+					auto dummy = std::make_shared<DummyFunctor>(
+						teq::TensptrsT(deps.begin() + children.size(), deps.end()));
+					tens.push_back(dummy.get());
+					this->dummies_.push_back(dummy);
+				}
 				return tens;
 			}
 			return {};
@@ -75,12 +175,14 @@ struct PrettyEquation final
 	void print (std::ostream& out, const teq::TensptrT& ptr)
 	{
 		drawer_.print(out, ptr.get());
+		dummies_.clear();
 	}
 
 	/// Stream equation of raw ptr to out
 	void print (std::ostream& out, teq::iTensor* ptr)
 	{
 		drawer_.print(out, ptr);
+		dummies_.clear();
 	}
 
 	/// For every label associated with a tensor, show LABEL=value in the tree
@@ -96,6 +198,8 @@ struct PrettyEquation final
 private:
 	/// Actual ascii renderer
 	PrettyTree<teq::iTensor*> drawer_;
+
+	teq::TensptrsT dummies_;
 };
 
 #endif // DBG_TEQ_HPP

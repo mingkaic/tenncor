@@ -59,15 +59,15 @@ TEST(OBJS, Number)
 }
 
 
-TEST(OBJS, ObjArray)
+TEST(OBJS, ObjTuple)
 {
-	marsh::ObjArray root;
+	marsh::ObjTuple root;
 	root.contents_.emplace(root.contents_.end(),
-		std::make_unique<marsh::ObjArray>());
+		std::make_unique<marsh::ObjTuple>());
 	root.contents_.emplace(root.contents_.end(),
 		std::make_unique<marsh::Number<double>>(3.3));
 
-	auto sub = static_cast<marsh::ObjArray*>(root.contents_[0].get());
+	auto sub = static_cast<marsh::ObjTuple*>(root.contents_[0].get());
 	sub->contents_.emplace(sub->contents_.end(),
 		std::make_unique<marsh::Number<size_t>>(2));
 	sub->contents_.emplace(sub->contents_.end(),
@@ -92,14 +92,14 @@ TEST(OBJS, ObjArray)
 	EXPECT_TRUE(sub_refs[0]->equals(marsh::Number<size_t>(2)));
 	EXPECT_TRUE(sub_refs[1]->equals(marsh::Number<float>(1.11)));
 
-	marsh::ObjArray root_clone;
+	marsh::ObjTuple root_clone;
 	{
 		root_clone.contents_.emplace(root_clone.contents_.end(),
-			std::make_unique<marsh::ObjArray>());
+			std::make_unique<marsh::ObjTuple>());
 		root_clone.contents_.emplace(root_clone.contents_.end(),
 			std::make_unique<marsh::Number<double>>(3.3));
 
-		auto sub = static_cast<marsh::ObjArray*>(root_clone.contents_[0].get());
+		auto sub = static_cast<marsh::ObjTuple*>(root_clone.contents_[0].get());
 		sub->contents_.emplace(sub->contents_.end(),
 			std::make_unique<marsh::Number<size_t>>(2));
 		sub->contents_.emplace(sub->contents_.end(),
@@ -108,16 +108,16 @@ TEST(OBJS, ObjArray)
 	EXPECT_TRUE(root.equals(root_clone));
 	EXPECT_TRUE(root_clone.equals(root));
 
-	marsh::ObjArray big_root;
+	marsh::ObjTuple big_root;
 	{
 		big_root.contents_.emplace(big_root.contents_.end(),
-			std::make_unique<marsh::ObjArray>());
+			std::make_unique<marsh::ObjTuple>());
 		big_root.contents_.emplace(big_root.contents_.end(),
 			std::make_unique<marsh::Number<double>>(3.3));
 		big_root.contents_.emplace(big_root.contents_.end(),
 			std::make_unique<marsh::Number<double>>(3.4));
 
-		auto sub = static_cast<marsh::ObjArray*>(big_root.contents_[0].get());
+		auto sub = static_cast<marsh::ObjTuple*>(big_root.contents_[0].get());
 		sub->contents_.emplace(sub->contents_.end(),
 			std::make_unique<marsh::Number<size_t>>(2));
 		sub->contents_.emplace(sub->contents_.end(),
@@ -126,14 +126,14 @@ TEST(OBJS, ObjArray)
 	EXPECT_FALSE(root.equals(big_root));
 	EXPECT_FALSE(big_root.equals(root));
 
-	marsh::ObjArray imperfect_clone; // demonstrate order matters
+	marsh::ObjTuple imperfect_clone; // demonstrate order matters
 	{
 		imperfect_clone.contents_.emplace(imperfect_clone.contents_.end(),
 			std::make_unique<marsh::Number<double>>(3.3));
 		imperfect_clone.contents_.emplace(imperfect_clone.contents_.end(),
-			std::make_unique<marsh::ObjArray>());
+			std::make_unique<marsh::ObjTuple>());
 
-		auto sub = static_cast<marsh::ObjArray*>(imperfect_clone.contents_[1].get());
+		auto sub = static_cast<marsh::ObjTuple*>(imperfect_clone.contents_[1].get());
 		sub->contents_.emplace(sub->contents_.end(),
 			std::make_unique<marsh::Number<float>>(1.11));
 		sub->contents_.emplace(sub->contents_.end(),
@@ -142,15 +142,12 @@ TEST(OBJS, ObjArray)
 	EXPECT_FALSE(root.equals(imperfect_clone));
 	EXPECT_FALSE(imperfect_clone.equals(root));
 
-	marsh::ObjArray empty;
+	marsh::ObjTuple empty;
 	marsh::JsonMarshaler parser;
 	std::string parsed_root = parser.parse(root, false);
 	fmts::trim(parsed_root);
 	EXPECT_STREQ("{\"\":[\"2\",\"1.11\"],\"\":\"3.3\"}", parsed_root.c_str());
 	EXPECT_STREQ("[]", parser.parse(empty, false).c_str());
-
-	EXPECT_TRUE(empty.is_object());
-	EXPECT_FALSE(empty.is_integral());
 
 	auto r = root.clone();
 	auto c = root_clone.clone();
@@ -214,7 +211,7 @@ TEST(OBJS, NumArray)
 	EXPECT_STREQ("{\"\":\"2\",\"\":\"3.3\"}", parsed_root.c_str());
 	EXPECT_STREQ("[]", parser.parse(empty, false).c_str());
 
-	EXPECT_FALSE(empty.is_object());
+	EXPECT_TRUE(empty.is_primitive());
 	EXPECT_TRUE(empty.is_integral());
 
 	auto r = root.clone();
@@ -264,7 +261,7 @@ TEST(OBJS, Maps)
 		big_root.add_attr("obj2",
 			std::make_unique<marsh::Number<float>>(2.3));
 		big_root.add_attr("obj3",
-			std::make_unique<marsh::ObjArray>());
+			std::make_unique<marsh::ObjTuple>());
 	}
 	EXPECT_FALSE(root.equals(big_root));
 	EXPECT_FALSE(big_root.equals(root));

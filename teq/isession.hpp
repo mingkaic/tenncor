@@ -71,7 +71,7 @@ struct Session : public iSession
 				{
 					roots_.emplace(root);
 					funcs.push_back(f);
-					auto children = f->get_children();
+					auto children = f->get_dependencies();
 					for (auto child : children)
 					{
 						nexts.emplace(child);
@@ -88,7 +88,7 @@ struct Session : public iSession
 		for (auto func : funcs)
 		{
 			size_t maxheight = 0;
-			auto children = func->get_children();
+			auto children = func->get_dependencies();
 			for (auto child : children)
 			{
 				size_t height = estd::try_get(
@@ -137,7 +137,7 @@ struct Session : public iSession
 						reqs.push_front(op);
 						devices.emplace(&op->device());
 					}
-					auto children = op->get_children();
+					auto children = op->get_dependencies();
 					for (TensptrT child : children)
 					{
 						target.emplace(child.get());

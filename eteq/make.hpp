@@ -4,7 +4,6 @@
 
 #include "eteq/constant.hpp"
 #include "eteq/functor.hpp"
-#include "eteq/depend.hpp"
 
 #ifndef ETEQ_MAKE_HPP
 #define ETEQ_MAKE_HPP
@@ -130,6 +129,9 @@ ETensor<T> make_functor (eteq::ECtxptrT ctx,
 	return ETensor<T>(make_functor<T,ARGS...>(opcode, children,
 		std::forward<ARGS>(vargs)...), ctx);
 }
+
+teq::TensptrT add_dependencies (teq::TensptrT root,
+	teq::TensptrsT dependencies);
 
 teq::TensptrT make_layer (teq::TensptrT root,
 	const std::string& layername, teq::TensptrT input);

@@ -57,7 +57,7 @@ struct Path final
 		{
 			return out;
 		}
-		auto children = f->get_children();
+		auto children = f->get_args();
 		size_t nargs = children.size();
 		out.reserve(nargs - memory_.size());
 		for (size_t i = 0; i < nargs; ++i)

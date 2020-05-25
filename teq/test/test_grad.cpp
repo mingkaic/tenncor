@@ -21,12 +21,12 @@ struct MockDeriveFunc final : public teq::iDerivativeFuncs
 		teq::TensptrT local_der;
 		if (label == "FUNC")
 		{
-			local_der = op->get_children()[arg_idx];
+			local_der = op->get_args()[arg_idx];
 		}
 		else if (label == "FUNC2")
 		{
 			local_der = std::make_shared<MockFunctor>(
-				teq::TensptrsT{op->get_children()[arg_idx]}, teq::Opcode{"FUNC4", 3});
+				teq::TensptrsT{op->get_args()[arg_idx]}, teq::Opcode{"FUNC4", 3});
 		}
 		else
 		{

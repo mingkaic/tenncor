@@ -45,10 +45,10 @@ const RankT rank_cap = 8;
 using ShapeT = std::array<DimT,rank_cap>;
 
 /// Type of iterator used to iterate through internal array
-using siterator = ShapeT::iterator;
+using SiteratorT = ShapeT::iterator;
 
 /// Type of constant iterator used to iterate through internal array
-using const_siterator = ShapeT::const_iterator;
+using CstSiteratorT = ShapeT::const_iterator;
 
 /// Models an aligned shape using an array of DimT values
 /// For each DimT at index i, DimT value is number of elements at dimension i
@@ -128,25 +128,25 @@ struct Shape final
 	// >>>> INTERNAL CONTROL <<<<
 
 	/// Return begin iterator of internal array
-	siterator begin (void)
+	SiteratorT begin (void)
 	{
 		return dims_.begin();
 	}
 
 	/// Return end iterator of internal array
-	siterator end (void)
+	SiteratorT end (void)
 	{
 		return dims_.end();
 	}
 
 	/// Return begin constant iterator of internal array
-	const_siterator begin (void) const
+	CstSiteratorT begin (void) const
 	{
 		return dims_.begin();
 	}
 
 	/// Return end constant iterator of internal array
-	const_siterator end (void) const
+	CstSiteratorT end (void) const
 	{
 		return dims_.end();
 	}

@@ -70,7 +70,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 	teq::TensptrT lderive (teq::FuncptrT op,
 		teq::TensptrT supgrad, size_t arg_idx) const override
 	{
-		auto args = op->get_children();
+		auto args = op->get_args();
 		teq::Opcode opcode = op->get_opcode();
 		teq::TensptrT out;
 		switch (opcode.code_)

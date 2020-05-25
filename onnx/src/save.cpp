@@ -85,7 +85,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 private:
 	void marshal_func (teq::iFunctor& func)
 	{
-		auto children = func.get_children();
+		auto children = func.get_args();
 		for (teq::TensptrT ctens : children)
 		{
 			ctens->accept(*this);

@@ -13,8 +13,6 @@ static const std::string target_label = "target";
 void derive (TensMapT<TensptrT>& outders,
 	TensptrT root, const PathFinder& pfinder, const iDerivativeFuncs& funcs)
 {
-	auto& roadmap = pfinder.roadmap_;
-
 	// else there exists a path to wrt
 	// using pathfinder, breadth first traverse from this to wrt
 	OwnerMapT owners = track_owners({root});
@@ -24,7 +22,7 @@ void derive (TensMapT<TensptrT>& outders,
 	root->accept(indexer);
 
 	std::list<iFunctor*> parents; // todo: make parent order not dependent on sorting algorithm by sorting by order visited
-	std::transform(roadmap.begin(), roadmap.end(),
+	std::transform(pfinder.roadmap_.begin(), pfinder.roadmap_.end(),
 		std::back_inserter(parents),
 		[](std::pair<iTensor*,PathNodeT> parent)
 		{
@@ -63,18 +61,20 @@ void derive (TensMapT<TensptrT>& outders,
 			assert(prevs.size() > 0);
 			TensptrT bwd = prevs.size() > 1 ? funcs.add(prevs) : prevs.front();
 			// bwd = derive root wrt parent
-			auto& nexts = roadmap.at(parent).at(target_label).children_;
+			auto& nexts = pfinder.at(parent).at(target_label).children_;
 			auto parent_ptr = std::static_pointer_cast<iFunctor>(
 				owners[parent].lock());
-			TensptrsT children = parent->get_children();
+			TensptrsT children = parent->get_args();
 			size_t nchildren = children.size();
 			// for each i-th child leading to a target,
 			// associate child with derive root wrt child
 			for (size_t i : nexts)
 			{
-				assert(i < nchildren);
-				grads[children[i].get()].push_back(
-					funcs.lderive(parent_ptr, bwd, i));
+				if (i < nchildren)
+				{
+					grads[children[i].get()].push_back(
+						funcs.lderive(parent_ptr, bwd, i));
+				}
 			}
 		}
 	}

@@ -63,7 +63,7 @@ private:
 		}
 
 		auto& child_directions = target_dir.children_;
-		teq::TensptrsT children = func.get_children();
+		teq::TensptrsT children = func.get_dependencies();
 		for (size_t i : child_directions)
 		{
 			auto child = children[i];
@@ -91,7 +91,7 @@ private:
 
 	void visit_func (teq::iFunctor& func) override
 	{
-		auto children = func.get_children();
+		auto children = func.get_dependencies();
 		for (teq::TensptrT child : children)
 		{
 			child->accept(*this);
@@ -128,7 +128,7 @@ private:
 		{
 			return;
 		}
-		auto children = func.get_children();
+		auto children = func.get_dependencies();
 		for (teq::TensptrT child : children)
 		{
 			child->accept(*this);

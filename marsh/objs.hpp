@@ -124,6 +124,7 @@ private:
 	}
 };
 
+/// Homogeneous array of objects
 struct iArray : public iObject
 {
 	virtual ~iArray (void) = default;
@@ -134,9 +135,11 @@ struct iArray : public iObject
 
 	virtual size_t size (void) const = 0;
 
-	virtual bool is_object (void) const = 0;
+	virtual bool is_primitive (void) const = 0;
 
 	virtual bool is_integral (void) const = 0;
+
+	virtual size_t subclass_code (void) const = 0;
 
 	void accept (iMarshaler& marshaler) const override
 	{
@@ -144,100 +147,23 @@ struct iArray : public iObject
 	}
 };
 
-// Array containing Heterogeneous typed objects
-struct ObjArray final : public iArray
+/// Same as array, but is heterogeneous
+struct iTuple : public iObject
 {
-	ObjArray* clone (void) const
-	{
-		return static_cast<ObjArray*>(clone_impl());
-	}
+	virtual ~iTuple (void) = default;
 
-	size_t class_code (void) const override
-	{
-		static const std::type_info& tp = typeid(ObjArray);
-		return tp.hash_code();
-	}
+	virtual void foreach (std::function<void(size_t,iObject*)> consume) = 0;
 
-	std::string to_string (void) const override
-	{
-		std::vector<std::string> strs;
-		strs.reserve(contents_.size());
-		for (auto& c : contents_)
-		{
-			strs.push_back(c->to_string());
-		}
-		return fmts::to_string(strs.begin(), strs.end());
-	}
+	virtual void foreach (std::function<void(size_t,const iObject*)> consume) const = 0;
 
-	bool equals (const iObject& other) const override
-	{
-		if (other.class_code() != this->class_code())
-		{
-			return false;
-		}
-		auto& ocontents = static_cast<const ObjArray*>(&other)->contents_;
-		size_t n = contents_.size();
-		if (ocontents.size() != n)
-		{
-			return false;
-		}
-		for (size_t i = 0; i < n; ++i)
-		{
-			if (false == contents_[i]->equals(*ocontents[i]))
-			{
-				return false;
-			}
-		}
-		return true;
-	}
+	virtual size_t size (void) const = 0;
 
-	size_t size (void) const override
+	void accept (iMarshaler& marshaler) const override
 	{
-		return contents_.size();
-	}
-
-	void foreach (std::function<void(size_t,iObject*)> consume) override
-	{
-		for (size_t i = 0, n = contents_.size(); i < n; ++i)
-		{
-			consume(i, contents_.at(i).get());
-		}
-	}
-
-	void foreach (std::function<void(size_t,const iObject*)> consume) const override
-	{
-		for (size_t i = 0, n = contents_.size(); i < n; ++i)
-		{
-			consume(i, contents_.at(i).get());
-		}
-	}
-
-	bool is_object (void) const override
-	{
-		return true;
-	}
-
-	bool is_integral (void) const override
-	{
-		return false;
-	}
-
-	std::vector<ObjptrT> contents_;
-
-private:
-	iObject* clone_impl (void) const override
-	{
-		auto cpy = new ObjArray();
-		for (auto& obj : contents_)
-		{
-			cpy->contents_.insert(cpy->contents_.end(),
-				ObjptrT(obj->clone()));
-		}
-		return cpy;
+		marshaler.marshal(*this);
 	}
 };
 
-// Homogeneous variant of ObjArray
 template <typename T, typename std::enable_if<
 	std::is_base_of<iObject,T>::value>::type* = nullptr>
 struct PtrArray final : public iArray
@@ -307,14 +233,19 @@ struct PtrArray final : public iArray
 		}
 	}
 
-	bool is_object (void) const override
+	bool is_primitive (void) const override
 	{
-		return true;
+		return false;
 	}
 
 	bool is_integral (void) const override
 	{
 		return false;
+	}
+
+	size_t subclass_code (void) const override
+	{
+		return typeid(T).hash_code();
 	}
 
 	std::vector<std::unique_ptr<T>> contents_;
@@ -391,14 +322,19 @@ struct NumArray final : public iArray
 		}
 	}
 
-	bool is_object (void) const override
+	bool is_primitive (void) const override
 	{
-		return false;
+		return true;
 	}
 
 	bool is_integral (void) const override
 	{
 		return std::is_integral<T>::value;
+	}
+
+	size_t subclass_code (void) const override
+	{
+		return 0;
 	}
 
 	std::vector<T> contents_;
@@ -407,6 +343,88 @@ private:
 	iObject* clone_impl (void) const override
 	{
 		return new NumArray<T>(contents_);
+	}
+};
+
+struct ObjTuple final : public iTuple
+{
+	ObjTuple* clone (void) const
+	{
+		return static_cast<ObjTuple*>(clone_impl());
+	}
+
+	size_t class_code (void) const override
+	{
+		static const std::type_info& tp = typeid(ObjTuple);
+		return tp.hash_code();
+	}
+
+	std::string to_string (void) const override
+	{
+		std::vector<std::string> strs;
+		strs.reserve(contents_.size());
+		for (auto& c : contents_)
+		{
+			strs.push_back(c->to_string());
+		}
+		return fmts::to_string(strs.begin(), strs.end());
+	}
+
+	bool equals (const iObject& other) const override
+	{
+		if (other.class_code() != this->class_code())
+		{
+			return false;
+		}
+		auto& ocontents = static_cast<const ObjTuple*>(&other)->contents_;
+		size_t n = contents_.size();
+		if (ocontents.size() != n)
+		{
+			return false;
+		}
+		for (size_t i = 0; i < n; ++i)
+		{
+			if (false == contents_[i]->equals(*ocontents[i]))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	size_t size (void) const override
+	{
+		return contents_.size();
+	}
+
+	void foreach (std::function<void(size_t,iObject*)> consume) override
+	{
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
+		{
+			consume(i, contents_.at(i).get());
+		}
+	}
+
+	void foreach (std::function<void(size_t,const iObject*)> consume) const override
+	{
+		for (size_t i = 0, n = contents_.size(); i < n; ++i)
+		{
+			consume(i, contents_.at(i).get());
+		}
+	}
+
+	std::vector<ObjptrT> contents_;
+
+private:
+	iObject* clone_impl (void) const override
+	{
+		auto cpy = new ObjTuple();
+		for (auto& obj : contents_)
+		{
+			cpy->contents_.insert(cpy->contents_.end(),
+				ObjptrT(obj->clone()));
+		}
+		return cpy;
 	}
 };
 

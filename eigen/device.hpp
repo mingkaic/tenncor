@@ -237,8 +237,7 @@ struct Device final : public teq::iDevice
 	void calc (teq::iTensor& tens) override
 	{
 		auto& obs = static_cast<Observable&>(tens);
-		bool propped = obs.prop_version();
-		if (propped || false == obs.has_data())
+		if (obs.prop_version())
 		{
 			static_cast<iEigen&>(tens.device()).assign();
 		}
