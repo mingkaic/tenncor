@@ -135,6 +135,7 @@ static void unary_generic (UnaryOpF<double> op,
 	std::function<void(eteq::ETensor<double>,teq::Shape&,std::vector<double>&)> verify,
 	std::function<void(double*,std::vector<double>&)> bwverify)
 {
+	eigen::Device device;
 	teq::Shape shape({2, 3, 4});
 	std::vector<double> data = {
 		22, 15, 74, 38, 61, 95, 62, 81, 99, 76, 7, 22,
@@ -146,19 +147,19 @@ static void unary_generic (UnaryOpF<double> op,
 
 	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
 	{
-		eigen::default_device().calc(*dtens);
-		eigen::default_device().calc(*dtens); // idempotency check
+		eigen::Device(true).calc(*dtens);
+		eigen::Device(true).calc(*dtens); // idempotency check
 	}
 	verify(dest, shape, data);
 
-	auto session = eigen::get_session();
+	teq::Session session;
 
 	eteq::ETensorsT<double> gsrc = eteq::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
 	session.track({gsrc[0]});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 
 	auto gotshape = gsrc[0]->shape();
 	ASSERT_ARREQ(shape, gotshape);
@@ -171,6 +172,7 @@ static void unar_elem (std::vector<double> data,
 	std::vector<teq::DimT> shape_list,
 	UnaryOpF<double> op, UnaryDblF fwd, UnaryDblF bwd)
 {
+	eigen::Device device;
 	teq::Shape shape(shape_list);
 	teq::NElemT n = shape.n_elems();
 	assert(data.size() == n);
@@ -182,10 +184,10 @@ static void unar_elem (std::vector<double> data,
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
 	{
-		auto op_sess = eigen::get_session();
+		teq::Session op_sess;
 		op_sess.track({dest});
-		op_sess.update();
-		op_sess.update(); // idempotency check
+		op_sess.update(device);
+		op_sess.update(device); // idempotency check
 	}
 	{
 		auto gotshape = dest->shape();
@@ -197,14 +199,14 @@ static void unar_elem (std::vector<double> data,
 		EXPECT_DOUBLE_EQ(fwd(data[i]), optr[i]);
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 
 	eteq::ETensorsT<double> gsrc = eteq::derive(uninit_dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
 	session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = gsrc[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -243,6 +245,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	LhsBinaryOpF<double> lhs_op, RhsBinaryOpF<double> rhs_op,
 	BinaryFwdF<double> fwd, BinaryBwdF<double> bwd, double cst)
 {
+	eigen::Device device;
 	teq::Shape shape(shape_list);
 	teq::NElemT n = shape.n_elems();
 
@@ -255,10 +258,10 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	eteq::ETensor<double> clhs = lhs_op(src, cst);
 	eteq::ETensor<double> crhs = rhs_op(cst, src2);
 
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track({dest});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -270,8 +273,8 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	}
 
 	session.track({clhs, crhs});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = clhs->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -296,8 +299,8 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track({gsame.front()});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = gsame[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -312,8 +315,8 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track({gleft.front()});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = gleft[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -328,8 +331,8 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track({gright.front()});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = gright[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -385,6 +388,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	LhsBinaryOpF<int32_t> lhs_op, RhsBinaryOpF<int32_t> rhs_op,
 	BinaryFwdF<int32_t> fwd, BinaryBwdF<int32_t> bwd, int32_t cst)
 {
+	eigen::Device device;
 	teq::Shape shape(shape_list);
 	teq::NElemT n = shape.n_elems();
 
@@ -394,10 +398,10 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	eteq::ETensor<int32_t> clhs = lhs_op(src, cst);
 	eteq::ETensor<int32_t> crhs = rhs_op(cst, src2);
 
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track({dest});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -409,8 +413,8 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	}
 
 	session.track({clhs, crhs});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = clhs->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -435,8 +439,8 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track({gsame.front()});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = gsame[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -451,8 +455,8 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track({gleft.front()});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = gleft[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -467,8 +471,8 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track({gright.front()});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = gright[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -520,6 +524,7 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 	std::function<double(size_t)> calc_expect,
 	std::function<double(size_t,size_t)> calc_grad)
 {
+	eigen::Device device;
 	teq::Shape shape(shape_list);
 	teq::NElemT n = shape.n_elems();
 
@@ -532,11 +537,11 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 	}
 	eteq::ETensor<double> dest = tenncor<double>().sum(srcs);
 
-	auto session = eigen::get_session();
+	teq::Session session;
 
 	session.track({dest});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -554,8 +559,8 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 		ASSERT_EQ(1, gsrc.size());
 		ASSERT_NE(nullptr, gsrc.front());
 		session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
-		session.update();
-		session.update(); // idempotency check
+		session.update(device);
+		session.update(device); // idempotency check
 		{
 			auto gotshape = gsrc[0]->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -572,6 +577,7 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 
 TEST(API, Assign)
 {
+	eigen::Device device;
 	// tensor operation
 	std::vector<teq::DimT> slist = {2, 3, 4};
 	std::vector<double> data = {
@@ -594,8 +600,8 @@ TEST(API, Assign)
 	auto ass1 = tenncor<double>().assign(target1, src);
 	auto ass2 = tenncor<double>().assign(target2, -src);
 
-	eigen::default_device().calc(*ass1);
-	eigen::default_device().calc(*ass1); // idempotency check
+	eigen::Device(true).calc(*ass1);
+	eigen::Device(true).calc(*ass1); // idempotency check
 	{
 		auto gotshape = target1->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -610,10 +616,10 @@ TEST(API, Assign)
 		EXPECT_DOUBLE_EQ(data2[i], aptr[i]);
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track({ass2});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = target2->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -644,6 +650,7 @@ TEST(API, Identity)
 
 TEST(API, Depends)
 {
+	eigen::Device device;
 	// tensor operation
 	std::vector<teq::DimT> slist = {2, 3, 4};
 	std::vector<double> data = {
@@ -666,9 +673,9 @@ TEST(API, Depends)
 
 	auto ass = tenncor<double>().depends(tenncor<double>().assign(target, b), {c});
 
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track({ass});
-	session.update();
+	session.update(device);
 	{
 		auto gotshape = target->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -699,6 +706,7 @@ TEST(API, Depends)
 // ensures depend's observee is executed only once
 TEST(API, DependsRunOnce)
 {
+	eigen::Device device;
 	// tensor operation
 	std::vector<teq::DimT> slist = {2, 3, 4};
 	std::vector<double> data = {
@@ -722,9 +730,9 @@ TEST(API, DependsRunOnce)
 	// assign add is non-idempotent
 	auto ass = tenncor<double>().depends(tenncor<double>().assign_add(target, b), {c});
 
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track({ass});
-	session.update();
+	session.update(device);
 	{
 		auto gotshape = target->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -1099,6 +1107,7 @@ TEST(API, Select)
 		std::vector<double> data, std::vector<double> data2,
 		std::vector<teq::DimT> shape_list)
 	{
+		eigen::Device device;
 		teq::Shape shape(shape_list);
 		teq::NElemT n = shape.n_elems();
 
@@ -1116,8 +1125,8 @@ TEST(API, Select)
 
 		auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 		ASSERT_NE(nullptr, dtens);
-		eigen::default_device().calc(*dtens);
-		eigen::default_device().calc(*dtens); // idempotency check
+		eigen::Device(true).calc(*dtens);
+		eigen::Device(true).calc(*dtens); // idempotency check
 		{
 			auto gotshape = dest->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -1129,7 +1138,7 @@ TEST(API, Select)
 			EXPECT_DOUBLE_EQ(expect, optr[i]);
 		}
 
-		auto session = eigen::get_session();
+		teq::Session session;
 
 		eteq::ETensor<double> dest2 = tenncor<double>().if_then_else(cond_src, src, src);
 		EXPECT_EQ(dest2.get(), src.get());
@@ -1138,8 +1147,8 @@ TEST(API, Select)
 		ASSERT_EQ(1, gleft.size());
 		ASSERT_NE(nullptr, gleft.front());
 		session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
-		session.update();
-		session.update(); // idempotency check
+		session.update(device);
+		session.update(device); // idempotency check
 		{
 			auto gotshape = gleft[0]->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -1154,8 +1163,8 @@ TEST(API, Select)
 		ASSERT_EQ(1, gright.size());
 		ASSERT_NE(nullptr, gright.front());
 		session.track(teq::TensptrSetT(gright.begin(), gright.end()));
-		session.update();
-		session.update(); // idempotency check
+		session.update(device);
+		session.update(device); // idempotency check
 		{
 			auto gotshape = gright[0]->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -1174,6 +1183,7 @@ TEST(API, Select)
 
 TEST(API, Slice)
 {
+	eigen::Device device;
 	std::vector<teq::DimT> slist = {3, 2, 4};
 	std::vector<double> data = {
 		0.0919361505, 0.5135099474, 0.3147548326, 0.0281299379, 0.3705218798, 0.6808164860,
@@ -1199,8 +1209,8 @@ TEST(API, Slice)
 	};
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(*dtens);
-	eigen::default_device().calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens);
+	eigen::Device(true).calc(*dtens); // idempotency check
 	auto gotshape = dest->shape();
 	ASSERT_ARREQ(exshape, gotshape);
 	double* optr = (double*) dest->device().data();
@@ -1213,11 +1223,11 @@ TEST(API, Slice)
 		0, 0, 0, 1, 1, 1,
 		0, 0, 0, 1, 1, 1,
 	};
-	auto session = eigen::get_session();
+	teq::Session session;
 	eteq::ETensorsT<double> g = eteq::derive(dest, {src});
 	session.track(teq::TensptrSetT(g.begin(), g.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	auto gotshape2 = g[0]->shape();
 	ASSERT_ARREQ(shape, gotshape2);
 	double* goptr = (double*) g[0]->device().data();
@@ -1378,8 +1388,8 @@ TEST(API, Argmax)
 
 	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
 	{
-		eigen::default_device().calc(*dtens);
-		eigen::default_device().calc(*dtens); // idempotency check
+		eigen::Device(true).calc(*dtens);
+		eigen::Device(true).calc(*dtens); // idempotency check
 	}
 	teq::Shape oshape = dest->shape();
 	teq::Shape exshape;
@@ -1449,6 +1459,7 @@ TEST(API, Rsum)
 
 TEST(API, Rprod)
 {
+	eigen::Device device;
 	std::vector<teq::DimT> slist = {2, 2, 3};
 	teq::Shape shape(slist);
 	std::vector<int32_t> data = {
@@ -1468,8 +1479,8 @@ TEST(API, Rprod)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(*dtens);
-	eigen::default_device().calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens);
+	eigen::Device(true).calc(*dtens); // idempotency check
 	{
 		size_t n = dest->shape().n_elems();
 		{
@@ -1483,8 +1494,8 @@ TEST(API, Rprod)
 
 	auto dtens2 = static_cast<eteq::Functor<int32_t>*>(dest2.get());
 	ASSERT_NE(nullptr, dtens2);
-	eigen::default_device().calc(*dtens2);
-	eigen::default_device().calc(*dtens2); // idempotency check
+	eigen::Device(true).calc(*dtens2);
+	eigen::Device(true).calc(*dtens2); // idempotency check
 	{
 		std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 		expect_list[1] = 1;
@@ -1507,15 +1518,15 @@ TEST(API, Rprod)
 		}
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 
 	eteq::ETensor<int32_t> gsrc = eteq::derive(dest, {src})[0];
 	eteq::ETensor<int32_t> gsrc2 = eteq::derive(dest2, {src})[0];
 	ASSERT_NE(nullptr, gsrc);
 	ASSERT_NE(nullptr, gsrc2);
 	session.track({gsrc, gsrc2});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 
 	auto gotshape = gsrc->shape();
 	ASSERT_ARREQ(shape, gotshape);
@@ -1724,6 +1735,7 @@ TEST(API, Rmax)
 
 TEST(API, Permute)
 {
+	eigen::Device device;
 	std::vector<teq::DimT> slist = {4, 3, 2};
 	std::vector<teq::RankT> pidx = {2, 0, 1};
 	teq::Shape shape(slist);
@@ -1738,8 +1750,8 @@ TEST(API, Permute)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(*dtens);
-	eigen::default_device().calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens);
+	eigen::Device(true).calc(*dtens); // idempotency check
 	size_t n = dest->shape().n_elems();
 	ASSERT_EQ(nelem, n);
 	double* got = (double*) dest->device().data();
@@ -1755,7 +1767,7 @@ TEST(API, Permute)
 		EXPECT_EQ(data[i], got[teq::index(dest->shape(), coord)]);
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 
 	eteq::ETensorsT<double> gsrc = eteq::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
@@ -1766,8 +1778,8 @@ TEST(API, Permute)
 		tset.emplace(g.get());
 	}
 	session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = gsrc[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -1782,6 +1794,7 @@ TEST(API, Permute)
 
 TEST(API, Extend)
 {
+	eigen::Device device;
 	std::vector<teq::DimT> slist = {2, 5};
 	std::vector<teq::DimT> ext = {1, 3};
 	teq::Shape shape(slist);
@@ -1795,8 +1808,8 @@ TEST(API, Extend)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(*dtens);
-	eigen::default_device().calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens);
+	eigen::Device(true).calc(*dtens); // idempotency check
 	size_t ext_nelem = teq::Shape(ext).n_elems();
 	auto extshape = dest->shape();
 	teq::Shape expect_shape({2, 5, 1, 3});
@@ -1812,14 +1825,14 @@ TEST(API, Extend)
 		}
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 
 	eteq::ETensorsT<double> gsrc = eteq::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
 	session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = gsrc[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -1834,6 +1847,7 @@ TEST(API, Extend)
 
 TEST(API, Matmul)
 {
+	eigen::Device device;
 	std::vector<teq::DimT> alist = {3, 2};
 	std::vector<teq::DimT> blist = {4, 3};
 	std::vector<teq::DimT> sqrlist = {3, 3};
@@ -1871,8 +1885,8 @@ TEST(API, Matmul)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(*dtens);
-	eigen::default_device().calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens);
+	eigen::Device(true).calc(*dtens); // idempotency check
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(2, gotshape.at(1));
@@ -1884,7 +1898,7 @@ TEST(API, Matmul)
 	MatVecT ddc = create_2d(dest);
 	EXPECT_TRUE(freivald(dda, ddb, ddc));
 
-	auto session = eigen::get_session();
+	teq::Session session;
 
 	eteq::ETensor<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
 	eteq::ETensor<int32_t> dest2 = tenncor<int32_t>().matmul(c, c);
@@ -1892,8 +1906,8 @@ TEST(API, Matmul)
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track(teq::TensptrSetT(gsame.begin(), gsame.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	teq::Shape gcshape = gsame[0]->shape();
 	ASSERT_ARREQ(cshape, gcshape);
 
@@ -1901,8 +1915,8 @@ TEST(API, Matmul)
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	teq::Shape gashape = gleft[0]->shape();
 	{
 		ASSERT_ARREQ(ashape, gashape);
@@ -1916,8 +1930,8 @@ TEST(API, Matmul)
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	teq::Shape gbshape = gright[0]->shape();
 	{
 		ASSERT_ARREQ(bshape, gbshape);
@@ -1931,6 +1945,7 @@ TEST(API, Matmul)
 
 TEST(API, Contract)
 {
+	eigen::Device device;
 	std::vector<teq::DimT> alist = {3, 1, 2};
 	std::vector<teq::DimT> blist = {4, 1, 3};
 	std::vector<teq::DimT> sqrlist = {3, 2};
@@ -1967,8 +1982,8 @@ TEST(API, Contract)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(*dtens);
-	eigen::default_device().calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens);
+	eigen::Device(true).calc(*dtens); // idempotency check
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(1, gotshape.at(1));
@@ -1982,7 +1997,7 @@ TEST(API, Contract)
 	MatVecT ddc = create_2d(dest, {0, 3});
 	EXPECT_TRUE(freivald(dda, ddb, ddc));
 
-	auto session = eigen::get_session();
+	teq::Session session;
 
 	eteq::ETensor<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
 	eteq::ETensor<int32_t> dest2 = tenncor<int32_t>().contract(c, c, {{0, 0}});
@@ -1990,8 +2005,8 @@ TEST(API, Contract)
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track(teq::TensptrSetT(gsame.begin(), gsame.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	teq::Shape gcshape = gsame[0]->shape();
 	ASSERT_ARREQ(cshape, gcshape);
 
@@ -1999,8 +2014,8 @@ TEST(API, Contract)
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	teq::Shape gashape = gleft[0]->shape();
 	{
 		ASSERT_ARREQ(ashape, gashape);
@@ -2014,8 +2029,8 @@ TEST(API, Contract)
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	teq::Shape gbshape = gright[0]->shape();
 	{
 		ASSERT_ARREQ(bshape, gbshape);
@@ -2029,6 +2044,7 @@ TEST(API, Contract)
 
 static void test_rand_unif (std::vector<teq::DimT> shape_list)
 {
+	eigen::Device device;
 	double hi = 3.2234;
 	double lo = 0.2547977589;
 	teq::Shape shape(shape_list);
@@ -2039,8 +2055,8 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(*dtens);
-	eigen::default_device().calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens);
+	eigen::Device(true).calc(*dtens); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -2053,14 +2069,14 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 		EXPECT_GT(hi, optr[i]);
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 
 	eteq::ETensorsT<double> gleft = eteq::derive(dest, {src});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = gleft[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -2072,8 +2088,8 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gotshape = gright[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -2097,6 +2113,7 @@ TEST(API, RandUniform)
 
 TEST(API, Convolution)
 {
+	eigen::Device device;
 	std::vector<teq::DimT> alist = {2, 4, 3, 3};
 	std::vector<teq::DimT> blist = {1, 2, 2, 1};
 	teq::Shape shape(alist);
@@ -2158,8 +2175,8 @@ TEST(API, Convolution)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::default_device().calc(*dtens);
-	eigen::default_device().calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens);
+	eigen::Device(true).calc(*dtens); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(expectslist, gotshape);
@@ -2170,15 +2187,15 @@ TEST(API, Convolution)
 		ASSERT_VECEQ(expect_out, outdata);
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 
 	eteq::ETensorsT<double> gleft = eteq::derive(dest, {img});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	ASSERT_NE(nullptr, gleft[0].get());
 	session.track({gleft[0]});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gashape = gleft[0]->shape();
 		ASSERT_ARREQ(shape, gashape);
@@ -2192,8 +2209,8 @@ TEST(API, Convolution)
 	ASSERT_NE(nullptr, gright.front());
 	ASSERT_NE(nullptr, gright[0].get());
 	session.track({gright[0]});
-	session.update();
-	session.update(); // idempotency check
+	session.update(device);
+	session.update(device); // idempotency check
 	{
 		auto gbshape = gright[0]->shape();
 		ASSERT_ARREQ(kshape, gbshape);

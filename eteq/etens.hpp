@@ -112,12 +112,18 @@ struct ETensor
 		return teq::TensptrT(*this).get();
 	}
 
-	T* calc (void)
+	T* data (void)
+	{
+		return (T*) get()->device().data();
+	}
+
+	T* calc (size_t max_version = std::numeric_limits<size_t>::max())
 	{
 		if (auto ctx = get_context())
 		{
 			auto tens = get();
-			ctx->sess_->update_target({tens});
+			eigen::Device device(max_version);
+			ctx->sess_->update_target(device, {tens});
 			return (T*) tens->device().data();
 		}
 		return nullptr;

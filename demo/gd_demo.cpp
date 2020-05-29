@@ -53,7 +53,6 @@ int main (int argc, const char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 	LOG_INIT(logs::DefLogger);
-	DEVICE_INIT(eigen::Device);
 	RANDOM_INIT;
 
 	auto& tc = tenncor<PybindT>();
@@ -145,7 +144,7 @@ int main (int argc, const char** argv)
 			return tc.approx.sgd(error, leaves, 0.9); // learning rate = 0.9
 		};
 	// emit::Emitter emitter("localhost:50051");
-	// auto sess = std::make_shared<dbg::PluginSession>(eigen::default_device());
+	// auto sess = std::make_shared<dbg::PluginSession>();
 	// eteq::global_context()->sess_ = sess;
 	// sess->plugins_.push_back(emitter);
 	{

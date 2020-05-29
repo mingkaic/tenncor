@@ -124,6 +124,7 @@ struct DBNTrainer final
 	{
 		trainx_->assign(train_in, context_);
 
+		eigen::Device device;
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			// train rbm layers (reconstruction) setup
@@ -133,7 +134,7 @@ struct DBNTrainer final
 			for (size_t epoch = 0; epoch < nepochs; ++epoch)
 			{
 				// train rbm layers (reconstruction)
-				context_->sess_->update_target(updates, {to_ignore});
+				context_->sess_->update_target(device, updates, {to_ignore});
 				if (logger)
 				{
 					logger(epoch, i);
@@ -142,7 +143,7 @@ struct DBNTrainer final
 
 			if (i < nlayers_ - 1)
 			{
-				context_->sess_->update_target(
+				context_->sess_->update_target(device,
 					{sample_pipes_[i + 1].get()}, {to_ignore});
 			}
 		}
@@ -155,16 +156,17 @@ struct DBNTrainer final
 		trainx_->assign(train_in, context_);
 		trainy_->assign(train_out, context_);
 
+		eigen::Device device;
 		// assert len(self.sample_pipes) > 1, since self.n_layers > 0
 		auto to_ignore = sample_pipes_.back().get();
 		auto prev_ignore = sample_pipes_[nlayers_ - 1].get();
 		assert(static_cast<eteq::Functor<T>*>(prev_ignore)->has_data());
-		context_->sess_->update_target({to_ignore}, {prev_ignore});
+		context_->sess_->update_target(device, {to_ignore}, {prev_ignore});
 
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)
 		{
 			// train log layer
-			context_->sess_->update_target({tupdate_.get()}, {to_ignore});
+			context_->sess_->update_target(device, {tupdate_.get()}, {to_ignore});
 			if (logger)
 			{
 				logger(epoch);
@@ -174,15 +176,17 @@ struct DBNTrainer final
 
 	T reconstruction_cost (size_t layer)
 	{
+		eigen::Device device;
 		auto rcost = rcosts_[layer];
-		context_->sess_->update_target(
+		context_->sess_->update_target(device,
 			{rcost.get()}, {sample_pipes_[layer].get()});
 		return *((T*) rcost->device().data());
 	}
 
 	T training_cost (void)
 	{
-		context_->sess_->update_target(
+		eigen::Device device;
+		context_->sess_->update_target(device,
 			{tcost_.get()}, {sample_pipes_.back().get()});
 		return *((T*) tcost_->device().data());
 	}

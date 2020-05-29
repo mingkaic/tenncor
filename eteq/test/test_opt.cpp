@@ -56,6 +56,7 @@ TEST(OPTIMIZE, Depends)
 // ensure optimizing does not merge depend node and its arguments to confuse it for nnary operators
 TEST(OPTIMIZE, DependsNnary)
 {
+	eigen::Device device;
 	// tensor operation
 	std::vector<teq::DimT> slist = {2, 3, 4};
 	std::vector<double> data = {
@@ -79,9 +80,9 @@ TEST(OPTIMIZE, DependsNnary)
 
 	auto add = tenncor<double>().depends(tenncor<double>().add(target, b * d), {c});
 
-	teq::Session sess = eigen::get_session();
+	teq::Session sess;
 	sess.track({add});
-	sess.update_target({add.get()});
+	sess.update_target(device, {add.get()});
 	teq::Shape exshape = add->shape();
 	double* expect_data = (double*) add->device().data();
 	std::vector<double> evdata(expect_data, expect_data + exshape.n_elems());
@@ -97,7 +98,7 @@ TEST(OPTIMIZE, DependsNnary)
 		"_____`--(constant:[81\\25\\102\\48\\128\\...][2\\3\\4\\1\\1\\1\\1\\1])\n", add);
 
 	sess.track({add});
-	sess.update_target({add.get()});
+	sess.update_target(device, {add.get()});
 	teq::Shape gotshape = add->shape();
 	double* got_data = (double*) add->device().data();
 	std::vector<double> gvdata(got_data, got_data + gotshape.n_elems());
@@ -231,6 +232,7 @@ TEST(OPTIMIZE, RNNLayer)
 
 TEST(OPTIMIZE, CNNLayer)
 {
+	eigen::Device device;
 	teq::Shape in_shape({2, 4, 4});
 	teq::Shape out_shape({2, 4, 4});
 
@@ -357,9 +359,9 @@ TEST(OPTIMIZE, CNNLayer)
 		(std::istreambuf_iterator<char>()));
 	EXPECT_GRAPHEQ(expect.c_str(), err);
 
-	teq::Session sess = eigen::get_session();
+	teq::Session sess;
 	sess.track({err});
-	sess.update_target({err.get()});
+	sess.update_target(device, {err.get()});
 
 	teq::Shape exshape;
 	double evdata = 451.94709417496551;

@@ -52,7 +52,8 @@ struct ConstantTarget final : public opt::iTarget
 		teq::iTensor* root = candidates.at("root");
 		auto sess = ctx_->sess_;
 		sess->track({graph_->get_owner(root)});
-		sess->update_target({root});
+		eigen::Device device;
+		sess->update_target(device, {root});
 		T* data = (T*) root->device().data();
 		return make_constant<T>(data, root->shape());
 	}

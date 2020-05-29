@@ -262,26 +262,29 @@ struct Functor final : public eigen::Observable
 	}
 
 	/// Implementation of Observable
-	bool prop_version (void) override
+	bool prop_version (size_t max_version) override
 	{
-		size_t version = 0;
+		size_t des_version = 0;
 		for (auto& child : children_)
 		{
-			version = std::max(version, child->get_meta().state_version());
+			des_version = std::max(des_version, child->get_meta().state_version());
 		}
-		bool propped = version > meta_.version_;
-		bool idempotent = egen::is_idempotent(
-			(egen::_GENERATED_OPCODE) opcode_.code_);
+		// non-idempotent will want to execute regardless of version
+		// and op should execute if desired version > current version, so ...
+		size_t cur_version = meta_.version_;
+		if (des_version <= cur_version &&
+			false == egen::is_idempotent(
+			(egen::_GENERATED_OPCODE) opcode_.code_))
+		{
+			des_version = cur_version + 1;
+		}
+		des_version = std::min(des_version, max_version);
+		bool propped = meta_.version_ < des_version;
 		if (propped)
 		{
-			meta_.version_ = version;
+			meta_.version_ = des_version;
 		}
-		else if (false == idempotent)
-		{
-			// if non-idempotent, incr version to force update
-			++meta_.version_;
-		}
-		return propped || (false == idempotent);
+		return propped;
 	}
 
 private:

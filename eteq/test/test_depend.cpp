@@ -11,6 +11,7 @@
 
 TEST(DEPEND, Chaining)
 {
+	eigen::Device device;
 	// tensor operation
 	std::vector<teq::DimT> slist = {2, 3, 4};
 	std::vector<double> data = {
@@ -63,9 +64,9 @@ TEST(DEPEND, Chaining)
 	fdep->update_child(ass, 2);
 
 	// assign is an indirect dependency of op
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track({depped});
-	session.update();
+	session.update(device);
 	{
 		auto gotshape = depped->shape();
 		ASSERT_ARREQ(shape, gotshape);

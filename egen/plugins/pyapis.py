@@ -28,7 +28,6 @@ PYBIND11_MODULE({modname}, m_{modname})
 {{
 
 LOG_INIT(logs::DefLogger);
-DEVICE_INIT(eigen::Device);
 RANDOM_INIT;
 
 m_{modname}.doc() = "pybind for {modname} api";

@@ -89,6 +89,7 @@ TEST(APPROX, Adagrad)
 
 TEST(APPROX, Adadelta)
 {
+	eigen::Device device;
 	std::vector<teq::DimT> slist = {18, 9, 3};
 	teq::Shape shape(slist);
 
@@ -138,7 +139,7 @@ TEST(APPROX, Adadelta)
 		"_|_______`--(COS[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_|_______|___`--(variable:leaf[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_|_______`--(constant:1[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_`--(DEPENDENCIES[1\\1\\1\\1\\1\\1\\1\\1])"
+		"_`--(DEPENDENCIES[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(ASSIGN[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_________`--(variable:ex_sqr_delx[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_________`--(ADD[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -186,9 +187,9 @@ TEST(APPROX, Adadelta)
 		groups.begin()->second);
 
 	// evaluating execution order
-	auto sess = eigen::get_session();
+	teq::Session sess;
 	sess.track(teq::TensptrSetT{groups.begin()->second});
-	sess.update();
+	sess.update(device);
 
 	eteq::Variable<PybindT>* g;
 	{
@@ -281,6 +282,7 @@ TEST(APPROX, Adadelta)
 
 TEST(APPROX, RmsMomentum)
 {
+	eigen::Device device;
 	teq::Shape shape({5});
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(0, shape, "leaf");
@@ -332,9 +334,9 @@ TEST(APPROX, RmsMomentum)
 		groups[0].second);
 
 	// evaluating execution order
-	auto sess = eigen::get_session();
+	teq::Session sess;
 	sess.track(teq::TensptrSetT{groups[0].second});
-	sess.update();
+	sess.update(device);
 
 	eteq::Variable<PybindT>* momentum;
 	{

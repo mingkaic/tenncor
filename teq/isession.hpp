@@ -17,6 +17,13 @@
 namespace teq
 {
 
+struct iDevice
+{
+	virtual ~iDevice (void) = default;
+
+	virtual void calc (iTensor& tens) = 0;
+};
+
 /// Session interface that tracks and rapidly updates subgraphs
 struct iSession
 {
@@ -28,12 +35,12 @@ struct iSession
 	/// Update every node under the subgraph except
 	/// for the subgraphs of ignored
 	/// this function is expected to be called repeatedly during runtime
-	virtual void update (TensSetT ignored = {}) = 0;
+	virtual void update (iDevice& device, TensSetT ignored = {}) = 0;
 
 	/// Update every node under the target roots that are expected to be
 	/// under the tracked subgraphs ignoring the subgraphs of ignored
 	/// this function is expected to be called repeatedly during runtime
-	virtual void update_target (TensSetT target, TensSetT ignored = {}) = 0;
+	virtual void update_target (iDevice& device, TensSetT target, TensSetT ignored = {}) = 0;
 
 	/// Clear all tracked root and subgraph information
 	virtual void clear (void) = 0;
@@ -41,19 +48,10 @@ struct iSession
 
 using FuncListT = std::list<iFunctor*>;
 
-struct iDevice
-{
-	virtual ~iDevice (void) = default;
-
-	virtual void calc (iTensor& tens) = 0;
-};
-
 /// iSession implementation that tracks subgraphs by ordering operable functors
 /// in a vector such that parents are visited after children
 struct Session : public iSession
 {
-	Session (iDevice& device) : device_(&device) {}
-
 	virtual ~Session (void) = default;
 
 	/// Implementation of iSession
@@ -99,29 +97,29 @@ struct Session : public iSession
 			maxheight += 1;
 			if (maxheight > ops_.size())
 			{
-				ops_.insert(ops_.end(), maxheight - ops_.size(), FuncsT{});
+				ops_.insert(ops_.end(), maxheight - ops_.size(), FuncSetT{});
 			}
-			ops_[maxheight - 1].push_back(func);
+			ops_[maxheight - 1].emplace(func);
 			opheight_.emplace(func, maxheight);
 		}
 	}
 
 	/// Implementation of iSession
-	void update (TensSetT ignored = {}) override
+	void update (iDevice& device, TensSetT ignored = {}) override
 	{
 		TensSetT rtens;
 		rtens.reserve(roots_.size());
 		std::transform(roots_.begin(), roots_.end(),
 			std::inserter(rtens, rtens.end()),
 			[](TensptrT tens) { return tens.get(); });
-		update_target(rtens, ignored);
+		update_target(device, rtens, ignored);
 	}
 
 	/// Implementation of iSession
-	void update_target (TensSetT target, TensSetT ignored = {}) override
+	void update_target (iDevice& device, TensSetT target, TensSetT ignored = {}) override
 	{
 		FuncListT reqs;
-		std::unordered_set<teq::iDeviceRef*> devices;
+		std::unordered_set<iDeviceRef*> devices;
 		// ignored tensors will never populate reqs
 		for (auto rit = ops_.rbegin(), ret = ops_.rend();
 			rit != ret; ++rit)
@@ -129,14 +127,13 @@ struct Session : public iSession
 			auto& fops = *rit;
 			for (auto& op : fops)
 			{
-				if (estd::has(target, op) &&
-					false == estd::has(ignored, op))
+				if (estd::has(target, op) && false == estd::has(ignored, op))
 				{
-					if (false == estd::has(devices, &op->device()))
-					{
-						reqs.push_front(op);
-						devices.emplace(&op->device());
-					}
+					iDeviceRef* ref = &op->device();
+					assert(false == estd::has(devices, ref));
+					devices.emplace(ref);
+
+					reqs.push_front(op);
 					auto children = op->get_dependencies();
 					for (TensptrT child : children)
 					{
@@ -148,7 +145,7 @@ struct Session : public iSession
 
 		for (auto& op : reqs)
 		{
-			device_->calc(*op);
+			device.calc(*op);
 		}
 		process_reqs(reqs);
 	}
@@ -161,7 +158,7 @@ struct Session : public iSession
 	}
 
 	/// Operable functors ordered by height in the tracked graph
-	std::vector<FuncsT> ops_;
+	std::vector<FuncSetT> ops_;
 
 protected:
 	virtual void process_reqs (FuncListT& reqs) {}
@@ -169,14 +166,8 @@ protected:
 	TensptrSetT roots_; // only needed for update
 
 private:
-	iDevice* device_;
-
 	teq::TensMapT<size_t> opheight_;
 };
-
-const std::string device_key = "device";
-
-#define DEVICE_INIT(DEVICE_TYPE)::config::global_config.add_entry<DEVICE_TYPE>(teq::device_key)
 
 }
 

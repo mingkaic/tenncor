@@ -40,12 +40,14 @@ class TfdsEnv(ecache.EnvManager):
             self.step = self.dataset.as_numpy_iterator()
 
             self.train_inputs = train_inputs
-            labelled_inputs = [self.api.identity(train_input) for train_input in self.train_inputs]
+            labelled_inputs = [self.api.identity(train_input)
+                for train_input in self.train_inputs]
 
             outputs = connect_fn(labelled_inputs, self.ctx)
             if not isinstance(outputs, Iterable):
                 outputs = [outputs]
-            self.train_outputs = [self.api.identity(train_output) for train_output in outputs]
+            self.train_outputs = [self.api.identity(train_output)
+                for train_output in outputs]
 
             for i, linput in enumerate(labelled_inputs):
                 linput.tag('recovery', 'input_{}'.format(i))

@@ -19,6 +19,7 @@ using TensProcF = std::function<void(teq::TensptrsT&)>;
 
 static void matmul_complex (TensProcF root_proc = TensProcF())
 {
+	eigen::Device device;
 	std::vector<teq::DimT> alist = {3, 2};
 	std::vector<teq::DimT> blist = {4, 3};
 	std::vector<teq::DimT> clist = {2, 4};
@@ -80,9 +81,9 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update();
+	session.update(device);
 
 	{
 		auto gotshape = da->shape();
@@ -118,6 +119,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 
 static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 {
+	eigen::Device device;
 	teq::Shape in_shape({10, 3});
 	teq::Shape weight0_shape({9, 10});
 	teq::Shape bias0_shape({9});
@@ -296,9 +298,9 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update();
+	session.update(device);
 
 	{
 		auto gotshape = dw0->shape();
@@ -344,6 +346,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 
 static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 {
+	eigen::Device device;
 	teq::Shape in_shape({10, 3});
 	teq::Shape weight0_shape({9, 10});
 	teq::Shape bias0_shape({9});
@@ -519,9 +522,9 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update();
+	session.update(device);
 
 	{
 		auto gotshape = dw0->shape();
@@ -567,6 +570,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 
 static void tanh_RNN (TensProcF root_proc = TensProcF())
 {
+	eigen::Device device;
 	teq::Shape in_shape({5, 3});
 	teq::Shape weight_shape({5, 10});
 	teq::Shape bias_shape({5});
@@ -658,9 +662,9 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update();
+	session.update(device);
 
 	{
 		auto gotshape = dw->shape();
@@ -696,6 +700,7 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 
 static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 {
+	eigen::Device device;
 	teq::Shape in_shape({5, 3});
 	teq::Shape weight_shape({5, 10});
 	teq::Shape bias_shape({5});
@@ -784,9 +789,9 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update();
+	session.update(device);
 
 	{
 		auto gotshape = dw->shape();
@@ -822,6 +827,7 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 
 static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 {
+	eigen::Device device;
 	teq::Shape in_shape({5, 3});
 	teq::Shape weight_shape({5, 10});
 	teq::Shape bias_shape({5});
@@ -912,9 +918,9 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		root_proc(roots);
 	}
 
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update();
+	session.update(device);
 
 	{
 		auto gotshape = dw->shape();

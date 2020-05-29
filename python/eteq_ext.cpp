@@ -125,11 +125,25 @@ void eteq_ext (py::module& m)
 			return py::array(ipshape.size(), ipshape.data());
 		},
 		"Return this instance's shape")
-		.def("get",
+		.def("raw",
 		[](pyeteq::ETensT& self)
 		{
-			return pyeteq::typedata_to_array<PybindT>(
-				self, py::dtype::of<PybindT>());
+			PybindT* data = self.data();
+			return pyeteq::typedata_to_array<PybindT>(data, self->shape(),
+				self->get_meta().type_code(), py::dtype::of<PybindT>());
+		})
+		.def("get",
+		[](pyeteq::ETensT& self, size_t max_version)
+		{
+			PybindT* data = self.calc(max_version);
+			return pyeteq::typedata_to_array<PybindT>(data, self->shape(),
+				self->get_meta().type_code(), py::dtype::of<PybindT>());
+		},
+		py::arg("max_version") = std::numeric_limits<size_t>::max())
+		.def("get_version",
+		[](const pyeteq::ETensT& self)
+		{
+			return self->get_meta().state_version();
 		})
 
 		// layer extensions
@@ -150,12 +164,6 @@ void eteq_ext (py::module& m)
 						eteq::global_context());
 				});
 			return vars;
-		})
-
-		.def("get_version",
-		[](const pyeteq::ETensT& self)
-		{
-			return self->get_meta().state_version();
 		})
 
 		// useful for debugging
@@ -180,7 +188,7 @@ void eteq_ext (py::module& m)
 			self.track(teq::TensptrSetT(roots.begin(), roots.end()));
 		})
 		.def("update",
-		[](teq::iSession& self,
+		[](teq::iSession& self, size_t max_version,
 			std::vector<pyeteq::ETensT> ignored)
 		{
 			teq::TensSetT ignored_set;
@@ -188,14 +196,15 @@ void eteq_ext (py::module& m)
 			{
 				ignored_set.emplace(etens.get());
 			}
-			self.update(ignored_set);
+			eigen::Device device(max_version);
+			self.update(device, ignored_set);
 		},
 		"Calculate every etens in the graph given list of nodes to ignore",
+		py::arg("max_version") = std::numeric_limits<size_t>::max(),
 		py::arg("ignored") = std::vector<pyeteq::ETensT>{})
 		.def("update_target",
-		[](teq::iSession& self,
-			std::vector<pyeteq::ETensT> targeted,
-			std::vector<pyeteq::ETensT> ignored)
+		[](teq::iSession& self, std::vector<pyeteq::ETensT> targeted,
+			size_t max_version, std::vector<pyeteq::ETensT> ignored)
 		{
 			teq::TensSetT targeted_set;
 			teq::TensSetT ignored_set;
@@ -207,16 +216,18 @@ void eteq_ext (py::module& m)
 			{
 				ignored_set.emplace(etens.get());
 			}
-			self.update_target(targeted_set, ignored_set);
+			eigen::Device device(max_version);
+			self.update_target(device, targeted_set, ignored_set);
 		},
 		"Calculate etens relevant to targets in the "
 		"graph given list of nodes to ignore",
 		py::arg("targeted"),
+		py::arg("max_version") = std::numeric_limits<size_t>::max(),
 		py::arg("ignored") = std::vector<pyeteq::ETensT>{});
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
-		.def(py::init(&eigen::get_sessptr));
+		.def(py::init([](void) { return std::make_shared<teq::Session>(); }));
 
 	// ==== variable ====
 	py::class_<eteq::EVariable<PybindT>,pyeteq::ETensT> evar(m, "EVariable");
