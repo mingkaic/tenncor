@@ -86,9 +86,9 @@ class DQNEnv(ecache.EnvManager):
             self.nxt_outmask = tc.EVariable([mbatch_size], 1, 'nxt_outmask', ctx=self.ctx)
             self.rewards = tc.EVariable([mbatch_size], 0, 'rewards', ctx=self.ctx)
 
-            self.prediction_err = tc.apply_update([src_model, nxt_model],
+            self.prediction_err = tc.api.identity(tc.apply_update([src_model, nxt_model],
                 get_dqnupdate(update_fn, target_update_rate),
-                get_dqnerror(self, discount_rate), ctx=self.ctx)
+                get_dqnerror(self, discount_rate), ctx=self.ctx))
             self.prediction_err.tag("recovery", "prediction_err")
 
             self.ctx.get_session().track([self.prediction_err, self.act_idx])
@@ -127,20 +127,25 @@ class DQNEnv(ecache.EnvManager):
     def _recover_env(self, fpath: str) -> bool:
         # recover object members from recovered session
         query = tc.Statement(self.ctx.get_actives())
-        self.obs = tc.to_variable(
-            query.find('{ "leaf":{ "label":"obs" } }')[0], self.ctx)
-        self.src_obs = tc.to_variable(
-            query.find('{ "leaf":{ "label":"src_obs" } }')[0], self.ctx)
-        self.nxt_obs = tc.to_variable(
-            query.find('{ "leaf":{ "label":"nxt_obs" } }')[0], self.ctx)
-        self.src_outmask = tc.to_variable(
-            query.find('{ "leaf":{ "label":"src_outmask" } }')[0], self.ctx)
-        self.nxt_outmask = tc.to_variable(
-            query.find('{ "leaf":{ "label":"nxt_outmask" } }')[0], self.ctx)
-        self.rewards = tc.to_variable(
-            query.find('{ "leaf":{ "label":"rewards" } }')[0], self.ctx)
+        def safe_recovery(search_q):
+            resp = query.find(search_q)
+            assert len(resp) == 1, 'search {} returns empty or non-unique result'.format(search_q)
+            return resp[0]
 
-        self.act_idx = query.find('''{
+        self.obs = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"obs" } }'), self.ctx)
+        self.src_obs = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"src_obs" } }'), self.ctx)
+        self.nxt_obs = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"nxt_obs" } }'), self.ctx)
+        self.src_outmask = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"src_outmask" } }'), self.ctx)
+        self.nxt_outmask = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"nxt_outmask" } }'), self.ctx)
+        self.rewards = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"rewards" } }'), self.ctx)
+
+        self.act_idx = safe_recovery('''{
             "op":{
                 "opname":"ARGMAX",
                 "attrs":{
@@ -149,8 +154,8 @@ class DQNEnv(ecache.EnvManager):
                     }
                 }
             }
-        }''')[0]
-        self.prediction_err = query.find('''{
+        }''')
+        self.prediction_err = safe_recovery('''{
             "op":{
                 "opname":"IDENTITY",
                 "attrs":{
@@ -159,7 +164,7 @@ class DQNEnv(ecache.EnvManager):
                     }
                 }
             }
-        }''')[0]
+        }''')
 
         print('loading environment from "{}"'.format(fpath))
         with open(fpath, 'rb') as envfile:
