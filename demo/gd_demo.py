@@ -98,8 +98,7 @@ def main(args):
         train_exout.assign(batch_out.reshape(nbatch, noutput))
         err = train.get()
         if i % show_every_n == show_every_n - 1:
-            print('training {}\ntraining error:\n{}'
-                .format(i + 1, err))
+            print('training {}\ntraining error:\n{}'.format(i + 1, err))
 
     print('training time: {} seconds'.format(time.time() - start))
 

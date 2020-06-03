@@ -117,7 +117,8 @@ struct ETensor
 		return (T*) get()->device().data();
 	}
 
-	T* calc (size_t max_version = std::numeric_limits<size_t>::max())
+	T* calc (teq::TensSetT ignored = {},
+		size_t max_version = std::numeric_limits<size_t>::max())
 	{
 		if (auto ctx = get_context())
 		{

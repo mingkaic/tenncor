@@ -45,16 +45,6 @@ py_binary(
     data = ["//:models", "//cfg:optimizations"],
 )
 
-py_binary(
-    name = "cnn_demo",
-    srcs = ["cnn_demo.py"],
-    deps = [
-        "//:extenncor",
-        "//dbg:psess_py",
-    ],
-    data = ["//:models", "//cfg:optimizations"],
-)
-
 # recurrent demos
 
 py_binary(

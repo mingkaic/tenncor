@@ -32,13 +32,13 @@ void layr_ext(py::module& m)
 	dbntrainer
 		.def(py::init<
 			const std::vector<layr::RBMLayer<PybindT>>&,eteq::ETensor<PybindT>,
-			eteq::ECtxptrT,teq::RankT,teq::DimT,
-			PybindT,PybindT,size_t,PybindT,PybindT>(),
-			py::arg("rbms"), py::arg("dense"), py::arg("context"),
+			teq::RankT,teq::DimT,PybindT,PybindT,size_t,PybindT,PybindT,eteq::ECtxptrT>(),
+			py::arg("rbms"), py::arg("dense"),
 			py::arg("softmax_dim"), py::arg("batch_size"),
 			py::arg("pretrain_lr") = 0.1,
 			py::arg("train_lr") = 0.1, py::arg("cdk") = 10,
-			py::arg("l2_reg") = 0., py::arg("lr_scaling") = 0.95)
+			py::arg("l2_reg") = 0., py::arg("lr_scaling") = 0.95,
+			py::arg("context") = eteq::global_context())
 		.def("pretrain",
 		[](trainer::DBNTrainer<PybindT>* self, py::array x, size_t nepochs,
 			std::function<void(size_t,size_t)> logger)
@@ -86,7 +86,7 @@ void layr_ext(py::module& m)
 			layr::ApproxF<PybindT> update, layr::ErrorF<PybindT> err_func, eteq::ECtxptrT ctx)
 		{
 			return trainer::apply_update<PybindT>(models, update, err_func, ctx);
-		}, py::arg("models"), py::arg("update"), py::arg("err_func"), py::arg("ctx")=eteq::global_context())
+		}, py::arg("models"), py::arg("update"), py::arg("err_func"), py::arg("ctx") = eteq::global_context())
 		.def("rbm_train", &trainer::rbm<PybindT>,
 			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),

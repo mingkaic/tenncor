@@ -133,12 +133,13 @@ void eteq_ext (py::module& m)
 				self->get_meta().type_code(), py::dtype::of<PybindT>());
 		})
 		.def("get",
-		[](pyeteq::ETensT& self, size_t max_version)
+		[](pyeteq::ETensT& self, teq::TensSetT ignored, size_t max_version)
 		{
-			PybindT* data = self.calc(max_version);
+			PybindT* data = self.calc(ignored, max_version);
 			return pyeteq::typedata_to_array<PybindT>(data, self->shape(),
 				self->get_meta().type_code(), py::dtype::of<PybindT>());
 		},
+		py::arg("ignored") = teq::TensSetT{},
 		py::arg("max_version") = std::numeric_limits<size_t>::max())
 		.def("get_version",
 		[](const pyeteq::ETensT& self)

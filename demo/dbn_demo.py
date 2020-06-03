@@ -88,8 +88,7 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    trainer = tc.DBNTrainer(rbms, dense,
-        tc.global_context, softmax_dim, x.shape[0],
+    trainer = tc.DBNTrainer(rbms, dense, softmax_dim, x.shape[0],
         pretrain_lr = 0.1, train_lr = 0.1, cdk = args.cdk)
 
     def pretrain_log(epoch, layer):
