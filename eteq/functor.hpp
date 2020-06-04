@@ -20,6 +20,8 @@ namespace eteq
 #define CHOOSE_PARSER(OPCODE)\
 outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
 
+const std::string dependency_key = "dependencies";
+
 /// Functor implementation of operable functor of Eigen operators
 template <typename T>
 struct Functor final : public eigen::Observable
@@ -98,40 +100,78 @@ struct Functor final : public eigen::Observable
 	}
 
 	/// Implementation of iFunctor
-	teq::TensptrsT get_children (void) const override
+	teq::TensptrsT get_args (void) const override
 	{
 		return children_;
 	}
 
 	/// Implementation of iFunctor
+	teq::TensptrsT get_dependencies (void) const override
+	{
+		auto deps = children_;
+		if (auto deps_attr = dynamic_cast<const marsh::iArray*>(
+			this->get_attr(dependency_key)))
+		{
+			deps_attr->foreach(
+				[&](size_t, const marsh::iObject* obj)
+				{
+					if (auto dep = dynamic_cast<const teq::TensorObj*>(obj))
+					{
+						deps.push_back(dep->get_tensor());
+					}
+				});
+		}
+		return deps;
+	}
+
+	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		if (index >= children_.size())
+		auto deps_attr = dynamic_cast<teq::TensArrayT*>(
+			this->get_attr(dependency_key));
+		size_t ndeps = children_.size();
+		if (nullptr != deps_attr)
 		{
-			teq::fatalf("cannot modify argument %d "
-				"when there are only %d arguments",
-				index, children_.size());
+			ndeps += deps_attr->contents_.size();
 		}
-		if (arg != children_[index])
+		if (index >= ndeps)
 		{
-			uninitialize();
-			if (auto f = dynamic_cast<eigen::Observable*>(children_[index].get()))
+			teq::fatalf("cannot modify dependency %d "
+				"when there are only %d dependencies",
+				index, ndeps);
+		}
+		if (index < children_.size())
+		{
+			if (arg != children_[index])
 			{
-				f->unsubscribe(this);
+				uninitialize();
+				if (auto f = dynamic_cast<eigen::Observable*>(children_[index].get()))
+				{
+					f->unsubscribe(this);
+				}
+				teq::Shape nexshape = arg->shape();
+				teq::Shape curshape = children_[index]->shape();
+				if (false == nexshape.compatible_after(curshape, 0))
+				{
+					teq::fatalf("cannot update child %d to argument with "
+						"incompatible shape %s (requires shape %s)",
+						index, nexshape.to_string().c_str(),
+						curshape.to_string().c_str());
+				}
+				children_[index] = arg;
+				if (auto f = dynamic_cast<eigen::Observable*>(arg.get()))
+				{
+					f->subscribe(this);
+				}
 			}
-			teq::Shape nexshape = arg->shape();
-			teq::Shape curshape = children_[index]->shape();
-			if (false == nexshape.compatible_after(curshape, 0))
+		}
+		else
+		{
+			size_t idep = index - children_.size();
+			if (arg != deps_attr->contents_[idep]->get_tensor())
 			{
-				teq::fatalf("cannot update child %d to argument with "
-					"incompatible shape %s (requires shape %s)",
-					index, nexshape.to_string().c_str(),
-					curshape.to_string().c_str());
-			}
-			children_[index] = arg;
-			if (auto f = dynamic_cast<eigen::Observable*>(arg.get()))
-			{
-				f->subscribe(this);
+				deps_attr->contents_[idep] =
+					std::make_unique<teq::TensorObj>(arg);
 			}
 		}
 	}
@@ -180,6 +220,7 @@ struct Functor final : public eigen::Observable
 		if (has_data())
 		{
 			ref_ = nullptr;
+			meta_.version_ = 0;
 			for (auto& parent : this->subs_)
 			{
 				parent->uninitialize();
@@ -221,25 +262,29 @@ struct Functor final : public eigen::Observable
 	}
 
 	/// Implementation of Observable
-	bool prop_version (void) override
+	bool prop_version (size_t max_version) override
 	{
-		if (false == egen::is_idempotent(
-			(egen::_GENERATED_OPCODE) opcode_.code_))
-		{
-			++meta_.version_;
-			return true;
-		}
-		size_t version = 0;
+		size_t des_version = 0;
 		for (auto& child : children_)
 		{
-			version = std::max(version, child->get_meta().state_version());
+			des_version = std::max(des_version, child->get_meta().state_version());
 		}
-		if (version > meta_.version_)
+		// non-idempotent will want to execute regardless of version
+		// and op should execute if desired version > current version, so ...
+		size_t cur_version = meta_.version_;
+		if (des_version <= cur_version &&
+			false == egen::is_idempotent(
+			(egen::_GENERATED_OPCODE) opcode_.code_))
 		{
-			meta_.version_ = version;
-			return true;
+			des_version = cur_version + 1;
 		}
-		return false;
+		des_version = std::min(des_version, max_version);
+		bool propped = meta_.version_ < des_version;
+		if (propped)
+		{
+			meta_.version_ = des_version;
+		}
+		return propped;
 	}
 
 private:
@@ -301,8 +346,13 @@ using FuncptrT = std::shared_ptr<Functor<T>>;
 
 /// Return functor node given opcode and node arguments
 template <typename T, typename ...ARGS>
-ETensor<T> make_functor (egen::_GENERATED_OPCODE opcode,
-	const teq::TensptrsT& children, ARGS... vargs);
+teq::TensptrT make_functor (egen::_GENERATED_OPCODE opcode,
+	const teq::TensptrsT& children,  ARGS... vargs);
+
+template <typename T, typename ...ARGS>
+ETensor<T> make_functor (eteq::ETensRegistryT& registry,
+	egen::_GENERATED_OPCODE opcode, const teq::TensptrsT& children,
+	ARGS... vargs);
 
 }
 

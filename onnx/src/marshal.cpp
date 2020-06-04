@@ -36,6 +36,7 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 		std::vector<std::string> strs;
 		std::vector<int64_t> ints;
 		std::vector<double> floats;
+		std::vector<std::string> tensors;
 		arr.foreach(
 			[&](size_t i, const marsh::iObject* obj)
 			{
@@ -54,20 +55,35 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 						floats.push_back(num->to_float64());
 					}
 				}
+				else if (auto tens = dynamic_cast<const teq::TensorObj*>(obj))
+				{
+					auto mtens = tens->get_tensor().get();
+					auto id = estd::must_getf(tensid_, mtens,
+						"cannot find %s", mtens->to_string().c_str());
+					tensors.push_back(id);
+				}
 			});
-		if (strs.size() > 0 && ints.size() > 0 && floats.size() > 0)
+		if (false == arr.is_primitive())
 		{
-			teq::fatal("onnx does not support hetero-typed arrays");
-		}
-		if (arr.is_object())
-		{
-			out_->set_type(AttributeProto::STRINGS);
-			for (auto str : strs)
+			if (typeid(marsh::String).hash_code() == arr.subclass_code())
 			{
-				out_->add_strings(str);
+				out_->set_type(AttributeProto::STRINGS);
+				for (auto str : strs)
+				{
+					out_->add_strings(str);
+				}
+			}
+			else
+			{
+				out_->set_type(AttributeProto::TENSORS);
+				for (auto id : tensors)
+				{
+					auto tens = out_->add_tensors();
+					tens->set_name(id);
+				}
 			}
 		}
-		if (arr.is_integral())
+		else if (arr.is_integral())
 		{
 			out_->set_type(AttributeProto::INTS);
 			for (auto num : ints)
@@ -83,6 +99,11 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 				out_->add_floats(num);
 			}
 		}
+	}
+
+	void marshal (const marsh::iTuple& tup) override
+	{
+		teq::fatal("onnx does not support tuples");
 	}
 
 	void marshal (const marsh::Maps& mm) override
@@ -218,6 +239,22 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 				val = new teq::TensorObj(estd::must_getf(
 					identified_tens.right, id,
 					"cannot find tensor id %s", id.c_str()));
+			}
+				break;
+			case AttributeProto::TENSORS:
+			{
+				auto& pb_values = pb_attr.tensors();
+				auto tens = new teq::TensArrayT();
+				val = tens;
+				auto& content = tens->contents_;
+				for (const auto& pb_tens : pb_values)
+				{
+					std::string id = pb_tens.name();
+					content.emplace(content.end(),
+						std::make_unique<teq::TensorObj>(
+							estd::must_getf(identified_tens.right, id,
+							"cannot find tensor id %s", id.c_str())));
+				}
 			}
 				break;
 			case AttributeProto::GRAPH:

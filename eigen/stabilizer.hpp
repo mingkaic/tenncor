@@ -275,7 +275,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 			teq::RankT return_dim;
 			Packer<teq::RankT>().unpack(return_dim, func);
 
-			teq::TensptrT arg = func.get_children().front();
+			teq::TensptrT arg = func.get_args().front();
 			teq::Shape shape = arg->shape();
 			teq::NElemT maxn = teq::rank_cap == return_dim ?
 				shape.n_elems() : shape.at(return_dim);
@@ -451,7 +451,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 			Packer<std::set<teq::RankT>>().unpack(ranks, func);
 			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
 
-			teq::TensptrT arg = func.get_children()[0];
+			teq::TensptrT arg = func.get_args()[0];
 			teq::Shape shape = arg->shape();
 			teq::NElemT nreds = 1;
 			for (teq::RankT rank : ranks)
@@ -469,7 +469,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 			Packer<std::set<teq::RankT>>().unpack(ranks, func);
 			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
 
-			teq::TensptrT arg = func.get_children()[0];
+			teq::TensptrT arg = func.get_args()[0];
 			teq::Shape shape = arg->shape();
 			teq::NElemT nreds = 1;
 			for (teq::RankT rank : ranks)
@@ -494,7 +494,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 
 			// matmul = <left> * <right> then reduce sum by common dimensions
 			// so apply range rule for product, then for reduce sum
-			teq::TensptrT arg = func.get_children().front();
+			teq::TensptrT arg = func.get_args().front();
 			teq::Shape shape = arg->shape();
 			teq::NElemT ncommons = 1;
 			for (auto dim : dims)
@@ -520,7 +520,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 		{
 			// conv = <image> * <kernel> then reduce by kernel dimensions that convolves
 			// apply range rule similar to matmul
-			teq::TensptrT arg = func.get_children()[1];
+			teq::TensptrT arg = func.get_args()[1];
 			teq::Shape shape = arg->shape();
 			teq::NElemT nkern = shape.n_elems();
 			T llower = ranges[0].lower_;
@@ -575,7 +575,7 @@ private:
 	void visit_func (teq::iFunctor& func) override
 	{
 		NumRangesT<T> ranges;
-		auto children = func.get_children();
+		auto children = func.get_args();
 		ranges.reserve(children.size());
 		for (teq::TensptrT child : children)
 		{

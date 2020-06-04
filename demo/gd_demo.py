@@ -6,6 +6,8 @@ import numpy as np
 
 import tenncor as tc
 
+import dbg.compare as cmp
+
 prog_description = 'Demo sgd trainer'
 
 def batch_generate(n, batchsize):
@@ -24,7 +26,8 @@ def str2bool(opt):
 
 def main(args):
 
-    default_ts = time.time()
+    # default_ts = time.time()
+    default_ts = 0
 
     parser = argparse.ArgumentParser(description=prog_description)
     parser.add_argument('--seed', dest='seed',
@@ -56,20 +59,20 @@ def main(args):
 
     train_input = tc.EVariable([nbatch, ninput])
     train_exout = tc.EVariable([nbatch, noutput])
-    model = tc.layer.link([
-        tc.layer.dense([ninput], [nunits],
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
-        tc.layer.bind(tc.sigmoid),
-        tc.layer.dense([nunits], [noutput],
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
-        tc.layer.bind(tc.sigmoid),
+    model = tc.api.layer.link([
+        tc.api.layer.dense([ninput], [nunits],
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.bind(tc.api.sigmoid),
+        tc.api.layer.dense([nunits], [noutput],
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.bind(tc.api.sigmoid),
     ], train_input)
 
-    train_err = tc.apply_update([model],
-        lambda err, leaves: tc.approx.sgd(err, leaves, learning_rate=0.9),
-        lambda models: tc.error.sqr_diff(train_exout, models[0].connect(train_input)))
+    train = tc.apply_update([model],
+        lambda err, leaves: tc.api.approx.sgd(err, leaves, learning_rate=0.9),
+        lambda models: tc.api.error.sqr_diff(train_exout, models[0].connect(train_input)))
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
@@ -80,14 +83,12 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.global_default_sess
     testin = tc.EVariable([ninput], label='testin')
     untrained_out = untrained.connect(testin)
     trained_out = model.connect(testin)
     pretrained_out = trained.connect(testin)
 
-    sess.track([train_err, untrained_out, trained_out, pretrained_out])
-    tc.optimize(sess, "cfg/optimizations.json")
+    tc.optimize("cfg/optimizations.json")
 
     show_every_n = 500
     start = time.time()
@@ -95,11 +96,9 @@ def main(args):
         batch, batch_out = batch_generate(ninput, nbatch)
         train_input.assign(batch.reshape(nbatch, ninput))
         train_exout.assign(batch_out.reshape(nbatch, noutput))
-        sess.update_target([train_err])
-        err = train_err.get()
+        err = train.get()
         if i % show_every_n == show_every_n - 1:
-            print('training {}\ntraining error:\n{}'
-                .format(i + 1, err))
+            print('training {}\ntraining error:\n{}'.format(i + 1, err))
 
     print('training time: {} seconds'.format(time.time() - start))
 
@@ -114,7 +113,6 @@ def main(args):
         test_batch, test_batch_out = batch_generate(ninput, 1)
         testin.assign(test_batch)
 
-        sess.update()
         untrained_data = untrained_out.get()
         trained_data = trained_out.get()
         pretrained_data = pretrained_out.get()
@@ -129,6 +127,8 @@ def main(args):
     print('untrained mlp error rate: {}%'.format(untrained_err * 100))
     print('trained mlp error rate: {}%'.format(trained_err * 100))
     print('pretrained mlp error rate: {}%'.format(pretrained_err * 100))
+    print('is structurally equal?:', cmp.is_equal(pretrained_out, trained_out))
+    print('% data equal:', cmp.percent_dataeq(pretrained_out, trained_out))
 
     try:
         print('saving')

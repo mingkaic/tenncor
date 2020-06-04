@@ -32,7 +32,8 @@ struct Emitter final : public dbg::iPlugin
 	/// UUID random generator
 	static boost::uuids::random_generator uuid_gen_;
 
-	void process (teq::TensptrSetT& tracks, teq::FuncListT& funcs) override
+	void process (const teq::TensptrSetT& tracks,
+		teq::FuncListT& funcs) override
 	{
 		jobs::ScopeGuard defer([this] { ++this->update_it_; });
 
@@ -54,7 +55,7 @@ struct Emitter final : public dbg::iPlugin
 		update_model(funcs);
 	}
 
-	bool check_diff (teq::TensptrSetT& tracks)
+	bool check_diff (const teq::TensptrSetT& tracks)
 	{
 		teq::GraphStat tmp_stat;
 		for (auto root : tracks)

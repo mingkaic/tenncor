@@ -32,6 +32,17 @@ struct JsonMarshaler final : public iMarshaler
 			});
 	}
 
+	void marshal (const iTuple& tup) override
+	{
+		auto& jtup = jreps_[&tup];
+		tup.foreach(
+			[&](size_t i, const iObject* entry)
+			{
+				entry->accept(*this);
+				jtup.push_back(std::make_pair("", jreps_[entry]));
+			});
+	}
+
 	void marshal (const Maps& mm) override
 	{
 		auto& json_map = jreps_[&mm];

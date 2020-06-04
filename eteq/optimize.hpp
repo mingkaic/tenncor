@@ -22,15 +22,21 @@ namespace eteq
 
 const size_t convert_round_limit = 50;
 
+using GenCstF = std::function<void(opt::OptRulesT&,const opt::GraphInfo&)>;
+
 template <typename T>
-void optimize (eteq::ETensorsT<T>& roots, std::istream& rulestr)
+teq::TensptrsT optimize (teq::TensptrsT roots,
+	std::istream& rulestr, GenCstF gen_cst)
 {
 	opt::OptRulesT rules;
-	opt::GraphInfo graph(teq::TensptrsT(roots.begin(), roots.end()));
+	opt::GraphInfo graph(roots);
 	merge_dups<T>(graph); // remove duplicates to reduce search space
 
-	eteq::TargetFactory<T> impl_factory(graph);
-	eteq::generate_cstrules<T>(rules, graph); // populate with constant rules
+	TargetFactory<T> impl_factory(graph);
+	if (gen_cst)
+	{
+		gen_cst(rules, graph); // populate with constant rules
+	}
 	opt::json_parse(rules, rulestr, impl_factory);
 	bool converted = true;
 	for (size_t i = 0; converted && i < convert_round_limit; ++i)
@@ -38,20 +44,49 @@ void optimize (eteq::ETensorsT<T>& roots, std::istream& rulestr)
 		converted = opt::optimize(graph, rules);
 	}
 	// apply new roots
-	auto oroots = graph.get_roots();
-	roots = eteq::ETensorsT<T>(oroots.begin(), oroots.end());
+	return graph.get_roots();
+}
+
+template <typename T>
+teq::TensptrsT optimize (teq::TensptrsT roots, std::istream& rulestr)
+{
+	return optimize<T>(roots, rulestr,
+		[](opt::OptRulesT& rule, const opt::GraphInfo& graph)
+		{ generate_cstrules<T>(rule, graph); });
 }
 
 /// Apply optimization to graph roots tracked by session
 template <typename T>
-void optimize (teq::iSession& sess, std::string filename)
+void optimize (std::string filename,
+	ECtxptrT context = global_context())
 {
 	std::ifstream rulefile(filename);
-	teq::TensptrSetT tracked_set = sess.get_tracked();
-	eteq::ETensorsT<T> tracked(tracked_set.begin(), tracked_set.end());
-	optimize<T>(tracked, rulefile);
-	sess.clear();
-	sess.track(teq::TensptrsT(tracked.begin(), tracked.end()));
+	auto& reg = context->registry_;
+	teq::TensptrSetT roots;
+	for (auto& rpairs : reg)
+	{
+		roots.emplace(rpairs.second);
+	}
+
+	teq::TensMapT<teq::TensptrT> changed;
+	teq::TensptrsT inroots(roots.begin(), roots.end());
+	auto outroots = optimize<T>(inroots, rulefile,
+		[&context](opt::OptRulesT& rules, const opt::GraphInfo& graph)
+		{
+			generate_cstrules<T>(rules, graph, context);
+		});
+	assert(inroots.size() == outroots.size());
+	for (size_t i = 0, n = inroots.size(); i < n; ++i)
+	{
+		changed.emplace(inroots[i].get(), outroots[i]);
+	}
+
+	for (auto& rpairs : reg)
+	{
+		rpairs.second = changed[rpairs.second.get()];
+	}
+	context->sess_->clear();
+	context->sess_->track(teq::TensptrSetT(outroots.begin(), outroots.end()));
 }
 
 }

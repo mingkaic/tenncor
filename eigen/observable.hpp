@@ -73,9 +73,8 @@ struct Observable : public teq::iFunctor
 	/// Do or die populate internal data object, will recurse
 	virtual void must_initialize (void) = 0;
 
-	/// Update metadata version to latest version of arguments
-	/// Return true if functor has received new version, otherwise false
-	virtual bool prop_version (void) = 0;
+	/// Update metadata version to desired version
+	virtual bool prop_version (size_t max_version) = 0;
 
 	/// Implementation of iAttributed
 	std::vector<std::string> ls_attrs (void) const override

@@ -10,7 +10,7 @@ from gen.plugin_base import PluginBase
 from gen.dump import GenDumpBase, PrintDump
 from gen.file_rep import FileRep
 
-def generate(fields, out = PrintDump(), plugins = []):
+def generate(fields, out = PrintDump(), plugins = [], **kwargs):
     if not isinstance(out, GenDumpBase):
         logging.warning("unknown output dump %s: will not generate", out)
         return
@@ -23,7 +23,7 @@ def generate(fields, out = PrintDump(), plugins = []):
             continue
         plugin_id = plugin.plugin_id()
         logging.info('processing plugin %s', plugin_id)
-        plugin_files = plugin.process(generated_files, fields)
+        plugin_files = plugin.process(generated_files, fields, **kwargs)
         if type(plugin_files) is not dict:
             logging.warning('plugin %s failed to return dictionary of files:'+\
                 'ignoring plugin output', plugin_id)

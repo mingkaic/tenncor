@@ -20,10 +20,11 @@ def get_dqnupdate(update_fn, update_rate):
 
         src_updates = dict(update_fn(err, src_vars))
 
-        assigns = dict()
+        assigns = []
         for nxt_var, src_var in zip(nxt_vars, src_vars):
             diff = nxt_var - src_updates[src_var]
-            assigns[nxt_var] = tc.assign_sub(nxt_var, update_rate * diff)
+            assigns.append((nxt_var,
+                tc.api.assign_sub(nxt_var, update_rate * diff)))
         return assigns
     return dqnupdate
 
@@ -36,24 +37,25 @@ def get_dqnerror(env, discount_rate):
 
         # predicting target future rewards
         nxt_act = nxt_model.connect(env.nxt_obs)
-        target_vals = env.nxt_outmask * tc.reduce_max_1d(nxt_act, 0)
+        target_vals = env.nxt_outmask * tc.api.reduce_max_1d(nxt_act, 0)
 
         future_reward = env.rewards + discount_rate * target_vals
 
-        masked_output_score = tc.reduce_sum_1d(src_act * env.src_outmask, 0)
-        return tc.reduce_mean(tc.square(masked_output_score - future_reward))
+        masked_output_score = tc.api.reduce_sum_1d(src_act * env.src_outmask, 0)
+        return tc.api.reduce_mean(tc.api.square(masked_output_score - future_reward))
     return dqnerror
 
 # generalize as feedback class
 @ecache.EnvManager.register
 class DQNEnv(ecache.EnvManager):
-    def __init__(self, src_model, sess, update_fn,
+    def __init__(self, src_model, update_fn,
         optimize_cfg = "", max_exp = 30000,
         train_interval = 5, store_interval = 5,
         explore_period = 1000, action_prob = 0.05,
         mbatch_size = 32, discount_rate = 0.95,
         target_update_rate = 0.01, clean_startup = False,
-        usecase = '', cachedir = '/tmp'):
+        usecase = '', cachedir = '/tmp',
+        ctx = tc.global_context):
 
         self.max_exp = max_exp
         self.train_interval = train_interval
@@ -73,26 +75,27 @@ class DQNEnv(ecache.EnvManager):
             batchin = [mbatch_size] + inshape
 
             # environment interaction
-            self.obs = tc.EVariable(inshape, 0, 'obs')
-            self.act_idx = tc.argmax(src_model.connect(self.obs))
+            self.obs = tc.EVariable(inshape, 0, 'obs', ctx=self.ctx)
+            self.act_idx = tc.TenncorAPI(self.ctx).argmax(src_model.connect(self.obs))
             self.act_idx.tag("recovery", "act_idx")
 
             # training
-            self.src_obs = tc.EVariable(batchin, 0, 'src_obs')
-            self.nxt_obs = tc.EVariable(batchin, 0, 'nxt_obs')
-            self.src_outmask = tc.EVariable([mbatch_size] + list(src_model.shape()), 1, 'src_outmask')
-            self.nxt_outmask = tc.EVariable([mbatch_size], 1, 'nxt_outmask')
-            self.rewards = tc.EVariable([mbatch_size], 0, 'rewards')
+            self.src_obs = tc.EVariable(batchin, 0, 'src_obs', ctx=self.ctx)
+            self.nxt_obs = tc.EVariable(batchin, 0, 'nxt_obs', ctx=self.ctx)
+            self.src_outmask = tc.EVariable([mbatch_size] + list(src_model.shape()), 1, 'src_outmask', ctx=self.ctx)
+            self.nxt_outmask = tc.EVariable([mbatch_size], 1, 'nxt_outmask', ctx=self.ctx)
+            self.rewards = tc.EVariable([mbatch_size], 0, 'rewards', ctx=self.ctx)
 
-            self.prediction_err = tc.apply_update([src_model, nxt_model],
+            self.prediction_err = tc.api.identity(tc.apply_update([src_model, nxt_model],
                 get_dqnupdate(update_fn, target_update_rate),
-                get_dqnerror(self, discount_rate))
+                get_dqnerror(self, discount_rate), ctx=self.ctx))
+            self.prediction_err.tag("recovery", "prediction_err")
 
-            self.sess.track([self.prediction_err, self.act_idx])
-            tc.optimize(self.sess, optimize_cfg)
+            self.ctx.get_session().track([self.prediction_err, self.act_idx])
+            tc.optimize(optimize_cfg, self.ctx)
 
         super().__init__(os.path.join(usecase, 'dqn'),
-            sess, default_init=default_init,
+            ctx=ctx, default_init=default_init,
             clean=clean_startup,  cacheroot=cachedir)
         self.src_shape = self.src_outmask.shape()
         self.mbatch_size = self.rewards.shape()
@@ -123,9 +126,26 @@ class DQNEnv(ecache.EnvManager):
 
     def _recover_env(self, fpath: str) -> bool:
         # recover object members from recovered session
-        query = tc.Statement(self.sess.get_tracked())
-        self.obs = query.find('{ "leaf":{ "label":"obs" } }')[0]
-        self.act_idx = query.find('''{
+        query = tc.Statement(self.ctx.get_actives())
+        def safe_recovery(search_q):
+            resp = query.find(search_q)
+            assert len(resp) == 1, 'search {} returns empty or non-unique result'.format(search_q)
+            return resp[0]
+
+        self.obs = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"obs" } }'), self.ctx)
+        self.src_obs = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"src_obs" } }'), self.ctx)
+        self.nxt_obs = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"nxt_obs" } }'), self.ctx)
+        self.src_outmask = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"src_outmask" } }'), self.ctx)
+        self.nxt_outmask = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"nxt_outmask" } }'), self.ctx)
+        self.rewards = tc.to_variable(
+            safe_recovery('{ "leaf":{ "label":"rewards" } }'), self.ctx)
+
+        self.act_idx = safe_recovery('''{
             "op":{
                 "opname":"ARGMAX",
                 "attrs":{
@@ -134,12 +154,17 @@ class DQNEnv(ecache.EnvManager):
                     }
                 }
             }
-        }''')[0]
-        self.src_obs = query.find('{ "leaf":{ "label":"src_obs" } }')[0]
-        self.nxt_obs = query.find('{ "leaf":{ "label":"nxt_obs" } }')[0]
-        self.src_outmask = query.find('{ "leaf":{ "label":"src_outmask" } }')[0]
-        self.nxt_outmask = query.find('{ "leaf":{ "label":"nxt_outmask" } }')[0]
-        self.rewards = query.find('{ "leaf":{ "label":"rewards" } }')[0]
+        }''')
+        self.prediction_err = safe_recovery('''{
+            "op":{
+                "opname":"IDENTITY",
+                "attrs":{
+                    "recovery":{
+                        "str":"prediction_err"
+                    }
+                }
+            }
+        }''')
 
         print('loading environment from "{}"'.format(fpath))
         with open(fpath, 'rb') as envfile:
@@ -165,8 +190,8 @@ class DQNEnv(ecache.EnvManager):
         if _get_random() < exploration:
             return math.floor(_get_random() * self.src_shape[-1])
 
-        self.obs.assign(obs)
-        self.sess.update_target([self.act_idx])
+        self.obs.assign(obs, self.ctx)
+        self.ctx.get_session().update_target([self.act_idx])
         return int(self.act_idx.get())
 
     def store(self, observation, act_idx, reward, new_obs):
@@ -203,12 +228,12 @@ class DQNEnv(ecache.EnvManager):
             new_states = np.array(new_states)
             action_mask = np.array(action_mask)
             rewards = np.array(rewards)
-            self.src_obs.assign(states)
-            self.src_outmask.assign(action_mask)
-            self.nxt_obs.assign(new_states)
-            self.rewards.assign(rewards)
+            self.src_obs.assign(states, self.ctx)
+            self.src_outmask.assign(action_mask, self.ctx)
+            self.nxt_obs.assign(new_states, self.ctx)
+            self.rewards.assign(rewards, self.ctx)
 
-            self.sess.update_target([self.prediction_err])
+            self.ctx.get_session().update_target([self.prediction_err])
         self.ntrain_called += 1
 
     def _linear_annealing(self, initial_prob):

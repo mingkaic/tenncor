@@ -26,9 +26,9 @@ TEST(LAYER, Dense)
 
 	teq::TensptrT weight2 = eteq::make_variable_scalar<float>(0, teq::Shape({6, ninput2}), "weight");
 
-	auto biasedy = tenncor::nn::dense(eteq::ETensor<float>(x),
+	auto biasedy = tenncor<float>().nn.dense(eteq::ETensor<float>(x),
 		eteq::ETensor<float>(weight), eteq::ETensor<float>(bias));
-	auto y = tenncor::nn::dense(eteq::ETensor<float>(x2),
+	auto y = tenncor<float>().nn.dense(eteq::ETensor<float>(x2),
 		eteq::ETensor<float>(weight2));
 
 	EXPECT_GRAPHEQ(
@@ -61,7 +61,7 @@ TEST(LAYER, DenseSerialization)
 			0, teq::Shape({noutput, ninput}), "weight");
 		eteq::VarptrT<float> bias = eteq::make_variable_scalar<float>(
 			0, teq::Shape({noutput}), "bias");
-		auto y = tenncor::nn::dense(eteq::ETensor<float>(x),
+		auto y = tenncor<float>().nn.dense(eteq::ETensor<float>(x),
 			eteq::ETensor<float>(weight), eteq::ETensor<float>(bias));
 		eteq::VarptrsT<float> contents = eteq::get_storage(y);
 		ASSERT_EQ(2, contents.size());
@@ -114,7 +114,7 @@ TEST(LAYER, Conv)
 	teq::TensptrT weight = eteq::make_variable_scalar<float>(0,
 		teq::Shape({outdim, indim, filters.second, filters.first}), "weight");
 	teq::TensptrT bias = eteq::make_variable_scalar<float>(0, teq::Shape({outdim}), "bias");
-	auto y = tenncor::nn::conv(eteq::ETensor<float>(x),
+	auto y = tenncor<float>().nn.conv(eteq::ETensor<float>(x),
 		eteq::ETensor<float>(weight), eteq::ETensor<float>(bias));
 
 	EXPECT_GRAPHEQ(

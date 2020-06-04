@@ -234,34 +234,24 @@ inline EigenptrT make_eigenmatrix (DimensionsT dims, ARGS args,
 
 struct Device final : public teq::iDevice
 {
+	Device (size_t max_version = std::numeric_limits<size_t>::max()) :
+		max_version_(max_version) {}
+
 	void calc (teq::iTensor& tens) override
 	{
 		auto& obs = static_cast<Observable&>(tens);
-		bool propped = obs.prop_version();
-		if (propped || false == obs.has_data())
+		if (obs.prop_version(max_version_))
 		{
 			static_cast<iEigen&>(tens.device()).assign();
 		}
 	}
+
+	size_t max_version_;
 };
 
-inline Device& default_device (void)
-{
-	static Device device;
-	return device;
-}
+using iSessptrT = std::shared_ptr<teq::iSession>;
 
-inline teq::Session get_session (void)
-{
-	auto device = static_cast<teq::iDevice*>(
-		config::global_config.get_obj(teq::device_key));
-	if (nullptr == device)
-	{
-		teq::error("missing device in global config");
-		device = &default_device();
-	}
-	return teq::Session(*device);
-}
+using SessptrT = std::shared_ptr<teq::Session>;
 
 }
 

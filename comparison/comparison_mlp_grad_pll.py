@@ -132,32 +132,32 @@ for matrix_dim in matrix_dims:
     n_out = int(n_in / 2)
     batch_size = 1
 
-    sess = ccur.Session(nthread=4)
+    tc.global_context.set_session(ccur.Session(nthread=4))
     tfsess = tf.compat.v1.Session()
 
     # regular mlp
-    brain = tc.layer.link([
-        tc.dense([n_in], [matrix_dim],
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
-        tc.layer.bind(tc.sigmoid),
-        tc.dense([matrix_dim], [n_out],
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
-        tc.layer.bind(tc.sigmoid),
+    brain = tc.api.layer.link([
+        tc.api.dense([n_in], [matrix_dim],
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.bind(tc.api.sigmoid),
+        tc.api.dense([matrix_dim], [n_out],
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.bind(tc.api.sigmoid),
     ])
 
     invar = eteq.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
     out = brain.connect(invar)
     expected_out = eteq.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
-    err = tc.square(expected_out - out)
+    err = tc.api.square(expected_out - out)
 
     train_input = eteq.EVariable([batch_size, n_in])
     train_output = eteq.EVariable([batch_size, n_out])
 
     train_err = tc.apply_update([brain],
-        tc.approx.sgd(learning_rate),
-        lambda models: tc.error.sqr_diff(train_output, models[0].connect(train_input)))
+        tc.api.approx.sgd(learning_rate),
+        lambda models: tc.api.error.sqr_diff(train_output, models[0].connect(train_input)))
     sess.track([train_err])
 
     # tensorflow mlp
@@ -212,7 +212,7 @@ for matrix_dim in matrix_dims:
     start = time.time()
     train_input.assign(test_batch)
     train_output.assign(test_batch_out)
-    sess.update_target([train_err])
+    train_err.get()
     eteq_dur = time.time() - start
 
     start = time.time()

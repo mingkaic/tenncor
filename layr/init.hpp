@@ -73,62 +73,6 @@ void truncated_normal (std::vector<T>& out, teq::Shape shape, T mean, T stdev,
 	}
 }
 
-/// Return initialization function that makes zero variables
-template <typename T>
-InitF<T> zero_init (void)
-{
-	return
-	[](teq::Shape shape, std::string label)
-	{
-		return eteq::make_variable_scalar<T>(0, shape, label);
-	};
-}
-
-/// Return initialization function that makes variance scaling variables
-/// (see https://www.tensorflow.org/versions/r1.14/api_docs/python/tf/contrib/layers/variance_scaling_initializer)
-template <typename T>
-InitF<T> variance_scaling_init (T factor, ShapeFactorF<T> sfactor=fanavg<T>)
-{
-	return
-	[factor, sfactor](teq::Shape shape, std::string label)
-	{
-		std::vector<T> vec;
-		T stdev = std::sqrt(factor / sfactor(shape));
-		truncated_normal<T>(vec, shape, 0, stdev);
-		return eteq::make_variable(vec.data(), shape, label);
-	};
-}
-
-/// Return initialization function that makes xavier initialized variables (that uses uniform distribution)
-/// (see https://andyljones.tumblr.com/post/110998971763/an-explanation-of-xavier-initialization)
-template <typename T>
-InitF<T> unif_xavier_init (T factor = 1)
-{
-	return
-	[factor](teq::Shape shape, std::string label)
-	{
-		std::vector<T> vec(shape.n_elems());
-		T bound = factor * std::sqrt(6. / fanio<T>(shape));
-		std::generate(vec.begin(), vec.end(), eigen::Randomizer().unif_gen<T>(-bound, bound));
-		return eteq::make_variable(vec.data(), shape, label);
-	};
-}
-
-/// Return initialization function that makes xavier initialized variables (that uses gaussian distribution)
-/// (see https://andyljones.tumblr.com/post/110998971763/an-explanation-of-xavier-initialization)
-template <typename T>
-InitF<T> norm_xavier_init (T factor = 1)
-{
-	return
-	[factor](teq::Shape shape, std::string label)
-	{
-		std::vector<T> vec(shape.n_elems());
-		T stdev = factor * std::sqrt(2. / fanio<T>(shape));
-		std::generate(vec.begin(), vec.end(), eigen::Randomizer().norm_gen<T>(0., stdev));
-		return eteq::make_variable(vec.data(), shape, label);
-	};
-}
-
 }
 
 #endif // LAYR_INIT_HPP

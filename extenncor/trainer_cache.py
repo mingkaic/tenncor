@@ -21,7 +21,7 @@ def _id_cachefile(fpath, prefix, ext):
             print('ignoring invalid file {}'.format(fpath))
     return None
 
-class SessCache:
+class CtxCache:
     @staticmethod
     def _format_cachefile(id):
         return _sess_prefix + hex(id)[2:] + _sess_ext
@@ -36,13 +36,13 @@ class SessCache:
             if fileid is not None:
                 self.cur_id = max(self.cur_id, fileid)
 
-    def backup(self, session):
+    def backup(self, ctx):
         cache_fpath = os.path.join(self.cache_dir,
-            SessCache._format_cachefile(self.cur_id + 1))
+            CtxCache._format_cachefile(self.cur_id + 1))
         try:
             print('saving model "{}"'.format(cache_fpath))
-            if tc.save_session_file(cache_fpath, session):
-                print('successfully stored session to "{}"'.format(cache_fpath))
+            if tc.save_context_file(cache_fpath, ctx):
+                print('successfully stored context to "{}"'.format(cache_fpath))
                 self.cur_id += 1
                 return True
         except Exception as e:
@@ -50,18 +50,18 @@ class SessCache:
             print('failed storage to "{}"'.format(cache_fpath))
         return False
 
-    def recover(self, session):
+    def recover(self, ctx):
         cache_fpath = os.path.join(self.cache_dir,
-            SessCache._format_cachefile(self.cur_id))
+            CtxCache._format_cachefile(self.cur_id))
         try:
             print('loading model from "{}"'.format(cache_fpath))
-            tc.load_session_file(cache_fpath, session)
-            print('successfully recovered session from "{}"'.format(cache_fpath))
-            return True
+            roots = tc.load_context_file(cache_fpath, ctx)
+            print('successfully recovered context from "{}"'.format(cache_fpath))
+            return roots
         except Exception as e:
             print(e)
             print('failed recover from "{}"'.format(cache_fpath))
-        return False
+        return None
 
 class EnvManager(metaclass=abc.ABCMeta):
     @staticmethod
@@ -75,17 +75,18 @@ class EnvManager(metaclass=abc.ABCMeta):
     If clean is set to True, do not recover from existing cache, defaults to recovering
 
     '''
-    def __init__(self, name, sess,
-        default_init = None,
-        clean = False,
-        cacheroot = _default_cachedir):
+    def __init__(self, name,
+        ctx=tc.global_context,
+        default_init=None,
+        clean=False,
+        cacheroot=_default_cachedir):
 
         self.dirpath = os.path.join(cacheroot, name)
         if not os.path.isdir(self.dirpath):
             os.makedirs(self.dirpath)
 
-        self.sesscache = SessCache(self.dirpath)
-        self.sess = sess
+        self.ctx_cache = CtxCache(self.dirpath)
+        self.ctx = ctx
 
         # environment check
         dirs = os.listdir(self.dirpath)
@@ -97,13 +98,15 @@ class EnvManager(metaclass=abc.ABCMeta):
                 self.env_id = max(self.env_id, fileid)
 
         try:
-            if not clean and self.sesscache.recover(self.sess) and \
-                self._recover_env(os.path.join(self.dirpath,
-                    EnvManager._format_cachefile(self.env_id))):
-                print('successful recovery')
-                print('recover session {}'.format(self.sesscache.cur_id))
-                print('recover environment {}'.format(self.env_id))
-                return
+            if not clean:
+                roots = self.ctx_cache.recover(self.ctx)
+                if roots is not None and \
+                    self._recover_env(os.path.join(self.dirpath,
+                        EnvManager._format_cachefile(self.env_id))):
+                    print('successful recovery')
+                    print('recover session {}'.format(self.ctx_cache.cur_id))
+                    print('recover environment {}'.format(self.env_id))
+                    return
         except Exception as e:
             print('recovery error: {}'.format(e))
 
@@ -111,7 +114,7 @@ class EnvManager(metaclass=abc.ABCMeta):
             default_init()
 
     def backup(self):
-        self.sesscache.backup(self.sess)
+        self.ctx_cache.backup(self.ctx)
         if self._backup_env(os.path.join(self.dirpath,
             EnvManager._format_cachefile(self.env_id + 1))):
             self.env_id += 1

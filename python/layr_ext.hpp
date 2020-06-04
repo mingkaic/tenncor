@@ -23,19 +23,6 @@
 
 namespace py = pybind11;
 
-namespace pylayr
-{
-
-using VPairT = std::pair<eteq::EVariable<PybindT>,eteq::ETensor<PybindT>>;
-
-using VPairsT = std::vector<VPairT>;
-
-layr::VarMapT<PybindT> convert (const VPairsT& op);
-
-VPairsT convert (const layr::VarMapT<PybindT>& op);
-
-}
-
 void layr_ext(py::module& m);
 
 #endif // PYTHON_LAYR_EXT_HPP

@@ -16,7 +16,7 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override
 	{
-		auto children = func.get_children();
+		auto children = func.get_dependencies();
 		for (const TensptrT& tens : children)
 		{
 			tens->accept(*this);

@@ -21,7 +21,16 @@ void merge_dups (opt::GraphInfo& graph, EqualF equals);
 template <typename T>
 struct Hasher final : public teq::iOnceTraveler
 {
+	const boost::uuids::uuid& at (teq::iTensor* tens) const
+	{
+		return estd::must_getf(hashes_, tens,
+			"failed to find hash for %s",
+			tens->to_string().c_str());
+	}
+
 	teq::TensMapT<boost::uuids::uuid> hashes_;
+
+	boost::uuids::random_generator uuid_gen_;
 
 private:
 	/// Implementation of iOnceTraveler
@@ -43,13 +52,13 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_func (teq::iFunctor& func) override
 	{
-		auto children = func.get_children();
+		auto children = func.get_dependencies();
 		std::vector<std::string> hshs;
 		hshs.reserve(children.size());
 		for (teq::TensptrT child : children)
 		{
 			child->accept(*this);
-			hshs.push_back(boost::uuids::to_string(hashes_.at(child.get())));
+			hshs.push_back(boost::uuids::to_string(at(child.get())));
 		}
 		if (egen::is_commutative(
 			(egen::_GENERATED_OPCODE) func.get_opcode().code_))
@@ -67,7 +76,7 @@ private:
 					auto ref = tref->get_tensor();
 					ref->accept(*this);
 					attrs.emplace(key, boost::uuids::to_string(
-						hashes_.at(ref.get())));
+						at(ref.get())));
 				}
 				else
 				{
@@ -93,8 +102,6 @@ private:
 	}
 
 	std::unordered_map<std::string,boost::uuids::uuid> uuids_;
-
-	boost::uuids::random_generator uuid_gen_;
 };
 
 template <typename T>
@@ -108,7 +115,7 @@ void merge_dups (opt::GraphInfo& graph)
 	merge_dups(graph,
 		[&](teq::TensptrT a, teq::TensptrT b)
 		{
-			return hasher.hashes_.at(a.get()) == hasher.hashes_.at(b.get());
+			return hasher.at(a.get()) == hasher.at(b.get());
 		});
 }
 

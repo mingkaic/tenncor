@@ -204,7 +204,7 @@ class DTypesPlugin:
     def plugin_id(self):
         return _plugin_id
 
-    def process(self, generated_files, arguments):
+    def process(self, generated_files, arguments, **kwargs):
         _hdr_file = 'dtype.hpp'
         _src_file = 'dtype.cpp'
         plugin_key = 'dtype'

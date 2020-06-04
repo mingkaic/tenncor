@@ -12,19 +12,20 @@
 #include "eigen/device.hpp"
 #include "eigen/emeta.hpp"
 
+#include "eteq/global.hpp"
+
 #ifndef ETEQ_VARIABLE_HPP
 #define ETEQ_VARIABLE_HPP
 
 namespace eteq
 {
 
-static inline size_t get_lastvers (teq::iSession& sess)
+static inline size_t get_lastvers (ECtxptrT& ctx)
 {
-	auto proots = sess.get_tracked();
 	size_t mvers = 0;
-	for (auto& proot : proots)
+	for (auto& r : ctx->registry_)
 	{
-		mvers = std::max(mvers, proot->get_meta().state_version());
+		mvers = std::max(mvers, r.second->get_meta().state_version());
 	}
 	return mvers;
 }
@@ -56,23 +57,23 @@ struct Variable final : public eigen::iMutableLeaf
 
 	Variable<T>& operator = (Variable<T>&& other) = delete;
 
-	void assign (const eigen::TensMapT<T>& input, teq::iSession& sess)
+	void assign (const eigen::TensMapT<T>& input, ECtxptrT ctx)
 	{
-		size_t last_version = get_lastvers(sess);
+		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
 		this->ref_.data_ = input;
 	}
 
-	void assign (const eigen::TensorT<T>& input, teq::iSession& sess)
+	void assign (const eigen::TensorT<T>& input, ECtxptrT ctx)
 	{
-		size_t last_version = get_lastvers(sess);
+		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
 		this->ref_.data_ = input;
 	}
 
 	/// Assign void pointer of specified data type enum and shape
 	void assign (const void* input, egen::_GENERATED_DTYPE dtype,
-		teq::Shape shape, teq::iSession& sess)
+		teq::Shape shape, ECtxptrT ctx)
 	{
 		if (false == shape.compatible_after(this->shape_, 0))
 		{
@@ -81,27 +82,27 @@ struct Variable final : public eigen::iMutableLeaf
 		}
 		std::vector<T> data;
 		egen::type_convert(data, input, dtype, shape.n_elems());
-		assign(eigen::make_tensmap<T>(data.data(), shape), sess);
+		assign(eigen::make_tensmap<T>(data.data(), shape), ctx);
 	}
 
-	void assign (const teq::iTensor& tens, teq::iSession& sess)
+	void assign (const teq::iTensor& tens, ECtxptrT ctx)
 	{
 		const void* input = tens.device().data();
 		teq::Shape inshape = tens.shape();
 		egen::_GENERATED_DTYPE dtype =
 			(egen::_GENERATED_DTYPE) tens.get_meta().type_code();
-		assign(input, dtype, inshape, sess);
+		assign(input, dtype, inshape, ctx);
 	}
 
-	void assign (const T* input, teq::Shape shape, teq::iSession& sess)
+	void assign (const T* input, teq::Shape shape, ECtxptrT ctx)
 	{
-		assign(input, egen::get_type<T>(), shape, sess);
+		assign(input, egen::get_type<T>(), shape, ctx);
 	}
 
-	void assign (const teq::ShapedArr<T>& arr, teq::iSession& sess)
+	void assign (const teq::ShapedArr<T>& arr, ECtxptrT ctx)
 	{
 		assign((T*) arr.data_.data(),
-			egen::get_type<T>(), arr.shape_, sess);
+			egen::get_type<T>(), arr.shape_, ctx);
 	}
 
 	/// Implementation of iTensor
@@ -193,20 +194,24 @@ struct EVariable;
 /// Return variable node given scalar and shape
 template <typename T>
 EVariable<T> make_variable_scalar (T scalar,
-	teq::Shape shape, std::string label = "");
+	teq::Shape shape, std::string label = "",
+	ECtxptrT ctx = global_context());
 
 /// Return variable node filled with scalar matching link shape
 template <typename T>
 EVariable<T> make_variable_like (T scalar,
-	teq::TensptrT like, std::string label = "");
+	teq::TensptrT like, std::string label = "",
+	ECtxptrT ctx = global_context());
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>
-EVariable<T> make_variable (teq::Shape shape, std::string label = "");
+EVariable<T> make_variable (teq::Shape shape, std::string label = "",
+	ECtxptrT ctx = global_context());
 
 /// Return variable node given raw array and shape
 template <typename T>
-EVariable<T> make_variable (T* data, teq::Shape shape, std::string label = "");
+EVariable<T> make_variable (T* data, teq::Shape shape, std::string label = "",
+	ECtxptrT ctx = global_context());
 
 }
 

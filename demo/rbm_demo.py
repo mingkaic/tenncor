@@ -13,7 +13,7 @@ import tenncor as tc
 prog_description = 'Demo rbm trainer'
 
 def mse_errfunc(x, visible_sample_):
-    return tc.reduce_mean(tc.square(x - visible_sample_))
+    return tc.api.reduce_mean(tc.api.square(x - visible_sample_))
 
 def show_digit(x, plt):
     plt.imshow(x.reshape((28, 28)), cmap=plt.cm.gray)
@@ -65,9 +65,9 @@ def main(args):
     learning_rate = 0.01
     momentum = 0.95
 
-    model = tc.layer.rbm(n_visible, n_hidden,
-        weight_init=tc.unif_xavier_init(args.xavier_const),
-        bias_init=tc.zero_init())
+    model = tc.api.layer.rbm(n_visible, n_hidden,
+        weight_init=tc.api.layer.unif_xavier_init(args.xavier_const),
+        bias_init=tc.api.layer.zero_init())
 
     untrained = model.deep_clone()
     trained = model.deep_clone()
@@ -80,7 +80,6 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.global_default_sess
     n_batch = 10
 
     train_input = tc.EVariable([n_batch, n_visible])
@@ -88,17 +87,16 @@ def main(args):
         learning_rate=learning_rate,
         discount_factor=momentum,
         err_func=mse_errfunc)
-    sess.track([train_err])
 
     x = tc.scalar_variable(0, [1, n_visible])
-    genx = tc.sigmoid(model.backward_connect(
-        tc.random.rand_binom_one(tc.sigmoid(model.connect(x)))))
+    genx = tc.api.sigmoid(model.backward_connect(
+        tc.api.random.rand_binom_one(tc.api.sigmoid(model.connect(x)))))
 
-    untrained_genx = tc.sigmoid(untrained.backward_connect(
-        tc.random.rand_binom_one(tc.sigmoid(untrained.connect(x)))))
+    untrained_genx = tc.api.sigmoid(untrained.backward_connect(
+        tc.api.random.rand_binom_one(tc.api.sigmoid(untrained.connect(x)))))
 
-    trained_genx = tc.sigmoid(trained.backward_connect(
-        tc.random.rand_binom_one(tc.sigmoid(trained.connect(x)))))
+    trained_genx = tc.api.sigmoid(trained.backward_connect(
+        tc.api.random.rand_binom_one(tc.api.sigmoid(trained.connect(x)))))
 
     n_data = 55000
     ds = tfds.as_numpy(tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=1))
@@ -110,9 +108,8 @@ def main(args):
     mnist_images = np.array(mnist_images) / 255.
 
     image = random.choice(mnist_images)
-    sess.track([genx, trained_genx, untrained_genx])
 
-    tc.optimize(sess, "cfg/optimizations.json")
+    tc.optimize("cfg/optimizations.json")
 
     n_epoches = 30
     shuffle = True
@@ -148,7 +145,6 @@ def main(args):
         for b in r_batches:
             batch_x = mnist_images[b * n_batch:(b + 1) * n_batch]
             train_input.assign(batch_x)
-            sess.update_target([train_err])
             epoch_errs.append(train_err.get())
 
         epoch_errs = np.array(epoch_errs)
@@ -168,7 +164,6 @@ def main(args):
     plt.show()
 
     x.assign(image.reshape(1,-1))
-    sess.update_target([genx, trained_genx, untrained_genx])
     image_rec = genx.get()
     image_rec_trained = trained_genx.get()
     image_rec_untrained = untrained_genx.get()

@@ -86,11 +86,11 @@ message Layer {
 Assuming we have the following TEQ graph
 
 ```
-tenncor::EVariable var = eteq::make_variable_scalar<int32_t>(3, teq::Shape({3, 2}), "A");
-tenncor::EVariable var2 = eteq::make_variable_scalar<int32_t>(4, teq::Shape({2, 2}), "B");
-tenncor::ETensor cst = eteq::make_constant_scalar<int32_t>(5, teq::Shape({2, 3}));
+eteq::EVariable var = eteq::make_variable_scalar<int32_t>(3, teq::Shape({3, 2}), "A");
+eteq::EVariable var2 = eteq::make_variable_scalar<int32_t>(4, teq::Shape({2, 2}), "B");
+eteq::ETensor cst = eteq::make_constant_scalar<int32_t>(5, teq::Shape({2, 3}));
 
-auto root = tenncor::sigmoid(tenncor::exp(var2) + tenncor::matmul(-var, cst)) + var;
+auto root = tenncor<int32_t>().sigmoid(tenncor<int32_t>().exp(var2) + tenncor<int32_t>().matmul(-var, cst)) + var;
 
 // ADD
 // `-- SIGMOID

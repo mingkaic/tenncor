@@ -14,7 +14,7 @@ class PluginBase(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def process(self,
-        generated_files: dict, arguments: dict) -> dict:
+        generated_files: dict, arguments: dict, **kwargs) -> dict:
         '''
         Given
             output path

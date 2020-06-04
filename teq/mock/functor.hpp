@@ -37,7 +37,12 @@ struct MockFunctor : public teq::iFunctor
 		return opcode_;
 	}
 
-	teq::TensptrsT get_children (void) const override
+	teq::TensptrsT get_args (void) const override
+	{
+		return children_;
+	}
+
+	teq::TensptrsT get_dependencies (void) const override
 	{
 		return children_;
 	}

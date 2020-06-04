@@ -21,12 +21,12 @@ struct MockDeriveFunc final : public teq::iDerivativeFuncs
 		teq::TensptrT local_der;
 		if (label == "FUNC")
 		{
-			local_der = op->get_children()[arg_idx];
+			local_der = op->get_args()[arg_idx];
 		}
 		else if (label == "FUNC2")
 		{
 			local_der = std::make_shared<MockFunctor>(
-				teq::TensptrsT{op->get_children()[arg_idx]}, teq::Opcode{"FUNC4", 3});
+				teq::TensptrsT{op->get_args()[arg_idx]}, teq::Opcode{"FUNC4", 3});
 		}
 		else
 		{
@@ -73,20 +73,20 @@ TEST(GRAD, OneZero)
 	teq::TensptrT leaf3(new MockLeaf(shape, "leaf3"));
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf, leaf2}, teq::Opcode{"FUNC", 0}));
 
-	auto wun = teq::derive(f, f, builder);
-	auto wun2 = teq::derive(leaf, leaf, builder);
-	auto wun3 = teq::derive(leaf3, leaf3, builder);
+	auto wun = teq::derive(f, {f}, builder)[0];
+	auto wun2 = teq::derive(leaf, {leaf}, builder)[0];
+	auto wun3 = teq::derive(leaf3, {leaf3}, builder)[0];
 
 	std::string shapestr = shape.to_string();
 	EXPECT_STREQ("1", wun->to_string().c_str());
 	EXPECT_STREQ("1", wun2->to_string().c_str());
 	EXPECT_STREQ("1", wun3->to_string().c_str());
 
-	auto zro = teq::derive(leaf, leaf3, builder);
-	auto zro2 = teq::derive(leaf3, leaf, builder);
-	auto zro3 = teq::derive(f, leaf3, builder);
-	auto zro4 = teq::derive(leaf, nullptr, builder);
-	auto zro5 = teq::derive(nullptr, leaf, builder);
+	auto zro = teq::derive(leaf, {leaf3}, builder)[0];
+	auto zro2 = teq::derive(leaf3, {leaf}, builder)[0];
+	auto zro3 = teq::derive(f, {leaf3}, builder)[0];
+	auto zro4 = teq::derive(leaf, {nullptr}, builder)[0];
+	auto zro5 = teq::derive(nullptr, {leaf}, builder)[0];
 
 	EXPECT_STREQ("0", zro->to_string().c_str());
 	EXPECT_STREQ("0", zro2->to_string().c_str());
@@ -113,8 +113,8 @@ TEST(GRAD, BuilderStandardV)
 	teq::TensptrT leaf2(new MockLeaf(shape, "leaf2"));
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{leaf, leaf2}, teq::Opcode{"FUNC", 0}));
 
-	auto gl = teq::derive(f, leaf, builder);
-	auto gl2 = teq::derive(f, leaf2, builder);
+	auto gl = teq::derive(f, {leaf}, builder)[0];
+	auto gl2 = teq::derive(f, {leaf2}, builder)[0];
 
 	EXPECT_GRAPHEQ(
 		"(FUNC3[94\\78\\70\\82\\62\\29\\38\\1])\n"
@@ -158,7 +158,7 @@ TEST(GRAD, BuilderDiamond)
 	teq::TensptrT f2(new MockFunctor(teq::TensptrsT{leaf}, teq::Opcode{"FUNC2", 1}));
 	teq::TensptrT f3(new MockFunctor(teq::TensptrsT{f, f2}, teq::Opcode{"FUNC3", 2}));
 
-	auto gl = teq::derive(f3, leaf, builder);
+	auto gl = teq::derive(f3, {leaf}, builder)[0];
 
 	EXPECT_GRAPHEQ(
 		"(FUNC[94\\78\\70\\82\\62\\29\\38\\1])\n"
@@ -218,7 +218,7 @@ TEST(GRAD, TadPole)
 	teq::TensptrT f3(new MockFunctor(teq::TensptrsT{f}, teq::Opcode{"FUNC3", 2}));
 	teq::TensptrT f4(new MockFunctor(teq::TensptrsT{f2, f3}, teq::Opcode{"FUNC4", 3}));
 
-	auto gl = teq::derive(f4, leaf, builder);
+	auto gl = teq::derive(f4, {leaf}, builder)[0];
 	EXPECT_GRAPHEQ(
 		"(FUNC3[94\\78\\70\\82\\62\\29\\38\\1])\n"
 		"_`--(FUNC2[94\\78\\70\\82\\62\\29\\38\\1])\n"

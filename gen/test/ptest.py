@@ -42,7 +42,7 @@ class ClientTest(unittest.TestCase):
             def plugin_id(self):
                 return 'empty'
 
-            def process(self, generated_files, arguments):
+            def process(self, generated_files, arguments, **kwargs):
                 return
 
         with self.assertLogs(level=logging.WARNING) as cm:
@@ -58,7 +58,7 @@ class ClientTest(unittest.TestCase):
             def plugin_id(self):
                 return 'faulty'
 
-            def process(self, generated_files, arguments):
+            def process(self, generated_files, arguments, **kwargs):
                 return {
                     'mock_faulty': {'a': 1, '3': 'c', '@': 2}
                 }
@@ -87,7 +87,7 @@ class ClientTest(unittest.TestCase):
             def plugin_id(self):
                 return 'plugin'
 
-            def process(self, generated_files, arguments):
+            def process(self, generated_files, arguments, **kwargs):
                 # assert generated_files entered init file
                 if len(generated_files) > 0:
                     refs = [list(generated_files.keys())[0]]

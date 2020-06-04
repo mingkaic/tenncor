@@ -8,6 +8,7 @@
 
 #include "eigen/generated/dtype.hpp"
 
+#include "eteq/global.hpp"
 #include "eteq/variable.hpp"
 
 #ifndef ETEQ_ETENS_HPP
@@ -19,11 +20,56 @@ namespace eteq
 template <typename T>
 struct ETensor
 {
-	ETensor (void) : tens_(nullptr) {}
+	ETensor (void) = default;
 
-	ETensor (teq::TensptrT tens) : tens_(tens) {}
+	ETensor (teq::TensptrT tens,
+		ECtxptrT ctx = global_context()) :
+		ctx_(ctx)
+	{
+		if (nullptr != ctx && nullptr != tens)
+		{
+			registry_ = &ctx->registry_;
+			registry_->emplace(this, tens);
+			ctx->sess_->track({tens});
+		}
+	}
 
-	virtual ~ETensor (void) = default;
+	virtual ~ETensor (void)
+	{
+		cleanup();
+	}
+
+	ETensor (const ETensor<T>& other)
+	{
+		copy(other);
+	}
+
+	ETensor (ETensor<T>&& other)
+	{
+		copy(other);
+		other.cleanup();
+	}
+
+	ETensor& operator = (const ETensor<T>& other)
+	{
+		if (this != &other)
+		{
+			cleanup();
+			copy(other);
+		}
+		return *this;
+	}
+
+	ETensor& operator = (ETensor<T>&& other)
+	{
+		if (this != &other)
+		{
+			cleanup();
+			copy(other);
+			other.cleanup();
+		}
+		return *this;
+	}
 
 	friend bool operator == (const ETensor<T>& l, const std::nullptr_t&)
 	{
@@ -47,26 +93,75 @@ struct ETensor
 
 	operator teq::TensptrT() const
 	{
-		return tens_;
+		return nullptr == registry_ ? nullptr :
+			estd::try_get(*registry_, (void*) this, nullptr);
 	}
 
 	teq::iTensor& operator* () const
 	{
-		return *tens_;
+		return *get();
 	}
 
 	teq::iTensor* operator-> () const
 	{
-		return tens_.get();
+		return get();
 	}
 
 	teq::iTensor* get (void) const
 	{
-		return tens_.get();
+		return teq::TensptrT(*this).get();
+	}
+
+	T* data (void)
+	{
+		return (T*) get()->device().data();
+	}
+
+	T* calc (teq::TensSetT ignored = {},
+		size_t max_version = std::numeric_limits<size_t>::max())
+	{
+		if (auto ctx = get_context())
+		{
+			auto tens = get();
+			eigen::Device device(max_version);
+			ctx->sess_->update_target(device, {tens});
+			return (T*) tens->device().data();
+		}
+		return nullptr;
+	}
+
+	ECtxptrT get_context (void) const
+	{
+		if (ctx_.expired())
+		{
+			return nullptr;
+		}
+		return ctx_.lock();
 	}
 
 private:
-	teq::TensptrT tens_;
+	void copy (const ETensor<T>& other)
+	{
+		if ((registry_ = other.registry_))
+		{
+			ctx_ = other.ctx_;
+			registry_->emplace(this, teq::TensptrT(other));
+		}
+	}
+
+	void cleanup (void)
+	{
+		if (false == ctx_.expired() && nullptr != registry_)
+		{
+			ctx_ = ECtxptrT(nullptr);
+			registry_->erase(this);
+			registry_ = nullptr;
+		}
+	}
+
+	mutable ECtxrefT ctx_;
+
+	mutable ETensRegistryT* registry_ = nullptr;
 };
 
 template <typename T>
@@ -74,7 +169,8 @@ struct EVariable final : public ETensor<T>
 {
 	EVariable (void) = default;
 
-	EVariable (VarptrT<T> vars) : ETensor<T>(vars) {}
+	EVariable (VarptrT<T> vars, ECtxptrT ctx = global_context()) :
+		ETensor<T>(vars, ctx) {}
 
 	friend bool operator == (const EVariable<T>& l, const EVariable<T>& r)
 	{
@@ -109,7 +205,8 @@ teq::TensptrsT to_tensors (const ETensorsT<T>& etensors)
 {
 	teq::TensptrsT tensors;
 	tensors.reserve(etensors.size());
-	std::transform(etensors.begin(), etensors.end(), std::back_inserter(tensors),
+	std::transform(etensors.begin(), etensors.end(),
+		std::back_inserter(tensors),
 		[](ETensor<T> etens)
 		{
 			return (teq::TensptrT) etens;

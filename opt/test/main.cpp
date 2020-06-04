@@ -14,7 +14,6 @@ int main (int argc, char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 	LOG_INIT(exam::TestLogger);
-	DEVICE_INIT(eigen::Device);
 	RANDOM_INIT;
 
 	::testing::InitGoogleTest(&argc, argv);

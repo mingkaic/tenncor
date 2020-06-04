@@ -10,6 +10,8 @@ struct iNumber;
 
 struct iArray;
 
+struct iTuple;
+
 struct Maps;
 
 struct iMarshaler
@@ -21,6 +23,8 @@ struct iMarshaler
 	virtual void marshal (const iNumber& num) = 0;
 
 	virtual void marshal (const iArray& arr) = 0;
+
+	virtual void marshal (const iTuple& tup) = 0;
 
 	virtual void marshal (const Maps& mm) = 0;
 };

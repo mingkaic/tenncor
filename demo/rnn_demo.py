@@ -17,10 +17,10 @@ def cross_entropy_loss(T, Y):
     epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in tc
     leftY = Y + epsilon
     rightT = 1 - Y + epsilon
-    return -(T * tc.log(leftY) + (1-T) * tc.log(rightT))
+    return -(T * tc.api.log(leftY) + (1-T) * tc.api.log(rightT))
 
 def loss(T, Y):
-    return tc.reduce_mean(cross_entropy_loss(T, Y))
+    return tc.api.reduce_mean(cross_entropy_loss(T, Y))
 
 def weight_init(shape, label):
     slist = shape.as_list()
@@ -56,12 +56,12 @@ def create_dataset(nb_samples, sequence_len):
     return X, T
 
 def make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps):
-    gs = [tc.derive(error, var) for var in leaves]
+    gs = tc.derive(error, leaves)
     momentums = [tc.variable_like(0, target, label='momentum_' + str(target)) for target in leaves]
     mvavg_sqrs = [tc.variable_like(0, target, label='mving_avg_' + str(target)) for target in leaves]
 
     momentum_tmps = [momentum * momentum_term for momentum in momentums]
-    target_incrs = [tc.assign_add(target, momentum_tmp)
+    target_incrs = [tc.api.assign_add(target, momentum_tmp)
         for target, momentum_tmp in zip(leaves, momentum_tmps)]
 
     # trail grads as increment in grads operation
@@ -69,21 +69,21 @@ def make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps):
     grad_deps = [tc.trail(grad, tincr_mapping)for grad in gs]
 
     # update moving average, dependent on target incr
-    umvavg_sqrs = [tc.assign(mvavg_sqr,
-        lmbd * mvavg_sqr + (1-lmbd) * tc.pow(grad_dep, 2))
+    umvavg_sqrs = [tc.api.assign(mvavg_sqr,
+        lmbd * mvavg_sqr + (1-lmbd) * tc.api.pow(grad_dep, 2))
         for mvavg_sqr, grad_dep in zip(mvavg_sqrs, grad_deps)]
 
     # norms, dependent on target incr and update moving average
-    pgrad_norms = [(learning_rate * grad_dep) / (tc.sqrt(mvsqr) + eps)
+    pgrad_norms = [(learning_rate * grad_dep) / (tc.api.sqrt(mvsqr) + eps)
         for grad_dep, mvsqr in zip(grad_deps, umvavg_sqrs)]
 
-    assigns = [(momentum, tc.assign(momentum, momentum_tmp - pgrad_norm))
+    assigns = [(momentum, tc.api.assign(momentum, momentum_tmp - pgrad_norm))
         for momentum, momentum_tmp, pgrad_norm in zip(momentums, momentum_tmps, pgrad_norms)]
 
-    assigns += [(target, tc.assign_sub(target, pgrad_norm))
+    assigns += [(target, tc.api.assign_sub(target, pgrad_norm))
         for target, pgrad_norm in zip(leaves, pgrad_norms)]
 
-    return dict(assigns)
+    return assigns
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -140,13 +140,13 @@ def main(args):
     ninput = 2
     noutput = 1
 
-    model = tc.layer.link([
-        tc.layer.dense([ninput], [nunits], weight_init),
-        tc.layer.rnn(nunits, nunits, tc.tanh, sequence_len,
-            weight_init=weight_init, bias_init=tc.zero_init(),
+    model = tc.api.layer.link([
+        tc.api.layer.dense([ninput], [nunits], weight_init),
+        tc.api.layer.rnn(nunits, nunits, tc.api.tanh, sequence_len,
+            weight_init=weight_init, bias_init=tc.api.layer.zero_init(),
             seq_dim=2),
-        tc.layer.dense([nunits], [noutput], weight_init),
-        tc.layer.bind(tc.sigmoid),
+        tc.api.layer.dense([nunits], [noutput], weight_init),
+        tc.api.layer.bind(tc.api.sigmoid),
     ])
     untrained = model.deep_clone()
     trained = model.deep_clone()
@@ -158,17 +158,14 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.global_default_sess
-
     train_invar = tc.EVariable([n_batch, sequence_len, ninput])
     train_exout = tc.EVariable([n_batch, sequence_len, noutput])
-    tinput = tc.permute(train_invar, [0, 2, 1])
-    toutput = tc.permute(train_exout, [0, 2, 1])
+    tinput = tc.api.permute(train_invar, [0, 2, 1])
+    toutput = tc.api.permute(train_exout, [0, 2, 1])
 
     train_err = tc.apply_update([model],
         lambda error, leaves: make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps),
         lambda models: loss(toutput, models[0].connect(tinput)))
-    sess.track([train_err])
 
     # create training samples
     train_input, train_output = create_dataset(n_train, sequence_len)
@@ -176,17 +173,12 @@ def main(args):
     print(f'train_output tensor shape: {train_output.shape}')
 
     test_invar = tc.EVariable([n_test, sequence_len, ninput])
-    tin = tc.permute(test_invar, [0, 2, 1])
-    untrained_out = tc.round(untrained.connect(tin))
-    trained_out = tc.round(model.connect(tin))
-    pretrained_out = tc.round(trained.connect(tin))
-    sess.track([
-        untrained_out,
-        trained_out,
-        pretrained_out,
-    ])
+    tin = tc.api.permute(test_invar, [0, 2, 1])
+    untrained_out = tc.api.round(untrained.connect(tin))
+    trained_out = tc.api.round(model.connect(tin))
+    pretrained_out = tc.api.round(trained.connect(tin))
 
-    tc.optimize(sess, "cfg/optimizations.json")
+    tc.optimize("cfg/optimizations.json")
 
     ls_of_loss = []
     start = time.time()
@@ -197,7 +189,6 @@ def main(args):
             train_invar.assign(xbatch)
             train_exout.assign(tbatch)
 
-            sess.update_target([train_err])
             # Add loss to list to plot
             ls_of_loss.append(train_err.get())
     print('training time: {} seconds'.format(time.time() - start))
@@ -215,11 +206,6 @@ def main(args):
     test_input, test_output = create_dataset(n_test, sequence_len)
 
     test_invar.assign(test_input)
-    sess.update_target([
-        untrained_out,
-        trained_out,
-        pretrained_out,
-    ])
     got_untrained = untrained_out.get()
     got_trained = trained_out.get()
     got_pretrained = pretrained_out.get()

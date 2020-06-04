@@ -22,6 +22,8 @@ struct iTeqMarshaler : public marsh::iMarshaler
 
 	virtual void marshal (const marsh::iArray& arr) = 0;
 
+	virtual void marshal (const marsh::iTuple& tup) = 0;
+
 	virtual void marshal (const marsh::Maps& mm) = 0;
 
 	virtual void marshal (const TensorObj& tens) = 0;
@@ -172,6 +174,8 @@ private:
 
 	TensptrT input_;
 };
+
+using TensArrayT = marsh::PtrArray<TensorObj>;
 
 const std::string layer_key = "layer";
 

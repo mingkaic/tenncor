@@ -11,15 +11,13 @@ struct iPlugin
 	virtual ~iPlugin (void) = default;
 
 	virtual void process (
-		teq::TensptrSetT& tracked, teq::FuncListT& targets)= 0;
+		const teq::TensptrSetT& tracked, teq::FuncListT& targets)= 0;
 };
 
 using PluginRefT = std::reference_wrapper<iPlugin>;
 
 struct PluginSession final : public teq::Session
 {
-	PluginSession (teq::iDevice& device) : teq::Session(device) {}
-
 	std::vector<PluginRefT> plugins_;
 
 private:
@@ -27,7 +25,7 @@ private:
 	{
 		for (iPlugin& plugin : plugins_)
 		{
-			plugin.process(this->tracked_, reqs);
+			plugin.process(this->roots_, reqs);
 		}
 	}
 };

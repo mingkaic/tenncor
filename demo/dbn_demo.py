@@ -63,21 +63,21 @@ def main(args):
 
     # construct DBN
     rbms = [
-        tc.layer.rbm(6, 3,
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
-        tc.layer.rbm(3, 3,
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init())
+        tc.api.layer.rbm(6, 3,
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.rbm(3, 3,
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init())
     ]
-    dense = tc.layer.dense([3], [2],
-        weight_init=tc.zero_init(),
-        bias_init=tc.zero_init())
+    dense = tc.api.layer.dense([3], [2],
+        weight_init=tc.api.layer.zero_init(),
+        bias_init=tc.api.layer.zero_init())
     softmax_dim = 0
 
-    rbm_interlace = zip([rbm.fwd() for rbm in rbms], len(rbms) * [tc.layer.bind(tc.sigmoid)])
-    model = tc.layer.link([e for inters in rbm_interlace for e in inters] +
-        [dense, tc.layer.bind(lambda x: tc.softmax(x, softmax_dim, 1))])
+    rbm_interlace = zip([rbm.fwd() for rbm in rbms], len(rbms) * [tc.api.layer.bind(tc.api.sigmoid)])
+    model = tc.api.layer.link([e for inters in rbm_interlace for e in inters] +
+        [dense, tc.api.layer.bind(lambda x: tc.api.softmax(x, softmax_dim, 1))])
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
@@ -109,16 +109,13 @@ def main(args):
 
     # test
     x = np.array([1, 1, 0, 0, 0, 0])
-    sess = tc.global_default_sess
     var = tc.variable(x)
     untrained_out = untrained.connect(var)
     out = model.connect(var)
     trained_out = trained.connect(var)
-    sess.track([untrained_out, out, trained_out])
 
-    tc.optimize(sess, "cfg/optimizations.json")
+    tc.optimize("cfg/optimizations.json")
 
-    sess.update_target([untrained_out, out, trained_out])
     # since x is similar to first 3 rows of x, expect results simlar to first 3 rows of y [1, 0]
     print('untrained_out: ', untrained_out.get())
     print('out: ', out.get())

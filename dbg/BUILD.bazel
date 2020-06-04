@@ -28,6 +28,14 @@ cc_library(
 )
 
 cc_library(
+    name = "compare",
+    hdrs = glob(["compare/*.hpp"]),
+    srcs = glob(["compare/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = ["//teq:teq"],
+)
+
+cc_library(
     name = "psess",
     hdrs = glob([
         "psess/*.hpp",
@@ -92,6 +100,16 @@ pybind_py_library(
     cc_srcs = ["python/print.cpp"],
     cc_deps = [
         "//dbg:print",
+        "//:tenncor",
+    ],
+    copts = ["-std=c++17"],
+)
+
+pybind_py_library(
+    name = "compare_py",
+    cc_srcs = ["python/compare.cpp"],
+    cc_deps = [
+        "//dbg:compare",
         "//:tenncor",
     ],
     copts = ["-std=c++17"],

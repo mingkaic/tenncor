@@ -14,18 +14,13 @@
 namespace layr
 {
 
+/// Association between variable and error root
 template <typename T>
-struct EVarHasher
-{
-	size_t operator ()(const eteq::EVariable<T>& evar) const
-	{
-		return std::hash<void*>()(evar.get());
-	}
-};
+using VarErrT = std::pair<eteq::EVariable<T>,eteq::ETensor<T>>;
 
 /// Ordered association between variable and error
 template <typename T>
-using VarMapT = std::unordered_map<eteq::EVariable<T>,eteq::ETensor<T>,EVarHasher<T>>;
+using VarErrsT = std::vector<VarErrT<T>>;
 
 /// Function that returns error given two tensor inputs
 template <typename T>
@@ -38,7 +33,7 @@ using ErrorF = std::function<eteq::ETensor<T>(const eteq::ETensorsT<T>&)>;
 /// Function that approximate error of sources
 /// given a vector of variables and its corresponding errors
 template <typename T>
-using ApproxF = std::function<VarMapT<T>(const eteq::ETensor<T>&,const eteq::EVariablesT<T>&)>;
+using ApproxF = std::function<VarErrsT<T>(const eteq::ETensor<T>&,const eteq::EVariablesT<T>&)>;
 
 }
 

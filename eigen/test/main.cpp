@@ -11,7 +11,6 @@
 int main (int argc, char** argv)
 {
 	LOG_INIT(exam::TestLogger);
-	DEVICE_INIT(eigen::Device);
 	RANDOM_INIT;
 
 	::testing::InitGoogleTest(&argc, argv);

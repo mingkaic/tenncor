@@ -39,7 +39,9 @@ struct GraphInfo final
 			std::back_inserter(outs),
 			[this](const query::QueryResult& result)
 			{
-				return owners_.at(result.root_);
+				return estd::must_getf(owners_, result.root_,
+					"can't find reference to %s",
+					result.root_->to_string().c_str());
 			});
 		return outs;
 	}
@@ -53,7 +55,7 @@ struct GraphInfo final
 			teq::TensptrT target = convert.second;
 			if (auto f = dynamic_cast<teq::iFunctor*>(src))
 			{
-				auto children = f->get_children();
+				auto children = f->get_dependencies();
 				for (auto child : children)
 				{
 					clean_children[child.get()].emplace(src);

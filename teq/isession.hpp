@@ -7,6 +7,7 @@
 /// to allow rapidly update the tracked nodes
 ///
 
+#include <cassert>
 #include <list>
 
 #include "teq/traveler.hpp"
@@ -17,33 +18,6 @@
 namespace teq
 {
 
-/// Session interface that tracks and rapidly updates subgraphs
-struct iSession
-{
-	virtual ~iSession (void) = default;
-
-	/// Record subgraphs of roots
-	virtual void track (TensptrsT roots) = 0;
-
-	/// Update every node under the subgraph except
-	/// for the subgraphs of ignored
-	/// this function is expected to be called repeatedly during runtime
-	virtual void update (TensSetT ignored = {}) = 0;
-
-	/// Update every node under the target roots that are expected to be
-	/// under the tracked subgraphs ignoring the subgraphs of ignored
-	/// this function is expected to be called repeatedly during runtime
-	virtual void update_target (TensSetT target, TensSetT ignored = {}) = 0;
-
-	/// Clear all tracked root and subgraph information
-	virtual void clear (void) = 0;
-
-	/// Return set of tracked tensor roots
-	virtual TensptrSetT get_tracked (void) const = 0;
-};
-
-using FuncListT = std::list<iFunctor*>;
-
 struct iDevice
 {
 	virtual ~iDevice (void) = default;
@@ -51,146 +25,150 @@ struct iDevice
 	virtual void calc (iTensor& tens) = 0;
 };
 
+/// Session interface that tracks and rapidly updates subgraphs
+struct iSession
+{
+	virtual ~iSession (void) = default;
+
+	/// Record subgraphs of roots
+	virtual void track (const TensptrSetT& roots) = 0;
+
+	/// Update every node under the subgraph except
+	/// for the subgraphs of ignored
+	/// this function is expected to be called repeatedly during runtime
+	virtual void update (iDevice& device, TensSetT ignored = {}) = 0;
+
+	/// Update every node under the target roots that are expected to be
+	/// under the tracked subgraphs ignoring the subgraphs of ignored
+	/// this function is expected to be called repeatedly during runtime
+	virtual void update_target (iDevice& device, TensSetT target, TensSetT ignored = {}) = 0;
+
+	/// Clear all tracked root and subgraph information
+	virtual void clear (void) = 0;
+};
+
+using FuncListT = std::list<iFunctor*>;
+
 /// iSession implementation that tracks subgraphs by ordering operable functors
 /// in a vector such that parents are visited after children
 struct Session : public iSession
 {
-	Session (iDevice& device) : device_(&device) {}
-
 	virtual ~Session (void) = default;
 
 	/// Implementation of iSession
-	void track (TensptrsT roots) override
+	void track (const TensptrSetT& roots) override
 	{
-		ops_.clear();
-		tracked_.insert(roots.begin(), roots.end());
-
-		GraphStat stat;
-		for (const TensptrT& root : tracked_)
+		// filter for unvisited funcs from roots
+		FuncsT funcs;
+		TensptrSetT nexts;
+		funcs.reserve(roots.size());
+		for (auto root : roots)
 		{
-			root->accept(stat);
-		}
-		auto& statmap = stat.graphsize_;
-
-		for (auto& statpair : statmap)
-		{
-			if (0 < statpair.second.upper_)
+			if (false == estd::has(opheight_, root.get()))
 			{
-				ops_.push_back(static_cast<iFunctor*>(statpair.first));
+				if (auto f = dynamic_cast<teq::iFunctor*>(root.get()))
+				{
+					roots_.emplace(root);
+					funcs.push_back(f);
+					auto children = f->get_dependencies();
+					for (auto child : children)
+					{
+						nexts.emplace(child);
+					}
+				}
 			}
 		}
-		std::sort(ops_.begin(), ops_.end(),
-			[&statmap](iFunctor* a, iFunctor* b)
-			{ return statmap[a].upper_ < statmap[b].upper_; });
+		// recursively calculate where to place funcs based on height
+		if (funcs.empty())
+		{
+			return;
+		}
+		track(nexts);
+		for (auto func : funcs)
+		{
+			size_t maxheight = 0;
+			auto children = func->get_dependencies();
+			for (auto child : children)
+			{
+				size_t height = estd::try_get(
+					opheight_, child.get(), 0);
+				maxheight = std::max(height, maxheight);
+				roots_.erase(child);
+			}
+			maxheight += 1;
+			if (maxheight > ops_.size())
+			{
+				ops_.insert(ops_.end(), maxheight - ops_.size(), FuncSetT{});
+			}
+			ops_[maxheight - 1].emplace(func);
+			opheight_.emplace(func, maxheight);
+		}
 	}
 
 	/// Implementation of iSession
-	void update (TensSetT ignored = {}) override
+	void update (iDevice& device, TensSetT ignored = {}) override
+	{
+		TensSetT rtens;
+		rtens.reserve(roots_.size());
+		std::transform(roots_.begin(), roots_.end(),
+			std::inserter(rtens, rtens.end()),
+			[](TensptrT tens) { return tens.get(); });
+		update_target(device, rtens, ignored);
+	}
+
+	/// Implementation of iSession
+	void update_target (iDevice& device, TensSetT target, TensSetT ignored = {}) override
 	{
 		FuncListT reqs;
-		TensSetT acceptable;
-		for (auto& root : tracked_)
-		{
-			acceptable.emplace(root.get());
-		}
-		std::unordered_set<teq::iDeviceRef*> devices;
+		std::unordered_set<iDeviceRef*> devices;
 		// ignored tensors will never populate reqs
 		for (auto rit = ops_.rbegin(), ret = ops_.rend();
 			rit != ret; ++rit)
 		{
-			auto& op = *rit;
-			if (estd::has(acceptable, op) &&
-				false == estd::has(ignored, op))
+			auto& fops = *rit;
+			for (auto& op : fops)
 			{
-				if (false == estd::has(devices, &op->device()))
+				if (estd::has(target, op) && false == estd::has(ignored, op))
 				{
+					iDeviceRef* ref = &op->device();
+					assert(false == estd::has(devices, ref));
+					devices.emplace(ref);
+
 					reqs.push_front(op);
-					devices.emplace(&op->device());
-				}
-				auto children = op->get_children();
-				for (TensptrT child : children)
-				{
-					acceptable.emplace(child.get());
+					auto children = op->get_dependencies();
+					for (TensptrT child : children)
+					{
+						target.emplace(child.get());
+					}
 				}
 			}
 		}
 
-		calc_reqfuncs(reqs);
-	}
-
-	/// Implementation of iSession
-	void update_target (TensSetT target, TensSetT ignored = {}) override
-	{
-		FuncListT reqs;
-		TensSetT acceptable;
-		for (auto& root : target)
+		for (auto& op : reqs)
 		{
-			acceptable.emplace(root);
+			device.calc(*op);
 		}
-		std::unordered_set<teq::iDeviceRef*> devices;
-		// ignored tensors will never populate reqs
-		for (auto rit = ops_.rbegin(), ret = ops_.rend();
-			rit != ret; ++rit)
-		{
-			auto& op = *rit;
-			if (estd::has(acceptable, op) &&
-				false == estd::has(ignored, op))
-			{
-				if (false == estd::has(devices, &op->device()))
-				{
-					reqs.push_front(op);
-					devices.emplace(&op->device());
-				}
-				auto children = op->get_children();
-				for (TensptrT child : children)
-				{
-					acceptable.emplace(child.get());
-				}
-			}
-		}
-
-		calc_reqfuncs(reqs);
+		process_reqs(reqs);
 	}
 
 	/// Implementation of iSession
 	void clear (void) override
 	{
 		ops_.clear();
-		tracked_.clear();
+		opheight_.clear();
 	}
-
-	/// Implementation of iSession
-	TensptrSetT get_tracked (void) const override
-	{
-		return tracked_;
-	}
-
-	/// Set of all tensors input through tracked function
-	/// The set of roots of all session graphs is a possible subset
-	TensptrSetT tracked_;
 
 	/// Operable functors ordered by height in the tracked graph
-	FuncsT ops_;
+	std::vector<FuncSetT> ops_;
 
 protected:
 	virtual void process_reqs (FuncListT& reqs) {}
 
+	TensptrSetT roots_; // only needed for update
+
 private:
-	void calc_reqfuncs (FuncListT& reqs)
-	{
-		for (auto& op : reqs)
-		{
-			device_->calc(*op);
-		}
-		process_reqs(reqs);
-	}
-
-	iDevice* device_;
+	teq::TensMapT<size_t> opheight_;
 };
-
-const std::string device_key = "device";
-
-#define DEVICE_INIT(DEVICE_TYPE)::config::global_config.add_entry<DEVICE_TYPE>(teq::device_key)
 
 }
 

@@ -7,7 +7,7 @@ import numpy as np
 
 import tenncor as tc
 
-prog_description = 'Demo gru model'
+prog_description = 'Demo gru model against a latin corpus'
 
 def one_encode(indices, vocab_size):
     encoding = []
@@ -17,7 +17,7 @@ def one_encode(indices, vocab_size):
         encoding.append(enc)
     return np.array(encoding)
 
-def sample(sess, inp, prob, seed_ix, n):
+def sample(inp, prob, seed_ix, n):
     # Initialize first word of sample ('seed') as one-hot encoded vector.
     x = np.zeros(inp.shape())
     x[seed_ix] = 1
@@ -25,7 +25,6 @@ def sample(sess, inp, prob, seed_ix, n):
 
     for _ in range(n):
         inp.assign(x.T)
-        sess.update_target([prob])
         p = prob.get()
         p /= p.sum() # normalize
 
@@ -41,7 +40,7 @@ def old_winit(shape, label):
     return tc.variable(np.random.uniform(-0.05, 0.05, shape.as_list()), label)
 
 def encoded_loss(encoded_expect, encoded_result):
-    return tc.reduce_sum(-tc.log(tc.reduce_sum(encoded_result * encoded_expect, 0, 1)))
+    return tc.api.reduce_sum(-tc.api.log(tc.api.reduce_sum(encoded_result * encoded_expect, 0, 1)))
 
 def str2bool(opt):
     optstr = opt.lower()
@@ -66,8 +65,8 @@ def main(args):
         help='Number of times of train (default: 10001)')
     parser.add_argument('--save', dest='save', nargs='?', default='',
         help='Filename to save model (default: <blank>)')
-    parser.add_argument('--load', dest='load', nargs='?', default='models/gru.onnx',
-        help='Filename to load pretrained model (default: models/gru.onnx)')
+    parser.add_argument('--load', dest='load', nargs='?', default='models/latin_gru.onnx',
+        help='Filename to load pretrained model (default: models/latin_gru.onnx)')
     args = parser.parse_args(args)
 
     if args.seed:
@@ -78,7 +77,7 @@ def main(args):
         np.random.seed(seed=0)
 
     # Read data and setup maps for integer encoding and decoding.
-    data = open('models/data/gru_input.txt', 'r').read()
+    data = open('models/data/latin_input.txt', 'r').read()
     chars = sorted(list(set(data))) # Sort makes model predictable (if seeded).
     data_size, vocab_size = len(data), len(chars)
     print('data has %d characters, %d unique.' % (data_size, vocab_size))
@@ -92,14 +91,14 @@ def main(args):
 
     print_interval = 100
 
-    model = tc.layer.link([
-        tc.layer.gru(tc.Shape([N]), h_size, seq_length,
+    model = tc.api.layer.link([
+        tc.api.layer.gru(tc.Shape([N]), h_size, seq_length,
             weight_init=old_winit,
-            bias_init=tc.zero_init()),
-        tc.layer.dense([h_size], [o_size],
+            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.dense([h_size], [o_size],
             weight_init=old_winit,
-            bias_init=tc.zero_init()),
-        tc.layer.bind(lambda x: tc.softmax(x, 0, 1)),
+            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.bind(lambda x: tc.api.softmax(x, 0, 1)),
     ])
     untrained_model = model.deep_clone()
     pretrained_model = model.deep_clone()
@@ -111,24 +110,20 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sess = tc.global_default_sess
-
     sample_inp = tc.EVariable([1, vocab_size], 0)
 
-    trained_prob = tc.slice(model.connect(sample_inp), 0, 1, 1)
-    untrained_prob = tc.slice(untrained_model.connect(sample_inp), 0, 1, 1)
-    pretrained_prob = tc.slice(pretrained_model.connect(sample_inp), 0, 1, 1)
-    sess.track([trained_prob, untrained_prob, pretrained_prob])
+    trained_prob = tc.api.slice(model.connect(sample_inp), 0, 1, 1)
+    untrained_prob = tc.api.slice(untrained_model.connect(sample_inp), 0, 1, 1)
+    pretrained_prob = tc.api.slice(pretrained_model.connect(sample_inp), 0, 1, 1)
 
     train_inps = tc.EVariable([seq_length, vocab_size], 0)
-    train_output = tc.EVariable([seq_length, vocab_size], 0)
+    train_exout = tc.EVariable([seq_length, vocab_size], 0)
 
     train_err = tc.apply_update([model],
-        lambda error, leaves: tc.approx.adagrad(error, leaves, learning_rate=learning_rate, epsilon=1e-8),
-        lambda models: encoded_loss(train_output, models[0].connect(train_inps)))
-    sess.track([train_err])
+        lambda error, leaves: tc.api.approx.adagrad(error, leaves, learning_rate=learning_rate, epsilon=1e-8),
+        lambda models: encoded_loss(train_exout, models[0].connect(train_inps)))
 
-    tc.optimize(sess, "cfg/optimizations.json")
+    tc.optimize("cfg/optimizations.json")
 
     smooth_loss = -np.log(1.0/vocab_size)*seq_length
     p = 0
@@ -146,13 +141,12 @@ def main(args):
 
         # Occasionally sample from oldModel and print result
         if i % print_interval == 0:
-            sample_ix = sample(sess, sample_inp, trained_prob, inputs[0], 1000)
+            sample_ix = sample(sample_inp, trained_prob, inputs[0], 1000)
             print('----\n%s\n----' % (''.join(ix_to_char[ix] for ix in sample_ix)))
 
         # Get gradients for current oldModel based on input and target sequences
         train_inps.assign(encoded_inp)
-        train_output.assign(encoded_out)
-        sess.update_target([train_err])
+        train_exout.assign(encoded_out)
         loss = train_err.get()
 
         smooth_loss = smooth_loss * 0.999 + loss * 0.001
@@ -166,9 +160,9 @@ def main(args):
         # Prepare for next iteration
         p += seq_length
 
-    untrained_sample = sample(sess, sample_inp, untrained_prob, char_to_ix[data[0]], 1000)
-    trained_sample = sample(sess, sample_inp, trained_prob, char_to_ix[data[0]], 1000)
-    pretrained_sample = sample(sess, sample_inp, pretrained_prob, char_to_ix[data[0]], 1000)
+    untrained_sample = sample(sample_inp, untrained_prob, char_to_ix[data[0]], 1000)
+    trained_sample = sample(sample_inp, trained_prob, char_to_ix[data[0]], 1000)
+    pretrained_sample = sample(sample_inp, pretrained_prob, char_to_ix[data[0]], 1000)
     print('--untrained--\n%s\n----' % (''.join(ix_to_char[ix] for ix in untrained_sample)))
     print('--trained--\n%s\n----' % (''.join(ix_to_char[ix] for ix in trained_sample)))
     print('--pretrained--\n%s\n----' % (''.join(ix_to_char[ix] for ix in pretrained_sample)))

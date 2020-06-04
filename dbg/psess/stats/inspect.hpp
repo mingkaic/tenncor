@@ -31,7 +31,7 @@ inspect_helper((T*) func->device().data(), func->shape(), label);
 
 struct Inspector final : public dbg::iPlugin
 {
-	void process (teq::TensptrSetT& tracked, teq::FuncListT& targets) override
+	void process (const teq::TensptrSetT& tracked, teq::FuncListT& targets) override
 	{
 		for (auto func : targets)
 		{

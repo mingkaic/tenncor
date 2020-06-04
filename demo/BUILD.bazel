@@ -1,0 +1,103 @@
+licenses(["notice"])
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+######### DEMOS #########
+
+cc_binary(
+    name = "cgd_demo",
+    srcs = ["gd_demo.cpp"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//:tenncor",
+        "//dbg:compare",
+        # "//dbg:emit_plugin",
+        "@com_github_mingkaic_cppkg//flag:flag",
+    ],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "gd_demo",
+    srcs = ["gd_demo.py"],
+    deps = [
+        "//:tenncor_py",
+        "//dbg:compare_py",
+    ],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "w2v_demo",
+    srcs = ["w2v_demo.py"],
+    deps = [
+        "//:extenncor",
+    ],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "dqn_demo",
+    srcs = ["dqn_demo.py"],
+    deps = ["//:extenncor"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+# recurrent demos
+
+py_binary(
+    name = "rnn_demo",
+    srcs = ["rnn_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "lstm_fast_demo",
+    main = "lstm/fast_demo.py",
+    srcs = ["lstm/fast_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "lstm_latin_demo",
+    main = "lstm/latin_demo.py",
+    srcs = ["lstm/latin_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "gru_fast_demo",
+    main = "gru/fast_demo.py",
+    srcs = ["gru/fast_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "gru_latin_demo",
+    main = "gru/latin_demo.py",
+    srcs = ["gru/latin_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+# belief demos
+
+py_binary(
+    name = "rbm_demo",
+    srcs = ["rbm_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)
+
+py_binary(
+    name = "dbn_demo",
+    srcs = ["dbn_demo.py"],
+    deps = ["//:tenncor_py"],
+    data = ["//:models", "//cfg:optimizations"],
+)

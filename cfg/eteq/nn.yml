@@ -1,0 +1,353 @@
+template: typename T
+requires:
+  - TenncorAPI
+  - RandomAPI
+name: NnAPI
+members:
+  - name: super
+    type: TenncorAPI<T>*
+init:
+  args:
+    - name: super
+      type: TenncorAPI<T>*
+  initlist:
+    super: super
+funcs:
+  - name: fully_connect
+    args:
+    - type: const eteq::ETensorsT<T>&
+      name: lefts
+    - type: const eteq::ETensorsT<T>&
+      name: rights
+    - type: const eteq::ETensor<T>&
+      name: bias
+      default: eteq::ETensor<T>()
+      check_null: false
+    - type: eigen::PairVecT<teq::RankT>
+      name: dims
+      default: eigen::PairVecT<teq::RankT>{{0,1}}
+    out:
+      type: eteq::ETensor<T>
+      val: |
+          //
+              size_t nlefts = lefts.size();
+              if (nlefts != rights.size())
+              {
+                  teq::fatalf(
+                      "number of lefts (%d) must equal the number of rights (%d)",
+                      nlefts,rights.size());
+              }
+              auto out = super->contract(lefts[0],rights[0],dims);
+              for (size_t i = 1; i < nlefts; ++i)
+              {
+                  out = super->add(out,super->contract(lefts[i],rights[i],dims));
+              }
+              if (nullptr != bias)
+              {
+                  out = super->add(out,super->extend_like(bias,out));
+              }
+              return out;
+  - name: conv2d
+    description: |
+                Given image of shape [in,iwidth,iheight,batch]
+                and kernel of shape [out,in,kwidth,kheight]
+                Return output of shape [
+                  out,
+                  image.width-kernel.width+1+2*zero_padding.first,
+                  image.height-kernel.height+1+2*zero_padding.second,
+                  batch,
+                ]
+                Where image is zero-padded along the width,and height dimensions according to zero_padding argument (
+                of the form {size of width-pad,size of height-pad}) then convolved with kernel split along the out dimension
+                for each slice along image's batch dimension
+                This whole process is similar to tensorflow's conv2d (https://www.tensorflow.org/api_docs/python/tf/nn/conv2d)
+    args:
+    - type: const eteq::ETensor<T>&
+      name: image
+    - type: const eteq::ETensor<T>&
+      name: kernel
+    - type: const eteq::ETensor<T>&
+      name: bias
+      default: eteq::ETensor<T>()
+      check_null: false
+    - type: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
+      name: zero_paddings
+      default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
+    out:
+      type: eteq::ETensor<T>
+      val: |
+          //
+              eteq::ETensor<T> cimage = image;
+              if (zero_paddings.first.first > 0 ||
+                  zero_paddings.first.second > 0 ||
+                  zero_paddings.second.first > 0 ||
+                  zero_paddings.second.second > 0)
+              {
+                  cimage = super->pad(cimage,{{0,0},
+                      {zero_paddings.first.first,zero_paddings.first.second},
+                      {zero_paddings.second.first,zero_paddings.second.second}});
+              }
+              teq::DimT img_pad = kernel->shape().at(0) - 1; // out
+              cimage = super->pad(cimage,
+                  eteq::DimPairsT{img_pad,img_pad},4);
+
+              auto out =  super->permute(super->convolution(cimage,
+                  super->reverse(kernel,{0}),{4,0,1,2}),{4,1,2,3});
+              if (nullptr != bias)
+              {
+                  out = super->add(out,super->extend_like(bias,out));
+              }
+              return out;
+  - name: drop_out
+    args:
+    - type: const eteq::ETensor<T>&
+      name: input
+    - type: T
+      name: prob
+    out:
+      type: eteq::ETensor<T>
+      val: |
+          //
+              auto p = eteq::make_constant_like<T>(prob,input,super->ctx);
+              return super->mul(input,super->div(
+                  super->random.rand_binom_one(p),p));
+  - name: mean_pool2d
+    args:
+    - type: const eteq::ETensor<T>&
+      name: arg
+    - type: std::pair<teq::RankT,teq::RankT>
+      name: dims
+      default: "std::pair<teq::RankT,teq::RankT>{0,1}"
+    out:
+      type: eteq::ETensor<T>
+      val: |
+          //
+              teq::Shape shape = arg->shape();
+              teq::DimT xextent = shape.at(dims.first) - 1;
+              teq::DimT yextent = shape.at(dims.second) - 1;
+              std::vector<teq::DimT> strider(teq::rank_cap,1);
+              strider[dims.first] = strider[dims.second] = 2;
+              auto top_left = super->stride(arg,strider);
+              auto top_right = super->stride(
+                  super->slice(arg,1,xextent,dims.first),strider);
+              auto bot_left = super->stride(
+                  super->slice(arg,1,yextent,dims.second),strider);
+              eigen::PairVecT<teq::DimT> pvec(teq::rank_cap,
+                  {0,std::numeric_limits<teq::DimT>::max()});
+              pvec[dims.first] = {1,xextent};
+              pvec[dims.second] = {1,yextent};
+              auto bot_right = super->stride(
+                  super->slice(arg,pvec),strider);
+
+              return super->div(super->sum(eteq::ETensorsT<T>{
+                  top_left,top_right,bot_left,bot_right}),(T) 4);
+  - name: max_pool2d
+    args:
+    - type: const eteq::ETensor<T>&
+      name: arg
+    - type: std::pair<teq::RankT,teq::RankT>
+      name: dims
+      default: "std::pair<teq::RankT,teq::RankT>{0,1}"
+    out:
+      type: eteq::ETensor<T>
+      val: |
+          //
+              teq::Shape shape = arg->shape();
+              teq::DimT xextent = shape.at(dims.first) - 1;
+              teq::DimT yextent = shape.at(dims.second) - 1;
+              std::vector<teq::DimT> strider(teq::rank_cap,1);
+              strider[dims.first] = strider[dims.second] = 2;
+              auto top_left = super->stride(arg,strider);
+              auto top_right = super->stride(
+                  super->slice(arg,1,xextent,dims.first),strider);
+              auto bot_left = super->stride(
+                  super->slice(arg,1,yextent,dims.second),strider);
+              eigen::PairVecT<teq::DimT> pvec(teq::rank_cap,
+                  {0,std::numeric_limits<teq::DimT>::max()});
+              pvec[dims.first] = {1,xextent};
+              pvec[dims.second] = {1,yextent};
+              auto bot_right = super->stride(
+                  super->slice(arg,pvec),strider);
+
+              return super->max(eteq::ETensorsT<T>{
+                  top_left,top_right,bot_left,bot_right});
+  - name: dense
+    args:
+    - type: const eteq::ETensor<T>&
+      name: input
+    - type: const eteq::ETensor<T>&
+      name: weight
+    - type: const eteq::ETensor<T>&
+      name: bias
+      default: eteq::ETensor<T>()
+      check_null: false
+    - type: eigen::PairVecT<teq::RankT>
+      name: dims
+      default: "eigen::PairVecT<teq::RankT>{{0,1}}"
+    out:
+      type: eteq::ETensor<T>
+      val: |
+          //
+              auto output = this->fully_connect({input},{weight},bias,dims);
+              auto layer_root = super->identity(output);
+              return eteq::ETensor<T>(eteq::make_layer(
+                  layer_root,layr::dense_name,input),super->ctx);
+  - name: conv
+    args:
+    - type: const eteq::ETensor<T>&
+      name: input
+    - type: const eteq::ETensor<T>&
+      name: weight
+    - type: const eteq::ETensor<T>&
+      name: bias
+      default: eteq::ETensor<T>()
+      check_null: false
+    - type: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
+      name: zero_padding
+      default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
+    out:
+      type: eteq::ETensor<T>
+      val: |
+          //
+              auto output = this->conv2d(input,weight,bias,zero_padding);
+              auto layer_root = super->identity(output);
+              return eteq::ETensor<T>(eteq::make_layer(
+                  layer_root,layr::conv_name,input),super->ctx);
+  - name: rnn
+    args:
+    - type: const eteq::ETensor<T>&
+      name: input
+    - type: const eteq::ETensor<T>&
+      name: init_state
+    - type: const eteq::ETensor<T>&
+      name: cell
+    - type: const layr::UnaryF<T>&
+      name: activation
+    - type: teq::RankT
+      name: seq_dim
+      default: "1"
+    out:
+      type: eteq::ETensor<T>
+      val: |
+          //
+              teq::Shape inshape = input->shape();
+              teq::DimT nseq = inshape.at(seq_dim);
+              if (seq_dim == 0)
+              {
+                  teq::fatal("spliting input across 0th dimension... "
+                      "dense connection will not match");
+              }
+              eteq::ETensor<T> inslice;
+              eteq::ETensor<T> state = init_state;
+              eteq::ETensorsT<T> states;
+              for (teq::DimT i = 0; i < nseq; ++i)
+              {
+                  inslice = super->slice(input,i,1,seq_dim);
+                  state = activation(eteq::connect(cell,
+                      super->concat(inslice,state,0)));
+                  states.push_back(state);
+              }
+              auto output = super->concat(states,seq_dim);
+              auto layer_root = super->identity(output);
+              return eteq::ETensor<T>(eteq::make_layer(
+                  layer_root,layr::rnn_name,input),super->ctx);
+  - name: lstm
+    args:
+    - type: const eteq::ETensor<T>&
+      name: input
+    - type: const eteq::ETensor<T>&
+      name: init_state
+    - type: const eteq::ETensor<T>&
+      name: init_hidden
+    - type: const eteq::ETensor<T>&
+      name: ggate
+    - type: const eteq::ETensor<T>&
+      name: forgate
+    - type: const eteq::ETensor<T>&
+      name: ingate
+    - type: const eteq::ETensor<T>&
+      name: outgate
+    - type: teq::RankT
+      name: seq_dim
+      default: "1"
+    out:
+      type: eteq::ETensor<T>
+      val: |
+          //
+              teq::Shape inshape = input->shape();
+              teq::DimT nseq = inshape.at(seq_dim);
+              if (seq_dim == 0)
+              {
+                  teq::fatal("spliting input across 0th dimension... "
+                      "dense connection will not match");
+              }
+              eteq::ETensor<T> inslice;
+              eteq::ETensor<T> xc;
+              eteq::ETensor<T> state = init_state;
+              eteq::ETensor<T> hidden = init_hidden;
+              eteq::ETensorsT<T> states;
+              for (teq::DimT i = 0; i < nseq; ++i)
+              {
+                  inslice = super->slice(input,i,1,seq_dim);
+                  xc = super->concat(inslice,hidden,0);
+
+                  auto gate = super->tanh(eteq::connect(ggate,xc));
+                  auto input = super->sigmoid(eteq::connect(ingate,xc));
+                  auto forget = super->sigmoid(eteq::connect(forgate,xc));
+                  auto output = super->sigmoid(eteq::connect(outgate,xc));
+                  state = super->add(super->mul(gate,input),
+                      super->mul(state,forget));
+                  hidden = super->mul(state,output);
+                  states.push_back(hidden);
+              }
+              auto output = super->concat(states,seq_dim);
+              auto layer_root = super->identity(output);
+              return eteq::ETensor<T>(eteq::make_layer(
+                  layer_root,layr::lstm_name,input),super->ctx);
+  - name: gru
+    args:
+    - type: const eteq::ETensor<T>&
+      name: input
+    - type: const eteq::ETensor<T>&
+      name: init_state
+    - type: const eteq::ETensor<T>&
+      name: ugate
+    - type: const eteq::ETensor<T>&
+      name: rgate
+    - type: const eteq::ETensor<T>&
+      name: hgate
+    - type: teq::RankT
+      name: seq_dim
+      default: "1"
+    out:
+      type: eteq::ETensor<T>
+      val: |
+          //
+              teq::Shape inshape = input->shape();
+              teq::DimT nseq = inshape.at(seq_dim);
+              if (seq_dim == 0)
+              {
+                  teq::fatal("spliting input across 0th dimension... "
+                      "dense connection will not match");
+              }
+              eteq::ETensor<T> inslice;
+              eteq::ETensor<T> xc;
+              eteq::ETensor<T> state = init_state;
+              eteq::ETensorsT<T> states;
+              for (teq::DimT i = 0; i < nseq; ++i)
+              {
+                  inslice = super->slice(input,i,1,seq_dim);
+                  xc = super->concat(inslice,state,0);
+
+                  auto update = super->sigmoid(eteq::connect(ugate,xc));
+                  auto reset = super->sigmoid(eteq::connect(rgate,xc));
+                  auto hidden = super->tanh(eteq::connect(hgate,
+                      super->concat(inslice,super->mul(reset,state),0)));
+                  state = super->add(super->mul(update,state),
+                      super->mul(super->sub((T)1,update),hidden));
+                  states.push_back(state);
+              }
+              auto output = super->concat(states,seq_dim);
+              auto layer_root = super->identity(output);
+              return eteq::ETensor<T>(eteq::make_layer(
+                  layer_root,layr::gru_name,input),super->ctx);

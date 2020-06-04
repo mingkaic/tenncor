@@ -41,7 +41,7 @@ def _normalize_shape(arr):
 def _round_helper(x):
     if isinstance(x, float):
         return round(x)
-    return tc.round(x)
+    return tc.api.round(x)
 
 class EADTest(unittest.TestCase):
     def _array_eq(self, arr1, arr2):
@@ -64,11 +64,7 @@ class EADTest(unittest.TestCase):
         src = tc.variable(data2, 'var_source')
 
         ass1 = api(var, src)
-        ass2 = api(var2, tc.neg(src))
-
-        sess = tc.Session()
-        sess.track([ass1, ass2])
-        sess.update()
+        ass2 = api(var2, tc.api.neg(src))
 
         expect_a1 = real(data, data2)
         expect_a2 = real(data, -data2)
@@ -81,19 +77,11 @@ class EADTest(unittest.TestCase):
         var = tc.variable(data, 'var')
         out = api(var)
 
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         fout = out.get()
         self._array_close(real(data), fout)
 
         var2 = tc.variable(data, 'var2')
-        ex = tc.derive(out, var)
-        zero = tc.derive(out, var2)
-
-        sess.track([ex, zero])
-        sess.update()
+        ex, zero = tuple(tc.derive(out, [var, var2]))
 
         data0 = np.zeros(shape, dtype=np.float32)
         der = ex.get()
@@ -113,22 +101,14 @@ class EADTest(unittest.TestCase):
         tfsess = tfSess()
         tfsess.run(tf_var.initializer)
 
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         fout = out.get()
         real = tfsess.run(tf_out)
         self._array_close(real, fout)
 
         var2 = tc.variable(data, 'var2')
-        ex = tc.derive(out, var)
-        zero = tc.derive(out, var2)
+        ex, zero = tuple(tc.derive(out, [var, var2]))
 
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex, zero])
-        sess.update()
 
         data0 = np.zeros(shape, dtype=np.float32)
         der = ex.get()
@@ -150,10 +130,6 @@ class EADTest(unittest.TestCase):
         clhs = api(var, cst)
         crhs = api(cst2, var2)
 
-        sess = tc.Session()
-        sess.track([out, both, clhs, crhs])
-        sess.update()
-
         fout = out.get()
         fboth = both.get()
         fclhs = clhs.get()
@@ -165,15 +141,10 @@ class EADTest(unittest.TestCase):
 
         var3 = tc.variable(data, 'var3')
 
-        zero = tc.derive(out, var3)
-        ex = tc.derive(out, var)
-        ex2 = tc.derive(out, var2)
-        ex3 = tc.derive(both, var)
-        ex4 = tc.derive(clhs, var)
-        ex5 = tc.derive(crhs, var2)
-
-        sess.track([zero, ex, ex2, ex3, ex4, ex5])
-        sess.update()
+        zero, ex, ex2 = tuple(tc.derive(out, [var3, var, var2]))
+        ex3 = tc.derive(both, [var])[0]
+        ex4 = tc.derive(clhs, [var])[0]
+        ex5 = tc.derive(crhs, [var2])[0]
 
         rej = zero.get()
         der = ex.get()
@@ -213,20 +184,13 @@ class EADTest(unittest.TestCase):
         out = dim_reduce(var, 1)
         tf_out = tf_reduce(tf_var, [1])
 
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
-
         fout = out.get()
         tf_fout = tfsess.run(tf_out)
 
         self._array_close(tf_fout, fout)
 
         var2 = tc.variable(data, 'var2')
-        ex = tc.derive(out, var)
-        zero = tc.derive(out, var2)
-        sess.track([ex, zero])
-        sess.update()
+        ex, zero = tuple(tc.derive(out, [var, var2]))
 
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
@@ -257,10 +221,6 @@ class EADTest(unittest.TestCase):
             tf_out = tf_reduce(tf_var)
             tf_out2 = tf_reduce(tf_var, [0, 1])
 
-            sess = tc.Session()
-            sess.track([out, out2])
-            sess.update()
-
             fout = out.get()
             fout2 = out2.get()
             tf_fout = np.array(tfsess.run(tf_out))
@@ -270,11 +230,8 @@ class EADTest(unittest.TestCase):
             self._array_close(tf_fout2, fout2)
 
             var2 = tc.variable(data, 'var2')
-            ex = tc.derive(out, var)
-            ex2 = tc.derive(out2, var)
-            zero = tc.derive(out, var2)
-            sess.track([ex, ex2, zero])
-            sess.update()
+            ex, zero = tuple(tc.derive(out, [var, var2]))
+            ex2 = tc.derive(out2, [var])[0]
 
             tf_grad = tf.gradients(tf_out, [tf_var])[0]
             tf_grad2 = tf.gradients(tf_out2, [tf_var])[0]
@@ -304,13 +261,9 @@ class EADTest(unittest.TestCase):
             tfsess = tfSess()
             tfsess.run(tf_var.initializer)
 
-            out = tc.permute(dim_reduce(var,
+            out = tc.api.permute(dim_reduce(var,
                 return_dim=1), [0, 2, 1])
             tf_out = tf_reduce(tf_var, 1)
-
-            sess = tc.Session()
-            sess.track([out])
-            sess.update()
 
             fout = out.get()
             tf_fout = tfsess.run(tf_out)
@@ -328,9 +281,6 @@ class EADTest(unittest.TestCase):
             data = np.random.rand(*shape) * 234
             var = tc.variable(data, 'var')
 
-            sess = tc.Session()
-            sess.track([var])
-            sess.update()
             fout = var.get()
 
             pad_removed = len(shape) - len(fout.shape)
@@ -339,10 +289,7 @@ class EADTest(unittest.TestCase):
             self._array_close(data, fout)
 
             var2 = tc.variable(data, 'var2')
-            one = tc.derive(var, var)
-            zero = tc.derive(var, var2)
-            sess.track([one, zero])
-            sess.update()
+            one, zero = tuple(tc.derive(var, [var, var2]))
 
             out1 = one.get()
             out0 = zero.get()
@@ -356,42 +303,42 @@ class EADTest(unittest.TestCase):
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_assign(shape, tc.assign, lambda t, s: s)
+            self._common_assign(shape, tc.api.assign, lambda t, s: s)
 
     def test_assign_add(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_assign(shape, tc.assign_add, lambda t, s: t + s)
+            self._common_assign(shape, tc.api.assign_add, lambda t, s: t + s)
 
     def test_assign_sub(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_assign(shape, tc.assign_sub, lambda t, s: t - s)
+            self._common_assign(shape, tc.api.assign_sub, lambda t, s: t - s)
 
     def test_assign_mul(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_assign(shape, tc.assign_mul, lambda t, s: t * s)
+            self._common_assign(shape, tc.api.assign_mul, lambda t, s: t * s)
 
     def test_assign_div(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_assign(shape, tc.assign_div, lambda t, s: t / s)
+            self._common_assign(shape, tc.api.assign_div, lambda t, s: t / s)
 
     def test_abs(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary(shape, tc.abs, abs,
+            self._common_unary(shape, tc.api.abs, abs,
                 lambda data: data / abs(data))
 
     def test_neg(self):
@@ -400,7 +347,7 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             data1 = np.ones(shape, dtype=np.float32)
-            self._common_unary(shape, tc.neg, lambda a: -a,
+            self._common_unary(shape, tc.api.neg, lambda a: -a,
                 lambda data: -data1)
 
     def test_sin(self):
@@ -408,39 +355,39 @@ class EADTest(unittest.TestCase):
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary(shape, tc.sin, np.sin, np.cos)
+            self._common_unary(shape, tc.api.sin, np.sin, np.cos)
 
     def test_cos(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary(shape, tc.cos, np.cos, lambda x: -np.sin(x))
+            self._common_unary(shape, tc.api.cos, np.cos, lambda x: -np.sin(x))
 
     def test_tan(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, tc.tan, tf.tan)
+            self._common_unary_tf(shape, tc.api.tan, tf.tan)
 
     def test_exp(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary(shape, tc.exp, np.exp, np.exp)
+            self._common_unary(shape, tc.api.exp, np.exp, np.exp)
 
     def test_log(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary(shape, tc.log, np.log, lambda x: 1.0 / x)
+            self._common_unary(shape, tc.api.log, np.log, lambda x: 1.0 / x)
 
     def test_sqrt(self):
         shape = [3, 4, 5]
-        self._common_unary(shape, tc.sqrt, np.sqrt,
+        self._common_unary(shape, tc.api.sqrt, np.sqrt,
             lambda x: 1.0 / (2.0 * np.sqrt(x)))
 
     def test_round(self):
@@ -449,21 +396,21 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             data1 = np.ones(shape, dtype=np.float32)
-            self._common_unary(shape, tc.round, np.round, lambda x: data1)
+            self._common_unary(shape, tc.api.round, np.round, lambda x: data1)
 
     def test_sigmoid(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, tc.sigmoid, tf.sigmoid)
+            self._common_unary_tf(shape, tc.api.sigmoid, tf.sigmoid)
 
     def test_tanh(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, tc.tanh, tf.tanh)
+            self._common_unary_tf(shape, tc.api.tanh, tf.tanh)
 
     def test_clip_by_range(self):
         shapes = [[3, 4, 5]]
@@ -471,7 +418,7 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             self._common_unary_tf(shape,
-                lambda x: tc.clip_by_range(x, 0.3, 0.6),
+                lambda x: tc.api.clip_by_range(x, 0.3, 0.6),
                 lambda x: tf.clip_by_value(x, 0.3, 0.6))
 
     def test_clip_by_l2norm(self):
@@ -480,7 +427,7 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             self._common_unary_tf(shape,
-                lambda x: tc.clip_by_l2norm(x, 5),
+                lambda x: tc.api.clip_by_l2norm(x, 5),
                 lambda x: tf.clip_by_norm(x, 5))
 
     def test_softmax(self):
@@ -488,9 +435,9 @@ class EADTest(unittest.TestCase):
         if 'notvector.shape' in _test_data:
             shapes += _test_data['notvector.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, lambda arr: tc.softmax(arr,
+            self._common_unary_tf(shape, lambda arr: tc.api.softmax(arr,
                 offset=0, ndims=1), tf.nn.softmax)
-            self._common_unary_tf(shape, lambda arr: tc.softmax(arr,
+            self._common_unary_tf(shape, lambda arr: tc.api.softmax(arr,
                 offset=1, ndims=1), lambda arr: tf.nn.softmax(arr, axis=len(shape)-2))
 
     def test_relu(self):
@@ -498,21 +445,21 @@ class EADTest(unittest.TestCase):
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, tc.relu, tf.nn.relu)
+            self._common_unary_tf(shape, tc.api.relu, tf.nn.relu)
 
     def test_square(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, tc.square, tf.square)
+            self._common_unary_tf(shape, tc.api.square, tf.square)
 
     def test_cube(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
             shapes += _test_data['elementary.shape']
         for shape in shapes:
-            self._common_unary_tf(shape, tc.cube, lambda x: tf.pow(x, 3))
+            self._common_unary_tf(shape, tc.api.cube, lambda x: tf.pow(x, 3))
 
     def test_pow(self):
         shapes = [[3, 4, 5]]
@@ -524,7 +471,7 @@ class EADTest(unittest.TestCase):
                 return b * a ** (b - 1)
             return a ** b * np.log(a)
         for shape in shapes:
-            self._common_binary(shape, tc.pow, lambda x, y: x ** y, pow_der)
+            self._common_binary(shape, tc.api.pow, lambda x, y: x ** y, pow_der)
 
     def test_add(self):
         shapes = [[3, 4, 5]]
@@ -534,7 +481,7 @@ class EADTest(unittest.TestCase):
         add_der = lambda i, data: data1
         for shape in shapes:
             data1 = np.ones(shape, dtype=np.float32)
-            self._common_binary(shape, tc.add, generic_add, add_der)
+            self._common_binary(shape, tc.api.add, generic_add, add_der)
             self._common_binary(shape, generic_add, generic_add, add_der)
 
     def test_sub(self):
@@ -548,7 +495,7 @@ class EADTest(unittest.TestCase):
             return -data1
         for shape in shapes:
             data1 = np.ones(shape, dtype=np.float32)
-            self._common_binary(shape, tc.sub, generic_sub, sub_der)
+            self._common_binary(shape, tc.api.sub, generic_sub, sub_der)
             self._common_binary(shape, generic_sub, generic_sub, sub_der)
 
     def test_mul(self):
@@ -561,7 +508,7 @@ class EADTest(unittest.TestCase):
                 return data[1]
             return data[0]
         for shape in shapes:
-            self._common_binary(shape, tc.mul, generic_mul, mul_der)
+            self._common_binary(shape, tc.api.mul, generic_mul, mul_der)
             self._common_binary(shape, generic_mul, generic_mul, mul_der)
 
     def test_div(self):
@@ -575,7 +522,7 @@ class EADTest(unittest.TestCase):
                 return 1 / b
             return -a / (b * b)
         for shape in shapes:
-            self._common_binary(shape, tc.div, generic_div, div_der)
+            self._common_binary(shape, tc.api.div, generic_div, div_der)
             self._common_binary(shape, generic_div, generic_div, div_der)
 
     def test_min(self):
@@ -588,7 +535,7 @@ class EADTest(unittest.TestCase):
                 return (a <= b).astype(float)
             return (b <= a).astype(float)
         for shape in shapes:
-            self._common_binary(shape, tc.min, np.minimum, min_der)
+            self._common_binary(shape, tc.api.min, np.minimum, min_der)
 
     def test_max(self):
         shapes = [[3, 4, 5]]
@@ -600,7 +547,7 @@ class EADTest(unittest.TestCase):
                 return (a >= b).astype(float)
             return (b >= a).astype(float)
         for shape in shapes:
-            self._common_binary(shape, tc.max, np.maximum, max_der)
+            self._common_binary(shape, tc.api.max, np.maximum, max_der)
 
     def test_eq(self):
         shapes = [[3, 4, 5]]
@@ -611,7 +558,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: tc.eq(_round_helper(x), _round_helper(y)),
+                lambda x, y: tc.api.eq(_round_helper(x), _round_helper(y)),
                 np_eq, eq_der)
             self._common_binary(shape,
                 lambda x, y: _round_helper(x) == _round_helper(y),
@@ -626,7 +573,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: tc.neq(_round_helper(x), _round_helper(y)),
+                lambda x, y: tc.api.neq(_round_helper(x), _round_helper(y)),
                 np_neq, neq_der)
             self._common_binary(shape,
                 lambda x, y: _round_helper(x) != _round_helper(y),
@@ -641,7 +588,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: tc.lt(_round_helper(x), _round_helper(y)),
+                lambda x, y: tc.api.lt(_round_helper(x), _round_helper(y)),
                 np_lt, lt_der)
             self._common_binary(shape,
                 lambda x, y: _round_helper(x) < _round_helper(y),
@@ -656,7 +603,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_binary(shape,
-                lambda x, y: tc.gt(_round_helper(x), _round_helper(y)),
+                lambda x, y: tc.api.gt(_round_helper(x), _round_helper(y)),
                 np_gt, gt_der)
             self._common_binary(shape,
                 lambda x, y: _round_helper(x) > _round_helper(y),
@@ -668,7 +615,7 @@ class EADTest(unittest.TestCase):
             shapes += _test_data['elementary.shape']
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
-            self._common_unary(shape, tc.n_elems,
+            self._common_unary(shape, tc.api.n_elems,
                 lambda data: np.prod(data.shape),
                 lambda data: data0)
 
@@ -679,7 +626,7 @@ class EADTest(unittest.TestCase):
         for shape in shapes:
             data0 = np.zeros(shape, dtype=np.float32)
             self._common_unary(shape,
-                lambda x: tc.n_dims(x, 0),
+                lambda x: tc.api.n_dims(x, 0),
                 lambda data: data.shape[len(shape) - 1],
                 lambda data: data0)
 
@@ -689,47 +636,42 @@ class EADTest(unittest.TestCase):
         expected_out = np.array(list(data) * 3).reshape([3, 2])
         var = tc.variable(data, 'var')
 
-        out = tc.extend(var, 1, [3])
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
+        out = tc.api.extend(var, 1, [3])
 
         fout = out.get()
         self._array_close(expected_out, fout)
 
-        ex = tc.derive(out, var)
-        sess.track([ex])
-        sess.update()
+        ex = tc.derive(out, [var])[0]
 
         der = ex.get()
         self._array_close(np.array([3, 3]), der)
 
     def test_rsum_1d(self):
-        self._common_reduce_1d(tc.reduce_sum_1d, tf.reduce_sum)
+        self._common_reduce_1d(tc.api.reduce_sum_1d, tf.reduce_sum)
 
     def test_rprod_1d(self):
-        self._common_reduce_1d(tc.reduce_prod_1d, tf.reduce_prod)
+        self._common_reduce_1d(tc.api.reduce_prod_1d, tf.reduce_prod)
 
     def test_rmin_1d(self):
-        self._common_reduce_1d(tc.reduce_min_1d, tf.reduce_min)
+        self._common_reduce_1d(tc.api.reduce_min_1d, tf.reduce_min)
 
     def test_rmax_1d(self):
-        self._common_reduce_1d(tc.reduce_max_1d, tf.reduce_max)
+        self._common_reduce_1d(tc.api.reduce_max_1d, tf.reduce_max)
 
     def test_rsum(self):
-        self._common_reduce(tc.reduce_sum, tc.reduce_sum, tf.reduce_sum)
+        self._common_reduce(tc.api.reduce_sum, tc.api.reduce_sum, tf.reduce_sum)
 
     def test_rprod(self):
-        self._common_reduce(tc.reduce_prod, tc.reduce_prod, tf.reduce_prod)
+        self._common_reduce(tc.api.reduce_prod, tc.api.reduce_prod, tf.reduce_prod)
 
     def test_rmin(self):
-        self._common_reduce(tc.reduce_min, tc.reduce_min, tf.reduce_min)
+        self._common_reduce(tc.api.reduce_min, tc.api.reduce_min, tf.reduce_min)
 
     def test_rmax(self):
-        self._common_reduce(tc.reduce_max, tc.reduce_max, tf.reduce_max)
+        self._common_reduce(tc.api.reduce_max, tc.api.reduce_max, tf.reduce_max)
 
     def test_argmax(self):
-        self._common_argreduce(tc.argmax, tf.argmax)
+        self._common_argreduce(tc.api.argmax, tf.argmax)
 
     def test_rl2norm(self):
         shapes = [
@@ -744,12 +686,8 @@ class EADTest(unittest.TestCase):
             tfsess = tfSess()
             tfsess.run(tf_var.initializer)
 
-            out = tc.reduce_l2norm(var)
+            out = tc.api.reduce_l2norm(var)
             tf_out = tf.norm(tf_var)
-
-            sess = tc.Session()
-            sess.track([out])
-            sess.update()
 
             fout = out.get()
             tf_fout = np.array(tfsess.run(tf_out))
@@ -757,10 +695,7 @@ class EADTest(unittest.TestCase):
             self._array_close(tf_fout, fout)
 
             var2 = tc.variable(data, 'var2')
-            ex = tc.derive(out, var)
-            zero = tc.derive(out, var2)
-            sess.track([ex, zero])
-            sess.update()
+            ex, zero = tuple(tc.derive(out, [var, var2]))
 
             tf_grad = tf.gradients(tf_out, [tf_var])[0]
 
@@ -807,15 +742,12 @@ class EADTest(unittest.TestCase):
             tfsess.run(tf_var2.initializer)
 
             # regular matmul
-            out = tc.matmul(var, var2)
+            out = tc.api.matmul(var, var2)
 
             # tensorflow matmul
             tf_out = tf.matmul(tf_var, tf_var2)
 
             # evaluate regular matmul
-            sess = tc.Session()
-            sess.track([out])
-            sess.update()
             fout = out.get()
 
             # evaluate tensorflow matmul
@@ -826,12 +758,7 @@ class EADTest(unittest.TestCase):
 
             var3 = tc.variable(data, 'var3')
 
-            zero = tc.derive(out, var3)
-            ex = tc.derive(out, var)
-            ex2 = tc.derive(out, var2)
-
-            sess.track([zero, ex, ex2])
-            sess.update()
+            zero, ex, ex2 = tuple(tc.derive(out, [var3, var, var2]))
 
             # eval derivative of regular matmul
             rej = zero.get()
@@ -852,21 +779,17 @@ class EADTest(unittest.TestCase):
 
             if is_symmetric:
                 # test with symmetric property
-                both = tc.matmul(var, var)
+                both = tc.api.matmul(var, var)
 
                 tf_both = tf.matmul(tf_var, tf_var)
 
-                sess.track([both])
-                sess.update()
                 fboth = both.get()
 
                 tf_fboth = tfsess.run(tf_both)
 
                 self._array_close(tf_fboth, fboth)
 
-                ex3 = tc.derive(both, var)
-                sess.track([ex3])
-                sess.update()
+                ex3 = tc.derive(both, [var])[0]
 
                 der3 = ex3.get()
 
@@ -896,11 +819,7 @@ class EADTest(unittest.TestCase):
             tf_var = tf.Variable(tf_data)
             tf_kernel = tf.Variable(tf_kdata)
 
-            out = tc.convolution(var, vkernel, list(range(8)))
-
-            sess = tc.Session()
-            sess.track([out])
-            sess.update()
+            out = tc.api.convolution(var, vkernel, list(range(8)))
 
             fout = out.get()
 
@@ -915,12 +834,7 @@ class EADTest(unittest.TestCase):
             self._array_close(tf_fout, fout)
 
             var2 = tc.variable(data, 'var2')
-            zero = tc.derive(out, var2)
-            ex = tc.derive(out, var)
-            ex2 = tc.derive(out, vkernel)
-
-            sess.track([zero, ex, ex2])
-            sess.update()
+            zero, ex, ex2 = tuple(tc.derive(out, [var2, var, vkernel]))
 
             rej = zero.get()
             der = ex.get()
@@ -954,11 +868,7 @@ class EADTest(unittest.TestCase):
         tfimage = tf.Variable(data)
         tfkernel = tf.Variable(kdata)
 
-        out = tc.nn.conv2d(image, kernel)
-
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
+        out = tc.api.nn.conv2d(image, kernel)
 
         tfsess = tfSess()
 
@@ -971,12 +881,7 @@ class EADTest(unittest.TestCase):
         self._array_close(tfconv_output, conv_output)
 
         var2 = tc.variable(data, 'var2')
-        zero = tc.derive(out, var2)
-        ex = tc.derive(out, image)
-        ex2 = tc.derive(out, kernel)
-
-        sess.track([zero, ex, ex2])
-        sess.update()
+        zero, ex, ex2 = tuple(tc.derive(out, [var2, image, kernel]))
 
         rej = zero.get()
         der = ex.get()
@@ -998,10 +903,7 @@ class EADTest(unittest.TestCase):
         data = np.random.rand(*shape).astype(np.float32)
 
         image = tc.variable(data, 'image')
-        out = tc.nn.mean_pool2d(image, [1, 2])
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
+        out = tc.api.nn.mean_pool2d(image, [1, 2])
         output = out.get()
 
         tfsess = tfSess()
@@ -1013,11 +915,7 @@ class EADTest(unittest.TestCase):
         self._array_close(tfoutput, output)
 
         var2 = tc.variable(data, 'var2')
-        zero = tc.derive(out, var2)
-        ex = tc.derive(out, image)
-
-        sess.track([zero, ex])
-        sess.update()
+        zero, ex = tuple(tc.derive(out, [var2, image]))
 
         rej = zero.get()
         der = ex.get()
@@ -1035,10 +933,10 @@ class EADTest(unittest.TestCase):
         data = np.random.rand(*shape).astype(np.float32)
         image = tc.variable(data, 'image')
 
-        strideout = tc.stride(image, [1, 2, 2])
+        strideout = tc.api.stride(image, [1, 2, 2])
         self._array_eq([3, 4, 4, 2], strideout.shape())
 
-        ex = tc.derive(strideout, image)
+        ex = tc.derive(strideout, [image])[0]
         self._array_eq(shape, ex.shape())
 
     def test_maxpool(self):
@@ -1046,10 +944,7 @@ class EADTest(unittest.TestCase):
         data = np.random.rand(*shape).astype(np.float32)
 
         image = tc.variable(data, 'image')
-        out = tc.nn.max_pool2d(image, [1, 2])
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
+        out = tc.api.nn.max_pool2d(image, [1, 2])
         output = out.get()
 
         tfsess = tfSess()
@@ -1061,11 +956,7 @@ class EADTest(unittest.TestCase):
         self._array_close(tfoutput, output)
 
         var2 = tc.variable(data, 'var2')
-        zero = tc.derive(out, var2)
-        ex = tc.derive(out, image)
-
-        sess.track([zero, ex])
-        sess.update()
+        zero, ex = tuple(tc.derive(out, [var2, image]))
 
         rej = zero.get()
         der = ex.get()
@@ -1091,13 +982,8 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = tc.mul(tc.reduce_sum(var, offset=1, ndims=1), var2)
+        out = tc.api.mul(tc.api.reduce_sum(var, offset=1, ndims=1), var2)
         tf_out = tf.multiply(tf.reduce_sum(tf_var, 0), tf_var2)
-
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
 
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
@@ -1105,11 +991,8 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1127,13 +1010,8 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = tc.mul(tc.extend(var, 1, [3]), var2)
+        out = tc.api.mul(tc.api.extend(var, 1, [3]), var2)
         tf_out = tf_var * tf_var2
-
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
 
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
@@ -1141,11 +1019,8 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1163,13 +1038,8 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = tc.mul(tc.permute(var, [1,0]), var2)
+        out = tc.api.mul(tc.api.permute(var, [1,0]), var2)
         tf_out = tf.transpose(tf_var) * tf_var2
-
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
 
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
@@ -1177,11 +1047,8 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1203,13 +1070,8 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
 
-        out = tc.mul(tc.matmul(var, var2), var3)
+        out = tc.api.mul(tc.api.matmul(var, var2), var3)
         tf_out = tf.multiply(tf.matmul(tf_var, tf_var2), tf_var3)
-
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
 
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
@@ -1217,11 +1079,8 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1243,13 +1102,8 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var2.initializer)
         tfsess.run(tf_var3.initializer)
 
-        out = tc.matmul(tc.matmul(var, var2), var3)
+        out = tc.api.matmul(tc.api.matmul(var, var2), var3)
         tf_out = tf.matmul(tf.matmul(tf_var, tf_var2), tf_var3)
-
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
 
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
@@ -1257,11 +1111,8 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1279,13 +1130,8 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = tc.matmul(tc.reduce_sum(var, offset=2, ndims=1), var2)
+        out = tc.api.matmul(tc.api.reduce_sum(var, offset=2, ndims=1), var2)
         tf_out = tf.matmul(tf.reduce_sum(tf_var, 0), tf_var2)
-
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
 
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
@@ -1293,11 +1139,8 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1316,13 +1159,8 @@ class EADTest(unittest.TestCase):
         tfsess.run(tf_var.initializer)
         tfsess.run(tf_var2.initializer)
 
-        out = tc.matmul(tc.extend(var, 1, [10]), var2)
+        out = tc.api.matmul(tc.api.extend(var, 1, [10]), var2)
         tf_out = tf.matmul(tf_var * ones, tf_var2)
-
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
 
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
@@ -1330,11 +1168,8 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1353,15 +1188,10 @@ class EADTest(unittest.TestCase):
         tfsess = tfSess()
         tfsess.run(tf_var.initializer)
 
-        out = tc.matmul(
-            tc.extend(var, 1, [10]),
-            tc.permute(tc.extend(var, 1, [3]), [1, 0]))
+        out = tc.api.matmul(
+            tc.api.extend(var, 1, [10]),
+            tc.api.permute(tc.api.extend(var, 1, [3]), [1, 0]))
         tf_out = tf.matmul(tf_var * ones, tf.transpose(tf_var * ones2))
-
-        # evaluate regular matmul
-        sess = tc.Session()
-        sess.track([out])
-        sess.update()
 
         # evaluate tensorflow matmul
         tf_fout = tfsess.run(tf_out)
@@ -1369,11 +1199,8 @@ class EADTest(unittest.TestCase):
         # check regular matmul
         self._array_close(tf_fout, out.get())
 
-        ex = tc.derive(out, var)
+        ex = tc.derive(out, [var])[0]
         tf_grad = tf.gradients(tf_out, [tf_var])[0]
-
-        sess.track([ex])
-        sess.update()
 
         exdata = tfsess.run(tf_grad)
         self._array_close(exdata, ex.get())
@@ -1394,29 +1221,23 @@ class EADTest(unittest.TestCase):
         tf_b = tf.Variable(data2)
         tf_c = tf.Variable(data3)
 
-        d = tc.matmul(a, b)
-        e = tc.matmul(c, d)
-        f = tc.matmul(tc.transpose(d), tc.transpose(c))
-        dest = tc.matmul(e, f)
+        d = tc.api.matmul(a, b)
+        e = tc.api.matmul(c, d)
+        f = tc.api.matmul(tc.api.transpose(d), tc.api.transpose(c))
+        dest = tc.api.matmul(e, f)
 
         tf_d = tf.matmul(tf_a, tf_b)
         tf_e = tf.matmul(tf_c, tf_d)
         tf_f = tf.matmul(tf.transpose(tf_d), tf.transpose(tf_c))
         tf_dest = tf.matmul(tf_e, tf_f)
 
-        da = tc.derive(dest, a)
-        db = tc.derive(dest, b)
-        dc = tc.derive(dest, c)
+        da, db, dc = tuple(tc.derive(dest, [a, b, c]))
         tf_da, tf_db, tf_dc = tf.gradients(tf_dest, [tf_a, tf_b, tf_c])
 
         tfsess = tfSess()
         tfsess.run(tf_a.initializer)
         tfsess.run(tf_b.initializer)
         tfsess.run(tf_c.initializer)
-
-        sess = tc.Session()
-        sess.track([dest, da, db, dc])
-        sess.update()
 
         exa = tfsess.run(tf_da)
         exb = tfsess.run(tf_db)

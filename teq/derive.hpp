@@ -20,7 +20,7 @@ struct iDerivativeFuncs
 	/// Let op be functor F with arguments args,
 	/// X is the ith argument of F, and supgrad be defined as dG/dF
 	/// where G is some super-functor using F
-	/// Return derivative G wrt to arg x by applying chain rule
+	/// Return derivative G wrt to arg X by applying chain rule
 	virtual TensptrT lderive (FuncptrT op,
 		TensptrT supgrad, size_t i) const = 0;
 
@@ -44,7 +44,8 @@ struct iDerivativeFuncs
 /// This top-down approach updates tensor shape information such
 /// that output derivative dF/dx has the shape of x
 /// Return derivative of root with respect to target
-TensptrT derive (TensptrT root, TensptrT target, iDerivativeFuncs& funcs);
+TensptrsT derive (TensptrT root, const TensptrsT& targets,
+	const iDerivativeFuncs& funcs);
 
 }
 

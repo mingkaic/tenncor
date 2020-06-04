@@ -127,21 +127,21 @@ for matrix_dim in matrix_dims:
     batch_size = 1
 
     # regular mlp
-    brain = tc.layer.link([
-        tc.dense([n_in], [matrix_dim],
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
-        tc.layer.bind(tc.sigmoid),
-        tc.dense([matrix_dim], [n_out],
-            weight_init=tc.unif_xavier_init(),
-            bias_init=tc.zero_init()),
-        tc.layer.bind(tc.sigmoid),
+    brain = tc.api.layer.link([
+        tc.api.dense([n_in], [matrix_dim],
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.bind(tc.api.sigmoid),
+        tc.api.dense([matrix_dim], [n_out],
+            weight_init=tc.api.layer.unif_xavier_init(),
+            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.bind(tc.api.sigmoid),
     ])
 
     invar = tc.variable(np.zeros([batch_size, n_in], dtype=float), 'in')
     out = brain.connect(invar)
     expected_out = tc.variable(np.zeros([batch_size, n_out], dtype=float), 'expected_out')
-    err = tc.square(expected_out - out)
+    err = tc.api.square(expected_out - out)
 
     # tensorflow mlp
     tf_brain = MLP([n_in], [matrix_dim, n_out], [tf.sigmoid, tf.sigmoid], scope='brain_' + str(matrix_dim))
@@ -151,32 +151,27 @@ for matrix_dim in matrix_dims:
     tf_expected_out = tf.compat.v1.placeholder(tf.float32, [batch_size, n_out], name='tf_expected_out')
     tf_err = tf.square(tf_expected_out - tf_out)
 
-    sess = tc.Session()
-    sess.track([err])
-
-    tfsess = tf.compat.v1.Session()
-    tfsess.run(tf.compat.v1.global_variables_initializer())
+    sess = tf.compat.v1.Session()
+    sess.run(tf.compat.v1.global_variables_initializer())
 
     test_batch = batch_generate(n_in, batch_size)
     test_batch_out = avgevry2(test_batch)
     test_batch = test_batch.reshape([batch_size, n_in])
     test_batch_out = test_batch_out.reshape([batch_size, n_out])
 
+    # tenncor mlp
     start = time.time()
-
     invar.assign(test_batch)
     expected_out.assign(test_batch_out)
-    sess.update()
-
+    err.get()
     tc_dur = time.time() - start
 
+    # tensorflow mlp
     start = time.time()
-
-    tfsess.run(tf_err, {
+    sess.run(tf_err, {
         tf_invar: test_batch,
         tf_expected_out: test_batch_out
     })
-
     tf_dur = time.time() - start
 
     tc_durs.append(tc_dur)

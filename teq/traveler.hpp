@@ -76,7 +76,7 @@ struct GraphStat final : public iTraveler
 		{
 			return;
 		}
-		auto children = func.get_children();
+		auto children = func.get_dependencies();
 		size_t nchildren = children.size();
 		std::vector<size_t> max_heights;
 		std::vector<size_t> min_heights;
@@ -112,7 +112,9 @@ struct GraphStat final : public iTraveler
 
 	const estd::NumRange<size_t>& at (teq::iTensor* tens) const
 	{
-		return graphsize_.at(tens);
+		return estd::must_getf(graphsize_, tens,
+			"failed to find range for %s",
+			tens->to_string().c_str());
 	}
 
 	// Maximum depth of the subtree of mapped tensors
@@ -124,30 +126,32 @@ struct GraphIndex final : public iTraveler
 	/// Implementation of iTraveler
 	void visit (iLeaf& leaf) override
 	{
-		indexes_.emplace(&leaf, indexes_.size());
+		indices_.emplace(&leaf, indices_.size());
 	}
 
 	/// Implementation of iTraveler
 	void visit (iFunctor& func) override
 	{
-		if (estd::has(indexes_, &func))
+		if (estd::has(indices_, &func))
 		{
 			return;
 		}
-		auto children = func.get_children();
+		auto children = func.get_dependencies();
 		for (auto child : children)
 		{
 			child->accept(*this);
 		}
-		indexes_.emplace(&func, indexes_.size());
+		indices_.emplace(&func, indices_.size());
 	}
 
 	const size_t& at (teq::iTensor* tens) const
 	{
-		return indexes_.at(tens);
+		return estd::must_getf(indices_, tens,
+			"failed to find index for %s",
+			tens->to_string().c_str());
 	}
 
-	TensMapT<size_t> indexes_;
+	TensMapT<size_t> indices_;
 };
 
 struct PathDirection
@@ -181,7 +185,14 @@ struct PathFinder final : public iOnceTraveler
 
 	const PathNodeT& at (teq::iTensor* tens) const
 	{
-		return roadmap_.at(tens);
+		return estd::must_getf(roadmap_, tens,
+			"failed to find road node for %s",
+			tens->to_string().c_str());
+	}
+
+	const TensMapT<std::string>& get_targets (void) const
+	{
+		return targets_;
 	}
 
 	/// Map of parent to child indices that lead to target tensor
@@ -194,7 +205,7 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override
 	{
-		auto children = func.get_children();
+		auto children = func.get_dependencies();
 		size_t n = children.size();
 		PathNodeT nexts;
 		for (size_t i = 0; i < n; ++i)
@@ -210,7 +221,7 @@ private:
 				tens->accept(*this);
 				if (estd::has(roadmap_, tens.get()))
 				{
-					auto& subnode = roadmap_.at(tens.get());
+					auto& subnode = at(tens.get());
 					for (auto& spair : subnode)
 					{
 						nexts[spair.first].children_.push_back(i);
@@ -235,7 +246,7 @@ private:
 					tens->accept(*this);
 					if (estd::has(roadmap_, tens.get()))
 					{
-						auto& subnode = roadmap_.at(tens.get());
+						auto& subnode = at(tens.get());
 						for (auto& spair : subnode)
 						{
 							nexts[spair.first].attrs_.push_back(attr);
@@ -273,7 +284,7 @@ struct ParentFinder final : public iTraveler
 		{
 			return;
 		}
-		auto children = func.get_children();
+		auto children = func.get_dependencies();
 		for (size_t i = 0, n = children.size(); i < n; ++i)
 		{
 			auto tens = children[i];
@@ -285,7 +296,9 @@ struct ParentFinder final : public iTraveler
 
 	const ParentMapT& at (teq::iTensor* tens) const
 	{
-		return parents_.at(tens);
+		return estd::must_getf(parents_, tens,
+			"failed to find parents for %s",
+			tens->to_string().c_str());
 	}
 
 	/// Tracks child to parents relationship
@@ -325,7 +338,7 @@ private:
 		{
 			return;
 		}
-		auto children = func.get_children();
+		auto children = func.get_dependencies();
 		auto fcpy = func.clone();
 		for (size_t i = 0, n = children.size(); i < n; ++i)
 		{

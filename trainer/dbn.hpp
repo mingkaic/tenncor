@@ -11,23 +11,22 @@ namespace trainer
 template <typename T>
 struct DBNTrainer final
 {
-	DBNTrainer (const std::vector<layr::RBMLayer<T>>& rbms,
-		eteq::ETensor<T> dense, teq::RankT softmax_dim,
-		teq::DimT batch_size, T pretrain_lr = 0.1,
-		T train_lr = 0.1, size_t cdk = 10,
-		T l2_reg = 0., T lr_scaling = 0.95) :
+	DBNTrainer (const std::vector<layr::RBMLayer<T>>& rbms, eteq::ETensor<T> dense,
+		teq::RankT softmax_dim, teq::DimT batch_size,
+		T pretrain_lr = 0.1, T train_lr = 0.1,
+		size_t cdk = 10, T l2_reg = 0., T lr_scaling = 0.95,
+		eteq::ECtxptrT context = eteq::global_context()) :
 		nlayers_(rbms.size()),
 		batch_size_(batch_size),
-		pretrain_sess_(eigen::default_device()),
-		train_sess_(eigen::default_device())
+		context_(context)
 	{
 		input_size_ = eteq::get_input(rbms.front().fwd_)->shape().at(0);
 		output_size_ = dense->shape().at(0);
 
 		teq::Shape inshape({(teq::DimT) input_size_, batch_size});
 		teq::Shape outshape({(teq::DimT) output_size_, batch_size});
-		trainx_ = eteq::make_variable_scalar<T>(0, inshape, "trainx");
-		trainy_ = eteq::make_variable_scalar<T>(0, outshape, "trainy");
+		trainx_ = eteq::make_variable_scalar<T>(0, inshape, "trainx", context);
+		trainy_ = eteq::make_variable_scalar<T>(0, outshape, "trainy", context);
 
 		// setups:
 		// general rbm sampling
@@ -37,8 +36,10 @@ struct DBNTrainer final
 			sample_pipes_.push_back(sample_v2h(rbms[i], sample_pipes_[i]));
 		}
 
+		TenncorAPI<T> api(context);
+
 		// layer-wise rbm reconstruction
-		teq::TensptrsT to_track;
+		teq::TensptrSetT to_track;
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			auto& rbm = rbms[i];
@@ -57,29 +58,30 @@ struct DBNTrainer final
 			}
 
 			CDChainIO<T> io(rx, ry);
-			layr::VarMapT<T> varerrs = cd_grad_approx(io, rbm, cdk); // todo: add persistent option
+			layr::VarErrsT<T> varerrs = cd_grad_approx<T>(
+				io, rbm, cdk, nullptr, context); // todo: add persistent option
 			teq::TensSetT assigns;
 			for (auto varerr : varerrs)
 			{
 				// if var is a weight or bias add assign with learning rate
 				// otherwise assign directly
 				auto assign = estd::has(to_learn, varerr.first.get()) ?
-					tenncor::assign_add(eteq::EVariable<T>(varerr.first), pretrain_lr * varerr.second) :
-					tenncor::assign(eteq::EVariable<T>(varerr.first), varerr.second);
+					api.assign_add(eteq::EVariable<T>(varerr.first, context),
+						pretrain_lr * varerr.second) :
+					api.assign(eteq::EVariable<T>(varerr.first, context), varerr.second);
 				assigns.emplace(assign.get());
-				to_track.push_back(assign);
+				to_track.emplace(assign);
 			}
 			rupdates_.push_back(assigns);
 
-			auto vhv = tenncor::sigmoid(rbm.backward_connect(
-				tenncor::sigmoid(rbm.connect(rx))));
-			auto rcost = -tenncor::reduce_mean(tenncor::reduce_sum_1d(
-				rx * tenncor::log(vhv) + ((T) 1 - rx) *
-				tenncor::log((T) 1 - vhv), 0));
+			auto vhv = api.sigmoid(rbm.backward_connect(
+				api.sigmoid(rbm.connect(rx))));
+			auto rcost = -api.reduce_mean(api.reduce_sum_1d(
+				rx * api.log(vhv) + ((T) 1 - rx) * api.log((T) 1 - vhv), 0));
 			rcosts_.push_back(rcost);
-			to_track.push_back(rcost);
+			to_track.emplace(rcost);
 		}
-		to_track.push_back(sample_pipes_.back());
+		to_track.emplace(sample_pipes_.back());
 		pretrain_sess_.track(to_track);
 
 		// logistic layer training
@@ -87,34 +89,34 @@ struct DBNTrainer final
 		auto contents = eteq::get_storage(dense);
 		eteq::VarptrT<T> w = contents[0];
 		eteq::VarptrT<T> b = contents[1];
-		auto final_out = tenncor::softmax(eteq::connect(dense, sample_pipes_.back()), softmax_dim, 1);
+		auto final_out = api.softmax(eteq::connect(
+			dense, sample_pipes_.back()), softmax_dim, 1);
 		auto diff = trainy_ - final_out;
-		auto l2_regularized = tenncor::matmul(tenncor::transpose(
-			sample_pipes_.back()), diff) - l2_reg * eteq::ETensor<T>(w);
+		auto l2_regularized = api.matmul(api.transpose(
+			sample_pipes_.back()), diff) - l2_reg * eteq::ETensor<T>(w, context);
 
 		auto wshape = w->shape();
 		auto bshape = b->shape();
 		auto tlr_placeholder = eteq::make_variable_scalar<T>(
-			train_lr, teq::Shape(), "learning_rate");
+			train_lr, teq::Shape(), "learning_rate", context);
 		auto dw =
-			tenncor::extend(tlr_placeholder, 0,
+			api.extend(tlr_placeholder, 0,
 				std::vector<teq::DimT>(wshape.begin(), wshape.end())) *
 			l2_regularized;
 		auto db =
-			tenncor::extend(tlr_placeholder, 0,
+			api.extend(tlr_placeholder, 0,
 				std::vector<teq::DimT>(bshape.begin(), bshape.end())) *
-			tenncor::reduce_mean_1d(diff, 1);
+			api.reduce_mean_1d(diff, 1);
 		auto dtrain_lr = tlr_placeholder * lr_scaling;
 
-		tupdate_ = tenncor::depends(tenncor::assign(tlr_placeholder, dtrain_lr),
-		eteq::ETensorsT<T>{
-			tenncor::assign_add(eteq::EVariable<T>(w), dw),
-			tenncor::assign_add(eteq::EVariable<T>(b), db),
-		});
-		tcost_ = -tenncor::reduce_mean(
-			tenncor::reduce_sum_1d(trainy_ * tenncor::log(final_out) +
-			((T) 1 - trainy_) * tenncor::log((T) 1 - final_out), 0));
-
+		tupdate_ = api.depends(api.assign(tlr_placeholder, dtrain_lr),
+			eteq::ETensorsT<T>{
+				api.assign_add(eteq::EVariable<T>(w, context), dw),
+				api.assign_add(eteq::EVariable<T>(b, context), db),
+			});
+		tcost_ = -api.reduce_mean(
+			api.reduce_sum_1d(trainy_ * api.log(final_out) +
+			((T) 1 - trainy_) * api.log((T) 1 - final_out), 0));
 		train_sess_.track({
 			(teq::TensptrT) sample_pipes_.back(),
 			(teq::TensptrT) tupdate_,
@@ -126,8 +128,9 @@ struct DBNTrainer final
 		std::function<void(size_t,size_t)> logger =
 			std::function<void(size_t,size_t)>())
 	{
-		trainx_->assign(train_in, pretrain_sess_);
+		trainx_->assign(train_in, context_);
 
+		eigen::Device device;
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			// train rbm layers (reconstruction) setup
@@ -137,7 +140,7 @@ struct DBNTrainer final
 			for (size_t epoch = 0; epoch < nepochs; ++epoch)
 			{
 				// train rbm layers (reconstruction)
-				pretrain_sess_.update_target(updates, {to_ignore});
+				pretrain_sess_.update_target(device, updates, {to_ignore});
 				if (logger)
 				{
 					logger(epoch, i);
@@ -146,7 +149,7 @@ struct DBNTrainer final
 
 			if (i < nlayers_ - 1)
 			{
-				pretrain_sess_.update_target(
+				pretrain_sess_.update_target(device,
 					{sample_pipes_[i + 1].get()}, {to_ignore});
 			}
 		}
@@ -156,19 +159,20 @@ struct DBNTrainer final
 		size_t nepochs = 100, std::function<void(size_t)> logger =
 			std::function<void(size_t)>())
 	{
-		trainx_->assign(train_in, train_sess_);
-		trainy_->assign(train_out, train_sess_);
+		trainx_->assign(train_in, context_);
+		trainy_->assign(train_out, context_);
 
+		eigen::Device device;
 		// assert len(self.sample_pipes) > 1, since self.n_layers > 0
 		auto to_ignore = sample_pipes_.back().get();
 		auto prev_ignore = sample_pipes_[nlayers_ - 1].get();
 		assert(static_cast<eteq::Functor<T>*>(prev_ignore)->has_data());
-		train_sess_.update_target({to_ignore}, {prev_ignore});
+		train_sess_.update_target(device, {to_ignore}, {prev_ignore});
 
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)
 		{
 			// train log layer
-			train_sess_.update_target({tupdate_.get()}, {to_ignore});
+			train_sess_.update_target(device, {tupdate_.get()}, {to_ignore});
 			if (logger)
 			{
 				logger(epoch);
@@ -178,15 +182,17 @@ struct DBNTrainer final
 
 	T reconstruction_cost (size_t layer)
 	{
+		eigen::Device device;
 		auto rcost = rcosts_[layer];
-		pretrain_sess_.update_target(
+		pretrain_sess_.update_target(device,
 			{rcost.get()}, {sample_pipes_[layer].get()});
 		return *((T*) rcost->device().data());
 	}
 
 	T training_cost (void)
 	{
-		train_sess_.update_target(
+		eigen::Device device;
+		train_sess_.update_target(device,
 			{tcost_.get()}, {sample_pipes_.back().get()});
 		return *((T*) tcost_->device().data());
 	}
@@ -212,6 +218,8 @@ struct DBNTrainer final
 	eteq::ETensorsT<T> rcosts_;
 
 	eteq::ETensor<T> tcost_;
+
+	eteq::ECtxptrT context_;
 
 	teq::Session pretrain_sess_;
 

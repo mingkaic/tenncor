@@ -6,13 +6,12 @@
 
 #include "exam/exam.hpp"
 
-#include "eteq/depend.hpp"
-
 #include "generated/api.hpp"
 
 
 TEST(DEPEND, Chaining)
 {
+	eigen::Device device;
 	// tensor operation
 	std::vector<teq::DimT> slist = {2, 3, 4};
 	std::vector<double> data = {
@@ -35,40 +34,39 @@ TEST(DEPEND, Chaining)
 	auto op = src + src2;
 	auto happen_first = src * src2;
 
-	EXPECT_FATAL(tenncor::depends(op, eteq::ETensorsT<double>{}), "cannot depend on nothing");
+	EXPECT_FATAL(tenncor<double>().depends(op, eteq::ETensorsT<double>{}), "cannot depend on nothing");
 
-	auto depped = tenncor::depends(op, {happen_first});
+	auto depped = tenncor<double>().depends(op, {happen_first});
 
 	auto fdep = dynamic_cast<teq::iFunctor*>(depped.get());
 	ASSERT_NE(nullptr, fdep);
 	auto attrs = fdep->ls_attrs();
-	EXPECT_EQ(0, attrs.size());
-	EXPECT_EQ(nullptr, fdep->get_attr("anything"));
-	{
-		auto num = std::make_unique<marsh::Number<double>>(3);
-		fdep->add_attr("anything", std::move(num));
-	}
-	EXPECT_NE(nullptr, fdep->get_attr("anything"));
-	fdep->rm_attr("anything");
-	EXPECT_EQ(nullptr, fdep->get_attr("anything"));
+	EXPECT_EQ(1, attrs.size());
+	auto deps_attr = dynamic_cast<teq::TensArrayT*>(
+		fdep->get_attr(eteq::dependency_key));
+	EXPECT_NE(nullptr, deps_attr);
+	EXPECT_EQ(1, deps_attr->size());
 
-	auto children = fdep->get_children();
+	auto children = fdep->get_args();
 	ASSERT_EQ(2, children.size());
-	EXPECT_EQ(op.get(), children[0].get());
-	EXPECT_EQ(happen_first.get(), children[1].get());
 
-	EXPECT_FATAL(fdep->update_child(src3, 0), "cannot reassign non-observable dependee of depend (index 0)");
+	auto depends = fdep->get_dependencies();
+	ASSERT_EQ(3, depends.size());
+	EXPECT_EQ(children[0].get(), depends[0].get());
+	EXPECT_EQ(children[1].get(), depends[1].get());
+	EXPECT_EQ(happen_first.get(), depends[2].get());
 
 	eteq::EVariable<double> buffer = eteq::make_variable<double>(data.data(), shape);
-	auto ass = tenncor::assign(buffer, happen_first);
+	auto ass = tenncor<double>().assign(buffer, happen_first);
 
 	static_cast<teq::iFunctor*>(op.get())->update_child(buffer, 0);
-	fdep->update_child(ass, 1); // assign replaces happen_first
+	// assign replaces happen_first
+	fdep->update_child(ass, 2);
 
 	// assign is an indirect dependency of op
-	auto session = eigen::get_session();
+	teq::Session session;
 	session.track({depped});
-	session.update();
+	session.update(device);
 	{
 		auto gotshape = depped->shape();
 		ASSERT_ARREQ(shape, gotshape);
