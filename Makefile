@@ -108,14 +108,18 @@ rnn_model_o2j: models/rnn.onnx
 	mv /tmp/rnn.json models
 
 .PHONY: lstm_model_o2j
-lstm_model_o2j: models/lstm.onnx
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/lstm.onnx --write /tmp/lstm.json
-	mv /tmp/lstm.json models
+lstm_model_o2j: models/fast_lstm.onnx models/latin_lstm.onnx
+	bazel run //onnx:inspector -- --read ${CURDIR}/models/fast_lstm.onnx --write /tmp/fast_lstm.json
+	mv /tmp/fast_lstm.json models
+	bazel run //onnx:inspector -- --read ${CURDIR}/models/latin_lstm.onnx --write /tmp/latin_lstm.json
+	mv /tmp/latin_lstm.json models
 
 .PHONY: gru_model_o2j
-gru_model_o2j: models/gru.onnx
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/gru.onnx --write /tmp/gru.json
-	mv /tmp/gru.json models
+gru_model_o2j: models/fast_gru.onnx models/latin_gru.onnx
+	bazel run //onnx:inspector -- --read ${CURDIR}/models/fast_gru.onnx --write /tmp/fast_gru.json
+	mv /tmp/fast_gru.json models
+	bazel run //onnx:inspector -- --read ${CURDIR}/models/latin_gru.onnx --write /tmp/latin_gru.json
+	mv /tmp/latin_gru.json models
 
 
 .PHONY: json2onnx
@@ -157,14 +161,18 @@ rnn_model_j2o: models/rnn.json
 	mv /tmp/rnn.onnx models
 
 .PHONY: lstm_model_j2o
-lstm_model_j2o: models/lstm.json
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/lstm.json --write /tmp/lstm.onnx
-	mv /tmp/lstm.onnx models
+lstm_model_j2o: models/fast_lstm.json model/latin_lstm.json
+	bazel run //onnx:inspector -- --read ${CURDIR}/models/fast_lstm.json --write /tmp/fast_lstm.onnx
+	mv /tmp/fast_lstm.onnx models
+	bazel run //onnx:inspector -- --read ${CURDIR}/models/latin_lstm.json --write /tmp/latin_lstm.onnx
+	mv /tmp/latin_lstm.onnx models
 
 .PHONY: gru_model_j2o
-gru_model_j2o: models/gru.json
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/gru.json --write /tmp/gru.onnx
-	mv /tmp/gru.onnx models
+gru_model_j2o: models/fast_gru.json model/latin_gru.json
+	bazel run //onnx:inspector -- --read ${CURDIR}/models/fast_gru.json --write /tmp/fast_gru.onnx
+	mv /tmp/fast_gru.onnx models
+	bazel run //onnx:inspector -- --read ${CURDIR}/models/latin_gru.json --write /tmp/latin_gru.onnx
+	mv /tmp/latin_gru.onnx models
 
 
 .PHONY: cov_clean

@@ -30,12 +30,12 @@ if [[ "$MODE" == "fast" ]]; then
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //gen:ptest;
 elif [[ "$MODE" == "slow" ]]; then
-	bzl_coverage //eteq:ctest //layr:test;
+	bzl_coverage //eteq:ctest //layr:ctest;
 
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest //layr:ptest;
 else
-	bzl_coverage //eigen:test //eteq:ctest //layr:test //marsh:test \
+	bzl_coverage //eigen:test //eteq:ctest //layr:ctest //marsh:test \
 	//onnx:test //opt:test //perf:test //query:test //teq:test;
 
 	bazel test --run_under='valgrind --leak-check=full' \
