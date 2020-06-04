@@ -7,6 +7,7 @@
 /// to allow rapidly update the tracked nodes
 ///
 
+#include <cassert>
 #include <list>
 
 #include "teq/traveler.hpp"

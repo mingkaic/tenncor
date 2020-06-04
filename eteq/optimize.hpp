@@ -25,9 +25,8 @@ const size_t convert_round_limit = 50;
 using GenCstF = std::function<void(opt::OptRulesT&,const opt::GraphInfo&)>;
 
 template <typename T>
-teq::TensptrsT optimize (teq::TensptrsT roots, std::istream& rulestr,
-	GenCstF gen_cst = [](opt::OptRulesT& rule, const opt::GraphInfo& graph)
-	{ generate_cstrules<T>(rule, graph); })
+teq::TensptrsT optimize (teq::TensptrsT roots,
+	std::istream& rulestr, GenCstF gen_cst)
 {
 	opt::OptRulesT rules;
 	opt::GraphInfo graph(roots);
@@ -46,6 +45,14 @@ teq::TensptrsT optimize (teq::TensptrsT roots, std::istream& rulestr,
 	}
 	// apply new roots
 	return graph.get_roots();
+}
+
+template <typename T>
+teq::TensptrsT optimize (teq::TensptrsT roots, std::istream& rulestr)
+{
+	return optimize<T>(roots, rulestr,
+		[](opt::OptRulesT& rule, const opt::GraphInfo& graph)
+		{ generate_cstrules<T>(rule, graph); });
 }
 
 /// Apply optimization to graph roots tracked by session
