@@ -48,9 +48,10 @@ def vec_sim(embedding, word, top_n):
     v1 = embedding.get_vec(word)
     word_sim = {}
 
-    for i, v2 in enumerate(embedding):
+    for i in range(len(embedding)):
+        v2 = embedding[i]
         # Find the similary score for each word in vocab
-        word = index_word[i]
+        word = embedding.idx2word[i]
         word_sim[word] = vdistance(v1, v2)
 
     words_sorted = sorted(word_sim.items(), key=lambda kv: kv[1], reverse=True)
