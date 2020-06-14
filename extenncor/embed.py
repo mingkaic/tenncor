@@ -8,13 +8,9 @@ class Embedding(object):
         self.embedding = tc.api.layer.dense([nwords], [vecsize],
             weight_init=lambda shape, weight: vweight,
             bias_init=None)
-        self.model = tc.api.layer.link([
-            self.embedding,
-            tc.api.layer.dense([vecsize], [nwords],
-                weight_init=lambda shape, weight: wweight,
-                bias_init=None),
-            tc.api.layer.bind(tc.api.softmax),
-        ])
+        self.exbedding = tc.api.layer.dense([vecsize], [nwords],
+            weight_init=lambda shape, weight: wweight,
+            bias_init=None)
         self.weight = vweight
         self.idx2word = words
         self.word2idx = dict([(word, i) for i, word in enumerate(words)])

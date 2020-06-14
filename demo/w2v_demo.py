@@ -74,7 +74,11 @@ nwords = len(index_word)
 # getW1 - shape (9x10) and getW2 - shape (10x9)
 
 embedding = make_embedding(index_word, n)
-model = embedding.model
+model = tc.api.layer.link([
+    embedding.embedding,
+    embedding.exbedding,
+    tc.api.layer.bind(tc.api.softmax),
+])
 
 training_data = generate_training_data(embedding, corpus)
 

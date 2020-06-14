@@ -4,6 +4,7 @@
 #include <boost/functional/hash.hpp>
 
 #include "estd/algorithm.hpp"
+#include "estd/hashlist.hpp"
 
 #include "eigen/generated/opcode.hpp"
 
@@ -13,7 +14,9 @@
 namespace query
 {
 
-using SindexT = std::unordered_map<std::string,teq::TensT>;
+using TensListT = estd::HashList<teq::iTensor*>;
+
+using SindexT = std::unordered_map<std::string,TensListT>;
 
 struct Query;
 
@@ -129,7 +132,7 @@ struct Query final : public teq::iOnceTraveler
 				break;
 			case Node::ValCase::kOp:
 			{
-				teq::TensT nodes;
+				TensListT nodes;
 				if (estd::get(nodes, sindex_, cond.op().opname()))
 				{
 					paths.reserve(nodes.size());
@@ -158,6 +161,20 @@ struct Query final : public teq::iOnceTraveler
 			}
 		}
 		return results;
+	}
+
+	void erase (teq::iTensor* tens)
+	{
+		visited_.erase(tens);
+		auto opname = tens->to_string();
+		if (estd::has(sindex_, opname))
+		{
+			sindex_[opname].erase(tens);
+			if (sindex_[opname].empty())
+			{
+				sindex_.erase(opname);
+			}
+		}
 	}
 
 	SindexT sindex_;
