@@ -3,7 +3,7 @@
 
 #include "teq/logs.hpp"
 
-// #include "dbg/psess/emit/emitter.hpp"
+#include "dbg/psess/emit/emitter.hpp"
 #include "dbg/psess/stats/inspect.hpp"
 
 #include "generated/pyapi.hpp"
@@ -31,34 +31,34 @@ PYBIND11_MODULE(psess, m)
 				self.plugins_.push_back(plugin);
 			});
 
-	// py::class_<emit::Emitter,std::shared_ptr<emit::Emitter>>
-	// emitter(m, "Emitter", plugin);
+	py::class_<emit::Emitter,std::shared_ptr<emit::Emitter>>
+	emitter(m, "Emitter", plugin);
 
-	// emitter
-	// 	.def(py::init([](std::string host, size_t request_duration, size_t stream_duration)
-	// 		{
-	// 			return std::make_shared<emit::Emitter>(host,
-	// 				emit::ClientConfig{
-	// 					std::chrono::milliseconds(request_duration),
-	// 					std::chrono::milliseconds(stream_duration),
-	// 				});
-	// 		}),
-	// 		py::arg("host") = "localhost:50051",
-	// 		py::arg("request_dur") = 1000,
-	// 		py::arg("stream_dur") = 30000)
-	// 	.def("join",
-	// 		[](emit::Emitter& self)
-	// 		{
-	// 			self.join();
-	// 		},
-	// 		"Wait until session finishes sends all requests")
-	// 	.def("stop",
-	// 		[](emit::Emitter& self)
-	// 		{
-	// 			self.stop();
-	// 		},
-	// 		"Inform session requests to stop their tasks "
-	// 		"(requests will attempt to wrap up call before terminating)");
+	emitter
+		.def(py::init([](std::string host, size_t request_duration, size_t stream_duration)
+			{
+				return std::make_shared<emit::Emitter>(host,
+					emit::ClientConfig{
+						std::chrono::milliseconds(request_duration),
+						std::chrono::milliseconds(stream_duration),
+					});
+			}),
+			py::arg("host") = "localhost:50051",
+			py::arg("request_dur") = 1000,
+			py::arg("stream_dur") = 30000)
+		.def("join",
+			[](emit::Emitter& self)
+			{
+				self.join();
+			},
+			"Wait until session finishes sends all requests")
+		.def("stop",
+			[](emit::Emitter& self)
+			{
+				self.stop();
+			},
+			"Inform session requests to stop their tasks "
+			"(requests will attempt to wrap up call before terminating)");
 
 	py::class_<stats::Inspector,std::shared_ptr<stats::Inspector>>
 	inspector(m, "Inspector", plugin);

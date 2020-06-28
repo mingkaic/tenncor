@@ -7,9 +7,9 @@
 #include "teq/logs.hpp"
 #include "teq/teq.hpp"
 
-#include "dbg/print/teq_csv.hpp"
+#include "dbg/print/print.hpp"
 
-#include "eteq/etens.hpp"
+#include "eteq/eteq.hpp"
 
 #include "generated/pyapi.hpp"
 

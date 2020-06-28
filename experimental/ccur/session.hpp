@@ -100,7 +100,8 @@ struct Session final : public teq::iSession
 	}
 
 	/// Implementation of iSession
-	void update (teq::TensSetT ignored = {}) override
+	void update (teq::iDevice& device,
+		const teq::TensSetT& ignored = {}) override
 	{
 		size_t nthreads = requirements_.size();
 		std::vector<LSessReqsT> indep_requirements(nthreads);
@@ -183,8 +184,9 @@ struct Session final : public teq::iSession
 	}
 
 	/// Implementation of iSession
-	void update_target (teq::TensSetT target,
-		teq::TensSetT ignored = {}) override
+	void update_target (teq::iDevice& device,
+		const teq::TensSetT& target,
+		const teq::TensSetT& ignored = {}) override
 	{
 		size_t nthreads = requirements_.size();
 		std::vector<LSessReqsT> indep_requirements(nthreads);

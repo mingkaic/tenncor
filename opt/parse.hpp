@@ -2,7 +2,6 @@
 #ifndef OPT_PARSE_HPP
 #define OPT_PARSE_HPP
 
-#include "opt/target.hpp"
 #include "opt/rule.hpp"
 #include "opt/graph.hpp"
 

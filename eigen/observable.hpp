@@ -2,13 +2,6 @@
 #ifndef EIGEN_OBSERVABLE_HPP
 #define EIGEN_OBSERVABLE_HPP
 
-#include <unordered_set>
-
-#include "marsh/objs.hpp"
-
-#include "teq/ileaf.hpp"
-#include "teq/ifunctor.hpp"
-
 #include "eigen/emeta.hpp"
 
 namespace eigen

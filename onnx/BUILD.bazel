@@ -1,6 +1,6 @@
 licenses(["notice"])
 
-load("@rules_proto//proto:defs.bzl", "proto_library")
+load("//third_party:tools/protobuf.bzl", "cc_proto_library")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -23,6 +23,11 @@ filegroup(
     visibility = ["//visibility:private"],
 )
 
+filegroup(
+    name = "proto",
+    srcs = ["onnx.proto"],
+)
+
 ######### LIBRARY #########
 
 cc_library(
@@ -38,17 +43,18 @@ cc_library(
     ],
 )
 
-# cc_proto_library(
-#     name = "onnx_cc_proto",
-#     deps = ["@com_github_onnx_onnx//:onnx_proto"],
-# )
+genrule(
+    name = "onnx_to_local",
+    srcs = ["@com_github_onnx_onnx//:proto3"],
+    outs = ["onnx.proto"],
+    cmd = "cp $< $@",
+)
 
-cc_library(
+cc_proto_library(
     name = "onnx_cc_proto",
-    hdrs = ["onnx.pb.h"],
-    srcs = ["onnx.pb.cc"],
+    srcs = ["onnx.proto"],
     copts = ["-std=c++17"],
-    deps = ["@com_google_protobuf_custom//:protobuf"],
+    proto_paths = ["$$(dirname $(location onnx.proto))/.."],
 )
 
 ######### TOOLS #########

@@ -2,8 +2,6 @@
 #ifndef OPT_TARGET_HPP
 #define OPT_TARGET_HPP
 
-#include "teq/logs.hpp"
-
 #include "query/query.hpp"
 
 namespace opt

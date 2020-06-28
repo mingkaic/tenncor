@@ -1,7 +1,6 @@
 # licenses(["notice"])
 
 # load("//third_party:tools/pybind.bzl", "pybind_py_library")
-# load("@rules_proto//proto:defs.bzl", "proto_library")
 
 # package(
 #     default_visibility = ["//visibility:public"],

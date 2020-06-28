@@ -29,11 +29,7 @@ Symbols map has {"root":<op with constant args>}
 Target operates on "root"
 */
 
-#include "eigen/device.hpp"
-
-#include "opt/graph.hpp"
-#include "opt/rule.hpp"
-#include "opt/target.hpp"
+#include "opt/opt.hpp"
 
 #include "eteq/make.hpp"
 

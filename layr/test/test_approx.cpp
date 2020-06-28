@@ -10,7 +10,7 @@
 
 #include "eteq/make.hpp"
 
-#include "query/query.hpp"
+#include "query/querier.hpp"
 #include "query/parse.hpp"
 
 #include "layr/approx.hpp"

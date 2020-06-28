@@ -1,6 +1,6 @@
 licenses(["notice"])
 
-load("@rules_proto//proto:defs.bzl", "proto_library")
+load("//third_party:tools/protobuf.bzl", "cc_proto_library")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -42,20 +42,12 @@ proto_library(
     deps = ["//query:query_proto"],
 )
 
-# cc_proto_library(
-#     name = "opt_cc_proto",
-#     deps = ["//opt:opt_proto"],
-# )
-
-cc_library(
+cc_proto_library(
     name = "opt_cc_proto",
-    hdrs = ["optimize.pb.h"],
-    srcs = ["optimize.pb.cc"],
+    srcs = ["optimize.proto"],
     copts = ["-std=c++17"],
-    deps = [
-        "//query:query_cc_proto",
-        "@com_google_protobuf_custom//:protobuf",
-    ],
+    deps = ["//query:query_cc_proto"],
+    proto_deps = ["//query:proto"],
 )
 
 ######### TEST #########

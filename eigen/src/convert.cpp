@@ -1,6 +1,6 @@
-#include "eigen/eigen.hpp"
+#include "eigen/convert.hpp"
 
-#ifdef EIGEN_EIGEN_HPP
+#ifdef EIGEN_CONVERT_HPP
 
 namespace eigen
 {

@@ -8,7 +8,7 @@
 
 #include <chrono>
 
-#include <grpc/grpc.h>
+#include <grpcpp/grpcpp.h>
 
 #include "jobs/managed_job.hpp"
 #include "jobs/sequence.hpp"

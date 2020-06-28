@@ -1,25 +1,22 @@
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "new_git_repository")
 
 _BUILD_CONTENT="""
-load("@rules_proto//proto:defs.bzl", "proto_library")
-
 package(
     default_visibility = ["//visibility:public"],
 )
 
+load("@com_github_mingkaic_tenncor//third_party:tools/protobuf.bzl", "cc_proto_library")
+
 licenses(["notice"]) # MIT
 
-genrule(
-    name = "proto3to2",
-    srcs = ["onnx/onnx.proto3"],
-    outs = ["onnx.proto"],
-    cmd = "cp $(location onnx/onnx.proto3) $@",
+filegroup(
+    name = "proto2",
+    srcs = ["onnx/onnx.proto"],
 )
 
-proto_library(
-    name = "onnx_proto",
-    srcs = ["onnx.proto"],
-    import_prefix = "onnx",
+filegroup(
+    name = "proto3",
+    srcs = ["onnx/onnx.proto3"],
 )
 """
 

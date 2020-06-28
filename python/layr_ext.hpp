@@ -10,9 +10,9 @@
 
 #include "pyutils/convert.hpp"
 
-#include "teq/logs.hpp"
+#include "teq/teq.hpp"
 
-#include "eigen/device.hpp"
+#include "eigen/eigen.hpp"
 
 #include "eteq/eteq.hpp"
 

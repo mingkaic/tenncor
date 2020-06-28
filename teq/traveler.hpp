@@ -10,7 +10,6 @@
 
 #include "teq/ileaf.hpp"
 #include "teq/ifunctor.hpp"
-#include "teq/objs.hpp"
 
 #ifndef TEQ_TRAVELER_HPP
 #define TEQ_TRAVELER_HPP

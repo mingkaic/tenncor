@@ -6,9 +6,7 @@
 /// Define functor nodes of an equation graph
 ///
 
-#include "marsh/attrs.hpp"
-
-#include "teq/itensor.hpp"
+#include "teq/objs.hpp"
 
 #ifndef TEQ_IFUNCTOR_HPP
 #define TEQ_IFUNCTOR_HPP

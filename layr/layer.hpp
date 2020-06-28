@@ -6,9 +6,6 @@
 /// Utility APIs for creating layers
 ///
 
-#include "eteq/layer.hpp"
-#include "eteq/serialize.hpp"
-
 #include "layr/init.hpp"
 
 #ifndef LAYR_LAYER_HPP

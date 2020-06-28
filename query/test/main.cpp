@@ -7,8 +7,7 @@
 
 #include "teq/logs.hpp"
 
-#include "eigen/device.hpp"
-#include "eigen/random.hpp"
+#include "eigen/eigen.hpp"
 
 int main (int argc, char** argv)
 {

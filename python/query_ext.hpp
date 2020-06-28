@@ -7,12 +7,11 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "teq/logs.hpp"
+#include "teq/teq.hpp"
 
-#include "eteq/etens.hpp"
+#include "eteq/eteq.hpp"
 
 #include "query/query.hpp"
-#include "query/parse.hpp"
 
 #include "generated/pyapi.hpp"
 

@@ -1,4 +1,4 @@
-#include "eigen/generated/dtype.hpp"
+#include "eigen/eigen.hpp"
 
 #include "dbg/psess/plugin_sess.hpp"
 

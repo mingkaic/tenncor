@@ -1,7 +1,7 @@
 
-#include "query/query.hpp"
+#include "query/querier.hpp"
 
-#ifdef QUERY_QUERY_HPP
+#ifdef QUERY_QUERIER_HPP
 
 namespace query
 {

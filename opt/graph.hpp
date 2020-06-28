@@ -2,8 +2,6 @@
 #ifndef OPT_GRAPH_HPP
 #define OPT_GRAPH_HPP
 
-#include <list>
-
 #include "query/query.hpp"
 
 namespace opt

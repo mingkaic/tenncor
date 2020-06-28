@@ -6,8 +6,7 @@
 /// Draw an equation graph as an ascii tree
 ///
 
-#include "teq/ileaf.hpp"
-#include "teq/ifunctor.hpp"
+#include "teq/teq.hpp"
 
 #include "dbg/print/tree.hpp"
 
@@ -71,12 +70,6 @@ struct DummyFunctor final : public teq::iFunctor
 
 	/// Implementation of iTensor
 	const teq::iMetadata& get_meta (void) const override
-	{
-		teq::fatal("shouldn't be called");
-	}
-
-	/// Implementation of iTensor
-	size_t nbytes (void) const override
 	{
 		teq::fatal("shouldn't be called");
 	}

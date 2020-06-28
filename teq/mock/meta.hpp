@@ -15,6 +15,11 @@ struct MockMeta : public teq::iMetadata
 		return tname_;
 	}
 
+	size_t type_size (void) const override
+	{
+		return 0;
+	}
+
 	size_t state_version (void) const override
 	{
 		return version_;

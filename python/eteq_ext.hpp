@@ -4,16 +4,11 @@
 
 #include "pybind11/stl.h"
 
-#include "teq/logs.hpp"
-
 #include "pyutils/convert.hpp"
 
-#include "eigen/device.hpp"
-#include "eigen/random.hpp"
+#include "eigen/eigen.hpp"
 
-#include "eteq/derive.hpp"
-#include "eteq/layer.hpp"
-#include "eteq/optimize.hpp"
+#include "eteq/eteq.hpp"
 
 #include "generated/pyapi.hpp"
 

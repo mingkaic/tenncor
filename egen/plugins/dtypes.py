@@ -43,9 +43,9 @@ struct TypeInfo
 //>>> mapping
 {mapping}
 
-// uses std containers for type conversion
+// converts from input to output type
 template <typename OUTTYPE>
-void type_convert (std::vector<OUTTYPE>& out, const void* input,
+void type_convert (OUTTYPE* out, const void* input,
     _GENERATED_DTYPE intype, size_t nelems)
 {{
     switch (intype)
@@ -146,7 +146,10 @@ def _handle_mapping(dtypes):
     ])
 
 _convert_tmp = '''case {code}:
-            out = std::vector<OUTTYPE>(({dtype}*) input, ({dtype}*) input + nelems);
+        {{
+            std::vector<OUTTYPE> temp(({dtype}*) input, ({dtype}*) input + nelems);
+            std::memcpy(out, temp.data(), sizeof(OUTTYPE) * nelems);
+        }}
             break;'''
 def _handle_conversions(dtypes):
     return '\n        '.join([

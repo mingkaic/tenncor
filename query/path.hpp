@@ -3,11 +3,10 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "estd/contain.hpp"
 
-#include "teq/teq.hpp"
+#include "eigen/eigen.hpp"
 
 namespace query
 {

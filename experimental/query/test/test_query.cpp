@@ -10,7 +10,7 @@
 
 #include "eteq/derive.hpp"
 
-#include "query/query.hpp"
+#include "query/querier.hpp"
 
 #include "generated/api.hpp"
 

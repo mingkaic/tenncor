@@ -1,5 +1,6 @@
 licenses(["notice"])
 
+load("//third_party:tools/protobuf.bzl", "py_proto_library")
 load("//third_party:tools/pybind.bzl", "pybind_py_library")
 
 package(
@@ -103,5 +104,13 @@ pybind_py_library(
 py_library(
     name = "extenncor",
     srcs = glob(["extenncor/*.py"]),
-    deps = ["//:tenncor_py"],
+    deps = ["//:tenncor_py", "//:extenncor_py_proto"],
+)
+
+py_proto_library(
+    name = "extenncor_py_proto",
+    srcs = [
+        "extenncor/dataset.proto",
+        "extenncor/dqntrainer.proto",
+    ],
 )

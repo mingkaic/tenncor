@@ -11,8 +11,7 @@
 
 #include "eteq/make.hpp"
 
-#include "onnx/save.hpp"
-#include "onnx/load.hpp"
+#include "onnx/onnx.hpp"
 
 namespace eteq
 {

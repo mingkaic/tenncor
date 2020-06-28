@@ -54,6 +54,9 @@ struct iMetadata
 	/// Return data type label (for better readability)
 	virtual std::string type_label (void) const = 0;
 
+	/// Return number of bytes for a single entry for this type
+	virtual size_t type_size (void) const = 0;
+
 	/// Return tensor version denoting its state
 	virtual size_t state_version (void) const = 0;
 };
@@ -82,9 +85,6 @@ struct iTensor
 
 	/// Return the shape of the data
 	virtual Shape shape (void) const = 0;
-
-	/// Return number of bytes in the data
-	virtual size_t nbytes (void) const = 0;
 
 	/// Return the string representation of the tensor
 	virtual std::string to_string (void) const = 0;

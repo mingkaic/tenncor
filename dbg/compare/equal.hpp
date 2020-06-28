@@ -1,7 +1,5 @@
 
-#include "teq/traveler.hpp"
-
-#include "eteq/duplicates.hpp"
+#include "eteq/eteq.hpp"
 
 #ifndef DBG_GRAPHEQ_HPP
 #define DBG_GRAPHEQ_HPP

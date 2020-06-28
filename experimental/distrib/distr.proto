@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package distr;
+
+// ======== GENERAL MESSAGE OBJECTS ========
+
+message NodeMeta {
+    string instance = 1;
+
+    string uuid = 2;
+
+    string dtype = 3;
+
+    repeated int64 shape = 4;
+}
+
+message NodeData {
+    string uuid = 1;
+
+    repeated double data = 2;
+
+    int64 version = 3;
+}
+
+// ======== REQUEST + RESPONSE MESSAGES ========
+
+message Empty {}
+
+message FindNodesRequest {
+    repeated string uuids = 1;
+}
+
+message FindNodesResponse {
+    repeated NodeMeta values = 1;
+}
+
+message GetDataRequest {
+    repeated string uuids = 1;
+}
+
+message ListPeersResponse {
+    repeated string instances = 1;
+}
+
+message AddPeerRequest {
+    string instance = 1;
+}
+
+service DistrManager {
+    // Liveness probe: no timeout means host is reachable
+    rpc HealthCheck (Empty) returns (Empty);
+
+    // === Node services ===
+
+    // List all nodes matching request parameters
+    rpc FindNodes (FindNodesRequest) returns (FindNodesResponse);
+
+    // Stream data for matched nodes
+    rpc GetData (GetDataRequest) returns (stream NodeData);
+
+    // === Consensus === todo: use consul or something
+
+    // List all cluster instances
+    rpc ListPeers (Empty) returns (ListPeersResponse);
+
+    rpc AddPeer (AddPeerRequest) returns (Empty);
+}
