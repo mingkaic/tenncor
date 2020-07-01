@@ -4,6 +4,7 @@
 
 #include "experimental/distrib/client.hpp"
 #include "experimental/distrib/server.hpp"
+#include "experimental/distrib/consul.hpp"
 
 #ifndef DISTRIB_SESSION_HPP
 #define DISTRIB_SESSION_HPP
@@ -11,43 +12,30 @@
 namespace distrib
 {
 
+const std::string default_service = "tenncor";
+
 using UuidSetT = std::unordered_set<std::string>;
-
-struct DataResponse final
-{
-	grpc::Status status_;
-
-	distr::NodeData res_;
-};
 
 struct DistribSess final : public iDistribSess
 {
 	/// UUID random generator
 	static boost::uuids::random_generator uuid_gen_;
 
-	DistribSess (const std::string& address,
-		const std::string& peer = "",
+	DistribSess (ppconsul::Consul& consul, size_t port,
+		const std::string& service = default_service,
 		const ClientConfig& cfg = ClientConfig()) :
-		service_(this), address_(address)
+		consul_(consul, port, boost::uuids::to_string(
+			DistribSess::uuid_gen_()), service),
+		service_(this), cli_cfg_(cfg)
 	{
+		std::string address = fmts::sprintf("127.0.0.1:%d", port);
 		grpc::ServerBuilder builder;
 		builder.AddListeningPort(address, grpc::InsecureServerCredentials());
 		builder.RegisterService(&service_);
 		server_ = builder.BuildAndStart();
 		teq::infof("server listening on %s", address.c_str());
 
-		if (peer.empty())
-		{
-			return;
-		}
-		clients_.insert({peer, std::make_unique<DistrCli>(peer, cfg)});
-		auto clients = clients_[peer]->list_instances();
-		clients_[peer]->add_instance(address);
-		for (auto client : clients)
-		{
-			clients_.insert({client, std::make_unique<DistrCli>(client, cfg)});
-			clients_[client]->add_instance(address);
-		}
+		check_update_peers();
 	}
 
 	~DistribSess (void)
@@ -135,9 +123,9 @@ struct DistribSess final : public iDistribSess
 		return shared_nodes_.left.at(id);
 	}
 
-	std::string get_address (void) const override
+	std::string get_id (void) const override
 	{
-		return address_;
+		return consul_.id_;
 	}
 
 private:
@@ -210,6 +198,23 @@ private:
 		clients_.at(cluster_id)->get_data(data_queue_, req);
 	}
 
+	std::vector<std::string> check_update_peers (void)
+	{
+		std::vector<std::string> newbies;
+		auto peers = consul_.get_peers();
+		for (auto peer : peers)
+		{
+			if (false == estd::has(clients_, peer.first))
+			{
+				clients_.insert({peer.first, std::make_unique<DistrCli>(peer.second, cli_cfg_)});
+				newbies.push_back(peer.first);
+			}
+		}
+		return newbies;
+	}
+
+	ConsulService consul_;
+
 	boost::bimap<std::string,teq::TensptrT> shared_nodes_;
 
 	std::unordered_map<std::string,DistrCliPtrT> clients_;
@@ -220,7 +225,7 @@ private:
 
 	DistrService service_;
 
-	std::string address_;
+	ClientConfig cli_cfg_;
 };
 
 }

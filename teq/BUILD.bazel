@@ -10,14 +10,6 @@ filegroup(
 )
 
 filegroup(
-    name = "mock_srcs",
-    srcs = glob([
-        "mock/*.hpp",
-        "mock/*.cpp",
-    ]),
-)
-
-filegroup(
     name = "test_srcs",
     srcs = glob([
         "test/*.hpp",
@@ -40,15 +32,17 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
-######### TEST #########
-
 cc_library(
     name = "mock_teq",
-    hdrs = glob(["mock/*.hpp"]),
+    hdrs = glob([
+        "mock/*.hpp",
+    ]),
     copts = ["-std=c++17"],
     deps = ["//teq:teq"],
     visibility = ["//visibility:public"],
 )
+
+######### TEST #########
 
 cc_test(
     name = "test",

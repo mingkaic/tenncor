@@ -25,11 +25,6 @@ filegroup(
     visibility = ["//visibility:private"],
 )
 
-filegroup(
-    name = "proto",
-    srcs = ["query.proto"],
-)
-
 ######### LIBRARY #########
 
 cc_library(

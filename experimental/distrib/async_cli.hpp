@@ -23,7 +23,7 @@ struct iStreamHandler
 {
 	virtual ~iStreamHandler (void) = default;
 
-	virtual bool handle_resp (void) = 0;
+	virtual void handle_resp (void) = 0;
 
 	virtual grpc::Status done (void) = 0;
 
@@ -71,7 +71,7 @@ struct AsyncStreamHandler final : public iStreamHandler<DATA>
 		reader_->StartCall((void*) this);
 	}
 
-	bool handle_resp(void) override
+	void handle_resp(void) override
 	{
 		reader_->Read(&reply_, (void*)this);
 	}

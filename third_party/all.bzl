@@ -5,6 +5,8 @@ load("//third_party:repos/pybind_bazel.bzl", "pybind_bazel_repository")
 load("//third_party:repos/cppkg.bzl", "cppkg_repository")
 load("//third_party:repos/onnx.bzl", "onnx_repository")
 load("//third_party:repos/benchmark.bzl", "benchmark_repository")
+load("//third_party:repos/consul.bzl", "consul_repository")
+load("//third_party:repos/curl.bzl", "curl_repository")
 
 def dependencies(excludes = []):
     ignores = native.existing_rules().keys() + excludes
@@ -29,3 +31,9 @@ def dependencies(excludes = []):
 
     if "com_github_google_benchmark" not in ignores:
         benchmark_repository()
+
+    if "com_github_oliora_ppconsul" not in ignores:
+        consul_repository()
+
+    if "com_github_curl_curl" not in ignores:
+        curl_repository()

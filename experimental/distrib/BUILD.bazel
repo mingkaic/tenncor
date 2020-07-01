@@ -37,6 +37,7 @@ cc_library(
         "//experimental/distrib:distr_cc_grpc",
         "@boost//:uuid",
         "@boost//:bimap",
+        "@com_github_oliora_ppconsul//:consul",
     ],
 )
 

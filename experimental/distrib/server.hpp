@@ -43,7 +43,7 @@ struct DistrService final : public distr::DistrManager::Service
 				}
 				else
 				{
-					out.set_instance(sess_->get_address());
+					out.set_instance(sess_->get_id());
 				}
 			}
 		}
@@ -84,18 +84,6 @@ struct DistrService final : public distr::DistrManager::Service
 
 			writer->Write(data);
 		}
-		return grpc::Status::OK;
-	}
-
-	grpc::Status ListPeers (grpc::ServerContext* context,
-		const distr::Empty*, distr::ListPeersResponse* res) override
-	{
-		return grpc::Status::OK;
-	}
-
-	grpc::Status AddPeer (grpc::ServerContext* context,
-		const distr::AddPeerRequest* req, distr::Empty*) override
-	{
 		return grpc::Status::OK;
 	}
 

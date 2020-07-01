@@ -8,6 +8,8 @@
 
 #include "teq/teq.hpp"
 
+#include "teq/mock/functor.hpp"
+
 #include "dbg/print/tree.hpp"
 
 #ifndef DBG_TEQ_HPP
@@ -17,90 +19,6 @@
 using LabelsMapT = teq::TensMapT<std::string>;
 
 const std::string dummy_label = "DEPENDENCIES";
-
-struct DummyFunctor final : public teq::iFunctor
-{
-	DummyFunctor (teq::TensptrsT dependencies) :
-		dependencies_(dependencies) {}
-
-	/// Implementation of iTensor
-	teq::Shape shape (void) const override
-	{
-		return teq::Shape();
-	}
-
-	/// Implementation of iTensor
-	std::string to_string (void) const override
-	{
-		return dummy_label;
-	}
-
-	/// Implementation of iFunctor
-	teq::Opcode get_opcode (void) const override
-	{
-		return teq::Opcode{dummy_label, 0};
-	}
-
-	/// Implementation of iFunctor
-	teq::TensptrsT get_args (void) const override
-	{
-		return dependencies_;
-	}
-
-	/// Implementation of iFunctor
-	teq::TensptrsT get_dependencies (void) const override
-	{
-		return dependencies_;
-	}
-
-	/// Implementation of iFunctor
-	void update_child (teq::TensptrT arg, size_t index) override {}
-
-	/// Implementation of iTensor
-	teq::iDeviceRef& device (void) override
-	{
-		teq::fatal("shouldn't be called");
-	}
-
-	/// Implementation of iTensor
-	const teq::iDeviceRef& device (void) const override
-	{
-		teq::fatal("shouldn't be called");
-	}
-
-	/// Implementation of iTensor
-	const teq::iMetadata& get_meta (void) const override
-	{
-		teq::fatal("shouldn't be called");
-	}
-
-	std::vector<std::string> ls_attrs (void) const override
-	{
-		return {};
-	}
-
-	const marsh::iObject* get_attr (const std::string& attr_key) const override
-	{
-		return nullptr;
-	}
-
-	marsh::iObject* get_attr (const std::string& attr_key) override
-	{
-		return nullptr;
-	}
-
-	void add_attr (const std::string& attr_key, marsh::ObjptrT&& attr_val) override {}
-
-	void rm_attr (const std::string& attr_key) override {}
-
-private:
-	teq::iTensor* clone_impl (void) const override
-	{
-		teq::fatal("shouldn't be called");
-	}
-
-	teq::TensptrsT dependencies_;
-};
 
 /// Use PrettyTree to render teq::TensptrT graph as an ascii art
 struct PrettyEquation final
@@ -122,8 +40,9 @@ struct PrettyEquation final
 				auto deps = f->get_dependencies();
 				if (deps.size() > children.size())
 				{
-					auto dummy = std::make_shared<DummyFunctor>(
-						teq::TensptrsT(deps.begin() + children.size(), deps.end()));
+					auto dummy = std::make_shared<MockFunctor>(
+						teq::TensptrsT(deps.begin() + children.size(), deps.end()),
+						teq::Opcode{dummy_label, 0});
 					tens.push_back(dummy.get());
 					this->dummies_.push_back(dummy);
 				}

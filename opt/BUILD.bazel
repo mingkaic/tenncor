@@ -47,10 +47,8 @@ cc_proto_library(
     srcs = ["optimize.proto"],
     copts = ["-std=c++17"],
     deps = ["//query:query_cc_proto"],
-    proto_deps = ["//query:proto"],
+    proto_deps = ["//query:query.proto"],
 )
-
-######### TEST #########
 
 cc_library(
     name = "mock_opt",
@@ -59,6 +57,8 @@ cc_library(
     deps = ["//opt:opt"],
     visibility = ["//visibility:public"],
 )
+
+######### TEST #########
 
 cc_test(
     name = "test",

@@ -221,7 +221,7 @@ class DTypesPlugin:
 
         generated_files[_hdr_file] = FileRep(
             build_template(_header_template, module, dtypes),
-            user_includes=['<string>', '"teq/logs.hpp"'],
+            user_includes=['<string>', '<cstring>', '"teq/logs.hpp"'],
             internal_refs=[])
 
         generated_files[_src_file] = FileRep(

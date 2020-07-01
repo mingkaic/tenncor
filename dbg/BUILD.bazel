@@ -31,7 +31,7 @@ cc_library(
     hdrs = glob(["print/*.hpp"]),
     srcs = glob(["print/*.cpp"]),
     copts = ["-std=c++17"],
-    deps = ["//teq:teq"],
+    deps = ["//teq:teq", "//teq:mock_teq"],
 )
 
 cc_library(
@@ -74,9 +74,9 @@ cc_proto_library(
     srcs = ["psess/emit/gemitter.proto"],
     copts = ["-std=c++17"],
     deps = ["//onnx:onnx_cc_proto"],
-    proto_deps = ["//onnx:proto"],
+    proto_deps = ["//onnx:onnx.proto"],
     with_service = True,
-    proto_paths = ["$$(dirname $(location //onnx:proto))/..", "."],
+    proto_paths = ["$$(dirname $(location //onnx:onnx.proto))/..", "."],
 )
 
 pybind_py_library(

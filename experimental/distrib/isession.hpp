@@ -24,7 +24,7 @@ struct iDistribSess : public teq::iSession
 
 	virtual teq::TensptrT lookup_node (const std::string& id, bool recursive = true) = 0;
 
-	virtual std::string get_address (void) const = 0;
+	virtual std::string get_id (void) const = 0;
 
 	/// Implementation of iSession
 	void track (const teq::TensptrSetT& roots) override

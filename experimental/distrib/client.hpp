@@ -56,38 +56,6 @@ struct DistrCli final
 			stub_->PrepareAsyncGetData(&context, req, &cq));
 	}
 
-	std::vector<std::string> list_instances (void)
-	{
-		grpc::ClientContext context;
-		build_ctx(context, true);
-		distr::Empty req;
-		distr::ListPeersResponse res;
-
-		auto status = stub_->ListPeers(&context, req, &res);
-		if (false == status.ok())
-		{
-			teq::fatal("failed to get cluster instances");
-		}
-
-		auto& instances = res.instances();
-		return std::vector<std::string>(instances.begin(), instances.end());
-	}
-
-	void add_instance (const std::string& instance)
-	{
-		grpc::ClientContext context;
-		build_ctx(context, true);
-		distr::AddPeerRequest req;
-		distr::Empty res;
-		req.set_instance(instance);
-
-		auto status = stub_->AddPeer(&context, req, &res);
-		if (false == status.ok())
-		{
-			teq::fatalf("failed to register cluster instance %s", instance.c_str());
-		}
-	}
-
 private:
 	void build_ctx (grpc::ClientContext& ctx, bool is_request)
 	{

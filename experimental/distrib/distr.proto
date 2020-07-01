@@ -38,14 +38,6 @@ message GetDataRequest {
     repeated string uuids = 1;
 }
 
-message ListPeersResponse {
-    repeated string instances = 1;
-}
-
-message AddPeerRequest {
-    string instance = 1;
-}
-
 service DistrManager {
     // Liveness probe: no timeout means host is reachable
     rpc HealthCheck (Empty) returns (Empty);
@@ -57,11 +49,4 @@ service DistrManager {
 
     // Stream data for matched nodes
     rpc GetData (GetDataRequest) returns (stream NodeData);
-
-    // === Consensus === todo: use consul or something
-
-    // List all cluster instances
-    rpc ListPeers (Empty) returns (ListPeersResponse);
-
-    rpc AddPeer (AddPeerRequest) returns (Empty);
 }

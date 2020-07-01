@@ -23,11 +23,6 @@ filegroup(
     visibility = ["//visibility:private"],
 )
 
-filegroup(
-    name = "proto",
-    srcs = ["onnx.proto"],
-)
-
 ######### LIBRARY #########
 
 cc_library(

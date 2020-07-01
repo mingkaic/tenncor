@@ -239,3 +239,12 @@ lcov_query: cover_query cov_clean
 
 .PHONY: lcov_teq
 lcov_teq: cover_teq cov_clean
+
+
+.PHONY: test_consul_up
+test_consul_up:
+	docker run -d --name=test-consul -e CONSUL_BIND_INTERFACE=eth0 -p 8500:8500 consul
+
+.PHONY: test_consul_down
+test_consul_down:
+	docker rm -f test-consul
