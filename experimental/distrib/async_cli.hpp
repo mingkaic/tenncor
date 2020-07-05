@@ -8,90 +8,78 @@
 namespace distrib
 {
 
-template <typename RESPONSE>
 struct iResponseHandler
 {
-	virtual ~iResponseHandler (void) = default;
+	virtual ~iResponseHandler  (void) = default;
 
-	virtual const grpc::Status& check_status (void) const = 0;
-
-	virtual RESPONSE& get_response (void) = 0;
+	virtual void handle (bool event_status) = 0;
 };
 
 template <typename DATA>
-struct iStreamHandler
-{
-	virtual ~iStreamHandler (void) = default;
-
-	virtual void handle_resp (void) = 0;
-
-	virtual grpc::Status done (void) = 0;
-
-	virtual DATA& get_data (void) = 0;
-};
-
-template <typename RESPONSE>
-struct AsyncResponseHandler final : public iResponseHandler<RESPONSE>
-{
-	using ReadptrT = std::unique_ptr<
-		grpc::ClientAsyncResponseReader<RESPONSE>>;
-
-	AsyncResponseHandler (ReadptrT reader) : reader_(std::move(reader))
-	{
-		reader_->StartCall();
-		reader_->Finish(&reply_, &status_, (void*)this);
-	}
-
-	const grpc::Status& check_status (void) const override
-	{
-		return status_;
-	}
-
-	RESPONSE& get_response (void) override
-	{
-		return reply_;
-	}
-
-	grpc::Status status_;
-
-	// Container for the data we expect from the server.
-	RESPONSE reply_;
-
-	ReadptrT reader_;
-};
-
-template <typename DATA>
-struct AsyncStreamHandler final : public iStreamHandler<DATA>
+struct AsyncHandler final : public iResponseHandler
 {
 	using ReadptrT = std::unique_ptr<
 		grpc::ClientAsyncReaderInterface<DATA>>;
 
-	AsyncStreamHandler (ReadptrT reader) : reader_(std::move(reader))
+	using HandlerF = std::function<void(DATA&)>;
+
+	AsyncHandler (HandlerF handler) : handler_(handler), call_status_(CREATE) {}
+
+	void handle (bool event_status) override
 	{
-		reader_->StartCall((void*) this);
+		switch (call_status_)
+		{
+		case CREATE:
+			if (event_status)
+			{
+				reader_->Read(&reply_, (void*) this);
+				call_status_ = PROCESS;
+			}
+			else
+			{
+				reader_->Finish(&status_, (void*)this);
+				call_status_ = FINISH;
+			}
+			break;
+		case PROCESS:
+			if (event_status)
+			{
+				handler_(reply_);
+				reader_->Read(&reply_, (void*)this);
+			}
+			else
+			{
+				reader_->Finish(&status_, (void*)this);
+				call_status_ = FINISH;
+			}
+			break;
+		case FINISH:
+			if (status_.ok())
+			{
+				teq::infof("server response completed: %p", this);
+			}
+			else
+			{
+				teq::warnf("server response failed: %p", this);
+			}
+			delete this;
+		}
 	}
 
-	void handle_resp(void) override
-	{
-		reader_->Read(&reply_, (void*)this);
-	}
-
-	grpc::Status done (void) override
-	{
-		grpc::Status status;
-		reader_->Finish(&status, (void*)this);
-		return status;
-	}
-
-	DATA& get_data (void) override
-	{
-		return reply_;
-	}
-
-	// Container for the data we expect from the server.
-	DATA reply_;
+	grpc::ClientContext ctx_;
 
 	ReadptrT reader_;
+
+	HandlerF handler_;
+
+	DATA reply_;
+
+	grpc::Status status_;
+
+private:
+	enum CallStatus { CREATE, PROCESS, PROCESSED, FINISH };
+
+	CallStatus call_status_;
 };
 
 }

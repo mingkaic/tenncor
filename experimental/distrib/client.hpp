@@ -1,6 +1,7 @@
 #include "teq/teq.hpp"
 
 #include "experimental/distrib/async_cli.hpp"
+#include "experimental/distrib/isession.hpp"
 
 #ifndef DISTRIB_CLIENT_HPP
 #define DISTRIB_CLIENT_HPP
@@ -35,25 +36,28 @@ struct DistrCli final
 			grpc::CreateChannel(remote,
 				grpc::InsecureChannelCredentials()))), cfg_(cfg) {}
 
-	iResponseHandler<distr::FindNodesResponse>*
-	lookup_node (grpc::CompletionQueue& cq,
-		const distr::FindNodesRequest& req)
+	grpc::Status lookup_node (
+		const distr::FindNodesRequest& req, distr::FindNodesResponse& res)
 	{
 		grpc::ClientContext context;
 		build_ctx(context, true);
-
-		auto call = new AsyncResponseHandler<distr::FindNodesResponse>(
-			stub_->AsyncFindNodes(&context, req, &cq));
-		return call;
+		return stub_->FindNodes(&context, req, &res);
 	}
 
-	void get_data (grpc::CompletionQueue& cq, const distr::GetDataRequest& req)
+	void get_data (grpc::CompletionQueue& cq, const distr::GetDataRequest& req,
+		boost::bimap<std::string,teq::TensptrT>& shared_nodes)
 	{
-		grpc::ClientContext context;
-		build_ctx(context, false);
+		auto handler = new AsyncHandler<distr::NodeData>(
+			[&shared_nodes](distr::NodeData& res)
+			{
+				auto uuid = res.uuid();
+				auto ref = static_cast<iDistRef*>(shared_nodes.left.at(uuid).get());
+				ref->update_data(res.data().data(), res.version());
+			});
 
-		new AsyncStreamHandler<distr::NodeData>(
-			stub_->PrepareAsyncGetData(&context, req, &cq));
+		build_ctx(handler->ctx_, false);
+		handler->reader_ = stub_->AsyncGetData(
+			&handler->ctx_, req, &cq, (void*) handler);
 	}
 
 private:

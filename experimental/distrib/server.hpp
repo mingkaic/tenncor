@@ -14,12 +14,6 @@ struct DistrService final : public distr::DistrManager::Service
 {
 	DistrService (iDistribSess* sess) : sess_(sess) {}
 
-	grpc::Status HealthCheck (grpc::ServerContext* context,
-		const distr::Empty*, distr::Empty*) override
-	{
-		return grpc::Status::OK;
-	}
-
 	grpc::Status FindNodes (grpc::ServerContext* context,
 		const distr::FindNodesRequest* req, distr::FindNodesResponse* res) override
 	{
@@ -28,22 +22,22 @@ struct DistrService final : public distr::DistrManager::Service
 		{
 			if (auto node = sess_->lookup_node(uuid, false))
 			{
-				distr::NodeMeta out;
-				out.set_uuid(uuid);
+				distr::NodeMeta* out = res->add_values();
+				out->set_uuid(uuid);
 				auto& meta = node->get_meta();
-				out.set_dtype(meta.type_label());
+				out->set_dtype(meta.type_label());
 				auto shape = node->shape();
 				for (auto it = shape.begin(), et = shape.end(); it != et; ++it)
 				{
-					out.add_shape(*it);
+					out->add_shape(*it);
 				}
 				if (auto ref = dynamic_cast<iDistRef*>(node.get()))
 				{
-					out.set_instance(ref->cluster_id());
+					out->set_instance(ref->cluster_id());
 				}
 				else
 				{
-					out.set_instance(sess_->get_id());
+					out->set_instance(sess_->get_id());
 				}
 			}
 		}
@@ -56,33 +50,46 @@ struct DistrService final : public distr::DistrManager::Service
 	{
 		auto uuids = req->uuids();
 		teq::TensSetT targets;
+		std::unordered_map<std::string,size_t> prev_versions;
 		std::unordered_map<std::string,teq::iTensor*> idtargets;
 		for (const std::string& uuid : uuids)
 		{
-			auto tens = sess_->lookup_node(uuid).get();
+			auto tens = sess_->lookup_node(uuid, false).get();
+			if (nullptr == tens)
+			{
+				teq::fatalf("failed to find node %s", uuid.c_str());
+			}
 			targets.emplace(tens);
+			prev_versions.emplace(uuid, tens->get_meta().state_version());
 			idtargets.emplace(uuid, tens);
 		}
 		eigen::Device device(std::numeric_limits<size_t>::max());
 		sess_->update_target(device, targets);
 		for (auto target : idtargets)
 		{
-			distr::NodeData data;
-			data.set_uuid(target.first);
+			auto id = target.first;
 			auto tens = target.second;
+
 			auto& meta = tens->get_meta();
-			data.set_version(meta.state_version());
+			size_t latest = meta.state_version();
 
-			void* raw = tens->device().data();
-			auto dtype = (egen::_GENERATED_DTYPE) meta.type_code();
+			if (prev_versions.at(id) != latest)
+			{
+				distr::NodeData data;
+				data.set_uuid(id);
+				data.set_version(latest);
 
-			size_t nelems = tens->shape().n_elems();
-			google::protobuf::RepeatedField<double> field;
-			field.Resize(nelems, 0);
-			egen::type_convert(field.mutable_data(), raw, dtype, nelems);
-			data.mutable_data()->Swap(&field);
+				void* raw = tens->device().data();
+				auto dtype = (egen::_GENERATED_DTYPE) meta.type_code();
 
-			writer->Write(data);
+				size_t nelems = tens->shape().n_elems();
+				google::protobuf::RepeatedField<double> field;
+				field.Resize(nelems, 0);
+				egen::type_convert(field.mutable_data(), raw, dtype, nelems);
+				data.mutable_data()->Swap(&field);
+
+				writer->Write(data);
+			}
 		}
 		return grpc::Status::OK;
 	}

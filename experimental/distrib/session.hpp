@@ -2,6 +2,8 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include <thread>
+
 #include "experimental/distrib/client.hpp"
 #include "experimental/distrib/server.hpp"
 #include "experimental/distrib/consul.hpp"
@@ -13,6 +15,8 @@ namespace distrib
 {
 
 const std::string default_service = "tenncor";
+
+const std::string node_lookup_prefix = "tenncor.node.";
 
 using UuidSetT = std::unordered_set<std::string>;
 
@@ -35,7 +39,7 @@ struct DistribSess final : public iDistribSess
 		server_ = builder.BuildAndStart();
 		teq::infof("server listening on %s", address.c_str());
 
-		check_update_peers();
+		update_clients();
 	}
 
 	~DistribSess (void)
@@ -50,7 +54,9 @@ struct DistribSess final : public iDistribSess
 		for (auto& ref : refs)
 		{
 			auto cid = ref->cluster_id();
-			clusters[cid].emplace(lookup_id(ref));
+			auto id = lookup_id(ref);
+			assert(id);
+			clusters[cid].emplace(*id);
 		}
 		for (auto& cluster : clusters)
 		{
@@ -62,41 +68,26 @@ struct DistribSess final : public iDistribSess
 	void sync (void) override
 	{
 		void* got_tag;
-		bool ok = false;
-		while (data_queue_.Next(&got_tag, &ok))
+		bool ok = true;
+		while (data_queue_.Next(&got_tag, &ok) && ok)
 		{
-			auto handler = static_cast<iStreamHandler<distr::NodeData>*>(got_tag);
-			if (ok)
-			{
-				handler->handle_resp();
-				auto& res = handler->get_data();
-				auto uuid = res.uuid();
-				auto ref = static_cast<iDistRef*>(shared_nodes_.left.at(uuid).get());
-				ref->update_data(res.data().data(), res.version());
-			}
-			else
-			{
-				auto status = handler->done();
-				if (status.ok())
-				{
-					teq::infof("server response completed: %p", handler);
-				}
-				else
-				{
-					teq::warnf("server response failed: %p", handler);
-				}
-				delete handler;
-			}
+			auto handler = static_cast<iResponseHandler*>(got_tag);
+			handler->handle(ok);
 		}
 	}
 
-	std::string lookup_id (teq::TensptrT tens) const override
+	/// Implementation of iDistribSess
+	std::optional<std::string> lookup_id (teq::TensptrT tens) const override
 	{
-		return estd::must_getf(shared_nodes_.right, tens,
-			"cannot find tensor %s (%p)",
-			tens->to_string().c_str(), tens.get());
+		std::optional<std::string> out;
+		if (estd::has(shared_nodes_.right, tens))
+		{
+			out = shared_nodes_.right.at(tens);
+		}
+		return out;
 	}
 
+	/// Implementation of iDistribSess
 	teq::TensptrT lookup_node (const std::string& id, bool recursive = true) override
 	{
 		if (false == estd::has(shared_nodes_.left, id))
@@ -105,12 +96,24 @@ struct DistribSess final : public iDistribSess
 			{
 				return nullptr;
 			}
-			// search for remote references
-			distr::NodeMeta node;
-			if (false == lookup_request(node, id))
+			std::string peer_id = consul_.get_kv(node_lookup_prefix + id, "");
+			if (peer_id.empty())
 			{
-				teq::fatalf("failed to find node %s", id.c_str());
+				return nullptr;
 			}
+			if (false == estd::has(clients_, peer_id))
+			{
+				update_clients(); // get specific peer
+			}
+			distr::FindNodesRequest req;
+			distr::FindNodesResponse res;
+			req.add_uuids(id);
+			auto status = clients_[peer_id]->lookup_node(req, res);
+			if (!status.ok() || res.values().empty())
+			{
+				return nullptr;
+			}
+			auto node = res.values().at(0);
 			auto node_id = node.uuid();
 			auto& slist = node.shape();
 			std::vector<teq::DimT> sdims(slist.begin(), slist.end());
@@ -123,6 +126,7 @@ struct DistribSess final : public iDistribSess
 		return shared_nodes_.left.at(id);
 	}
 
+	/// Implementation of iDistribSess
 	std::string get_id (void) const override
 	{
 		return consul_.id_;
@@ -133,58 +137,10 @@ private:
 	{
 		for (teq::TensptrT local : locals)
 		{
-			shared_nodes_.insert({boost::uuids::to_string(DistribSess::uuid_gen_()), local});
+			std::string id = boost::uuids::to_string(DistribSess::uuid_gen_());
+			shared_nodes_.insert({id, local});
+			consul_.set_kv(node_lookup_prefix + id, consul_.id_);
 		}
-	}
-
-	/// Return the cluster id that owns node_id
-	bool lookup_request (distr::NodeMeta& node,
-		const std::string& node_id)
-	{
-		grpc::CompletionQueue cq;
-		distr::FindNodesRequest req;
-		req.add_uuids(node_id);
-
-		std::vector<iResponseHandler<distr::FindNodesResponse>*> responses;
-		for (auto& inst : clients_)
-		{
-			responses.push_back(inst.second->lookup_node(cq, req));
-		}
-
-		void* got_tag;
-		bool ok = false;
-		bool found = false;
-		while (cq.Next(&got_tag, &ok))
-		{
-			auto handler = static_cast<iResponseHandler<distr::FindNodesResponse>*>(got_tag);
-			if (ok)
-			{
-				auto& res = handler->get_response();
-				if (res.values().size() > 0)
-				{
-					node = res.values().at(0);
-					found = true;
-					break;
-				}
-			}
-			else
-			{
-				auto status = handler->check_status();
-				if (status.ok())
-				{
-					teq::infof("server response completed: %p", handler);
-				}
-				else
-				{
-					teq::fatalf("server response failed: %p", handler);
-				}
-			}
-		}
-		for (auto res : responses)
-		{
-			delete res;
-		}
-		return found;
 	}
 
 	/// Make request to cluster_id for data updates to all nodes
@@ -195,33 +151,31 @@ private:
 		{
 			req.add_uuids(node_id);
 		}
-		clients_.at(cluster_id)->get_data(data_queue_, req);
+		clients_.at(cluster_id)->get_data(data_queue_, req, shared_nodes_);
 	}
 
-	std::vector<std::string> check_update_peers (void)
+	void update_clients (void)
 	{
-		std::vector<std::string> newbies;
 		auto peers = consul_.get_peers();
 		for (auto peer : peers)
 		{
 			if (false == estd::has(clients_, peer.first))
 			{
-				clients_.insert({peer.first, std::make_unique<DistrCli>(peer.second, cli_cfg_)});
-				newbies.push_back(peer.first);
+				clients_.insert({peer.first, std::make_unique<DistrCli>(
+					peer.second, cli_cfg_)});
 			}
 		}
-		return newbies;
 	}
-
-	ConsulService consul_;
 
 	boost::bimap<std::string,teq::TensptrT> shared_nodes_;
 
-	std::unordered_map<std::string,DistrCliPtrT> clients_;
+	std::unordered_map<std::string,DistrCliPtrT> clients_; // todo: clean-up clients
 
 	std::unique_ptr<grpc::Server> server_;
 
 	grpc::CompletionQueue data_queue_;
+
+	ConsulService consul_;
 
 	DistrService service_;
 

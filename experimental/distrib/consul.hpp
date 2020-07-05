@@ -1,6 +1,7 @@
 
 #include "ppconsul/agent.h"
 #include "ppconsul/catalog.h"
+#include "ppconsul/kv.h"
 
 #ifndef DISTRIB_CONSUL_HPP
 #define DISTRIB_CONSUL_HPP
@@ -20,7 +21,7 @@ struct ConsulService final
 	ConsulService (ppconsul::Consul& consul, size_t port,
 		const std::string& id, const std::string& service) :
 		port_(port), id_(id), service_(service),
-		agent_(consul), catalog_(consul)
+		agent_(consul), catalog_(consul), kv_(consul)
 	{
 		teq::infof("serving %s:%s @ :%d",
 			service_.c_str(), id_.c_str(), port_);
@@ -41,7 +42,7 @@ struct ConsulService final
 		agent_.serviceFail(id_, "Shutting down");
 
 		// Unregister service
-		agent_.deregisterService(service_);
+		agent_.deregisterService(id_);
 	}
 
 	std::unordered_map<std::string,std::string> get_peers (void)
@@ -53,11 +54,28 @@ struct ConsulService final
 			auto id = service.second.id;
 			if (id_ != id)
 			{
+				std::string address = service.second.address;
+				if (address.empty())
+				{
+					address = "localhost";
+				}
 				peers.emplace(id, fmts::sprintf("%s:%d",
-					service.second.address.c_str(), service.second.port));
+					address.c_str(), service.second.port));
 			}
 		}
 		return peers;
+	}
+
+	void set_kv (const std::string& key, const std::string& value)
+	{
+		kv_.set(key, value);
+	}
+
+	std::string get_kv (const std::string& key,
+		const std::string& default_val)
+	{
+		return kv_.get(key, default_val, ppconsul::kv::kw::consistency =
+			ppconsul::Consistency::Consistent);
 	}
 
 	size_t port_;
@@ -69,6 +87,8 @@ struct ConsulService final
 	ppconsul::agent::Agent agent_;
 
 	ppconsul::catalog::Catalog catalog_;
+
+	ppconsul::kv::Kv kv_;
 };
 
 }
