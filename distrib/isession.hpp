@@ -2,7 +2,7 @@
 
 #include "eigen/eigen.hpp"
 
-#include "experimental/distrib/reference.hpp"
+#include "distrib/reference.hpp"
 
 #ifndef DISTRIB_ISESSION_HPP
 #define DISTRIB_ISESSION_HPP

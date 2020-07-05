@@ -4,9 +4,9 @@
 
 #include <thread>
 
-#include "experimental/distrib/client.hpp"
-#include "experimental/distrib/server.hpp"
-#include "experimental/distrib/consul.hpp"
+#include "distrib/client.hpp"
+#include "distrib/server.hpp"
+#include "distrib/consul.hpp"
 
 #ifndef DISTRIB_SESSION_HPP
 #define DISTRIB_SESSION_HPP

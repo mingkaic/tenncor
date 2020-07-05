@@ -1,4 +1,4 @@
-#include "experimental/distrib/session.hpp"
+#include "distrib/session.hpp"
 
 #ifdef DISTRIB_SESSION_HPP
 

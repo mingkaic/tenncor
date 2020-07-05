@@ -34,7 +34,7 @@ cc_library(
     deps = [
         "//teq:teq",
         "//eigen:eigen",
-        "//experimental/distrib:distr_cc_grpc",
+        "//distrib:distr_cc_grpc",
         "@boost//:uuid",
         "@boost//:bimap",
         "@com_github_oliora_ppconsul//:consul",
@@ -57,10 +57,10 @@ cc_proto_library(
 
 cc_test(
     name = "test",
-    srcs = ["//experimental/distrib:test_srcs"],
+    srcs = ["//distrib:test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//experimental/distrib:distrib",
+        "//distrib:distrib",
         "//:tenncor",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",

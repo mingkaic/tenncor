@@ -3,7 +3,7 @@
 #ifndef DISTRIB_ASYNC_CLI_HPP
 #define DISTRIB_ASYNC_CLI_HPP
 
-#include "experimental/distrib/distr.grpc.pb.h"
+#include "distrib/distr.grpc.pb.h"
 
 namespace distrib
 {

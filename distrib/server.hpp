@@ -4,8 +4,8 @@
 #ifndef DISTRIB_SERVER_HPP
 #define DISTRIB_SERVER_HPP
 
-#include "experimental/distrib/distr.grpc.pb.h"
-#include "experimental/distrib/isession.hpp"
+#include "distrib/distr.grpc.pb.h"
+#include "distrib/isession.hpp"
 
 namespace distrib
 {

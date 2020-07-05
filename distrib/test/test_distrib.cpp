@@ -7,7 +7,7 @@
 
 #include "exam/exam.hpp"
 
-#include "experimental/distrib/session.hpp"
+#include "distrib/session.hpp"
 
 #include "eteq/make.hpp"
 #include "eteq/derive.hpp"

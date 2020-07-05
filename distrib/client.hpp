@@ -1,7 +1,7 @@
 #include "teq/teq.hpp"
 
-#include "experimental/distrib/async_cli.hpp"
-#include "experimental/distrib/isession.hpp"
+#include "distrib/async_cli.hpp"
+#include "distrib/isession.hpp"
 
 #ifndef DISTRIB_CLIENT_HPP
 #define DISTRIB_CLIENT_HPP
