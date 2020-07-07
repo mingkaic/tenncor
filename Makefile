@@ -248,3 +248,6 @@ test_consul_up:
 .PHONY: test_consul_down
 test_consul_down:
 	docker rm -f test-consul
+
+.PHONY: test_consul_restart
+test_consul_restart: test_consul_down test_consul_up

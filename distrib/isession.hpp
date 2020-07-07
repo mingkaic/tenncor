@@ -1,7 +1,5 @@
-#include "teq/isession.hpp"
 
-#include "eigen/eigen.hpp"
-
+#include "distrib/error.hpp"
 #include "distrib/reference.hpp"
 
 #ifndef DISTRIB_ISESSION_HPP
@@ -24,7 +22,8 @@ struct iDistribSess : public teq::iSession
 
 	virtual std::optional<std::string> lookup_id (teq::TensptrT tens) const = 0;
 
-	virtual teq::TensptrT lookup_node (const std::string& id, bool recursive = true) = 0;
+	virtual teq::TensptrT lookup_node (err::ErrptrT& err,
+		const std::string& id, bool recursive = true) = 0;
 
 	virtual std::string get_id (void) const = 0;
 

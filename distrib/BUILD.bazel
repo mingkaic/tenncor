@@ -1,7 +1,6 @@
 licenses(["notice"])
 
 load("//third_party:tools/protobuf.bzl", "cc_proto_library")
-# load("//third_party:tools/pybind.bzl", "pybind_py_library")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -16,10 +15,18 @@ filegroup(
 )
 
 filegroup(
-    name = "test_srcs",
+    name = "ctest_srcs",
     srcs = glob([
         "test/*.hpp",
         "test/*.cpp",
+    ]),
+    visibility = ["//visibility:private"],
+)
+
+filegroup(
+    name = "ptest_srcs",
+    srcs = glob([
+        "test/*.py",
     ]),
     visibility = ["//visibility:private"],
 )
@@ -56,8 +63,8 @@ cc_proto_library(
 ######### TEST #########
 
 cc_test(
-    name = "test",
-    srcs = ["//distrib:test_srcs"],
+    name = "ctest",
+    srcs = ["//distrib:ctest_srcs"],
     copts = ["-std=c++17"],
     deps = [
         "//distrib:distrib",
@@ -66,4 +73,14 @@ cc_test(
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
     linkstatic = True,
+    size = "large",
+)
+
+py_test(
+    name = "ptest",
+    srcs = ["//distrib:ptest_srcs"],
+    deps = [
+        "//:tenncor_py",
+        "//testutil:pyunit_util",
+    ]
 )

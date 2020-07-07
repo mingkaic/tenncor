@@ -2,8 +2,6 @@
 #include <boost/uuid/uuid_generators.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include <thread>
-
 #include "distrib/client.hpp"
 #include "distrib/server.hpp"
 #include "distrib/consul.hpp"
@@ -30,21 +28,9 @@ struct DistribSess final : public iDistribSess
 		const ClientConfig& cfg = ClientConfig()) :
 		consul_(consul, port, boost::uuids::to_string(
 			DistribSess::uuid_gen_()), service),
-		service_(this), cli_cfg_(cfg)
+		server_(this, port), cli_cfg_(cfg)
 	{
-		std::string address = fmts::sprintf("127.0.0.1:%d", port);
-		grpc::ServerBuilder builder;
-		builder.AddListeningPort(address, grpc::InsecureServerCredentials());
-		builder.RegisterService(&service_);
-		server_ = builder.BuildAndStart();
-		teq::infof("server listening on %s", address.c_str());
-
 		update_clients();
-	}
-
-	~DistribSess (void)
-	{
-		server_->Shutdown();
 	}
 
 	/// Implementation of iDistribSess
@@ -71,7 +57,7 @@ struct DistribSess final : public iDistribSess
 		bool ok = true;
 		while (data_queue_.Next(&got_tag, &ok) && ok)
 		{
-			auto handler = static_cast<iResponseHandler*>(got_tag);
+			auto handler = static_cast<iCliRespHandler*>(got_tag);
 			handler->handle(ok);
 		}
 	}
@@ -88,17 +74,23 @@ struct DistribSess final : public iDistribSess
 	}
 
 	/// Implementation of iDistribSess
-	teq::TensptrT lookup_node (const std::string& id, bool recursive = true) override
+	teq::TensptrT lookup_node (err::ErrptrT& err,
+		const std::string& id, bool recursive = true) override
 	{
 		if (false == estd::has(shared_nodes_.left, id))
 		{
 			if (false == recursive)
 			{
+				err = std::make_shared<err::ErrMsg>(
+					"no id %s found: will not recurse", id.c_str());
 				return nullptr;
 			}
 			std::string peer_id = consul_.get_kv(node_lookup_prefix + id, "");
 			if (peer_id.empty())
 			{
+				err = std::make_shared<err::ErrMsg>(
+					"no peer found for node %s",
+					(node_lookup_prefix + id).c_str());
 				return nullptr;
 			}
 			if (false == estd::has(clients_, peer_id))
@@ -109,8 +101,17 @@ struct DistribSess final : public iDistribSess
 			distr::FindNodesResponse res;
 			req.add_uuids(id);
 			auto status = clients_[peer_id]->lookup_node(req, res);
-			if (!status.ok() || res.values().empty())
+			if (false == status.ok())
 			{
+				err = std::make_shared<err::ErrMsg>(
+					"grpc status not ok: %s ()",
+					status.error_message().c_str());
+				return nullptr;
+			}
+			if (res.values().empty())
+			{
+				err = std::make_shared<err::ErrMsg>(
+					"no result found in received peer '%s'", peer_id.c_str());
 				return nullptr;
 			}
 			auto node = res.values().at(0);
@@ -162,7 +163,8 @@ private:
 			if (false == estd::has(clients_, peer.first))
 			{
 				clients_.insert({peer.first, std::make_unique<DistrCli>(
-					peer.second, cli_cfg_)});
+					grpc::CreateChannel(peer.second,
+						grpc::InsecureChannelCredentials()), cli_cfg_)});
 			}
 		}
 	}
@@ -171,13 +173,12 @@ private:
 
 	std::unordered_map<std::string,DistrCliPtrT> clients_; // todo: clean-up clients
 
-	std::unique_ptr<grpc::Server> server_;
-
 	grpc::CompletionQueue data_queue_;
 
 	ConsulService consul_;
 
-	DistrService service_;
+	AsyncDistrServer server_;
+	// DistrServer server_;
 
 	ClientConfig cli_cfg_;
 };

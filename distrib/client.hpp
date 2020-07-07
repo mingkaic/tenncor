@@ -1,6 +1,5 @@
-#include "teq/teq.hpp"
 
-#include "distrib/async_cli.hpp"
+#include "distrib/async.hpp"
 #include "distrib/isession.hpp"
 
 #ifndef DISTRIB_CLIENT_HPP
@@ -20,6 +19,8 @@ struct ClientConfig
 		request_duration_(request_duration),
 		stream_duration_(stream_duration) {}
 
+	size_t request_retry_ = 5;
+
 	/// Request timeout
 	std::chrono::duration<int64_t,std::milli>
 	request_duration_ = std::chrono::milliseconds(250);
@@ -31,23 +32,28 @@ struct ClientConfig
 
 struct DistrCli final
 {
-	DistrCli (const std::string& remote, const ClientConfig& cfg) :
-		stub_(distr::DistrManager::NewStub(
-			grpc::CreateChannel(remote,
-				grpc::InsecureChannelCredentials()))), cfg_(cfg) {}
+	DistrCli (std::shared_ptr<grpc::Channel> channel, const ClientConfig& cfg) :
+		stub_(distr::DistrManager::NewStub(channel)), cfg_(cfg) {}
 
 	grpc::Status lookup_node (
 		const distr::FindNodesRequest& req, distr::FindNodesResponse& res)
 	{
 		grpc::ClientContext context;
 		build_ctx(context, true);
-		return stub_->FindNodes(&context, req, &res);
+		auto status = stub_->FindNodes(&context, req, &res);
+		for (size_t i = 1; false == status.ok() && i < cfg_.request_retry_; ++i)
+		{
+			grpc::ClientContext context;
+			build_ctx(context, true);
+			status = stub_->FindNodes(&context, req, &res);
+		}
+		return status;
 	}
 
 	void get_data (grpc::CompletionQueue& cq, const distr::GetDataRequest& req,
 		boost::bimap<std::string,teq::TensptrT>& shared_nodes)
 	{
-		auto handler = new AsyncHandler<distr::NodeData>(
+		auto handler = new AsyncCliRespHandler<distr::NodeData>(
 			[&shared_nodes](distr::NodeData& res)
 			{
 				auto uuid = res.uuid();
