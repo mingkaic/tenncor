@@ -55,7 +55,8 @@ struct DistrCli final
 		return status;
 	}
 
-	std::future<void> get_data (grpc::CompletionQueue& cq, const distr::GetDataRequest& req,
+	std::future<void> get_data (grpc::CompletionQueue& cq,
+		const distr::GetDataRequest& req,
 		boost::bimap<std::string,teq::TensptrT>& shared_nodes)
 	{
 		auto handler = new AsyncCliRespHandler<distr::NodeData>(alias_ + ":GetData",
@@ -67,9 +68,10 @@ struct DistrCli final
 			});
 
 		build_ctx(handler->ctx_, false);
-		// prepare to avoid passing to completion queue before reader_ assignment
+		// prepare to avoid passing to cq before reader_ assignment
 		handler->reader_ = stub_->PrepareAsyncGetData(
 			&handler->ctx_, req, &cq);
+		// make request after reader_ assignment
 		handler->reader_->StartCall((void*) handler);
 		return handler->complete_promise_.get_future();
 	}
