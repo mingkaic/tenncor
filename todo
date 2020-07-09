@@ -6,8 +6,7 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - optimize optimization conversion to no longer convert replaced graph nodes
-   - improve variable assignment to dynamically process source node based on context
+   - move derivation to per-node which allows derivation between distributed services
    - upgrade layr to allow restructuring recurrent structure sequence length
    - fix gru demo to run optimally
    - improve grader/optimization rule according to rnn, lstm, gru
@@ -16,7 +15,6 @@ P5 = "get to it eventually"
       (or GRU veriants in https://arxiv.org/pdf/1901.03860.pdf)
 
 >>>> aux project >>>> (preferrable to ensure smooth completion of inprogress tasks)
-   - train convolutional nn demo
    - implement sparse embedding using eigen sparse matrix
    - select and integrate some other CUDA-supported LinAlgebra libraries
    - make global context configurable through python

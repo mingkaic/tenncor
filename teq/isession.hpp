@@ -36,12 +36,14 @@ struct iSession
 	/// Update every node under the subgraph except
 	/// for the subgraphs of ignored
 	/// this function is expected to be called repeatedly during runtime
-	virtual void update (iDevice& device, TensSetT ignored = {}) = 0;
+	virtual void update (iDevice& device, const TensSetT& ignored = {}) = 0;
 
 	/// Update every node under the target roots that are expected to be
 	/// under the tracked subgraphs ignoring the subgraphs of ignored
 	/// this function is expected to be called repeatedly during runtime
-	virtual void update_target (iDevice& device, TensSetT target, TensSetT ignored = {}) = 0;
+	virtual void update_target (iDevice& device,
+		const TensSetT& target,
+		const TensSetT& ignored = {}) = 0;
 
 	/// Clear all tracked root and subgraph information
 	virtual void clear (void) = 0;
@@ -66,7 +68,7 @@ struct Session : public iSession
 		{
 			if (false == estd::has(opheight_, root.get()))
 			{
-				if (auto f = dynamic_cast<teq::iFunctor*>(root.get()))
+				if (auto f = dynamic_cast<iFunctor*>(root.get()))
 				{
 					roots_.emplace(root);
 					funcs.push_back(f);
@@ -106,7 +108,7 @@ struct Session : public iSession
 	}
 
 	/// Implementation of iSession
-	void update (iDevice& device, TensSetT ignored = {}) override
+	void update (iDevice& device, const TensSetT& ignored = {}) override
 	{
 		TensSetT rtens;
 		rtens.reserve(roots_.size());
@@ -117,9 +119,12 @@ struct Session : public iSession
 	}
 
 	/// Implementation of iSession
-	void update_target (iDevice& device, TensSetT target, TensSetT ignored = {}) override
+	void update_target (iDevice& device,
+		const TensSetT& target,
+		const TensSetT& ignored = {}) override
 	{
 		FuncListT reqs;
+		TensSetT nexts;
 		std::unordered_set<iDeviceRef*> devices;
 		// ignored tensors will never populate reqs
 		for (auto rit = ops_.rbegin(), ret = ops_.rend();
@@ -128,7 +133,8 @@ struct Session : public iSession
 			auto& fops = *rit;
 			for (auto& op : fops)
 			{
-				if (estd::has(target, op) && false == estd::has(ignored, op))
+				if ((estd::has(nexts, op) || estd::has(target, op)) &&
+					false == estd::has(ignored, op))
 				{
 					iDeviceRef* ref = &op->device();
 					assert(false == estd::has(devices, ref));
@@ -138,7 +144,7 @@ struct Session : public iSession
 					auto children = op->get_dependencies();
 					for (TensptrT child : children)
 					{
-						target.emplace(child.get());
+						nexts.emplace(child.get());
 					}
 				}
 			}
@@ -167,7 +173,7 @@ protected:
 	TensptrSetT roots_; // only needed for update
 
 private:
-	teq::TensMapT<size_t> opheight_;
+	TensMapT<size_t> opheight_;
 };
 
 }

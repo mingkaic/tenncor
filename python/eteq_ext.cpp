@@ -1,4 +1,3 @@
-#include "pybind11/functional.h"
 
 #include "python/eteq_ext.hpp"
 
@@ -30,17 +29,17 @@ void eteq_ext (py::module& m)
 			{
 				actives.emplace(r.second);
 			}
-			pyeteq::ETensorsT out;
+			pytenncor::ETensorsT out;
 			out.reserve(actives.size());
 			for (auto& tens : actives)
 			{
-				out.push_back(pyeteq::ETensT(tens, self));
+				out.push_back(pytenncor::ETensT(tens, self));
 			}
 			return out;
 		})
 		.def("replace",
 		[](eteq::ECtxptrT& self, const std::vector<std::pair<
-			pyeteq::ETensT,pyeteq::ETensT>>& converts)
+			pytenncor::ETensT,pytenncor::ETensT>>& converts)
 		{
 			teq::TensptrsT actives;
 			for (auto& r : self->registry_)
@@ -96,28 +95,28 @@ void eteq_ext (py::module& m)
 			});
 
 	// ==== etens ====
-	auto etens = (py::class_<pyeteq::ETensT>) m.attr("ETensor");
+	auto etens = (py::class_<pytenncor::ETensT>) m.attr("ETensor");
 
 	etens
 		.def(py::init(
 		[](teq::TensptrT tens, eteq::ECtxptrT& context)
 		{
-			return pyeteq::ETensT(tens, context);
+			return pytenncor::ETensT(tens, context);
 		}),
 		py::arg("tens"),
 		py::arg("ctx") = eteq::global_context())
 		.def("__str__",
-		[](const pyeteq::ETensT& self)
+		[](const pytenncor::ETensT& self)
 		{
 			return self->to_string();
 		})
 		.def("__hash__",
-		[](const pyeteq::ETensT& self)
+		[](const pytenncor::ETensT& self)
 		{
 			return size_t(self.get());
 		})
 		.def("shape",
-		[](const pyeteq::ETensT& self)
+		[](const pytenncor::ETensT& self)
 		{
 			teq::Shape shape = self->shape();
 			auto pshape = pyutils::c2pshape(shape);
@@ -126,23 +125,23 @@ void eteq_ext (py::module& m)
 		},
 		"Return this instance's shape")
 		.def("raw",
-		[](pyeteq::ETensT& self)
+		[](pytenncor::ETensT& self)
 		{
 			PybindT* data = self.data();
-			return pyeteq::typedata_to_array<PybindT>(data, self->shape(),
+			return pytenncor::typedata_to_array<PybindT>(data, self->shape(),
 				self->get_meta().type_code(), py::dtype::of<PybindT>());
 		})
 		.def("get",
-		[](pyeteq::ETensT& self, teq::TensSetT ignored, size_t max_version)
+		[](pytenncor::ETensT& self, teq::TensSetT ignored, size_t max_version)
 		{
 			PybindT* data = self.calc(ignored, max_version);
-			return pyeteq::typedata_to_array<PybindT>(data, self->shape(),
+			return pytenncor::typedata_to_array<PybindT>(data, self->shape(),
 				self->get_meta().type_code(), py::dtype::of<PybindT>());
 		},
 		py::arg("ignored") = teq::TensSetT{},
 		py::arg("max_version") = std::numeric_limits<size_t>::max())
 		.def("get_version",
-		[](const pyeteq::ETensT& self)
+		[](const pytenncor::ETensT& self)
 		{
 			return self->get_meta().state_version();
 		})
@@ -152,7 +151,7 @@ void eteq_ext (py::module& m)
 		.def("connect", eteq::connect<PybindT>)
 		.def("deep_clone", eteq::deep_clone<PybindT>)
 		.def("get_storage",
-		[](const pyeteq::ETensT& self)
+		[](const pytenncor::ETensT& self)
 		{
 			auto contents = eteq::get_storage<PybindT>(self);
 			eteq::EVariablesT<PybindT> vars;
@@ -169,7 +168,7 @@ void eteq_ext (py::module& m)
 
 		// useful for debugging
 		.def("tag",
-		[](pyeteq::ETensT& self,
+		[](pytenncor::ETensT& self,
 			const std::string& key, const std::string& val)
 		{
 			if (auto f = dynamic_cast<teq::iFunctor*>(self.get()))
@@ -190,10 +189,10 @@ void eteq_ext (py::module& m)
 		})
 		.def("update",
 		[](teq::iSession& self, size_t max_version,
-			std::vector<pyeteq::ETensT> ignored)
+			std::vector<pytenncor::ETensT> ignored)
 		{
 			teq::TensSetT ignored_set;
-			for (pyeteq::ETensT& etens : ignored)
+			for (pytenncor::ETensT& etens : ignored)
 			{
 				ignored_set.emplace(etens.get());
 			}
@@ -202,18 +201,18 @@ void eteq_ext (py::module& m)
 		},
 		"Calculate every etens in the graph given list of nodes to ignore",
 		py::arg("max_version") = std::numeric_limits<size_t>::max(),
-		py::arg("ignored") = std::vector<pyeteq::ETensT>{})
+		py::arg("ignored") = std::vector<pytenncor::ETensT>{})
 		.def("update_target",
-		[](teq::iSession& self, std::vector<pyeteq::ETensT> targeted,
-			size_t max_version, std::vector<pyeteq::ETensT> ignored)
+		[](teq::iSession& self, std::vector<pytenncor::ETensT> targeted,
+			size_t max_version, std::vector<pytenncor::ETensT> ignored)
 		{
 			teq::TensSetT targeted_set;
 			teq::TensSetT ignored_set;
-			for (pyeteq::ETensT& etens : targeted)
+			for (pytenncor::ETensT& etens : targeted)
 			{
 				targeted_set.emplace(etens.get());
 			}
-			for (pyeteq::ETensT& etens : ignored)
+			for (pytenncor::ETensT& etens : ignored)
 			{
 				ignored_set.emplace(etens.get());
 			}
@@ -224,14 +223,14 @@ void eteq_ext (py::module& m)
 		"graph given list of nodes to ignore",
 		py::arg("targeted"),
 		py::arg("max_version") = std::numeric_limits<size_t>::max(),
-		py::arg("ignored") = std::vector<pyeteq::ETensT>{});
+		py::arg("ignored") = std::vector<pytenncor::ETensT>{});
 
 	py::implicitly_convertible<teq::iSession,teq::Session>();
 	session
 		.def(py::init([](void) { return std::make_shared<teq::Session>(); }));
 
 	// ==== variable ====
-	py::class_<eteq::EVariable<PybindT>,pyeteq::ETensT> evar(m, "EVariable");
+	py::class_<eteq::EVariable<PybindT>,pytenncor::ETensT> evar(m, "EVariable");
 
 	evar
 		.def(py::init(
@@ -290,7 +289,7 @@ void eteq_ext (py::module& m)
 		py::arg("label") = "",
 		py::arg("ctx") = eteq::global_context())
 		.def("variable_like",
-		[](PybindT scalar, pyeteq::ETensT like,
+		[](PybindT scalar, pytenncor::ETensT like,
 			const std::string& label, eteq::ECtxptrT context)
 		{
 			return eteq::make_variable_like<PybindT>(
@@ -317,7 +316,7 @@ void eteq_ext (py::module& m)
 		py::arg("label") = "",
 		py::arg("ctx") = eteq::global_context())
 		.def("to_variable",
-		[](const pyeteq::ETensT& tens, eteq::ECtxptrT context)
+		[](const pytenncor::ETensT& tens, eteq::ECtxptrT context)
 		{
 			auto ctx = tens.get_context();
 			if (nullptr == ctx)
@@ -340,8 +339,8 @@ void eteq_ext (py::module& m)
 		"Return derivative of first tensor with respect to second tensor")
 
 		.def("trail",
-		[](const pyeteq::ETensT& root,
-			const std::vector<pyeteq::ETensPairT>& inps)
+		[](const pytenncor::ETensT& root,
+			const std::vector<pytenncor::ETensPairT>& inps)
 		{
 			teq::TensMapT<teq::TensptrT> inputs;
 			for (const auto& inp : inps)
@@ -462,11 +461,11 @@ void eteq_ext (py::module& m)
 			out.reserve(roots.size());
 			for (const std::string& id : precids)
 			{
-				out.push_back(pyeteq::ETensT(ids.right.at(id), eteq::global_context()));
+				out.push_back(pytenncor::ETensT(ids.right.at(id), eteq::global_context()));
 			}
 			for (const std::string& id : root_ids)
 			{
-				out.push_back(pyeteq::ETensT(ids.right.at(id), eteq::global_context()));
+				out.push_back(pytenncor::ETensT(ids.right.at(id), eteq::global_context()));
 			}
 			return out;
 		},
@@ -511,13 +510,13 @@ void eteq_ext (py::module& m)
 			onnx::TensptrIdT ids;
 			auto roots = eteq::load_model(ids, pb_model);
 			input.close();
-			pyeteq::ETensorsT out;
+			pytenncor::ETensorsT out;
 			out.reserve(roots.size());
 			std::transform(roots.begin(), roots.end(),
 				std::back_inserter(out),
 				[&](teq::TensptrT tens)
 				{
-					return pyeteq::ETensT(tens, ctx);
+					return pytenncor::ETensT(tens, ctx);
 				});
 			return out;
 		})

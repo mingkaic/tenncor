@@ -8,6 +8,8 @@
 
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <numeric>
 
 #ifndef DBG_TENSOR_HPP
 #define DBG_TENSOR_HPP

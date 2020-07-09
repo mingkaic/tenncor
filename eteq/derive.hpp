@@ -6,12 +6,7 @@
 /// Implement eteq gradient definition for supported operations
 ///
 
-#include "teq/derive.hpp"
-
-#include "eigen/operator.hpp"
-
 #include "eteq/make.hpp"
-#include "eteq/constant.hpp"
 
 #ifndef ETEQ_DERIVE_HPP
 #define ETEQ_DERIVE_HPP

@@ -1,1 +1,7 @@
 licenses(["notice"])
+
+py_binary(
+    name = "strip_prefix",
+    srcs = ["tools/strip_prefix.py"],
+    visibility = ["//visibility:public"],
+)

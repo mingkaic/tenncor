@@ -1,8 +1,6 @@
 #include "marsh/attrs.hpp"
 
-#include "teq/shape.hpp"
-
-#include "eigen/generated/opcode.hpp"
+#include "eigen/eigen.hpp"
 
 #ifndef ETEQ_FUNCOPT_HPP
 #define ETEQ_FUNCOPT_HPP

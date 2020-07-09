@@ -1,6 +1,10 @@
 licenses(["notice"])
 
-load("@rules_proto//proto:defs.bzl", "proto_library")
+load("//third_party:tools/protobuf.bzl", "cc_proto_library")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
 
 filegroup(
     name = "srcs",
@@ -10,7 +14,6 @@ filegroup(
     ]) + [
         "BUILD.bazel",
     ],
-    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -19,6 +22,7 @@ filegroup(
         "test/*.hpp",
         "test/*.cpp",
     ]),
+    visibility = ["//visibility:private"],
 )
 
 ######### LIBRARY #########
@@ -39,21 +43,12 @@ cc_library(
 proto_library(
     name = "query_proto",
     srcs = ["query.proto"],
-    visibility = ["//visibility:public"],
 )
 
-# cc_proto_library(
-#     name = "query_cc_proto",
-#     deps = ["//query:query_proto"],
-# )
-
-cc_library(
+cc_proto_library(
     name = "query_cc_proto",
-    hdrs = ["query.pb.h"],
-    srcs = ["query.pb.cc"],
+    srcs = ["query.proto"],
     copts = ["-std=c++17"],
-    deps = ["@com_google_protobuf_custom//:protobuf"],
-    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########

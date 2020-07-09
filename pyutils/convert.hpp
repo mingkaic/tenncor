@@ -1,7 +1,7 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/numpy.h"
 
-#include "teq/shaped_arr.hpp"
+#include "teq/teq.hpp"
 
 #ifndef PYTUTIL_CONVERT_HPP
 #define PYTUTIL_CONVERT_HPP

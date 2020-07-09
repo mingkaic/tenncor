@@ -54,21 +54,6 @@ push_image:
 	docker push ${IMAGE_REPO}/tenncor:${IMAGE_TAG}
 
 
-.PHONY: protoc
-protoc:
-	mkdir -p ./build
-	bazel build @com_google_protobuf_custom//:protoc
-	cp bazel-bin/external/com_google_protobuf_custom/protoc ./build
-
-.PHONY: gen_proto
-gen_proto: protoc
-	./build/protoc --cpp_out=. -I . onnx/onnx.proto
-	./build/protoc --cpp_out=. -I . query/query.proto
-	./build/protoc --cpp_out=. -I . opt/optimize.proto
-	./build/protoc --python_out=. -I=. extenncor/dqntrainer.proto
-	./build/protoc --python_out=. -I=. extenncor/dataset.proto
-
-
 .PHONY: onnx2json
 onnx2json: onnx_test_o2j eteq_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
 
@@ -254,3 +239,15 @@ lcov_query: cover_query cov_clean
 
 .PHONY: lcov_teq
 lcov_teq: cover_teq cov_clean
+
+
+.PHONY: test_consul_up
+test_consul_up:
+	docker run -d --name=test-consul -e CONSUL_BIND_INTERFACE=eth0 -p 8500:8500 consul
+
+.PHONY: test_consul_down
+test_consul_down:
+	docker rm -f test-consul
+
+.PHONY: test_consul_restart
+test_consul_restart: test_consul_down test_consul_up

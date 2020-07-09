@@ -15,12 +15,6 @@ benchmark_repository()
 
 # === more import external dependencies ===
 
-load("@rules_proto//proto:repositories.bzl",
-    rules_proto_deps="rules_proto_dependencies",
-    "rules_proto_toolchains")
-rules_proto_deps()
-rules_proto_toolchains()
-
 load("@com_github_pybind_bazel//:python_configure.bzl", "python_configure")
 python_configure(name="local_config_python")
 
@@ -35,13 +29,3 @@ grpc_deps()
 
 load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 grpc_extra_deps()
-
-# === additional external dependencies (remove after native cpp proto rules works) ===
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-http_archive(
-    name = "com_google_protobuf_custom",
-    sha256 = "a19dcfe9d156ae45d209b15e0faed5c7b5f109b6117bfc1974b6a7b98a850320",
-    strip_prefix = "protobuf-3.7.0",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.7.0.tar.gz"],
-)

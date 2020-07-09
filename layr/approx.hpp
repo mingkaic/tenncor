@@ -6,7 +6,7 @@
 /// Define error approximation algorithms and variable assignment utilities
 ///
 
-#include "eteq/make.hpp"
+#include "eteq/eteq.hpp"
 
 #ifndef LAYR_APPROX_HPP
 #define LAYR_APPROX_HPP

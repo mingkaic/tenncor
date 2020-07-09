@@ -2,8 +2,6 @@
 #ifndef OPT_RULE_HPP
 #define OPT_RULE_HPP
 
-#include "query/query.hpp"
-
 #include "opt/target.hpp"
 
 namespace opt

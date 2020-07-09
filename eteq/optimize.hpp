@@ -7,9 +7,6 @@
 
 #include <fstream>
 
-#include "opt/parse.hpp"
-#include "opt/apply.hpp"
-
 #include "eteq/duplicates.hpp"
 #include "eteq/cstrules.hpp"
 #include "eteq/target.hpp"

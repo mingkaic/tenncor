@@ -1,7 +1,5 @@
 #include "estd/cast.hpp"
 
-#include "eigen/packattr.hpp"
-
 #include "eteq/constant.hpp"
 #include "eteq/functor.hpp"
 

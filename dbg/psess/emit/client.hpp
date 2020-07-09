@@ -8,15 +8,15 @@
 
 #include <chrono>
 
-#include <grpc/grpc.h>
+#include <grpcpp/grpcpp.h>
 
 #include "jobs/managed_job.hpp"
 #include "jobs/sequence.hpp"
 
+#include "dbg/psess/emit/gemitter.grpc.pb.h"
+
 #ifndef DBG_GRPC_CLIENT_HPP
 #define DBG_GRPC_CLIENT_HPP
-
-#include "dbg/psess/emit/gemitter.grpc.pb.h"
 
 namespace emit
 {

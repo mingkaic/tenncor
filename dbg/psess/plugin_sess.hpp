@@ -1,4 +1,4 @@
-#include "teq/isession.hpp"
+#include "teq/teq.hpp"
 
 #ifndef DBG_PLUGIN_SESS_HPP
 #define DBG_PLUGIN_SESS_HPP

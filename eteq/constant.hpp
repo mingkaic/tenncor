@@ -6,9 +6,6 @@
 /// Implement constant leaf tensor
 ///
 
-#include "eigen/device.hpp"
-#include "eigen/emeta.hpp"
-
 #include "eteq/etens.hpp"
 
 #ifndef ETEQ_CONSTANT_HPP
@@ -61,12 +58,6 @@ struct Constant final : public teq::iLeaf
 	const teq::iMetadata& get_meta (void) const override
 	{
 		return meta_;
-	}
-
-	/// Implementation of iTensor
-	size_t nbytes (void) const override
-	{
-		return sizeof(T) * shape_.n_elems();
 	}
 
 	/// Implementation of iTensor

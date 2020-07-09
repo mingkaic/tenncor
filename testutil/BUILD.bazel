@@ -26,5 +26,9 @@ cc_library(
 
 py_library(
     name = "pyunit_util",
-    srcs = ["generate_testcases.py"],
+    srcs = [
+        "generate_testcases.py",
+        "array_testcase.py",
+        "tf_testutil.py",
+    ],
 )

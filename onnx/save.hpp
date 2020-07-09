@@ -9,10 +9,6 @@
 #ifndef ONNX_SAVE_HPP
 #define ONNX_SAVE_HPP
 
-#include <list>
-
-#include "teq/traveler.hpp"
-
 #include "onnx/marshal.hpp"
 
 namespace onnx

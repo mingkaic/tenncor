@@ -1,0 +1,86 @@
+licenses(["notice"])
+
+load("//third_party:tools/protobuf.bzl", "cc_proto_library")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.hpp",
+        "src/*.cpp",
+    ]) + ["BUILD.bazel"],
+)
+
+filegroup(
+    name = "ctest_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+    visibility = ["//visibility:private"],
+)
+
+filegroup(
+    name = "ptest_srcs",
+    srcs = glob([
+        "test/*.py",
+    ]),
+    visibility = ["//visibility:private"],
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "distrib",
+    hdrs = glob(["*.hpp"]),
+    srcs = glob(["src/*.cpp"]),
+    copts = ["-std=c++17"],
+    deps = [
+        "//teq:teq",
+        "//eigen:eigen",
+        "//distrib:distr_cc_grpc",
+        "@boost//:uuid",
+        "@boost//:bimap",
+        "@com_github_oliora_ppconsul//:consul",
+    ],
+)
+
+proto_library(
+    name = "distr_proto",
+    srcs = ["distr.proto"],
+)
+
+cc_proto_library(
+    name = "distr_cc_grpc",
+    srcs = ["distr.proto"],
+    copts = ["-std=c++17"],
+    with_service = True,
+)
+
+######### TEST #########
+
+cc_test(
+    name = "ctest",
+    srcs = ["//distrib:ctest_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//distrib:distrib",
+        "//:tenncor",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    linkstatic = True,
+    size = "large",
+)
+
+py_test(
+    name = "ptest",
+    srcs = ["//distrib:ptest_srcs"],
+    deps = [
+        "//:tenncor_py",
+        "//testutil:pyunit_util",
+    ]
+)

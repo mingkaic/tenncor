@@ -1,4 +1,4 @@
-#include "teq/itensor.hpp"
+#include "teq/teq.hpp"
 
 #include "eigen/generated/dtype.hpp"
 
@@ -25,6 +25,13 @@ struct EMetadata : public teq::iMetadata
 		return egen::name_type(egen::get_type<T>());
 	}
 
+	/// Implementation of iMetadata
+	size_t type_size (void) const override
+	{
+		return sizeof(T);
+	}
+
+	/// Implementation of iMetadata
 	size_t state_version (void) const override
 	{
 		return version_;

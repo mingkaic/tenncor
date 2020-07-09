@@ -6,9 +6,6 @@
 /// Typed tensor pointer transport object
 ///
 
-#include "eigen/generated/dtype.hpp"
-
-#include "eteq/global.hpp"
 #include "eteq/variable.hpp"
 
 #ifndef ETEQ_ETENS_HPP

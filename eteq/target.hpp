@@ -2,7 +2,7 @@
 #ifndef ETEQ_OPT_TARGET_HPP
 #define ETEQ_OPT_TARGET_HPP
 
-#include "opt/target.hpp"
+#include "opt/opt.hpp"
 
 #include "eteq/make.hpp"
 

@@ -1,10 +1,10 @@
 
 # ------ ALL SETTINGS ------
 
-run --jobs=3
-build --jobs=3
-test --jobs=3
-coverage --jobs=3
+run --jobs=3 --copt=-DGRPC_BAZEL_BUILD
+build --jobs=3 --copt=-DGRPC_BAZEL_BUILD
+test --jobs=3 --copt=-DGRPC_BAZEL_BUILD
+coverage --jobs=3 --copt=-DGRPC_BAZEL_BUILD
 
 # ------ HARDWARE ------
 

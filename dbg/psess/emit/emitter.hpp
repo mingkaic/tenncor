@@ -7,10 +7,10 @@
 
 #include "jobs/scope_guard.hpp"
 
-#include "eteq/serialize.hpp"
+#include "eteq/eteq.hpp"
 
-#include "dbg/psess/emit/client.hpp"
 #include "dbg/psess/plugin_sess.hpp"
+#include "dbg/psess/emit/client.hpp"
 
 namespace emit
 {
@@ -112,16 +112,15 @@ struct Emitter final : public dbg::iPlugin
 				auto leaf = static_cast<teq::iLeaf*>(statpair.first);
 				egen::_GENERATED_DTYPE dtype =
 					(egen::_GENERATED_DTYPE) leaf->get_meta().type_code();
-				std::vector<float> data;
 				size_t nelems = leaf->shape().n_elems();
-				egen::type_convert(data, leaf->device().data(), dtype, nelems);
+				google::protobuf::RepeatedField<float> field;
+				field.Resize(nelems, 0);
+				egen::type_convert(field.mutable_data(), leaf->device().data(), dtype, nelems);
 
 				gemitter::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
 				payload->set_model_id(sess_id_);
 				payload->set_node_id(ids_.left.at(leaf));
-				google::protobuf::RepeatedField<float> field(
-					data.begin(), data.end());
 				payload->mutable_data()->Swap(&field);
 				requests.push_back(request);
 			}
@@ -132,17 +131,16 @@ struct Emitter final : public dbg::iPlugin
 		{
 			egen::_GENERATED_DTYPE dtype =
 				(egen::_GENERATED_DTYPE) func->get_meta().type_code();
-			std::vector<float> data;
 			size_t nelems = func->shape().n_elems();
-			egen::type_convert(data, func->device().data(), dtype, nelems);
+			google::protobuf::RepeatedField<float> field;
+			field.Resize(nelems, 0);
+			egen::type_convert(field.mutable_data(), func->device().data(), dtype, nelems);
 
 			// create requests (bulk of the overhead)
 			gemitter::UpdateNodeDataRequest request;
 			auto payload = request.mutable_payload();
 			payload->set_model_id(sess_id_);
 			payload->set_node_id(ids_.left.at(func));
-			google::protobuf::RepeatedField<float> field(
-				data.begin(), data.end());
 			payload->mutable_data()->Swap(&field);
 			requests.push_back(request);
 		}

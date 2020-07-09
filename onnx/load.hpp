@@ -9,8 +9,6 @@
 #ifndef ONNX_LOAD_HPP
 #define ONNX_LOAD_HPP
 
-#include "teq/traveler.hpp"
-
 #include "onnx/marshal.hpp"
 
 namespace onnx

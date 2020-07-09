@@ -2,18 +2,58 @@ import numpy as np
 
 import tenncor as tc
 
-def embedding_init(shape, label):
-    return tc.variable(np.random.uniform(
-        -1, 1, tuple(shape.as_list())), label)
+class Embedding(object):
+    def __init__(self, vweight, wweight, words):
+        nwords, vecsize = tuple(vweight.shape())
+        self.embedding = tc.api.layer.dense([nwords], [vecsize],
+            weight_init=lambda shape, weight: vweight,
+            bias_init=None)
+        self.exbedding = tc.api.layer.dense([vecsize], [nwords],
+            weight_init=lambda shape, weight: wweight,
+            bias_init=None)
+        self.weight = vweight
+        self.idx2word = words
+        self.word2idx = dict([(word, i) for i, word in enumerate(words)])
 
-def make_embedding(nwords, ndims):
-    embedding = tc.api.layer.dense([nwords], [ndims],
-        weight_init=embedding_init, bias_init=None)
-    model = tc.api.layer.link([
-        embedding,
-        tc.api.layer.dense([ndims], [nwords],
-            weight_init=embedding_init, bias_init=None),
-        tc.api.layer.bind(tc.api.softmax),
-    ])
-    weight = embedding.get_storage()[0]
-    return weight, model
+    def __getitem__(self, idx):
+        w = self.weight.get()
+        if idx >= len(w):
+            return None
+        return w[idx]
+
+    def __len__(self):
+        return self.weight.shape()[0]
+
+    def get_vec(self, word):
+        if word not in self.word2idx:
+            return None
+        idx = self.word2idx[word]
+        return self[idx]
+
+    def onehot(self, word):
+        if word not in self.word2idx:
+            return None
+        word_vec = [0] * len(self.idx2word)
+        word_vec[self.word2idx[word]] = 1
+        return word_vec
+
+def embedding_weight_init(shape, label):
+    if isinstance(shape, tc.Shape):
+        shape = shape.as_list()
+    return tc.variable(np.random.uniform(
+        -1, 1, tuple(shape)), label)
+
+def make_embedding(words, vecsize):
+    '''
+    words      list of strings with index denoting label
+    vecsize     int denoting length of mapped vector
+    '''
+    nwords = len(words)
+    vweight = embedding_weight_init([nwords, vecsize], 'to_vec')
+    wweight = embedding_weight_init([vecsize, nwords], 'to_word')
+    return Embedding(vweight, wweight, words)
+
+def vdistance(v1, v2):
+    theta_sum = np.dot(v1, v2)
+    theta_den = np.linalg.norm(v1) * np.linalg.norm(v2)
+    return theta_sum / theta_den
