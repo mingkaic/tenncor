@@ -1,3 +1,6 @@
+
+#include <future>
+
 #include <grpcpp/grpcpp.h>
 
 #include "teq/teq.hpp"
@@ -29,13 +32,14 @@ struct AsyncServerCall final : public iServerCall
 
 	using WriteF = std::function<grpc::Status(const REQ&,RES&)>;
 
-	AsyncServerCall (RequestF req_call, WriteF write_call,
-		grpc::ServerCompletionQueue* cq) :
+	AsyncServerCall (const std::string alias,
+		RequestF req_call, WriteF write_call,
+		grpc::ServerCompletionQueue* cq) : alias_(alias),
 		req_call_(req_call), write_call_(write_call),
 		cq_(cq), responder_(&ctx_), status_(PROCESS)
 	{
-		teq::infof("creating call data for new connections: %p", this);
 		req_call_(&ctx_, &req_, &responder_, cq_, cq_, (void*) this);
+		teq::infof("[server %s] rpc %p created", alias_.c_str(), this);
 	}
 
 	void serve (void) override
@@ -44,15 +48,16 @@ struct AsyncServerCall final : public iServerCall
 		{
 		case PROCESS:
 		{
-			new AsyncServerCall(req_call_, write_call_, cq_);
+			new AsyncServerCall(alias_, req_call_, write_call_, cq_);
 			RES reply;
 			status_ = FINISH;
+			teq::infof("[server %s] rpc %p writing", alias_.c_str(), this);
 			auto out_status = write_call_(req_, reply);
 			responder_.Finish(reply, out_status, this);
 		}
 			break;
 		case FINISH:
-			teq::infof("rpc completed for %p", this);
+			teq::infof("[server %s] rpc %p completed", alias_.c_str(), this);
 			shutdown();
 		}
 	}
@@ -64,6 +69,8 @@ struct AsyncServerCall final : public iServerCall
 
 private:
 	enum CallStatus { PROCESS, FINISH };
+
+	std::string alias_;
 
 	REQ req_;
 
@@ -92,14 +99,14 @@ struct AsyncServerStreamCall final : public iServerCall
 
 	using WriteF = std::function<bool(const REQ&,IT&,RES&)>;
 
-	AsyncServerStreamCall (RequestF req_call,
-		InitF init_call, WriteF write_call,
-		grpc::ServerCompletionQueue* cq) : req_call_(req_call),
-		init_call_(init_call), write_call_(write_call),
+	AsyncServerStreamCall (const std::string& alias,
+		RequestF req_call, InitF init_call, WriteF write_call,
+		grpc::ServerCompletionQueue* cq) : alias_(alias),
+		req_call_(req_call), init_call_(init_call), write_call_(write_call),
 		cq_(cq), responder_(&ctx_), status_(STARTUP)
 	{
-		teq::infof("creating call data for new connections: %p", this);
 		req_call_(&ctx_, &req_, &responder_, cq_, cq_, (void*) this);
+		teq::infof("[server %s] rpc %p created", alias_.c_str(), this);
 	}
 
 	void serve (void) override
@@ -108,7 +115,10 @@ struct AsyncServerStreamCall final : public iServerCall
 		{
 		case STARTUP:
 		{
-			new AsyncServerStreamCall(req_call_, init_call_, write_call_, cq_);
+			new AsyncServerStreamCall(
+				alias_, req_call_, init_call_, write_call_, cq_);
+			teq::infof("[server %s] rpc %p initializing",
+				alias_.c_str(), this);
 			auto out_status = init_call_(ranges_, req_);
 			if (false == out_status.ok())
 			{
@@ -122,14 +132,15 @@ struct AsyncServerStreamCall final : public iServerCall
 		case PROCESS:
 		{
 			status_ = PROCESS;
-			bool called = false;
 			if (it_ != ranges_.end())
 			{
 				RES reply;
-				if (write_call_(req_, it_, reply))
+				teq::infof("[server %s] rpc %p writing", alias_.c_str(), this);
+				bool wrote = write_call_(req_, it_, reply);
+				++it_;
+				if (wrote)
 				{
 					responder_.Write(reply, this);
-					++it_;
 					return;
 				}
 			}
@@ -142,7 +153,7 @@ struct AsyncServerStreamCall final : public iServerCall
 		}
 			break;
 		case FINISH:
-			teq::infof("rpc completed for %p", this);
+			teq::infof("[server %s] rpc %p completed", alias_.c_str(), this);
 			shutdown();
 		}
 	}
@@ -158,6 +169,8 @@ struct AsyncServerStreamCall final : public iServerCall
 
 private:
 	enum CallStatus { STARTUP, PROCESS, FINISH };
+
+	std::string alias_;
 
 	RANGE ranges_;
 
@@ -196,48 +209,64 @@ struct AsyncCliRespHandler final : public iCliRespHandler
 
 	using HandlerF = std::function<void(DATA&)>;
 
-	AsyncCliRespHandler (HandlerF handler) : handler_(handler), call_status_(CREATE) {}
+	AsyncCliRespHandler (const std::string& alias, HandlerF handler) :
+		alias_(alias), handler_(handler), call_status_(CREATE) {}
+
+	~AsyncCliRespHandler (void) { complete_promise_.set_value(); }
 
 	void handle (bool event_status) override
 	{
+		assert(nullptr != reader_);
 		switch (call_status_)
 		{
 		case CREATE:
 			if (event_status)
 			{
-				reader_->Read(&reply_, (void*) this);
+				teq::infof("[client %s] call %p created... processing",
+					alias_.c_str(), this);
 				call_status_ = PROCESS;
+				reader_->Read(&reply_, (void*) this);
 			}
 			else
 			{
-				reader_->Finish(&status_, (void*)this);
+				teq::infof("[client %s] call %p created... finishing",
+					alias_.c_str(), this);
 				call_status_ = FINISH;
+				reader_->Finish(&status_, (void*)this);
 			}
 			break;
 		case PROCESS:
 			if (event_status)
 			{
+				teq::infof("[client %s] call %p received... handling",
+					alias_.c_str(), this);
 				handler_(reply_);
 				reader_->Read(&reply_, (void*)this);
 			}
 			else
 			{
-				reader_->Finish(&status_, (void*)this);
+				teq::infof("[client %s] call %p received... finishing",
+					alias_.c_str(), this);
 				call_status_ = FINISH;
+				reader_->Finish(&status_, (void*)this);
 			}
 			break;
 		case FINISH:
 			if (status_.ok())
 			{
-				teq::infof("server response completed: %p", this);
+				teq::infof("[client %s] call %p completed successfully",
+					alias_.c_str(), this);
 			}
 			else
 			{
-				teq::warnf("server response failed: %p", this);
+				teq::errorf("[client %s] call %p failed: %s",
+					alias_.c_str(), this, status_.error_message().c_str());
 			}
 			delete this;
 		}
 	}
+
+	std::string alias_;
 
 	grpc::ClientContext ctx_;
 
@@ -248,6 +277,8 @@ struct AsyncCliRespHandler final : public iCliRespHandler
 	DATA reply_;
 
 	grpc::Status status_;
+
+	std::promise<void> complete_promise_;
 
 private:
 	enum CallStatus { CREATE, PROCESS, FINISH };

@@ -1,27 +1,15 @@
 
-#ifndef PYTHON_LAYR_EXT_HPP
-#define PYTHON_LAYR_EXT_HPP
-
-#include <fstream>
 #include <sstream>
 
-#include "pybind11/stl.h"
 #include "pybind11/functional.h"
-
-#include "pyutils/convert.hpp"
-
-#include "teq/teq.hpp"
-
-#include "eigen/eigen.hpp"
-
-#include "eteq/eteq.hpp"
 
 #include "trainer/apply_update.hpp"
 #include "trainer/dbn.hpp"
 
-#include "generated/pyapi.hpp"
+#include "python/tenncor_utils.hpp"
 
-namespace py = pybind11;
+#ifndef PYTHON_LAYR_EXT_HPP
+#define PYTHON_LAYR_EXT_HPP
 
 void layr_ext(py::module& m);
 

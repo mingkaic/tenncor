@@ -7,55 +7,20 @@ import tensorflow as tf
 
 import tenncor as tc
 
+from testutil.array_testcase import ArrTest
 from testutil.generate_testcases import generate_testcases
+from testutil.tf_testutil import tf_init, version_lt
 
-# return true if left < right
-def version_lt(left, right):
-    left = left.split('.')
-    right = right.split('.')
-    for lv, rv in zip(left, right):
-        lv = int(lv)
-        rv = int(rv)
-        if lv < rv:
-            return True
-        elif lv > rv:
-            return False
-    return False
-
-if version_lt(tf.__version__, '2.0.0'):
-    tfSess = tf.Session
-else:
-    tfSess = tf.compat.v1.Session
-
-if version_lt('2.0.0', tf.__version__):
-    tf.compat.v1.disable_v2_behavior()
+tfSess = tf_init()
 
 _test_data = {}
-
-def _normalize_shape(arr):
-    shape = np.trim_zeros(np.array(arr.shape) - 1) + 1
-    if len(shape) > 0:
-        return arr.reshape(*shape)
-    return arr
 
 def _round_helper(x):
     if isinstance(x, float):
         return round(x)
     return tc.api.round(x)
 
-class EADTest(unittest.TestCase):
-    def _array_eq(self, arr1, arr2):
-        arr1 = _normalize_shape(np.array(arr1))
-        arr2 = _normalize_shape(np.array(arr2))
-        msg = 'diff arrays:\n{}\n{}'.format(arr1, arr2)
-        self.assertTrue(np.array_equal(arr1, arr2), msg)
-
-    def _array_close(self, arr1, arr2):
-        arr1 = _normalize_shape(np.array(arr1))
-        arr2 = _normalize_shape(np.array(arr2))
-        msg = 'vastly diff arrays:\n{}\n{}'.format(arr1, arr2)
-        self.assertTrue(np.allclose(arr1, arr2, atol=1e-05), msg)
-
+class EADTest(ArrTest):
     def _common_assign(self, shape, api, real):
         data = np.random.rand(*shape) * 34
         data2 = np.random.rand(*shape) * 13

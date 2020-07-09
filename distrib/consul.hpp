@@ -23,8 +23,8 @@ struct ConsulService final
 		port_(port), id_(id), service_(service),
 		agent_(consul), catalog_(consul), kv_(consul)
 	{
-		teq::infof("serving %s:%s @ :%d",
-			service_.c_str(), id_.c_str(), port_);
+		teq::infof("[consul %s] serving %s @ 0.0.0.0:%d",
+			id_.c_str(), service_.c_str(), port_);
 		agent_.registerService(
 			ppconsul::agent::kw::name = service_,
 			ppconsul::agent::kw::port = port_,

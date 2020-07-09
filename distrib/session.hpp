@@ -25,41 +25,17 @@ struct DistribSess final : public iDistribSess
 
 	DistribSess (ppconsul::Consul& consul, size_t port,
 		const std::string& service = default_service,
+		const std::string& id = "",
 		const ClientConfig& cfg = ClientConfig()) :
-		consul_(consul, port, boost::uuids::to_string(
-			DistribSess::uuid_gen_()), service),
-		server_(this, port), cli_cfg_(cfg)
+		consul_(consul, port, (id.empty() ?
+			boost::uuids::to_string(DistribSess::uuid_gen_()) : id), service),
+		server_(this, port, consul_.id_),
+		cli_cfg_(cfg)
 	{
 		update_clients();
-	}
 
-	/// Implementation of iDistribSess
-	void call (const DRefsT& refs) override
-	{
-		std::unordered_map<std::string,UuidSetT> clusters;
-		for (auto& ref : refs)
-		{
-			auto cid = ref->cluster_id();
-			auto id = lookup_id(ref);
-			assert(id);
-			clusters[cid].emplace(*id);
-		}
-		for (auto& cluster : clusters)
-		{
-			data_request(cluster.first, cluster.second);
-		}
-	}
-
-	/// Implementation of iDistribSess
-	void sync (void) override
-	{
-		void* got_tag;
-		bool ok = true;
-		while (data_queue_.Next(&got_tag, &ok) && ok)
-		{
-			auto handler = static_cast<iCliRespHandler*>(got_tag);
-			handler->handle(ok);
-		}
+		std::thread rpc_job(&DistribSess::handle_rpcs, this);
+		rpc_job.detach();
 	}
 
 	/// Implementation of iDistribSess
@@ -133,6 +109,34 @@ struct DistribSess final : public iDistribSess
 		return consul_.id_;
 	}
 
+protected:
+	/// Implementation of iDistribSess
+	std::future<void> call (
+		const std::string& cluster_id,
+		const std::unordered_set<std::string>& node_ids) override
+	{
+		if (false == estd::has(clients_, cluster_id))
+		{
+			teq::fatalf("cannot find client %s", cluster_id.c_str());
+		}
+		if (std::any_of(node_ids.begin(), node_ids.end(),
+			[this](const std::string& id)
+			{
+				return false == estd::has(this->shared_nodes_.left, id);
+			}))
+		{
+			teq::fatalf("some nodes from %s not found locally",
+				cluster_id.c_str());
+		}
+
+		distr::GetDataRequest req;
+		google::protobuf::RepeatedPtrField<std::string>
+		uuids(node_ids.begin(), node_ids.end());
+		req.mutable_uuids()->Swap(&uuids);
+		return clients_.at(cluster_id)->get_data(
+			data_queue_, req, shared_nodes_);
+	}
+
 private:
 	void store_tracked (const teq::TensptrSetT& locals) override
 	{
@@ -144,17 +148,6 @@ private:
 		}
 	}
 
-	/// Make request to cluster_id for data updates to all nodes
-	void data_request (const std::string& cluster_id, const UuidSetT& nodes)
-	{
-		distr::GetDataRequest req;
-		for (const auto& node_id : nodes)
-		{
-			req.add_uuids(node_id);
-		}
-		clients_.at(cluster_id)->get_data(data_queue_, req, shared_nodes_);
-	}
-
 	void update_clients (void)
 	{
 		auto peers = consul_.get_peers();
@@ -164,16 +157,28 @@ private:
 			{
 				clients_.insert({peer.first, std::make_unique<DistrCli>(
 					grpc::CreateChannel(peer.second,
-						grpc::InsecureChannelCredentials()), cli_cfg_)});
+						grpc::InsecureChannelCredentials()),
+					consul_.id_ + "->" + peer.first, cli_cfg_)});
 			}
 		}
 	}
 
+	void handle_rpcs (void)
+	{
+		void* got_tag;
+		bool ok = true;
+		while (data_queue_.Next(&got_tag, &ok))
+		{
+			auto handler = static_cast<iCliRespHandler*>(got_tag);
+			handler->handle(ok);
+		}
+	}
+
+	grpc::CompletionQueue data_queue_;
+
 	boost::bimap<std::string,teq::TensptrT> shared_nodes_;
 
 	std::unordered_map<std::string,DistrCliPtrT> clients_; // todo: clean-up clients
-
-	grpc::CompletionQueue data_queue_;
 
 	ConsulService consul_;
 

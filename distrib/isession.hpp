@@ -8,17 +8,11 @@
 namespace distrib
 {
 
-using DRefMapsT = std::unordered_map<teq::iFunctor*,DRefsT>;
+using DRefMapsT = std::unordered_map<teq::iFunctor*,DRefptrT>;
 
 struct iDistribSess : public teq::iSession
 {
 	virtual ~iDistribSess (void) = default;
-
-	/// Make requests to downstream for referenced data
-	virtual void call (const DRefsT& refs) = 0;
-
-	/// Wait for responses to all calls
-	virtual void sync (void) = 0;
 
 	virtual std::optional<std::string> lookup_id (teq::TensptrT tens) const = 0;
 
@@ -55,7 +49,7 @@ struct iDistribSess : public teq::iSession
 		teq::FuncListT reqs;
 		teq::TensSetT nexts;
 		std::unordered_set<teq::iDeviceRef*> devices;
-		bool called = false;
+		std::unordered_map<std::string,std::unordered_set<std::string>> deps;
 		// ignored tensors will never populate reqs
 		for (auto rit = ops_.rbegin(), ret = ops_.rend();
 			rit != ret; ++rit)
@@ -73,20 +67,30 @@ struct iDistribSess : public teq::iSession
 					reqs.push_front(op);
 					if (estd::has(dependencies_, op))
 					{
-						call(dependencies_[op]);
-						called = true;
+						auto dep = dependencies_[op];
+						auto cid = dep->cluster_id();
+						deps[cid].emplace(dep->node_id());
 					}
-					auto children = op->get_dependencies();
-					for (teq::TensptrT child : children)
+					else
 					{
-						nexts.emplace(child.get());
+						auto children = op->get_dependencies();
+						for (teq::TensptrT child : children)
+						{
+							nexts.emplace(child.get());
+						}
 					}
 				}
 			}
 		}
-		if (called)
+		std::vector<std::future<void>> completions;
+		for (auto& dpair : deps)
 		{
-			sync();
+			completions.push_back(call(dpair.first, dpair.second));
+		}
+		for (auto& done : completions)
+		{
+			while (done.valid() && done.wait_for(std::chrono::milliseconds(1)) ==
+				std::future_status::timeout);
 		}
 		for (auto& op : reqs)
 		{
@@ -112,11 +116,19 @@ struct iDistribSess : public teq::iSession
 	}
 
 protected:
+	virtual void process_reqs (teq::FuncListT& reqs) {}
+
 	/// Store all local nodes for remote referencing, by associating with a uuid
 	virtual void store_tracked (const teq::TensptrSetT& locals) = 0;
 
-	virtual void process_reqs (teq::FuncListT& reqs) {}
+	/// Make requests to downstream for referenced data
+	virtual std::future<void> call (
+		const std::string& cluster_id,
+		const std::unordered_set<std::string>& node_id) = 0;
 
+	teq::TensptrSetT roots_; // only needed for update
+
+private:
 	void track_helper (teq::TensptrSetT& tracked, const teq::TensptrSetT& roots)
 	{
 		tracked.insert(roots.begin(), roots.end());
@@ -130,14 +142,14 @@ protected:
 				{
 					roots_.emplace(root);
 					funcs.push_back(f);
-					auto deps = f->get_dependencies();
-					for (auto dep : deps)
+					if (auto ref = std::dynamic_pointer_cast<iDistRef>(root))
 					{
-						if (auto ref = std::dynamic_pointer_cast<iDistRef>(dep))
-						{
-							dependencies_[f].push_back(ref);
-						}
-						else
+						dependencies_.emplace(f, ref);
+					}
+					else
+					{
+						auto deps = f->get_dependencies();
+						for (auto dep : deps)
 						{
 							nexts.emplace(dep);
 						}
@@ -171,9 +183,6 @@ protected:
 		}
 	}
 
-	teq::TensptrSetT roots_; // only needed for update
-
-private:
 	teq::TensMapT<size_t> opheight_;
 
 	DRefMapsT dependencies_;

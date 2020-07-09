@@ -15,7 +15,7 @@
 #include "generated/api.hpp"
 
 
-const std::string test_service = "tenncor_distrib_test";
+const std::string test_service = "tenncor_distrib_ctest";
 
 
 ppconsul::Consul create_test_consul (void)
@@ -38,7 +38,24 @@ static void check_clean (ppconsul::Consul& consul)
 }
 
 
-TEST(DISTRIB, SharingNodes)
+struct DISTRIB : public ::testing::Test
+{
+protected:
+	void TearDown (void) override
+	{
+		auto consul = create_test_consul();
+		ppconsul::agent::Agent agent(consul);
+		ppconsul::catalog::Catalog catalog(consul);
+		auto services = catalog.service(test_service);
+		for (auto& service : services)
+		{
+			agent.deregisterService(service.second.id);
+		}
+	}
+};
+
+
+TEST_F(DISTRIB, SharingNodes)
 {
 	auto consul = create_test_consul();
 	{
@@ -64,7 +81,7 @@ TEST(DISTRIB, SharingNodes)
 
 		// cluster 1
 		distrib::DSessptrT sess = std::make_shared<distrib::DistribSess>(
-			consul, 5112, test_service);
+			consul, 5112, test_service, "sess1");
 
 		eteq::ETensor<double> src =
 			eteq::make_constant<double>(data.data(), shape);
@@ -76,7 +93,7 @@ TEST(DISTRIB, SharingNodes)
 
 		// cluster 2
 		distrib::DSessptrT sess2 = std::make_shared<distrib::DistribSess>(
-			consul, 5113, test_service);
+			consul, 5113, test_service, "sess2");
 
 		eteq::ETensor<double> src3 =
 			eteq::make_constant<double>(data3.data(), shape);
@@ -101,7 +118,7 @@ TEST(DISTRIB, SharingNodes)
 }
 
 
-TEST(DISTRIB, DataPassing)
+TEST_F(DISTRIB, DataPassing)
 {
 	auto consul = create_test_consul();
 	{
@@ -128,7 +145,7 @@ TEST(DISTRIB, DataPassing)
 
 		// cluster 1
 		distrib::DSessptrT sess = std::make_shared<distrib::DistribSess>(
-			consul, 5112, test_service);
+			consul, 5112, test_service, "sess1");
 
 		eteq::ETensor<double> src =
 			eteq::make_constant<double>(data.data(), shape);
@@ -140,7 +157,7 @@ TEST(DISTRIB, DataPassing)
 
 		// cluster 2
 		distrib::DSessptrT sess2 = std::make_shared<distrib::DistribSess>(
-			consul, 5113, test_service);
+			consul, 5113, test_service, "sess2");
 
 		eteq::ETensor<double> src3 =
 			eteq::make_constant<double>(data3.data(), shape);

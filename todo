@@ -7,6 +7,7 @@ P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
    - distributed session and task management
+   - move derivation to per-node which allows derivation between distributed services
    - upgrade layr to allow restructuring recurrent structure sequence length
    - fix gru demo to run optimally
    - improve grader/optimization rule according to rnn, lstm, gru

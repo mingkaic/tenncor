@@ -17,14 +17,14 @@ PYBIND11_MODULE(compare, m)
 	m
 		// ==== to stdout functions ====
 		.def("is_equal",
-			[](const eteq::ETensor<PybindT>& l, const eteq::ETensor<PybindT>& r)
-			{
-				return is_equal<PybindT>(l, r);
-			},
-			"Return true if roots are structurally equal")
+		[](const eteq::ETensor<PybindT>& l, const eteq::ETensor<PybindT>& r)
+		{
+			return is_equal<PybindT>(l, r);
+		},
+		"Return true if roots are structurally equal")
 		.def("percent_dataeq",
-			[](const eteq::ETensor<PybindT>& l, const eteq::ETensor<PybindT>& r)
-			{
-				return percent_dataeq<PybindT>(l, r);
-			});
+		[](const eteq::ETensor<PybindT>& l, const eteq::ETensor<PybindT>& r)
+		{
+			return percent_dataeq<PybindT>(l, r);
+		});
 }

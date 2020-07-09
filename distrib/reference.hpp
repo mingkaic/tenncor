@@ -9,7 +9,7 @@
 namespace distrib
 {
 
-struct iDistRef : public teq::iLeaf
+struct iDistRef : public teq::iFunctor
 {
 	virtual ~iDistRef (void) = default;
 
@@ -19,21 +19,61 @@ struct iDistRef : public teq::iLeaf
 		visiter.visit(*this);
 	}
 
-	/// Implementation of iLeaf
-	teq::Usage get_usage (void) const override
+	/// Implementation of iAttributed
+	std::vector<std::string> ls_attrs (void) const override
 	{
-		return teq::PLACEHOLDER;
+		return {};
 	}
+
+	/// Implementation of iAttributed
+	const marsh::iObject* get_attr (const std::string& attr_key) const override
+	{
+		return nullptr;
+	}
+
+	/// Implementation of iAttributed
+	marsh::iObject* get_attr (const std::string& attr_key) override
+	{
+		return nullptr;
+	}
+
+	/// Implementation of iAttributed
+	void add_attr (const std::string& attr_key,
+		marsh::ObjptrT&& attr_val) override {}
+
+	/// Implementation of iAttributed
+	void rm_attr (const std::string& attr_key) override {}
+
+	/// Implementation of iFunctor
+	teq::Opcode get_opcode (void) const override
+	{
+		return teq::Opcode{"DISTRIB_REFERENCE", 0};
+	}
+
+	/// Implementation of iFunctor
+	teq::TensptrsT get_args (void) const override
+	{
+		return {};
+	}
+
+	/// Implementation of iFunctor
+	teq::TensptrsT get_dependencies (void) const override
+	{
+		return {};
+	}
+
+	/// Implementation of iFunctor
+	void update_child (teq::TensptrT arg, size_t index) override {}
 
 	virtual void update_data (const double* data, size_t version) = 0;
 
 	/// Return string id of cluster owner
 	virtual const std::string& cluster_id (void) const = 0;
+
+	virtual const std::string& node_id (void) const = 0;
 };
 
 using DRefptrT = std::shared_ptr<iDistRef>;
-
-using DRefsT = std::vector<DRefptrT>;
 
 #define CACHE_UPDATE(cache_type)\
 { std::vector<cache_type> tmp(data, data + nelems);\
@@ -44,7 +84,7 @@ struct DistRef final : public iDistRef
 	DistRef (egen::_GENERATED_DTYPE dtype, teq::Shape shape,
 		const std::string& cluster_id, const std::string& self_id) :
 		cache_(shape.n_elems() * egen::type_size(dtype)), shape_(shape),
-		cluster_id_(cluster_id), self_(self_id), meta_(dtype, 1) {}
+		cluster_id_(cluster_id), self_(self_id), meta_(dtype, 0) {}
 
 	/// Implementation of iTensor
 	teq::iDeviceRef& device (void) override
@@ -78,15 +118,23 @@ struct DistRef final : public iDistRef
 
 	void update_data (const double* data, size_t version) override
 	{
-		size_t nelems = shape_.n_elems();
-		TYPE_LOOKUP(CACHE_UPDATE, meta_.dtype_)
-		meta_.version_ = version;
+		if (version > meta_.version_)
+		{
+			size_t nelems = shape_.n_elems();
+			TYPE_LOOKUP(CACHE_UPDATE, meta_.dtype_)
+			meta_.version_ = version;
+		}
 	}
 
 	/// Implementation of iDistRef
 	const std::string& cluster_id (void) const override
 	{
 		return cluster_id_;
+	}
+
+	const std::string& node_id (void) const override
+	{
+		return self_;
 	}
 
 private:

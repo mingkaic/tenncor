@@ -118,6 +118,7 @@ pybind_py_library(
         "python/*.cpp",
     ]),
     cc_deps = [
+        "//distrib:distrib",
         "//:tenncor",
         "//pyutils:pyutils",
     ],

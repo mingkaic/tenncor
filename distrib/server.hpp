@@ -143,7 +143,8 @@ struct AsyncDistrServer final
 	using AsyncService = distr::DistrManager::AsyncService;
 
 	// non-blocking
-	AsyncDistrServer (iDistribSess* sess, size_t port)
+	AsyncDistrServer (iDistribSess* sess, size_t port, std::string alias) :
+		alias_(alias)
 	{
 		std::string address = fmts::sprintf("0.0.0.0:%d", port);
 		grpc::ServerBuilder builder;
@@ -153,7 +154,7 @@ struct AsyncDistrServer final
 		cq_ = builder.AddCompletionQueue();
 		server_ = builder.BuildAndStart();
 
-		teq::infof("server listening on %s", address.c_str());
+		teq::infof("[server %s] listening on %s", alias_.c_str(), address.c_str());
 
 		std::thread rpc_job(&AsyncDistrServer::handle_rpcs, this, sess);
 		rpc_job.detach();
@@ -168,14 +169,14 @@ struct AsyncDistrServer final
 	}
 
 private:
-	using DataStatesT = std::unordered_map<std::string,
-		std::pair<teq::iTensor*,size_t>>;
+	using DataStatesT = std::unordered_map<std::string,teq::iTensor*>;
 
 	// This can be run in multiple threads if needed.
 	void handle_rpcs (iDistribSess* sess)
 	{
 		// FindNodes
 		new AsyncServerCall<distr::FindNodesRequest,distr::FindNodesResponse>(
+		fmts::sprintf("%s:FindNodes", alias_.c_str()),
 		[this](grpc::ServerContext* ctx, distr::FindNodesRequest* req,
 			grpc::ServerAsyncResponseWriter<distr::FindNodesResponse>* writer,
 			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
@@ -183,7 +184,7 @@ private:
 		{
 			this->service_.RequestFindNodes(ctx, req, writer, cq, ccq, tag);
 		},
-		[sess](const distr::FindNodesRequest& req, distr::FindNodesResponse& res) -> grpc::Status
+		[this, sess](const distr::FindNodesRequest& req, distr::FindNodesResponse& res) -> grpc::Status
 		{
 			auto& uuids = req.uuids();
 			for (const std::string& uuid : uuids)
@@ -211,8 +212,8 @@ private:
 				}
 				else
 				{
-					teq::errorf("server node lookup failure: %s",
-						err->to_string().c_str());
+					teq::errorf("[server %s] node lookup failure: %s",
+						this->alias_.c_str(), err->to_string().c_str());
 					return grpc::Status(grpc::NOT_FOUND, err->to_string());
 				}
 			}
@@ -222,6 +223,7 @@ private:
 		// GetData
 		new AsyncServerStreamCall<
 			distr::GetDataRequest,distr::NodeData,DataStatesT>(
+		fmts::sprintf("%s:GetData", alias_.c_str()),
 		[this](grpc::ServerContext* ctx, distr::GetDataRequest* req,
 			grpc::ServerAsyncWriter<distr::NodeData>* writer,
 			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
@@ -229,7 +231,7 @@ private:
 		{
 			this->service_.RequestGetData(ctx, req, writer, cq, ccq, tag);
 		},
-		[sess](DataStatesT& prev_states, const distr::GetDataRequest& req) -> grpc::Status
+		[this, sess](DataStatesT& states, const distr::GetDataRequest& req) -> grpc::Status
 		{
 			auto& uuids = req.uuids();
 			teq::TensSetT targets;
@@ -239,13 +241,12 @@ private:
 				auto tens = sess->lookup_node(err, uuid, false).get();
 				if (nullptr == tens)
 				{
-					teq::errorf("failed to find node %s: %s",
-						uuid.c_str(), err->to_string().c_str());
+					teq::errorf("[server %s] failed to find node %s: %s",
+						this->alias_.c_str(), uuid.c_str(), err->to_string().c_str());
 					return grpc::Status(grpc::NOT_FOUND, err->to_string());
 				}
 				targets.emplace(tens);
-				prev_states.emplace(uuid, std::pair<teq::iTensor*,size_t>{
-					tens, tens->get_meta().state_version()});
+				states.emplace(uuid, tens);
 			}
 			eigen::Device device(std::numeric_limits<size_t>::max());
 			sess->update_target(device, targets);
@@ -255,28 +256,23 @@ private:
 			distr::NodeData& reply)
 		{
 			auto id = it->first;
-			auto tens = it->second.first;
-			auto prev_vers = it->second.second;
+			auto tens = it->second;
 
 			auto& meta = tens->get_meta();
 			size_t latest = meta.state_version();
 
-			if (prev_vers != latest)
-			{
-				reply.set_uuid(id);
-				reply.set_version(latest);
+			reply.set_uuid(id);
+			reply.set_version(latest);
 
-				void* raw = tens->device().data();
-				auto dtype = (egen::_GENERATED_DTYPE) meta.type_code();
+			void* raw = tens->device().data();
+			auto dtype = (egen::_GENERATED_DTYPE) meta.type_code();
 
-				size_t nelems = tens->shape().n_elems();
-				google::protobuf::RepeatedField<double> field;
-				field.Resize(nelems, 0);
-				egen::type_convert(field.mutable_data(), raw, dtype, nelems);
-				reply.mutable_data()->Swap(&field);
-				return true;
-			}
-			return false;
+			size_t nelems = tens->shape().n_elems();
+			google::protobuf::RepeatedField<double> field;
+			field.Resize(nelems, 0);
+			egen::type_convert(field.mutable_data(), raw, dtype, nelems);
+			reply.mutable_data()->Swap(&field);
+			return true;
 		}, cq_.get());
 
 		void* tag;
@@ -296,6 +292,8 @@ private:
 		rpc_done_ = true;
 		rpc_exit_.notify_one();
 	}
+
+	std::string alias_;
 
 	AsyncService service_;
 
