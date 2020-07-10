@@ -39,7 +39,6 @@ cc_library(
     srcs = glob(["src/*.cpp"]),
     copts = ["-std=c++17"],
     deps = [
-        "//teq:teq",
         "//eigen:eigen",
         "//distrib:distr_cc_grpc",
         "@boost//:uuid",

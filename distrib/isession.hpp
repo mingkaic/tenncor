@@ -64,7 +64,6 @@ struct iDistribSess : public teq::iSession
 					assert(false == estd::has(devices, ref));
 					devices.emplace(ref);
 
-					reqs.push_front(op);
 					if (estd::has(dependencies_, op))
 					{
 						auto dep = dependencies_[op];
@@ -73,6 +72,7 @@ struct iDistribSess : public teq::iSession
 					}
 					else
 					{
+						reqs.push_front(op);
 						auto children = op->get_dependencies();
 						for (teq::TensptrT child : children)
 						{
