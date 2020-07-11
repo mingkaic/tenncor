@@ -38,6 +38,11 @@ struct DistribSess final : public iDistribSess
 		rpc_job.detach();
 	}
 
+	~DistribSess (void)
+	{
+		data_queue_.Shutdown();
+	}
+
 	/// Implementation of iDistribSess
 	std::optional<std::string> lookup_id (teq::TensptrT tens) const override
 	{

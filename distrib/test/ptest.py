@@ -73,7 +73,7 @@ class DISTRIBTest(ArrTest):
             sess2.track([root])
             sess2.update_target([root])
 
-            return root.get()
+            return root.raw()
 
         data = distrib_scope()
         self._array_close(exdata, data)
@@ -143,7 +143,7 @@ class DISTRIBTest(ArrTest):
             sess3.track([root])
             sess3.update_target([root])
 
-            return root.get()
+            return root.raw()
 
         data = distrib_scope()
         self._array_close(exdata, data)

@@ -30,34 +30,45 @@ ppconsul::Consul create_test_consul (void)
 }
 
 
-static void check_clean (ppconsul::Consul& consul)
-{
-	ppconsul::catalog::Catalog catalog(consul);
-	auto services = catalog.service(test_service);
-	ASSERT_EQ(services.size(), 0);
-}
-
-
 struct DISTRIB : public ::testing::Test
 {
+	DISTRIB (void) : consul_(create_test_consul()) {}
+
 protected:
 	void TearDown (void) override
 	{
-		auto consul = create_test_consul();
-		ppconsul::agent::Agent agent(consul);
-		ppconsul::catalog::Catalog catalog(consul);
+		ppconsul::agent::Agent agent(consul_);
+		ppconsul::catalog::Catalog catalog(consul_);
 		auto services = catalog.service(test_service);
 		for (auto& service : services)
 		{
 			agent.deregisterService(service.second.id);
 		}
 	}
+
+	void check_clean (void)
+	{
+		ppconsul::catalog::Catalog catalog(consul_);
+		auto services = catalog.service(test_service);
+		ASSERT_EQ(services.size(), 0);
+	}
+
+	distrib::DSessptrT make_sess (size_t port, const std::string& id = "")
+	{
+		return std::make_shared<distrib::DistribSess>(
+			consul_, port, test_service, id, distrib::ClientConfig(
+				std::chrono::milliseconds(5000),
+				std::chrono::milliseconds(10000),
+				5
+			));
+	}
+
+	ppconsul::Consul consul_;
 };
 
 
 TEST_F(DISTRIB, SharingNodes)
 {
-	auto consul = create_test_consul();
 	{
 		teq::Shape shape({2, 3, 4});
 		std::vector<double> data = {
@@ -80,8 +91,7 @@ TEST_F(DISTRIB, SharingNodes)
 		};
 
 		// cluster 1
-		distrib::DSessptrT sess = std::make_shared<distrib::DistribSess>(
-			consul, 5112, test_service, "sess1");
+		distrib::DSessptrT sess = make_sess(5112, "sess1");
 
 		eteq::ETensor<double> src =
 			eteq::make_constant<double>(data.data(), shape);
@@ -92,8 +102,7 @@ TEST_F(DISTRIB, SharingNodes)
 		std::string id = *sess->lookup_id(dest);
 
 		// cluster 2
-		distrib::DSessptrT sess2 = std::make_shared<distrib::DistribSess>(
-			consul, 5113, test_service, "sess2");
+		distrib::DSessptrT sess2 = make_sess(5113, "sess2");
 
 		eteq::ETensor<double> src3 =
 			eteq::make_constant<double>(data3.data(), shape);
@@ -114,13 +123,12 @@ TEST_F(DISTRIB, SharingNodes)
 		auto bad_id = sess->lookup_id(src4);
 		EXPECT_FALSE(bad_id);
 	}
-	check_clean(consul);
+	check_clean();
 }
 
 
 TEST_F(DISTRIB, DataPassing)
 {
-	auto consul = create_test_consul();
 	{
 		eigen::Device device;
 		teq::Shape shape({2, 3, 4});
@@ -144,8 +152,7 @@ TEST_F(DISTRIB, DataPassing)
 		};
 
 		// cluster 1
-		distrib::DSessptrT sess = std::make_shared<distrib::DistribSess>(
-			consul, 5112, test_service, "sess1");
+		distrib::DSessptrT sess = make_sess(5112, "sess1");
 
 		eteq::ETensor<double> src =
 			eteq::make_constant<double>(data.data(), shape);
@@ -156,8 +163,7 @@ TEST_F(DISTRIB, DataPassing)
 		std::string id = *sess->lookup_id(dest);
 
 		// cluster 2
-		distrib::DSessptrT sess2 = std::make_shared<distrib::DistribSess>(
-			consul, 5113, test_service, "sess2");
+		distrib::DSessptrT sess2 = make_sess(5113, "sess2");
 
 		eteq::ETensor<double> src3 =
 			eteq::make_constant<double>(data3.data(), shape);
@@ -192,7 +198,7 @@ TEST_F(DISTRIB, DataPassing)
 			EXPECT_DOUBLE_EQ(exdata[i], goptr[i]);
 		}
 	}
-	check_clean(consul);
+	check_clean();
 }
 
 
