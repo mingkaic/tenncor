@@ -14,16 +14,12 @@ jobs:
         - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=travis-${TRAVIS_COMMIT} push_test_image
     - stage: test fast
       script:
-        - make test_consul_up
         - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN} --network=host
           --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} fast
-        - make test_consul_down
     - stage: test slow
       script:
-        - make test_consul_up
         - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN} --network=host
           --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} slow
-        - make test_consul_down
     - stage: test snail
       script:
         - make test_consul_up
