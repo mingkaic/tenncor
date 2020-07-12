@@ -1,4 +1,6 @@
 
+sprefix_tool = "@com_github_mingkaic_tenncor//third_party:strip_prefix"
+
 def py_proto_library(name, srcs,
     protoc = "@com_google_protobuf//:protoc",
     deps = [],
@@ -48,7 +50,7 @@ def cc_proto_library(name, srcs,
 
     basenames = [proto[:-len('proto')] for proto in srcs]
 
-    tools = [protoc, "//third_party:strip_prefix"]
+    tools = [protoc, sprefix_tool]
     command = "$(location {})".format(protoc)
     headers = [proto + 'pb.h' for proto in basenames]
     sources = [proto + 'pb.cc' for proto in basenames]
@@ -60,7 +62,8 @@ def cc_proto_library(name, srcs,
 
     command_affix = ""
     for proto in srcs:
-        command_affix += " $$($(location //third_party:strip_prefix) $(location {}) {})".format(proto, ' '.join(proto_paths))
+        command_affix += " $$($(location {}) $(location {}) {})".format(
+            sprefix_tool, proto, ' '.join(proto_paths))
 
     proto_inputs = srcs + proto_deps
     proto_command = command + " --cpp_out=$(GENDIR)/" + command_affix
