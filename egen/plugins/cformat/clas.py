@@ -44,7 +44,7 @@ def _handle_init(obj):
         args = ', '.join([arender(arg) for arg in args])
         if len(ilist) > 0:
             # order the initializer list by class members declaration
-            member = object.get('members', [])
+            member = obj.get('members', [])
             mem_order = dict([(mem['name'], i)
                 for i, mem in enumerate(member)])
             ikeys = list(ilist.keys())
