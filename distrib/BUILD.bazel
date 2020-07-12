@@ -55,6 +55,7 @@ proto_library(
 cc_proto_library(
     name = "distr_cc_grpc",
     srcs = ["distr.proto"],
+    package = "distrib",
     copts = ["-std=c++17"],
     proto_paths = ["$$(dirname $(location distr.proto))/.."],
     with_service = True,

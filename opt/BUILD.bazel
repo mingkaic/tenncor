@@ -45,6 +45,7 @@ proto_library(
 cc_proto_library(
     name = "opt_cc_proto",
     srcs = ["optimize.proto"],
+    package = "opt",
     copts = ["-std=c++17"],
     deps = ["//query:query_cc_proto"],
     proto_deps = ["//query:query.proto"],

@@ -48,6 +48,7 @@ genrule(
 cc_proto_library(
     name = "onnx_cc_proto",
     srcs = ["onnx.proto"],
+    package = "onnx",
     copts = ["-std=c++17"],
     proto_paths = ["$$(dirname $(location onnx.proto))/.."],
 )

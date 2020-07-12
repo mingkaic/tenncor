@@ -1,10 +1,6 @@
+
 import os
 import sys
-
-if len(sys.argv) > 1:
-    path = sys.argv[1]
-else:
-    path = ''
 
 def strip_prefixes(path, prefixes):
     realpath = os.path.abspath(path)
@@ -14,8 +10,14 @@ def strip_prefixes(path, prefixes):
             path = realpath[len(prefix):]
     return path
 
-if len(sys.argv) > 2:
-    prefixes = sys.argv[2:]
-    path = strip_prefixes(path, prefixes)
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        path = sys.argv[1]
+    else:
+        path = ''
 
-print(path)
+    if len(sys.argv) > 2:
+        prefixes = sys.argv[2:]
+        path = strip_prefixes(path, prefixes)
+
+    print(path)

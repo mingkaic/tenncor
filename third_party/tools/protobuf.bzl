@@ -1,5 +1,6 @@
 
 sprefix_tool = "@com_github_mingkaic_tenncor//third_party:strip_prefix"
+saffix_tool = "@com_github_mingkaic_tenncor//third_party:strip_affix"
 
 def py_proto_library(name, srcs,
     protoc = "@com_google_protobuf//:protoc",
@@ -36,7 +37,7 @@ def py_proto_library(name, srcs,
         **kwargs,
     )
 
-def cc_proto_library(name, srcs,
+def cc_proto_library(name, srcs, package,
     with_service = False,
     protoc = "@com_google_protobuf//:protoc",
     cc_grpc_plugin = "@com_github_grpc_grpc//src/compiler:grpc_cpp_plugin",
@@ -50,7 +51,7 @@ def cc_proto_library(name, srcs,
 
     basenames = [proto[:-len('proto')] for proto in srcs]
 
-    tools = [protoc, sprefix_tool]
+    tools = [protoc, sprefix_tool, saffix_tool]
     command = "$(location {})".format(protoc)
     headers = [proto + 'pb.h' for proto in basenames]
     sources = [proto + 'pb.cc' for proto in basenames]
@@ -66,7 +67,7 @@ def cc_proto_library(name, srcs,
             sprefix_tool, proto, ' '.join(proto_paths))
 
     proto_inputs = srcs + proto_deps
-    proto_command = command + " --cpp_out=$(GENDIR)/" + command_affix
+    proto_command = command + " --cpp_out=$$($(location {}) $(RULEDIR) {})".format(saffix_tool, package) + command_affix
 
     native.genrule(
         name = "pbgen_" + name,
