@@ -48,6 +48,7 @@ cc_proto_library(
     copts = ["-std=c++17"],
     deps = ["//query:query_cc_proto"],
     proto_deps = ["//query:query.proto"],
+    proto_paths = ["$$(dirname $(location optimize.proto))/.."],
 )
 
 cc_library(

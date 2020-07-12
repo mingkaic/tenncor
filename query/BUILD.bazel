@@ -49,6 +49,7 @@ cc_proto_library(
     name = "query_cc_proto",
     srcs = ["query.proto"],
     copts = ["-std=c++17"],
+    proto_paths = ["$$(dirname $(location query.proto))/.."],
 )
 
 ######### TEST #########
