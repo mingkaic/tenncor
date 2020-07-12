@@ -5,5 +5,5 @@ def onnx_repository():
         name = "com_github_onnx_onnx",
         remote = "https://github.com/onnx/onnx.git",
         commit = "c08a7b76cf7c1555ae37186f12be4d62b2c39b3b",
-        build_file = "//third_party:onnx.BUILD",
+        build_file = "@com_github_mingkaic_tenncor//third_party:onnx.BUILD",
     )

@@ -8,5 +8,5 @@ def curl_repository():
         name = "com_github_curl_curl",
         remote = "https://github.com/curl/curl.git",
         tag = "curl-7_69_1",
-        build_file = "//third_party:curl.BUILD",
+        build_file = "@com_github_mingkaic_tenncor//third_party:curl.BUILD",
     )
