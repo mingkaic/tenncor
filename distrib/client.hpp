@@ -45,20 +45,14 @@ struct DistrCli final
 		grpc::ClientContext context;
 		build_ctx(context, true);
 		teq::infof("[client %s:FindNodes] initial call", alias_.c_str());
-auto start = std::clock();
 		auto status = stub_->FindNodes(&context, req, &res);
-auto duration = (std::clock() - start) / (CLOCKS_PER_SEC / 1000);
-std::cout << "call time: " << duration << " milliseconds" << '\n';
 		for (size_t i = 1; false == status.ok() && i < cfg_.request_retry_; ++i)
 		{
 			teq::infof("[client %s:FindNodes] previous call failed... "
 				"reattempt %d", alias_.c_str(), i);
 			grpc::ClientContext context;
 			build_ctx(context, true);
-start = std::clock();
 			status = stub_->FindNodes(&context, req, &res);
-duration = (std::clock() - start) / (CLOCKS_PER_SEC / 1000);
-std::cout << "call time: " << duration << " milliseconds" << '\n';
 		}
 		return status;
 	}
