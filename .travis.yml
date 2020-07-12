@@ -12,11 +12,17 @@ jobs:
         - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=travis-${TRAVIS_COMMIT} build_test_image
         - docker images
         - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=travis-${TRAVIS_COMMIT} push_test_image
-    - stage: test everything
+    - stage: test fast
       script:
         - make test_consul_up
         - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN} --network=host
-          --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT}
+          --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} fast
+        - make test_consul_down
+    - stage: test slow
+      script:
+        - make test_consul_up
+        - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN} --network=host
+          --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} slow
         - make test_consul_down
     # disable making docker due to long build times
     # - stage: build docker image with C++ and python library

@@ -25,20 +25,20 @@ fi
 echo "Test Mode: $MODE";
 if [[ "$MODE" == "fast" ]]; then
 	bzl_coverage //eigen:test //marsh:test //onnx:test \
-	//opt:test //perf:test //query:test //teq:test \
-	//utils:test //distrib:ctest;
+	//opt:test //perf:test //query:test //teq:test //utils:test;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //gen:ptest //distrib:ptest;
+	--remote_http_cache="$REMOTE_CACHE" //gen:ptest;
 elif [[ "$MODE" == "slow" ]]; then
-	bzl_coverage //eteq:ctest //layr:ctest;
+	bzl_coverage //eteq:ctest //layr:ctest //distrib:ctest;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest //layr:ptest;
+	--remote_http_cache="$REMOTE_CACHE" \
+	//eteq:ptest //layr:ptest //distrib:ptest;
 else
-	bzl_coverage //eigen:test //eteq:ctest //layr:ctest //marsh:test \
-	//onnx:test //opt:test //perf:test //query:test //teq:test \
-	//utils:test //distrib:ctest;
+	bzl_coverage //eigen:test //eteq:ctest //layr:ctest \
+	//marsh:test //onnx:test //opt:test //perf:test \
+	//query:test //teq:test //utils:test //distrib:ctest;
 
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" \
