@@ -2,7 +2,7 @@
 sprefix_tool = "@com_github_mingkaic_tenncor//third_party:strip_prefix"
 saffix_tool = "@com_github_mingkaic_tenncor//third_party:strip_affix"
 
-def py_proto_library(name, srcs,
+def py_proto_library(name, srcs, package,
     protoc = "@com_google_protobuf//:protoc",
     deps = [],
     **kwargs):
@@ -12,7 +12,7 @@ def py_proto_library(name, srcs,
 
     basenames = [proto[:-len('.proto')] for proto in srcs]
 
-    tools = [protoc]
+    tools = [protoc, saffix_tool]
     command = "$(location {})".format(protoc)
     sources = [proto + '_pb2.py' for proto in basenames]
 
@@ -20,7 +20,9 @@ def py_proto_library(name, srcs,
     for proto in srcs:
         command_affix += " $(locations %s)" % (proto)
 
-    proto_command = command + " --python_out=$(GENDIR)/" + command_affix
+    proto_command = command + \
+        " --python_out=$$($(location {}) $(RULEDIR) {})".format(
+            saffix_tool, package) + command_affix
 
     native.genrule(
         name = "pbgen_" + name,
@@ -67,7 +69,10 @@ def cc_proto_library(name, srcs, package,
             sprefix_tool, proto, ' '.join(proto_paths))
 
     proto_inputs = srcs + proto_deps
-    proto_command = command + " --cpp_out=$$($(location {}) $(RULEDIR) {})".format(saffix_tool, package) + command_affix
+    proto_command = command + \
+        " --cpp_out=$$($(location {}) $(RULEDIR) {})".format(
+            saffix_tool, package) + \
+        command_affix
 
     native.genrule(
         name = "pbgen_" + name,
@@ -84,8 +89,11 @@ def cc_proto_library(name, srcs, package,
         grpc_sources = [proto + 'grpc.pb.cc' for proto in basenames]
 
         grpc_command = command + \
-            " --grpc_out=$(GENDIR)/ --plugin=protoc-gen-grpc=$(location {})".\
-            format(cc_grpc_plugin) + command_affix
+            " --grpc_out=$$($(location {}) $(RULEDIR) {})".format(
+                saffix_tool, package) + \
+            " --plugin=protoc-gen-grpc=$(location {})".format(
+                cc_grpc_plugin) + \
+            command_affix
 
         native.genrule(
             name = "grpcgen_" + name,

@@ -137,4 +137,5 @@ py_proto_library(
         "extenncor/dataset.proto",
         "extenncor/dqntrainer.proto",
     ],
+    package = "/",
 )
