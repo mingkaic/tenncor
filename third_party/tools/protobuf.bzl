@@ -12,14 +12,13 @@ def py_proto_library(name, srcs, package,
 
     basenames = [proto[:-len('.proto')] for proto in srcs]
 
-    tools = [protoc, sprefix_tool, saffix_tool]
+    tools = [protoc, saffix_tool]
     command = "$(location {})".format(protoc)
     sources = [proto + '_pb2.py' for proto in basenames]
 
     command_affix = ""
     for proto in srcs:
-        command_affix += " $$($(location {}) $(location {}) {})".format(
-            sprefix_tool, proto, ' '.join(proto_paths))
+        command_affix += " $(locations %s)" % (proto)
 
     proto_command = command + \
         " --python_out=$$($(location {}) $(RULEDIR) {})".format(
