@@ -27,8 +27,20 @@ cc_library(
 py_library(
     name = "pyunit_util",
     srcs = [
+        "compare_testcase.py",
         "generate_testcases.py",
         "array_testcase.py",
+    ],
+)
+
+######### TESTCASE GENERATION #########
+
+py_binary(
+    name = "tf_gen",
+    srcs = [
+        "tf_gen.py",
         "tf_testutil.py",
     ],
+    deps = ["//testutil:pyunit_util"],
+    data = ["//testutil:ead_testcase_template"],
 )

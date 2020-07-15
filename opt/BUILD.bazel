@@ -1,6 +1,6 @@
 licenses(["notice"])
 
-load("//third_party:tools/protobuf.bzl", "cc_proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -42,14 +42,9 @@ proto_library(
     deps = ["//query:query_proto"],
 )
 
-cc_proto_library(
+cpp_proto_library(
     name = "opt_cc_proto",
-    srcs = ["optimize.proto"],
-    package = "opt",
-    copts = ["-std=c++17"],
-    deps = ["//query:query_cc_proto"],
-    proto_deps = ["//query:query.proto"],
-    proto_paths = ["$$(dirname $(location optimize.proto))/.."],
+    deps = ["//opt:opt_proto"],
 )
 
 cc_library(

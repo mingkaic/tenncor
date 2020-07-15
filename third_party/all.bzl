@@ -23,7 +23,7 @@ def dependencies(excludes = []):
     if "com_github_mingkaic_cppkg" not in ignores:
         cppkg_repository()
 
-    if "com_github_grpc_grpc" not in ignores:
+    if "rules_proto_grpc" not in ignores:
         grpc_rules_repository()
 
     if "com_github_onnx_onnx" not in ignores:

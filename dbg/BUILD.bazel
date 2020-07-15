@@ -1,6 +1,6 @@
 licenses(["notice"])
 
-load("//third_party:tools/protobuf.bzl", "cc_proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
 load("//third_party:tools/pybind.bzl", "pybind_py_library")
 
 package(
@@ -69,15 +69,18 @@ cc_library(
     ],
 )
 
-cc_proto_library(
-    name = "gemitter_cc_grpc",
+proto_library(
+    name = "gemitter_grpc",
     srcs = ["psess/emit/gemitter.proto"],
-    package = "dbg",
-    copts = ["-std=c++17"],
-    deps = ["//onnx:onnx_cc_proto"],
-    proto_deps = ["//onnx:onnx.proto"],
-    with_service = True,
-    proto_paths = ["$$(dirname $(location //onnx:onnx.proto))/..", "."],
+    deps = ["//onnx:onnx_proto"],
+)
+
+cpp_grpc_library(
+    name = "gemitter_cc_grpc",
+    deps = [
+        "//dbg:gemitter_grpc",
+        "//onnx:onnx_proto",
+    ],
 )
 
 pybind_py_library(

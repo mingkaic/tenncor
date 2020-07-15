@@ -19,9 +19,7 @@ filegroup(
 
 filegroup(
     name = "ptest_srcs",
-    srcs = glob([
-        "test/*.py",
-    ]),
+    srcs = ["test/ptest.py"],
 )
 
 filegroup(
@@ -78,7 +76,10 @@ py_test(
         "//:tenncor_py",
         "//testutil:pyunit_util",
     ],
-    data = ["//testutil:ead_testcase_template"],
+    data = [
+        "//:test_models",
+        "//testutil:ead_testcase_template",
+    ],
 )
 
 ######### BENCHMARK #########

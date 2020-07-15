@@ -1,6 +1,6 @@
 licenses(["notice"])
 
-load("//third_party:tools/protobuf.bzl", "cc_proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
 
 package(
     default_visibility = ["//visibility:public"],
@@ -45,12 +45,14 @@ genrule(
     cmd = "cp $< $@",
 )
 
-cc_proto_library(
-    name = "onnx_cc_proto",
+proto_library(
+    name = "onnx_proto",
     srcs = ["onnx.proto"],
-    package = "onnx",
-    copts = ["-std=c++17"],
-    proto_paths = ["$$(dirname $(location onnx.proto))/.."],
+)
+
+cpp_proto_library(
+    name = "onnx_cc_proto",
+    deps = ["//onnx:onnx_proto"],
 )
 
 ######### TOOLS #########

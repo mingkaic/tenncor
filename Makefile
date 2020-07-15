@@ -240,6 +240,15 @@ lcov_query: cover_query cov_clean
 .PHONY: lcov_teq
 lcov_teq: cover_teq cov_clean
 
+.PHONY: install_test_deps
+install_test_deps:
+	pip3 install -r requirements.txt
+	pip3 install -r requirements.test.txt
+
+.PHONY: generate_testcases
+generate_testcases:
+	bazel run //testutil:tf_gen -- /tmp/tf_testcases.json
+	mv /tmp/tf_testcases.json models/test
 
 .PHONY: test_consul_up
 test_consul_up:
