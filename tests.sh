@@ -25,7 +25,7 @@ fi
 echo "Test Mode: $MODE";
 if [[ "$MODE" == "fast" ]]; then
 	bzl_coverage //eigen:test //marsh:test //onnx:test \
-	//opt:test //perf:test //query:test //teq:test //utils:test;
+	//opt:test //query:test //teq:test //utils:test;
 
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //gen:ptest;
@@ -41,9 +41,9 @@ elif [[ "$MODE" == "snail" ]]; then
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //distrib:ptest;
 else
-	bzl_coverage //eigen:test //eteq:ctest //layr:ctest \
-	//marsh:test //onnx:test //opt:test //perf:test \
-	//query:test //teq:test //utils:test //distrib:ctest;
+	bzl_coverage //eigen:test //eteq:ctest //distrib:ctest \
+	//layr:ctest //marsh:test //onnx:test //opt:test \
+	//query:test //teq:test //utils:test;
 
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" \

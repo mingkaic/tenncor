@@ -4,18 +4,30 @@ load("@com_github_pybind_bazel//:build_defs.bzl", "pybind_library")
 
 filegroup(
     name = "srcs",
-    srcs = glob(["*.hpp", "src/*.cpp"]) + [
+    srcs = [
+        ":pyutils_hdrs",
+        ":pyutils_srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "pyutils_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "pyutils_srcs",
+    srcs = glob(["src/*.cpp"]),
 )
 
 ######### LIBRARY #########
 
 pybind_library(
     name = "pyutils",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    hdrs = [":pyutils_hdrs"],
+    srcs = [":pyutils_srcs"],
     copts = ["-std=c++17"],
     deps = ["//teq:teq"],
     visibility = ["//visibility:public"],

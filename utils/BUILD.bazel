@@ -6,11 +6,23 @@ package(
 
 filegroup(
     name = "srcs",
-    srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
-    ]) + ["BUILD.bazel"],
+    srcs = [
+        ":utils_hdrs",
+        ":utils_srcs",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
     visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "utils_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "utils_srcs",
+    srcs = glob(["src/*.cpp"]),
 )
 
 filegroup(
@@ -23,8 +35,8 @@ filegroup(
 
 cc_library(
     name = "utils",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    hdrs = [":utils_hdrs"],
+    srcs = [":utils_srcs"],
     deps = ["//teq:teq"],
     copts = ["-std=c++17"],
 )
@@ -33,9 +45,9 @@ cc_library(
 
 cc_test(
     name = "test",
-    srcs = ["//utils:test_srcs"],
+    srcs = [":test_srcs"],
     deps = [
-        "//utils:utils",
+        ":utils",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],

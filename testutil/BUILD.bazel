@@ -5,6 +5,45 @@ package(
 )
 
 filegroup(
+    name = "srcs",
+    srcs = [
+        ":tutil_hdrs",
+        ":tutil_srcs",
+        ":pyunit_util_srcs",
+        ":tf_gen_srcs",
+        ":ead_testcase_template",
+        "BUILD.bazel",
+    ]
+)
+
+filegroup(
+    name = "tutil_hdrs",
+    srcs = ["tutil.hpp"],
+)
+
+filegroup(
+    name = "tutil_srcs",
+    srcs = ["src/tutil.cpp"],
+)
+
+filegroup(
+    name = "pyunit_util_srcs",
+    srcs = [
+        "compare_testcase.py",
+        "generate_testcases.py",
+        "array_testcase.py",
+    ],
+)
+
+filegroup(
+    name = "tf_gen_srcs",
+    srcs = [
+        "tf_gen.py",
+        "tf_testutil.py",
+    ],
+)
+
+filegroup(
     name = "ead_testcase_template",
     srcs = ["ead_template.json"],
 )
@@ -13,8 +52,8 @@ filegroup(
 
 cc_library(
     name = "tutil",
-    hdrs = ["tutil.hpp"],
-    srcs = ["src/tutil.cpp"],
+    hdrs = [":tutil_hdrs"],
+    srcs = [":tutil_srcs"],
     deps = [
         "//dbg:print",
         "@gtest//:gtest",
@@ -26,21 +65,14 @@ cc_library(
 
 py_library(
     name = "pyunit_util",
-    srcs = [
-        "compare_testcase.py",
-        "generate_testcases.py",
-        "array_testcase.py",
-    ],
+    srcs = [":pyunit_util_srcs"],
 )
 
 ######### TESTCASE GENERATION #########
 
 py_binary(
     name = "tf_gen",
-    srcs = [
-        "tf_gen.py",
-        "tf_testutil.py",
-    ],
-    deps = ["//testutil:pyunit_util"],
-    data = ["//testutil:ead_testcase_template"],
+    srcs = [":tf_gen_srcs"],
+    deps = [":pyunit_util"],
+    data = [":ead_testcase_template"],
 )

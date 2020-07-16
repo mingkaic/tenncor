@@ -2,16 +2,32 @@ licenses(["notice"])
 
 load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
 
-package(
-    default_visibility = ["//visibility:public"],
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":distrib_hdrs",
+        ":distrib_srcs",
+        ":protos",
+        ":ctest_srcs",
+        ":ptest_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
-    name = "srcs",
-    srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
-    ]) + ["BUILD.bazel"],
+    name = "distrib_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "distrib_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = ["distr.proto"],
 )
 
 filegroup(
@@ -20,7 +36,6 @@ filegroup(
         "test/*.hpp",
         "test/*.cpp",
     ]),
-    visibility = ["//visibility:private"],
 )
 
 filegroup(
@@ -28,43 +43,44 @@ filegroup(
     srcs = glob([
         "test/*.py",
     ]),
-    visibility = ["//visibility:private"],
 )
 
 ######### LIBRARY #########
 
 cc_library(
     name = "distrib",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    hdrs = [":distrib_hdrs"],
+    srcs = [":distrib_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        ":distr_cc_grpc",
         "//eigen:eigen",
-        "//distrib:distr_cc_grpc",
         "@boost//:uuid",
         "@boost//:bimap",
         "@com_github_oliora_ppconsul//:consul",
     ],
+    visibility = ["//visibility:public"],
 )
 
 proto_library(
     name = "distr_proto",
-    srcs = ["distr.proto"],
+    srcs = [":protos"],
+    visibility = ["//visibility:public"],
 )
 
 cpp_grpc_library(
     name = "distr_cc_grpc",
-    deps = ["//distrib:distr_proto"],
+    deps = [":distr_proto"],
+    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########
 
 cc_test(
     name = "ctest",
-    srcs = ["//distrib:ctest_srcs"],
+    srcs = [":ctest_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//distrib:distrib",
         "//:tenncor",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
@@ -75,7 +91,7 @@ cc_test(
 
 py_test(
     name = "ptest",
-    srcs = ["//distrib:ptest_srcs"],
+    srcs = [":ptest_srcs"],
     deps = [
         "//:tenncor_py",
         "//testutil:pyunit_util",

@@ -22,9 +22,18 @@ def pybind_py_library(name,
         else:
             cc_so_name = name
 
-    pybind_extension(cc_so_name, copts, features, tags,
-        deps=cc_deps, srcs=cc_srcs, cc_linkopts=cc_linkopts,
-        visibility=visibility, testonly=testonly, **kwargs)
+    pybind_extension(
+        name = cc_so_name,
+        copts = copts,
+        features = features,
+        tags = tags,
+        deps = cc_deps,
+        srcs = cc_srcs,
+        cc_linkopts = cc_linkopts,
+        visibility = visibility,
+        testonly = testonly,
+        **kwargs,
+    )
 
     py_library_rule(
         name = name,

@@ -2,30 +2,44 @@ licenses(["notice"])
 
 filegroup(
     name = "srcs",
-    srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
-    ]) + ["BUILD.bazel"],
+    srcs = [
+        ":marsh_hdrs",
+        ":marsh_srcs",
+        ":test_hdrs",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
     visibility = ["//visibility:public"],
 )
 
 filegroup(
+    name = "marsh_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "marsh_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "test_hdrs",
+    srcs = glob(["test/*.hpp"]),
+)
+
+filegroup(
     name = "test_srcs",
-    srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
-    ]),
+    srcs = glob(["test/*.cpp"]),
 )
 
 ######### LIBRARIES #########
 
 cc_library(
     name = "marsh",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    hdrs = [":marsh_hdrs"],
+    srcs = [":marsh_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "@com_github_mingkaic_cppkg//fmts:fmts",
         "@com_github_mingkaic_cppkg//estd:estd",
     ],
     visibility = ["//visibility:public"],
@@ -35,10 +49,13 @@ cc_library(
 
 cc_test(
     name = "test",
-    srcs = ["//marsh:test_srcs"],
+    srcs = [
+        ":test_hdrs",
+        ":test_srcs",
+    ],
     copts = ["-std=c++17"],
     deps = [
-        "//marsh:marsh",
+        ":marsh",
         "//testutil:tutil",
         "@gtest//:gtest",
         "@boost//:property_tree",

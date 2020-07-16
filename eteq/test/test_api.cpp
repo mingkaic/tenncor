@@ -1032,8 +1032,7 @@ TEST(API, Min)
 			else if (b > a)
 			{
 				return leftg;
-			}
-			// else
+			} // else
 			return leftg + rightg;
 		});
 }
@@ -1058,8 +1057,7 @@ TEST(API, Max)
 			else if (b > a)
 			{
 				return rightg;
-			}
-			// else
+			} // else
 			return leftg + rightg;
 		});
 }

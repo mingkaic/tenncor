@@ -2,19 +2,30 @@ licenses(["notice"])
 
 filegroup(
     name = "srcs",
-    srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
-    ]) + ["BUILD.bazel"],
+    srcs = [
+        ":eteq_hdrs",
+        ":eteq_srcs",
+        ":ctest_srcs",
+        ":ptest_srcs",
+        ":benchmark_srcs",
+        "BUILD.bazel",
+    ],
     visibility = ["//visibility:public"],
 )
 
 filegroup(
+    name = "eteq_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "eteq_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
     name = "ctest_srcs",
-    srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
-    ]),
+    srcs = glob(["test/*.cpp"]),
 )
 
 filegroup(
@@ -24,24 +35,19 @@ filegroup(
 
 filegroup(
     name = "benchmark_srcs",
-    srcs = glob([
-        "bm/*.hpp",
-        "bm/*.cpp",
-    ]),
+    srcs = glob(["bm/*.cpp"]),
 )
 
 ######### LIBRARY #########
 
 cc_library(
     name = "eteq",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    hdrs = [":eteq_hdrs"],
+    srcs = [":eteq_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//eigen:eigen",
         "//opt:opt",
         "//onnx:onnx",
-        "@boost//:uuid",
     ],
     visibility = ["//visibility:public"],
 )
@@ -50,14 +56,12 @@ cc_library(
 
 cc_test(
     name = "ctest",
-    srcs = ["//eteq:ctest_srcs"],
+    srcs = [":ctest_srcs"],
     copts = ["-std=c++17"],
     deps = [
         "//:tenncor",
-        "//dbg:print",
         "//utils:utils",
         "//testutil:tutil",
-        "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
@@ -71,7 +75,7 @@ cc_test(
 
 py_test(
     name = "ptest",
-    srcs = ["//eteq:ptest_srcs"],
+    srcs = [":ptest_srcs"],
     deps = [
         "//:tenncor_py",
         "//testutil:pyunit_util",
@@ -86,7 +90,7 @@ py_test(
 
 cc_binary(
     name = "benchmark",
-    srcs = ["bm/benchmark.cpp"],
+    srcs = [":benchmark_srcs"],
     deps = [
         "//:tenncor",
         "@com_github_google_benchmark//:benchmark",

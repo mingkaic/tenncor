@@ -2,18 +2,31 @@ licenses(["notice"])
 
 load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
 
-package(
-    default_visibility = ["//visibility:public"],
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":query_hdrs",
+        ":query_srcs",
+        ":protos",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
-    name = "srcs",
-    srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
-    ]) + [
-        "BUILD.bazel",
-    ],
+    name = "query_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "query_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = ["query.proto"],
 )
 
 filegroup(
@@ -22,19 +35,18 @@ filegroup(
         "test/*.hpp",
         "test/*.cpp",
     ]),
-    visibility = ["//visibility:private"],
 )
 
 ######### LIBRARY #########
 
 cc_library(
     name = "query",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    hdrs = [":query_hdrs"],
+    srcs = [":query_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        ":query_cc_proto",
         "//eigen:eigen",
-        "//query:query_cc_proto",
         "@boost//:functional",
     ],
     visibility = ["//visibility:public"],
@@ -42,26 +54,28 @@ cc_library(
 
 proto_library(
     name = "query_proto",
-    srcs = ["query.proto"],
+    srcs = [":protos"],
+    visibility = ["//visibility:public"],
 )
 
 cpp_proto_library(
     name = "query_cc_proto",
-    deps = ["//query:query_proto"],
+    deps = [":query_proto"],
+    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########
 
 cc_test(
     name = "test",
-    srcs = ["//query:test_srcs"],
+    srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        ":query",
+        "//:tenncor",
         "//teq:mock_teq",
         "//dbg:print",
-        "//:tenncor",
         "//testutil:tutil",
-        "//query:query",
     ],
     linkstatic = True,
     data = ["//:test_models"],

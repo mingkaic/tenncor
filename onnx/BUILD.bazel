@@ -2,16 +2,25 @@ licenses(["notice"])
 
 load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
 
-package(
-    default_visibility = ["//visibility:public"],
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":onnx_hdrs",
+        ":onnx_srcs",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
-    name = "srcs",
-    srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
-    ]) + ["BUILD.bazel"],
+    name = "onnx_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "onnx_srcs",
+    srcs = glob(["src/*.cpp"]),
 )
 
 filegroup(
@@ -20,22 +29,22 @@ filegroup(
         "test/*.hpp",
         "test/*.cpp",
     ]),
-    visibility = ["//visibility:private"],
 )
 
 ######### LIBRARY #########
 
 cc_library(
     name = "onnx",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    hdrs = [":onnx_hdrs"],
+    srcs = [":onnx_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        ":onnx_cc_proto",
         "//teq:teq",
-        "//onnx:onnx_cc_proto",
         "@boost//:uuid",
         "@boost//:bimap",
     ],
+    visibility = ["//visibility:public"],
 )
 
 genrule(
@@ -48,11 +57,22 @@ genrule(
 proto_library(
     name = "onnx_proto",
     srcs = ["onnx.proto"],
+    visibility = ["//visibility:public"],
 )
 
-cpp_proto_library(
+# cpp_proto_library(
+#     name = "onnx_cc_proto",
+#     deps = [":onnx_proto"],
+#     visibility = ["//visibility:public"],
+# )
+
+cc_library(
     name = "onnx_cc_proto",
-    deps = ["//onnx:onnx_proto"],
+    hdrs = ["onnx.pb.h"],
+    srcs = ["onnx.pb.cc"],
+    copts = ["-std=c++17"],
+    deps = ["@com_google_protobuf//:protobuf"],
+    visibility = ["//visibility:public"],
 )
 
 ######### TOOLS #########
@@ -62,7 +82,7 @@ cc_binary(
     srcs = ["inspector.cpp"],
     copts = ["-std=c++17"],
     deps = [
-        "//onnx:onnx_cc_proto",
+        ":onnx_cc_proto",
         "@com_github_mingkaic_cppkg//estd:estd",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
@@ -73,9 +93,9 @@ cc_binary(
 cc_test(
     name = "test",
     size = "small",
-    srcs = ["//onnx:test_srcs"],
+    srcs = [":test_srcs"],
     deps = [
-        "//onnx:onnx",
+        ":onnx",
         "//teq:mock_teq",
         "//dbg:print",
         "@gtest//:gtest",
