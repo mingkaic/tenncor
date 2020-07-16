@@ -29,13 +29,17 @@ if [[ "$MODE" == "fast" ]]; then
 
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //gen:ptest;
-elif [[ "$MODE" == "slow" ]]; then
-	bzl_coverage //eteq:ctest //layr:ctest;
+elif [[ "$MODE" == "eteq" ]]; then
+	bzl_coverage //eteq:ctest;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" \
-	//eteq:ptest //layr:ptest;
-elif [[ "$MODE" == "snail" ]]; then
+	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest;
+elif [[ "$MODE" == "layr" ]]; then
+	bzl_coverage //layr:ctest;
+
+	bazel test --run_under='valgrind --leak-check=full' \
+	--remote_http_cache="$REMOTE_CACHE" //layr:ptest;
+elif [[ "$MODE" == "distrib" ]]; then
 	bzl_coverage //distrib:ctest;
 
 	bazel test --run_under='valgrind --leak-check=full' \

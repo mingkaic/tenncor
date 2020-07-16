@@ -16,15 +16,19 @@ jobs:
       script:
         - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN} --network=host
           --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} fast
-    - stage: test slow
+    - stage: test eteq
       script:
         - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN} --network=host
-          --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} slow
-    - stage: test snail
+          --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} eteq
+    - stage: test layr
+      script:
+        - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN} --network=host
+          --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} layr
+    - stage: test distrib
       script:
         - make test_consul_up
         - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN} --network=host
-          --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} snail
+          --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} distrib
         - make test_consul_down
     # disable making docker due to long build times
     # - stage: build docker image with C++ and python library
