@@ -9,4 +9,4 @@ COPY . $APP_DIR
 RUN pip install --upgrade pip
 RUN make install_test_deps
 
-ENTRYPOINT [ "./tests.sh" ]
+ENTRYPOINT [ "./scripts/tests.sh" ]
