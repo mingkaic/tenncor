@@ -7,6 +7,17 @@ package(
 COMMON_CFGS = ["ops.yml", "eteq.yml"]
 
 filegroup(
+    name = "srcs",
+    srcs = [
+        ":eteq_classes",
+        ":eteq",
+        ":eteq_min",
+        ":optimizations",
+        "BUILD.bazel",
+    ],
+)
+
+filegroup(
     name = "eteq_classes",
     srcs = glob(["eteq/*.yml"]),
 )

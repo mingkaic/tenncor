@@ -6,13 +6,12 @@
 /// Define functions for marshal and unmarshal data sources
 ///
 
-#ifndef ETEQ_SERIALIZE_HPP
-#define ETEQ_SERIALIZE_HPP
-
 #include "eteq/make.hpp"
 
-#include "onnx/save.hpp"
-#include "onnx/load.hpp"
+#include "onnx/onnx.hpp"
+
+#ifndef ETEQ_SERIALIZE_HPP
+#define ETEQ_SERIALIZE_HPP
 
 namespace eteq
 {

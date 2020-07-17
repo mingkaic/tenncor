@@ -1,52 +1,56 @@
 licenses(["notice"])
 
-package(
-    default_visibility = ["//visibility:public"],
-)
-
 filegroup(
     name = "srcs",
-    srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
-    ]) + ["BUILD.bazel"],
+    srcs = [
+        ":layr_hdrs",
+        ":layr_srcs",
+        ":ctest_srcs",
+        ":ptest_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
-    name = "test_srcs",
-    srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
-    ]),
+    name = "layr_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "layr_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "ctest_srcs",
+    srcs = glob(["test/*.cpp"]),
 )
 
 filegroup(
     name = "ptest_srcs",
-    srcs = glob([
-        "test/*.py",
-    ]),
+    srcs = ["test/ptest.py"],
 )
 
 ######### LIBRARY #########
 
 cc_library(
     name = "layr",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    hdrs = [":layr_hdrs"],
+    srcs = [":layr_srcs"],
     copts = ["-std=c++17"],
     deps = ["//eteq:eteq"],
+    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########
 
 cc_test(
     name = "ctest",
-    srcs = ["//layr:test_srcs"],
+    srcs = [":ctest_srcs"],
     copts = ["-std=c++17"],
     deps = [
         "//:tenncor",
-        "//query:query",
-        "//dbg:print",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",
     ],
@@ -55,7 +59,7 @@ cc_test(
 
 py_test(
     name = "ptest",
-    srcs = ["//layr:ptest_srcs"],
+    srcs = [":ptest_srcs"],
     deps = [
         "//:tenncor_py",
         "//dbg:print_py",

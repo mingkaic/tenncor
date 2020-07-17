@@ -1,0 +1,50 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//python:defs.bzl", "python_proto_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":extenncor_srcs",
+        ":protos",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "extenncor_srcs",
+    srcs = glob(["*.py"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = [
+        "dataset.proto",
+        "dqntrainer.proto",
+    ],
+)
+
+######### LIBRARY #########
+
+py_library(
+    name = "extenncor",
+    srcs = [":extenncor_srcs"],
+    deps = [
+        ":extenncor_py_proto",
+        "//:tenncor_py",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "extenncor_proto",
+    srcs = [":protos"],
+    visibility = ["//visibility:public"],
+)
+
+python_proto_library(
+    name = "extenncor_py_proto",
+    deps = [":extenncor_proto"],
+    visibility = ["//visibility:public"],
+)

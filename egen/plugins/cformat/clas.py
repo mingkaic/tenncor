@@ -43,9 +43,17 @@ def _handle_init(obj):
 
         args = ', '.join([arender(arg) for arg in args])
         if len(ilist) > 0:
+            # order the initializer list by class members declaration
+            member = obj.get('members', [])
+            mem_order = dict([(mem['name'], i)
+                for i, mem in enumerate(member)])
+            ikeys = list(ilist.keys())
+            assert(all([k in mem_order for k in ikeys]))
+            ikeys.sort(key=lambda k: mem_order[k])
+
             ilist = [
                 '{key}({val})'.format(key=k, val=ilist[k])
-                for k in ilist
+                for k in ikeys
             ]
             ilist = ': ' + ', '.join(ilist)
         else:

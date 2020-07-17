@@ -9,7 +9,7 @@
 #include "teq/mock/leaf.hpp"
 #include "teq/mock/functor.hpp"
 
-#include "query/query.hpp"
+#include "query/querier.hpp"
 #include "query/parse.hpp"
 
 

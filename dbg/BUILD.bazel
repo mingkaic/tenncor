@@ -1,136 +1,186 @@
 licenses(["notice"])
 
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
 load("//third_party:tools/pybind.bzl", "pybind_py_library")
-load("@rules_proto//proto:defs.bzl", "proto_library")
-load("@com_github_grpc_grpc//bazel:cc_grpc_library.bzl", "cc_grpc_library")
-
-package(
-    default_visibility = ["//visibility:public"],
-)
 
 filegroup(
     name = "srcs",
-    srcs = glob([
-        "*.py",
-        "**/*.hpp",
-        "**/*.cpp",
-    ]) + ["BUILD.bazel"],
+    srcs = [
+        ":compare_hdrs",
+        ":print_hdrs",
+        ":psess_hdrs",
+        ":stats_plugin_hdrs",
+        ":gemit_plugin_hdrs",
+        ":gemit_plugin_protos",
+        ":gemit_mock_srcs",
+        ":pybind_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "compare_hdrs",
+    srcs = glob(["compare/*.hpp"]),
+)
+
+filegroup(
+    name = "print_hdrs",
+    srcs = glob(["print/*.hpp"]),
+)
+
+filegroup(
+    name = "psess_hdrs",
+    srcs = glob(["psess/*.hpp"]),
+)
+
+filegroup(
+    name = "stats_plugin_hdrs",
+    srcs = glob(["psess/stats/*.hpp"]),
+)
+
+filegroup(
+    name = "gemit_plugin_hdrs",
+    srcs = glob(["psess/emit/*.hpp"]),
+)
+
+filegroup(
+    name = "gemit_plugin_protos",
+    srcs = glob(["psess/emit/*.proto"]),
+)
+
+filegroup(
+    name = "gemit_mock_srcs",
+    srcs = glob(["psess/emit/mock/*.cpp"]),
+)
+
+filegroup(
+    name = "pybind_srcs",
+    srcs = glob(["python/*.cpp"]),
 )
 
 ######### LIBRARY #########
 
 cc_library(
-    name = "print",
-    hdrs = glob(["print/*.hpp"]),
-    srcs = glob(["print/*.cpp"]),
+    name = "compare",
+    hdrs = [":compare_hdrs"],
     copts = ["-std=c++17"],
-    deps = ["//teq:teq"],
+    deps = ["//eteq:eteq"],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
-    name = "compare",
-    hdrs = glob(["compare/*.hpp"]),
-    srcs = glob(["compare/*.cpp"]),
+    name = "print",
+    hdrs = [":print_hdrs"],
     copts = ["-std=c++17"],
-    deps = ["//teq:teq"],
+    deps = ["//teq:mock_teq"],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
     name = "psess",
-    hdrs = glob([
-        "psess/*.hpp",
-        "psess/**/*.hpp",
-    ]),
-    srcs = glob(["**/src/*.cpp"]),
+    hdrs = [":psess_hdrs"],
     copts = ["-std=c++17"],
-    deps = [
-        "//teq:teq",
-    ],
+    deps = ["//teq:teq"],
+    visibility = ["//visibility:public"],
 )
-
-# cc_library(
-#     name = "emit_plugin",
-#     hdrs = glob([
-#         "psess/emit/*.hpp",
-#     ]),
-#     srcs = glob(["**/src/*.cpp"]),
-#     copts = ["-std=c++17"],
-#     deps = [
-#         "//eteq:eteq",
-#         "//dbg:psess",
-#         "//dbg:gemitter_cc_grpc",
-#         "@boost//:uuid",
-#         "@com_github_mingkaic_cppkg//jobs:jobs",
-#     ],
-# )
 
 cc_library(
     name = "stats_plugin",
-    hdrs = glob([
-        "psess/emit/*.hpp",
-    ]),
-    srcs = glob(["**/src/*.cpp"]),
+    hdrs = [":stats_plugin_hdrs"],
     copts = ["-std=c++17"],
     deps = [
+        ":psess",
         "//eigen:eigen",
-        "//dbg:psess",
     ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "gemit_plugin",
+    hdrs = [":gemit_plugin_hdrs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":psess",
+        ":gemitter_cc_grpc",
+        "//eteq:eteq",
+        "@boost//:uuid",
+        "@com_github_mingkaic_cppkg//jobs:jobs",
+    ],
+    visibility = ["//visibility:public"],
 )
 
 proto_library(
-    name = "gemitter_proto",
-    srcs = ["psess/emit/gemitter.proto"],
-    deps = ["@com_github_onnx_onnx//:onnx_proto"],
+    name = "gemitter_grpc",
+    srcs = [":gemit_plugin_protos"],
+    deps = ["//onnx:onnx_proto"],
+    visibility = ["//visibility:public"],
 )
 
-cc_proto_library(
-    name = "gemitter_cc_proto",
-    deps = ["//dbg:gemitter_proto"],
-)
-
-# cc_grpc_library(
+# cpp_grpc_library(
 #     name = "gemitter_cc_grpc",
-#     srcs = ["//dbg:gemitter_proto"],
-#     grpc_only = True,
-#     deps = ["//dbg:gemitter_cc_proto"],
+#     deps = [
+#         ":gemitter_grpc",
+#         "//onnx:onnx_proto",
+#     ],
+#     visibility = ["//visibility:public"],
 # )
 
-pybind_py_library(
-    name = "print_py",
-    cc_srcs = ["python/print.cpp"],
-    cc_deps = [
-        "//dbg:print",
-        "//:tenncor",
+cc_library(
+    name = "gemitter_cc_grpc",
+    hdrs = [
+        "psess/emit/gemitter.pb.h",
+        "psess/emit/gemitter.grpc.pb.h",
+    ],
+    srcs = [
+        "psess/emit/gemitter.pb.cc",
+        "psess/emit/gemitter.grpc.pb.cc",
     ],
     copts = ["-std=c++17"],
+    deps = ["//onnx:onnx_cc_proto"],
 )
+
+######### PYBINDS #########
 
 pybind_py_library(
     name = "compare_py",
     cc_srcs = ["python/compare.cpp"],
     cc_deps = [
-        "//dbg:compare",
+        ":compare",
         "//:tenncor",
     ],
     copts = ["-std=c++17"],
+    visibility = ["//visibility:public"],
+)
+
+pybind_py_library(
+    name = "print_py",
+    cc_srcs = ["python/print.cpp"],
+    cc_deps = [
+        ":print",
+        "//:tenncor",
+    ],
+    copts = ["-std=c++17"],
+    visibility = ["//visibility:public"],
 )
 
 pybind_py_library(
     name = "psess_py",
     cc_srcs = ["python/psess.cpp"],
     cc_deps = [
-        # "//dbg:emit_plugin",
-        "//dbg:stats_plugin",
+        ":gemit_plugin",
+        ":stats_plugin",
         "//:tenncor",
     ],
     py_deps = ["//:tenncor_py"],
     copts = ["-std=c++17"],
+    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########
 
-# cc_binary(
-#     name = "mockserver",
-#     srcs = ["psess/emit/mock/mockserver.cpp"],
-#     deps = ["//dbg:gemitter_cc_grpc"],
-# )
+cc_binary(
+    name = "mockserver",
+    srcs = [":gemit_mock_srcs"],
+    deps = [":gemitter_cc_grpc"],
+)

@@ -8,7 +8,6 @@
 #include "flag/flag.hpp"
 
 #include "eteq/eteq.hpp"
-#include "eteq/optimize.hpp"
 
 #include "generated/pyapi.hpp"
 #include "generated/api.hpp"

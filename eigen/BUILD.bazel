@@ -2,11 +2,23 @@ licenses(["notice"])
 
 filegroup(
     name = "srcs",
-    srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
-    ]) + ["BUILD.bazel"],
+    srcs = [
+        ":eigen_hdrs",
+        ":eigen_srcs",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
     visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "eigen_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "eigen_srcs",
+    srcs = glob(["src/*.cpp"]),
 )
 
 filegroup(
@@ -56,24 +68,24 @@ genrule(
     name = "generated_eigen",
     srcs = select({
         "//conditions:default": ["//cfg:eteq_min"],
-        "//eigen:fast_build": ["//cfg:eteq_min"],
-        "//eigen:full_build": ["//cfg:eteq"]
+        ":fast_build": ["//cfg:eteq_min"],
+        ":full_build": ["//cfg:eteq"]
     }),
     outs = GEN_HDRS + GEN_SRCS,
     tools = ["//egen:egen"],
     cmd = select({
         "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
-        "//eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
-        "//eigen:full_build": GEN_CMD_FMT.format("eteq"),
+        ":fast_build": GEN_CMD_FMT.format("eteq_min"),
+        ":full_build": GEN_CMD_FMT.format("eteq"),
     })
 )
 
 cc_library(
     name = "eigen",
-    hdrs = glob(["*.hpp"]) + [
+    hdrs = [":eigen_hdrs"] + [
         ':'+hdr for hdr in GEN_HDRS
     ],
-    srcs = glob(["src/*.cpp"]) + [
+    srcs = [":eigen_srcs"] + [
         ':'+src for src in GEN_SRCS
     ],
     copts = ["-std=c++17"],
@@ -88,10 +100,10 @@ cc_library(
 
 cc_test(
     name = "test",
-    srcs = ["//eigen:test_srcs"],
+    srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//eigen:eigen",
+        ":eigen",
         "//teq:mock_teq",
         "//dbg:print",
         "@gtest//:gtest",

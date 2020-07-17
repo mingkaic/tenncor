@@ -6,8 +6,6 @@
 /// Eigen functor implementation of operable func
 ///
 
-#include "eigen/observable.hpp"
-
 #include "eteq/etens.hpp"
 #include "eteq/shaper.hpp"
 
@@ -200,12 +198,6 @@ struct Functor final : public eigen::Observable
 	const teq::iMetadata& get_meta (void) const override
 	{
 		return meta_;
-	}
-
-	/// Implementation of iTensor
-	size_t nbytes (void) const override
-	{
-		return sizeof(T) * shape_.n_elems();
 	}
 
 	/// Implementation of Observable

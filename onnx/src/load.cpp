@@ -26,8 +26,7 @@ teq::TensptrsT load_graph (TensptrIdT& identified_tens,
 			name = estd::try_get(ans, leafname_key, "");
 		}
 
-		const TypeProto& type = pb_input.type();
-		const TypeProto::Tensor& tens_type = type.tensor_type();
+		const TypeProto::Tensor& tens_type = pb_input.type().tensor_type();
 		const auto& dims = tens_type.shape().dim();
 		TensorProto pb_ten;
 		for (const auto& dim : dims)

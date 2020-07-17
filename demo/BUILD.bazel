@@ -4,6 +4,17 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+filegroup(
+    name = "srcs",
+    srcs = glob([
+        "*.cpp",
+        "*.py",
+        "**/*.py",
+    ]) + [
+        "BUILD.bazel",
+    ]
+)
+
 ######### DEMOS #########
 
 cc_binary(
@@ -13,7 +24,7 @@ cc_binary(
     deps = [
         "//:tenncor",
         "//dbg:compare",
-        # "//dbg:emit_plugin",
+        # "//dbg:gemit_plugin",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
     data = ["//:models", "//cfg:optimizations"],
@@ -33,7 +44,7 @@ py_binary(
     name = "w2v_demo",
     srcs = ["w2v_demo.py"],
     deps = [
-        "//:extenncor",
+        "//extenncor:extenncor",
     ],
     data = ["//:models", "//cfg:optimizations"],
 )
@@ -41,7 +52,7 @@ py_binary(
 py_binary(
     name = "dqn_demo",
     srcs = ["dqn_demo.py"],
-    deps = ["//:extenncor"],
+    deps = ["//extenncor:extenncor"],
     data = ["//:models", "//cfg:optimizations"],
 )
 

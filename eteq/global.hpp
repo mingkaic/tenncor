@@ -1,4 +1,5 @@
-#include "eigen/device.hpp"
+
+#include "eigen/eigen.hpp"
 
 #ifndef ETEQ_GLOBAL_HPP
 #define ETEQ_GLOBAL_HPP

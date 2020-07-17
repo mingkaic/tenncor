@@ -4,9 +4,7 @@
 
 #include <boost/bimap.hpp>
 
-#include "teq/ileaf.hpp"
-#include "teq/ifunctor.hpp"
-#include "teq/objs.hpp"
+#include "teq/teq.hpp"
 
 #include "onnx/onnx.pb.h"
 

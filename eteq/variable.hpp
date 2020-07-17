@@ -7,11 +7,6 @@
 ///	generalized and type-specific data
 ///
 
-#include "teq/shaped_arr.hpp"
-
-#include "eigen/device.hpp"
-#include "eigen/emeta.hpp"
-
 #include "eteq/global.hpp"
 
 #ifndef ETEQ_VARIABLE_HPP
@@ -80,8 +75,9 @@ struct Variable final : public eigen::iMutableLeaf
 			teq::fatalf("assigning data shaped %s to tensor %s",
 				shape.to_string().c_str(), this->shape_.to_string().c_str());
 		}
-		std::vector<T> data;
-		egen::type_convert(data, input, dtype, shape.n_elems());
+		size_t nelems = shape.n_elems();
+		std::vector<T> data(nelems);
+		egen::type_convert(&data[0], input, dtype, nelems);
 		assign(eigen::make_tensmap<T>(data.data(), shape), ctx);
 	}
 
@@ -127,12 +123,6 @@ struct Variable final : public eigen::iMutableLeaf
 	const teq::iMetadata& get_meta (void) const override
 	{
 		return meta_;
-	}
-
-	/// Implementation of iTensor
-	size_t nbytes (void) const override
-	{
-		return sizeof(T) * shape_.n_elems();
 	}
 
 	/// Implementation of iTensor

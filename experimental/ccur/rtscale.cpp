@@ -5,7 +5,7 @@
 
 #include "flag/flag.hpp"
 
-#include "eigen/generated/opcode.hpp"
+#include "eigen/eigen.hpp"
 
 #include "eteq/make.hpp"
 

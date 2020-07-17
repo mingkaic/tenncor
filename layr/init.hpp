@@ -6,9 +6,7 @@
 /// Define variable initialization algorithms
 ///
 
-#include "eigen/random.hpp"
-
-#include "eteq/make.hpp"
+#include "eteq/eteq.hpp"
 
 #ifndef LAYR_INIT_HPP
 #define LAYR_INIT_HPP

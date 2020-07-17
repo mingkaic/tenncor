@@ -8,8 +8,6 @@
 
 #include <utility>
 
-#include "teq/traveler.hpp"
-
 #include "dbg/print/teq.hpp"
 
 #ifndef DBG_TEQ_CSV_HPP

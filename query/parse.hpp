@@ -9,8 +9,7 @@
 #ifndef QUERY_PARSE_HPP
 #define QUERY_PARSE_HPP
 
-#include "teq/objs.hpp"
-#include "teq/ileaf.hpp"
+#include "teq/teq.hpp"
 
 #include "query/query.pb.h"
 

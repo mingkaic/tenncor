@@ -6,11 +6,21 @@ package(
 
 filegroup(
     name = "srcs",
-    srcs = glob(["egen.py", "plugins/*.py"]) + ["BUILD.bazel"],
+    srcs = [
+        ":egen_srcs",
+        "BUILD.bazel",
+    ],
 )
+
+filegroup(
+    name = "egen_srcs",
+    srcs = glob(["egen.py", "plugins/*.py"]),
+)
+
+######### FILE GENERATION #########
 
 py_binary(
     name = "egen",
-    srcs = glob(["egen.py", "plugins/*.py"]),
+    srcs = [":egen_srcs"],
     deps = ["//gen:gen"],
 )

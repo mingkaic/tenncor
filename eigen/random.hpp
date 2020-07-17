@@ -10,10 +10,8 @@
 
 #include <random>
 #include <type_traits>
-#include <functional>
 
-#include "teq/config.hpp"
-#include "teq/logs.hpp"
+#include "teq/teq.hpp"
 
 namespace eigen
 {

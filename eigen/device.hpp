@@ -1,10 +1,7 @@
 #ifndef EIGEN_DEVICE_HPP
 #define EIGEN_DEVICE_HPP
 
-#include "teq/isession.hpp"
-#include "teq/config.hpp"
-
-#include "eigen/eigen.hpp"
+#include "eigen/convert.hpp"
 #include "eigen/observable.hpp"
 
 namespace eigen

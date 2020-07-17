@@ -15,12 +15,6 @@ benchmark_repository()
 
 # === more import external dependencies ===
 
-load("@rules_proto//proto:repositories.bzl",
-    rules_proto_deps="rules_proto_dependencies",
-    "rules_proto_toolchains")
-rules_proto_deps()
-rules_proto_toolchains()
-
 load("@com_github_pybind_bazel//:python_configure.bzl", "python_configure")
 python_configure(name="local_config_python")
 
@@ -30,18 +24,40 @@ cppkg_deps()
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 boost_deps()
 
+load("@rules_proto_grpc//:repositories.bzl", "rules_proto_grpc_toolchains", "rules_proto_grpc_repos")
+rules_proto_grpc_toolchains()
+rules_proto_grpc_repos()
+
+load("@rules_proto_grpc//cpp:repositories.bzl", rules_proto_grpc_cpp_repos="cpp_repos")
+rules_proto_grpc_cpp_repos()
+
+load("@rules_proto_grpc//python:repositories.bzl", rules_proto_grpc_python_repos="python_repos")
+rules_proto_grpc_python_repos()
+
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 grpc_deps()
 
-load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
-grpc_extra_deps()
+load("@rules_python//python:repositories.bzl", "py_repositories")
+py_repositories()
 
-# === additional external dependencies (remove after native cpp proto rules works) ===
+load("@rules_python//python:pip.bzl", "pip_repositories")
+pip_repositories()
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-http_archive(
-    name = "com_google_protobuf_custom",
-    sha256 = "a19dcfe9d156ae45d209b15e0faed5c7b5f109b6117bfc1974b6a7b98a850320",
-    strip_prefix = "protobuf-3.7.0",
-    urls = ["https://github.com/protocolbuffers/protobuf/archive/v3.7.0.tar.gz"],
+load("@rules_python//python:pip.bzl", "pip_import")
+pip_import(
+    name = "rules_proto_grpc_py2_deps",
+    python_interpreter = "python", # Replace this with the platform specific Python 2 name, or remove if not using Python 2
+    requirements = "@rules_proto_grpc//python:requirements.txt",
 )
+
+load("@rules_proto_grpc_py2_deps//:requirements.bzl", pip2_install="pip_install")
+pip2_install()
+
+pip_import(
+    name = "rules_proto_grpc_py3_deps",
+    python_interpreter = "python3",
+    requirements = "@rules_proto_grpc//python:requirements.txt",
+)
+
+load("@rules_proto_grpc_py3_deps//:requirements.bzl", pip3_install="pip_install")
+pip3_install()

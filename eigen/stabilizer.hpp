@@ -1,4 +1,4 @@
-#include "teq/traveler.hpp"
+#include "teq/teq.hpp"
 
 #include "eigen/generated/opcode.hpp"
 #include "eigen/generated/dtype.hpp"

@@ -97,11 +97,6 @@ struct MockFunctor : public teq::iFunctor
 		return data_.shape();
 	}
 
-	size_t nbytes (void) const override
-	{
-		return data_.nbytes();
-	}
-
 	teq::iTensor* clone_impl (void) const override
 	{
 		return new MockFunctor(*this);

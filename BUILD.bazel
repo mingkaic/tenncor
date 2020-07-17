@@ -6,22 +6,69 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
+######### CONFIG SETTINGS #########
+
+config_setting(
+    name = "windows",
+    values = {"cpu": "x64_windows"},
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "macos",
+    values = {
+        "apple_platform_type": "macos",
+        "cpu": "darwin",
+    },
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "ios",
+    values = {"apple_platform_type": "ios"},
+    visibility = ["//visibility:public"],
+)
+
 ######### GENERAL SOURCE #########
 
 filegroup(
     name = "srcs",
     srcs = [
-        # "//ccur:srcs",
+        ":trainer_hdrs",
+        ":pybind_hdrs",
+        ":pybind_srcs",
+        "//cfg:srcs",
         "//dbg:srcs",
+        "//distrib:srcs",
+        "//egen:srcs",
+        "//eigen:srcs",
         "//eteq:srcs",
+        "//extenncor:srcs",
+        "//gen:srcs",
         "//layr:srcs",
-        "//opt:srcs",
+        "//marsh:srcs",
         "//onnx:srcs",
-        "//perf:srcs",
+        "//opt:srcs",
+        "//pyutils:srcs",
         "//query:srcs",
         "//teq:srcs",
         "BUILD.bazel",
     ],
+)
+
+filegroup(
+    name = "trainer_hdrs",
+    srcs = glob(["trainer/*.hpp"]),
+)
+
+filegroup(
+    name = "pybind_hdrs",
+    srcs = glob(["python/*.hpp"]),
+)
+
+filegroup(
+    name = "pybind_srcs",
+    srcs = glob(["python/*.cpp"]),
 )
 
 filegroup(
@@ -78,30 +125,27 @@ genrule(
 
 cc_library(
     name = "tenncor",
-    hdrs = [":"+hdr for hdr in GEN_HDRS] + glob(["trainer/*.hpp"]),
+    hdrs = [":trainer_hdrs"] + [
+        ":"+hdr for hdr in GEN_HDRS
+    ],
     srcs = [":generated/api.cpp"],
     copts = ["-std=c++17"],
     deps = [
-        "//eteq:eteq",
         "//layr:layr",
+        "//distrib:distrib",
     ],
 )
 
 pybind_py_library(
     name = "tenncor_py",
-    cc_srcs = ["//:generated/pyapi_tenncor.cpp"] + glob([
-        "python/*.hpp",
-        "python/*.cpp",
-    ]),
+    cc_srcs = [
+        ":pybind_hdrs",
+        ":pybind_srcs",
+        ":generated/pyapi_tenncor.cpp",
+    ],
     cc_deps = [
-        "//:tenncor",
+        ":tenncor",
         "//pyutils:pyutils",
     ],
     copts = ["-std=c++17"],
-)
-
-py_library(
-    name = "extenncor",
-    srcs = glob(["extenncor/*.py"]),
-    deps = ["//:tenncor_py"],
 )

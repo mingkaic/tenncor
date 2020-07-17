@@ -14,8 +14,10 @@ jobs:
         - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=travis-${TRAVIS_COMMIT} push_test_image
     - stage: test everything
       script:
-        - docker run -e CODECOV_TOKEN=${CODECOV_TOKEN}
-          --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT}
+        - make test_consul_up
+        - docker run --network=host -e CODECOV_TOKEN=${CODECOV_TOKEN}
+          -e REMOTE_CACHE=${REMOTE_CACHE} --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT}
+        - make test_consul_down
     # disable making docker due to long build times
     # - stage: build docker image with C++ and python library
     #   script:

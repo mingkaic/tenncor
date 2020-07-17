@@ -1,4 +1,4 @@
-#include "python/eteq_ext.hpp"
+
 #include "python/layr_ext.hpp"
 
 void layr_ext(py::module& m)
@@ -91,7 +91,7 @@ void layr_ext(py::module& m)
 			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
 			py::arg("err_func") = layr::BErrorF<PybindT>(
-			[](const pyeteq::ETensT& l, const pyeteq::ETensT& r)
+			[](const pytenncor::ETensT& l, const pytenncor::ETensT& r)
 			{
 				return tenncor<PybindT>().error.sqr_diff(l, r);
 			}),

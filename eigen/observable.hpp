@@ -2,13 +2,6 @@
 #ifndef EIGEN_OBSERVABLE_HPP
 #define EIGEN_OBSERVABLE_HPP
 
-#include <unordered_set>
-
-#include "marsh/objs.hpp"
-
-#include "teq/ileaf.hpp"
-#include "teq/ifunctor.hpp"
-
 #include "eigen/emeta.hpp"
 
 namespace eigen
@@ -73,7 +66,13 @@ struct Observable : public teq::iFunctor
 	/// Do or die populate internal data object, will recurse
 	virtual void must_initialize (void) = 0;
 
-	/// Update metadata version to desired version
+	/// Update metadata version to a desired version
+	/// Desired version is the maximum version of all functor children
+	/// and can be no higher than max_version
+	/// Return true if metadata version is updated to the desired version
+	/// Metadata version is only updated to the desired version
+	/// if the desired version > current version
+	/// Returning true also denotes that the functor should update data
 	virtual bool prop_version (size_t max_version) = 0;
 
 	/// Implementation of iAttributed

@@ -46,11 +46,6 @@ struct MockLeaf : public teq::iLeaf
 		return meta_;
 	}
 
-	size_t nbytes (void) const override
-	{
-		return ref_.data_.size() * sizeof(double);
-	}
-
 	teq::Usage get_usage (void) const override
 	{
 		return usage_;

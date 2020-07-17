@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package distr;
+
+// ======== GENERAL MESSAGE OBJECTS ========
+
+message NodeMeta {
+    string instance = 1;
+
+    string uuid = 2;
+
+    string dtype = 3;
+
+    repeated int64 shape = 4;
+}
+
+message NodeData {
+    string uuid = 1;
+
+    repeated double data = 2;
+
+    int64 version = 3;
+}
+
+// ======== REQUEST + RESPONSE MESSAGES ========
+
+message FindNodesRequest {
+    repeated string uuids = 1;
+}
+
+message FindNodesResponse {
+    repeated NodeMeta values = 1;
+}
+
+message GetDataRequest {
+    repeated string uuids = 1;
+}
+
+service DistrManager {
+    // List all nodes matching request parameters
+    rpc FindNodes (FindNodesRequest) returns (FindNodesResponse);
+
+    // Stream data for matched nodes if the data node is updated
+    // Return stream ignores nodes that remain the same
+    rpc GetData (GetDataRequest) returns (stream NodeData);
+}

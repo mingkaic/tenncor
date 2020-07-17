@@ -2,8 +2,6 @@
 #ifndef OPT_GRAPH_HPP
 #define OPT_GRAPH_HPP
 
-#include <list>
-
 #include "query/query.hpp"
 
 namespace opt
@@ -76,9 +74,10 @@ struct GraphInfo final
 					tmap.emplace(ppair);
 				}
 			}
-
+			parents_.erase(src);
 			// update owners and track changes regarding target
 			owners_.emplace(target.get(), target);
+			sindex_.erase(src);
 			target->accept(sindex_);
 		}
 		// cleanup parents_

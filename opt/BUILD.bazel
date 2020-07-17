@@ -1,83 +1,91 @@
 licenses(["notice"])
 
-load("@rules_proto//proto:defs.bzl", "proto_library")
-
-package(
-    default_visibility = ["//visibility:public"],
-)
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
 
 filegroup(
     name = "srcs",
-    srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
-    ]) + ["BUILD.bazel"],
+    srcs = [
+        ":opt_hdrs",
+        ":opt_srcs",
+        ":protos",
+        ":mock_hdrs",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "opt_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "opt_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = ["optimize.proto"],
+)
+
+filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
 )
 
 filegroup(
     name = "test_srcs",
-    srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
-    ]),
-    visibility = ["//visibility:private"],
+    srcs = glob(["test/*.cpp"]),
 )
 
 ######### LIBRARY #########
 
 cc_library(
     name = "opt",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    hdrs = [":opt_hdrs"],
+    srcs = [":opt_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//opt:opt_cc_proto",
+        ":opt_cc_proto",
         "//query:query",
     ],
+    visibility = ["//visibility:public"],
 )
 
 proto_library(
     name = "opt_proto",
-    srcs = ["optimize.proto"],
+    srcs = [":protos"],
     deps = ["//query:query_proto"],
+    visibility = ["//visibility:public"],
 )
 
-# cc_proto_library(
-#     name = "opt_cc_proto",
-#     deps = ["//opt:opt_proto"],
-# )
+cpp_proto_library(
+    name = "opt_cc_proto",
+    deps = [":opt_proto"],
+    visibility = ["//visibility:public"],
+)
 
 cc_library(
-    name = "opt_cc_proto",
-    hdrs = ["optimize.pb.h"],
-    srcs = ["optimize.pb.cc"],
+    name = "mock_opt",
+    hdrs = [":mock_hdrs"],
     copts = ["-std=c++17"],
-    deps = [
-        "//query:query_cc_proto",
-        "@com_google_protobuf_custom//:protobuf",
-    ],
+    deps = [":opt"],
+    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########
 
-cc_library(
-    name = "mock_opt",
-    hdrs = glob(["mock/*.hpp"]),
-    copts = ["-std=c++17"],
-    deps = ["//opt:opt"],
-    visibility = ["//visibility:public"],
-)
-
 cc_test(
     name = "test",
-    srcs = ["//opt:test_srcs"],
+    srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        ":mock_opt",
         "//dbg:print",
         "//teq:mock_teq",
-        "//opt:mock_opt",
         "//testutil:tutil",
-        "@gtest//:gtest",
     ],
     data = [
         "//cfg:optimizations",

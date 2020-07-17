@@ -1,14 +1,13 @@
 
 #include "gtest/gtest.h"
 
-#include "onnx/onnx.pb.h"
+#include "onnx/onnx.hpp"
 
 #include "exam/exam.hpp"
 
 #include "teq/logs.hpp"
 
-#include "eigen/device.hpp"
-#include "eigen/random.hpp"
+#include "eigen/eigen.hpp"
 
 int main (int argc, char** argv)
 {

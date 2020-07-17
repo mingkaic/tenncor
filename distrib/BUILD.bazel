@@ -1,0 +1,100 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":distrib_hdrs",
+        ":distrib_srcs",
+        ":protos",
+        ":ctest_srcs",
+        ":ptest_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "distrib_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "distrib_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = ["distr.proto"],
+)
+
+filegroup(
+    name = "ctest_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
+filegroup(
+    name = "ptest_srcs",
+    srcs = glob([
+        "test/*.py",
+    ]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "distrib",
+    hdrs = [":distrib_hdrs"],
+    srcs = [":distrib_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":distr_cc_grpc",
+        "//eigen:eigen",
+        "@boost//:uuid",
+        "@boost//:bimap",
+        "@com_github_oliora_ppconsul//:consul",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "distr_proto",
+    srcs = [":protos"],
+    visibility = ["//visibility:public"],
+)
+
+cpp_grpc_library(
+    name = "distr_cc_grpc",
+    deps = [":distr_proto"],
+    visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "ctest",
+    srcs = [":ctest_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//:tenncor",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    linkstatic = True,
+    size = "large",
+)
+
+py_test(
+    name = "ptest",
+    srcs = [":ptest_srcs"],
+    deps = [
+        "//:tenncor_py",
+        "//testutil:pyunit_util",
+    ],
+    data = ["//:test_models"],
+)

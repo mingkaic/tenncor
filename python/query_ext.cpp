@@ -1,18 +1,19 @@
+
 #include "python/query_ext.hpp"
 
 void query_ext(py::module& m)
 {
-	py::class_<pyquery::Statement> stmt(m, "Statement");
+	py::class_<pytenncor::Statement> stmt(m, "Statement");
 	stmt
 		.def(py::init(
 		[](eteq::ETensorsT<PybindT> roots)
 		{
 			teq::TensptrsT rtens(roots.begin(), roots.end());
-			return pyquery::Statement(rtens);
+			return pytenncor::Statement(rtens);
 		}),
 		"Create query statement from roots")
 		.def("find",
-		[](pyquery::Statement& self, const std::string& condition,
+		[](pytenncor::Statement& self, const std::string& condition,
 			const std::string& sym_cap)
 		{
 			std::stringstream ss;

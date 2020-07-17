@@ -2,59 +2,65 @@ licenses(["notice"])
 
 filegroup(
     name = "srcs",
-    srcs = glob([
-        "*.hpp",
-        "src/*.cpp",
-    ]) + ["BUILD.bazel"],
+    srcs = [
+        ":teq_hdrs",
+        ":teq_srcs",
+        ":mock_hdrs",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
     visibility = ["//visibility:public"],
 )
 
 filegroup(
-    name = "mock_srcs",
-    srcs = glob([
-        "mock/*.hpp",
-        "mock/*.cpp",
-    ]),
+    name = "teq_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "teq_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
 )
 
 filegroup(
     name = "test_srcs",
-    srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
-    ]),
+    srcs = glob(["test/*.cpp"]),
 )
 
 ######### LIBRARIES #########
 
 cc_library(
     name = "teq",
-    hdrs = glob(["*.hpp"]),
-    srcs = glob(["src/*.cpp"]),
+    hdrs = [":teq_hdrs"],
+    srcs = [":teq_srcs"],
     defines = ["SDIM_BYTES=2"],
     copts = ["-std=c++17"],
     deps = [
         "//marsh:marsh",
-        "@com_github_mingkaic_cppkg//estd:estd",
     ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "mock_teq",
+    hdrs = [":mock_hdrs"],
+    copts = ["-std=c++17"],
+    deps = [":teq"],
     visibility = ["//visibility:public"],
 )
 
 ######### TEST #########
 
-cc_library(
-    name = "mock_teq",
-    hdrs = glob(["mock/*.hpp"]),
-    copts = ["-std=c++17"],
-    deps = ["//teq:teq"],
-    visibility = ["//visibility:public"],
-)
-
 cc_test(
     name = "test",
-    srcs = ["//teq:test_srcs"],
+    srcs = [":test_srcs"],
     deps = [
-        "//teq:mock_teq",
+        ":mock_teq",
         "//testutil:tutil",
     ],
     copts = ["-std=c++17"],
