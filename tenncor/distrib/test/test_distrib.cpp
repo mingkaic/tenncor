@@ -67,6 +67,16 @@ protected:
 };
 
 
+#define CHECK_ERR(err){\
+	std::string err_msg;\
+	if (nullptr != err)\
+	{\
+		err_msg = err->to_string();\
+	}\
+	ASSERT_STREQ("", err_msg.c_str());\
+}
+
+
 TEST_F(DISTRIB, SharingNodes)
 {
 	{
@@ -108,12 +118,7 @@ TEST_F(DISTRIB, SharingNodes)
 			eteq::make_constant<double>(data3.data(), shape);
 		err::ErrptrT err = nullptr;
 		auto ref = sess2->lookup_node(err, id);
-		std::string err_msg;
-		if (nullptr != err)
-		{
-			err_msg = err->to_string();
-		}
-		EXPECT_STREQ("", err_msg.c_str());
+		CHECK_ERR(err);
 		ASSERT_NE(nullptr, ref);
 		auto dest2 = eteq::ETensor<double>(ref) * src3;
 		sess2->track(teq::TensptrSetT{dest2});
@@ -197,6 +202,79 @@ TEST_F(DISTRIB, DataPassing)
 		{
 			EXPECT_DOUBLE_EQ(exdata[i], goptr[i]);
 		}
+	}
+	check_clean();
+}
+
+
+TEST_F(DISTRIB, DISABLED_RemoteDeriving)
+{
+	{
+		eigen::Device device;
+		teq::Shape ashape({2, 3});
+		teq::Shape bshape({3, 4});
+		teq::Shape cshape({4, 2});
+
+		std::vector<double> data = {
+			63, 19,
+			11, 94,
+			23, 63,
+		};
+		std::vector<double> data2 = {
+			18, 30, 23,
+			60, 36, 60,
+			73, 36, 6,
+			66, 67, 84,
+		};
+		std::vector<double> data3 = {
+			37, 70, 2, 69,
+			84, 67, 66, 59,
+		};
+		std::vector<double> exdata = {
+			63, 19,
+			11, 94,
+			23, 63,
+		};
+
+		// cluster 1
+		distrib::DSessptrT sess = make_sess(5112, "sess1");
+
+		eteq::EVariable<double> a = eteq::make_variable<double>(data.data(), ashape);
+		eteq::EVariable<double> b = eteq::make_variable<double>(data2.data(), bshape);
+		eteq::EVariable<double> c = eteq::make_variable<double>(data3.data(), cshape);
+
+		auto d = tenncor<double>().matmul(a, b);
+		auto e = tenncor<double>().matmul(c, d);
+		auto f = tenncor<double>().matmul(
+			tenncor<double>().transpose(d),
+			tenncor<double>().transpose(c));
+		auto root = tenncor<double>().matmul(e, f);
+
+		sess->track(teq::TensptrSetT{root});
+		std::string root_id = *sess->lookup_id(root);
+		std::string base_id = *sess->lookup_id(a);
+
+		// cluster 2
+		distrib::DSessptrT sess2 = make_sess(5113, "sess2");
+
+		err::ErrptrT err = nullptr;
+		eteq::ETensor<double> root_ref = sess2->lookup_node(err, root_id);
+		CHECK_ERR(err);
+		eteq::ETensor<double> base_ref = sess2->lookup_node(err, base_id);
+		CHECK_ERR(err);
+
+		auto dbases = eteq::derive(root_ref, {base_ref});
+		ASSERT_EQ(1, dbases.size());
+		auto dbase = dbases.front();
+
+		sess2->track(teq::TensptrSetT{dbase});
+		sess2->update(device);
+		auto dbase_shape = dbase->shape();
+		auto dbase_data = (double*) dbase->device().data();
+		std::vector<double> gotdata(dbase_data,
+			dbase_data + dbase_shape.n_elems());
+		EXPECT_ARREQ(ashape, dbase_shape);
+		EXPECT_ARREQ(exdata, gotdata);
 	}
 	check_clean();
 }

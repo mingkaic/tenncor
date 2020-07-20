@@ -5,7 +5,7 @@
 
 #include "teq/teq.hpp"
 
-#include "distrib/distr.grpc.pb.h"
+#include "tenncor/distrib/distr.grpc.pb.h"
 
 #ifndef DISTRIB_ASYNC_CLI_HPP
 #define DISTRIB_ASYNC_CLI_HPP

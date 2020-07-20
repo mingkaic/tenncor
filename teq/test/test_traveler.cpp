@@ -49,7 +49,7 @@ TEST(TRAVELER, PathFinder)
 	std::string target_key = "target";
 
 	teq::PathFinder finder(
-		TensMapT<std::string>{{a.get(), key}});
+		teq::TensMapT<std::string>{{a.get(), target_key}});
 	g->accept(finder);
 
 	{
@@ -77,7 +77,7 @@ TEST(TRAVELER, PathFinder)
 	}
 
 	teq::PathFinder finder2(
-		TensMapT<std::string>{{c.get(), key}});
+		teq::TensMapT<std::string>{{c.get(), target_key}});
 	g->accept(finder2);
 
 	{

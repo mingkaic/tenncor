@@ -59,6 +59,7 @@ cc_library(
         "@boost//:bimap",
         "@com_github_oliora_ppconsul//:consul",
     ],
+    includes = [".."],
     visibility = ["//visibility:public"],
 )
 
@@ -81,7 +82,7 @@ cc_test(
     srcs = [":ctest_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//:tenncor",
+        "//tenncor:tenncor",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
@@ -93,7 +94,7 @@ py_test(
     name = "ptest",
     srcs = [":ptest_srcs"],
     deps = [
-        "//:tenncor_py",
+        "//tenncor:tenncor_py",
         "//testutil:pyunit_util",
     ],
     data = ["//:test_models"],

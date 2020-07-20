@@ -44,7 +44,19 @@ struct iDerivativeFuncs
 /// This top-down approach updates tensor shape information such
 /// that output derivative dF/dx has the shape of x
 /// Return derivative of root with respect to target
-TensptrsT derive (TensptrT root, const TensptrsT& targets,
+TensptrsT derive (
+	TensptrT root,
+	const TensptrsT& targets,
+	const iDerivativeFuncs& funcs);
+
+/// Given derivatives of root R wrt to functors F in input grads,
+/// where functors F are ancestors of parent root nodes,
+/// continue looking for derivatives of R wrt to input targets and add to grads.
+/// Derivatives are found using back-propagation.
+void partial_derive (
+	TensMapT<TensptrsT>& grads,
+	const TensptrsT& parents,
+	const TensptrSetT& targets,
 	const iDerivativeFuncs& funcs);
 
 }

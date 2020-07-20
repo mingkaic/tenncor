@@ -17,46 +17,15 @@
 namespace teq
 {
 
-/// Extremely generic traveler that visits every node in the graph once
-struct iOnceTraveler : public iTraveler
-{
-	virtual ~iOnceTraveler (void) = default;
+using GetDepsF = std::function<TensptrsT(iFunctor&)>;
 
-	/// Implementation of iTraveler
-	void visit (iLeaf& leaf) override
-	{
-		if (false == estd::has(visited_, &leaf))
-		{
-			visited_.emplace(&leaf);
-			visit_leaf(leaf);
-		}
-	}
+TensptrsT get_alldeps (iFunctor& func);
 
-	/// Implementation of iTraveler
-	void visit (iFunctor& func) override
-	{
-		if (false == estd::has(visited_, &func))
-		{
-			visited_.emplace(&func);
-			visit_func(func);
-		}
-	}
+TensptrsT get_deps (iFunctor& func);
 
-	virtual void clear (void)
-	{
-		visited_.clear();
-	}
+TensptrsT get_args (iFunctor& func);
 
-	/// Set of tensors visited
-	TensSetT visited_;
-
-protected:
-	/// Do something during unique visit to leaf
-	virtual void visit_leaf (iLeaf& leaf) = 0;
-
-	/// Do something during unique visit to functor
-	virtual void visit_func (iFunctor& func) = 0;
-};
+TensptrsT get_attrs (iFunctor& func);
 
 /// Traveler that maps each tensor to its positional information represented
 /// by the longest and shortest distance from leaves (NumRange)
@@ -153,114 +122,6 @@ struct GraphIndex final : public iTraveler
 	TensMapT<size_t> indices_;
 };
 
-struct PathDirection
-{
-	std::vector<size_t> children_;
-	std::vector<std::string> attrs_;
-};
-
-using PathNodeT = std::unordered_map<std::string,PathDirection>;
-
-using TensPathsT = TensMapT<PathNodeT>;
-
-/// Traveler that paints paths to a target tensor
-/// All nodes in the path are added as keys to the roadmap_ map with the values
-/// being a boolean vector denoting nodes leading to target
-/// For a boolean value x at index i in mapped vector,
-/// x is true if the ith child leads to target
-struct PathFinder final : public iOnceTraveler
-{
-	/// For multiple targets, the first target found overshadows target nodes under the first subgraph (todo: label roads)
-	PathFinder (TensMapT<std::string> targets) : targets_(targets) {}
-
-	void clear (void) override
-	{
-		iOnceTraveler::clear();
-		roadmap_.clear();
-	}
-
-	const PathNodeT& at (teq::iTensor* tens) const
-	{
-		return estd::must_getf(roadmap_, tens,
-			"failed to find road node for %s",
-			tens->to_string().c_str());
-	}
-
-	const TensMapT<std::string>& get_targets (void) const
-	{
-		return targets_;
-	}
-
-	/// Map of parent to child indices that lead to target tensor
-	TensPathsT roadmap_;
-
-private:
-	/// Implementation of iOnceTraveler
-	void visit_leaf (iLeaf& leaf) override {}
-
-	/// Implementation of iOnceTraveler
-	void visit_func (iFunctor& func) override
-	{
-		auto children = func.get_dependencies();
-		size_t n = children.size();
-		PathNodeT nexts;
-		for (size_t i = 0; i < n; ++i)
-		{
-			TensptrT tens = children[i];
-			std::string label;
-			if (estd::get(label, targets_, tens.get()))
-			{
-				nexts[label].children_.push_back(i);
-			}
-			else
-			{
-				tens->accept(*this);
-				if (estd::has(roadmap_, tens.get()))
-				{
-					auto& subnode = at(tens.get());
-					for (auto& spair : subnode)
-					{
-						nexts[spair.first].children_.push_back(i);
-					}
-				}
-			}
-		}
-		auto attrs = func.ls_attrs();
-		for (auto attr : attrs)
-		{
-			if (auto tens_attr = dynamic_cast<const TensorRef*>(
-				func.get_attr(attr)))
-			{
-				auto tens = tens_attr->get_tensor();
-				std::string label;
-				if (estd::get(label, targets_, tens.get()))
-				{
-					nexts[label].attrs_.push_back(attr);
-				}
-				else
-				{
-					tens->accept(*this);
-					if (estd::has(roadmap_, tens.get()))
-					{
-						auto& subnode = at(tens.get());
-						for (auto& spair : subnode)
-						{
-							nexts[spair.first].attrs_.push_back(attr);
-						}
-					}
-				}
-			}
-		}
-		if (false == nexts.empty())
-		{
-			roadmap_.emplace(&func, nexts);
-		}
-	}
-
-	/// Target of tensor all paths are travelling to
-	TensMapT<std::string> targets_;
-};
-
 /// Map tensors to indices of children
 using ParentMapT = TensMapT<std::vector<size_t>>;
 
@@ -302,12 +163,159 @@ struct ParentFinder final : public iTraveler
 	TensMapT<ParentMapT> parents_;
 };
 
-/// Map between tensor and its corresponding smart pointer
-using OwnerMapT = TensMapT<TensrefT>;
+/// Generic traveler that visits every node in the graph once
+struct iOnceTraveler : public iTraveler
+{
+	virtual ~iOnceTraveler (void) = default;
 
-/// Travelers will lose smart pointer references,
-/// This utility function will grab reference maps of root's subtree
-OwnerMapT track_owners (TensptrsT roots);
+	/// Implementation of iTraveler
+	void visit (iLeaf& leaf) override
+	{
+		if (false == estd::has(visited_, &leaf))
+		{
+			visited_.emplace(&leaf);
+			visit_leaf(leaf);
+		}
+	}
+
+	/// Implementation of iTraveler
+	void visit (iFunctor& func) override
+	{
+		if (false == estd::has(visited_, &func))
+		{
+			visited_.emplace(&func);
+			visit_func(func);
+		}
+	}
+
+	virtual void clear (void)
+	{
+		visited_.clear();
+	}
+
+	/// Set of tensors visited
+	TensSetT visited_;
+
+protected:
+	/// Do something during unique visit to leaf
+	virtual void visit_leaf (iLeaf& leaf) = 0;
+
+	/// Do something during unique visit to functor
+	virtual void visit_func (iFunctor& func) = 0;
+};
+
+struct PathDirection
+{
+	std::vector<size_t> children_;
+	std::vector<std::string> attrs_;
+};
+
+using PathNodeT = std::unordered_map<std::string,PathDirection>;
+
+using TensPathsT = TensMapT<PathNodeT>;
+
+/// Traveler that paints paths to a target tensor
+/// All nodes in the path are added as keys to the roadmap_ map with the values
+/// being a boolean vector denoting nodes leading to target
+/// For a boolean value x at index i in mapped vector,
+/// x is true if the ith child leads to target
+struct PathFinder final : public iOnceTraveler
+{
+	/// For multiple targets, the first target found overshadows target nodes under the first subgraph (todo: label roads)
+	PathFinder (TensMapT<std::string> targets,
+		GetDepsF get_fdep = get_alldeps) :
+		targets_(targets), get_fdep_(get_fdep) {}
+
+	void clear (void) override
+	{
+		iOnceTraveler::clear();
+		roadmap_.clear();
+	}
+
+	const PathNodeT& at (teq::iTensor* tens) const
+	{
+		return estd::must_getf(roadmap_, tens,
+			"failed to find road node for %s",
+			tens->to_string().c_str());
+	}
+
+	const TensMapT<std::string>& get_targets (void) const
+	{
+		return targets_;
+	}
+
+	/// Map of parent to child indices that lead to target tensor
+	TensPathsT roadmap_;
+
+private:
+	/// Implementation of iOnceTraveler
+	void visit_leaf (iLeaf& leaf) override {}
+
+	/// Implementation of iOnceTraveler
+	void visit_func (iFunctor& func) override
+	{
+		auto deps = func.get_dependencies();
+		auto attrs = func.ls_attrs();
+
+		TensptrsT to_visit = get_fdep_(func);
+		for (auto tens : to_visit)
+		{
+			if (false == estd::has(targets_, tens.get()))
+			{
+				tens->accept(*this);
+			}
+		}
+		size_t n = deps.size();
+		PathNodeT nexts;
+		for (size_t i = 0; i < n; ++i)
+		{
+			TensptrT tens = deps[i];
+			std::string label;
+			if (estd::get(label, targets_, tens.get()))
+			{
+				nexts[label].children_.push_back(i);
+			}
+			else if (estd::has(roadmap_, tens.get()))
+			{
+				auto& subnode = at(tens.get());
+				for (auto& spair : subnode)
+				{
+					nexts[spair.first].children_.push_back(i);
+				}
+			}
+		}
+		for (auto attr : attrs)
+		{
+			if (auto tens_attr = dynamic_cast<const TensorRef*>(
+				func.get_attr(attr)))
+			{
+				auto tens = tens_attr->get_tensor();
+				std::string label;
+				if (estd::get(label, targets_, tens.get()))
+				{
+					nexts[label].attrs_.push_back(attr);
+				}
+				else if (estd::has(roadmap_, tens.get()))
+				{
+					auto& subnode = at(tens.get());
+					for (auto& spair : subnode)
+					{
+						nexts[spair.first].attrs_.push_back(attr);
+					}
+				}
+			}
+		}
+		if (false == nexts.empty())
+		{
+			roadmap_.emplace(&func, nexts);
+		}
+	}
+
+	/// Target of tensor all paths are travelling to
+	TensMapT<std::string> targets_;
+
+	GetDepsF get_fdep_;
+};
 
 struct Copier final : public iOnceTraveler
 {
@@ -364,6 +372,13 @@ private:
 		clones_.emplace(&func, teq::TensptrT(fcpy));
 	}
 };
+
+/// Map between tensor and its corresponding smart pointer
+using OwnerMapT = TensMapT<TensrefT>;
+
+/// Travelers will lose smart pointer references,
+/// This utility function will grab reference maps of root's subtree
+OwnerMapT track_owners (TensptrsT roots);
 
 }
 
