@@ -8,4 +8,4 @@ WORKDIR $APP_DIR
 
 COPY . $APP_DIR
 RUN pip install -r requirements.txt
-RUN bazel build --config gcc_eigen_optimal --remote_http_cache="$REMOTE_CACHE" //:tenncor_py
+RUN bazel build --config gcc_eigen_optimal --remote_http_cache="$REMOTE_CACHE" //tenncor:tenncor_py

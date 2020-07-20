@@ -6,9 +6,9 @@ CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0
 
 EIGEN_TEST := //eigen:test
 
-ETEQ_CTEST := //eteq:ctest
+ETEQ_CTEST := //tenncor/eteq:ctest
 
-LAYR_TEST := //layr:test
+LAYR_TEST := //tenncor/layr:test
 
 MARSH_TEST := //marsh:test
 

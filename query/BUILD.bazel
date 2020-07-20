@@ -72,7 +72,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         ":query",
-        "//:tenncor",
+        "//tenncor:tenncor",
         "//teq:mock_teq",
         "//dbg:print",
         "//testutil:tutil",

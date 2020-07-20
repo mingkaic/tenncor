@@ -65,7 +65,7 @@ cc_library(
     name = "compare",
     hdrs = [":compare_hdrs"],
     copts = ["-std=c++17"],
-    deps = ["//eteq:eteq"],
+    deps = ["//tenncor/eteq:eteq"],
     visibility = ["//visibility:public"],
 )
 
@@ -103,7 +103,7 @@ cc_library(
     deps = [
         ":psess",
         ":gemitter_cc_grpc",
-        "//eteq:eteq",
+        "//tenncor/eteq:eteq",
         "@boost//:uuid",
         "@com_github_mingkaic_cppkg//jobs:jobs",
     ],
@@ -150,7 +150,7 @@ pybind_py_library(
     cc_srcs = ["python/compare.cpp"],
     cc_deps = [
         ":compare",
-        "//:tenncor",
+        "//tenncor:tenncor",
     ],
     copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
@@ -161,7 +161,7 @@ pybind_py_library(
     cc_srcs = ["python/print.cpp"],
     cc_deps = [
         ":print",
-        "//:tenncor",
+        "//tenncor:tenncor",
     ],
     copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
@@ -173,9 +173,9 @@ pybind_py_library(
     cc_deps = [
         ":gemit_plugin",
         ":stats_plugin",
-        "//:tenncor",
+        "//tenncor:tenncor",
     ],
-    py_deps = ["//:tenncor_py"],
+    py_deps = ["//tenncor:tenncor_py"],
     copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )

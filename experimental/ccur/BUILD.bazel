@@ -57,7 +57,7 @@
 #     cc_deps = [
 #         "//ccur:ccur",
 #     ],
-#     py_deps = ["//:tenncor_py"],
+#     py_deps = ["//tenncor:tenncor_py"],
 #     copts = ["-std=c++17"],
 #     visibility = ["//visibility:public"],
 # )
@@ -79,7 +79,7 @@
 #     srcs = ["rtscale.cpp"],
 #     copts = ["-std=c++17"],
 #     deps = [
-#         "//eteq:eteq",
+#         "//tenncor/eteq:eteq",
 #         "//ccur:weight_cc_proto",
 #         "@com_github_mingkaic_cppkg//flag:flag",
 #     ],
@@ -94,7 +94,7 @@
 #     deps = [
 #         "//dbg:print",
 #         "//ccur:ccur",
-#         "//eteq:eteq",
+#         "//tenncor/eteq:eteq",
 #         "@gtest//:gtest",
 #         "@com_github_mingkaic_cppkg//exam:exam",
 #     ],

@@ -84,8 +84,8 @@ cc_library(
     copts = ["-std=c++17"],
     includes = ["."],
     deps = [
-        "//layr:layr",
-        "//distrib:distrib",
+        "//tenncor/layr:layr",
+        "//tenncor/distrib:distrib",
     ],
 )
 
