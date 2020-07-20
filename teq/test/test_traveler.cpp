@@ -46,7 +46,10 @@ TEST(TRAVELER, PathFinder)
 
 	teq::TensptrT g(new MockFunctor(teq::TensptrsT{d, f}, teq::Opcode{"MOCK0", 0}));
 
-	teq::PathFinder finder(a.get());
+	std::string target_key = "target";
+
+	teq::PathFinder finder(
+		TensMapT<std::string>{{a.get(), key}});
 	g->accept(finder);
 
 	{
@@ -73,7 +76,8 @@ TEST(TRAVELER, PathFinder)
 		EXPECT_ARRHAS(fdirs["target"].children_, 0);
 	}
 
-	teq::PathFinder finder2(c.get());
+	teq::PathFinder finder2(
+		TensMapT<std::string>{{c.get(), key}});
 	g->accept(finder2);
 
 	{

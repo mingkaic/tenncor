@@ -170,9 +170,6 @@ using TensPathsT = TensMapT<PathNodeT>;
 /// x is true if the ith child leads to target
 struct PathFinder final : public iOnceTraveler
 {
-	PathFinder (iTensor* target, std::string label = "target") :
-		targets_({{target, label}}) {}
-
 	/// For multiple targets, the first target found overshadows target nodes under the first subgraph (todo: label roads)
 	PathFinder (TensMapT<std::string> targets) : targets_(targets) {}
 
