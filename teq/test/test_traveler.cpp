@@ -18,9 +18,11 @@ TEST(TRAVELER, GraphStat)
 	teq::TensptrT b(new MockLeaf());
 	teq::TensptrT c(new MockLeaf());
 
+	teq::TensptrT d(new MockFunctor(teq::TensptrsT{c}, teq::Opcode{"MOCK2", 0}));
+
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
-	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f}, teq::Opcode{"MOCK0", 0}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{d, f}, teq::Opcode{"MOCK0", 0}));
 
 	teq::GraphStat stat;
 	g->accept(stat);
@@ -38,9 +40,11 @@ TEST(TRAVELER, PathFinder)
 	teq::TensptrT b(new MockLeaf());
 	teq::TensptrT c(new MockLeaf());
 
+	teq::TensptrT d(new MockFunctor(teq::TensptrsT{c}, teq::Opcode{"MOCK2", 0}));
+
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
-	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f}, teq::Opcode{"MOCK1", 1}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{d, f}, teq::Opcode{"MOCK0", 0}));
 
 	teq::PathFinder finder(a.get());
 	g->accept(finder);

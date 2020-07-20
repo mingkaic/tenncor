@@ -40,10 +40,8 @@ grpc_deps()
 load("@rules_python//python:repositories.bzl", "py_repositories")
 py_repositories()
 
-load("@rules_python//python:pip.bzl", "pip_repositories")
+load("@rules_python//python:pip.bzl", "pip_repositories", "pip_import")
 pip_repositories()
-
-load("@rules_python//python:pip.bzl", "pip_import")
 pip_import(
     name = "rules_proto_grpc_py2_deps",
     python_interpreter = "python", # Replace this with the platform specific Python 2 name, or remove if not using Python 2
