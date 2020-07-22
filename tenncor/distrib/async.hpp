@@ -10,7 +10,7 @@
 #ifndef DISTRIB_ASYNC_CLI_HPP
 #define DISTRIB_ASYNC_CLI_HPP
 
-namespace distrib
+namespace distr
 {
 
 // Detached server calls

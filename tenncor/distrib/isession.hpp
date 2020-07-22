@@ -1,14 +1,22 @@
 
+#include <future>
+
 #include "distrib/error.hpp"
 #include "distrib/reference.hpp"
 
 #ifndef DISTRIB_ISESSION_HPP
 #define DISTRIB_ISESSION_HPP
 
-namespace distrib
+namespace estd
 {
 
-using DRefMapsT = std::unordered_map<teq::iFunctor*,DRefptrT>;
+template <typename T>
+using StrMapT = std::unordered_map<std::string,T>;
+
+}
+
+namespace distr
+{
 
 struct iDistribSess : public teq::iSession
 {
@@ -110,9 +118,15 @@ struct iDistribSess : public teq::iSession
 	/// Operable functors ordered by height in the tracked graph
 	std::vector<teq::FuncSetT> ops_;
 
-	const DRefMapsT& get_dependencies (void) const
+	DRefptrSetT get_dependencies (void) const
 	{
-		return dependencies_;
+		DRefptrSetT refs;
+		refs.reserve(dependencies_.size());
+		for (auto& dep : dependencies_)
+		{
+			refs.emplace(dep.second);
+		}
+		return refs;
 	}
 
 protected:
@@ -185,7 +199,7 @@ private:
 
 	teq::TensMapT<size_t> opheight_;
 
-	DRefMapsT dependencies_;
+	std::unordered_map<teq::iFunctor*,DRefptrT> dependencies_;
 };
 
 using DSessptrT = std::shared_ptr<iDistribSess>;

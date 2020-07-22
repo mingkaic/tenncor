@@ -73,7 +73,7 @@ TensptrsT derive (
 }
 
 void partial_derive (TensMapT<TensptrsT>& grads,
-	const TensptrsT& parents,
+	const TensptrSetT& parents,
 	const TensptrSetT& targets,
 	const iDerivativeFuncs& funcs)
 {
@@ -105,7 +105,8 @@ void partial_derive (TensMapT<TensptrsT>& grads,
 
 	// else there exists a path to wrt
 	// using pathfinder, breadth first traverse from this to wrt
-	OwnerMapT owners = track_owners(parents);
+	OwnerMapT owners = track_owners(
+		TensptrsT(parents.begin(), parents.end()));
 	GraphStat stat;
 	GraphIndex indexer;
 	for (auto parent : parents)

@@ -10,9 +10,8 @@
 #include "distrib/session.hpp"
 
 #include "eteq/make.hpp"
-#include "eteq/derive.hpp"
 
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 
 const std::string test_service = "tenncor_distrib_ctest";
@@ -53,10 +52,10 @@ protected:
 		ASSERT_EQ(services.size(), 0);
 	}
 
-	distrib::DSessptrT make_sess (size_t port, const std::string& id = "")
+	distr::DSessptrT make_sess (size_t port, const std::string& id = "")
 	{
-		return std::make_shared<distrib::DistribSess>(
-			consul_, port, test_service, id, distrib::ClientConfig(
+		return tcr::make_distrsess(consul_, port,
+			test_service, id, distr::ClientConfig(
 				std::chrono::milliseconds(5000),
 				std::chrono::milliseconds(10000),
 				5
@@ -67,13 +66,23 @@ protected:
 };
 
 
-#define CHECK_ERR(err){\
+#define ASSERT_NOERR(err){\
 	std::string err_msg;\
 	if (nullptr != err)\
 	{\
 		err_msg = err->to_string();\
 	}\
 	ASSERT_STREQ("", err_msg.c_str());\
+}
+
+
+#define EXPECT_ERR(err, msg){\
+	std::string err_msg;\
+	if (nullptr != err)\
+	{\
+		err_msg = err->to_string();\
+	}\
+	ASSERT_STREQ(msg, err_msg.c_str());\
 }
 
 
@@ -101,32 +110,33 @@ TEST_F(DISTRIB, SharingNodes)
 		};
 
 		// cluster 1
-		distrib::DSessptrT sess = make_sess(5112, "sess1");
+		distr::DSessptrT sess = make_sess(5112, "sess1");
+		eteq::global_context()->sess_ = sess;
 
 		eteq::ETensor<double> src =
 			eteq::make_constant<double>(data.data(), shape);
 		eteq::ETensor<double> src2 =
 			eteq::make_constant<double>(data2.data(), shape);
 		eteq::ETensor<double> dest = src + src2;
-		sess->track(teq::TensptrSetT{dest});
-		std::string id = *sess->lookup_id(dest);
+		std::string id = tcr::lookup_id(dest);
 
 		// cluster 2
-		distrib::DSessptrT sess2 = make_sess(5113, "sess2");
+		distr::DSessptrT sess2 = make_sess(5113, "sess2");
+		eteq::global_context()->sess_ = sess2;
 
 		eteq::ETensor<double> src3 =
 			eteq::make_constant<double>(data3.data(), shape);
 		err::ErrptrT err = nullptr;
-		auto ref = sess2->lookup_node(err, id);
-		CHECK_ERR(err);
+		auto ref = tcr::try_lookup_node<double>(err, id);
+		ASSERT_NOERR(err);
 		ASSERT_NE(nullptr, ref);
 		auto dest2 = eteq::ETensor<double>(ref) * src3;
-		sess2->track(teq::TensptrSetT{dest2});
 
+		eteq::global_context()->sess_ = std::make_shared<teq::Session>();
 		eteq::ETensor<double> src4 =
 			eteq::make_constant<double>(data.data(), shape);
-		auto bad_id = sess->lookup_id(src4);
-		EXPECT_FALSE(bad_id);
+		tcr::try_lookup_id(err, src4);
+		EXPECT_ERR(err, "cannot only find reference ids using iDistribSess");
 	}
 	check_clean();
 }
@@ -155,25 +165,32 @@ TEST_F(DISTRIB, DataPassing)
 			55, 35, 40, 81, 40, 18,
 			60, 70, 68, 65, 30, 25,
 		};
+		std::vector<double> exdata = {
+			2997, 3430, 68, 10626, 4956, 8241,
+			5016, 4956, 4554, 13156, 12384, 2088,
+			4895, 4620, 2480, 5832, 2240, 2430,
+			2100, 7140, 8908, 520, 2940, 4600,
+		};
 
 		// cluster 1
-		distrib::DSessptrT sess = make_sess(5112, "sess1");
+		distr::DSessptrT sess = make_sess(5112, "sess1");
+		eteq::global_context()->sess_ = sess;
 
 		eteq::ETensor<double> src =
 			eteq::make_constant<double>(data.data(), shape);
 		eteq::ETensor<double> src2 =
 			eteq::make_constant<double>(data2.data(), shape);
 		eteq::ETensor<double> dest = src + src2;
-		sess->track(teq::TensptrSetT{dest});
-		std::string id = *sess->lookup_id(dest);
+		std::string id = tcr::lookup_id(dest);
 
 		// cluster 2
-		distrib::DSessptrT sess2 = make_sess(5113, "sess2");
+		distr::DSessptrT sess2 = make_sess(5113, "sess2");
+		eteq::global_context()->sess_ = sess2;
 
 		eteq::ETensor<double> src3 =
 			eteq::make_constant<double>(data3.data(), shape);
 		err::ErrptrT err = nullptr;
-		auto ref = sess2->lookup_node(err, id);
+		auto ref = tcr::try_lookup_node<double>(err, id);
 		std::string err_msg;
 		if (nullptr != err)
 		{
@@ -182,26 +199,20 @@ TEST_F(DISTRIB, DataPassing)
 		EXPECT_STREQ("", err_msg.c_str());
 		ASSERT_NE(nullptr, ref);
 		auto dest2 = eteq::ETensor<double>(ref) * src3;
-		sess2->track(teq::TensptrSetT{dest2});
 
 		ASSERT_TRUE(sess->get_dependencies().empty());
 		ASSERT_EQ(sess2->get_dependencies().size(), 1);
 
-		sess2->update_target(device, teq::TensSetT{dest2.get()});
-
-		std::vector<double> exdata = {
-			2997, 3430, 68, 10626, 4956, 8241,
-			5016, 4956, 4554, 13156, 12384, 2088,
-			4895, 4620, 2480, 5832, 2240, 2430,
-			2100, 7140, 8908, 520, 2940, 4600,
-		};
 		auto gotshape = dest2->shape();
 		ASSERT_ARREQ(shape, gotshape);
-		double* goptr = (double*) dest2->device().data();
+
+		double* goptr = dest2.calc();
 		for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 		{
 			EXPECT_DOUBLE_EQ(exdata[i], goptr[i]);
 		}
+
+		eteq::global_context()->sess_ = std::make_shared<teq::Session>();
 	}
 	check_clean();
 }
@@ -237,7 +248,8 @@ TEST_F(DISTRIB, DISABLED_RemoteDeriving)
 		};
 
 		// cluster 1
-		distrib::DSessptrT sess = make_sess(5112, "sess1");
+		distr::DSessptrT sess = make_sess(5112, "sess1");
+		eteq::global_context()->sess_ = sess;
 
 		eteq::EVariable<double> a = eteq::make_variable<double>(data.data(), ashape);
 		eteq::EVariable<double> b = eteq::make_variable<double>(data2.data(), bshape);
@@ -250,31 +262,33 @@ TEST_F(DISTRIB, DISABLED_RemoteDeriving)
 			tenncor<double>().transpose(c));
 		auto root = tenncor<double>().matmul(e, f);
 
-		sess->track(teq::TensptrSetT{root});
-		std::string root_id = *sess->lookup_id(root);
-		std::string base_id = *sess->lookup_id(a);
+		std::string root_id = tcr::lookup_id(root);
+		std::string base_id = tcr::lookup_id(a);
 
 		// cluster 2
-		distrib::DSessptrT sess2 = make_sess(5113, "sess2");
+		distr::DSessptrT sess2 = make_sess(5113, "sess2");
+		eteq::global_context()->sess_ = sess2;
 
 		err::ErrptrT err = nullptr;
-		eteq::ETensor<double> root_ref = sess2->lookup_node(err, root_id);
-		CHECK_ERR(err);
-		eteq::ETensor<double> base_ref = sess2->lookup_node(err, base_id);
-		CHECK_ERR(err);
+		eteq::ETensor<double> root_ref = tcr::try_lookup_node<double>(err, root_id);
+		ASSERT_NOERR(err);
+		eteq::ETensor<double> base_ref = tcr::try_lookup_node<double>(err, base_id);
+		ASSERT_NOERR(err);
 
-		auto dbases = eteq::derive(root_ref, {base_ref});
+		auto dbases = tcr::derive(root_ref, {base_ref});
 		ASSERT_EQ(1, dbases.size());
 		auto dbase = dbases.front();
 
-		sess2->track(teq::TensptrSetT{dbase});
-		sess2->update(device);
-		auto dbase_shape = dbase->shape();
-		auto dbase_data = (double*) dbase->device().data();
-		std::vector<double> gotdata(dbase_data,
-			dbase_data + dbase_shape.n_elems());
-		EXPECT_ARREQ(ashape, dbase_shape);
-		EXPECT_ARREQ(exdata, gotdata);
+		auto gotshape = dbase->shape();
+		ASSERT_ARREQ(ashape, gotshape);
+
+		auto goptr = dbase.calc();
+		for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(exdata[i], goptr[i]);
+		}
+
+		eteq::global_context()->sess_ = std::make_shared<teq::Session>();
 	}
 	check_clean();
 }

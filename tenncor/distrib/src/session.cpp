@@ -2,7 +2,7 @@
 
 #ifdef DISTRIB_SESSION_HPP
 
-namespace distrib
+namespace distr
 {
 
 boost::uuids::random_generator DistribSess::uuid_gen_;

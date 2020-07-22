@@ -8,10 +8,9 @@
 
 #include "teq/isession.hpp"
 
-#include "eteq/derive.hpp"
 #include "eteq/optimize.hpp"
 
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 
 using TensProcF = std::function<void(teq::TensptrsT&)>;
@@ -70,7 +69,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 	auto f = tenncor<float>().matmul(tenncor<float>().transpose(d), tenncor<float>().transpose(c));
 	auto dest = tenncor<float>().matmul(e, f);
 
-	auto ders = eteq::derive(dest, {a, b, c});
+	auto ders = tcr::derive(dest, {a, b, c});
 	auto da = ders[0];
 	auto db = ders[1];
 	auto dc = ders[2];
@@ -286,7 +285,7 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 
 	auto err = tenncor<double>().pow(out - sig1, 2.);
 
-	auto ders = eteq::derive(err, {weight0, bias0, weight1, bias1});
+	auto ders = tcr::derive(err, {weight0, bias0, weight1, bias1});
 	auto dw0 = ders[0];
 	auto db0 = ders[1];
 	auto dw1 = ders[2];
@@ -510,7 +509,7 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 
 	auto err = tenncor<double>().pow(out - sig1, 2.);
 
-	auto ders = eteq::derive(err, {weight0, bias0, weight1, bias1});
+	auto ders = tcr::derive(err, {weight0, bias0, weight1, bias1});
 	auto dw0 = ders[0];
 	auto db0 = ders[1];
 	auto dw1 = ders[2];
@@ -651,7 +650,7 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 
 	auto err = tenncor<double>().pow(out - output, 2.);
 
-	auto ders = eteq::derive(err, {weight, bias, istate});
+	auto ders = tcr::derive(err, {weight, bias, istate});
 	auto dw = ders[0];
 	auto db = ders[1];
 	auto dstate = ders[2];
@@ -778,7 +777,7 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 
 	auto err = tenncor<double>().pow(out - output, 2.);
 
-	auto ders = eteq::derive(err, {weight, bias, istate});
+	auto ders = tcr::derive(err, {weight, bias, istate});
 	auto dw = ders[0];
 	auto db = ders[1];
 	auto dstate = ders[2];
@@ -907,7 +906,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 
 	auto err = tenncor<double>().pow(out - output, 2.);
 
-	auto ders = eteq::derive(err, {weight, bias, istate});
+	auto ders = tcr::derive(err, {weight, bias, istate});
 	auto dw = ders[0];
 	auto db = ders[1];
 	auto dstate = ders[2];

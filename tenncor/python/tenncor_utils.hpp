@@ -7,7 +7,7 @@
 
 #include "distrib/distrib.hpp"
 
-#include "generated/pyapi.hpp"
+#include "tenncor/tenncor.hpp"
 
 #ifndef PYTHON_TENNCOR_UTIL_HPP
 #define PYTHON_TENNCOR_UTIL_HPP

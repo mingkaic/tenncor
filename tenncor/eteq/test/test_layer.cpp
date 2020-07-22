@@ -12,7 +12,7 @@
 
 #include "eteq/serialize.hpp"
 
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 
 TEST(LAYER, Dense)

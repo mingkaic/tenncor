@@ -55,6 +55,7 @@ cc_library(
     deps = [
         ":distr_cc_grpc",
         "//eigen:eigen",
+        "//query:query",
         "@boost//:uuid",
         "@boost//:bimap",
         "@com_github_oliora_ppconsul//:consul",

@@ -6,7 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 
 TEST(INIT, Zero)

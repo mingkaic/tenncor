@@ -6,8 +6,10 @@
 #ifndef DISTRIB_IREFERENCE_HPP
 #define DISTRIB_IREFERENCE_HPP
 
-namespace distrib
+namespace distr
 {
+
+const std::string refname = "DISTRIB_REFERENCE";
 
 struct iDistRef : public teq::iFunctor
 {
@@ -47,7 +49,7 @@ struct iDistRef : public teq::iFunctor
 	/// Implementation of iFunctor
 	teq::Opcode get_opcode (void) const override
 	{
-		return teq::Opcode{"DISTRIB_REFERENCE", 0};
+		return teq::Opcode{refname, 0};
 	}
 
 	/// Implementation of iFunctor
@@ -74,6 +76,8 @@ struct iDistRef : public teq::iFunctor
 };
 
 using DRefptrT = std::shared_ptr<iDistRef>;
+
+using DRefptrSetT = std::unordered_set<DRefptrT>;
 
 #define CACHE_UPDATE(cache_type)\
 { std::vector<cache_type> tmp(data, data + nelems);\
@@ -208,6 +212,8 @@ private:
 	/// Variable metadata
 	ExplicitMetadata meta_;
 };
+
+DRefptrSetT reachable_refs (teq::TensptrT root);
 
 }
 

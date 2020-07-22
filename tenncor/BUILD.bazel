@@ -10,6 +10,8 @@ filegroup(
     name = "srcs",
     srcs = [
         ":benchmark_srcs",
+        ":tenncor_hdrs",
+        ":tenncor_srcs",
         ":pybind_hdrs",
         ":pybind_srcs",
         ":trainer_hdrs",
@@ -24,6 +26,16 @@ filegroup(
 filegroup(
     name = "benchmark_srcs",
     srcs = glob(["bm/*.cpp"]),
+)
+
+filegroup(
+    name = "tenncor_hdrs",
+    srcs = glob(["*.hpp"])
+)
+
+filegroup(
+    name = "tenncor_srcs",
+    srcs = glob(["src/*.cpp"])
 )
 
 filegroup(
@@ -47,7 +59,7 @@ GEN_CMD_FMT = """$(location //egen:egen) --plugins \
 plugins.apis:APIsPlugin \
 plugins.pyapis:PyAPIsPlugin \
 --out $(@D)/generated \
---strip_prefix=$(@D) \
+--strip_prefix=$(@D)/.. \
 --ext_path=`dirname $$(echo '$(locations //cfg:eteq_classes)' | awk '{{print $$1}}')` \
 --cfgs $(locations //cfg:{})"""
 
@@ -77,11 +89,18 @@ genrule(
 
 cc_library(
     name = "tenncor",
-    hdrs = [":trainer_hdrs"] + [
+    hdrs = [
+        ":tenncor_hdrs",
+        ":trainer_hdrs",
+    ] + [
         ":"+hdr for hdr in GEN_HDRS
     ],
-    srcs = [":generated/api.cpp"],
+    srcs = [
+        ":generated/api.cpp",
+        ":tenncor_srcs",
+    ],
     copts = ["-std=c++17"],
+    include_prefix = "tenncor",
     includes = ["."],
     deps = [
         "//tenncor/layr:layr",

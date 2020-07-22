@@ -5,7 +5,7 @@
 #ifndef DISTRIB_CLIENT_HPP
 #define DISTRIB_CLIENT_HPP
 
-namespace distrib
+namespace distr
 {
 
 /// Configuration wrapper for creating the client
@@ -36,11 +36,11 @@ struct DistrCli final
 {
 	DistrCli (std::shared_ptr<grpc::Channel> channel,
 		const std::string& alias, const ClientConfig& cfg) :
-		stub_(distr::DistrManager::NewStub(channel)),
+		stub_(DistrManager::NewStub(channel)),
 		alias_(alias), cfg_(cfg) {}
 
 	grpc::Status lookup_node (
-		const distr::FindNodesRequest& req, distr::FindNodesResponse& res)
+		const FindNodesRequest& req, FindNodesResponse& res)
 	{
 		grpc::ClientContext context;
 		build_ctx(context, true);
@@ -58,11 +58,11 @@ struct DistrCli final
 	}
 
 	std::future<void> get_data (grpc::CompletionQueue& cq,
-		const distr::GetDataRequest& req,
+		const GetDataRequest& req,
 		boost::bimap<std::string,teq::TensptrT>& shared_nodes)
 	{
-		auto handler = new AsyncCliRespHandler<distr::NodeData>(alias_ + ":GetData",
-			[&shared_nodes](distr::NodeData& res)
+		auto handler = new AsyncCliRespHandler<NodeData>(alias_ + ":GetData",
+			[&shared_nodes](NodeData& res)
 			{
 				auto uuid = res.uuid();
 				auto ref = static_cast<iDistRef*>(shared_nodes.left.at(uuid).get());
@@ -88,7 +88,7 @@ private:
 		ctx.set_deadline(deadline);
 	}
 
-	std::unique_ptr<distr::DistrManager::Stub> stub_;
+	std::unique_ptr<DistrManager::Stub> stub_;
 
 	std::string alias_;
 

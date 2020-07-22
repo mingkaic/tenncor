@@ -9,7 +9,7 @@
 #ifndef DISTRIB_SESSION_HPP
 #define DISTRIB_SESSION_HPP
 
-namespace distrib
+namespace distr
 {
 
 const std::string default_service = "tenncor";
@@ -23,13 +23,14 @@ struct DistribSess final : public iDistribSess
 	/// UUID random generator
 	static boost::uuids::random_generator uuid_gen_;
 
-	DistribSess (ppconsul::Consul& consul, size_t port,
+	DistribSess (PartDerF derive,
+		ppconsul::Consul& consul, size_t port,
 		const std::string& service = default_service,
 		const std::string& id = "",
 		const ClientConfig& cfg = ClientConfig()) :
 		consul_(consul, port, (id.empty() ?
 			boost::uuids::to_string(DistribSess::uuid_gen_()) : id), service),
-		server_(this, port, consul_.id_),
+		server_(this, derive, port, consul_.id_),
 		cli_cfg_(cfg)
 	{
 		update_clients();
@@ -78,8 +79,8 @@ struct DistribSess final : public iDistribSess
 			{
 				update_clients(); // get specific peer
 			}
-			distr::FindNodesRequest req;
-			distr::FindNodesResponse res;
+			FindNodesRequest req;
+			FindNodesResponse res;
 			req.add_uuids(id);
 			auto status = clients_[peer_id]->lookup_node(req, res);
 			if (false == status.ok())
@@ -134,7 +135,7 @@ protected:
 				cluster_id.c_str());
 		}
 
-		distr::GetDataRequest req;
+		GetDataRequest req;
 		google::protobuf::RepeatedPtrField<std::string>
 		uuids(node_ids.begin(), node_ids.end());
 		req.mutable_uuids()->Swap(&uuids);
@@ -187,8 +188,7 @@ private:
 
 	ConsulService consul_;
 
-	AsyncDistrServer server_;
-	// DistrServer server_;
+	DistrServer server_;
 
 	ClientConfig cli_cfg_;
 };

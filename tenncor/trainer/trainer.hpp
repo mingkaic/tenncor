@@ -4,7 +4,7 @@
 #include "layr/layer.hpp"
 #include "layr/approx.hpp"
 
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 #ifndef TRAINER_HPP
 #define TRAINER_HPP

@@ -11,7 +11,7 @@
 
 #include "ccur/weights.pb.h"
 
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 #define TIME(action)\
 std::chrono::high_resolution_clock::time_point start =\

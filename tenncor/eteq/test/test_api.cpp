@@ -11,9 +11,8 @@
 #include "utils/coord.hpp"
 
 #include "eteq/make.hpp"
-#include "eteq/derive.hpp"
 
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 
 using UnaryDblF = std::function<double(double)>;
@@ -154,7 +153,7 @@ static void unary_generic (UnaryOpF<double> op,
 
 	teq::Session session;
 
-	eteq::ETensorsT<double> gsrc = eteq::derive(dest, {src});
+	eteq::ETensorsT<double> gsrc = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
 	session.track({gsrc[0]});
@@ -201,7 +200,7 @@ static void unar_elem (std::vector<double> data,
 
 	teq::Session session;
 
-	eteq::ETensorsT<double> gsrc = eteq::derive(uninit_dest, {src});
+	eteq::ETensorsT<double> gsrc = tcr::derive(uninit_dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
 	session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
@@ -295,7 +294,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	}
 
 	eteq::ETensor<double> dest2 = op(src, src);
-	eteq::ETensorsT<double> gsame = eteq::derive(dest2, {src});
+	eteq::ETensorsT<double> gsame = tcr::derive(dest2, {src});
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track({gsame.front()});
@@ -311,7 +310,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1., 1.), goptr[i]);
 	}
 
-	eteq::ETensorsT<double> gleft = eteq::derive(dest, {src});
+	eteq::ETensorsT<double> gleft = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track({gleft.front()});
@@ -327,7 +326,7 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 1., 0.), goptr2[i]);
 	}
 
-	eteq::ETensorsT<double> gright = eteq::derive(dest, {src2});
+	eteq::ETensorsT<double> gright = tcr::derive(dest, {src2});
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track({gright.front()});
@@ -435,7 +434,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	}
 
 	eteq::ETensor<int32_t> dest2 = op(src, src);
-	eteq::ETensorsT<int32_t> gsame = eteq::derive(dest2, {src});
+	eteq::ETensorsT<int32_t> gsame = tcr::derive(dest2, {src});
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track({gsame.front()});
@@ -451,7 +450,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(bwd(data[i], data[i], 1., 1.), goptr[i]);
 	}
 
-	eteq::ETensorsT<int32_t> gleft = eteq::derive(dest, {src});
+	eteq::ETensorsT<int32_t> gleft = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track({gleft.front()});
@@ -467,7 +466,7 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(bwd(data[i], data2[i], 1., 0.), goptr2[i]);
 	}
 
-	eteq::ETensorsT<int32_t> gright = eteq::derive(dest, {src2});
+	eteq::ETensorsT<int32_t> gright = tcr::derive(dest, {src2});
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track({gright.front()});
@@ -555,7 +554,7 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 
 	for (size_t i = 0, m = datas.size(); i < m; ++i)
 	{
-		eteq::ETensorsT<double> gsrc = eteq::derive(dest, {srcs[i]});
+		eteq::ETensorsT<double> gsrc = tcr::derive(dest, {srcs[i]});
 		ASSERT_EQ(1, gsrc.size());
 		ASSERT_NE(nullptr, gsrc.front());
 		session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
@@ -634,8 +633,8 @@ TEST(API, Assign)
 		EXPECT_DOUBLE_EQ(-data2[i], aptr2[i]);
 	}
 
-	EXPECT_FATAL(eteq::derive(ass1, {src}), "cannot derive ASSIGN");
-	EXPECT_FATAL(eteq::derive(ass2, {src}), "cannot derive ASSIGN");
+	EXPECT_FATAL(tcr::derive(ass1, {src}), "cannot derive ASSIGN");
+	EXPECT_FATAL(tcr::derive(ass2, {src}), "cannot derive ASSIGN");
 }
 
 
@@ -699,7 +698,7 @@ TEST(API, Depends)
 		}
 	}
 
-	// EXPECT_FATAL(eteq::derive(ass, {a}), "Unknown op DEPEND");
+	// EXPECT_FATAL(tcr::derive(ass, {a}), "Unknown op DEPEND");
 }
 
 
@@ -1141,7 +1140,7 @@ TEST(API, Select)
 		eteq::ETensor<double> dest2 = tenncor<double>().if_then_else(cond_src, src, src);
 		EXPECT_EQ(dest2.get(), src.get());
 
-		eteq::ETensorsT<double> gleft = eteq::derive(dest, {src});
+		eteq::ETensorsT<double> gleft = tcr::derive(dest, {src});
 		ASSERT_EQ(1, gleft.size());
 		ASSERT_NE(nullptr, gleft.front());
 		session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
@@ -1157,7 +1156,7 @@ TEST(API, Select)
 			EXPECT_DOUBLE_EQ(cond[i], goptr[i]);
 		}
 
-		eteq::ETensorsT<double> gright = eteq::derive(dest, {src2});
+		eteq::ETensorsT<double> gright = tcr::derive(dest, {src2});
 		ASSERT_EQ(1, gright.size());
 		ASSERT_NE(nullptr, gright.front());
 		session.track(teq::TensptrSetT(gright.begin(), gright.end()));
@@ -1222,7 +1221,7 @@ TEST(API, Slice)
 		0, 0, 0, 1, 1, 1,
 	};
 	teq::Session session;
-	eteq::ETensorsT<double> g = eteq::derive(dest, {src});
+	eteq::ETensorsT<double> g = tcr::derive(dest, {src});
 	session.track(teq::TensptrSetT(g.begin(), g.end()));
 	session.update(device);
 	session.update(device); // idempotency check
@@ -1395,7 +1394,7 @@ TEST(API, Argmax)
 	double* ptr = (double*) dest->device().data();
 	EXPECT_EQ(8, *ptr);
 
-	EXPECT_FATAL(eteq::derive(dest, {src}), "cannot derive ARGMAX");
+	EXPECT_FATAL(tcr::derive(dest, {src}), "cannot derive ARGMAX");
 }
 
 
@@ -1518,8 +1517,8 @@ TEST(API, Rprod)
 
 	teq::Session session;
 
-	eteq::ETensor<int32_t> gsrc = eteq::derive(dest, {src})[0];
-	eteq::ETensor<int32_t> gsrc2 = eteq::derive(dest2, {src})[0];
+	eteq::ETensor<int32_t> gsrc = tcr::derive(dest, {src})[0];
+	eteq::ETensor<int32_t> gsrc2 = tcr::derive(dest2, {src})[0];
 	ASSERT_NE(nullptr, gsrc);
 	ASSERT_NE(nullptr, gsrc2);
 	session.track({gsrc, gsrc2});
@@ -1767,7 +1766,7 @@ TEST(API, Permute)
 
 	teq::Session session;
 
-	eteq::ETensorsT<double> gsrc = eteq::derive(dest, {src});
+	eteq::ETensorsT<double> gsrc = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
 	teq::TensSetT tset;
@@ -1825,7 +1824,7 @@ TEST(API, Extend)
 
 	teq::Session session;
 
-	eteq::ETensorsT<double> gsrc = eteq::derive(dest, {src});
+	eteq::ETensorsT<double> gsrc = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
 	session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
@@ -1900,7 +1899,7 @@ TEST(API, Matmul)
 
 	eteq::ETensor<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
 	eteq::ETensor<int32_t> dest2 = tenncor<int32_t>().matmul(c, c);
-	eteq::ETensorsT<int32_t> gsame = eteq::derive(dest2, {c});
+	eteq::ETensorsT<int32_t> gsame = tcr::derive(dest2, {c});
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track(teq::TensptrSetT(gsame.begin(), gsame.end()));
@@ -1909,7 +1908,7 @@ TEST(API, Matmul)
 	teq::Shape gcshape = gsame[0]->shape();
 	ASSERT_ARREQ(cshape, gcshape);
 
-	eteq::ETensorsT<int32_t> gleft = eteq::derive(dest, {a});
+	eteq::ETensorsT<int32_t> gleft = tcr::derive(dest, {a});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
@@ -1924,7 +1923,7 @@ TEST(API, Matmul)
 		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
-	eteq::ETensorsT<int32_t> gright = eteq::derive(dest, {b});
+	eteq::ETensorsT<int32_t> gright = tcr::derive(dest, {b});
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
@@ -1999,7 +1998,7 @@ TEST(API, Contract)
 
 	eteq::ETensor<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
 	eteq::ETensor<int32_t> dest2 = tenncor<int32_t>().contract(c, c, {{0, 0}});
-	eteq::ETensorsT<int32_t> gsame = eteq::derive(dest2, {c});
+	eteq::ETensorsT<int32_t> gsame = tcr::derive(dest2, {c});
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track(teq::TensptrSetT(gsame.begin(), gsame.end()));
@@ -2008,7 +2007,7 @@ TEST(API, Contract)
 	teq::Shape gcshape = gsame[0]->shape();
 	ASSERT_ARREQ(cshape, gcshape);
 
-	eteq::ETensorsT<int32_t> gleft = eteq::derive(dest, {a});
+	eteq::ETensorsT<int32_t> gleft = tcr::derive(dest, {a});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
@@ -2023,7 +2022,7 @@ TEST(API, Contract)
 		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
-	eteq::ETensorsT<int32_t> gright = eteq::derive(dest, {b});
+	eteq::ETensorsT<int32_t> gright = tcr::derive(dest, {b});
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
@@ -2069,7 +2068,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 
 	teq::Session session;
 
-	eteq::ETensorsT<double> gleft = eteq::derive(dest, {src});
+	eteq::ETensorsT<double> gleft = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
@@ -2082,7 +2081,7 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	double* goptr2 = (double*) gleft[0]->device().data();
 	EXPECT_DOUBLE_EQ(0, goptr2[0]);
 
-	eteq::ETensorsT<double> gright = eteq::derive(dest, {src});
+	eteq::ETensorsT<double> gright = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
@@ -2187,7 +2186,7 @@ TEST(API, Convolution)
 
 	teq::Session session;
 
-	eteq::ETensorsT<double> gleft = eteq::derive(dest, {img});
+	eteq::ETensorsT<double> gleft = tcr::derive(dest, {img});
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	ASSERT_NE(nullptr, gleft[0].get());
@@ -2202,7 +2201,7 @@ TEST(API, Convolution)
 		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
-	eteq::ETensorsT<double> gright = eteq::derive(dest, {kernel});
+	eteq::ETensorsT<double> gright = tcr::derive(dest, {kernel});
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	ASSERT_NE(nullptr, gright[0].get());

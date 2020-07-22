@@ -11,7 +11,7 @@
 
 #include "eteq/eteq.hpp"
 
-#include "generated/pyapi.hpp"
+#include "tenncor/tenncor.hpp"
 
 namespace py = pybind11;
 

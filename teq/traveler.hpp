@@ -379,6 +379,7 @@ using OwnerMapT = TensMapT<TensrefT>;
 /// Travelers will lose smart pointer references,
 /// This utility function will grab reference maps of root's subtree
 OwnerMapT track_owners (TensptrsT roots);
+// todo: roots just need to contain TensptrT values and is iterable
 
 }
 

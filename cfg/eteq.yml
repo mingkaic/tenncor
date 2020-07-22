@@ -1,7 +1,7 @@
 api:
   pybind_type: float
   includes:
-  - '"eteq/derive.hpp"'
+  - '"tenncor/derive.hpp"'
   - '"eteq/make.hpp"'
   - '"eteq/layer.hpp"'
   - '"layr/approx.hpp"'

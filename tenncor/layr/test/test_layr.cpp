@@ -9,7 +9,7 @@
 
 #include "layr/layer.hpp"
 
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 
 template <typename T=float>
@@ -215,9 +215,6 @@ TEST(BIND, Softmax)
 }
 
 
-#include "eteq/derive.hpp"
-
-
 TEST(CONNECT, TanhRNN)
 {
 	eigen::Device device;
@@ -295,7 +292,7 @@ TEST(CONNECT, TanhRNN)
 	auto weight = contents[1];
 	auto bias = contents[2];
 
-	auto ders = eteq::derive(err, {
+	auto ders = tcr::derive(err, {
 		eteq::ETensor<double>(weight),
 		eteq::ETensor<double>(bias),
 		eteq::ETensor<double>(istate),
@@ -448,7 +445,7 @@ TEST(CONNECT, DenseTanhRNN)
 	auto weight1 = contents[3];
 	auto bias1 = contents[4];
 
-	auto ders = eteq::derive(err, {
+	auto ders = tcr::derive(err, {
 		eteq::ETensor<double>(weight1),
 		eteq::ETensor<double>(bias1),
 		eteq::ETensor<double>(istate),
@@ -668,7 +665,7 @@ TEST(CONNECT, TanhRNNFull)
 	auto weight2 = contents[5];
 	auto bias2 = contents[6];
 
-	auto ders = eteq::derive(err, {
+	auto ders = tcr::derive(err, {
 		eteq::ETensor<double>(weight0),
 		eteq::ETensor<double>(bias0),
 		eteq::ETensor<double>(istate),
@@ -910,7 +907,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 	auto weight2 = contents[5];
 	auto bias2 = contents[6];
 
-	auto ders = eteq::derive(err, {
+	auto ders = tcr::derive(err, {
 		eteq::ETensor<double>(weight0),
 		eteq::ETensor<double>(bias0),
 		eteq::ETensor<double>(istate),
@@ -1340,7 +1337,7 @@ TEST(CONNECT, TanhRNNTraining)
 	auto weight2 = contents[5];
 	auto bias2 = contents[6];
 
-	auto ders = eteq::derive(err, {
+	auto ders = tcr::derive(err, {
 		eteq::ETensor<double>(weight0),
 		eteq::ETensor<double>(bias0),
 		eteq::ETensor<double>(weight1),

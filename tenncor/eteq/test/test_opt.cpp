@@ -8,10 +8,9 @@
 
 // #include "dbg/print/search.hpp"
 
-#include "eteq/derive.hpp"
 #include "eteq/optimize.hpp"
 
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 const std::string testdir = "models/test";
 
@@ -189,7 +188,7 @@ TEST(OPTIMIZE, RNNLayer)
 
 	auto err = tenncor<double>().pow(out - output, 2.);
 
-	auto ders = eteq::derive(err, {weight, bias, istate});
+	auto ders = tcr::derive(err, {weight, bias, istate});
 	teq::TensptrsT roots = {ders[0], ders[1], ders[2], err};
 
 	std::ifstream rulefile("cfg/optimizations.json");

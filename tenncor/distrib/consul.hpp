@@ -6,7 +6,7 @@
 #ifndef DISTRIB_CONSUL_HPP
 #define DISTRIB_CONSUL_HPP
 
-namespace distrib
+namespace distr
 {
 
 struct ConsulConfig final

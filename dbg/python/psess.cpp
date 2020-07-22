@@ -6,7 +6,7 @@
 #include "dbg/psess/emit/emitter.hpp"
 #include "dbg/psess/stats/inspect.hpp"
 
-#include "generated/pyapi.hpp"
+#include "tenncor/tenncor.hpp"
 
 namespace py = pybind11;
 

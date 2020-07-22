@@ -9,8 +9,7 @@
 
 #include "eteq/eteq.hpp"
 
-#include "generated/pyapi.hpp"
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 // #include "dbg/psess/plugin_sess.hpp"
 // #include "dbg/psess/emit/emitter.hpp"

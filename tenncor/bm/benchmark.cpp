@@ -5,7 +5,7 @@
 #include "eteq/eteq.hpp"
 #include "eteq/optimize.hpp"
 
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 
 static std::random_device rnd_device;
@@ -224,7 +224,7 @@ static void BM_MatmulComplex(benchmark::State& state)
 	auto f = tenncor<int32_t>().matmul(tenncor<int32_t>().transpose(d), tenncor<int32_t>().transpose(c));
 	auto dest = tenncor<int32_t>().matmul(e, f);
 
-	eteq::ETensorsT<int32_t> ders = eteq::derive(dest, {a, b, c});
+	eteq::ETensorsT<int32_t> ders = tcr::derive(dest, {a, b, c});
 	auto da = ders[0];
 	auto db = ders[1];
 	auto dc = ders[2];
@@ -279,7 +279,7 @@ static void BM_SigmoidMLP(benchmark::State& state)
 
 	auto err = tenncor<double>().pow(out - sig1, 2.);
 
-	auto ders = eteq::derive(err, {weight0, bias0, weight1, bias1});
+	auto ders = tcr::derive(err, {weight0, bias0, weight1, bias1});
 	auto dw0 = ders[0];
 	auto db0 = ders[1];
 	auto dw1 = ders[2];
@@ -342,10 +342,10 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 
 	auto err = tenncor<double>().pow(out - sig1, 2.);
 
-	auto dw0 = eteq::derive(err, {weight0});
-	auto db0 = eteq::derive(err, {bias0});
-	auto dw1 = eteq::derive(err, {weight1});
-	auto db1 = eteq::derive(err, {bias1});
+	auto dw0 = tcr::derive(err, {weight0});
+	auto db0 = tcr::derive(err, {bias0});
+	auto dw1 = tcr::derive(err, {weight1});
+	auto db1 = tcr::derive(err, {bias1});
 
 	// optimize
 	eteq::optimize("cfg/optimizations.json");

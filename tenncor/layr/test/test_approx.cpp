@@ -15,8 +15,7 @@
 
 #include "layr/approx.hpp"
 
-#include "generated/api.hpp"
-#include "generated/pyapi.hpp"
+#include "tenncor/tenncor.hpp"
 
 
 TEST(APPROX, StochasticGD)

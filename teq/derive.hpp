@@ -34,6 +34,8 @@ struct iDerivativeFuncs
 	virtual TensptrT add (TensptrsT elems) const = 0;
 };
 
+using GradMapT = TensMapT<TensptrsT>;
+
 /// Define manditory definitions required for tensor differentiation
 /// For some graph F(G(x)), chain rule for calculating dF/dx is
 /// defined in the following order:
@@ -53,9 +55,8 @@ TensptrsT derive (
 /// where functors F are ancestors of parent root nodes,
 /// continue looking for derivatives of R wrt to input targets and add to grads.
 /// Derivatives are found using back-propagation.
-void partial_derive (
-	TensMapT<TensptrsT>& grads,
-	const TensptrsT& parents,
+void partial_derive (GradMapT& grads,
+	const TensptrSetT& parents,
 	const TensptrSetT& targets,
 	const iDerivativeFuncs& funcs);
 

@@ -17,14 +17,14 @@ void distrib_ext (py::module& m)
 		}),
 		py::arg("address") = "0.0.0.0:8500");
 
-	py::class_<distrib::iDistribSess,distrib::DSessptrT>
+	py::class_<distr::iDistribSess,distr::DSessptrT>
 	isession(m, "iDistribSess", isess);
-	py::class_<distrib::DistribSess,std::shared_ptr<distrib::DistribSess>>
+	py::class_<distr::DistribSess,std::shared_ptr<distr::DistribSess>>
 	session(m, "DistribSess", isession);
 
 	isession
 		.def("lookup_id",
-		[](distrib::iDistribSess& self, pytenncor::ETensT node)
+		[](distr::iDistribSess& self, pytenncor::ETensT node)
 		{
 			std::string id;
 			if (auto found_id = self.lookup_id(teq::TensptrT(node)))
@@ -34,7 +34,7 @@ void distrib_ext (py::module& m)
 			return id;
 		})
 		.def("lookup_node",
-		[](distrib::iDistribSess& self,
+		[](distr::iDistribSess& self,
 			const std::string& id, bool recursive)
 		{
 			err::ErrptrT err = nullptr;
@@ -49,7 +49,7 @@ void distrib_ext (py::module& m)
 		py::arg("id"),
 		py::arg("recursive") = true)
 		.def("get_id",
-		[](distrib::iDistribSess& self)
+		[](distr::iDistribSess& self)
 		{
 			return self.get_id();
 		});
@@ -58,12 +58,12 @@ void distrib_ext (py::module& m)
 		[](pytenncor::ConsulT consul, size_t port,
 			std::string service_name, std::string alias)
 		{
-			return std::make_shared<distrib::DistribSess>(
+			return tcr::make_distrsess(
 				*consul, port, service_name, alias);
 		}),
 		py::arg("consul"),
 		py::arg("port"),
-		py::arg("service_name") = distrib::default_service,
+		py::arg("service_name") = distr::default_service,
 		py::arg("alias") = "");
 }
 

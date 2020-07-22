@@ -1,15 +1,15 @@
 ///
-/// derive.hpp
+/// backprop.hpp
 /// eteq
 ///
 /// Purpose:
-/// Implement eteq gradient definition for supported operations
+/// Implement eteq definition for supporting backward propagation
 ///
 
 #include "eteq/make.hpp"
 
-#ifndef ETEQ_DERIVE_HPP
-#define ETEQ_DERIVE_HPP
+#ifndef ETEQ_BACKPROP_HPP
+#define ETEQ_BACKPROP_HPP
 
 namespace eteq
 {
@@ -549,24 +549,6 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 	}
 };
 
-/// Derive root with respect to target and optimized
-template <typename T>
-ETensorsT<T> derive (ETensor<T> root, const ETensorsT<T>& targets)
-{
-	DerivativeFuncs<T> builder;
-	teq::TensptrsT targs(targets.begin(), targets.end());
-	teq::TensptrsT derivatives = teq::derive(root, targs, builder);
-	ETensorsT<T> out;
-	out.reserve(derivatives.size());
-	std::transform(derivatives.begin(), derivatives.end(),
-		std::back_inserter(out),
-		[&root](teq::TensptrT tens)
-		{
-			return ETensor<T>(tens, root.get_context());
-		});
-	return out;
 }
 
-}
-
-#endif // ETEQ_DERIVE_HPP
+#endif // ETEQ_BACKPROP_HPP
