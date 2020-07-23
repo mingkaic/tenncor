@@ -20,6 +20,9 @@ const std::string app_name = "tenncor";
 const std::string app_version = "1.0.0";
 const std::string eteq_dom = "com.tenncor.eteq";
 
+void save_model (onnx::ModelProto& pb_model, teq::TensT roots,
+	const onnx::TensIdT& identified = {});
+
 void save_model (onnx::ModelProto& pb_model, teq::TensptrsT roots,
 	const onnx::TensIdT& identified = {});
 

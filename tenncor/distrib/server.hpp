@@ -112,7 +112,7 @@ private:
 			teq::TensSetT targets;
 			for (const std::string& uuid : uuids)
 			{
-				err::ErrptrT err = nullptr;
+				error::ErrptrT err = nullptr;
 				auto tens = sess->lookup_node(err, uuid, false).get();
 				ERR_CHECK(err, grpc::NOT_FOUND, this->alias_.c_str());
 				targets.emplace(tens);
@@ -170,7 +170,7 @@ private:
 		auto& uuids = req.uuids();
 		for (const std::string& uuid : uuids)
 		{
-			err::ErrptrT err = nullptr;
+			error::ErrptrT err = nullptr;
 			auto node = sess->lookup_node(err, uuid, false);
 			ERR_CHECK(err, grpc::NOT_FOUND, alias_.c_str());
 
@@ -202,7 +202,7 @@ private:
 		auto& rgrads = req.root_grads();
 		auto& targids = req.targets();
 
-		err::ErrptrT err = nullptr;
+		error::ErrptrT err = nullptr;
 		teq::GradMapT grads;
 		teq::TensptrSetT parents;
 		teq::TensptrSetT targets;

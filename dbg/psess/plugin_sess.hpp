@@ -11,7 +11,8 @@ struct iPlugin
 	virtual ~iPlugin (void) = default;
 
 	virtual void process (
-		const teq::TensptrSetT& tracked, teq::FuncListT& targets)= 0;
+		const std::vector<teq::FuncSetT>& tracked,
+		teq::FuncListT& targets)= 0;
 };
 
 using PluginRefT = std::reference_wrapper<iPlugin>;
@@ -25,7 +26,7 @@ private:
 	{
 		for (iPlugin& plugin : plugins_)
 		{
-			plugin.process(this->roots_, reqs);
+			plugin.process(this->ops_, reqs);
 		}
 	}
 };

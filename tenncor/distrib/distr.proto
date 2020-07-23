@@ -39,11 +39,15 @@ message GetDataRequest {
 // Request for partial derivation of some
 // absolute root with respect to target nodes
 message DeriveRequest {
-    // maps local roots uid to
+    // maps reference id of local roots to
     // derivative of absolute root wrt to local roots
     map<string,string> root_grads = 1;
 
+    // reference id of targets
     repeated string targets = 2;
+
+    // reference id of the root deriving wrt
+    string root = 3;
 }
 
 message DeriveResponse {
@@ -54,9 +58,12 @@ service DistrManager {
     // List all nodes matching request parameters
     rpc FindNodes (FindNodesRequest) returns (FindNodesResponse);
 
-    rpc Derive (DeriveRequest) returns (DeriveResponse);
-
     // Stream data for matched nodes if the data node is updated
     // Return stream ignores nodes that remain the same
     rpc GetData (GetDataRequest) returns (stream NodeData);
+
+    // === Graph Operations ===
+
+    // Calculate the derivative of some root with respect to targets
+    rpc Derive (DeriveRequest) returns (DeriveResponse);
 }

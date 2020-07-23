@@ -84,8 +84,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//tenncor:tenncor",
-        "@gtest//:gtest",
-        "@com_github_mingkaic_cppkg//exam:exam",
+        "//testutil:tutil",
     ],
     linkstatic = True,
     size = "large",

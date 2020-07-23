@@ -42,6 +42,7 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//marsh:marsh",
+        "@com_github_mingkaic_cppkg//error:error",
     ],
     visibility = ["//visibility:public"],
 )

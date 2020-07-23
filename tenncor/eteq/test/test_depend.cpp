@@ -66,7 +66,7 @@ TEST(DEPEND, Chaining)
 	// assign is an indirect dependency of op
 	teq::Session session;
 	session.track({depped});
-	session.update(device);
+	session.update_target(device, {depped.get()});
 	{
 		auto gotshape = depped->shape();
 		ASSERT_ARREQ(shape, gotshape);

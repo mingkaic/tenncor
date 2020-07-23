@@ -82,7 +82,11 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 
 	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update(device);
+	teq::TensSetT targets;
+	std::transform(roots.begin(), roots.end(),
+		std::inserter(targets, targets.end()),
+		[](teq::TensptrT g) { return g.get(); });
+	session.update_target(device, targets);
 
 	{
 		auto gotshape = da->shape();
@@ -299,7 +303,11 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 
 	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update(device);
+	teq::TensSetT targets;
+	std::transform(roots.begin(), roots.end(),
+		std::inserter(targets, targets.end()),
+		[](teq::TensptrT g) { return g.get(); });
+	session.update_target(device, targets);
 
 	{
 		auto gotshape = dw0->shape();
@@ -523,7 +531,11 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 
 	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update(device);
+	teq::TensSetT targets;
+	std::transform(roots.begin(), roots.end(),
+		std::inserter(targets, targets.end()),
+		[](teq::TensptrT g) { return g.get(); });
+	session.update_target(device, targets);
 
 	{
 		auto gotshape = dw0->shape();
@@ -663,7 +675,11 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 
 	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update(device);
+	teq::TensSetT targets;
+	std::transform(roots.begin(), roots.end(),
+		std::inserter(targets, targets.end()),
+		[](teq::TensptrT g) { return g.get(); });
+	session.update_target(device, targets);
 
 	{
 		auto gotshape = dw->shape();
@@ -790,7 +806,11 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 
 	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update(device);
+	teq::TensSetT targets;
+	std::transform(roots.begin(), roots.end(),
+		std::inserter(targets, targets.end()),
+		[](teq::TensptrT g) { return g.get(); });
+	session.update_target(device, targets);
 
 	{
 		auto gotshape = dw->shape();
@@ -919,7 +939,11 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 
 	teq::Session session;
 	session.track(teq::TensptrSetT(roots.begin(), roots.end()));
-	session.update(device);
+	teq::TensSetT targets;
+	std::transform(roots.begin(), roots.end(),
+		std::inserter(targets, targets.end()),
+		[](teq::TensptrT g) { return g.get(); });
+	session.update_target(device, targets);
 
 	{
 		auto gotshape = dw->shape();

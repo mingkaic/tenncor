@@ -100,91 +100,7 @@ struct Session final : public teq::iSession
 	}
 
 	/// Implementation of iSession
-	void update (teq::iDevice& device,
-		const teq::TensSetT& ignored = {}) override
-	{
-		size_t nthreads = requirements_.size();
-		std::vector<LSessReqsT> indep_requirements(nthreads);
-		for (size_t i = 0; i < nthreads; ++i)
-		{
-			auto& reqs = requirements_[i];
-			auto& indep_reqs = indep_requirements[i];
-			teq::TensSetT acceptable;
-			for (auto& root : tracked_)
-			{
-				acceptable.emplace(root.get());
-			}
-			// ignored tensors will never populate reqs
-			for (auto rit = reqs.rbegin(), ret = reqs.rend();
-				rit != ret; ++rit)
-			{
-				auto& op = rit->first;
-				if (estd::has(acceptable, op) &&
-					false == estd::has(ignored, op))
-				{
-					indep_reqs.push_front({op, rit->second});
-					auto children = op->get_children();
-					for (teq::TensptrT child : children)
-					{
-						acceptable.emplace(child.get());
-					}
-				}
-			}
-		}
-
-		AtomicFulfilMapT fulfilments;
-		for (auto op : ops_)
-		{
-			fulfilments.emplace(op, 0);
-		}
-
-		for (auto ig : ignored)
-		{
-			std::unordered_set<teq::iFunctor*> op_parents;
-			if (estd::get(op_parents, parents_, ig))
-			{
-				for (auto& op_parent : op_parents)
-				{
-					++fulfilments.at(op_parent);
-				}
-			}
-		}
-
-		// for each req in requirements distribute to thread
-		boost::asio::thread_pool pool(nthreads);
-		for (auto& reqs : indep_requirements)
-		{
-			// add thread
-			boost::asio::post(pool,
-			[this, &reqs, &fulfilments]
-			{
-				for (auto& op : reqs)
-				{
-					// fulfilled and not ignored
-					auto& ff = fulfilments.at(op.first);
-					if (ff++ == op.second)
-					{
-						op.first->calc();
-						std::unordered_set<teq::iFunctor*> op_parents;
-						if (estd::get(op_parents,
-							this->parents_, op.first))
-						{
-							for (auto& op_parent : op_parents)
-							{
-								++fulfilments.at(op_parent);
-							}
-						}
-						++ff;
-					}
-					--ff;
-				}
-			});
-		}
-		pool.join();
-	}
-
-	/// Implementation of iSession
-	void update_target (teq::iDevice& device,
+	error::ErrptrT update_target (teq::iDevice& device,
 		const teq::TensSetT& target,
 		const teq::TensSetT& ignored = {}) override
 	{
@@ -266,6 +182,7 @@ struct Session final : public teq::iSession
 			});
 		}
 		pool.join();
+		return nullptr;
 	}
 
 	/// Implementation of iSession

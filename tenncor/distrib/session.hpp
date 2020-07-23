@@ -56,22 +56,21 @@ struct DistribSess final : public iDistribSess
 	}
 
 	/// Implementation of iDistribSess
-	teq::TensptrT lookup_node (err::ErrptrT& err,
+	teq::TensptrT lookup_node (error::ErrptrT& err,
 		const std::string& id, bool recursive = true) override
 	{
 		if (false == estd::has(shared_nodes_.left, id))
 		{
 			if (false == recursive)
 			{
-				err = std::make_shared<err::ErrMsg>(
+				err = error::errorf(
 					"no id %s found: will not recurse", id.c_str());
 				return nullptr;
 			}
 			std::string peer_id = consul_.get_kv(node_lookup_prefix + id, "");
 			if (peer_id.empty())
 			{
-				err = std::make_shared<err::ErrMsg>(
-					"no peer found for node %s",
+				err = error::errorf("no peer found for node %s",
 					(node_lookup_prefix + id).c_str());
 				return nullptr;
 			}
@@ -85,15 +84,14 @@ struct DistribSess final : public iDistribSess
 			auto status = clients_[peer_id]->lookup_node(req, res);
 			if (false == status.ok())
 			{
-				err = std::make_shared<err::ErrMsg>(
-					"grpc status not ok: %s ()",
+				err = error::errorf("grpc status not ok: %s ()",
 					status.error_message().c_str());
 				return nullptr;
 			}
 			if (res.values().empty())
 			{
-				err = std::make_shared<err::ErrMsg>(
-					"no result found in received peer '%s'", peer_id.c_str());
+				err = error::errorf("no result found in received peer '%s'",
+					peer_id.c_str());
 				return nullptr;
 			}
 			auto node = res.values().at(0);

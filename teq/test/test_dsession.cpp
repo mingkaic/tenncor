@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "exam/exam.hpp"
+#include "testutil/tutil.hpp"
 
 #include "teq/mock/leaf.hpp"
 #include "teq/mock/functor.hpp"
@@ -73,7 +73,7 @@ TEST(DYNAMIC_SESSION, Update)
 
 	teq::Session session;
 	session.track({target});
-	session.update(mdevice);
+	session.update_target(mdevice, {target.get()});
 
 	// expected state:
 	// * (target) = updated
@@ -114,7 +114,7 @@ TEST(DYNAMIC_SESSION, UpdateIgnore)
 
 	teq::Session session;
 	session.track({target});
-	session.update(mdevice, {y.get()});
+	session.update_target(mdevice, {target.get()}, {y.get()});
 
 	// expected state:
 	// - (target) = updated
@@ -131,7 +131,7 @@ TEST(DYNAMIC_SESSION, UpdateIgnore)
 
 	target->data_.ref_.updated_ = x->data_.ref_.updated_ = y->data_.ref_.updated_ = false;
 
-	session.update(mdevice, {x.get()});
+	session.update_target(mdevice, {target.get()}, {x.get()});
 
 	// expected state:
 	// - (target) = updated
@@ -178,7 +178,7 @@ TEST(DYNAMIC_SESSION, UpdateIgnoreCommonDesc)
 
 	teq::Session session;
 	session.track({target});
-	session.update(mdevice, {y.get()});
+	session.update_target(mdevice, {target.get()}, {y.get()});
 
 	// expected state:
 	// - (target) = updated
@@ -360,9 +360,10 @@ TEST(DYNAMIC_SESSION, Clear)
 	EXPECT_EQ(1, session.ops_[2].size());
 	EXPECT_EQ(1, session.ops_[3].size());
 	session.clear();
-	EXPECT_EQ(0, session.ops_.size());
-	session.update(mdevice);
 
+	EXPECT_EQ(0, session.ops_.size());
+	auto err = session.update_target(mdevice, {target.get()});
+	EXPECT_ERR(err, "not all targets are tracked");
 	EXPECT_FALSE(target->data_.ref_.updated_);
 	EXPECT_FALSE(z->data_.ref_.updated_);
 	EXPECT_FALSE(y->data_.ref_.updated_);

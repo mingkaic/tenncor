@@ -122,7 +122,7 @@ TEST(SESSION, Update)
 
 	ccur::Session sess(4);
 	sess.track({dw0, db0, dw1, db1});
-	sess.update();
+	sess.update_target({dw0, db0, dw1, db1});
 
 	std::vector<double> expect_gw0 = {
 		0.0027019915285570115, 0.0049524065585107684, 0.0025163812594914499,

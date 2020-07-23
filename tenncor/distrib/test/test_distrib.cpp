@@ -3,7 +3,7 @@
 
 #include <cstdlib>
 
-#include "gtest/gtest.h"
+#include "testutil/tutil.hpp"
 
 #include "exam/exam.hpp"
 
@@ -66,26 +66,6 @@ protected:
 };
 
 
-#define ASSERT_NOERR(err){\
-	std::string err_msg;\
-	if (nullptr != err)\
-	{\
-		err_msg = err->to_string();\
-	}\
-	ASSERT_STREQ("", err_msg.c_str());\
-}
-
-
-#define EXPECT_ERR(err, msg){\
-	std::string err_msg;\
-	if (nullptr != err)\
-	{\
-		err_msg = err->to_string();\
-	}\
-	ASSERT_STREQ(msg, err_msg.c_str());\
-}
-
-
 TEST_F(DISTRIB, SharingNodes)
 {
 	{
@@ -126,7 +106,7 @@ TEST_F(DISTRIB, SharingNodes)
 
 		eteq::ETensor<double> src3 =
 			eteq::make_constant<double>(data3.data(), shape);
-		err::ErrptrT err = nullptr;
+		error::ErrptrT err = nullptr;
 		auto ref = tcr::try_lookup_node<double>(err, id);
 		ASSERT_NOERR(err);
 		ASSERT_NE(nullptr, ref);
@@ -189,7 +169,7 @@ TEST_F(DISTRIB, DataPassing)
 
 		eteq::ETensor<double> src3 =
 			eteq::make_constant<double>(data3.data(), shape);
-		err::ErrptrT err = nullptr;
+		error::ErrptrT err = nullptr;
 		auto ref = tcr::try_lookup_node<double>(err, id);
 		std::string err_msg;
 		if (nullptr != err)
@@ -269,7 +249,7 @@ TEST_F(DISTRIB, DISABLED_RemoteDeriving)
 		distr::DSessptrT sess2 = make_sess(5113, "sess2");
 		eteq::global_context()->sess_ = sess2;
 
-		err::ErrptrT err = nullptr;
+		error::ErrptrT err = nullptr;
 		eteq::ETensor<double> root_ref = tcr::try_lookup_node<double>(err, root_id);
 		ASSERT_NOERR(err);
 		eteq::ETensor<double> base_ref = tcr::try_lookup_node<double>(err, base_id);

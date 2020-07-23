@@ -2,7 +2,7 @@
 #ifndef DISABLE_API_TEST
 
 
-#include "gtest/gtest.h"
+#include "testutil/tutil.hpp"
 
 #include "exam/exam.hpp"
 
@@ -157,8 +157,8 @@ static void unary_generic (UnaryOpF<double> op,
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
 	session.track({gsrc[0]});
-	session.update(device);
-	session.update(device); // idempotency check
+	session.update_target(device, {gsrc[0].get()});
+	session.update_target(device, {gsrc[0].get()}); // idempotency check
 
 	auto gotshape = gsrc[0]->shape();
 	ASSERT_ARREQ(shape, gotshape);
@@ -185,8 +185,10 @@ static void unar_elem (std::vector<double> data,
 	{
 		teq::Session op_sess;
 		op_sess.track({dest});
-		op_sess.update(device);
-		op_sess.update(device); // idempotency check
+		auto err = op_sess.update_target(device, {dest.get()});
+		ASSERT_NOERR(err);
+		err = op_sess.update_target(device, {dest.get()}); // idempotency check
+		ASSERT_NOERR(err);
 	}
 	{
 		auto gotshape = dest->shape();
@@ -204,8 +206,12 @@ static void unar_elem (std::vector<double> data,
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
 	session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT targets;
+	std::transform(gsrc.begin(), gsrc.end(),
+		std::inserter(targets, targets.end()),
+		[](eteq::ETensor<double>& g) { return g.get(); });
+	session.update_target(device, targets);
+	session.update_target(device, targets); // idempotency check
 	{
 		auto gotshape = gsrc[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -259,8 +265,10 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 
 	teq::Session session;
 	session.track({dest});
-	session.update(device);
-	session.update(device); // idempotency check
+	auto err = session.update_target(device, {dest.get()});
+	ASSERT_NOERR(err);
+	err = session.update_target(device, {dest.get()}); // idempotency check
+	ASSERT_NOERR(err);
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -272,8 +280,10 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	}
 
 	session.track({clhs, crhs});
-	session.update(device);
-	session.update(device); // idempotency check
+	err = session.update_target(device, {clhs.get(), crhs.get()});
+	ASSERT_NOERR(err);
+	err = session.update_target(device, {clhs.get(), crhs.get()}); // idempotency check
+	ASSERT_NOERR(err);
 	{
 		auto gotshape = clhs->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -298,8 +308,8 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track({gsame.front()});
-	session.update(device);
-	session.update(device); // idempotency check
+	session.update_target(device, {gsame.front().get()});
+	session.update_target(device, {gsame.front().get()}); // idempotency check
 	{
 		auto gotshape = gsame[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -314,8 +324,8 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track({gleft.front()});
-	session.update(device);
-	session.update(device); // idempotency check
+	session.update_target(device, {gleft.front().get()});
+	session.update_target(device, {gleft.front().get()}); // idempotency check
 	{
 		auto gotshape = gleft[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -330,8 +340,8 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track({gright.front()});
-	session.update(device);
-	session.update(device); // idempotency check
+	session.update_target(device, {gright.front().get()});
+	session.update_target(device, {gright.front().get()}); // idempotency check
 	{
 		auto gotshape = gright[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -399,8 +409,10 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 
 	teq::Session session;
 	session.track({dest});
-	session.update(device);
-	session.update(device); // idempotency check
+	auto err = session.update_target(device, {dest.get()});
+	ASSERT_NOERR(err);
+	err = session.update_target(device, {dest.get()}); // idempotency check
+	ASSERT_NOERR(err);
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -412,8 +424,10 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	}
 
 	session.track({clhs, crhs});
-	session.update(device);
-	session.update(device); // idempotency check
+	err = session.update_target(device, {clhs.get(), crhs.get()});
+	ASSERT_NOERR(err);
+	err = session.update_target(device, {clhs.get(), crhs.get()}); // idempotency check
+	ASSERT_NOERR(err);
 	{
 		auto gotshape = clhs->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -438,8 +452,8 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track({gsame.front()});
-	session.update(device);
-	session.update(device); // idempotency check
+	session.update_target(device, {gsame.front().get()});
+	session.update_target(device, {gsame.front().get()}); // idempotency check
 	{
 		auto gotshape = gsame[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -454,8 +468,8 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track({gleft.front()});
-	session.update(device);
-	session.update(device); // idempotency check
+	session.update_target(device, {gleft.front().get()});
+	session.update_target(device, {gleft.front().get()}); // idempotency check
 	{
 		auto gotshape = gleft[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -470,8 +484,8 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track({gright.front()});
-	session.update(device);
-	session.update(device); // idempotency check
+	session.update_target(device, {gright.front().get()});
+	session.update_target(device, {gright.front().get()}); // idempotency check
 	{
 		auto gotshape = gright[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -539,8 +553,10 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 	teq::Session session;
 
 	session.track({dest});
-	session.update(device);
-	session.update(device); // idempotency check
+	auto err = session.update_target(device, {dest.get()});
+	ASSERT_NOERR(err);
+	err = session.update_target(device, {dest.get()}); // idempotency check
+	ASSERT_NOERR(err);
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -558,8 +574,12 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 		ASSERT_EQ(1, gsrc.size());
 		ASSERT_NE(nullptr, gsrc.front());
 		session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
-		session.update(device);
-		session.update(device); // idempotency check
+		teq::TensSetT targets;
+		std::transform(gsrc.begin(), gsrc.end(),
+			std::inserter(targets, targets.end()),
+			[](eteq::ETensor<double>& g) { return g.get(); });
+		session.update_target(device, targets);
+		session.update_target(device, targets); // idempotency check
 		{
 			auto gotshape = gsrc[0]->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -617,8 +637,10 @@ TEST(API, Assign)
 
 	teq::Session session;
 	session.track({ass2});
-	session.update(device);
-	session.update(device); // idempotency check
+	auto err = session.update_target(device, {ass2.get()});
+	ASSERT_NOERR(err);
+	err = session.update_target(device, {ass2.get()}); // idempotency check
+	ASSERT_NOERR(err);
 	{
 		auto gotshape = target2->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -674,7 +696,8 @@ TEST(API, Depends)
 
 	teq::Session session;
 	session.track({ass});
-	session.update(device);
+	auto err = session.update_target(device, {ass.get()});
+	ASSERT_NOERR(err);
 	{
 		auto gotshape = target->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -731,7 +754,8 @@ TEST(API, DependsRunOnce)
 
 	teq::Session session;
 	session.track({ass});
-	session.update(device);
+	auto err = session.update_target(device, {ass.get()});
+	ASSERT_NOERR(err);
 	{
 		auto gotshape = target->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -1144,8 +1168,14 @@ TEST(API, Select)
 		ASSERT_EQ(1, gleft.size());
 		ASSERT_NE(nullptr, gleft.front());
 		session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
-		session.update(device);
-		session.update(device); // idempotency check
+		teq::TensSetT ltargets;
+		std::transform(gleft.begin(), gleft.end(),
+			std::inserter(ltargets, ltargets.end()),
+			[](eteq::ETensor<double>& g) { return g.get(); });
+		auto err = session.update_target(device, ltargets);
+		ASSERT_NOERR(err);
+		err = session.update_target(device, ltargets); // idempotency check
+		ASSERT_NOERR(err);
 		{
 			auto gotshape = gleft[0]->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -1160,8 +1190,14 @@ TEST(API, Select)
 		ASSERT_EQ(1, gright.size());
 		ASSERT_NE(nullptr, gright.front());
 		session.track(teq::TensptrSetT(gright.begin(), gright.end()));
-		session.update(device);
-		session.update(device); // idempotency check
+		teq::TensSetT rtargets;
+		std::transform(gright.begin(), gright.end(),
+			std::inserter(rtargets, rtargets.end()),
+			[](eteq::ETensor<double>& g) { return g.get(); });
+		err = session.update_target(device, rtargets);
+		ASSERT_NOERR(err);
+		err = session.update_target(device, rtargets); // idempotency check
+		ASSERT_NOERR(err);
 		{
 			auto gotshape = gright[0]->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -1223,8 +1259,14 @@ TEST(API, Slice)
 	teq::Session session;
 	eteq::ETensorsT<double> g = tcr::derive(dest, {src});
 	session.track(teq::TensptrSetT(g.begin(), g.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT targets;
+	std::transform(g.begin(), g.end(),
+		std::inserter(targets, targets.end()),
+		[](eteq::ETensor<double>& g) { return g.get(); });
+	auto err = session.update_target(device, targets);
+	ASSERT_NOERR(err);
+	err = session.update_target(device, targets); // idempotency check
+	ASSERT_NOERR(err);
 	auto gotshape2 = g[0]->shape();
 	ASSERT_ARREQ(shape, gotshape2);
 	double* goptr = (double*) g[0]->device().data();
@@ -1522,8 +1564,10 @@ TEST(API, Rprod)
 	ASSERT_NE(nullptr, gsrc);
 	ASSERT_NE(nullptr, gsrc2);
 	session.track({gsrc, gsrc2});
-	session.update(device);
-	session.update(device); // idempotency check
+	auto err = session.update_target(device, {gsrc.get(), gsrc2.get()});
+	ASSERT_NOERR(err);
+	err = session.update_target(device, {gsrc.get(), gsrc2.get()}); // idempotency check
+	ASSERT_NOERR(err);
 
 	auto gotshape = gsrc->shape();
 	ASSERT_ARREQ(shape, gotshape);
@@ -1775,8 +1819,14 @@ TEST(API, Permute)
 		tset.emplace(g.get());
 	}
 	session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT targets;
+	std::transform(gsrc.begin(), gsrc.end(),
+		std::inserter(targets, targets.end()),
+		[](eteq::ETensor<double>& g) { return g.get(); });
+	auto err = session.update_target(device, targets);
+	ASSERT_NOERR(err);
+	err = session.update_target(device, targets); // idempotency check
+	ASSERT_NOERR(err);
 	{
 		auto gotshape = gsrc[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -1828,8 +1878,14 @@ TEST(API, Extend)
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());
 	session.track(teq::TensptrSetT(gsrc.begin(), gsrc.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT targets;
+	std::transform(gsrc.begin(), gsrc.end(),
+		std::inserter(targets, targets.end()),
+		[](eteq::ETensor<double>& g) { return g.get(); });
+	auto err = session.update_target(device, targets);
+	ASSERT_NOERR(err);
+	err = session.update_target(device, targets); // idempotency check
+	ASSERT_NOERR(err);
 	{
 		auto gotshape = gsrc[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -1903,8 +1959,14 @@ TEST(API, Matmul)
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track(teq::TensptrSetT(gsame.begin(), gsame.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT targets;
+	std::transform(gsame.begin(), gsame.end(),
+		std::inserter(targets, targets.end()),
+		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	auto err = session.update_target(device, targets);
+	ASSERT_NOERR(err);
+	err = session.update_target(device, targets); // idempotency check
+	ASSERT_NOERR(err);
 	teq::Shape gcshape = gsame[0]->shape();
 	ASSERT_ARREQ(cshape, gcshape);
 
@@ -1912,8 +1974,14 @@ TEST(API, Matmul)
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT ltargets;
+	std::transform(gleft.begin(), gleft.end(),
+		std::inserter(ltargets, ltargets.end()),
+		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	err = session.update_target(device, ltargets);
+	ASSERT_NOERR(err);
+	err = session.update_target(device, ltargets); // idempotency check
+	ASSERT_NOERR(err);
 	teq::Shape gashape = gleft[0]->shape();
 	{
 		ASSERT_ARREQ(ashape, gashape);
@@ -1927,8 +1995,14 @@ TEST(API, Matmul)
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT rtargets;
+	std::transform(gright.begin(), gright.end(),
+		std::inserter(rtargets, rtargets.end()),
+		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	err = session.update_target(device, rtargets);
+	ASSERT_NOERR(err);
+	err = session.update_target(device, rtargets); // idempotency check
+	ASSERT_NOERR(err);
 	teq::Shape gbshape = gright[0]->shape();
 	{
 		ASSERT_ARREQ(bshape, gbshape);
@@ -2002,8 +2076,14 @@ TEST(API, Contract)
 	ASSERT_EQ(1, gsame.size());
 	ASSERT_NE(nullptr, gsame.front());
 	session.track(teq::TensptrSetT(gsame.begin(), gsame.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT targets;
+	std::transform(gsame.begin(), gsame.end(),
+		std::inserter(targets, targets.end()),
+		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	auto err = session.update_target(device, targets);
+	ASSERT_NOERR(err);
+	err = session.update_target(device, targets); // idempotency check
+	ASSERT_NOERR(err);
 	teq::Shape gcshape = gsame[0]->shape();
 	ASSERT_ARREQ(cshape, gcshape);
 
@@ -2011,8 +2091,14 @@ TEST(API, Contract)
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT ltargets;
+	std::transform(gleft.begin(), gleft.end(),
+		std::inserter(ltargets, ltargets.end()),
+		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	err = session.update_target(device, ltargets);
+	ASSERT_NOERR(err);
+	err = session.update_target(device, ltargets); // idempotency check
+	ASSERT_NOERR(err);
 	teq::Shape gashape = gleft[0]->shape();
 	{
 		ASSERT_ARREQ(ashape, gashape);
@@ -2026,8 +2112,14 @@ TEST(API, Contract)
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT rtargets;
+	std::transform(gright.begin(), gright.end(),
+		std::inserter(rtargets, rtargets.end()),
+		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	err = session.update_target(device, rtargets);
+	ASSERT_NOERR(err);
+	err = session.update_target(device, rtargets); // idempotency check
+	ASSERT_NOERR(err);
 	teq::Shape gbshape = gright[0]->shape();
 	{
 		ASSERT_ARREQ(bshape, gbshape);
@@ -2072,8 +2164,12 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	ASSERT_EQ(1, gleft.size());
 	ASSERT_NE(nullptr, gleft.front());
 	session.track(teq::TensptrSetT(gleft.begin(), gleft.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT ltargets;
+	std::transform(gleft.begin(), gleft.end(),
+		std::inserter(ltargets, ltargets.end()),
+		[](eteq::ETensor<double>& g) { return g.get(); });
+	session.update_target(device, ltargets);
+	session.update_target(device, ltargets); // idempotency check
 	{
 		auto gotshape = gleft[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -2085,8 +2181,12 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	ASSERT_EQ(1, gright.size());
 	ASSERT_NE(nullptr, gright.front());
 	session.track(teq::TensptrSetT(gright.begin(), gright.end()));
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT rtargets;
+	std::transform(gright.begin(), gright.end(),
+		std::inserter(rtargets, rtargets.end()),
+		[](eteq::ETensor<double>& g) { return g.get(); });
+	session.update_target(device, rtargets);
+	session.update_target(device, rtargets); // idempotency check
 	{
 		auto gotshape = gright[0]->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -2191,8 +2291,14 @@ TEST(API, Convolution)
 	ASSERT_NE(nullptr, gleft.front());
 	ASSERT_NE(nullptr, gleft[0].get());
 	session.track({gleft[0]});
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT ltargets;
+	std::transform(gleft.begin(), gleft.end(),
+		std::inserter(ltargets, ltargets.end()),
+		[](eteq::ETensor<double>& g) { return g.get(); });
+	auto err = session.update_target(device, ltargets);
+	ASSERT_NOERR(err);
+	err = session.update_target(device, ltargets); // idempotency check
+	ASSERT_NOERR(err);
 	{
 		auto gashape = gleft[0]->shape();
 		ASSERT_ARREQ(shape, gashape);
@@ -2206,8 +2312,14 @@ TEST(API, Convolution)
 	ASSERT_NE(nullptr, gright.front());
 	ASSERT_NE(nullptr, gright[0].get());
 	session.track({gright[0]});
-	session.update(device);
-	session.update(device); // idempotency check
+	teq::TensSetT rtargets;
+	std::transform(gright.begin(), gright.end(),
+		std::inserter(rtargets, rtargets.end()),
+		[](eteq::ETensor<double>& g) { return g.get(); });
+	err = session.update_target(device, rtargets);
+	ASSERT_NOERR(err);
+	err = session.update_target(device, rtargets); // idempotency check
+	ASSERT_NOERR(err);
 	{
 		auto gbshape = gright[0]->shape();
 		ASSERT_ARREQ(kshape, gbshape);

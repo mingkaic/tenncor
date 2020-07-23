@@ -10,6 +10,8 @@
 #include <cassert>
 #include <list>
 
+#include "error/error.hpp"
+
 #include "teq/traveler.hpp"
 
 #ifndef TEQ_ISESSION_HPP
@@ -33,16 +35,12 @@ struct iSession
 	/// Record subgraphs of roots
 	virtual void track (const TensptrSetT& roots) = 0;
 
-	/// Update every node under the subgraph except
-	/// for the subgraphs of ignored
-	/// this function is expected to be called repeatedly during runtime
-	virtual void update (iDevice& device, const TensSetT& ignored = {}) = 0;
-
 	/// Update every node under the target roots that are expected to be
 	/// under the tracked subgraphs ignoring the subgraphs of ignored
 	/// this function is expected to be called repeatedly during runtime
-	virtual void update_target (iDevice& device,
-		const TensSetT& target,
+	virtual error::ErrptrT update_target (
+		iDevice& device,
+		const TensSetT& targets,
 		const TensSetT& ignored = {}) = 0;
 
 	/// Clear all tracked root and subgraph information
@@ -70,7 +68,6 @@ struct Session : public iSession
 			{
 				if (auto f = dynamic_cast<iFunctor*>(root.get()))
 				{
-					roots_.emplace(root);
 					funcs.push_back(f);
 					auto children = f->get_dependencies();
 					for (auto child : children)
@@ -95,7 +92,6 @@ struct Session : public iSession
 				size_t height = estd::try_get(
 					opheight_, child.get(), 0);
 				maxheight = std::max(height, maxheight);
-				roots_.erase(child);
 			}
 			maxheight += 1;
 			if (maxheight > ops_.size())
@@ -108,21 +104,21 @@ struct Session : public iSession
 	}
 
 	/// Implementation of iSession
-	void update (iDevice& device, const TensSetT& ignored = {}) override
-	{
-		TensSetT rtens;
-		rtens.reserve(roots_.size());
-		std::transform(roots_.begin(), roots_.end(),
-			std::inserter(rtens, rtens.end()),
-			[](TensptrT tens) { return tens.get(); });
-		update_target(device, rtens, ignored);
-	}
-
-	/// Implementation of iSession
-	void update_target (iDevice& device,
-		const TensSetT& target,
+	error::ErrptrT update_target (
+		iDevice& device,
+		const TensSetT& targets,
 		const TensSetT& ignored = {}) override
 	{
+		// check all targets are in tracked opheight_
+		if (false == std::all_of(targets.begin(), targets.end(),
+			[this](iTensor* target)
+			{
+				return estd::has(opheight_, target);
+			}))
+		{
+			return error::error("not all targets are tracked");
+		}
+
 		FuncListT reqs;
 		TensSetT nexts;
 		std::unordered_set<iDeviceRef*> devices;
@@ -133,7 +129,7 @@ struct Session : public iSession
 			auto& fops = *rit;
 			for (auto& op : fops)
 			{
-				if ((estd::has(nexts, op) || estd::has(target, op)) &&
+				if ((estd::has(nexts, op) || estd::has(targets, op)) &&
 					false == estd::has(ignored, op))
 				{
 					iDeviceRef* ref = &op->device();
@@ -155,6 +151,7 @@ struct Session : public iSession
 			device.calc(*op);
 		}
 		process_reqs(reqs);
+		return nullptr;
 	}
 
 	/// Implementation of iSession
@@ -169,8 +166,6 @@ struct Session : public iSession
 
 protected:
 	virtual void process_reqs (FuncListT& reqs) {}
-
-	TensptrSetT roots_; // only needed for update
 
 private:
 	TensMapT<size_t> opheight_;

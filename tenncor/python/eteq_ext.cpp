@@ -187,21 +187,6 @@ void eteq_ext (py::module& m)
 		{
 			self.track(teq::TensptrSetT(roots.begin(), roots.end()));
 		})
-		.def("update",
-		[](teq::iSession& self, size_t max_version,
-			std::vector<pytenncor::ETensT> ignored)
-		{
-			teq::TensSetT ignored_set;
-			for (pytenncor::ETensT& etens : ignored)
-			{
-				ignored_set.emplace(etens.get());
-			}
-			eigen::Device device(max_version);
-			self.update(device, ignored_set);
-		},
-		"Calculate every etens in the graph given list of nodes to ignore",
-		py::arg("max_version") = std::numeric_limits<size_t>::max(),
-		py::arg("ignored") = std::vector<pytenncor::ETensT>{})
 		.def("update_target",
 		[](teq::iSession& self, std::vector<pytenncor::ETensT> targeted,
 			size_t max_version, std::vector<pytenncor::ETensT> ignored)

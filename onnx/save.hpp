@@ -24,6 +24,9 @@ struct iMarshFuncs
 		TensorProto& pb_tens, const teq::iLeaf& leaf) const = 0;
 };
 
+void save_graph (GraphProto& pb_graph, teq::TensT roots,
+	const iMarshFuncs& marshaler, const TensIdT& identified = {});
+
 void save_graph (GraphProto& pb_graph, teq::TensptrsT roots,
 	const iMarshFuncs& marshaler, const TensIdT& identified = {});
 

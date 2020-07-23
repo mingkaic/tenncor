@@ -32,7 +32,8 @@ struct Emitter final : public dbg::iPlugin
 	/// UUID random generator
 	static boost::uuids::random_generator uuid_gen_;
 
-	void process (const teq::TensptrSetT& tracks,
+	void process (
+		const std::vector<teq::FuncSetT>& tracks,
 		teq::FuncListT& funcs) override
 	{
 		jobs::ScopeGuard defer([this] { ++this->update_it_; });
@@ -55,12 +56,15 @@ struct Emitter final : public dbg::iPlugin
 		update_model(funcs);
 	}
 
-	bool check_diff (const teq::TensptrSetT& tracks)
+	bool check_diff (const std::vector<teq::FuncSetT>& tracks)
 	{
 		teq::GraphStat tmp_stat;
-		for (auto root : tracks)
+		for (auto& funcs : tracks) // we still use stat because tracks is missing leaves (todo: optimize)
 		{
-			root->accept(tmp_stat);
+			for (auto& func : funcs)
+			{
+				func->accept(tmp_stat);
+			}
 		}
 		if (tmp_stat.graphsize_.size() != stat_.graphsize_.size())
 		{
@@ -79,18 +83,22 @@ struct Emitter final : public dbg::iPlugin
 	}
 
 	/// Send create graph request
-	void create_model (const teq::TensptrSetT& tracks)
+	void create_model (const std::vector<teq::FuncSetT>& tracks)
 	{
-		for (auto root : tracks)
+		teq::TensT tens;
+		for (auto& funcs : tracks)
 		{
-			root->accept(stat_);
+			for (auto& func : funcs)
+			{
+				func->accept(stat_);
+				tens.push_back(func);
+			}
 		}
 
 		gemitter::CreateModelRequest request;
 		auto payload = request.mutable_payload();
 		payload->set_model_id(sess_id_);
-		eteq::save_model(*payload->mutable_model(),
-			teq::TensptrsT(tracks.begin(), tracks.end()));
+		eteq::save_model(*payload->mutable_model(), tens);
 		onnx::TensptrIdT fullids;
 		eteq::load_model(fullids, payload->model());
 		for (auto fullid : fullids)

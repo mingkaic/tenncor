@@ -303,7 +303,8 @@ TEST(CONNECT, TanhRNN)
 
 	teq::Session session;
 	session.track({dw, db, dstate});
-	session.update(device);
+	session.update_target(device,
+		{dw.get(), db.get(), dstate.get()});
 
 	teq::Shape weight_shape({hidden_dim, (teq::DimT) (indim + hidden_dim)});
 	teq::Shape bias_shape({hidden_dim});
@@ -460,7 +461,8 @@ TEST(CONNECT, DenseTanhRNN)
 
 	teq::Session session;
 	session.track({dw1, db1, dstate, dw0, db0});
-	session.update(device);
+	session.update_target(device,
+		{dw1.get(), db1.get(), dstate.get(), dw0.get(), db0.get()});
 
 	teq::Shape weight0_shape({hidden_dim, indim});
 	teq::Shape bias0_shape({hidden_dim});
@@ -685,7 +687,11 @@ TEST(CONNECT, TanhRNNFull)
 
 	teq::Session session;
 	session.track(teq::TensptrSetT(ders.begin(), ders.end()));
-	session.update(device);
+	teq::TensSetT targs;
+	std::transform(ders.begin(), ders.end(),
+		std::inserter(targs, targs.end()),
+		[](teq::TensptrT der) { return der.get(); });
+	session.update_target(device, targs);
 
 	{
 		auto gotshape = dw0->shape();
@@ -927,7 +933,11 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 
 	teq::Session session;
 	session.track(teq::TensptrSetT(ders.begin(), ders.end()));
-	session.update(device);
+	teq::TensSetT targs;
+	std::transform(ders.begin(), ders.end(),
+		std::inserter(targs, targs.end()),
+		[](teq::TensptrT der) { return der.get(); });
+	session.update_target(device, targs);
 
 	{
 		auto gotshape = dw0->shape();

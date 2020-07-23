@@ -199,11 +199,11 @@ private:
 
 boost::uuids::random_generator OnnxMarshaler::uuid_gen_;
 
-void save_graph (GraphProto& pb_graph, teq::TensptrsT roots,
+void save_graph (GraphProto& pb_graph, teq::TensT roots,
 	const iMarshFuncs& marshaler, const TensIdT& identified)
 {
 	OnnxMarshaler marshal(pb_graph, identified, marshaler);
-	for (teq::TensptrT root : roots)
+	for (teq::iTensor* root : roots)
 	{
 		if (nullptr != root)
 		{
@@ -211,7 +211,8 @@ void save_graph (GraphProto& pb_graph, teq::TensptrsT roots,
 		}
 	}
 
-	std::vector<const teq::iTensor*> rtens(marshal.roots_.begin(), marshal.roots_.end());
+	std::vector<const teq::iTensor*> rtens(
+		marshal.roots_.begin(), marshal.roots_.end());
 	std::sort(rtens.begin(), rtens.end(),
 		[&marshal](const teq::iTensor* a, const teq::iTensor* b)
 		{
@@ -223,6 +224,16 @@ void save_graph (GraphProto& pb_graph, teq::TensptrsT roots,
 		pb_output->set_name(marshal.tens_.at(root));
 		marshal_io(*pb_output, root->shape());
 	}
+}
+
+void save_graph (GraphProto& pb_graph, teq::TensptrsT roots,
+	const iMarshFuncs& marshaler, const TensIdT& identified)
+{
+	teq::TensT rootraws;
+	rootraws.reserve(roots.size());
+	std::transform(roots.begin(), roots.end(), std::back_inserter(rootraws),
+		[](teq::TensptrT root) { return root.get(); });
+	save_graph(pb_graph, rootraws, marshaler, identified);
 }
 
 }

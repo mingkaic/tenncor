@@ -24,21 +24,21 @@ teq::TensMapT<teq::TensptrT> distrib_derive (
 	const distr::DRefptrSetT& refs);
 
 template <typename T>
-std::string try_lookup_id (err::ErrptrT& err, eteq::ETensor<T> etens)
+std::string try_lookup_id (error::ErrptrT& err, eteq::ETensor<T> etens)
 {
 	auto ctx = etens.get_context();
 	auto sess = get_distrsess(ctx);
 	if (nullptr == sess)
 	{
-		err = std::make_shared<err::ErrMsg>(
+		err = error::error(
 			"cannot only find reference ids using iDistribSess");
 		return "";
 	}
 	auto opt_id = sess->lookup_id(etens);
 	if (false == bool(opt_id))
 	{
-		err = std::make_shared<err::ErrMsg>(fmts::sprintf(
-			"failed to find tensor %s", etens->to_string().c_str()));
+		err = error::errorf("failed to find tensor %s",
+			etens->to_string().c_str());
 		return "";
 	}
 	return *opt_id;
@@ -47,7 +47,7 @@ std::string try_lookup_id (err::ErrptrT& err, eteq::ETensor<T> etens)
 template <typename T>
 std::string lookup_id (eteq::ETensor<T> etens)
 {
-	err::ErrptrT err = nullptr;
+	error::ErrptrT err = nullptr;
 	auto out = try_lookup_id(err, etens);
 	if (nullptr != err)
 	{
@@ -58,13 +58,13 @@ std::string lookup_id (eteq::ETensor<T> etens)
 
 template <typename T>
 eteq::ETensor<T> try_lookup_node (
-	err::ErrptrT& err, const std::string& id,
+	error::ErrptrT& err, const std::string& id,
 	eteq::ECtxptrT ctx = eteq::global_context())
 {
 	auto sess = get_distrsess(ctx);
 	if (nullptr == sess)
 	{
-		err = std::make_shared<err::ErrMsg>(
+		err = error::error(
 			"cannot only find references using iDistribSess");
 		return eteq::ETensor<T>();
 	}
@@ -75,7 +75,7 @@ template <typename T>
 eteq::ETensor<T> lookup_node (const std::string& id,
 	eteq::ECtxptrT ctx = eteq::global_context())
 {
-	err::ErrptrT err = nullptr;
+	error::ErrptrT err = nullptr;
 	auto out = try_lookup_node<T>(err, id, ctx);
 	if (nullptr != err)
 	{

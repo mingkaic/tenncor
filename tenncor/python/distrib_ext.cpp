@@ -37,7 +37,7 @@ void distrib_ext (py::module& m)
 		[](distr::iDistribSess& self,
 			const std::string& id, bool recursive)
 		{
-			err::ErrptrT err = nullptr;
+			error::ErrptrT err = nullptr;
 			teq::TensptrT node = self.lookup_node(err, id, recursive);
 			if (nullptr != err)
 			{
