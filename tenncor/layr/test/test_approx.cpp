@@ -186,9 +186,8 @@ TEST(APPROX, Adadelta)
 		groups.begin()->second);
 
 	// evaluating execution order
-	teq::Session sess;
-	sess.track(teq::TensptrSetT{groups.begin()->second});
-	sess.update_target(device, {groups.begin()->second.get()});
+	teq::Evaluator eval;
+	eval.evaluate(device, {groups.begin()->second.get()});
 
 	eteq::Variable<PybindT>* g;
 	{
@@ -333,9 +332,8 @@ TEST(APPROX, RmsMomentum)
 		groups[0].second);
 
 	// evaluating execution order
-	teq::Session sess;
-	sess.track(teq::TensptrSetT{groups[0].second});
-	sess.update_target(device, {groups[0].second.get()});
+	teq::Evaluator eval;
+	eval.evaluate(device, {groups[0].second.get()});
 
 	eteq::Variable<PybindT>* momentum;
 	{

@@ -27,7 +27,6 @@ struct ETensor
 		{
 			registry_ = &ctx->registry_;
 			registry_->emplace(this, tens);
-			ctx->sess_->track({tens});
 		}
 	}
 
@@ -121,7 +120,7 @@ struct ETensor
 		{
 			auto tens = get();
 			eigen::Device device(max_version);
-			ctx->sess_->update_target(device, {tens});
+			ctx->eval_->evaluate(device, {tens});
 			return (T*) tens->device().data();
 		}
 		return nullptr;

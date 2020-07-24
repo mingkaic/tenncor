@@ -82,7 +82,6 @@ struct DBNTrainer final
 			to_track.emplace(rcost);
 		}
 		to_track.emplace(sample_pipes_.back());
-		pretrain_sess_.track(to_track);
 
 		// logistic layer training
 		// todo: improve this adhoc way of training log layer
@@ -117,11 +116,6 @@ struct DBNTrainer final
 		tcost_ = -api.reduce_mean(
 			api.reduce_sum_1d(trainy_ * api.log(final_out) +
 			((T) 1 - trainy_) * api.log((T) 1 - final_out), 0));
-		train_sess_.track({
-			(teq::TensptrT) sample_pipes_.back(),
-			(teq::TensptrT) tupdate_,
-			(teq::TensptrT) tcost_,
-		});
 	}
 
 	void pretrain (teq::ShapedArr<T>& train_in, size_t nepochs = 100,
@@ -131,6 +125,7 @@ struct DBNTrainer final
 		trainx_->assign(train_in, context_);
 
 		eigen::Device device;
+		teq::Evaluator eval;
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			// train rbm layers (reconstruction) setup
@@ -140,7 +135,7 @@ struct DBNTrainer final
 			for (size_t epoch = 0; epoch < nepochs; ++epoch)
 			{
 				// train rbm layers (reconstruction)
-				pretrain_sess_.update_target(device, updates, {to_ignore});
+				eval.evaluate(device, updates, {to_ignore});
 				if (logger)
 				{
 					logger(epoch, i);
@@ -149,7 +144,7 @@ struct DBNTrainer final
 
 			if (i < nlayers_ - 1)
 			{
-				pretrain_sess_.update_target(device,
+				eval.evaluate(device,
 					{sample_pipes_[i + 1].get()}, {to_ignore});
 			}
 		}
@@ -164,15 +159,15 @@ struct DBNTrainer final
 
 		eigen::Device device;
 		// assert len(self.sample_pipes) > 1, since self.n_layers > 0
-		auto to_ignore = sample_pipes_.back().get();
+		auto to_ignore = sample_pipes_.back();
 		auto prev_ignore = sample_pipes_[nlayers_ - 1].get();
 		assert(static_cast<eteq::Functor<T>*>(prev_ignore)->has_data());
-		train_sess_.update_target(device, {to_ignore}, {prev_ignore});
+		to_ignore.calc({prev_ignore});
 
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)
 		{
 			// train log layer
-			train_sess_.update_target(device, {tupdate_.get()}, {to_ignore});
+			tupdate_.calc({to_ignore.get()});
 			if (logger)
 			{
 				logger(epoch);
@@ -182,19 +177,13 @@ struct DBNTrainer final
 
 	T reconstruction_cost (size_t layer)
 	{
-		eigen::Device device;
-		auto rcost = rcosts_[layer];
-		pretrain_sess_.update_target(device,
-			{rcost.get()}, {sample_pipes_[layer].get()});
-		return *((T*) rcost->device().data());
+		auto& rcost = rcosts_[layer];
+		return *rcost.calc();
 	}
 
 	T training_cost (void)
 	{
-		eigen::Device device;
-		train_sess_.update_target(device,
-			{tcost_.get()}, {sample_pipes_.back().get()});
-		return *((T*) tcost_->device().data());
+		return *tcost_.calc();
 	}
 
 	size_t nlayers_;
@@ -220,10 +209,6 @@ struct DBNTrainer final
 	eteq::ETensor<T> tcost_;
 
 	eteq::ECtxptrT context_;
-
-	teq::Session pretrain_sess_;
-
-	teq::Session train_sess_;
 };
 
 }

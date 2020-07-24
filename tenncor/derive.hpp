@@ -39,18 +39,26 @@ eteq::ETensorsT<T> derive (
 
 	eteq::DerivativeFuncs<T> builder;
 
-	if (auto dsess = get_distrsess(root_ctx))
+	if (auto deval = get_distreval(root_ctx))
 	{
-		auto refs = distr::reachable_refs(root); // only look at reachable refs
-		if (refs.size() > 0)
+		// only look at reachable refs
+		auto rrefs = distr::reachable_refs(teq::TensT{root.get()});
+		if (rrefs.size() > 0)
 		{
+			distr::DRefptrSetT refs;
+			auto owners = teq::track_owners({root});
+			for (auto ref : rrefs)
+			{
+				refs.emplace(std::dynamic_pointer_cast<
+					distr::iDistRef>(owners[ref].lock()));
+			}
 			teq::TensMapT<teq::TensptrsT> grads = {
 				{root.get(), {builder.get_const_one(root->shape())}}
 			};
 			teq::TensptrSetT targset(targets.begin(), targets.end());
 
 			auto tgrads = distrib_derive(
-				grads, dsess, {root}, targset, refs);
+				grads, deval, {root}, targset, refs);
 
 			size_t n = targets.size();
 			eteq::ETensorsT<T> results;

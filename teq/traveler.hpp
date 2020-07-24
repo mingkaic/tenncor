@@ -27,6 +27,30 @@ TensptrsT get_args (iFunctor& func);
 
 TensptrsT get_attrs (iFunctor& func);
 
+struct LambdaVisit final : public iTraveler
+{
+	LambdaVisit (
+		std::function<void(iLeaf&)> lvisit,
+		std::function<void(iTraveler&,iFunctor&)> fvisit) :
+		lvisit_(lvisit), fvisit_(fvisit) {}
+
+	/// Implementation of iTraveler
+	void visit (iLeaf& leaf) override
+	{
+		lvisit_(leaf);
+	}
+
+	/// Implementation of iTraveler
+	void visit (iFunctor& func) override
+	{
+		fvisit_(*this, func);
+	}
+
+	std::function<void(iLeaf&)> lvisit_;
+
+	std::function<void(iTraveler&,iFunctor&)> fvisit_;
+};
+
 /// Traveler that maps each tensor to its positional information represented
 /// by the longest and shortest distance from leaves (NumRange)
 struct GraphStat final : public iTraveler
@@ -44,15 +68,15 @@ struct GraphStat final : public iTraveler
 		{
 			return;
 		}
-		auto children = func.get_dependencies();
-		size_t nchildren = children.size();
+		auto deps = func.get_dependencies();
+		size_t ndeps = deps.size();
 		std::vector<size_t> max_heights;
 		std::vector<size_t> min_heights;
-		max_heights.reserve(nchildren);
-		min_heights.reserve(nchildren);
-		for (TensptrT child : children)
+		max_heights.reserve(ndeps);
+		min_heights.reserve(ndeps);
+		teq::multi_visit(*this, deps);
+		for (TensptrT child : deps)
 		{
-			child->accept(*this);
 			estd::NumRange<size_t> range =
 				estd::must_getf(graphsize_, child.get(),
 				"GraphStat failed to visit child `%s` of functor `%s`",
@@ -104,11 +128,8 @@ struct GraphIndex final : public iTraveler
 		{
 			return;
 		}
-		auto children = func.get_dependencies();
-		for (auto child : children)
-		{
-			child->accept(*this);
-		}
+		auto deps = func.get_dependencies();
+		teq::multi_visit(*this, deps);
 		indices_.emplace(&func, indices_.size());
 	}
 
@@ -141,12 +162,11 @@ struct ParentFinder final : public iTraveler
 		{
 			return;
 		}
-		auto children = func.get_dependencies();
-		for (size_t i = 0, n = children.size(); i < n; ++i)
+		auto deps = func.get_dependencies();
+		teq::multi_visit(*this, deps);
+		for (size_t i = 0, n = deps.size(); i < n; ++i)
 		{
-			auto tens = children[i];
-			tens->accept(*this);
-			parents_[tens.get()][&func].push_back(i);
+			parents_[deps[i].get()][&func].push_back(i);
 		}
 		parents_.emplace(&func, ParentMapT());
 	}
@@ -342,12 +362,12 @@ private:
 		{
 			return;
 		}
-		auto children = func.get_dependencies();
+		auto deps = func.get_dependencies();
 		auto fcpy = func.clone();
-		for (size_t i = 0, n = children.size(); i < n; ++i)
+		teq::multi_visit(*this, deps);
+		for (size_t i = 0, n = deps.size(); i < n; ++i)
 		{
-			TensptrT tens = children[i];
-			tens->accept(*this);
+			TensptrT tens = deps[i];
 			if (estd::get(tens, clones_, tens.get()))
 			{
 				fcpy->update_child(tens, i);

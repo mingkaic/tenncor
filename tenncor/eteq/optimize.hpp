@@ -52,7 +52,7 @@ teq::TensptrsT optimize (teq::TensptrsT roots, std::istream& rulestr)
 		{ generate_cstrules<T>(rule, graph); });
 }
 
-/// Apply optimization to graph roots tracked by session
+/// Apply optimization to graph roots in context registry
 template <typename T>
 void optimize (std::string filename,
 	ECtxptrT context = global_context())
@@ -82,8 +82,6 @@ void optimize (std::string filename,
 	{
 		rpairs.second = changed[rpairs.second.get()];
 	}
-	context->sess_->clear();
-	context->sess_->track(teq::TensptrSetT(outroots.begin(), outroots.end()));
 }
 
 }

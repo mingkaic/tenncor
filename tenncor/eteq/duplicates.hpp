@@ -52,13 +52,14 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_func (teq::iFunctor& func) override
 	{
-		auto children = func.get_dependencies();
+		auto deps = func.get_dependencies();
 		std::vector<std::string> hshs;
-		hshs.reserve(children.size());
-		for (teq::TensptrT child : children)
+		hshs.reserve(deps.size());
+		teq::multi_visit(*this, deps);
+		for (teq::TensptrT dep : deps)
 		{
-			child->accept(*this);
-			hshs.push_back(boost::uuids::to_string(at(child.get())));
+			hshs.push_back(boost::uuids::to_string(
+				at(dep.get())));
 		}
 		if (egen::is_commutative(
 			(egen::_GENERATED_OPCODE) func.get_opcode().code_))

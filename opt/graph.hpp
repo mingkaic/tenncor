@@ -20,11 +20,8 @@ struct GraphInfo final
 		owners_(convert_ownermap(teq::track_owners(roots)))
 	{
 		teq::ParentFinder pfinder;
-		for (auto root : roots_)
-		{
-			root->accept(pfinder);
-			root->accept(sindex_);
-		}
+		teq::multi_visit(pfinder, roots_);
+		teq::multi_visit(sindex_, roots_);
 		parents_ = pfinder.parents_;
 	}
 

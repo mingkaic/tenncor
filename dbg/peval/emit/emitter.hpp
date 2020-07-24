@@ -9,8 +9,8 @@
 
 #include "eteq/eteq.hpp"
 
-#include "dbg/psess/plugin_sess.hpp"
-#include "dbg/psess/emit/client.hpp"
+#include "dbg/peval/plugin_eval.hpp"
+#include "dbg/peval/emit/client.hpp"
 
 namespace emit
 {
@@ -21,7 +21,7 @@ struct Emitter final : public dbg::iPlugin
 		ClientConfig client_cfg = ClientConfig()) :
 		client_(channel, client_cfg)
 	{
-		teq::infof("created session: %s", sess_id_.c_str());
+		teq::infof("created evaluator: %s", eval_id_.c_str());
 	}
 
 	Emitter (std::string host,
@@ -33,8 +33,8 @@ struct Emitter final : public dbg::iPlugin
 	static boost::uuids::random_generator uuid_gen_;
 
 	void process (
-		const std::vector<teq::FuncSetT>& tracks,
-		teq::FuncListT& funcs) override
+		const teq::TensSetT& targets,
+		const teq::TensSetT& visited) override
 	{
 		jobs::ScopeGuard defer([this] { ++this->update_it_; });
 
@@ -45,60 +45,42 @@ struct Emitter final : public dbg::iPlugin
 			return;
 		}
 
-		if (check_diff(tracks))
-		{
-			delete_model();
-		}
-		if (false == sent_graph_)
-		{
-			create_model(tracks);
-		}
-		update_model(funcs);
-	}
-
-	bool check_diff (const std::vector<teq::FuncSetT>& tracks)
-	{
-		teq::GraphStat tmp_stat;
-		for (auto& funcs : tracks) // we still use stat because tracks is missing leaves (todo: optimize)
-		{
-			for (auto& func : funcs)
-			{
-				func->accept(tmp_stat);
-			}
-		}
-		if (tmp_stat.graphsize_.size() != stat_.graphsize_.size())
-		{
-			return false;
-		}
-		for (auto tmp : tmp_stat.graphsize_)
-		{
-			if (false == estd::has(stat_.graphsize_, tmp.first) || (
-				stat_.graphsize_[tmp.first].upper_ != tmp.second.upper_ &&
-				stat_.graphsize_[tmp.first].lower_ != tmp.second.lower_))
-			{
-				return false;
-			}
-		}
-		return true;
+		update_model(targets);
+		update_nodes(visited);
 	}
 
 	/// Send create graph request
-	void create_model (const std::vector<teq::FuncSetT>& tracks)
+	void update_model (const teq::TensSetT& targets)
 	{
-		teq::TensT tens;
-		for (auto& funcs : tracks)
-		{
-			for (auto& func : funcs)
+		onnx::TensIdT existing;
+		teq::LambdaVisit vis(
+			[&](teq::iLeaf& leaf)
 			{
-				func->accept(stat_);
-				tens.push_back(func);
-			}
-		}
+				teq::iTensor* tens = &leaf;
+				if (estd::has(ids_.left, tens))
+				{
+					std::string id = ids_.left.at(tens);
+					existing.insert({tens, id});
+				}
+			},
+			[&](teq::iTraveler& trav, teq::iFunctor& func)
+			{
+				teq::iTensor* tens = &func;
+				if (estd::has(ids_.left, tens))
+				{
+					std::string id = ids_.left.at(tens);
+					existing.insert({tens, id});
+				}
+				auto deps = func.get_dependencies();
+				teq::multi_visit(trav, deps);
+			});
+		teq::multi_visit(vis, targets);
 
 		gemitter::CreateModelRequest request;
 		auto payload = request.mutable_payload();
-		payload->set_model_id(sess_id_);
-		eteq::save_model(*payload->mutable_model(), tens);
+		payload->set_model_id(eval_id_);
+		eteq::save_model(*payload->mutable_model(),
+			teq::TensT(targets.begin(), targets.end()), existing);
 		onnx::TensptrIdT fullids;
 		eteq::load_model(fullids, payload->model());
 		for (auto fullid : fullids)
@@ -108,7 +90,7 @@ struct Emitter final : public dbg::iPlugin
 		client_.create_model(request);
 	}
 
-	void update_model (const teq::FuncListT& funcs)
+	void update_nodes (const teq::TensSetT& visited)
 	{
 		std::vector<gemitter::UpdateNodeDataRequest> requests;
 		requests.reserve(stat_.graphsize_.size());
@@ -127,7 +109,7 @@ struct Emitter final : public dbg::iPlugin
 
 				gemitter::UpdateNodeDataRequest request;
 				auto payload = request.mutable_payload();
-				payload->set_model_id(sess_id_);
+				payload->set_model_id(eval_id_);
 				payload->set_node_id(ids_.left.at(leaf));
 				payload->mutable_data()->Swap(&field);
 				requests.push_back(request);
@@ -135,22 +117,26 @@ struct Emitter final : public dbg::iPlugin
 		}
 
 		// ignored nodes and its dependers will never fulfill requirement
-		for (auto& func : funcs)
+		for (auto& vis : visited)
 		{
-			egen::_GENERATED_DTYPE dtype =
-				(egen::_GENERATED_DTYPE) func->get_meta().type_code();
-			size_t nelems = func->shape().n_elems();
-			google::protobuf::RepeatedField<float> field;
-			field.Resize(nelems, 0);
-			egen::type_convert(field.mutable_data(), func->device().data(), dtype, nelems);
+			if (auto func = dynamic_cast<teq::iFunctor*>(vis))
+			{
+				egen::_GENERATED_DTYPE dtype =
+					(egen::_GENERATED_DTYPE) func->get_meta().type_code();
+				size_t nelems = func->shape().n_elems();
+				google::protobuf::RepeatedField<float> field;
+				field.Resize(nelems, 0);
+				egen::type_convert(field.mutable_data(),
+					func->device().data(), dtype, nelems);
 
-			// create requests (bulk of the overhead)
-			gemitter::UpdateNodeDataRequest request;
-			auto payload = request.mutable_payload();
-			payload->set_model_id(sess_id_);
-			payload->set_node_id(ids_.left.at(func));
-			payload->mutable_data()->Swap(&field);
-			requests.push_back(request);
+				// create requests (bulk of the overhead)
+				gemitter::UpdateNodeDataRequest request;
+				auto payload = request.mutable_payload();
+				payload->set_model_id(eval_id_);
+				payload->set_node_id(ids_.left.at(func));
+				payload->mutable_data()->Swap(&field);
+				requests.push_back(request);
+			}
 		}
 
 		client_.update_node_data(requests, update_it_);
@@ -158,11 +144,10 @@ struct Emitter final : public dbg::iPlugin
 
 	void delete_model (void)
 	{
-		stat_.graphsize_.clear();
 		if (sent_graph_)
 		{
-			client_.delete_model(sess_id_);
-			sess_id_ = boost::uuids::to_string(
+			client_.delete_model(eval_id_);
+			eval_id_ = boost::uuids::to_string(
 				Emitter::uuid_gen_());
 		}
 		update_it_ = 0;
@@ -199,17 +184,17 @@ struct Emitter final : public dbg::iPlugin
 		client_.clear();
 	}
 
-	/// Return session id
-	std::string get_session_id (void) const
+	/// Return evaluation id
+	std::string get_eval_id (void) const
 	{
-		return sess_id_;
+		return eval_id_;
 	}
 
 private:
 	/// GRPC Client
 	GraphEmitterClient client_;
 
-	std::string sess_id_ = boost::uuids::to_string(
+	std::string eval_id_ = boost::uuids::to_string(
 		Emitter::uuid_gen_());
 
 	size_t update_it_ = 0;

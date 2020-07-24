@@ -8,33 +8,40 @@
 namespace tcr
 {
 
-std::shared_ptr<distr::DistribSess> make_distrsess (
+distr::DEvalptrT make_distreval (
 	ppconsul::Consul& consul, size_t port,
 	const std::string& service,
 	const std::string& id = "",
 	const distr::ClientConfig& cfg = distr::ClientConfig());
 
-distr::iDistribSess* get_distrsess (eteq::ECtxptrT ctx);
+distr::iDistrEvaluator* get_distreval (eteq::ECtxptrT ctx);
 
 teq::TensMapT<teq::TensptrT> distrib_derive (
 	teq::GradMapT& grads,
-	distr::iDistribSess* sess,
+	distr::iDistrEvaluator* eval,
 	const teq::TensptrSetT& roots,
 	const teq::TensptrSetT& targets,
 	const distr::DRefptrSetT& refs);
 
 template <typename T>
+void expose_node (const eteq::ETensor<T>& etens)
+{
+	auto eval = get_distreval(etens.get_context());
+	eval->expose_node(etens);
+}
+
+template <typename T>
 std::string try_lookup_id (error::ErrptrT& err, eteq::ETensor<T> etens)
 {
 	auto ctx = etens.get_context();
-	auto sess = get_distrsess(ctx);
-	if (nullptr == sess)
+	auto eval = get_distreval(ctx);
+	if (nullptr == eval)
 	{
 		err = error::error(
-			"cannot only find reference ids using iDistribSess");
+			"cannot only find reference ids using iDistrEvaluator");
 		return "";
 	}
-	auto opt_id = sess->lookup_id(etens);
+	auto opt_id = eval->lookup_id(etens);
 	if (false == bool(opt_id))
 	{
 		err = error::errorf("failed to find tensor %s",
@@ -61,14 +68,14 @@ eteq::ETensor<T> try_lookup_node (
 	error::ErrptrT& err, const std::string& id,
 	eteq::ECtxptrT ctx = eteq::global_context())
 {
-	auto sess = get_distrsess(ctx);
-	if (nullptr == sess)
+	auto eval = get_distreval(ctx);
+	if (nullptr == eval)
 	{
 		err = error::error(
-			"cannot only find references using iDistribSess");
+			"cannot only find references using iDistrEvaluator");
 		return eteq::ETensor<T>();
 	}
-	return eteq::ETensor<T>(sess->lookup_node(err, id), ctx);
+	return eteq::ETensor<T>(eval->lookup_node(err, id), ctx);
 }
 
 template <typename T>

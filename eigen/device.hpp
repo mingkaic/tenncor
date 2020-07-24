@@ -246,10 +246,6 @@ struct Device final : public teq::iDevice
 	size_t max_version_;
 };
 
-using iSessptrT = std::shared_ptr<teq::iSession>;
-
-using SessptrT = std::shared_ptr<teq::Session>;
-
 }
 
 #endif // EIGEN_DEVICE_HPP

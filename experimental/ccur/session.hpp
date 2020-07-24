@@ -12,6 +12,7 @@
 #include <boost/asio/post.hpp>
 
 #include "teq/isession.hpp"
+#include "teq/evaluator.hpp"
 
 #include "ccur/partition.hpp"
 

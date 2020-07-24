@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_DYNAMIC_SESSION_TEST
+#ifndef DISABLE_EVALUATOR_TEST
 
 
 #include "gtest/gtest.h"
@@ -9,49 +9,13 @@
 #include "teq/mock/leaf.hpp"
 #include "teq/mock/functor.hpp"
 
-#include "teq/isession.hpp"
+#include "teq/evaluator.hpp"
 
 
 static MockDevice mdevice;
 
 
-TEST(DYNAMIC_SESSION, Track)
-{
-	teq::Shape shape;
-
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
-	teq::TensptrT d(new MockLeaf(shape));
-
-	teq::TensptrT x(new MockFunctor(teq::TensptrsT{a, b}));
-	teq::TensptrT target(new MockFunctor(teq::TensptrsT{x, c}));
-	teq::TensptrT target2(new MockFunctor(teq::TensptrsT{x, d}));
-
-	// this tests if session can track be called multiple times
-	teq::Session session;
-	session.track({target});
-
-	// expect session.ops_ to contain x and target
-	ASSERT_EQ(2, session.ops_.size());
-	EXPECT_EQ(1, session.ops_[0].size());
-	EXPECT_EQ(1, session.ops_[1].size());
-	EXPECT_ARRHAS(session.ops_[0], x.get());
-	EXPECT_ARRHAS(session.ops_[1], target.get());
-
-	session.track({target2});
-
-	// expect session.ops_ to contain all the ops
-	EXPECT_EQ(2, session.ops_.size());
-	EXPECT_EQ(1, session.ops_[0].size());
-	EXPECT_EQ(2, session.ops_[1].size());
-	EXPECT_ARRHAS(session.ops_[0], x.get());
-	EXPECT_ARRHAS(session.ops_[1], target.get());
-	EXPECT_ARRHAS(session.ops_[1], target2.get());
-}
-
-
-TEST(DYNAMIC_SESSION, Update)
+TEST(EVALUATOR, Update)
 {
 	teq::Shape shape;
 
@@ -71,9 +35,8 @@ TEST(DYNAMIC_SESSION, Update)
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session;
-	session.track({target});
-	session.update_target(mdevice, {target.get()});
+	teq::Evaluator eval;
+	eval.evaluate(mdevice, {target.get()});
 
 	// expected state:
 	// * (target) = updated
@@ -87,7 +50,7 @@ TEST(DYNAMIC_SESSION, Update)
 }
 
 
-TEST(DYNAMIC_SESSION, UpdateIgnore)
+TEST(EVALUATOR, UpdateIgnore)
 {
 	teq::Shape shape;
 
@@ -112,9 +75,8 @@ TEST(DYNAMIC_SESSION, UpdateIgnore)
 	ASSERT_FALSE(y->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session;
-	session.track({target});
-	session.update_target(mdevice, {target.get()}, {y.get()});
+	teq::Evaluator eval;
+	eval.evaluate(mdevice, {target.get()}, {y.get()});
 
 	// expected state:
 	// - (target) = updated
@@ -131,7 +93,7 @@ TEST(DYNAMIC_SESSION, UpdateIgnore)
 
 	target->data_.ref_.updated_ = x->data_.ref_.updated_ = y->data_.ref_.updated_ = false;
 
-	session.update_target(mdevice, {target.get()}, {x.get()});
+	eval.evaluate(mdevice, {target.get()}, {x.get()});
 
 	// expected state:
 	// - (target) = updated
@@ -148,7 +110,7 @@ TEST(DYNAMIC_SESSION, UpdateIgnore)
 }
 
 
-TEST(DYNAMIC_SESSION, UpdateIgnoreCommonDesc)
+TEST(EVALUATOR, UpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
@@ -176,9 +138,8 @@ TEST(DYNAMIC_SESSION, UpdateIgnoreCommonDesc)
 	ASSERT_FALSE(x->data_.ref_.updated_);
 	ASSERT_FALSE(u->data_.ref_.updated_);
 
-	teq::Session session;
-	session.track({target});
-	session.update_target(mdevice, {target.get()}, {y.get()});
+	teq::Evaluator eval;
+	eval.evaluate(mdevice, {target.get()}, {y.get()});
 
 	// expected state:
 	// - (target) = updated
@@ -198,7 +159,7 @@ TEST(DYNAMIC_SESSION, UpdateIgnoreCommonDesc)
 }
 
 
-TEST(DYNAMIC_SESSION, TargetedUpdate)
+TEST(EVALUATOR, TargetedUpdate)
 {
 	teq::Shape shape;
 
@@ -218,9 +179,8 @@ TEST(DYNAMIC_SESSION, TargetedUpdate)
 	ASSERT_FALSE(target->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session;
-	session.track({target});
-	session.update_target(mdevice, teq::TensSetT{x.get()});
+	teq::Evaluator eval;
+	eval.evaluate(mdevice, teq::TensSetT{x.get()});
 
 	// expected state:
 	// * (target) = not updated
@@ -235,7 +195,7 @@ TEST(DYNAMIC_SESSION, TargetedUpdate)
 }
 
 
-TEST(DYNAMIC_SESSION, TargetedUpdateIgnore)
+TEST(EVALUATOR, TargetedUpdateIgnore)
 {
 	teq::Shape shape;
 
@@ -260,9 +220,8 @@ TEST(DYNAMIC_SESSION, TargetedUpdateIgnore)
 	ASSERT_FALSE(y->data_.ref_.updated_);
 	ASSERT_FALSE(x->data_.ref_.updated_);
 
-	teq::Session session;
-	session.track({target});
-	session.update_target(mdevice, {y.get()}, {x.get()});
+	teq::Evaluator eval;
+	eval.evaluate(mdevice, {y.get()}, {x.get()});
 
 	// expected state:
 	// - (targetd) = not updated
@@ -279,7 +238,7 @@ TEST(DYNAMIC_SESSION, TargetedUpdateIgnore)
 }
 
 
-TEST(DYNAMIC_SESSION, TargetedUpdateIgnoreCommonDesc)
+TEST(EVALUATOR, TargetedUpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
@@ -312,9 +271,8 @@ TEST(DYNAMIC_SESSION, TargetedUpdateIgnoreCommonDesc)
 	ASSERT_FALSE(x->data_.ref_.updated_);
 	ASSERT_FALSE(u->data_.ref_.updated_);
 
-	teq::Session session;
-	session.track({target});
-	session.update_target(mdevice, {z.get()}, {y.get()});
+	teq::Evaluator eval;
+	eval.evaluate(mdevice, {z.get()}, {y.get()});
 
 	// expected state:
 	// pow (targeted) = not updated
@@ -337,39 +295,4 @@ TEST(DYNAMIC_SESSION, TargetedUpdateIgnoreCommonDesc)
 }
 
 
-TEST(DYNAMIC_SESSION, Clear)
-{
-	teq::Shape shape;
-
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
-	teq::TensptrT d(new MockLeaf(shape));
-
-	auto u = std::make_shared<MockFunctor>(teq::TensptrsT{a});
-	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b});
-	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u});
-	auto z = std::make_shared<MockFunctor>(teq::TensptrsT{y, x});
-	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d});
-
-	teq::Session session;
-	session.track({target});
-	ASSERT_EQ(4, session.ops_.size());
-	EXPECT_EQ(1, session.ops_[0].size());
-	EXPECT_EQ(2, session.ops_[1].size());
-	EXPECT_EQ(1, session.ops_[2].size());
-	EXPECT_EQ(1, session.ops_[3].size());
-	session.clear();
-
-	EXPECT_EQ(0, session.ops_.size());
-	auto err = session.update_target(mdevice, {target.get()});
-	EXPECT_ERR(err, "not all targets are tracked");
-	EXPECT_FALSE(target->data_.ref_.updated_);
-	EXPECT_FALSE(z->data_.ref_.updated_);
-	EXPECT_FALSE(y->data_.ref_.updated_);
-	EXPECT_FALSE(x->data_.ref_.updated_);
-	EXPECT_FALSE(u->data_.ref_.updated_);
-}
-
-
-#endif // DISABLE_DYNAMIC_SESSION_TEST
+#endif // DISABLE_EVALUATOR_TEST

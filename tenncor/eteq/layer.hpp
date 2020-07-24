@@ -89,11 +89,8 @@ private:
 
 	void visit_func (teq::iFunctor& func) override
 	{
-		auto children = func.get_dependencies();
-		for (teq::TensptrT child : children)
-		{
-			child->accept(*this);
-		}
+		auto deps = func.get_dependencies();
+		teq::multi_visit(*this, deps);
 		breadth_.emplace(&func, breadth_.size());
 	}
 };
@@ -126,11 +123,8 @@ private:
 		{
 			return;
 		}
-		auto children = func.get_dependencies();
-		for (teq::TensptrT child : children)
-		{
-			child->accept(*this);
-		}
+		auto deps = func.get_dependencies();
+		teq::multi_visit(*this, deps);
 	}
 };
 

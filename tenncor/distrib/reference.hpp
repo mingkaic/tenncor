@@ -11,7 +11,7 @@ namespace distr
 
 const std::string refname = "DISTRIB_REFERENCE";
 
-struct iDistRef : public teq::iFunctor
+struct iDistRef : public teq::iLeaf
 {
 	virtual ~iDistRef (void) = default;
 
@@ -21,51 +21,11 @@ struct iDistRef : public teq::iFunctor
 		visiter.visit(*this);
 	}
 
-	/// Implementation of iAttributed
-	std::vector<std::string> ls_attrs (void) const override
+	/// Implementation of iLeaf
+	teq::Usage get_usage (void) const override
 	{
-		return {};
+		return teq::PLACEHOLDER;
 	}
-
-	/// Implementation of iAttributed
-	const marsh::iObject* get_attr (const std::string& attr_key) const override
-	{
-		return nullptr;
-	}
-
-	/// Implementation of iAttributed
-	marsh::iObject* get_attr (const std::string& attr_key) override
-	{
-		return nullptr;
-	}
-
-	/// Implementation of iAttributed
-	void add_attr (const std::string& attr_key,
-		marsh::ObjptrT&& attr_val) override {}
-
-	/// Implementation of iAttributed
-	void rm_attr (const std::string& attr_key) override {}
-
-	/// Implementation of iFunctor
-	teq::Opcode get_opcode (void) const override
-	{
-		return teq::Opcode{refname, 0};
-	}
-
-	/// Implementation of iFunctor
-	teq::TensptrsT get_args (void) const override
-	{
-		return {};
-	}
-
-	/// Implementation of iFunctor
-	teq::TensptrsT get_dependencies (void) const override
-	{
-		return {};
-	}
-
-	/// Implementation of iFunctor
-	void update_child (teq::TensptrT arg, size_t index) override {}
 
 	virtual void update_data (const double* data, size_t version) = 0;
 
@@ -76,6 +36,8 @@ struct iDistRef : public teq::iFunctor
 };
 
 using DRefptrT = std::shared_ptr<iDistRef>;
+
+using DRefSetT = std::unordered_set<iDistRef*>;
 
 using DRefptrSetT = std::unordered_set<DRefptrT>;
 
@@ -213,7 +175,25 @@ private:
 	ExplicitMetadata meta_;
 };
 
-DRefptrSetT reachable_refs (teq::TensptrT root);
+template <typename TS> // todo: use tensor_range
+DRefSetT reachable_refs (const TS& roots)
+{
+	DRefSetT refs;
+	teq::LambdaVisit vis(
+		[&refs](teq::iLeaf& leaf)
+		{
+			if (auto ref = dynamic_cast<iDistRef*>(&leaf))
+			{
+				refs.emplace(ref);
+			}
+		},
+		[](teq::iTraveler& trav, teq::iFunctor& func)
+		{
+			teq::multi_visit(trav, func.get_args());
+		});
+	teq::multi_visit(vis, roots);
+	return refs;
+}
 
 }
 

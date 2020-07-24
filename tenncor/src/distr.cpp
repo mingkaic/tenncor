@@ -6,11 +6,8 @@
 namespace tcr
 {
 
-#define MAKE_DERFUNC(REAL_TYPE)\
-builder = new eteq::DerivativeFuncs<REAL_TYPE>();
-
 static distr::DRefptrSetT filter_reachable (
-	distr::iDistribSess* sess,
+	distr::iDistrEvaluator* eval,
 	const std::string& cid,
 	const distr::DRefptrSetT& srcs,
 	const teq::TensptrSetT& dests)
@@ -20,7 +17,7 @@ static distr::DRefptrSetT filter_reachable (
 
 static void remote_derive (
 	teq::TensMapT<teq::TensptrsT>& grads,
-	distr::iDistribSess* sess,
+	distr::iDistrEvaluator* eval,
 	const std::string& cid,
 	const distr::DRefptrSetT& roots,
 	const teq::TensptrSetT& targets)
@@ -28,28 +25,31 @@ static void remote_derive (
 	//
 }
 
-std::shared_ptr<distr::DistribSess> make_distrsess (
+distr::DEvalptrT make_distreval (
 	ppconsul::Consul& consul, size_t port,
 	const std::string& service,
 	const std::string& id,
 	const distr::ClientConfig& cfg)
 {
-	return std::make_shared<distr::DistribSess>(
+	return std::make_shared<distr::DistrEvaluator>(
 		distrib_derive, consul, port, service, id, cfg);
 }
 
-distr::iDistribSess* get_distrsess (eteq::ECtxptrT ctx)
+distr::iDistrEvaluator* get_distreval (eteq::ECtxptrT ctx)
 {
 	if (nullptr == ctx)
 	{
 		teq::fatal("cannot lookup references from null context");
 	}
-	return dynamic_cast<distr::iDistribSess*>(ctx->sess_.get());
+	return dynamic_cast<distr::iDistrEvaluator*>(ctx->eval_.get());
 }
+
+#define MAKE_DERFUNC(REAL_TYPE)\
+builder = new eteq::DerivativeFuncs<REAL_TYPE>();
 
 teq::TensMapT<teq::TensptrT> distrib_derive (
 	teq::GradMapT& grads,
-	distr::iDistribSess* sess,
+	distr::iDistrEvaluator* eval,
 	const teq::TensptrSetT& roots,
 	const teq::TensptrSetT& targets,
 	const distr::DRefptrSetT& refs)
@@ -92,7 +92,7 @@ teq::TensMapT<teq::TensptrT> distrib_derive (
 		{
 			auto cid = node.first;
 			auto reachables = filter_reachable(
-				sess, cid, node.second, targets);
+				eval, cid, node.second, targets);
 			rremotes.emplace(cid, reachables);
 			alltargs.insert(reachables.begin(), reachables.end());
 		}
@@ -104,7 +104,7 @@ teq::TensMapT<teq::TensptrT> distrib_derive (
 		// then make remote calls
 		for (auto node : rremotes)
 		{
-			remote_derive(grads, sess,
+			remote_derive(grads, eval,
 				node.first, node.second, targets);
 		}
 	}

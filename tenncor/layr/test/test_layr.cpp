@@ -301,9 +301,8 @@ TEST(CONNECT, TanhRNN)
 	auto db = ders[1];
 	auto dstate = ders[2];
 
-	teq::Session session;
-	session.track({dw, db, dstate});
-	session.update_target(device,
+	teq::Evaluator eval;
+	eval.evaluate(device,
 		{dw.get(), db.get(), dstate.get()});
 
 	teq::Shape weight_shape({hidden_dim, (teq::DimT) (indim + hidden_dim)});
@@ -459,9 +458,8 @@ TEST(CONNECT, DenseTanhRNN)
 	auto dw0 = ders[3];
 	auto db0 = ders[4];
 
-	teq::Session session;
-	session.track({dw1, db1, dstate, dw0, db0});
-	session.update_target(device,
+	teq::Evaluator eval;
+	eval.evaluate(device,
 		{dw1.get(), db1.get(), dstate.get(), dw0.get(), db0.get()});
 
 	teq::Shape weight0_shape({hidden_dim, indim});
@@ -685,13 +683,12 @@ TEST(CONNECT, TanhRNNFull)
 	auto dw2 = ders[5];
 	auto db2 = ders[6];
 
-	teq::Session session;
-	session.track(teq::TensptrSetT(ders.begin(), ders.end()));
+	teq::Evaluator eval;
 	teq::TensSetT targs;
 	std::transform(ders.begin(), ders.end(),
 		std::inserter(targs, targs.end()),
 		[](teq::TensptrT der) { return der.get(); });
-	session.update_target(device, targs);
+	eval.evaluate(device, targs);
 
 	{
 		auto gotshape = dw0->shape();
@@ -931,13 +928,12 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 	auto dw2 = ders[5];
 	auto db2 = ders[6];
 
-	teq::Session session;
-	session.track(teq::TensptrSetT(ders.begin(), ders.end()));
+	teq::Evaluator eval;
 	teq::TensSetT targs;
 	std::transform(ders.begin(), ders.end(),
 		std::inserter(targs, targs.end()),
 		[](teq::TensptrT der) { return der.get(); });
-	session.update_target(device, targs);
+	eval.evaluate(device, targs);
 
 	{
 		auto gotshape = dw0->shape();
@@ -1425,16 +1421,14 @@ TEST(CONNECT, TanhRNNTraining)
 		}
 	}
 
-	teq::Session session;
-	session.track(to_track);
-
+	teq::Evaluator eval;
 	{
 		teq::TensSetT rights;
 		for (auto r : ders)
 		{
 			rights.emplace(r.get());
 		}
-		session.update_target(device, rights);
+		eval.evaluate(device, rights);
 
 		for (size_t i = 0; i < nders; ++i)
 		{
@@ -1455,7 +1449,7 @@ TEST(CONNECT, TanhRNNTraining)
 		{
 			rights.emplace(r.get());
 		}
-		session.update_target(device, rights);
+		eval.evaluate(device, rights);
 		for (size_t i = 0; i < nders; ++i)
 		{
 			group1_left[i]->assign(*group1_right[i], eteq::global_context());
@@ -1479,7 +1473,7 @@ TEST(CONNECT, TanhRNNTraining)
 		{
 			rights.emplace(r.get());
 		}
-		session.update_target(device, rights);
+		eval.evaluate(device, rights);
 
 		for (size_t i = 0; i < nders; ++i)
 		{
@@ -1500,7 +1494,7 @@ TEST(CONNECT, TanhRNNTraining)
 		{
 			rights.emplace(r.get());
 		}
-		session.update_target(device, rights);
+		eval.evaluate(device, rights);
 		for (size_t i = 0; i < nders; ++i)
 		{
 			group2_left[i]->assign(*group2_right[i], eteq::global_context());
@@ -1525,7 +1519,7 @@ TEST(CONNECT, TanhRNNTraining)
 		{
 			rights.emplace(r.get());
 		}
-		session.update_target(device, rights);
+		eval.evaluate(device, rights);
 		for (size_t i = 0; i < group3_left.size(); ++i)
 		{
 			group3_left[i]->assign(*group3_right[i], eteq::global_context());

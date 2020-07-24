@@ -21,29 +21,29 @@ def _distrib_datapassing(consul, data, data2, data3):
     b = tc.variable(data2, 'b')
     c = tc.variable(data3, 'c')
 
-    # sess1
-    sess1 = tc.DistribSess(consul, port=5122,
-        service_name=_test_service, alias='sess1')
+    # eval1
+    eval1 = tc.DistrEvaluator(consul, port=5122,
+        service_name=_test_service, alias='eval1')
 
     d = tc.api.matmul(a, b)
     f = tc.api.matmul(tc.api.transpose(d), tc.api.transpose(c))
 
-    sess1.track([d, f])
-    d_id = sess1.lookup_id(d)
-    f_id = sess1.lookup_id(f)
+    eval1.expose_node(d)
+    eval1.expose_node(f)
+    d_id = eval1.lookup_id(d)
+    f_id = eval1.lookup_id(f)
 
-    # sess2
-    sess2 = tc.DistribSess(consul, port=5123,
-        service_name=_test_service, alias='sess2')
+    # eval2
+    eval2 = tc.DistrEvaluator(consul, port=5123,
+        service_name=_test_service, alias='eval2')
 
-    d_ref = sess2.lookup_node(d_id)
-    f_ref = sess2.lookup_node(f_id)
+    d_ref = eval2.lookup_node(d_id)
+    f_ref = eval2.lookup_node(f_id)
 
     e = tc.api.matmul(c, d_ref)
     root = tc.api.matmul(e, f_ref)
 
-    sess2.track([root])
-    sess2.update_target([root])
+    eval2.evaluate([root])
 
     return root.raw()
 
@@ -53,36 +53,35 @@ def _distrib_multipass(consul, data, data2, data3):
     b = tc.variable(data2, 'b')
     c = tc.variable(data3, 'c')
 
-    # sess1
-    sess1 = tc.DistribSess(consul, port=5122,
-        service_name=_test_service, alias='sess1')
+    # eval1
+    eval1 = tc.DistrEvaluator(consul, port=5122,
+        service_name=_test_service, alias='eval1')
 
     d = tc.api.matmul(a, b)
 
-    sess1.track([d])
-    d_id = sess1.lookup_id(d)
+    eval1.expose_node(d)
+    d_id = eval1.lookup_id(d)
 
-    # sess2 -> depends on sess1 (reference to d)
-    sess2 = tc.DistribSess(consul, port=5123,
-        service_name=_test_service, alias='sess2')
+    # eval2 -> depends on eval1 (reference to d)
+    eval2 = tc.DistrEvaluator(consul, port=5123,
+        service_name=_test_service, alias='eval2')
 
-    d_ref = sess2.lookup_node(d_id)
+    d_ref = eval2.lookup_node(d_id)
     f = tc.api.matmul(tc.api.transpose(d_ref), tc.api.transpose(c))
 
-    sess2.track([f])
-    f_id = sess2.lookup_id(f)
+    eval2.expose_node(f)
+    f_id = eval2.lookup_id(f)
 
-    # sess3 -> depends on sess1 (reference to d) and sess2 (reference to f)
-    sess3 = tc.DistribSess(consul, port=5124,
-        service_name=_test_service, alias='sess3')
+    # eval3 -> depends on eval1 (reference to d) and eval2 (reference to f)
+    eval3 = tc.DistrEvaluator(consul, port=5124,
+        service_name=_test_service, alias='eval3')
 
-    d_ref2 = sess3.lookup_node(d_id)
+    d_ref2 = eval3.lookup_node(d_id)
     e = tc.api.matmul(c, d_ref2)
-    f_ref = sess3.lookup_node(f_id)
+    f_ref = eval3.lookup_node(f_id)
     root = tc.api.matmul(e, f_ref)
 
-    sess3.track([root])
-    sess3.update_target([root])
+    eval3.evaluate([root])
 
     return root.raw()
 
@@ -148,9 +147,9 @@ class DISTRIBTest(ArrTest):
     #     exdata = tfsess.run(tf_dbase)
 
     #     def distrib_scope():
-    #         sess1 = tc.DistribSess(consul,
+    #         eval1 = tc.DistrEvaluator(consul,
     #             port=5122, service_name=_test_service)
-    #         sess2 = tc.DistribSess(consul,
+    #         eval2 = tc.DistrEvaluator(consul,
     #             port=5123, service_name=_test_service)
 
     #         a = tc.variable(data, 'a')
@@ -162,17 +161,17 @@ class DISTRIBTest(ArrTest):
     #         f = tc.api.matmul(tc.api.transpose(d), tc.api.transpose(c))
     #         root = tc.api.matmul(e, f)
 
-    #         sess1.track([root])
-    #         root_id = sess1.lookup_id(root)
-    #         base_id = sess1.lookup_id(a)
+    #         eval1.expose_node(root)
+    #         eval1.expose_node(a)
+    #         root_id = eval1.lookup_id(root)
+    #         base_id = eval1.lookup_id(a)
 
-    #         root_ref = sess2.lookup_node(root_id)
-    #         base_ref = sess2.lookup_node(base_id)
+    #         root_ref = eval2.lookup_node(root_id)
+    #         base_ref = eval2.lookup_node(base_id)
     #         dbase = tc.derive(root_ref, [base_ref])[0]
+    #         eval2.evaluate([dbase])
 
-    #         sess2.track([dbase])
-    #         sess2.update_target([dbase])
-    #         return dbase.get()
+    #         return dbase.raw()
 
     #     dbase = distrib_scope()
     #     self._array_close(exdata, dbase)

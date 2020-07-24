@@ -3,34 +3,37 @@
 
 #include "teq/logs.hpp"
 
-#include "dbg/psess/emit/emitter.hpp"
-#include "dbg/psess/stats/inspect.hpp"
+#include "dbg/peval/emit/emitter.hpp"
+#include "dbg/peval/stats/inspect.hpp"
 
 #include "tenncor/tenncor.hpp"
 
 namespace py = pybind11;
 
-PYBIND11_MODULE(psess, m)
+PYBIND11_MODULE(peval, m)
 {
 	LOG_INIT(logs::DefLogger);
 
-	m.doc() = "dbg teq graphs using interactive grpc session";
+	m.doc() = "dbg teq graphs using interactive grpc evaluator";
 
+	// ==== plugin definition ====
 	py::class_<dbg::iPlugin> plugin(m, "Plugin");
 
-	auto isess = (py::class_<teq::iSession>)
-		py::module::import("tenncor").attr("iSession");
+	// ==== evaluator ====
+	auto ieval = (py::class_<teq::iEvaluator>)
+		py::module::import("tenncor").attr("iEvaluator");
 
-	py::class_<dbg::PluginSession> session(m, "PluginSess", isess);
+	py::class_<dbg::PlugableEvaluator> eval(m, "PlugableEvaluator", ieval);
 
-	session
-		.def(py::init([]{ return dbg::PluginSession(); }))
+	eval
+		.def(py::init([]{ return dbg::PlugableEvaluator(); }))
 		.def("add_plugin",
-		[](dbg::PluginSession& self, dbg::iPlugin& plugin)
+		[](dbg::PlugableEvaluator& self, dbg::iPlugin& plugin)
 		{
-			self.plugins_.push_back(plugin);
+			self.add_plugin(plugin);
 		});
 
+	// ==== plugins ====
 	py::class_<emit::Emitter,std::shared_ptr<emit::Emitter>>
 	emitter(m, "Emitter", plugin);
 
@@ -52,13 +55,13 @@ PYBIND11_MODULE(psess, m)
 		{
 			self.join();
 		},
-		"Wait until session finishes sends all requests")
+		"Wait until evaluator finishes sends all requests")
 		.def("stop",
 		[](emit::Emitter& self)
 		{
 			self.stop();
 		},
-		"Inform session requests to stop their tasks "
+		"Force evaluator requests to stop their tasks "
 		"(requests will attempt to wrap up call before terminating)");
 
 	py::class_<stats::Inspector,std::shared_ptr<stats::Inspector>>

@@ -7,7 +7,7 @@ P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
    - move derivation to per-node which allows derivation between distributed services
-   - support type-anonymouse etensors/functors to allow for non-typed derivefuncs
+   - support type-anonymous etensors/functors to allow for non-typed derivefuncs
    - upgrade layr to allow restructuring recurrent structure sequence length
    - fix gru demo to run optimally
    - improve grader/optimization rule according to rnn, lstm, gru

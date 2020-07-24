@@ -574,13 +574,13 @@ private:
 	/// Implementation of iTraveler
 	void visit_func (teq::iFunctor& func) override
 	{
+		auto args = func.get_args();
+		teq::multi_visit(*this, args);
 		NumRangesT<T> ranges;
-		auto children = func.get_args();
-		ranges.reserve(children.size());
-		for (teq::TensptrT child : children)
+		ranges.reserve(args.size());
+		for (teq::TensptrT arg : args)
 		{
-			child->accept(*this);
-			ranges.push_back(ranges_[child.get()]);
+			ranges.push_back(ranges_[arg.get()]);
 		}
 
 		// func range

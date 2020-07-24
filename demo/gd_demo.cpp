@@ -11,8 +11,8 @@
 
 #include "tenncor/tenncor.hpp"
 
-// #include "dbg/psess/plugin_sess.hpp"
-// #include "dbg/psess/emit/emitter.hpp"
+// #include "dbg/peval/plugin_eval.hpp"
+// #include "dbg/peval/emit/emitter.hpp"
 #include "dbg/compare/equal.hpp"
 
 #include "layr/layer.hpp"
@@ -142,9 +142,9 @@ int main (int argc, const char** argv)
 			return tc.approx.sgd(error, leaves, 0.9); // learning rate = 0.9
 		};
 	// emit::Emitter emitter("localhost:50051");
-	// auto sess = std::make_shared<dbg::PluginSession>();
-	// eteq::global_context()->sess_ = sess;
-	// sess->plugins_.push_back(emitter);
+	// auto eval = std::make_shared<dbg::PlugableEvaluator>();
+	// eteq::global_context()->eval_ = eval;
+	// eval->add_plugin(emitter);
 	{
 
 	// jobs::ScopeGuard defer(

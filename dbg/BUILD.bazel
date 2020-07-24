@@ -8,7 +8,7 @@ filegroup(
     srcs = [
         ":compare_hdrs",
         ":print_hdrs",
-        ":psess_hdrs",
+        ":peval_hdrs",
         ":stats_plugin_hdrs",
         ":gemit_plugin_hdrs",
         ":gemit_plugin_protos",
@@ -30,28 +30,28 @@ filegroup(
 )
 
 filegroup(
-    name = "psess_hdrs",
-    srcs = glob(["psess/*.hpp"]),
+    name = "peval_hdrs",
+    srcs = glob(["peval/*.hpp"]),
 )
 
 filegroup(
     name = "stats_plugin_hdrs",
-    srcs = glob(["psess/stats/*.hpp"]),
+    srcs = glob(["peval/stats/*.hpp"]),
 )
 
 filegroup(
     name = "gemit_plugin_hdrs",
-    srcs = glob(["psess/emit/*.hpp"]),
+    srcs = glob(["peval/emit/*.hpp"]),
 )
 
 filegroup(
     name = "gemit_plugin_protos",
-    srcs = glob(["psess/emit/*.proto"]),
+    srcs = glob(["peval/emit/*.proto"]),
 )
 
 filegroup(
     name = "gemit_mock_srcs",
-    srcs = glob(["psess/emit/mock/*.cpp"]),
+    srcs = glob(["peval/emit/mock/*.cpp"]),
 )
 
 filegroup(
@@ -78,8 +78,8 @@ cc_library(
 )
 
 cc_library(
-    name = "psess",
-    hdrs = [":psess_hdrs"],
+    name = "peval",
+    hdrs = [":peval_hdrs"],
     copts = ["-std=c++17"],
     deps = ["//teq:teq"],
     visibility = ["//visibility:public"],
@@ -90,7 +90,7 @@ cc_library(
     hdrs = [":stats_plugin_hdrs"],
     copts = ["-std=c++17"],
     deps = [
-        ":psess",
+        ":peval",
         "//eigen:eigen",
     ],
     visibility = ["//visibility:public"],
@@ -101,7 +101,7 @@ cc_library(
     hdrs = [":gemit_plugin_hdrs"],
     copts = ["-std=c++17"],
     deps = [
-        ":psess",
+        ":peval",
         ":gemitter_cc_grpc",
         "//tenncor/eteq:eteq",
         "@boost//:uuid",
@@ -129,12 +129,12 @@ proto_library(
 cc_library(
     name = "gemitter_cc_grpc",
     hdrs = [
-        "psess/emit/gemitter.pb.h",
-        "psess/emit/gemitter.grpc.pb.h",
+        "peval/emit/gemitter.pb.h",
+        "peval/emit/gemitter.grpc.pb.h",
     ],
     srcs = [
-        "psess/emit/gemitter.pb.cc",
-        "psess/emit/gemitter.grpc.pb.cc",
+        "peval/emit/gemitter.pb.cc",
+        "peval/emit/gemitter.grpc.pb.cc",
     ],
     copts = ["-std=c++17"],
     deps = [
@@ -168,8 +168,8 @@ pybind_py_library(
 )
 
 pybind_py_library(
-    name = "psess_py",
-    cc_srcs = ["python/psess.cpp"],
+    name = "peval_py",
+    cc_srcs = ["python/peval.cpp"],
     cc_deps = [
         ":gemit_plugin",
         ":stats_plugin",

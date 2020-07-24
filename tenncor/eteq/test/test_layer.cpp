@@ -8,8 +8,6 @@
 
 #include "testutil/tutil.hpp"
 
-#include "teq/isession.hpp"
-
 #include "eteq/serialize.hpp"
 
 #include "tenncor/tenncor.hpp"

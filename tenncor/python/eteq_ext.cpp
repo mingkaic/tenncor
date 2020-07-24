@@ -11,15 +11,15 @@ void eteq_ext (py::module& m)
 
 	context
 		.def(py::init<>([]() { return std::make_shared<eteq::ETensContext>(); }))
-		.def("get_session",
+		.def("get_evaluator",
 		[](eteq::ECtxptrT& self)
 		{
-			return self->sess_;
+			return self->eval_;
 		})
-		.def("set_session",
-		[](eteq::ECtxptrT& self, eigen::iSessptrT sess)
+		.def("set_evaluator",
+		[](eteq::ECtxptrT& self, teq::iEvalptrT eval)
 		{
-			self->sess_ = sess;
+			self->eval_ = eval;
 		})
 		.def("get_actives",
 		[](eteq::ECtxptrT& self)
@@ -53,9 +53,6 @@ void eteq_ext (py::module& m)
 				conversions.emplace(convert.first.get(), convert.second);
 			}
 			graph.replace(conversions);
-			self->sess_->clear();
-			auto roots = graph.get_roots();
-			self->sess_->track(teq::TensptrSetT(roots.begin(), roots.end()));
 		});
 
 	m.attr("global_context") = eteq::global_context();
@@ -177,18 +174,13 @@ void eteq_ext (py::module& m)
 			}
 		});
 
-	// ==== session ====
-	py::class_<teq::iSession,eigen::iSessptrT> isess(m, "iSession");
-	py::class_<teq::Session,eigen::SessptrT> session(m, "Session", isess);
+	// ==== evaluator ====
+	py::class_<teq::iEvaluator,teq::iEvalptrT> ieval(m, "iEvaluator");
+	py::class_<teq::Evaluator,teq::EvalptrT> eval(m, "Evaluator", ieval);
 
-	isess
-		.def("track",
-		[](teq::iSession& self, eteq::ETensorsT<PybindT> roots)
-		{
-			self.track(teq::TensptrSetT(roots.begin(), roots.end()));
-		})
-		.def("update_target",
-		[](teq::iSession& self, std::vector<pytenncor::ETensT> targeted,
+	ieval
+		.def("evaluate",
+		[](teq::iEvaluator& self, std::vector<pytenncor::ETensT> targeted,
 			size_t max_version, std::vector<pytenncor::ETensT> ignored)
 		{
 			teq::TensSetT targeted_set;
@@ -202,7 +194,7 @@ void eteq_ext (py::module& m)
 				ignored_set.emplace(etens.get());
 			}
 			eigen::Device device(max_version);
-			self.update_target(device, targeted_set, ignored_set);
+			self.evaluate(device, targeted_set, ignored_set);
 		},
 		"Calculate etens relevant to targets in the "
 		"graph given list of nodes to ignore",
@@ -210,9 +202,9 @@ void eteq_ext (py::module& m)
 		py::arg("max_version") = std::numeric_limits<size_t>::max(),
 		py::arg("ignored") = std::vector<pytenncor::ETensT>{});
 
-	py::implicitly_convertible<teq::iSession,teq::Session>();
-	session
-		.def(py::init([](void) { return std::make_shared<teq::Session>(); }));
+	py::implicitly_convertible<teq::iEvaluator,teq::Evaluator>();
+	eval
+		.def(py::init([]{ return std::make_shared<teq::Evaluator>(); }));
 
 	// ==== variable ====
 	py::class_<eteq::EVariable<PybindT>,pytenncor::ETensT> evar(m, "EVariable");

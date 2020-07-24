@@ -1,6 +1,6 @@
 
 #include "distrib/async.hpp"
-#include "distrib/isession.hpp"
+#include "distrib/ievaluator.hpp"
 
 #ifndef DISTRIB_CLIENT_HPP
 #define DISTRIB_CLIENT_HPP
@@ -59,13 +59,13 @@ struct DistrCli final
 
 	std::future<void> get_data (grpc::CompletionQueue& cq,
 		const GetDataRequest& req,
-		boost::bimap<std::string,teq::TensptrT>& shared_nodes)
+		boost::bimap<std::string,teq::iTensor*>& shared_nodes)
 	{
 		auto handler = new AsyncCliRespHandler<NodeData>(alias_ + ":GetData",
 			[&shared_nodes](NodeData& res)
 			{
 				auto uuid = res.uuid();
-				auto ref = static_cast<iDistRef*>(shared_nodes.left.at(uuid).get());
+				auto ref = static_cast<iDistRef*>(shared_nodes.left.at(uuid));
 				ref->update_data(res.data().data(), res.version());
 			});
 

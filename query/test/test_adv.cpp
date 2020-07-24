@@ -154,10 +154,7 @@ TEST(ADV, Unknowns)
 	query::Node cond;
 	json_parse(cond, inss);
 	query::Query matcher;
-	for (auto root : rnn_roots)
-	{
-		root->accept(matcher);
-	}
+	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
 
 	ASSERT_EQ(1, results.size());
@@ -260,10 +257,7 @@ TEST(ADV, MisLabelledVariable)
 	query::Node cond;
 	json_parse(cond, inss);
 	query::Query matcher;
-	for (auto root : rnn_roots)
-	{
-		root->accept(matcher);
-	}
+	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
 
 	EXPECT_EQ(0, results.size());
@@ -291,10 +285,7 @@ TEST(ADV, LabelledVariable)
 	query::Node cond;
 	json_parse(cond, inss);
 	query::Query matcher;
-	for (auto root : rnn_roots)
-	{
-		root->accept(matcher);
-	}
+	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
 
 	ASSERT_EQ(1, results.size());
@@ -330,10 +321,7 @@ TEST(ADV, Scalar)
 	query::Node cond;
 	json_parse(cond, inss);
 	query::Query matcher;
-	for (auto root : rnn_roots)
-	{
-		root->accept(matcher);
-	}
+	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
 
 	ASSERT_EQ(1, results.size());

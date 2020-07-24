@@ -6,6 +6,8 @@
 /// Define interface for building derivative graphs
 ///
 
+#include <list>
+
 #include "teq/traveler.hpp"
 
 #ifndef TEQ_DERIVE_HPP
@@ -17,6 +19,8 @@ namespace teq
 /// Interface for defining required methods for derivation
 struct iDerivativeFuncs
 {
+	virtual ~iDerivativeFuncs (void) = default;
+
 	/// Let op be functor F with arguments args,
 	/// X is the ith argument of F, and supgrad be defined as dG/dF
 	/// where G is some super-functor using F

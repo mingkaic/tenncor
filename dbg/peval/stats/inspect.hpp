@@ -1,6 +1,6 @@
 #include "eigen/eigen.hpp"
 
-#include "dbg/psess/plugin_sess.hpp"
+#include "dbg/peval/plugin_eval.hpp"
 
 #ifndef DBG_STATS_HPP
 #define DBG_STATS_HPP
@@ -32,16 +32,20 @@ inspect_helper((T*) func->device().data(), func->shape(), label);
 struct Inspector final : public dbg::iPlugin
 {
 	void process (
-		const std::vector<teq::FuncSetT>& tracked,
-		teq::FuncListT& targets) override
+		const teq::TensSetT& targets,
+		const teq::TensSetT& visited) override
 	{
-		for (auto func : targets)
+		for (auto vis : visited)
 		{
-			if (estd::has(insps_, func))
+			if (auto func = dynamic_cast<teq::iFunctor*>(vis))
 			{
-				std::string label = insps_.at(func);
-				auto dtype = (egen::_GENERATED_DTYPE) func->get_meta().type_code();
-				TYPE_LOOKUP(INSPECTOR_SELECT, dtype)
+				if (estd::has(insps_, func))
+				{
+					std::string label = insps_.at(func);
+					auto dtype = (egen::_GENERATED_DTYPE)
+						func->get_meta().type_code();
+					TYPE_LOOKUP(INSPECTOR_SELECT, dtype)
+				}
 			}
 		}
 	}

@@ -13,7 +13,7 @@
 #include "jobs/managed_job.hpp"
 #include "jobs/sequence.hpp"
 
-#include "dbg/psess/emit/gemitter.grpc.pb.h"
+#include "dbg/peval/emit/gemitter.grpc.pb.h"
 
 #ifndef DBG_GRPC_CLIENT_HPP
 #define DBG_GRPC_CLIENT_HPP
@@ -178,10 +178,10 @@ struct GraphEmitterClient final
 		}, std::move(requests), std::move(update_it));
 	}
 
-	void delete_model (const std::string& sess_id)
+	void delete_model (const std::string& eval_id)
 	{
 		gemitter::DeleteModelRequest request;
-		request.set_model_id(sess_id);
+		request.set_model_id(eval_id);
 		sequential_jobs_.attach_job(
 		[this](size_t attempt, gemitter::DeleteModelRequest request) -> bool
 		{

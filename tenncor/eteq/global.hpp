@@ -11,7 +11,7 @@ using ETensRegistryT = std::unordered_map<void*,teq::TensptrT>;
 
 struct ETensContext final
 {
-	eigen::iSessptrT sess_ = std::make_shared<teq::Session>();
+	teq::iEvalptrT eval_ = std::make_shared<teq::Evaluator>();
 
 	ETensRegistryT registry_;
 };

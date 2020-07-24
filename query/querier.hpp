@@ -185,11 +185,8 @@ private:
 	void visit_func (teq::iFunctor& func) override
 	{
 		sindex_[func.get_opcode().name_].push_back(&func);
-		auto children = func.get_dependencies();
-		for (auto& arg : children)
-		{
-			arg->accept(*this);
-		}
+		auto deps = func.get_dependencies();
+		teq::multi_visit(*this, deps);
 	}
 
 	bool surface_matches (QResultsT& tens, const teq::iFunctor* func,

@@ -5,7 +5,7 @@
 
 void distrib_ext (py::module& m)
 {
-	auto isess = (py::class_<teq::iSession>) m.attr("iSession");
+	auto ieval = (py::class_<teq::iEvaluator>) m.attr("iEvaluator");
 
 	// todo: internalize or work in some python-native consul API
 	py::class_<ppconsul::Consul,pytenncor::ConsulT> consul(m, "Consul");
@@ -17,14 +17,18 @@ void distrib_ext (py::module& m)
 		}),
 		py::arg("address") = "0.0.0.0:8500");
 
-	py::class_<distr::iDistribSess,distr::DSessptrT>
-	isession(m, "iDistribSess", isess);
-	py::class_<distr::DistribSess,std::shared_ptr<distr::DistribSess>>
-	session(m, "DistribSess", isession);
+	// ==== evaluator ====
+	py::class_<distr::iDistrEvaluator,distr::iDEvalptrT> ievaluator(m, "iDistrEvaluator", ieval);
+	py::class_<distr::DistrEvaluator,distr::DEvalptrT> eval(m, "DistrEvaluator", ievaluator);
 
-	isession
+	ievaluator
+		.def("expose_node",
+		[](distr::iDistrEvaluator& self, pytenncor::ETensT node)
+		{
+			return self.expose_node(node);
+		})
 		.def("lookup_id",
-		[](distr::iDistribSess& self, pytenncor::ETensT node)
+		[](distr::iDistrEvaluator& self, pytenncor::ETensT node)
 		{
 			std::string id;
 			if (auto found_id = self.lookup_id(teq::TensptrT(node)))
@@ -34,7 +38,7 @@ void distrib_ext (py::module& m)
 			return id;
 		})
 		.def("lookup_node",
-		[](distr::iDistribSess& self,
+		[](distr::iDistrEvaluator& self,
 			const std::string& id, bool recursive)
 		{
 			error::ErrptrT err = nullptr;
@@ -49,22 +53,27 @@ void distrib_ext (py::module& m)
 		py::arg("id"),
 		py::arg("recursive") = true)
 		.def("get_id",
-		[](distr::iDistribSess& self)
+		[](distr::iDistrEvaluator& self)
 		{
 			return self.get_id();
 		});
-	session
+
+	eval
 		.def(py::init(
 		[](pytenncor::ConsulT consul, size_t port,
 			std::string service_name, std::string alias)
 		{
-			return tcr::make_distrsess(
+			return tcr::make_distreval(
 				*consul, port, service_name, alias);
 		}),
 		py::arg("consul"),
 		py::arg("port"),
 		py::arg("service_name") = distr::default_service,
 		py::arg("alias") = "");
+
+	m
+		.def("expose_node", tcr::expose_node<PybindT>,
+		"Expose tensor across the cluster in distributed evaluator");
 }
 
 #endif

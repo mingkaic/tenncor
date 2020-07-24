@@ -1,5 +1,5 @@
 #include "teq/itensor.hpp"
-#include "teq/isession.hpp"
+#include "teq/ievaluator.hpp"
 
 #ifndef TEQ_MOCK_DEVICEREF_HPP
 #define TEQ_MOCK_DEVICEREF_HPP

@@ -91,7 +91,6 @@ class DQNEnv(ecache.EnvManager):
                 get_dqnerror(self, discount_rate), ctx=self.ctx))
             self.prediction_err.tag("recovery", "prediction_err")
 
-            self.ctx.get_session().track([self.prediction_err, self.act_idx])
             tc.optimize(optimize_cfg, self.ctx)
 
         super().__init__(os.path.join(usecase, 'dqn'),
@@ -191,7 +190,6 @@ class DQNEnv(ecache.EnvManager):
             return math.floor(_get_random() * self.src_shape[-1])
 
         self.obs.assign(obs, self.ctx)
-        self.ctx.get_session().update_target([self.act_idx])
         return int(self.act_idx.get())
 
     def store(self, observation, act_idx, reward, new_obs):
@@ -233,7 +231,7 @@ class DQNEnv(ecache.EnvManager):
             self.nxt_obs.assign(new_states, self.ctx)
             self.rewards.assign(rewards, self.ctx)
 
-            self.ctx.get_session().update_target([self.prediction_err])
+            self.prediction_err.get()
         self.ntrain_called += 1
 
     def _linear_annealing(self, initial_prob):
