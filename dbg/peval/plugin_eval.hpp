@@ -22,7 +22,7 @@ struct PlugableEvaluator final : public teq::iEvaluator
 	void evaluate (
 		teq::iDevice& device,
 		const teq::TensSetT& targets,
-		const teq::TensSetT& ignored = {})
+		const teq::TensSetT& ignored = {}) override
 	{
 		teq::TravEvaluator eval(device, ignored);
 		teq::multi_visit(eval, targets);

@@ -1,3 +1,4 @@
+
 #include "trainer/rbm.hpp"
 
 #ifndef DBN_TRAINER_HPP
@@ -60,7 +61,7 @@ struct DBNTrainer final
 			CDChainIO<T> io(rx, ry);
 			layr::VarErrsT<T> varerrs = cd_grad_approx<T>(
 				io, rbm, cdk, nullptr, context); // todo: add persistent option
-			teq::TensSetT assigns;
+			teq::TensptrSetT assigns;
 			for (auto varerr : varerrs)
 			{
 				// if var is a weight or bias add assign with learning rate
@@ -69,7 +70,7 @@ struct DBNTrainer final
 					api.assign_add(eteq::EVariable<T>(varerr.first, context),
 						pretrain_lr * varerr.second) :
 					api.assign(eteq::EVariable<T>(varerr.first, context), varerr.second);
-				assigns.emplace(assign.get());
+				assigns.emplace(assign);
 				to_track.emplace(assign);
 			}
 			rupdates_.push_back(assigns);
@@ -125,7 +126,7 @@ struct DBNTrainer final
 		trainx_->assign(train_in, context_);
 
 		eigen::Device device;
-		teq::Evaluator eval;
+		auto& eval = *eteq::global_context()->eval_;
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			// train rbm layers (reconstruction) setup
@@ -135,7 +136,12 @@ struct DBNTrainer final
 			for (size_t epoch = 0; epoch < nepochs; ++epoch)
 			{
 				// train rbm layers (reconstruction)
-				eval.evaluate(device, updates, {to_ignore});
+				teq::TensSetT utens;
+				utens.reserve(updates.size());
+				std::transform(updates.begin(), updates.end(),
+					std::inserter(utens, utens.end()),
+					[](teq::TensptrT tens) { return tens.get(); });
+				eval.evaluate(device, utens, {to_ignore});
 				if (logger)
 				{
 					logger(epoch, i);
@@ -200,7 +206,7 @@ struct DBNTrainer final
 
 	eteq::ETensorsT<T> sample_pipes_;
 
-	std::vector<teq::TensSetT> rupdates_;
+	std::vector<teq::TensptrSetT> rupdates_;
 
 	eteq::ETensor<T> tupdate_;
 

@@ -138,7 +138,7 @@ EigenptrT reduce_max (teq::Shape outshape, const teq::iTensor& in, const marsh::
 	_ARRAY_SWITCH(vranks, _EIGEN_RMAX_CASE)
 }
 
-#undef _EIGEN_RMIN_CASE
+#undef _EIGEN_RMAX_CASE
 
 /// Return Eigen data object that argmax in tensor at return_dim
 template <typename T>
@@ -1365,6 +1365,8 @@ EigenptrT matmul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 
 #undef _EIGEN_MATMUL_CASE
 
+#undef _ARRAY_SWITCH
+
 /// Apply convolution of kernel across input
 template <typename T>
 EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
@@ -1417,8 +1419,6 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 			return args[0].convolve(args[1], dims);
 		});
 }
-
-#undef _ARRAY_SWITCH
 
 template <typename T>
 EigenptrT assign (teq::iTensor& target, const teq::iTensor& source)

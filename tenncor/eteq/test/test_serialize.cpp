@@ -66,7 +66,7 @@ TEST(SERIALIZE, SaveGraph)
 	ids.insert({db0.get(), "db0"});
 	ids.insert({dw1.get(), "dw1"});
 	ids.insert({db1.get(), "db1"});
-	eteq::save_model(model, {dw0, db0, dw1, db1}, ids);
+	eteq::save_model(model, teq::TensptrsT{dw0, db0, dw1, db1}, ids);
 	{
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
@@ -117,7 +117,7 @@ TEST(SERIALIZE, SaveDependencies)
 
 	onnx::TensIdT ids;
 	ids.insert({root.get(), "root"});
-	eteq::save_model(model, {root}, ids);
+	eteq::save_model(model, teq::TensptrsT{root}, ids);
 	{
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);

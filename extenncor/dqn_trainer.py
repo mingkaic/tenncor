@@ -8,7 +8,7 @@ from collections.abc import Iterable
 import tenncor as tc
 
 import extenncor.trainer_cache as ecache
-import extenncor.dqntrainer_pb2 as dqn_pb
+import extenncor.dqn_trainer_pb2 as dqn_pb
 
 _get_random = tc.unif_gen(0, 1)
 

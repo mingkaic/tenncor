@@ -31,7 +31,7 @@ struct iDistrEvaluator : public teq::iEvaluator
 	void evaluate (
 		teq::iDevice& device,
 		const teq::TensSetT& targets,
-		const teq::TensSetT& ignored = {})
+		const teq::TensSetT& ignored = {}) override
 	{
 		// find all reachable refs and make remote call
 		auto refs = reachable_refs(targets);

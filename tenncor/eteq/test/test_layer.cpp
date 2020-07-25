@@ -79,7 +79,7 @@ TEST(LAYER, DenseSerialization)
 			"_____`--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_________`--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", y);
 
-		eteq::save_model(model, {y});
+		eteq::save_model(model, teq::TensptrsT{y});
 	}
 	ASSERT_EQ(noutput * ninput, weight_data.size());
 	ASSERT_EQ(noutput, bias_data.size());

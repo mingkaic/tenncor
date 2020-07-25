@@ -43,7 +43,7 @@ struct Evaluator final : public iEvaluator
 	void evaluate (
 		iDevice& device,
 		const TensSetT& targets,
-		const TensSetT& ignored = {})
+		const TensSetT& ignored = {}) override
 	{
 		TravEvaluator eval(device, ignored);
 		multi_visit(eval, targets);

@@ -65,14 +65,14 @@ cc_library(
 )
 
 proto_library(
-    name = "distr_proto",
+    name = "distr_pb",
     srcs = [":protos"],
     visibility = ["//visibility:public"],
 )
 
 cpp_grpc_library(
     name = "distr_cc_grpc",
-    deps = [":distr_proto"],
+    deps = [":distr_pb"],
     visibility = ["//visibility:public"],
 )
 

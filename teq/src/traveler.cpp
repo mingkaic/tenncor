@@ -59,11 +59,11 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override
 	{
-		auto children = func.get_dependencies();
-		for (const TensptrT& tens : children)
+		auto deps = func.get_dependencies();
+		multi_visit(*this, deps);
+		for (const TensptrT& dep : deps)
 		{
-			tens->accept(*this);
-			owners_.emplace(tens.get(), tens);
+			owners_.emplace(dep.get(), dep);
 		}
 	}
 };
@@ -71,13 +71,10 @@ private:
 OwnerMapT track_owners (TensptrsT roots)
 {
 	OwnerTracker tracker;
+	multi_visit(tracker, roots);
 	for (auto root : roots)
 	{
-		if (nullptr != root)
-		{
-			root->accept(tracker);
-			tracker.owners_.emplace(root.get(), root);
-		}
+		tracker.owners_.emplace(root.get(), root);
 	}
 	return tracker.owners_;
 }

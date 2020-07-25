@@ -43,7 +43,7 @@ using GradMapT = TensMapT<TensptrsT>;
 /// Define manditory definitions required for tensor differentiation
 /// For some graph F(G(x)), chain rule for calculating dF/dx is
 /// defined in the following order:
-/// 1. calcualte dF/dG => F local derivative and
+/// 1. calculate dF/dG => F local derivative and
 /// derivative of super composition (supcomp_grad for G)
 /// 2. calculate dG/dx => G local derivative
 /// 3. chain dF/dG (supcomp_grad) and dG/dx (local_der)

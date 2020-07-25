@@ -44,7 +44,7 @@ distr::iDistrEvaluator* get_distreval (eteq::ECtxptrT ctx)
 	return dynamic_cast<distr::iDistrEvaluator*>(ctx->eval_.get());
 }
 
-#define MAKE_DERFUNC(REAL_TYPE)\
+#define _MAKE_DERFUNC(REAL_TYPE)\
 builder = new eteq::DerivativeFuncs<REAL_TYPE>();
 
 teq::TensMapT<teq::TensptrT> distrib_derive (
@@ -61,7 +61,7 @@ teq::TensMapT<teq::TensptrT> distrib_derive (
 
 	teq::iDerivativeFuncs* builder;
 	auto dtype = (*roots.begin())->get_meta().type_code();
-	TYPE_LOOKUP(MAKE_DERFUNC, dtype);
+	TYPE_LOOKUP(_MAKE_DERFUNC, dtype);
 
 	if (refs.empty())
 	{
@@ -129,7 +129,7 @@ teq::TensMapT<teq::TensptrT> distrib_derive (
 	return out;
 }
 
-#undef MAKE_DERFUNC
+#undef _MAKE_DERFUNC
 
 }
 

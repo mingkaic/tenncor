@@ -26,7 +26,7 @@ void inspect_helper (T* data, teq::Shape shape, const std::string& label)
 		fmts::to_string(max).c_str());
 }
 
-#define INSPECTOR_SELECT(T)\
+#define _INSPECTOR_SELECT(T)\
 inspect_helper((T*) func->device().data(), func->shape(), label);
 
 struct Inspector final : public dbg::iPlugin
@@ -44,7 +44,7 @@ struct Inspector final : public dbg::iPlugin
 					std::string label = insps_.at(func);
 					auto dtype = (egen::_GENERATED_DTYPE)
 						func->get_meta().type_code();
-					TYPE_LOOKUP(INSPECTOR_SELECT, dtype)
+					TYPE_LOOKUP(_INSPECTOR_SELECT, dtype)
 				}
 			}
 		}
@@ -53,7 +53,7 @@ struct Inspector final : public dbg::iPlugin
 	std::unordered_map<teq::iFunctor*,std::string> insps_;
 };
 
-#undef INSPECTOR_SELECT
+#undef _INSPECTOR_SELECT
 
 }
 

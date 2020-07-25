@@ -75,7 +75,7 @@ ETensor<T> make_constant (T* data, teq::Shape shape, ECtxptrT ctx)
 		Constant<T>::get(data, shape)), ctx);
 }
 
-#define CHOOSE_FUNCOPT(OPCODE)\
+#define _CHOOSE_FUNCOPT(OPCODE)\
 redundant = FuncOpt<OPCODE>().is_redundant(attrs, shapes);
 
 template <typename T>
@@ -97,7 +97,7 @@ teq::TensptrT make_funcattr (egen::_GENERATED_OPCODE opcode,
 			return child->shape();
 		});
 	bool redundant = false;
-	OPCODE_LOOKUP(CHOOSE_FUNCOPT, opcode)
+	OPCODE_LOOKUP(_CHOOSE_FUNCOPT, opcode)
 	if (redundant)
 	{
 		return children.front();
@@ -106,7 +106,7 @@ teq::TensptrT make_funcattr (egen::_GENERATED_OPCODE opcode,
 		opcode, children, std::move(attrs)));
 }
 
-#undef CHOOSE_FUNCOPT
+#undef _CHOOSE_FUNCOPT
 
 /// Return functor node given opcode and node arguments
 template <typename T, typename ...ARGS>

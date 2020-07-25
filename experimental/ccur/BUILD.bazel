@@ -31,13 +31,13 @@
 # ######### LIBRARY #########
 
 # proto_library(
-#     name = "weight_proto",
+#     name = "weight_pb",
 #     srcs = ["//ccur:protos"],
 # )
 
 # cc_proto_library(
-#     name = "weight_cc_proto",
-#     deps = ["//ccur:weight_proto"],
+#     name = "weight_cc_pb",
+#     deps = ["//ccur:weight_pb"],
 # )
 
 # cc_library(
@@ -69,7 +69,7 @@
 #     srcs = glob(["inspector.cpp"]),
 #     copts = ["-std=c++17"],
 #     deps = [
-#         "//ccur:weight_cc_proto",
+#         "//ccur:weight_cc_pb",
 #         "@com_github_mingkaic_cppkg//flag:flag",
 #     ],
 # )
@@ -80,7 +80,7 @@
 #     copts = ["-std=c++17"],
 #     deps = [
 #         "//tenncor/eteq:eteq",
-#         "//ccur:weight_cc_proto",
+#         "//ccur:weight_cc_pb",
 #         "@com_github_mingkaic_cppkg//flag:flag",
 #     ],
 # )

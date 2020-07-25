@@ -102,9 +102,6 @@ using TensMapT = std::unordered_map<iTensor*,V>;
 template <typename V>
 using CTensMapT = std::unordered_map<const iTensor*,V>;
 
-// template <typename T>
-// concept tensptr_range = ranges::range<T> && ...;
-
 template <typename TS> // todo: use with concept tensptr_range
 void multi_visit (iTraveler& traveler, const TS& tensors)
 {

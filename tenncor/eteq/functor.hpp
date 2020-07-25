@@ -15,10 +15,10 @@
 namespace eteq
 {
 
-#define CHOOSE_PARSER(OPCODE)\
-outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
-
 const std::string dependency_key = "dependencies";
+
+#define _CHOOSE_PARSER(OPCODE)\
+outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
 
 /// Functor implementation of operable functor of Eigen operators
 template <typename T>
@@ -51,7 +51,7 @@ struct Functor final : public eigen::Observable
 		}
 
 		teq::Shape outshape;
-		OPCODE_LOOKUP(CHOOSE_PARSER, opcode)
+		OPCODE_LOOKUP(_CHOOSE_PARSER, opcode)
 		return new Functor<T>(
 			opcode, outshape, children, std::move(attrs));
 	}
@@ -331,7 +331,7 @@ private:
 	eigen::EMetadata<T> meta_;
 };
 
-#undef CHOOSE_PARSER
+#undef _CHOOSE_PARSER
 
 template <typename T>
 using FuncptrT = std::shared_ptr<Functor<T>>;

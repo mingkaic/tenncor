@@ -113,7 +113,7 @@ cc_library(
 proto_library(
     name = "gemitter_grpc",
     srcs = [":gemit_plugin_protos"],
-    deps = ["//onnx:onnx_proto"],
+    deps = ["//onnx:onnx_pb"],
     visibility = ["//visibility:public"],
 )
 
@@ -121,7 +121,7 @@ proto_library(
 #     name = "gemitter_cc_grpc",
 #     deps = [
 #         ":gemitter_grpc",
-#         "//onnx:onnx_proto",
+#         "//onnx:onnx_pb",
 #     ],
 #     visibility = ["//visibility:public"],
 # )
@@ -138,7 +138,7 @@ cc_library(
     ],
     copts = ["-std=c++17"],
     deps = [
-        "//onnx:onnx_cc_proto",
+        "//onnx:onnx_cc_pb",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )

@@ -43,9 +43,7 @@ py_binary(
 py_binary(
     name = "w2v_demo",
     srcs = ["w2v_demo.py"],
-    deps = [
-        "//extenncor:extenncor",
-    ],
+    deps = ["//extenncor:extenncor"],
     data = ["//:models", "//cfg:optimizations"],
 )
 
