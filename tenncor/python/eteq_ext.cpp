@@ -7,22 +7,22 @@ using ETensKeysT = std::unordered_map<std::string,eteq::ETensor<PybindT>>;
 
 void eteq_ext (py::module& m)
 {
-	py::class_<eteq::ETensContext,eteq::ECtxptrT> context(m, "Context");
+	py::class_<eigen::TensContext,eigen::CtxptrT> context(m, "Context");
 
 	context
-		.def(py::init<>([]() { return std::make_shared<eteq::ETensContext>(); }))
+		.def(py::init<>([]() { return std::make_shared<eigen::TensContext>(); }))
 		.def("get_evaluator",
-		[](eteq::ECtxptrT& self)
+		[](eigen::CtxptrT& self)
 		{
 			return self->eval_;
 		})
 		.def("set_evaluator",
-		[](eteq::ECtxptrT& self, teq::iEvalptrT eval)
+		[](eigen::CtxptrT& self, teq::iEvalptrT eval)
 		{
 			self->eval_ = eval;
 		})
 		.def("get_actives",
-		[](eteq::ECtxptrT& self)
+		[](eigen::CtxptrT& self)
 		{
 			teq::TensptrSetT actives;
 			for (auto& r : self->registry_)
@@ -38,7 +38,7 @@ void eteq_ext (py::module& m)
 			return out;
 		})
 		.def("replace",
-		[](eteq::ECtxptrT& self, const std::vector<std::pair<
+		[](eigen::CtxptrT& self, const std::vector<std::pair<
 			pytenncor::ETensT,pytenncor::ETensT>>& converts)
 		{
 			teq::TensptrsT actives;
@@ -55,7 +55,7 @@ void eteq_ext (py::module& m)
 			graph.replace(conversions);
 		});
 
-	m.attr("global_context") = eteq::global_context();
+	m.attr("global_context") = eigen::global_context();
 
 	// ==== data and shape ====
 	auto shape = (py::class_<teq::Shape>) m.attr("Shape");
@@ -96,12 +96,12 @@ void eteq_ext (py::module& m)
 
 	etens
 		.def(py::init(
-		[](teq::TensptrT tens, eteq::ECtxptrT& context)
+		[](teq::TensptrT tens, eigen::CtxptrT& context)
 		{
 			return pytenncor::ETensT(tens, context);
 		}),
 		py::arg("tens"),
-		py::arg("ctx") = eteq::global_context())
+		py::arg("ctx") = eigen::global_context())
 		.def("__str__",
 		[](const pytenncor::ETensT& self)
 		{
@@ -158,7 +158,7 @@ void eteq_ext (py::module& m)
 				[](eteq::VarptrT<PybindT> var)
 				{
 					return eteq::EVariable<PybindT>(var,
-						eteq::global_context());
+						eigen::global_context());
 				});
 			return vars;
 		})
@@ -212,7 +212,7 @@ void eteq_ext (py::module& m)
 	evar
 		.def(py::init(
 		[](py::list slist, PybindT scalar,
-			const std::string& label, eteq::ECtxptrT context)
+			const std::string& label, eigen::CtxptrT context)
 		{
 			return eteq::make_variable_scalar<PybindT>(
 				scalar, pyutils::p2cshape(slist), label, context);
@@ -220,10 +220,10 @@ void eteq_ext (py::module& m)
 		py::arg("shape"),
 		py::arg("scalar") = 0,
 		py::arg("label") = "",
-		py::arg("ctx") = eteq::global_context())
+		py::arg("ctx") = eigen::global_context())
 		.def("assign",
 		[](eteq::EVariable<PybindT>& self, py::array data,
-			eteq::ECtxptrT ctx)
+			eigen::CtxptrT ctx)
 		{
 			teq::ShapedArr<PybindT> arr;
 			pyutils::arr2shapedarr(arr, data);
@@ -231,7 +231,7 @@ void eteq_ext (py::module& m)
 		},
 		"Assign numpy data array to variable",
 		py::arg("data"),
-		py::arg("ctx") = eteq::global_context());
+		py::arg("ctx") = eigen::global_context());
 
 	// ==== inline functions ====
 	m
@@ -254,7 +254,7 @@ void eteq_ext (py::module& m)
 		// ==== variable creation ====
 		.def("scalar_variable",
 		[](PybindT scalar, py::list slist,
-			const std::string& label, eteq::ECtxptrT context)
+			const std::string& label, eigen::CtxptrT context)
 		{
 			return eteq::make_variable_scalar<PybindT>(
 				scalar, pyutils::p2cshape(slist), label,
@@ -264,10 +264,10 @@ void eteq_ext (py::module& m)
 		py::arg("scalar"),
 		py::arg("slist"),
 		py::arg("label") = "",
-		py::arg("ctx") = eteq::global_context())
+		py::arg("ctx") = eigen::global_context())
 		.def("variable_like",
 		[](PybindT scalar, pytenncor::ETensT like,
-			const std::string& label, eteq::ECtxptrT context)
+			const std::string& label, eigen::CtxptrT context)
 		{
 			return eteq::make_variable_like<PybindT>(
 				scalar, (teq::TensptrT) like, label,
@@ -277,10 +277,10 @@ void eteq_ext (py::module& m)
 		py::arg("scalar"),
 		py::arg("like"),
 		py::arg("label") = "",
-		py::arg("ctx") = eteq::global_context())
+		py::arg("ctx") = eigen::global_context())
 		.def("variable",
 		[](py::array data,
-			const std::string& label, eteq::ECtxptrT context)
+			const std::string& label, eigen::CtxptrT context)
 		{
 			teq::ShapedArr<PybindT> arr;
 			pyutils::arr2shapedarr(arr, data);
@@ -291,9 +291,9 @@ void eteq_ext (py::module& m)
 		"Return labelled variable containing numpy data array",
 		py::arg("data"),
 		py::arg("label") = "",
-		py::arg("ctx") = eteq::global_context())
+		py::arg("ctx") = eigen::global_context())
 		.def("to_variable",
-		[](const pytenncor::ETensT& tens, eteq::ECtxptrT context)
+		[](const pytenncor::ETensT& tens, eigen::CtxptrT context)
 		{
 			auto ctx = tens.get_context();
 			if (nullptr == ctx)
@@ -304,7 +304,7 @@ void eteq_ext (py::module& m)
 				eteq::Variable<PybindT>>((teq::TensptrT) tens), ctx);
 		},
 		py::arg("tens"),
-		py::arg("ctx") = eteq::global_context())
+		py::arg("ctx") = eigen::global_context())
 
 		// ==== other stuff ====
 		.def("derive",
@@ -329,12 +329,12 @@ void eteq_ext (py::module& m)
 
 		// ==== optimization ====
 		.def("optimize",
-		[](const std::string& filename, eteq::ECtxptrT context)
+		[](const std::string& filename, eigen::CtxptrT context)
 		{
 			eteq::optimize<PybindT>(filename, context);
 		},
 		py::arg("filename") = "cfg/optimizations.json",
-		py::arg("ctx") = eteq::global_context(),
+		py::arg("ctx") = eigen::global_context(),
 		"Optimize using rules for specified filename")
 
 		// ==== configmap ====
@@ -438,11 +438,11 @@ void eteq_ext (py::module& m)
 			out.reserve(roots.size());
 			for (const std::string& id : precids)
 			{
-				out.push_back(pytenncor::ETensT(ids.right.at(id), eteq::global_context()));
+				out.push_back(pytenncor::ETensT(ids.right.at(id), eigen::global_context()));
 			}
 			for (const std::string& id : root_ids)
 			{
-				out.push_back(pytenncor::ETensT(ids.right.at(id), eteq::global_context()));
+				out.push_back(pytenncor::ETensT(ids.right.at(id), eigen::global_context()));
 			}
 			return out;
 		},
@@ -471,7 +471,7 @@ void eteq_ext (py::module& m)
 		py::arg("filename"), py::arg("models"),
 		py::arg("keys") = ETensKeysT{})
 		.def("load_context_file",
-		[](const std::string& filename, eteq::ECtxptrT& ctx)
+		[](const std::string& filename, eigen::CtxptrT& ctx)
 		{
 			std::ifstream input(filename);
 			if (false == input.is_open())
@@ -498,7 +498,7 @@ void eteq_ext (py::module& m)
 			return out;
 		})
 		.def("save_context_file",
-		[](const std::string& filename, const eteq::ETensContext& context)
+		[](const std::string& filename, const eigen::TensContext& context)
 		{
 			auto& reg = context.registry_;
 			teq::TensptrSetT roots;

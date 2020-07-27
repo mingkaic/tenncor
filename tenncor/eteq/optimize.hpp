@@ -55,7 +55,7 @@ teq::TensptrsT optimize (teq::TensptrsT roots, std::istream& rulestr)
 /// Apply optimization to graph roots in context registry
 template <typename T>
 void optimize (std::string filename,
-	ECtxptrT context = global_context())
+	eigen::CtxptrT context = eigen::global_context())
 {
 	std::ifstream rulefile(filename);
 	auto& reg = context->registry_;

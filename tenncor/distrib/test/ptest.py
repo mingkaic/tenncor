@@ -21,29 +21,29 @@ def _distrib_datapassing(consul, data, data2, data3):
     b = tc.variable(data2, 'b')
     c = tc.variable(data3, 'c')
 
-    # eval1
-    eval1 = tc.DistrEvaluator(consul, port=5122,
-        service_name=_test_service, alias='eval1')
+    # mgr1
+    mgr1 = tc.DistManager(consul, port=5122,
+        service_name=_test_service, alias='mgr1')
 
     d = tc.api.matmul(a, b)
     f = tc.api.matmul(tc.api.transpose(d), tc.api.transpose(c))
 
-    eval1.expose_node(d)
-    eval1.expose_node(f)
-    d_id = eval1.lookup_id(d)
-    f_id = eval1.lookup_id(f)
+    mgr1.expose_node(d)
+    mgr1.expose_node(f)
+    d_id = mgr1.lookup_id(d)
+    f_id = mgr1.lookup_id(f)
 
     # eval2
-    eval2 = tc.DistrEvaluator(consul, port=5123,
-        service_name=_test_service, alias='eval2')
+    mgr2 = tc.DistManager(consul, port=5123,
+        service_name=_test_service, alias='mgr2')
 
-    d_ref = eval2.lookup_node(d_id)
-    f_ref = eval2.lookup_node(f_id)
+    d_ref = mgr2.lookup_node(d_id)
+    f_ref = mgr2.lookup_node(f_id)
 
     e = tc.api.matmul(c, d_ref)
     root = tc.api.matmul(e, f_ref)
 
-    eval2.evaluate([root])
+    tc.DistEvaluator(mgr2).evaluate([root])
 
     return root.raw()
 
@@ -53,35 +53,35 @@ def _distrib_multipass(consul, data, data2, data3):
     b = tc.variable(data2, 'b')
     c = tc.variable(data3, 'c')
 
-    # eval1
-    eval1 = tc.DistrEvaluator(consul, port=5122,
-        service_name=_test_service, alias='eval1')
+    # mgr1
+    mgr1 = tc.DistManager(consul, port=5122,
+        service_name=_test_service, alias='mgr1')
 
     d = tc.api.matmul(a, b)
 
-    eval1.expose_node(d)
-    d_id = eval1.lookup_id(d)
+    mgr1.expose_node(d)
+    d_id = mgr1.lookup_id(d)
 
-    # eval2 -> depends on eval1 (reference to d)
-    eval2 = tc.DistrEvaluator(consul, port=5123,
-        service_name=_test_service, alias='eval2')
+    # mgr2 -> depends on eval1 (reference to d)
+    mgr2 = tc.DistManager(consul, port=5123,
+        service_name=_test_service, alias='mgr2')
 
-    d_ref = eval2.lookup_node(d_id)
+    d_ref = mgr2.lookup_node(d_id)
     f = tc.api.matmul(tc.api.transpose(d_ref), tc.api.transpose(c))
 
-    eval2.expose_node(f)
-    f_id = eval2.lookup_id(f)
+    mgr2.expose_node(f)
+    f_id = mgr2.lookup_id(f)
 
-    # eval3 -> depends on eval1 (reference to d) and eval2 (reference to f)
-    eval3 = tc.DistrEvaluator(consul, port=5124,
-        service_name=_test_service, alias='eval3')
+    # mgr3 -> depends on eval1 (reference to d) and eval2 (reference to f)
+    mgr3 = tc.DistManager(consul, port=5124,
+        service_name=_test_service, alias='mgr3')
 
-    d_ref2 = eval3.lookup_node(d_id)
+    d_ref2 = mgr3.lookup_node(d_id)
     e = tc.api.matmul(c, d_ref2)
-    f_ref = eval3.lookup_node(f_id)
+    f_ref = mgr3.lookup_node(f_id)
     root = tc.api.matmul(e, f_ref)
 
-    eval3.evaluate([root])
+    tc.DistEvaluator(mgr3).evaluate([root])
 
     return root.raw()
 

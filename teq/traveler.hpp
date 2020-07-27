@@ -74,7 +74,7 @@ struct GraphStat final : public iTraveler
 		std::vector<size_t> min_heights;
 		max_heights.reserve(ndeps);
 		min_heights.reserve(ndeps);
-		teq::multi_visit(*this, deps);
+		multi_visit(*this, deps);
 		for (TensptrT child : deps)
 		{
 			estd::NumRange<size_t> range =
@@ -102,7 +102,7 @@ struct GraphStat final : public iTraveler
 			estd::NumRange<size_t>(min_height, max_height));
 	}
 
-	const estd::NumRange<size_t>& at (teq::iTensor* tens) const
+	const estd::NumRange<size_t>& at (iTensor* tens) const
 	{
 		return estd::must_getf(graphsize_, tens,
 			"failed to find range for %s",
@@ -129,11 +129,11 @@ struct GraphIndex final : public iTraveler
 			return;
 		}
 		auto deps = func.get_dependencies();
-		teq::multi_visit(*this, deps);
+		multi_visit(*this, deps);
 		indices_.emplace(&func, indices_.size());
 	}
 
-	const size_t& at (teq::iTensor* tens) const
+	const size_t& at (iTensor* tens) const
 	{
 		return estd::must_getf(indices_, tens,
 			"failed to find index for %s",
@@ -163,7 +163,7 @@ struct ParentFinder final : public iTraveler
 			return;
 		}
 		auto deps = func.get_dependencies();
-		teq::multi_visit(*this, deps);
+		multi_visit(*this, deps);
 		for (size_t i = 0, n = deps.size(); i < n; ++i)
 		{
 			parents_[deps[i].get()][&func].push_back(i);
@@ -171,7 +171,7 @@ struct ParentFinder final : public iTraveler
 		parents_.emplace(&func, ParentMapT());
 	}
 
-	const ParentMapT& at (teq::iTensor* tens) const
+	const ParentMapT& at (iTensor* tens) const
 	{
 		return estd::must_getf(parents_, tens,
 			"failed to find parents for %s",
@@ -252,7 +252,7 @@ struct PathFinder final : public iOnceTraveler
 		roadmap_.clear();
 	}
 
-	const PathNodeT& at (teq::iTensor* tens) const
+	const PathNodeT& at (iTensor* tens) const
 	{
 		return estd::must_getf(roadmap_, tens,
 			"failed to find road node for %s",
@@ -353,7 +353,7 @@ private:
 		{
 			return;
 		}
-		clones_.emplace(&leaf, teq::TensptrT(leaf.clone()));
+		clones_.emplace(&leaf, TensptrT(leaf.clone()));
 	}
 
 	void visit_func (iFunctor& func) override
@@ -364,7 +364,7 @@ private:
 		}
 		auto deps = func.get_dependencies();
 		auto fcpy = func.clone();
-		teq::multi_visit(*this, deps);
+		multi_visit(*this, deps);
 		for (size_t i = 0, n = deps.size(); i < n; ++i)
 		{
 			TensptrT tens = deps[i];
@@ -389,17 +389,46 @@ private:
 				}
 			}
 		}
-		clones_.emplace(&func, teq::TensptrT(fcpy));
+		clones_.emplace(&func, TensptrT(fcpy));
 	}
 };
 
 /// Map between tensor and its corresponding smart pointer
 using OwnerMapT = TensMapT<TensrefT>;
 
+struct OwnerTracker final : public iOnceTraveler
+{
+	OwnerMapT owners_;
+
+private:
+	/// Implementation of iOnceTraveler
+	void visit_leaf (iLeaf& leaf) override {}
+
+	/// Implementation of iOnceTraveler
+	void visit_func (iFunctor& func) override
+	{
+		auto deps = func.get_dependencies();
+		multi_visit(*this, deps);
+		for (const TensptrT& dep : deps)
+		{
+			owners_.emplace(dep.get(), dep);
+		}
+	}
+};
+
 /// Travelers will lose smart pointer references,
 /// This utility function will grab reference maps of root's subtree
-OwnerMapT track_owners (TensptrsT roots);
-// todo: roots just need to contain TensptrT values and is iterable
+template <typename TS> // todo: use concept tensptr_ranges
+OwnerMapT track_owners (const TS& roots)
+{
+	OwnerTracker tracker;
+	multi_visit(tracker, roots);
+	for (auto root : roots)
+	{
+		tracker.owners_.emplace(root.get(), root);
+	}
+	return tracker.owners_;
+}
 
 }
 

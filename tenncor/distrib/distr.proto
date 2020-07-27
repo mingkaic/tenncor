@@ -36,6 +36,16 @@ message GetDataRequest {
     repeated string uuids = 1;
 }
 
+message FindReachableRequest {
+    repeated string srcs = 1;
+
+    repeated string dests = 2;
+}
+
+message FindReachableResponse {
+    repeated string srcs = 1;
+}
+
 // Request for partial derivation of some
 // absolute root with respect to target nodes
 message DeriveRequest {
@@ -63,6 +73,9 @@ service DistrManager {
     rpc GetData (GetDataRequest) returns (stream NodeData);
 
     // === Graph Operations ===
+
+    // Find all src nodes that can reach dests
+    rpc FindReachable (FindReachableRequest) returns (FindReachableResponse);
 
     // Calculate the derivative of some root with respect to targets
     rpc Derive (DeriveRequest) returns (DeriveResponse);

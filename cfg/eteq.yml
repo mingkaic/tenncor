@@ -28,7 +28,7 @@ api:
       type: TenncorAPI<float>
       decl: |
           //
-              static TenncorAPI<float> global(eteq::global_context());
+              static TenncorAPI<float> global(eigen::global_context());
               return global;
   funcs:
     - template: typename T
@@ -320,8 +320,8 @@ api:
       init:
         args:
           - name: context
-            type: eteq::ECtxptrT
-            default: eteq::global_context()
+            type: eigen::CtxptrT
+            default: eigen::global_context()
         initlist:
           random: this
           nn: this
@@ -371,7 +371,7 @@ api:
               }
       members:
         - name: ctx
-          type: eteq::ECtxptrT
+          type: eigen::CtxptrT
           public: True
         - name: random
           type: RandomAPI<T>

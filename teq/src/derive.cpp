@@ -105,18 +105,11 @@ void partial_derive (TensMapT<TensptrsT>& grads,
 
 	// else there exists a path to wrt
 	// using pathfinder, breadth first traverse from this to wrt
-	OwnerMapT owners = track_owners(
-		TensptrsT(parents.begin(), parents.end()));
+	OwnerMapT owners = track_owners(parents);
 	GraphStat stat;
 	GraphIndex indexer;
-	for (auto parent : parents)
-	{
-		if (nullptr != parent)
-		{
-			parent->accept(stat);
-			parent->accept(indexer);
-		}
-	}
+	multi_visit(stat, parents);
+	multi_visit(indexer, parents);
 
 	std::list<iFunctor*> tovisits; // todo: make parent order not dependent on sorting algorithm by sorting by order visited
 	std::transform(pfinder.roadmap_.begin(), pfinder.roadmap_.end(),

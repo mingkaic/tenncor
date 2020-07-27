@@ -1,6 +1,6 @@
 
 #include "distrib/async.hpp"
-#include "distrib/ievaluator.hpp"
+#include "distrib/imanager.hpp"
 
 #ifndef DISTRIB_CLIENT_HPP
 #define DISTRIB_CLIENT_HPP
@@ -39,7 +39,7 @@ struct DistrCli final
 		stub_(DistrManager::NewStub(channel)),
 		alias_(alias), cfg_(cfg) {}
 
-	grpc::Status lookup_node (
+	grpc::Status find_nodes (
 		const FindNodesRequest& req, FindNodesResponse& res)
 	{
 		grpc::ClientContext context;
@@ -55,6 +55,30 @@ struct DistrCli final
 			status = stub_->FindNodes(&context, req, &res);
 		}
 		return status;
+	}
+
+	grpc::Status find_reachable (
+		const FindReachableRequest& req, FindReachableResponse& res)
+	{
+		grpc::ClientContext context;
+		build_ctx(context, true);
+		teq::infof("[client %s:FindReachable] initial call", alias_.c_str());
+		auto status = stub_->FindReachable(&context, req, &res);
+		for (size_t i = 1; false == status.ok() && i < cfg_.request_retry_; ++i)
+		{
+			teq::infof("[client %s:FindReachable] previous call failed... "
+				"reattempt %d", alias_.c_str(), i);
+			grpc::ClientContext context;
+			build_ctx(context, true);
+			status = stub_->FindReachable(&context, req, &res);
+		}
+		return grpc::Status::OK;
+	}
+
+	grpc::Status derive (
+		const DeriveRequest& req, const DeriveResponse& res)
+	{
+		return grpc::Status::OK;
 	}
 
 	std::future<void> get_data (grpc::CompletionQueue& cq,

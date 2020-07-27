@@ -105,17 +105,17 @@ private:
 /// Return constant node given scalar and shape
 template <typename T>
 ETensor<T> make_constant_scalar (T scalar, teq::Shape shape,
-	ECtxptrT ctx = global_context());
+	eigen::CtxptrT ctx = eigen::global_context());
 
 /// Return constant node filled with scalar matching link shape
 template <typename T>
 ETensor<T> make_constant_like (T scalar, teq::TensptrT like,
-	ECtxptrT ctx = global_context());
+	eigen::CtxptrT ctx = eigen::global_context());
 
 /// Return constant node given raw array and shape
 template <typename T>
 ETensor<T> make_constant (T* data, teq::Shape shape,
-	ECtxptrT ctx = global_context());
+	eigen::CtxptrT ctx = eigen::global_context());
 
 }
 

@@ -33,7 +33,7 @@ void query_ext(py::module& m)
 					{
 						return eteq::ETensor<PybindT>(
 							owners.at(result.root_).lock(),
-							eteq::global_context());
+							eigen::global_context());
 					});
 			}
 			else
@@ -45,7 +45,7 @@ void query_ext(py::module& m)
 					{
 						eresults.push_back(eteq::ETensor<PybindT>(
 							owners.at(res).lock(),
-							eteq::global_context()));
+							eigen::global_context()));
 					}
 				}
 			}

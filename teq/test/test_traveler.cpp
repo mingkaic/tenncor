@@ -151,7 +151,7 @@ TEST(TRAVELER, Owners)
 		fref = f.get();
 		gref = g.get();
 
-		owners = teq::track_owners({g});
+		owners = teq::track_owners(teq::TensptrsT{g});
 		ASSERT_HAS(owners, a.get());
 		ASSERT_HAS(owners, b.get());
 		ASSERT_HAS(owners, c.get());

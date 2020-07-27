@@ -143,7 +143,7 @@ int main (int argc, const char** argv)
 		};
 	// emit::Emitter emitter("localhost:50051");
 	// auto eval = std::make_shared<dbg::PlugableEvaluator>();
-	// eteq::global_context()->eval_ = eval;
+	// eigen::global_context()->eval_ = eval;
 	// eval->add_plugin(emitter);
 	{
 
@@ -180,8 +180,8 @@ int main (int argc, const char** argv)
 	{
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		train_input->assign(batch, eteq::global_context());
-		train_exout->assign(batch_out, eteq::global_context());
+		train_input->assign(batch, eigen::global_context());
+		train_exout->assign(batch_out, eigen::global_context());
 		PybindT* data = (PybindT*) train_err.calc();
 		if (i % show_every_n == show_every_n - 1)
 		{
@@ -210,7 +210,7 @@ int main (int argc, const char** argv)
 		}
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		testin->assign(batch, eteq::global_context());
+		testin->assign(batch, eigen::global_context());
 		PybindT* untrained_res = untrained_out.calc();
 		PybindT* trained_res = trained_out.calc();
 		PybindT* pretrained_res = pretrained_out.calc();

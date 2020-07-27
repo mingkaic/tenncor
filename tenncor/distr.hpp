@@ -8,40 +8,168 @@
 namespace tcr
 {
 
-distr::DEvalptrT make_distreval (
-	ppconsul::Consul& consul, size_t port,
-	const std::string& service,
-	const std::string& id = "",
-	const distr::ClientConfig& cfg = distr::ClientConfig());
+#define _MAKE_DERFUNC(REAL_TYPE)\
+builder = new eteq::DerivativeFuncs<REAL_TYPE>();
 
-distr::iDistrEvaluator* get_distreval (eteq::ECtxptrT ctx);
+struct TenncorManager final : public distr::DistManager
+{
+	template<typename... ARGS>
+	TenncorManager (ARGS&&... args) :
+		DistManager(std::forward<ARGS>(args)...) {}
 
-teq::TensMapT<teq::TensptrT> distrib_derive (
-	teq::GradMapT& grads,
-	distr::iDistrEvaluator* eval,
-	const teq::TensptrSetT& roots,
-	const teq::TensptrSetT& targets,
-	const distr::DRefptrSetT& refs);
+	/// Implementation of iDistManager
+	teq::TensMapT<teq::TensptrT> derive (
+		teq::GradMapT& grads,
+		const teq::TensptrSetT& roots,
+		const teq::TensptrSetT& targets) override
+	{
+		if (roots.empty())
+		{
+			return {};
+		}
+
+		teq::iDerivativeFuncs* builder;
+		auto dtype = (*roots.begin())->get_meta().type_code();
+		TYPE_LOOKUP(_MAKE_DERFUNC, dtype);
+
+		// only look at reachable refs
+		auto refs = distr::reachable_refs(roots);
+		if (refs.empty())
+		{
+			teq::partial_derive(grads, roots, targets, *builder);
+		}
+		else
+		{
+			estd::StrMapT<estd::StrSetT> remotes;
+			for (auto ref : refs)
+			{
+				remotes[ref->cluster_id()].emplace(ref->node_id());
+			}
+
+			teq::TensptrSetT locals;
+			teq::TensSetT refset(refs.begin(), refs.end());
+			for (auto root : roots)
+			{
+				if (false == estd::has(refset, root.get()))
+				{
+					locals.emplace(root);
+				}
+			}
+
+			estd::StrSetT targids;
+			for (auto target : targets)
+			{
+				// targets that are not exposed can't be referenced remotely
+				if (auto id = lookup_id(target.get()))
+				{
+					targids.emplace(*id);
+				}
+			}
+			// filter target references by target reachability
+			auto local_target = targets;
+			for (auto& remote : remotes)
+			{
+				error::ErrptrT err = nullptr;
+				remote.second = remote_find_reachable(err,
+					remote.first, remote.second, targids);
+				if (nullptr != err)
+				{
+					teq::fatal(err->to_string());
+				}
+				for (auto reachable : remote.second)
+				{
+					auto ref = lookup_node(err, reachable);
+					if (nullptr != err)
+					{
+						teq::fatal(err->to_string());
+					}
+					local_target.emplace(ref);
+				}
+			}
+			// populate grads by local gradients
+			if (locals.size() > 0)
+			{
+				teq::partial_derive(grads, locals, local_target, *builder);
+			}
+			// then make remote calls
+			for (auto remote : remotes)
+			{
+				remote_derive(grads, remote.first, remote.second, targids);
+			}
+		}
+
+		teq::TensMapT<teq::TensptrT> out;
+		for (auto target : targets)
+		{
+			teq::TensptrT tens;
+			teq::TensptrsT tgrads;
+			if (estd::get(tgrads, grads, target.get()) && tgrads.size() > 0)
+			{
+				tens = tgrads.size() == 1 ?
+					tgrads.front() : builder->add(tgrads);
+			}
+			else
+			{
+				tens = builder->get_const_zero(target->shape());
+			}
+			out.emplace(target.get(), tens);
+		}
+		delete builder;
+		return out;
+	}
+
+private:
+	void remote_derive (
+		teq::TensMapT<teq::TensptrsT>& grads,
+		const std::string& peer_id,
+		const estd::StrSetT& roots,
+		const estd::StrSetT& targets)
+	{
+		//
+	}
+};
+
+#undef _MAKE_DERFUNC
+
+const std::string distmgr_key = "distmanager";
+
+void set_distmgr (distr::iDistMgrptrT mgr,
+	eigen::CtxptrT ctx = eigen::global_context());
+
+template <typename CTX> // todo: conceptcCTX is TensContext pointe
+distr::iDistManager* get_distmgr (const CTX& ctx)
+{
+	if (nullptr == ctx)
+	{
+		teq::fatal("cannot lookup references from null context");
+	}
+	if (false == estd::has(ctx->owners_, distmgr_key))
+	{
+		return nullptr;
+	}
+	return static_cast<distr::iDistManager*>(
+		ctx->owners_.at(distmgr_key)->get_raw());
+}
 
 template <typename T>
 void expose_node (const eteq::ETensor<T>& etens)
 {
-	auto eval = get_distreval(etens.get_context());
-	eval->expose_node(etens);
+	auto mgr = get_distmgr(etens.get_context());
+	mgr->expose_node(etens);
 }
 
 template <typename T>
 std::string try_lookup_id (error::ErrptrT& err, eteq::ETensor<T> etens)
 {
 	auto ctx = etens.get_context();
-	auto eval = get_distreval(ctx);
-	if (nullptr == eval)
+	auto mgr = get_distmgr(ctx);
+	if (nullptr == mgr)
 	{
 		err = error::error(
-			"cannot only find reference ids using iDistrEvaluator");
+			"can only find reference ids using iDistManager");
 		return "";
 	}
-	auto opt_id = eval->lookup_id(etens);
+	auto opt_id = mgr->lookup_id(etens.get());
 	if (false == bool(opt_id))
 	{
 		err = error::errorf("failed to find tensor %s",
@@ -66,21 +194,21 @@ std::string lookup_id (eteq::ETensor<T> etens)
 template <typename T>
 eteq::ETensor<T> try_lookup_node (
 	error::ErrptrT& err, const std::string& id,
-	eteq::ECtxptrT ctx = eteq::global_context())
+	eigen::CtxptrT ctx = eigen::global_context())
 {
-	auto eval = get_distreval(ctx);
-	if (nullptr == eval)
+	auto mgr = get_distmgr(ctx.get());
+	if (nullptr == mgr)
 	{
 		err = error::error(
-			"cannot only find references using iDistrEvaluator");
+			"can only find references using iDistManager");
 		return eteq::ETensor<T>();
 	}
-	return eteq::ETensor<T>(eval->lookup_node(err, id), ctx);
+	return eteq::ETensor<T>(mgr->lookup_node(err, id), ctx);
 }
 
 template <typename T>
 eteq::ETensor<T> lookup_node (const std::string& id,
-	eteq::ECtxptrT ctx = eteq::global_context())
+	eigen::CtxptrT ctx = eigen::global_context())
 {
 	error::ErrptrT err = nullptr;
 	auto out = try_lookup_node<T>(err, id, ctx);

@@ -342,9 +342,9 @@ teq::TensptrT make_functor (egen::_GENERATED_OPCODE opcode,
 	const teq::TensptrsT& children,  ARGS... vargs);
 
 template <typename T, typename ...ARGS>
-ETensor<T> make_functor (eteq::ETensRegistryT& registry,
-	egen::_GENERATED_OPCODE opcode, const teq::TensptrsT& children,
-	ARGS... vargs);
+ETensor<T> make_functor (eigen::CtxptrT ctx,
+	egen::_GENERATED_OPCODE opcode,
+	const teq::TensptrsT& children,ARGS... vargs);
 
 }
 

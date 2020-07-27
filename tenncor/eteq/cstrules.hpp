@@ -41,7 +41,7 @@ template <typename T>
 struct ConstantTarget final : public opt::iTarget
 {
 	ConstantTarget (const opt::GraphInfo& graph,
-		ECtxptrT context = global_context()) : graph_(&graph), ctx_(context) {}
+		eigen::CtxptrT context = eigen::global_context()) : graph_(&graph), ctx_(context) {}
 
 	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
@@ -55,7 +55,7 @@ struct ConstantTarget final : public opt::iTarget
 
 	const opt::GraphInfo* graph_;
 
-	ECtxptrT ctx_;
+	eigen::CtxptrT ctx_;
 };
 
 // source graph for certain branching factor of certain operator
@@ -76,7 +76,7 @@ static inline void get_cstsource (query::Node& node, std::string opname, size_t 
 // then append rule converting constant source to constant target
 template <typename T>
 void generate_cstrules (opt::OptRulesT& rules,
-	const opt::GraphInfo& graph, ECtxptrT context = global_context())
+	const opt::GraphInfo& graph, eigen::CtxptrT context = eigen::global_context())
 {
 	std::unordered_map<std::string,std::unordered_set<size_t>> branches;
 	for (const auto& owner : graph.get_owners())

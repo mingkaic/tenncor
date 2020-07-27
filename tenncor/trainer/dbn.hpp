@@ -16,7 +16,7 @@ struct DBNTrainer final
 		teq::RankT softmax_dim, teq::DimT batch_size,
 		T pretrain_lr = 0.1, T train_lr = 0.1,
 		size_t cdk = 10, T l2_reg = 0., T lr_scaling = 0.95,
-		eteq::ECtxptrT context = eteq::global_context()) :
+		eigen::CtxptrT context = eigen::global_context()) :
 		nlayers_(rbms.size()),
 		batch_size_(batch_size),
 		context_(context)
@@ -126,7 +126,7 @@ struct DBNTrainer final
 		trainx_->assign(train_in, context_);
 
 		eigen::Device device;
-		auto& eval = *eteq::global_context()->eval_;
+		auto& eval = *eigen::global_context()->eval_;
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			// train rbm layers (reconstruction) setup
@@ -214,7 +214,7 @@ struct DBNTrainer final
 
 	eteq::ETensor<T> tcost_;
 
-	eteq::ECtxptrT context_;
+	eigen::CtxptrT context_;
 };
 
 }

@@ -27,10 +27,7 @@ private:
 			return;
 		}
 		auto dependencies = func.get_dependencies();
-		for (TensptrT dep : dependencies)
-		{
-			dep->accept(*this);
-		}
+		multi_visit(*this, dependencies);
 		device_->calc(func);
 	}
 

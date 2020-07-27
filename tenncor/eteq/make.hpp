@@ -14,7 +14,7 @@ using DimPairsT = std::pair<teq::DimT,teq::DimT>;
 /// Return variable node given scalar and shape
 template <typename T>
 EVariable<T> make_variable_scalar (T scalar,
-	teq::Shape shape, std::string label, ECtxptrT ctx)
+	teq::Shape shape, std::string label, eigen::CtxptrT ctx)
 {
 	if (label.empty())
 	{
@@ -27,7 +27,7 @@ EVariable<T> make_variable_scalar (T scalar,
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>
-EVariable<T> make_variable (teq::Shape shape, std::string label, ECtxptrT ctx)
+EVariable<T> make_variable (teq::Shape shape, std::string label, eigen::CtxptrT ctx)
 {
 	return make_variable_scalar<T>(0, shape, label, ctx);
 }
@@ -35,7 +35,7 @@ EVariable<T> make_variable (teq::Shape shape, std::string label, ECtxptrT ctx)
 /// Return variable node filled with scalar matching link shape
 template <typename T>
 EVariable<T> make_variable_like (T scalar, teq::TensptrT like,
-	std::string label, ECtxptrT ctx)
+	std::string label, eigen::CtxptrT ctx)
 {
 	return make_variable_scalar(scalar, like->shape(), label, ctx);
 }
@@ -43,7 +43,7 @@ EVariable<T> make_variable_like (T scalar, teq::TensptrT like,
 /// Return variable node given raw array and shape
 template <typename T>
 EVariable<T> make_variable (T* data, teq::Shape shape,
-	std::string label, ECtxptrT ctx)
+	std::string label, eigen::CtxptrT ctx)
 {
 	return EVariable<T>(VarptrT<T>(
 		Variable<T>::get(data, shape, label)), ctx);
@@ -51,7 +51,7 @@ EVariable<T> make_variable (T* data, teq::Shape shape,
 
 /// Return constant node given scalar and shape
 template <typename T>
-ETensor<T> make_constant_scalar (T scalar, teq::Shape shape, ECtxptrT ctx)
+ETensor<T> make_constant_scalar (T scalar, teq::Shape shape, eigen::CtxptrT ctx)
 {
 	std::vector<T> data(shape.n_elems(), scalar);
 	return ETensor<T>(teq::TensptrT(
@@ -60,7 +60,7 @@ ETensor<T> make_constant_scalar (T scalar, teq::Shape shape, ECtxptrT ctx)
 
 /// Return constant node filled with scalar matching link shape
 template <typename T>
-ETensor<T> make_constant_like (T scalar, teq::TensptrT like, ECtxptrT ctx)
+ETensor<T> make_constant_like (T scalar, teq::TensptrT like, eigen::CtxptrT ctx)
 {
 	return make_functor<T>(ctx, ::egen::EXTEND,teq::TensptrsT{
 		make_constant_scalar<T>(scalar, teq::Shape())
@@ -69,7 +69,7 @@ ETensor<T> make_constant_like (T scalar, teq::TensptrT like, ECtxptrT ctx)
 
 /// Return constant node given raw array and shape
 template <typename T>
-ETensor<T> make_constant (T* data, teq::Shape shape, ECtxptrT ctx)
+ETensor<T> make_constant (T* data, teq::Shape shape, eigen::CtxptrT ctx)
 {
 	return ETensor<T>(teq::TensptrT(
 		Constant<T>::get(data, shape)), ctx);
@@ -120,9 +120,9 @@ teq::TensptrT make_functor (egen::_GENERATED_OPCODE opcode,
 }
 
 template <typename T, typename ...ARGS>
-ETensor<T> make_functor (eteq::ECtxptrT ctx,
-	egen::_GENERATED_OPCODE opcode, const teq::TensptrsT& children,
-	ARGS... vargs)
+ETensor<T> make_functor (eigen::CtxptrT ctx,
+	egen::_GENERATED_OPCODE opcode,
+	const teq::TensptrsT& children, ARGS... vargs)
 {
 	return ETensor<T>(make_functor<T,ARGS...>(opcode, children,
 		std::forward<ARGS>(vargs)...), ctx);

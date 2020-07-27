@@ -169,6 +169,7 @@ static void unar_elem (std::vector<double> data,
 	std::vector<teq::DimT> shape_list,
 	UnaryOpF<double> op, UnaryDblF fwd, UnaryDblF bwd)
 {
+	teq::Evaluator eval;
 	eigen::Device device;
 	teq::Shape shape(shape_list);
 	teq::NElemT n = shape.n_elems();
@@ -180,22 +181,18 @@ static void unar_elem (std::vector<double> data,
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	{
-		teq::Evaluator op_eval;
-		op_eval.evaluate(device, {dest.get()});
-		op_eval.evaluate(device, {dest.get()}); // idempotency check
-	}
+	eval.evaluate(device, {dest.get()});
+	eval.evaluate(device, {dest.get()}); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
-	}
-	double* optr = (double*) dest->device().data();
-	for (size_t i = 0; i < n; ++i)
-	{
-		EXPECT_DOUBLE_EQ(fwd(data[i]), optr[i]);
+		double* optr = (double*) dest->device().data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(fwd(data[i]), optr[i]);
+		}
 	}
 
-	teq::Evaluator eval;
 	eteq::ETensorsT<double> gsrc = tcr::derive(uninit_dest, {src});
 	ASSERT_EQ(1, gsrc.size());
 	ASSERT_NE(nullptr, gsrc.front());

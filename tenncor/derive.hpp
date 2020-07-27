@@ -38,39 +38,24 @@ eteq::ETensorsT<T> derive (
 	}
 
 	eteq::DerivativeFuncs<T> builder;
-
-	if (auto deval = get_distreval(root_ctx))
+	if (auto mgr = get_distmgr(root_ctx.get()))
 	{
-		// only look at reachable refs
-		auto rrefs = distr::reachable_refs(teq::TensT{root.get()});
-		if (rrefs.size() > 0)
+		teq::TensMapT<teq::TensptrsT> grads = {
+			{root.get(), {builder.get_const_one(root->shape())}}
+		};
+		auto tgrads = mgr->derive(grads, {root}, teq::TensptrSetT(
+			targets.begin(), targets.end()));
+
+		size_t n = targets.size();
+		eteq::ETensorsT<T> results;
+		results.reserve(n);
+		for (size_t i = 0; i < n; ++i)
 		{
-			distr::DRefptrSetT refs;
-			auto owners = teq::track_owners({root});
-			for (auto ref : rrefs)
-			{
-				refs.emplace(std::dynamic_pointer_cast<
-					distr::iDistRef>(owners[ref].lock()));
-			}
-			teq::TensMapT<teq::TensptrsT> grads = {
-				{root.get(), {builder.get_const_one(root->shape())}}
-			};
-			teq::TensptrSetT targset(targets.begin(), targets.end());
-
-			auto tgrads = distrib_derive(
-				grads, deval, {root}, targset, refs);
-
-			size_t n = targets.size();
-			eteq::ETensorsT<T> results;
-			results.reserve(n);
-			for (size_t i = 0; i < n; ++i)
-			{
-				auto target = targets[i];
-				results.push_back(eteq::ETensor<T>(
-					tgrads[target.get()], root.get_context()));
-			}
-			return results;
+			auto target = targets[i];
+			results.push_back(eteq::ETensor<T>(
+				tgrads[target.get()], root.get_context()));
 		}
+		return results;
 	}
 
 	teq::TensptrsT targs(targets.begin(), targets.end());

@@ -161,7 +161,7 @@ ETensor<T> connect (const ETensor<T>& root, const ETensor<T>& input)
 template <typename T>
 VarptrsT<T> get_storage (const ETensor<T>& root)
 {
-	teq::OwnerMapT owner = teq::track_owners({teq::TensptrT(root)});
+	teq::OwnerMapT owner = teq::track_owners(teq::TensptrsT{root});
 
 	auto intens = get_input(root).get();
 	VarExtract extra({intens});

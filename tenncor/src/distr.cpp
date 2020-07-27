@@ -6,130 +6,16 @@
 namespace tcr
 {
 
-static distr::DRefptrSetT filter_reachable (
-	distr::iDistrEvaluator* eval,
-	const std::string& cid,
-	const distr::DRefptrSetT& srcs,
-	const teq::TensptrSetT& dests)
+void set_distmgr (distr::iDistMgrptrT mgr, eigen::CtxptrT ctx)
 {
-	return srcs;
-}
-
-static void remote_derive (
-	teq::TensMapT<teq::TensptrsT>& grads,
-	distr::iDistrEvaluator* eval,
-	const std::string& cid,
-	const distr::DRefptrSetT& roots,
-	const teq::TensptrSetT& targets)
-{
-	//
-}
-
-distr::DEvalptrT make_distreval (
-	ppconsul::Consul& consul, size_t port,
-	const std::string& service,
-	const std::string& id,
-	const distr::ClientConfig& cfg)
-{
-	return std::make_shared<distr::DistrEvaluator>(
-		distrib_derive, consul, port, service, id, cfg);
-}
-
-distr::iDistrEvaluator* get_distreval (eteq::ECtxptrT ctx)
-{
-	if (nullptr == ctx)
+	ctx->owners_.erase(distmgr_key);
+	if (nullptr != mgr)
 	{
-		teq::fatal("cannot lookup references from null context");
+		ctx->owners_.insert(std::pair<std::string,eigen::OwnerptrT>{
+			distmgr_key, std::make_unique<distr::ManagerOwner>(mgr)});
 	}
-	return dynamic_cast<distr::iDistrEvaluator*>(ctx->eval_.get());
+	ctx->eval_ = std::make_shared<distr::DistEvaluator>(mgr.get());
 }
-
-#define _MAKE_DERFUNC(REAL_TYPE)\
-builder = new eteq::DerivativeFuncs<REAL_TYPE>();
-
-teq::TensMapT<teq::TensptrT> distrib_derive (
-	teq::GradMapT& grads,
-	distr::iDistrEvaluator* eval,
-	const teq::TensptrSetT& roots,
-	const teq::TensptrSetT& targets,
-	const distr::DRefptrSetT& refs)
-{
-	if (roots.empty())
-	{
-		return {};
-	}
-
-	teq::iDerivativeFuncs* builder;
-	auto dtype = (*roots.begin())->get_meta().type_code();
-	TYPE_LOOKUP(_MAKE_DERFUNC, dtype);
-
-	if (refs.empty())
-	{
-		teq::partial_derive(grads, roots, targets, *builder);
-	}
-	else
-	{
-		teq::TensSetT refset;
-		estd::StrMapT<distr::DRefptrSetT> remotes;
-		for (auto ref : refs)
-		{
-			refset.emplace(ref.get());
-			remotes[ref->cluster_id()].emplace(ref);
-		}
-
-		teq::TensptrSetT locals;
-		for (auto root : roots)
-		{
-			if (false == estd::has(refset, root.get()))
-			{
-				locals.emplace(root);
-			}
-		}
-		// filter target references by target reachability
-		auto alltargs = targets;
-		estd::StrMapT<distr::DRefptrSetT> rremotes;
-		for (auto node : remotes)
-		{
-			auto cid = node.first;
-			auto reachables = filter_reachable(
-				eval, cid, node.second, targets);
-			rremotes.emplace(cid, reachables);
-			alltargs.insert(reachables.begin(), reachables.end());
-		}
-		// populate grads by local gradients
-		if (locals.size() > 0)
-		{
-			teq::partial_derive(grads, locals, alltargs, *builder);
-		}
-		// then make remote calls
-		for (auto node : rremotes)
-		{
-			remote_derive(grads, eval,
-				node.first, node.second, targets);
-		}
-	}
-
-	teq::TensMapT<teq::TensptrT> out;
-	for (auto target : targets)
-	{
-		teq::TensptrT tens;
-		teq::TensptrsT tgrads;
-		if (estd::get(tgrads, grads, target.get()) && tgrads.size() > 0)
-		{
-			tens = tgrads.size() == 1 ?
-				tgrads.front() : builder->add(tgrads);
-		}
-		else
-		{
-			tens = builder->get_const_zero(target->shape());
-		}
-		out.emplace(target.get(), tens);
-	}
-	delete builder;
-	return out;
-}
-
-#undef _MAKE_DERFUNC
 
 }
 

@@ -17,28 +17,28 @@ void distrib_ext (py::module& m)
 		}),
 		py::arg("address") = "0.0.0.0:8500");
 
-	// ==== evaluator ====
-	py::class_<distr::iDistrEvaluator,distr::iDEvalptrT> ievaluator(m, "iDistrEvaluator", ieval);
-	py::class_<distr::DistrEvaluator,distr::DEvalptrT> eval(m, "DistrEvaluator", ievaluator);
+	// ==== distrib manager ====
+	py::class_<distr::iDistManager,distr::iDistMgrptrT> imgr(m, "iDistManager");
+	py::class_<distr::DistManager,distr::DistMgrptrT> mgr(m, "DistManager", imgr);
 
-	ievaluator
+	imgr
 		.def("expose_node",
-		[](distr::iDistrEvaluator& self, pytenncor::ETensT node)
+		[](distr::iDistManager& self, pytenncor::ETensT node)
 		{
 			return self.expose_node(node);
 		})
 		.def("lookup_id",
-		[](distr::iDistrEvaluator& self, pytenncor::ETensT node)
+		[](distr::iDistManager& self, pytenncor::ETensT node)
 		{
 			std::string id;
-			if (auto found_id = self.lookup_id(teq::TensptrT(node)))
+			if (auto found_id = self.lookup_id(node.get()))
 			{
 				id = *found_id;
 			}
 			return id;
 		})
 		.def("lookup_node",
-		[](distr::iDistrEvaluator& self,
+		[](distr::iDistManager& self,
 			const std::string& id, bool recursive)
 		{
 			error::ErrptrT err = nullptr;
@@ -53,23 +53,34 @@ void distrib_ext (py::module& m)
 		py::arg("id"),
 		py::arg("recursive") = true)
 		.def("get_id",
-		[](distr::iDistrEvaluator& self)
+		[](distr::iDistManager& self)
 		{
 			return self.get_id();
 		});
 
-	eval
+	mgr
 		.def(py::init(
 		[](pytenncor::ConsulT consul, size_t port,
 			std::string service_name, std::string alias)
 		{
-			return tcr::make_distreval(
+			return std::make_shared<tcr::TenncorManager>(
 				*consul, port, service_name, alias);
 		}),
 		py::arg("consul"),
 		py::arg("port"),
 		py::arg("service_name") = distr::default_service,
 		py::arg("alias") = "");
+
+	// ==== evaluator ====
+	py::class_<distr::DistEvaluator> eval(m, "DistEvaluator", ieval);
+
+	eval
+		.def(py::init(
+		[](distr::iDistMgrptrT mgr)
+		{
+			return distr::DistEvaluator(mgr.get());
+		}),
+		py::arg("mgr"));
 
 	m
 		.def("expose_node", tcr::expose_node<PybindT>,

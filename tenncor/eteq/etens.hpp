@@ -20,7 +20,7 @@ struct ETensor
 	ETensor (void) = default;
 
 	ETensor (teq::TensptrT tens,
-		ECtxptrT ctx = global_context()) :
+		eigen::CtxptrT ctx = eigen::global_context()) :
 		ctx_(ctx)
 	{
 		if (nullptr != ctx && nullptr != tens)
@@ -126,7 +126,7 @@ struct ETensor
 		return nullptr;
 	}
 
-	ECtxptrT get_context (void) const
+	eigen::CtxptrT get_context (void) const
 	{
 		if (ctx_.expired())
 		{
@@ -149,15 +149,15 @@ private:
 	{
 		if (false == ctx_.expired() && nullptr != registry_)
 		{
-			ctx_ = ECtxptrT(nullptr);
+			ctx_ = eigen::CtxptrT(nullptr);
 			registry_->erase(this);
 			registry_ = nullptr;
 		}
 	}
 
-	mutable ECtxrefT ctx_;
+	mutable eigen::CtxrefT ctx_;
 
-	mutable ETensRegistryT* registry_ = nullptr;
+	mutable eigen::TensRegistryT* registry_ = nullptr;
 };
 
 template <typename T>
@@ -165,7 +165,7 @@ struct EVariable final : public ETensor<T>
 {
 	EVariable (void) = default;
 
-	EVariable (VarptrT<T> vars, ECtxptrT ctx = global_context()) :
+	EVariable (VarptrT<T> vars, eigen::CtxptrT ctx = eigen::global_context()) :
 		ETensor<T>(vars, ctx) {}
 
 	friend bool operator == (const EVariable<T>& l, const EVariable<T>& r)
