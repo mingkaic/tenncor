@@ -133,10 +133,21 @@ private:
 
 const std::string distmgr_key = "distmanager";
 
-void set_distmgr (distr::iDistMgrptrT mgr,
-	eigen::CtxptrT ctx = eigen::global_context());
+void set_distmgr (distr::iDistMgrptrT mgr);
 
-template <typename CTX> // todo: conceptcCTX is TensContext pointe
+template <typename CTX> // concept CTX is TensContext pointer
+void set_distmgr (distr::iDistMgrptrT mgr, CTX ctx)
+{
+	ctx->owners_.erase(distmgr_key);
+	if (nullptr != mgr)
+	{
+		ctx->owners_.insert(std::pair<std::string,eigen::OwnerptrT>{
+			distmgr_key, std::make_unique<distr::ManagerOwner>(mgr)});
+	}
+	ctx->eval_ = std::make_shared<distr::DistEvaluator>(mgr.get());
+}
+
+template <typename CTX> // todo: concept CTX is TensContext pointer
 distr::iDistManager* get_distmgr (const CTX& ctx)
 {
 	if (nullptr == ctx)

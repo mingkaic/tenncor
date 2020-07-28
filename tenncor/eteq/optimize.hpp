@@ -55,10 +55,10 @@ teq::TensptrsT optimize (teq::TensptrsT roots, std::istream& rulestr)
 /// Apply optimization to graph roots in context registry
 template <typename T>
 void optimize (std::string filename,
-	eigen::CtxptrT context = eigen::global_context())
+	eigen::CtxptrT ctx = eigen::global_context())
 {
 	std::ifstream rulefile(filename);
-	auto& reg = context->registry_;
+	auto& reg = ctx->registry_;
 	teq::TensptrSetT roots;
 	for (auto& rpairs : reg)
 	{
@@ -68,9 +68,9 @@ void optimize (std::string filename,
 	teq::TensMapT<teq::TensptrT> changed;
 	teq::TensptrsT inroots(roots.begin(), roots.end());
 	auto outroots = optimize<T>(inroots, rulefile,
-		[&context](opt::OptRulesT& rules, const opt::GraphInfo& graph)
+		[&ctx](opt::OptRulesT& rules, const opt::GraphInfo& graph)
 		{
-			generate_cstrules<T>(rules, graph, context);
+			generate_cstrules<T>(rules, graph, ctx);
 		});
 	assert(inroots.size() == outroots.size());
 	for (size_t i = 0, n = inroots.size(); i < n; ++i)

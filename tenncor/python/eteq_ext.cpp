@@ -11,16 +11,6 @@ void eteq_ext (py::module& m)
 
 	context
 		.def(py::init<>([]() { return std::make_shared<eigen::TensContext>(); }))
-		.def("get_evaluator",
-		[](eigen::CtxptrT& self)
-		{
-			return self->eval_;
-		})
-		.def("set_evaluator",
-		[](eigen::CtxptrT& self, teq::iEvalptrT eval)
-		{
-			self->eval_ = eval;
-		})
 		.def("get_actives",
 		[](eigen::CtxptrT& self)
 		{
@@ -498,9 +488,9 @@ void eteq_ext (py::module& m)
 			return out;
 		})
 		.def("save_context_file",
-		[](const std::string& filename, const eigen::TensContext& context)
+		[](const std::string& filename, const eigen::TensContext& ctx)
 		{
-			auto& reg = context.registry_;
+			auto& reg = ctx.registry_;
 			teq::TensptrSetT roots;
 			for (auto& r : reg)
 			{

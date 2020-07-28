@@ -5,7 +5,21 @@
 
 void distrib_ext (py::module& m)
 {
+	auto context = (py::class_<eigen::TensContext>) m.attr("Context");
 	auto ieval = (py::class_<teq::iEvaluator>) m.attr("iEvaluator");
+
+	// extend the context API
+	context
+		.def("get_manager",
+		[](eigen::CtxptrT& self)
+		{
+			return tcr::get_distmgr(self);
+		})
+		.def("set_manager",
+		[](eigen::CtxptrT& self, const distr::iDistMgrptrT& mgr)
+		{
+			tcr::set_distmgr(mgr, self);
+		});
 
 	// todo: internalize or work in some python-native consul API
 	py::class_<ppconsul::Consul,pytenncor::ConsulT> consul(m, "Consul");
