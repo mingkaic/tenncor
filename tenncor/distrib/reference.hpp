@@ -3,17 +3,17 @@
 
 #include "eigen/eigen.hpp"
 
-#ifndef DISTRIB_IREFERENCE_HPP
-#define DISTRIB_IREFERENCE_HPP
+#ifndef DISTRIB_REFERENCE_HPP
+#define DISTRIB_REFERENCE_HPP
 
 namespace distr
 {
 
 const std::string refname = "DISTRIB_REFERENCE";
 
-struct iDistRef : public teq::iLeaf
+struct iDistrRef : public teq::iLeaf
 {
-	virtual ~iDistRef (void) = default;
+	virtual ~iDistrRef (void) = default;
 
 	/// Implementation of iTensor
 	void accept (teq::iTraveler& visiter) override
@@ -35,9 +35,9 @@ struct iDistRef : public teq::iLeaf
 	virtual const std::string& node_id (void) const = 0;
 };
 
-using DRefptrT = std::shared_ptr<iDistRef>;
+using DRefptrT = std::shared_ptr<iDistrRef>;
 
-using DRefSetT = std::unordered_set<iDistRef*>;
+using DRefSetT = std::unordered_set<iDistrRef*>;
 
 using DRefptrSetT = std::unordered_set<DRefptrT>;
 
@@ -45,9 +45,9 @@ using DRefptrSetT = std::unordered_set<DRefptrT>;
 { std::vector<cache_type> tmp(data, data + nelems);\
 std::memcpy(cache_.data(), &tmp[0], sizeof(cache_type) * nelems); }
 
-struct DistRef final : public iDistRef
+struct DistrRef final : public iDistrRef
 {
-	DistRef (egen::_GENERATED_DTYPE dtype, teq::Shape shape,
+	DistrRef (egen::_GENERATED_DTYPE dtype, teq::Shape shape,
 		const std::string& cluster_id, const std::string& self_id) :
 		cache_(shape.n_elems() * egen::type_size(dtype)), shape_(shape),
 		cluster_id_(cluster_id), self_(self_id), meta_(dtype, 0) {}
@@ -92,7 +92,7 @@ struct DistRef final : public iDistRef
 		}
 	}
 
-	/// Implementation of iDistRef
+	/// Implementation of iDistrRef
 	const std::string& cluster_id (void) const override
 	{
 		return cluster_id_;
@@ -159,7 +159,7 @@ private:
 
 	teq::iTensor* clone_impl (void) const override
 	{
-		return new DistRef(egen::_GENERATED_DTYPE(meta_.dtype_),
+		return new DistrRef(egen::_GENERATED_DTYPE(meta_.dtype_),
 			shape_, cluster_id_, self_);
 	}
 
@@ -176,25 +176,38 @@ private:
 };
 
 template <typename TS> // todo: use tensor_range
-DRefSetT reachable_refs (const TS& roots)
+DRefSetT reachable_refs (const TS& roots, const teq::TensSetT& ignored = {})
 {
 	DRefSetT refs;
 	teq::LambdaVisit vis(
-		[&refs](teq::iLeaf& leaf)
+		[&](teq::iLeaf& leaf)
 		{
-			if (auto ref = dynamic_cast<iDistRef*>(&leaf))
+			if (estd::has(ignored, &leaf))
+			{
+				return;
+			}
+			if (auto ref = dynamic_cast<iDistrRef*>(&leaf))
 			{
 				refs.emplace(ref);
 			}
 		},
-		[](teq::iTraveler& trav, teq::iFunctor& func)
+		[&](teq::iTraveler& trav, teq::iFunctor& func)
 		{
+			if (estd::has(ignored, &func))
+			{
+				return;
+			}
 			teq::multi_visit(trav, func.get_args());
 		});
 	teq::multi_visit(vis, roots);
 	return refs;
 }
 
+/// Map reference servers to reference ids of tensors under key server
+void separate_by_server (
+	estd::StrMapT<estd::StrSetT>& out,
+	const DRefSetT& refs);
+
 }
 
-#endif // DISTRIB_IREFERENCE_HPP
+#endif // DISTRIB_REFERENCE_HPP

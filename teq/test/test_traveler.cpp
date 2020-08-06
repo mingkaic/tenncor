@@ -138,7 +138,7 @@ TEST(TRAVELER, ReverseParentGraph)
 
 TEST(TRAVELER, Owners)
 {
-	teq::OwnerMapT owners;
+	teq::RefMapT owners;
 	teq::TensptrT a(new MockLeaf());
 	teq::TensptrT b(new MockLeaf());
 	teq::TensptrT c(new MockLeaf());
@@ -151,7 +151,7 @@ TEST(TRAVELER, Owners)
 		fref = f.get();
 		gref = g.get();
 
-		owners = teq::track_owners(teq::TensptrsT{g});
+		owners = teq::track_ownrefs(teq::TensptrsT{g});
 		ASSERT_HAS(owners, a.get());
 		ASSERT_HAS(owners, b.get());
 		ASSERT_HAS(owners, c.get());

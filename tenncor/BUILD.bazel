@@ -117,6 +117,7 @@ pybind_py_library(
     ],
     cc_deps = [
         ":tenncor",
+        "//dbg:distrib",
         "//pyutils:pyutils",
     ],
     copts = [

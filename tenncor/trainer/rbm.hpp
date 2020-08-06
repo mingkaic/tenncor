@@ -152,7 +152,7 @@ eteq::ETensor<T> rbm (const layr::RBMLayer<T>& model,
 	CDChainIO<T> chain_io(visible);
 	layr::VarErrsT<T> varerrs = cd_grad_approx<T>(chain_io, model, cdk, nullptr, context);
 	auto updates = bbernoulli_approx<T>(varerrs, learning_rate, discount_factor, context);
-	teq::TensMapT<teq::TensptrT> umap;
+	teq::OwnMapT umap;
 	eteq::ETensorsT<T> deps;
 	deps.reserve(updates.size());
 	for (auto& update : updates)

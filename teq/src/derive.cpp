@@ -16,10 +16,10 @@ TensptrsT derive (
 	const iDerivativeFuncs& funcs)
 {
 	size_t n = targets.size();
+	TensptrsT out;
+	out.reserve(n);
 	if (root == nullptr)
 	{
-		TensptrsT out;
-		out.reserve(n);
 		std::transform(targets.begin(), targets.end(),
 			std::back_inserter(out),
 			[&](const TensptrT& target)
@@ -29,75 +29,72 @@ TensptrsT derive (
 		return out;
 	}
 
-	TensptrsT res(n, nullptr);
-	TensptrSetT targs;
-	for (size_t i = 0; i < n; ++i)
-	{
-		if (nullptr == targets[i])
-		{
-			res[i] = funcs.get_const_zero(Shape());
-		}
-		else if (root == targets[i])
-		{
-			res[i] = funcs.get_const_one(targets[i]->shape());
-		}
-		else
-		{
-			targs.emplace(targets[i]);
-		}
-	}
-
 	TensMapT<TensptrsT> grads = {
 		{root.get(), {funcs.get_const_one(root->shape())}}
 	};
-	partial_derive(grads, {root}, targs, funcs);
+	TensSetT targset;
+	std::transform(targets.begin(), targets.end(),
+		std::inserter(targset, targset.end()),
+		[](TensptrT target) { return target.get(); });
+	partial_derive(grads, {root}, targset, funcs);
 
-	for (size_t i = 0; i < n; ++i)
+	for (auto target : targets)
 	{
-		if (nullptr == res[i])
+		TensptrT tens;
+		TensptrsT tgrads;
+		if (nullptr == target)
 		{
-			auto target = targets[i];
-			TensptrsT tgrads;
-			if (estd::get(tgrads, grads, target.get()) && tgrads.size() > 0)
-			{
-				res[i] = tgrads.size() == 1 ?
-					tgrads.front() : funcs.add(tgrads);
-			}
-			else
-			{
-				res[i] = funcs.get_const_zero(target->shape());
-			}
+			tens = funcs.get_const_zero(Shape());
 		}
+		else if (estd::get(tgrads, grads, target.get()) && tgrads.size() > 0)
+		{
+			tens = tgrads.size() == 1 ? tgrads.front() : funcs.add(tgrads);
+		}
+		else
+		{
+			tens = funcs.get_const_zero(target->shape());
+		}
+		out.push_back(tens);
 	}
-	return res;
+	return out;
 }
 
 void partial_derive (TensMapT<TensptrsT>& grads,
 	const TensptrSetT& parents,
-	const TensptrSetT& targets,
+	const TensSetT& targets,
 	const iDerivativeFuncs& funcs)
 {
+	if (targets.empty())
+	{
+		return;
+	}
+
+	TensSetT parset;
+	std::transform(parents.begin(), parents.end(),
+		std::inserter(parset, parset.end()),
+		[](TensptrT tens) { return tens.get(); });
 	TensMapT<std::string> tids;
-	std::transform(targets.begin(), targets.end(),
-		std::inserter(tids, tids.end()),
-		[](TensptrT target)
+	for (auto& target : targets)
+	{
+		if (nullptr != target)
 		{
-			return std::pair<iTensor*,std::string>{
-				target.get(), target_label};
-		});
+			if (estd::has(parset, target))
+			{
+				assert(estd::has(grads, target));
+			}
+			else
+			{
+				tids.emplace(target, target_label);
+			}
+		}
+	}
 	if (tids.empty())
 	{
 		return;
 	}
 
 	PathFinder pfinder(tids, get_args);
-	for (auto parent : parents)
-	{
-		if (nullptr != parent)
-		{
-			parent->accept(pfinder);
-		}
-	}
+	multi_visit(pfinder, parents);
 	if (pfinder.roadmap_.empty())
 	{
 		return;
@@ -105,7 +102,7 @@ void partial_derive (TensMapT<TensptrsT>& grads,
 
 	// else there exists a path to wrt
 	// using pathfinder, breadth first traverse from this to wrt
-	OwnerMapT owners = track_owners(parents);
+	RefMapT owners = track_ownrefs(parents);
 	GraphStat stat;
 	GraphIndex indexer;
 	multi_visit(stat, parents);

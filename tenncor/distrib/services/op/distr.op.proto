@@ -1,18 +1,10 @@
 syntax = "proto3";
 
-package distr;
+import "tenncor/distrib/services/io/distr.io.proto";
+
+package distr.op;
 
 // ======== GENERAL MESSAGE OBJECTS ========
-
-message NodeMeta {
-    string instance = 1;
-
-    string uuid = 2;
-
-    string dtype = 3;
-
-    repeated int64 shape = 4;
-}
 
 message NodeData {
     string uuid = 1;
@@ -22,36 +14,34 @@ message NodeData {
     int64 version = 3;
 }
 
+message Reachables {
+    repeated string reachables = 1;
+}
+
 // ======== REQUEST + RESPONSE MESSAGES ========
-
-message FindNodesRequest {
-    repeated string uuids = 1;
-}
-
-message FindNodesResponse {
-    repeated NodeMeta values = 1;
-}
 
 message GetDataRequest {
     repeated string uuids = 1;
+
+    repeated string ignored = 2;
 }
 
-message FindReachableRequest {
+message ListReachableRequest {
     repeated string srcs = 1;
 
     repeated string dests = 2;
 }
 
-message FindReachableResponse {
-    repeated string srcs = 1;
+message ListReachableResponse {
+    map<string,Reachables> srcs = 1;
 }
 
 // Request for partial derivation of some
 // absolute root with respect to target nodes
-message DeriveRequest {
+message CreateDeriveRequest {
     // maps reference id of local roots to
     // derivative of absolute root wrt to local roots
-    map<string,string> root_grads = 1;
+    map<string,distr.io.NodeMeta> root_grads = 1;
 
     // reference id of targets
     repeated string targets = 2;
@@ -60,23 +50,18 @@ message DeriveRequest {
     string root = 3;
 }
 
-message DeriveResponse {
+message CreateDeriveResponse {
     map<string,string> grads = 1;
 }
 
-service DistrManager {
-    // List all nodes matching request parameters
-    rpc FindNodes (FindNodesRequest) returns (FindNodesResponse);
-
+service DistrOperation {
     // Stream data for matched nodes if the data node is updated
     // Return stream ignores nodes that remain the same
     rpc GetData (GetDataRequest) returns (stream NodeData);
 
-    // === Graph Operations ===
-
     // Find all src nodes that can reach dests
-    rpc FindReachable (FindReachableRequest) returns (FindReachableResponse);
+    rpc ListReachable (ListReachableRequest) returns (ListReachableResponse);
 
     // Calculate the derivative of some root with respect to targets
-    rpc Derive (DeriveRequest) returns (DeriveResponse);
+    rpc CreateDerive (CreateDeriveRequest) returns (CreateDeriveResponse);
 }

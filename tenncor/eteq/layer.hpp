@@ -7,7 +7,7 @@ namespace eteq
 {
 
 static inline teq::TensMapT<std::string> replace_targets (
-	const teq::TensMapT<teq::TensptrT>& inputs)
+	const teq::OwnMapT& inputs)
 {
 	teq::TensMapT<std::string> targets;
 	for (auto& inp : inputs)
@@ -20,10 +20,10 @@ static inline teq::TensMapT<std::string> replace_targets (
 template <typename T>
 struct Trailer final : public teq::iOnceTraveler
 {
-	Trailer (const teq::TensMapT<teq::TensptrT>& inputs) :
+	Trailer (const teq::OwnMapT& inputs) :
 		trailed_(inputs), pfinder_(replace_targets(inputs)) {}
 
-	teq::TensMapT<teq::TensptrT> trailed_;
+	teq::OwnMapT trailed_;
 
 private:
 	/// Implementation of iOnceTraveler
@@ -131,7 +131,7 @@ private:
 /// Copy everything from input.first to root, except replacing input.first with input.second
 template <typename T>
 ETensor<T> trail (const ETensor<T>& root,
-	const teq::TensMapT<teq::TensptrT>& inputs)
+	const teq::OwnMapT& inputs)
 {
 	Trailer<T> trailer(inputs);
 	root->accept(trailer);
@@ -154,14 +154,14 @@ ETensor<T> get_input (const ETensor<T>& root)
 template <typename T>
 ETensor<T> connect (const ETensor<T>& root, const ETensor<T>& input)
 {
-	return trail(root, teq::TensMapT<teq::TensptrT>{
+	return trail(root, teq::OwnMapT{
 		{get_input(root).get(), (teq::TensptrT) input}});
 }
 
 template <typename T>
 VarptrsT<T> get_storage (const ETensor<T>& root)
 {
-	teq::OwnerMapT owner = teq::track_owners(teq::TensptrsT{root});
+	teq::RefMapT owner = teq::track_ownrefs(teq::TensptrsT{root});
 
 	auto intens = get_input(root).get();
 	VarExtract extra({intens});

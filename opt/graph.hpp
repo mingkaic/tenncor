@@ -7,17 +7,11 @@
 namespace opt
 {
 
-// Map of tensors to shared pointers
-// to actually own tensors to avoid early deletion
-using OwnersT = teq::TensMapT<teq::TensptrT>;
-
-OwnersT convert_ownermap (const teq::OwnerMapT& omap);
-
 struct GraphInfo final
 {
 	GraphInfo (teq::TensptrsT roots) :
 		roots_(roots),
-		owners_(convert_ownermap(teq::track_owners(roots)))
+		owners_(teq::convert_ownmap(teq::track_ownrefs(roots)))
 	{
 		teq::ParentFinder pfinder;
 		teq::multi_visit(pfinder, roots_);
@@ -41,7 +35,7 @@ struct GraphInfo final
 		return outs;
 	}
 
-	void replace (const teq::TensMapT<teq::TensptrT>& converts)
+	void replace (const teq::OwnMapT& converts)
 	{
 		teq::TensMapT<teq::TensSetT> clean_children;
 		for (const auto& convert : converts)
@@ -102,7 +96,7 @@ struct GraphInfo final
 		return roots_;
 	}
 
-	const OwnersT& get_owners (void) const
+	const teq::OwnMapT& get_owners (void) const
 	{
 		return owners_;
 	}
@@ -117,7 +111,7 @@ struct GraphInfo final
 
 	teq::TensptrsT roots_;
 
-	OwnersT owners_; // todo: cleanup everything properly instead of keeping dangling leaves
+	teq::OwnMapT owners_; // todo: cleanup everything properly instead of keeping dangling leaves
 
 	teq::TensMapT<teq::ParentMapT> parents_;
 };

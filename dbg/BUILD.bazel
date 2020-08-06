@@ -12,6 +12,8 @@ filegroup(
         ":stats_plugin_hdrs",
         ":gemit_plugin_hdrs",
         ":gemit_plugin_protos",
+        ":distr_ext_hdrs",
+        ":distr_ext_protos",
         ":gemit_mock_srcs",
         ":pybind_srcs",
         "BUILD.bazel",
@@ -47,6 +49,21 @@ filegroup(
 filegroup(
     name = "gemit_plugin_protos",
     srcs = glob(["peval/emit/*.proto"]),
+)
+
+filegroup(
+    name = "distr_ext_hdrs",
+    srcs = glob([
+        "distr_ext/*.hpp",
+        "distr_ext/**/*.hpp",
+    ]),
+)
+
+filegroup(
+    name = "distr_ext_protos",
+    srcs = glob([
+        "distr_ext/**/*.proto",
+    ]),
 )
 
 filegroup(
@@ -141,6 +158,30 @@ cc_library(
         "//onnx:onnx_cc_pb",
         "@com_github_grpc_grpc//:grpc++",
     ],
+)
+
+cc_library(
+    name = "distrib",
+    hdrs = [":distr_ext_hdrs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":print",
+        ":distr_cc_grpc",
+        "//tenncor/distrib:distrib",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "distr_pb",
+    srcs = [":distr_ext_protos"],
+    visibility = ["//visibility:public"],
+)
+
+cpp_grpc_library(
+    name = "distr_cc_grpc",
+    deps = [":distr_pb"],
+    visibility = ["//visibility:public"],
 )
 
 ######### PYBINDS #########

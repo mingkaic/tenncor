@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package distr.print;
+
+// ======== GENERAL MESSAGE OBJECTS ========
+
+message AsciiDep {
+    string refid = 1;
+
+    string clusterid = 2;
+
+    string prefix = 3;
+}
+
+message AsciiEntry {
+    string uuid = 1;
+
+    string format = 3;
+
+    repeated AsciiDep deps = 4;
+}
+
+// ======== REQUEST + RESPONSE MESSAGES ========
+
+message ListAsciiRequest {
+    repeated string uuids = 1;
+}
+
+service DistrPrint {
+    // List all nodes matching request parameters
+    rpc ListAscii (ListAsciiRequest) returns (stream AsciiEntry);
+}

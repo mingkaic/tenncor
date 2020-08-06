@@ -14,6 +14,38 @@
 namespace tcr
 {
 
+template <typename T>
+eteq::ETensorsT<T> derive_with_manager (
+	distr::iDistrManager& mgr,
+	eteq::ETensor<T> root,
+	const eteq::ETensorsT<T>& targets)
+{
+	eteq::DerivativeFuncs<T> builder;
+	teq::TensMapT<teq::TensptrsT> grads = {
+		{root.get(), {builder.get_const_one(root->shape())}}
+	};
+	teq::TensSetT targset;
+	std::transform(targets.begin(), targets.end(),
+		std::inserter(targset, targset.end()),
+		[](const eteq::ETensor<T>& etens)
+		{
+			return etens.get();
+		});
+	auto tgrads = mgr.get_op().derive(
+		grads, {root}, distr::BackpropMeta{targset}, builder);
+
+	size_t n = targets.size();
+	eteq::ETensorsT<T> results;
+	results.reserve(n);
+	for (size_t i = 0; i < n; ++i)
+	{
+		auto target = targets[i];
+		results.push_back(eteq::ETensor<T>(
+			tgrads[target.get()], root.get_context()));
+	}
+	return results;
+}
+
 /// Derive root with respect to target and optimized
 template <typename T>
 eteq::ETensorsT<T> derive (
@@ -37,27 +69,12 @@ eteq::ETensorsT<T> derive (
 			root->to_string().c_str());
 	}
 
-	eteq::DerivativeFuncs<T> builder;
 	if (auto mgr = get_distmgr(root_ctx.get()))
 	{
-		teq::TensMapT<teq::TensptrsT> grads = {
-			{root.get(), {builder.get_const_one(root->shape())}}
-		};
-		auto tgrads = mgr->derive(grads, {root}, teq::TensptrSetT(
-			targets.begin(), targets.end()));
-
-		size_t n = targets.size();
-		eteq::ETensorsT<T> results;
-		results.reserve(n);
-		for (size_t i = 0; i < n; ++i)
-		{
-			auto target = targets[i];
-			results.push_back(eteq::ETensor<T>(
-				tgrads[target.get()], root.get_context()));
-		}
-		return results;
+		return derive_with_manager(*mgr, root, targets);
 	}
 
+	eteq::DerivativeFuncs<T> builder;
 	teq::TensptrsT targs(targets.begin(), targets.end());
 	teq::TensptrsT derivatives = teq::derive(root, targs, builder);
 	eteq::ETensorsT<T> out;

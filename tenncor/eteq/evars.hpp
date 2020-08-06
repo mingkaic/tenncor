@@ -1,5 +1,6 @@
 
 #include "eteq/etens.hpp"
+#include "eteq/variable.hpp"
 
 #ifndef ETEQ_EVARS_HPP
 #define ETEQ_EVARS_HPP

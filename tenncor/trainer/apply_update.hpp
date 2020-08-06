@@ -27,7 +27,7 @@ eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
 	}
 	auto updates = update(error,
 		eteq::EVariablesT<T>(vars.begin(), vars.end()));
-	teq::TensMapT<teq::TensptrT> umap;
+	teq::OwnMapT umap;
 	eteq::ETensorsT<T> deps;
 	deps.reserve(updates.size());
 	for (auto& update : updates)

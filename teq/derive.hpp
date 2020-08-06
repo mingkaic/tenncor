@@ -61,7 +61,7 @@ TensptrsT derive (
 /// Derivatives are found using back-propagation.
 void partial_derive (GradMapT& grads,
 	const TensptrSetT& parents,
-	const TensptrSetT& targets,
+	const TensSetT& targets,
 	const iDerivativeFuncs& funcs);
 
 }

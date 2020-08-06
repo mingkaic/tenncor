@@ -2,6 +2,7 @@
 
 #include "eteq/constant.hpp"
 #include "eteq/functor.hpp"
+#include "eteq/evars.hpp"
 
 #ifndef ETEQ_MAKE_HPP
 #define ETEQ_MAKE_HPP

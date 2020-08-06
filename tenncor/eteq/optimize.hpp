@@ -65,7 +65,7 @@ void optimize (std::string filename,
 		roots.emplace(rpairs.second);
 	}
 
-	teq::TensMapT<teq::TensptrT> changed;
+	teq::OwnMapT changed;
 	teq::TensptrsT inroots(roots.begin(), roots.end());
 	auto outroots = optimize<T>(inroots, rulefile,
 		[&ctx](opt::OptRulesT& rules, const opt::GraphInfo& graph)

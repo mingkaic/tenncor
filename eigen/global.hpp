@@ -18,6 +18,7 @@ struct iOwner
 
 using OwnerptrT = std::unique_ptr<iOwner>;
 
+// todo: move this to teq and merge with teq/config
 struct TensContext final
 {
 	teq::iEvalptrT eval_ = std::make_shared<teq::Evaluator>();

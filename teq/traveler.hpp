@@ -19,6 +19,12 @@ namespace teq
 
 using GetDepsF = std::function<TensptrsT(iFunctor&)>;
 
+/// Map between tensor and its corresponding shared pointer
+using OwnMapT = TensMapT<TensptrT>;
+
+/// Map between tensor and its corresponding weak pointer
+using RefMapT = TensMapT<TensrefT>;
+
 TensptrsT get_alldeps (iFunctor& func);
 
 TensptrsT get_deps (iFunctor& func);
@@ -341,7 +347,7 @@ struct Copier final : public iOnceTraveler
 {
 	Copier (TensSetT ignores = {}) : ignores_(ignores) {}
 
-	TensMapT<TensptrT> clones_;
+	OwnMapT clones_;
 
 	TensSetT ignores_;
 
@@ -393,12 +399,9 @@ private:
 	}
 };
 
-/// Map between tensor and its corresponding smart pointer
-using OwnerMapT = TensMapT<TensrefT>;
-
 struct OwnerTracker final : public iOnceTraveler
 {
-	OwnerMapT owners_;
+	OwnMapT owners_;
 
 private:
 	/// Implementation of iOnceTraveler
@@ -416,10 +419,9 @@ private:
 	}
 };
 
-/// Travelers will lose smart pointer references,
-/// This utility function will grab reference maps of root's subtree
+/// This utility function will grab pointer maps of root's subtree
 template <typename TS> // todo: use concept tensptr_ranges
-OwnerMapT track_owners (const TS& roots)
+OwnMapT track_ownptrs (const TS& roots)
 {
 	OwnerTracker tracker;
 	multi_visit(tracker, roots);
@@ -429,6 +431,28 @@ OwnerMapT track_owners (const TS& roots)
 	}
 	return tracker.owners_;
 }
+
+/// This utility function will grab reference maps of root's subtree
+template <typename TS> // todo: use concept tensptr_ranges
+RefMapT track_ownrefs (const TS& roots)
+{
+	OwnerTracker tracker;
+	multi_visit(tracker, roots);
+	for (auto root : roots)
+	{
+		tracker.owners_.emplace(root.get(), root);
+	}
+	RefMapT refs;
+	std::transform(tracker.owners_.begin(), tracker.owners_.end(),
+		std::inserter(refs, refs.begin()),
+		[](std::pair<iTensor*,TensptrT> tp) -> std::pair<iTensor*,TensrefT>
+		{
+			return {tp.first, tp.second};
+		});
+	return refs;
+}
+
+OwnMapT convert_ownmap (const RefMapT& refs);
 
 }
 

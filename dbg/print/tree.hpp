@@ -26,7 +26,7 @@ struct PrettyTree final
 	/// Traverser and streamer methods define behavior for traversing through
 	/// and displaying elements of a generic structure
 	PrettyTree (std::function<std::vector<T>(T&,size_t)> traverser,
-		std::function<void(std::ostream&,T&)> to_stream) :
+		std::function<void(std::ostream&,T&,const std::string&)> to_stream) :
 		traverser_(traverser), to_stream_(to_stream) {}
 
 	/// Given the output stream, and a root to start the traversal,
@@ -45,17 +45,19 @@ struct PrettyTree final
 	std::function<std::vector<T>(T&,size_t)> traverser_;
 
 	/// Behavior of displaying a node in the structure
-	std::function<void(std::ostream&,T&)> to_stream_;
+	std::function<void(std::ostream&,T&,const std::string&)> to_stream_;
 
 	char indent_ = default_indent;
 
+	std::pair<std::string,std::string> node_wrap = {"(", ")"};
+
 private:
 	void print_helper (std::ostream& out, T root,
-		std::string prefix, size_t depth)
+		const std::string& prefix, size_t depth)
 	{
-		out << "(";
-		to_stream_(out, root);
-		out << ")\n";
+		out << node_wrap.first;
+		to_stream_(out, root, prefix);
+		out << node_wrap.second << "\n";
 		std::vector<T> children = traverser_(root, depth);
 		size_t nchildren = children.size();
 		if (nchildren > 0)

@@ -22,7 +22,7 @@ void query_ext(py::module& m)
 			query::json_parse(cond, ss);
 
 			auto results = self.sindex_.match(cond);
-			teq::OwnerMapT owners = teq::track_owners(self.tracked_);
+			teq::RefMapT owners = teq::track_ownrefs(self.tracked_);
 			eteq::ETensorsT<PybindT> eresults;
 			eresults.reserve(results.size());
 			if (sym_cap.empty())

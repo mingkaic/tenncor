@@ -11,12 +11,17 @@
 #include <random>
 #include <type_traits>
 
+#include <boost/uuid/uuid_generators.hpp>
+
 #include "teq/teq.hpp"
 
 namespace eigen
 {
 
 const std::string rengine_key = "rengine";
+
+// todo: move this to global
+boost::uuids::random_generator& rand_uuid_gen (void);
 
 /// RNG engine used
 using EngineT = std::default_random_engine;

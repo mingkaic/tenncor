@@ -16,18 +16,29 @@ filegroup(
 )
 
 filegroup(
+    name = "common_hdrs",
+    srcs = glob(["egrpc/*.hpp"]),
+)
+
+filegroup(
     name = "distrib_hdrs",
-    srcs = glob(["*.hpp"]),
+    srcs = glob([
+        "*.hpp",
+        "services/**/*.hpp",
+    ]),
 )
 
 filegroup(
     name = "distrib_srcs",
-    srcs = glob(["src/*.cpp"]),
+    srcs = glob([
+        "src/*.cpp",
+        "services/**/*.cpp",
+    ]),
 )
 
 filegroup(
     name = "protos",
-    srcs = ["distr.proto"],
+    srcs = glob(["services/**/*.proto"]),
 )
 
 filegroup(
@@ -49,13 +60,12 @@ filegroup(
 
 cc_library(
     name = "distrib",
-    hdrs = [":distrib_hdrs"],
+    hdrs = [":distrib_hdrs", ":common_hdrs"],
     srcs = [":distrib_srcs"],
     copts = ["-std=c++17"],
     deps = [
         ":distr_cc_grpc",
-        "//eigen:eigen",
-        "@boost//:uuid",
+        "//tenncor/eteq:eteq",
         "@boost//:bimap",
         "@com_github_oliora_ppconsul//:consul",
         "@com_github_mingkaic_cppkg//error:error",
@@ -83,6 +93,7 @@ cc_test(
     srcs = [":ctest_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        "//dbg:distrib",
         "//tenncor:tenncor",
         "//testutil:tutil",
     ],

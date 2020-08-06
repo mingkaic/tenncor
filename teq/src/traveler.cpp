@@ -48,6 +48,16 @@ TensptrsT get_attrs (iFunctor& func)
 	return out;
 }
 
+OwnMapT convert_ownmap (const RefMapT& refs)
+{
+	OwnMapT owners;
+	for (const auto& rpair : refs)
+	{
+		owners.emplace(rpair.first, rpair.second.lock());
+	}
+	return owners;
+}
+
 }
 
 #endif

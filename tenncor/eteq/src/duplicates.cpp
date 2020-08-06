@@ -36,7 +36,7 @@ void merge_dups (opt::GraphInfo& graph, EqualF equals)
 		}
 	}
 
-	teq::TensMapT<teq::TensptrT> converts;
+	teq::OwnMapT converts;
 	// remove equivalent nodes
 	if (csts.size() > 0)
 	{

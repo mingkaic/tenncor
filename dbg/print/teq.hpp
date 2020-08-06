@@ -23,7 +23,7 @@ const std::string dummy_label = "DEPENDENCIES";
 /// Use PrettyTree to render teq::TensptrT graph as an ascii art
 struct PrettyEquation final
 {
-	PrettyEquation (void) : drawer_(
+	PrettyEquation (void) : renderer_(
 		[this](teq::iTensor*& root, size_t depth) -> teq::TensT
 		{
 			if (auto f = dynamic_cast<teq::iFunctor*>(root))
@@ -50,7 +50,7 @@ struct PrettyEquation final
 			}
 			return {};
 		},
-		[this](std::ostream& out, teq::iTensor*& root)
+		[this](std::ostream& out, teq::iTensor*& root, const std::string& prefix)
 		{
 			if (root)
 			{
@@ -86,14 +86,14 @@ struct PrettyEquation final
 	/// Stream equation of ptr to out
 	void print (std::ostream& out, const teq::TensptrT& ptr)
 	{
-		drawer_.print(out, ptr.get());
+		renderer_.print(out, ptr.get());
 		dummies_.clear();
 	}
 
 	/// Stream equation of raw ptr to out
 	void print (std::ostream& out, teq::iTensor* ptr)
 	{
-		drawer_.print(out, ptr);
+		renderer_.print(out, ptr);
 		dummies_.clear();
 	}
 
@@ -109,7 +109,7 @@ struct PrettyEquation final
 
 private:
 	/// Actual ascii renderer
-	PrettyTree<teq::iTensor*> drawer_;
+	PrettyTree<teq::iTensor*> renderer_;
 
 	teq::TensptrsT dummies_;
 };

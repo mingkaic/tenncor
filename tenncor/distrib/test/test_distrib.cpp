@@ -7,6 +7,8 @@
 
 #include "exam/exam.hpp"
 
+#include "dbg/distr_ext/manager.hpp"
+
 #include "distrib/manager.hpp"
 
 #include "eteq/make.hpp"
@@ -52,10 +54,20 @@ protected:
 		ASSERT_EQ(services.size(), 0);
 	}
 
-	distr::iDistMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::DistMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
-		return std::make_shared<tcr::TenncorManager>(consul_, port,
-			test_service, id, distr::ClientConfig(
+		return std::make_shared<distr::DistrManager>(consul_, port,
+			test_service, id, egrpc::ClientConfig(
+				std::chrono::milliseconds(5000),
+				std::chrono::milliseconds(10000),
+				5
+			));
+	}
+
+	distr::DistDbgMgrptrT make_dbgmgr (size_t port, const std::string& id = "")
+	{
+		return std::make_shared<distr::DistrDbgManager>(consul_, port,
+			test_service, id, egrpc::ClientConfig(
 				std::chrono::milliseconds(5000),
 				std::chrono::milliseconds(10000),
 				5
@@ -90,7 +102,7 @@ TEST_F(DISTRIB, SharingNodes)
 		};
 
 		// instance 1
-		distr::iDistMgrptrT mgr = make_mgr(5112, "mgr1");
+		distr::DistMgrptrT mgr = make_mgr(5112, "mgr1");
 		tcr::set_distmgr(mgr);
 
 		eteq::ETensor<double> src =
@@ -102,7 +114,7 @@ TEST_F(DISTRIB, SharingNodes)
 		std::string id = tcr::lookup_id(dest);
 
 		// instance 2
-		distr::iDistMgrptrT mgr2 = make_mgr(5113, "mgr2");
+		distr::DistMgrptrT mgr2 = make_mgr(5113, "mgr2");
 		tcr::set_distmgr(mgr2);
 
 		eteq::ETensor<double> src3 =
@@ -117,9 +129,12 @@ TEST_F(DISTRIB, SharingNodes)
 		eteq::ETensor<double> src4 =
 			eteq::make_constant<double>(data.data(), shape);
 		tcr::try_lookup_id(err, src4);
-		EXPECT_ERR(err, "can only find reference ids using iDistManager");
+		EXPECT_ERR(err, "can only find reference ids using DistrManager");
 	}
 	check_clean();
+	auto& global = eigen::global_context();
+	EXPECT_TRUE(global->owners_.empty());
+	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(global->eval_.get()));
 }
 
 
@@ -154,7 +169,7 @@ TEST_F(DISTRIB, DataPassing)
 		};
 
 		// instance 1
-		distr::iDistMgrptrT mgr = make_mgr(5112, "mgr1");
+		distr::DistMgrptrT mgr = make_mgr(5112, "mgr1");
 		tcr::set_distmgr(mgr);
 
 		eteq::ETensor<double> src =
@@ -166,7 +181,7 @@ TEST_F(DISTRIB, DataPassing)
 		std::string id = tcr::lookup_id(dest);
 
 		// instance 2
-		distr::iDistMgrptrT mgr2 = make_mgr(5113, "mgr2");
+		distr::DistMgrptrT mgr2 = make_mgr(5113, "mgr2");
 		tcr::set_distmgr(mgr2);
 
 		eteq::ETensor<double> src3 =
@@ -177,8 +192,8 @@ TEST_F(DISTRIB, DataPassing)
 		ASSERT_NE(nullptr, ref);
 		auto dest2 = eteq::ETensor<double>(ref) * src3;
 
-		ASSERT_TRUE(mgr->get_remotes().empty());
-		ASSERT_EQ(mgr2->get_remotes().size(), 1);
+		ASSERT_TRUE(mgr->get_io().get_remotes().empty());
+		ASSERT_EQ(mgr2->get_io().get_remotes().size(), 1);
 
 		auto gotshape = dest2->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -192,6 +207,141 @@ TEST_F(DISTRIB, DataPassing)
 		tcr::set_distmgr(nullptr);
 	}
 	check_clean();
+	auto& global = eigen::global_context();
+	EXPECT_TRUE(global->owners_.empty());
+	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(global->eval_.get()));
+}
+
+
+TEST_F(DISTRIB, ComplexDataPassing)
+{
+	{
+		eigen::Device device;
+		teq::Shape shape({2, 3, 4});
+		std::vector<double> data = {
+			63, 19, 11, 94, 23, 63,
+			3, 48, 60, 77, 62, 32,
+			35, 89, 33, 64, 36, 64,
+			25, 49, 41, 1, 4, 97,
+		};
+		std::vector<double> data2 = {
+			18, 30, 23, 60, 36, 60,
+			73, 36, 6, 66, 67, 84,
+			54, 43, 29, 8, 20, 71,
+			10, 53, 90, 7, 94, 87,
+		};
+		std::vector<double> data3 = {
+			37, 70, 2, 69, 84, 67,
+			66, 59, 69, 92, 96, 18,
+			55, 35, 40, 81, 40, 18,
+			60, 70, 68, 65, 30, 25,
+		};
+
+		std::vector<double> exdata;
+		{
+			auto f1 = eteq::make_variable<double>(data.data(), shape, "f1");
+			auto f2 = eteq::make_variable<double>(data2.data(), shape, "f2");
+			auto d1 = eteq::make_variable<double>(data3.data(), shape, "d1");
+			auto a2 = -f1;
+			auto c1 = a2 + d1;
+			auto b1 = c1 * f2;
+			auto a1 = tenncor<double>().sin(b1);
+
+			auto exshape = a1->shape();
+			ASSERT_ARREQ(shape, exshape);
+			auto exptr = a1.calc();
+			exdata = std::vector<double>(exptr, exptr + exshape.n_elems());
+		}
+
+		// instance A
+		auto actx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrA = make_dbgmgr(5112, "mgrA");
+		tcr::set_distmgr(mgrA, actx);
+
+		// instance B
+		auto bctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrB = make_dbgmgr(5113, "mgrB");
+		tcr::set_distmgr(mgrB, bctx);
+
+		// instance C
+		auto cctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrC = make_dbgmgr(5114, "mgrC");
+		tcr::set_distmgr(mgrC, cctx);
+
+		// instance D
+		auto dctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrD = make_dbgmgr(5115, "mgrD");
+		tcr::set_distmgr(mgrD, dctx);
+
+		// instance E
+		auto ectx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrE = make_dbgmgr(5116, "mgrE");
+		tcr::set_distmgr(mgrE, ectx);
+
+		// instance F
+		auto fctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrF = make_dbgmgr(5117, "mgrF");
+		tcr::set_distmgr(mgrF, fctx);
+
+		auto f1 = eteq::make_variable<double>(
+			data.data(), shape, "f1", fctx);
+		auto f2 = eteq::make_variable<double>(
+			data2.data(), shape, "f2", fctx);
+
+		auto d1 = eteq::make_variable<double>(
+			data3.data(), shape, "d1", dctx);
+
+		auto e2 = eteq::make_variable<double>(
+			data.data(), shape, "e2", ectx);
+		auto e3 = eteq::make_variable<double>(
+			data2.data(), shape, "e3", ectx);
+		auto e1 = TenncorAPI<double>(ectx).add(e2, e3);
+
+		tcr::expose_node(e1);
+		tcr::expose_node(f1);
+		tcr::expose_node(f2);
+		tcr::expose_node(d1);
+
+		error::ErrptrT err = nullptr;
+		std::string f1_key = tcr::lookup_id(f1);
+		auto f1_ref = tcr::lookup_node<double>(f1_key, actx);
+		ASSERT_NOERR(err);
+		auto a2 = TenncorAPI<double>(actx).neg(f1_ref);
+		tcr::expose_node(a2);
+
+		std::string d1_key = tcr::lookup_id(d1);
+		auto a2_ref = tcr::lookup_node<double>(tcr::lookup_id(a2), cctx);
+		ASSERT_NOERR(err);
+		auto d1_ref = tcr::lookup_node<double>(d1_key, cctx);
+		auto d1_ref_fromA = tcr::lookup_node<double>(d1_key, actx);
+		ASSERT_NOERR(err);
+		auto c1 = TenncorAPI<double>(cctx).add(a2_ref, d1_ref);
+		tcr::expose_node(c1);
+
+		auto c1_ref = tcr::lookup_node<double>(tcr::lookup_id(c1), bctx);
+		ASSERT_NOERR(err);
+		auto f2_ref = tcr::lookup_node<double>(tcr::lookup_id(f2), bctx);
+		ASSERT_NOERR(err);
+		auto b1 = TenncorAPI<double>(bctx).mul(c1_ref, f2_ref);
+		tcr::expose_node(b1);
+
+		auto b1_ref = tcr::lookup_node<double>(tcr::lookup_id(b1), actx);
+		ASSERT_NOERR(err);
+		auto a1 = TenncorAPI<double>(actx).sin(b1_ref);
+
+		auto gotshape = a1->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		auto goptr = a1.calc();
+
+		for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(exdata[i], goptr[i]);
+		}
+	}
+	check_clean();
+	auto& global = eigen::global_context();
+	EXPECT_TRUE(global->owners_.empty());
+	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(global->eval_.get()));
 }
 
 
@@ -220,22 +370,22 @@ TEST_F(DISTRIB, Reachability)
 		};
 
 		// instance A
-		distr::iDistMgrptrT mgrA = make_mgr(5112, "mgrA");
+		distr::DistMgrptrT mgrA = make_mgr(5112, "mgrA");
 
 		// instance B
-		distr::iDistMgrptrT mgrB = make_mgr(5113, "mgrB");
+		distr::DistMgrptrT mgrB = make_mgr(5113, "mgrB");
 
 		// instance C
-		distr::iDistMgrptrT mgrC = make_mgr(5114, "mgrC");
+		distr::DistMgrptrT mgrC = make_mgr(5114, "mgrC");
 
 		// instance D
-		distr::iDistMgrptrT mgrD = make_mgr(5115, "mgrD");
+		distr::DistMgrptrT mgrD = make_mgr(5115, "mgrD");
 
 		// instance E
-		distr::iDistMgrptrT mgrE = make_mgr(5116, "mgrE");
+		distr::DistMgrptrT mgrE = make_mgr(5116, "mgrE");
 
 		// instance F
-		distr::iDistMgrptrT mgrF = make_mgr(5117, "mgrF");
+		distr::DistMgrptrT mgrF = make_mgr(5117, "mgrF");
 
 		auto f1 = eteq::make_constant<double>(data.data(), shape);
 		auto f2 = eteq::make_constant<double>(data2.data(), shape);
@@ -245,58 +395,58 @@ TEST_F(DISTRIB, Reachability)
 		auto e3 = eteq::make_constant<double>(data2.data(), shape);
 		auto e1 = e2 + e3;
 
-		mgrE->expose_node(e1);
-		mgrF->expose_node(f1);
-		mgrF->expose_node(f2);
-		mgrD->expose_node(d1);
+		mgrE->get_io().expose_node(e1);
+		mgrF->get_io().expose_node(f1);
+		mgrF->get_io().expose_node(f2);
+		mgrD->get_io().expose_node(d1);
 
-		std::string e1_key = *mgrE->lookup_id(e1.get());
+		std::string e1_key = *mgrE->get_io().lookup_id(e1.get());
 
 		error::ErrptrT err = nullptr;
-		std::string f1_key = *mgrF->lookup_id(f1.get());
-		eteq::ETensor<double> f1_ref = mgrA->lookup_node(err, f1_key);
+		std::string f1_key = *mgrF->get_io().lookup_id(f1.get());
+		eteq::ETensor<double> f1_ref = mgrA->get_io().lookup_node(err, f1_key);
 		ASSERT_NOERR(err);
 		auto a2 = -f1_ref;
-		mgrA->expose_node(a2);
+		mgrA->get_io().expose_node(a2);
 
-		std::string d1_key = *mgrD->lookup_id(d1.get());
-		eteq::ETensor<double> a2_ref = mgrC->lookup_node(err, *mgrA->lookup_id(a2.get()));
+		std::string d1_key = *mgrD->get_io().lookup_id(d1.get());
+		eteq::ETensor<double> a2_ref = mgrC->get_io().lookup_node(err, *mgrA->get_io().lookup_id(a2.get()));
 		ASSERT_NOERR(err);
-		eteq::ETensor<double> d1_ref = mgrC->lookup_node(err, d1_key);
+		eteq::ETensor<double> d1_ref = mgrC->get_io().lookup_node(err, d1_key);
 		ASSERT_NOERR(err);
 		auto c1 = a2_ref + d1_ref;
-		mgrC->expose_node(c1);
+		mgrC->get_io().expose_node(c1);
 
-		eteq::ETensor<double> c1_ref = mgrB->lookup_node(err, *mgrC->lookup_id(c1.get()));
+		eteq::ETensor<double> c1_ref = mgrB->get_io().lookup_node(err, *mgrC->get_io().lookup_id(c1.get()));
 		ASSERT_NOERR(err);
-		eteq::ETensor<double> f2_ref = mgrB->lookup_node(err, *mgrF->lookup_id(f2.get()));
+		eteq::ETensor<double> f2_ref = mgrB->get_io().lookup_node(err, *mgrF->get_io().lookup_id(f2.get()));
 		ASSERT_NOERR(err);
 		auto b1 = c1_ref * f2_ref;
-		mgrB->expose_node(b1);
+		mgrB->get_io().expose_node(b1);
 
-		eteq::ETensor<double> b1_ref = mgrA->lookup_node(err, *mgrB->lookup_id(b1.get()));
+		eteq::ETensor<double> b1_ref = mgrA->get_io().lookup_node(err, *mgrB->get_io().lookup_id(b1.get()));
 		ASSERT_NOERR(err);
 		auto a1 = tenncor<double>().sin(b1_ref);
-		mgrA->expose_node(a1);
+		mgrA->get_io().expose_node(a1);
 
 		// able to reach across cyclical graph
-		auto reachables = mgrA->find_reachable(err, {a1.get()}, {f1_key});
+		auto reachables = estd::map_keyset(mgrA->get_op().reachable(err, {a1.get()}, {f1_key}));
 		EXPECT_EQ(1, reachables.size());
 		EXPECT_EQ(a1.get(), *reachables.begin());
 
 		// unable to reach isolated nodes
-		auto nonreachable = mgrA->find_reachable(err, {a1.get()}, {e1_key});
+		auto nonreachable = mgrA->get_op().reachable(err, {a1.get()}, {e1_key});
 		EXPECT_TRUE(nonreachable.empty());
 
 		// unable to reach node unreachable nodes
-		auto nonreachable2 = mgrA->find_reachable(err, {a2.get()}, {d1_key});
+		auto nonreachable2 = mgrA->get_op().reachable(err, {a2.get()}, {d1_key});
 		EXPECT_TRUE(nonreachable2.empty());
 	}
 	check_clean();
 }
 
 
-TEST_F(DISTRIB, DISABLED_RemoteDeriving)
+TEST_F(DISTRIB, RemoteDeriving)
 {
 	{
 		eigen::Device device;
@@ -319,21 +469,38 @@ TEST_F(DISTRIB, DISABLED_RemoteDeriving)
 			37, 70, 2, 69,
 			84, 67, 66, 59,
 		};
-		std::vector<double> exdata = {
-			63, 19,
-			11, 94,
-			23, 63,
-		};
+
+		std::vector<double> df_data;
+		{
+			eteq::EVariable<double> a = eteq::make_variable<double>(data.data(), ashape, "a");
+			eteq::EVariable<double> b = eteq::make_variable<double>(data2.data(), bshape, "b");
+			eteq::EVariable<double> c = eteq::make_variable<double>(data3.data(), cshape, "c");
+
+			auto d = tenncor<double>().matmul(b, a);
+			auto e = tenncor<double>().matmul(c, d);
+			auto f = tenncor<double>().matmul(
+				tenncor<double>().transpose(d),
+				tenncor<double>().transpose(c));
+			auto root = tenncor<double>().matmul(e, f);
+
+			auto ders = tcr::derive(root, {a});
+			auto exd = ders.front();
+
+			auto exshape = exd->shape();
+			ASSERT_ARREQ(ashape, exshape);
+			auto exptr = exd.calc();
+			df_data = std::vector<double>(exptr, exptr + exshape.n_elems());
+		}
 
 		// instance 1
-		distr::iDistMgrptrT mgr = make_mgr(5112, "mgr1");
+		distr::DistMgrptrT mgr = make_mgr(5112, "mgr1");
 		tcr::set_distmgr(mgr);
 
-		eteq::EVariable<double> a = eteq::make_variable<double>(data.data(), ashape);
-		eteq::EVariable<double> b = eteq::make_variable<double>(data2.data(), bshape);
-		eteq::EVariable<double> c = eteq::make_variable<double>(data3.data(), cshape);
+		eteq::EVariable<double> a = eteq::make_variable<double>(data.data(), ashape, "a");
+		eteq::EVariable<double> b = eteq::make_variable<double>(data2.data(), bshape, "b");
+		eteq::EVariable<double> c = eteq::make_variable<double>(data3.data(), cshape, "c");
 
-		auto d = tenncor<double>().matmul(a, b);
+		auto d = tenncor<double>().matmul(b, a);
 		auto e = tenncor<double>().matmul(c, d);
 		auto f = tenncor<double>().matmul(
 			tenncor<double>().transpose(d),
@@ -346,7 +513,7 @@ TEST_F(DISTRIB, DISABLED_RemoteDeriving)
 		std::string base_id = tcr::lookup_id(a);
 
 		// instance 2
-		distr::iDistMgrptrT mgr2 = make_mgr(5113, "mgr2");
+		distr::DistMgrptrT mgr2 = make_mgr(5113, "mgr2");
 		tcr::set_distmgr(mgr2);
 
 		error::ErrptrT err = nullptr;
@@ -355,20 +522,339 @@ TEST_F(DISTRIB, DISABLED_RemoteDeriving)
 		eteq::ETensor<double> base_ref = tcr::try_lookup_node<double>(err, base_id);
 		ASSERT_NOERR(err);
 
-		auto dbases = tcr::derive(root_ref, {base_ref});
-		ASSERT_EQ(1, dbases.size());
-		auto dbase = dbases.front();
+		auto remote_ders = tcr::derive(root_ref, {base_ref});
+		ASSERT_EQ(1, remote_ders.size());
+		auto dbase = remote_ders.front();
 
 		auto gotshape = dbase->shape();
 		ASSERT_ARREQ(ashape, gotshape);
-
 		auto goptr = dbase.calc();
+
 		for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 		{
-			EXPECT_DOUBLE_EQ(exdata[i], goptr[i]);
+			EXPECT_DOUBLE_EQ(df_data[i], goptr[i]);
 		}
 
 		tcr::set_distmgr(nullptr);
+	}
+	check_clean();
+	auto& global = eigen::global_context();
+	EXPECT_TRUE(global->owners_.empty());
+	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(global->eval_.get()));
+}
+
+
+TEST_F(DISTRIB, DebugPrintAscii)
+{
+	{
+		eigen::Device device;
+		teq::Shape shape({2, 3, 4});
+		std::vector<double> data = {
+			63, 19, 11, 94, 23, 63,
+			3, 48, 60, 77, 62, 32,
+			35, 89, 33, 64, 36, 64,
+			25, 49, 41, 1, 4, 97,
+		};
+		std::vector<double> data2 = {
+			18, 30, 23, 60, 36, 60,
+			73, 36, 6, 66, 67, 84,
+			54, 43, 29, 8, 20, 71,
+			10, 53, 90, 7, 94, 87,
+		};
+		std::vector<double> data3 = {
+			37, 70, 2, 69, 84, 67,
+			66, 59, 69, 92, 96, 18,
+			55, 35, 40, 81, 40, 18,
+			60, 70, 68, 65, 30, 25,
+		};
+
+		// instance A
+		auto actx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrA = make_dbgmgr(5112, "mgrA");
+		tcr::set_distmgr(mgrA, actx);
+
+		// instance B
+		auto bctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrB = make_dbgmgr(5113, "mgrB");
+		tcr::set_distmgr(mgrB, bctx);
+
+		// instance C
+		auto cctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrC = make_dbgmgr(5114, "mgrC");
+		tcr::set_distmgr(mgrC, cctx);
+
+		// instance D
+		auto dctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrD = make_dbgmgr(5115, "mgrD");
+		tcr::set_distmgr(mgrD, dctx);
+
+		// instance E
+		auto ectx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrE = make_dbgmgr(5116, "mgrE");
+		tcr::set_distmgr(mgrE, ectx);
+
+		// instance F
+		auto fctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrF = make_dbgmgr(5117, "mgrF");
+		tcr::set_distmgr(mgrF, fctx);
+
+		auto f1 = eteq::make_variable<double>(
+			data.data(), shape, "f1", fctx);
+		auto f2 = eteq::make_variable<double>(
+			data2.data(), shape, "f2", fctx);
+
+		auto d1 = eteq::make_variable<double>(
+			data3.data(), shape, "d1", dctx);
+
+		auto e2 = eteq::make_variable<double>(
+			data.data(), shape, "e2", ectx);
+		auto e3 = eteq::make_variable<double>(
+			data2.data(), shape, "e3", ectx);
+		auto e1 = TenncorAPI<double>(ectx).add(e2, e3);
+
+		tcr::expose_node(e1);
+		tcr::expose_node(f1);
+		tcr::expose_node(f2);
+		tcr::expose_node(d1);
+
+		error::ErrptrT err = nullptr;
+		auto f1_ref = tcr::lookup_node<double>(tcr::lookup_id(f1), actx);
+		ASSERT_NOERR(err);
+		auto a2 = TenncorAPI<double>(actx).neg(f1_ref);
+		tcr::expose_node(a2);
+
+		auto a2_ref = tcr::lookup_node<double>(tcr::lookup_id(a2), cctx);
+		ASSERT_NOERR(err);
+		auto d1_ref = tcr::lookup_node<double>(tcr::lookup_id(d1), cctx);
+		ASSERT_NOERR(err);
+		auto c1 = TenncorAPI<double>(cctx).add(a2_ref, d1_ref);
+		tcr::expose_node(c1);
+
+		auto c1_ref = tcr::lookup_node<double>(tcr::lookup_id(c1), bctx);
+		ASSERT_NOERR(err);
+		auto f2_ref = tcr::lookup_node<double>(tcr::lookup_id(f2), bctx);
+		ASSERT_NOERR(err);
+		auto b1 = TenncorAPI<double>(bctx).mul(c1_ref, f2_ref);
+		tcr::expose_node(b1);
+
+		auto b1_ref = tcr::lookup_node<double>(tcr::lookup_id(b1), actx);
+		ASSERT_NOERR(err);
+		auto a1 = TenncorAPI<double>(actx).sin(b1_ref);
+		tcr::expose_node(a1);
+
+		// a1 -> b1 -> c1, f2
+		// c1 -> a2, d1
+		// a2 -> f1
+
+		std::stringstream ss;
+		mgrA->get_print().print_ascii(ss, a1.get());
+
+		std::string expect =
+			"(SIN)\n"
+			"_`--[mgrB]:(MUL)\n"
+			"_____`--[mgrC]:(ADD)\n"
+			"_____|___`--[mgrA]:(NEG)\n"
+			"_____|___|___`--[mgrF]:(variable:f1)\n"
+			"_____|___`--[mgrD]:(variable:d1)\n"
+			"_____`--[mgrF]:(variable:f2)\n";
+		EXPECT_STREQ(expect.c_str(), ss.str().c_str());
+	}
+	check_clean();
+}
+
+
+TEST_F(DISTRIB, CrossDerive)
+{
+	{
+		eigen::Device device;
+		teq::Shape shape({2, 3, 4});
+		std::vector<double> data = {
+			63, 19, 11, 94, 23, 63,
+			3, 48, 60, 77, 62, 32,
+			35, 89, 33, 64, 36, 64,
+			25, 49, 41, 1, 4, 97,
+		};
+		std::vector<double> data2 = {
+			18, 30, 23, 60, 36, 60,
+			73, 36, 6, 66, 67, 84,
+			54, 43, 29, 8, 20, 71,
+			10, 53, 90, 7, 94, 87,
+		};
+		std::vector<double> data3 = {
+			37, 70, 2, 69, 84, 67,
+			66, 59, 69, 92, 96, 18,
+			55, 35, 40, 81, 40, 18,
+			60, 70, 68, 65, 30, 25,
+		};
+
+		std::vector<double> df_data;
+		{
+			auto f1 = eteq::make_variable<double>(data.data(), shape, "f1");
+			auto f2 = eteq::make_variable<double>(data2.data(), shape, "f2");
+			auto d1 = eteq::make_variable<double>(data3.data(), shape, "d1");
+			auto a2 = -f1;
+			auto c1 = a2 + d1;
+			auto b1 = c1 * f2;
+			auto a1 = tenncor<double>().sin(b1);
+			auto exd = tcr::derive(a1, {f1})[0];
+
+			auto exshape = exd->shape();
+			ASSERT_ARREQ(shape, exshape);
+			auto exptr = exd.calc();
+			df_data = std::vector<double>(exptr, exptr + exshape.n_elems());
+		}
+
+		// instance A
+		auto actx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrA = make_dbgmgr(5112, "mgrA");
+		tcr::set_distmgr(mgrA, actx);
+
+		// instance B
+		auto bctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrB = make_dbgmgr(5113, "mgrB");
+		tcr::set_distmgr(mgrB, bctx);
+
+		// instance C
+		auto cctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrC = make_dbgmgr(5114, "mgrC");
+		tcr::set_distmgr(mgrC, cctx);
+
+		// instance D
+		auto dctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrD = make_dbgmgr(5115, "mgrD");
+		tcr::set_distmgr(mgrD, dctx);
+
+		// instance E
+		auto ectx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrE = make_dbgmgr(5116, "mgrE");
+		tcr::set_distmgr(mgrE, ectx);
+
+		// instance F
+		auto fctx = std::make_shared<eigen::TensContext>();
+		distr::DistDbgMgrptrT mgrF = make_dbgmgr(5117, "mgrF");
+		tcr::set_distmgr(mgrF, fctx);
+
+		auto f1 = eteq::make_variable<double>(
+			data.data(), shape, "f1", fctx);
+		auto f2 = eteq::make_variable<double>(
+			data2.data(), shape, "f2", fctx);
+
+		auto d1 = eteq::make_variable<double>(
+			data3.data(), shape, "d1", dctx);
+
+		auto e2 = eteq::make_variable<double>(
+			data.data(), shape, "e2", ectx);
+		auto e3 = eteq::make_variable<double>(
+			data2.data(), shape, "e3", ectx);
+		auto e1 = TenncorAPI<double>(ectx).add(e2, e3);
+
+		tcr::expose_node(e1);
+		tcr::expose_node(f1);
+		tcr::expose_node(f2);
+		tcr::expose_node(d1);
+
+		error::ErrptrT err = nullptr;
+		std::string f1_key = tcr::lookup_id(f1);
+		auto f1_ref = tcr::lookup_node<double>(f1_key, actx);
+		ASSERT_NOERR(err);
+		auto a2 = TenncorAPI<double>(actx).neg(f1_ref);
+		tcr::expose_node(a2);
+
+		std::string d1_key = tcr::lookup_id(d1);
+		auto a2_ref = tcr::lookup_node<double>(tcr::lookup_id(a2), cctx);
+		ASSERT_NOERR(err);
+		auto d1_ref = tcr::lookup_node<double>(d1_key, cctx);
+		auto d1_ref_fromA = tcr::lookup_node<double>(d1_key, actx);
+		ASSERT_NOERR(err);
+		auto c1 = TenncorAPI<double>(cctx).add(a2_ref, d1_ref);
+		tcr::expose_node(c1);
+
+		auto c1_ref = tcr::lookup_node<double>(tcr::lookup_id(c1), bctx);
+		ASSERT_NOERR(err);
+		auto f2_ref = tcr::lookup_node<double>(tcr::lookup_id(f2), bctx);
+		ASSERT_NOERR(err);
+		auto b1 = TenncorAPI<double>(bctx).mul(c1_ref, f2_ref);
+		tcr::expose_node(b1);
+
+		auto b1_ref = tcr::lookup_node<double>(tcr::lookup_id(b1), actx);
+		ASSERT_NOERR(err);
+		auto a1 = TenncorAPI<double>(actx).sin(b1_ref);
+		tcr::expose_node(a1);
+
+		// a1 -> b1 -> c1, f2
+		// c1 -> a2, d1
+		// a2 -> f1
+
+		// expect derive path:
+		// A -> grads={a1:[1],b1:[cos(b1)*1]} -> B
+		// B -> grads={b1:[cos(b1)],c1:[f2*cos(b1)]} -> C
+		// C -> grads={c1:[f2*cos(b1)],a2:[f2*cos(b1)]} -> A
+		// A -> grads={a2:[f2*cos(b1)],f1:[-f2*cos(b1)]} -> F
+		// F -> grads={f1:[-f2*cos(b1)]}
+
+		auto e1_ref = tcr::lookup_node<double>(tcr::lookup_id(e1), actx);
+		auto ders = tcr::derive(a1, {f1_ref, e1_ref});
+		ASSERT_EQ(2, ders.size());
+
+		// able to derive across cyclical graph
+		{
+			auto df1 = ders[0];
+			std::stringstream ss;
+			mgrA->get_print().print_ascii(ss, df1.get());
+			std::string expect =
+				"(NEG)\n"
+				"_`--[mgrB]:(MUL)\n"
+				"_____`--[mgrF]:(variable:f2)\n"
+				"_____`--[mgrA]:(MUL)\n"
+				"_________`--(COS)\n"
+				"_________|___`--[mgrB]:(MUL)\n"
+				"_________|_______`--[mgrC]:(ADD)\n"
+				"_________|_______|___`--[mgrA]:(NEG)\n"
+				"_________|_______|___|___`--[mgrF]:(variable:f1)\n"
+				"_________|_______|___`--[mgrD]:(variable:d1)\n"
+				"_________|_______`--[mgrF]:(variable:f2)\n"
+				"_________`--(constant:1)\n";
+			EXPECT_STREQ(expect.c_str(), ss.str().c_str());
+
+			auto gotshape = df1->shape();
+			ASSERT_ARREQ(shape, gotshape);
+			auto goptr = df1.calc();
+
+			for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
+			{
+				EXPECT_DOUBLE_EQ(df_data[i], goptr[i]);
+			}
+		}
+
+		// unable to reach isolated nodes
+		{
+			auto de1 = ders[1];
+
+			auto gotshape = de1->shape();
+			ASSERT_ARREQ(shape, gotshape);
+			auto goptr = de1.calc();
+
+			for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
+			{
+				EXPECT_DOUBLE_EQ(0, goptr[i]);
+			}
+		}
+
+		// unable to reach node unreachable nodes
+		{
+			auto ders2 = tcr::derive(a2, {d1_ref_fromA});
+			ASSERT_EQ(1, ders2.size());
+			auto dd1 = ders2[0];
+
+			auto gotshape = dd1->shape();
+			ASSERT_ARREQ(shape, gotshape);
+			auto goptr = dd1.calc();
+
+			for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
+			{
+				EXPECT_DOUBLE_EQ(0, goptr[i]);
+			}
+		}
 	}
 	check_clean();
 }

@@ -19,7 +19,7 @@ bool optimize (GraphInfo& graph, const OptRulesT& rules)
 		if (results.size() > 0)
 		{
 			converted = true;
-			teq::TensMapT<teq::TensptrT> converts;
+			teq::OwnMapT converts;
 			for (query::QueryResult& result : results)
 			{
 				converts.emplace(result.root_,

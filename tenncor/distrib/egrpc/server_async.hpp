@@ -2,15 +2,15 @@
 #include <future>
 
 #include <grpcpp/grpcpp.h>
+#include <grpcpp/impl/codegen/async_unary_call.h>
+#include <grpcpp/impl/codegen/async_stream.h>
 
 #include "teq/teq.hpp"
 
-#include "tenncor/distrib/distr.grpc.pb.h"
+#ifndef EGRPC_SERVER_ASYNC_HPP
+#define EGRPC_SERVER_ASYNC_HPP
 
-#ifndef DISTRIB_ASYNC_CLI_HPP
-#define DISTRIB_ASYNC_CLI_HPP
-
-namespace distr
+namespace egrpc
 {
 
 // Detached server calls
@@ -23,6 +23,7 @@ struct iServerCall
 	virtual void shutdown (void) = 0;
 };
 
+// Async server request response call
 template <typename REQ, typename RES>
 struct AsyncServerCall final : public iServerCall
 {
@@ -68,8 +69,6 @@ struct AsyncServerCall final : public iServerCall
 	}
 
 private:
-	enum CallStatus { PROCESS, FINISH };
-
 	std::string alias_;
 
 	REQ req_;
@@ -84,9 +83,12 @@ private:
 
 	grpc::ServerAsyncResponseWriter<RES> responder_;
 
+	enum CallStatus { PROCESS, FINISH };
+
 	CallStatus status_;
 };
 
+// Async server request stream call
 template <typename REQ, typename RES, typename RANGE,
 	typename IT = typename RANGE::iterator>
 struct AsyncServerStreamCall final : public iServerCall
@@ -168,8 +170,6 @@ struct AsyncServerStreamCall final : public iServerCall
 	}
 
 private:
-	enum CallStatus { STARTUP, PROCESS, FINISH };
-
 	std::string alias_;
 
 	RANGE ranges_;
@@ -190,102 +190,11 @@ private:
 
 	grpc::ServerAsyncWriter<RES> responder_;
 
+	enum CallStatus { STARTUP, PROCESS, FINISH };
+
 	CallStatus status_;
-};
-
-// Detached client response handlers
-struct iCliRespHandler
-{
-	virtual ~iCliRespHandler  (void) = default;
-
-	virtual void handle (bool event_status) = 0;
-};
-
-template <typename DATA>
-struct AsyncCliRespHandler final : public iCliRespHandler
-{
-	using ReadptrT = std::unique_ptr<
-		grpc::ClientAsyncReaderInterface<DATA>>;
-
-	using HandlerF = std::function<void(DATA&)>;
-
-	AsyncCliRespHandler (const std::string& alias, HandlerF handler) :
-		alias_(alias), handler_(handler), call_status_(CREATE) {}
-
-	~AsyncCliRespHandler (void) { complete_promise_.set_value(); }
-
-	void handle (bool event_status) override
-	{
-		assert(nullptr != reader_);
-		switch (call_status_)
-		{
-		case CREATE:
-			if (event_status)
-			{
-				teq::infof("[client %s] call %p created... processing",
-					alias_.c_str(), this);
-				call_status_ = PROCESS;
-				reader_->Read(&reply_, (void*) this);
-			}
-			else
-			{
-				teq::infof("[client %s] call %p created... finishing",
-					alias_.c_str(), this);
-				call_status_ = FINISH;
-				reader_->Finish(&status_, (void*)this);
-			}
-			break;
-		case PROCESS:
-			if (event_status)
-			{
-				teq::infof("[client %s] call %p received... handling",
-					alias_.c_str(), this);
-				handler_(reply_);
-				reader_->Read(&reply_, (void*)this);
-			}
-			else
-			{
-				teq::infof("[client %s] call %p received... finishing",
-					alias_.c_str(), this);
-				call_status_ = FINISH;
-				reader_->Finish(&status_, (void*)this);
-			}
-			break;
-		case FINISH:
-			if (status_.ok())
-			{
-				teq::infof("[client %s] call %p completed successfully",
-					alias_.c_str(), this);
-			}
-			else
-			{
-				teq::errorf("[client %s] call %p failed: %s",
-					alias_.c_str(), this, status_.error_message().c_str());
-			}
-			delete this;
-		}
-	}
-
-	std::string alias_;
-
-	grpc::ClientContext ctx_;
-
-	ReadptrT reader_;
-
-	HandlerF handler_;
-
-	DATA reply_;
-
-	grpc::Status status_;
-
-	std::promise<void> complete_promise_;
-
-private:
-	enum CallStatus { CREATE, PROCESS, FINISH };
-
-	CallStatus call_status_;
 };
 
 }
 
-#endif // DISTRIB_ASYNC_CLI_HPP
+#endif // EGRPC_SERVER_ASYNC_HPP

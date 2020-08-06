@@ -9,6 +9,8 @@
 namespace distr
 {
 
+static const size_t consul_nretries = 5;
+
 struct ConsulConfig final
 {
 	std::string id_;
@@ -48,7 +50,19 @@ struct ConsulService final
 	std::unordered_map<std::string,std::string> get_peers (void)
 	{
 		std::unordered_map<std::string,std::string> peers;
-		auto services = catalog_.service(service_);
+		std::vector<ppconsul::catalog::NodeService> services;
+		for (size_t i = 0; i < consul_nretries; ++i)
+		{
+			try
+			{
+				services = catalog_.service(service_);
+				break;
+			}
+			catch (...)
+			{
+				teq::warnf("consul failed to get service, retry %d", i);
+			}
+		}
 		for (auto& service : services)
 		{
 			auto id = service.second.id;

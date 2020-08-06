@@ -37,7 +37,7 @@ void eteq_ext (py::module& m)
 				actives.push_back(r.second);
 			}
 			opt::GraphInfo graph(actives);
-			teq::TensMapT<teq::TensptrT> conversions;
+			teq::OwnMapT conversions;
 			for (auto& convert : converts)
 			{
 				conversions.emplace(convert.first.get(), convert.second);
@@ -309,7 +309,7 @@ void eteq_ext (py::module& m)
 		[](const pytenncor::ETensT& root,
 			const std::vector<pytenncor::ETensPairT>& inps)
 		{
-			teq::TensMapT<teq::TensptrT> inputs;
+			teq::OwnMapT inputs;
 			for (const auto& inp : inps)
 			{
 				inputs.emplace(inp.first.get(), inp.second);

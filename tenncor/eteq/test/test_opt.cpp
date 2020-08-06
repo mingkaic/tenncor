@@ -335,7 +335,7 @@ TEST(OPTIMIZE, CNNLayer)
 	auto updates = tenncor<double>().approx.adadelta(
 		error, eteq::EVariablesT<double>(vars.begin(), vars.end()),
 		learning_rate, l2_decay);
-	teq::TensMapT<teq::TensptrT> umap;
+	teq::OwnMapT umap;
 	eteq::ETensorsT<double> deps;
 	deps.reserve(updates.size());
 	for (auto& update : updates)
