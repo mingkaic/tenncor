@@ -30,7 +30,7 @@ struct Hasher final : public teq::iOnceTraveler
 
 	teq::TensMapT<boost::uuids::uuid> hashes_;
 
-	boost::uuids::random_generator uuid_gen_;
+	global::BoostEngineT uuid_gen_;
 
 private:
 	/// Implementation of iOnceTraveler

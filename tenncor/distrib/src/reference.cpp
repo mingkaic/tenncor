@@ -7,7 +7,7 @@ namespace distr
 {
 
 void separate_by_server (
-	estd::StrMapT<estd::StrSetT>& out,
+	types::StrUMapT<types::StrUSetT>& out,
 	const DRefSetT& refs)
 {
 	for (auto ref : refs)

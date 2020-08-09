@@ -1,7 +1,7 @@
 
 #include "eteq/eteq.hpp"
 
-#include "distrib/egrpc/server_async.hpp"
+#include "egrpc/server_async.hpp"
 #include "distrib/peer_svc.hpp"
 
 #include "distrib/services/io/service.hpp"
@@ -17,7 +17,7 @@ namespace distr
 #define _ERR_CHECK(ERR, STATUS, ALIAS)\
 if (nullptr != ERR)\
 {\
-	teq::errorf("[server %s] %s", ALIAS,\
+	global::errorf("[server %s] %s", ALIAS,\
 		ERR->to_string().c_str());\
 	return grpc::Status(STATUS, ERR->to_string());\
 }
@@ -44,7 +44,7 @@ bool process_get_data (
 struct DistrOpService final : public PeerService<DistrOpCli>
 {
 	DistrOpService (
-		ConsulService& consul,
+		ConsulService* consul,
 		const egrpc::ClientConfig& cfg,
 		grpc::ServerBuilder& builder,
 		DistrIOService* iosvc) :
@@ -61,7 +61,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 	{
 		// find all reachable refs and make remote call
 		auto refs = reachable_refs(targets, ignored);
-		estd::StrMapT<estd::StrSetT> servers;
+		types::StrUMapT<types::StrUSetT> servers;
 		separate_by_server(servers, refs);
 		std::vector<egrpc::ErrFutureT> completions;
 		for (auto& spair : servers)
@@ -72,7 +72,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			auto client = get_client(err, peer_id);
 			if (nullptr != err)
 			{
-				teq::fatal(err->to_string());
+				global::fatal(err->to_string());
 			}
 
 			google::protobuf::RepeatedPtrField<std::string>
@@ -105,7 +105,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 				std::future_status::timeout);
 			if (auto err = done.get())
 			{
-				teq::fatal(err->to_string());
+				global::fatal(err->to_string());
 			}
 		}
 		// locally evaluate
@@ -114,10 +114,10 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 	}
 
 	/// Return map of reachable src tensors mapped to reachable dest ids
-	teq::TensMapT<estd::StrSetT> reachable (
+	teq::TensMapT<types::StrUSetT> reachable (
 		error::ErrptrT& err,
 		const teq::TensSetT& srcs,
-		const estd::StrSetT& dests)
+		const types::StrUSetT& dests)
 	{
 		teq::TensMapT<std::string> local_targets;
 		for (auto dest : dests)
@@ -128,15 +128,15 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 				local_targets.emplace(local.get(), dest);
 			}
 		}
-		teq::TensMapT<estd::StrSetT> reached;
-		estd::StrMapT<estd::StrSetT> remotes;
-		estd::StrMapT<teq::TensSetT> refsrcs;
+		teq::TensMapT<types::StrUSetT> reached;
+		types::StrUMapT<types::StrUSetT> remotes;
+		types::StrUMapT<teq::TensSetT> refsrcs;
 		for (auto src : srcs)
 		{
 			if (estd::has(reach_cache_, src))
 			{
 				auto& reachs = reach_cache_[src];
-				estd::StrSetT potentials;
+				types::StrUSetT potentials;
 				std::set_intersection(reachs.begin(), reachs.end(),
 					dests.begin(), dests.end(),
 					std::inserter(potentials, potentials.end()));
@@ -202,13 +202,13 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 				completions.push_back(client->list_reachable(cq_, req,
 					[&](op::ListReachableResponse& res)
 					{
-						estd::StrMapT<estd::StrSetT> reachables;
+						types::StrUMapT<types::StrUSetT> reachables;
 						auto& res_src = res.srcs();
 						for (auto& ress : res_src)
 						{
 							auto& rec = ress.second.reachables();
 							reachables.emplace(ress.first,
-								estd::StrSetT(rec.begin(), rec.end()));
+								types::StrUSetT(rec.begin(), rec.end()));
 						}
 						for (auto reachable : reachables)
 						{
@@ -258,7 +258,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			}
 		}
 
-		estd::StrSetT targids;
+		types::StrUSetT targids;
 		for (auto target : targets)
 		{
 			// targets that are not exposed can't be referenced remotely
@@ -271,7 +271,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		auto reachs = estd::map_keyset(reachable(err, refset, targids));
 		if (nullptr != err)
 		{
-			teq::fatal(err->to_string());
+			global::fatal(err->to_string());
 		}
 		DRefSetT reachrefs;
 		std::transform(reachs.begin(), reachs.end(),
@@ -288,7 +288,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		}
 
 		// then make remote calls
-		estd::StrMapT<estd::StrSetT> remotes;
+		types::StrUMapT<types::StrUSetT> remotes;
 		separate_by_server(remotes, reachrefs);
 		if (remotes.size() > 0)
 		{
@@ -297,7 +297,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			std::string rootid = "";//*lookup_id(metas.root_.get());
 			for (auto remote : remotes)
 			{
-				estd::StrMapT<teq::TensptrT> pgrads;
+				types::StrUMapT<teq::TensptrT> pgrads;
 				for (auto pid : remote.second)
 				{
 					auto parent = iosvc_->must_lookup_node(pid);
@@ -324,7 +324,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 					auto client = get_client(err, peer_id);
 					if (nullptr != err)
 					{
-						teq::fatal(err->to_string());
+						global::fatal(err->to_string());
 					}
 
 					op::CreateDeriveRequest req;
@@ -339,13 +339,13 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 						auto& pbmeta = (*pbpgrads)[rgrad.first];
 						auto tens = rgrad.second;
 						auto uuid = iosvc_->expose_node(tens);
-						tens_to_node_meta(pbmeta, consul_.id_, uuid, tens);
+						tens_to_node_meta(pbmeta, get_peer_id(), uuid, tens);
 					}
 					completions.push_back(client->create_derive(cq_, req,
 						[&](op::CreateDeriveResponse& res)
 						{
 							auto& target_grads = res.grads();
-							estd::StrMapT<std::string> tgrads(
+							types::StrUMapT<std::string> tgrads(
 								target_grads.begin(), target_grads.end());
 
 							for (auto tgrad : tgrads)
@@ -389,7 +389,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 	{
 		// GetData
 		new egrpc::AsyncServerStreamCall<op::GetDataRequest,op::NodeData,DataStatesT>(
-			fmts::sprintf("%s:GetData", consul_.id_.c_str()),
+			fmts::sprintf("%s:GetData", get_peer_id().c_str()),
 			[this](grpc::ServerContext* ctx, op::GetDataRequest* req,
 				grpc::ServerAsyncWriter<op::NodeData>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
@@ -406,7 +406,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		// ListReachable
 		new egrpc::AsyncServerCall<op::ListReachableRequest,
 			op::ListReachableResponse>(
-			fmts::sprintf("%s:ListReachable", consul_.id_.c_str()),
+			fmts::sprintf("%s:ListReachable", get_peer_id().c_str()),
 			[this](grpc::ServerContext* ctx, op::ListReachableRequest* req,
 				grpc::ServerAsyncResponseWriter<op::ListReachableResponse>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
@@ -424,7 +424,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		// Derive
 		new egrpc::AsyncServerCall<op::CreateDeriveRequest,
 			op::CreateDeriveResponse>(
-			fmts::sprintf("%s:CreateDerive", consul_.id_.c_str()),
+			fmts::sprintf("%s:CreateDerive", get_peer_id().c_str()),
 			[this](grpc::ServerContext* ctx, op::CreateDeriveRequest* req,
 				grpc::ServerAsyncResponseWriter<op::CreateDeriveResponse>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
@@ -453,7 +453,7 @@ private:
 			error::ErrptrT err = nullptr;
 			auto tens = iosvc_->lookup_node(err, uuid, false).get();
 			_ERR_CHECK(err, grpc::NOT_FOUND,
-				fmts::sprintf("%s:GetData", consul_.id_.c_str()).c_str());
+				fmts::sprintf("%s:GetData", get_peer_id().c_str()).c_str());
 			targets.emplace(tens);
 			states.emplace(uuid, tens);
 		}
@@ -462,7 +462,7 @@ private:
 			error::ErrptrT err = nullptr;
 			auto tens = iosvc_->lookup_node(err, uuid, false).get();
 			_ERR_CHECK(err, grpc::NOT_FOUND,
-				fmts::sprintf("%s:GetData", consul_.id_.c_str()).c_str());
+				fmts::sprintf("%s:GetData", get_peer_id().c_str()).c_str());
 			ignored.emplace(tens);
 		}
 		eigen::Device device(std::numeric_limits<size_t>::max());
@@ -475,7 +475,7 @@ private:
 		op::ListReachableResponse& res)
 	{
 		auto alias = fmts::sprintf("%s:ListReachable",
-			consul_.id_.c_str());
+			get_peer_id().c_str());
 		error::ErrptrT err = nullptr;
 		auto& dests = req.dests();
 		teq::TensSetT srcs;
@@ -486,7 +486,7 @@ private:
 			srcs.emplace(local.get());
 		}
 		auto reached = reachable(err, srcs,
-			estd::StrSetT(dests.begin(), dests.end()));
+			types::StrUSetT(dests.begin(), dests.end()));
 		_ERR_CHECK(err, grpc::NOT_FOUND, alias.c_str());
 		auto payload = res.mutable_srcs();
 		for (auto& r : reached)
@@ -503,7 +503,7 @@ private:
 		const op::CreateDeriveRequest& req,
 		op::CreateDeriveResponse& res)
 	{
-		auto alias = fmts::sprintf("%s:CreateDerive", consul_.id_.c_str());
+		auto alias = fmts::sprintf("%s:CreateDerive", get_peer_id().c_str());
 		auto& rgrads = req.root_grads();
 		auto& targids = req.targets();
 		// // cache based on rootid (todo)
@@ -562,7 +562,7 @@ private:
 	op::DistrOperation::AsyncService service_;
 
 	// todo: move to data obj
-	teq::TensMapT<estd::StrSetT> reach_cache_;
+	teq::TensMapT<types::StrUSetT> reach_cache_;
 };
 
 #undef _MAKE_DERFUNC

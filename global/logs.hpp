@@ -1,14 +1,17 @@
-#ifndef TEQ_LOGS_HPP
-#define TEQ_LOGS_HPP
 
 #include "logs/logs.hpp"
 
-#include "teq/config.hpp"
+#include "global/config.hpp"
 
-namespace teq
+#ifndef GLOBAL_LOGS_HPP
+#define GLOBAL_LOGS_HPP
+
+namespace global
 {
 
-const std::string logger_key = "logger";
+void set_logger (logs::iLogger* logger, global::CfgMapptrT ctx = context());
+
+logs::iLogger& get_logger (global::CfgMapptrT ctx = context());
 
 /// Return log level
 std::string get_log_level (void);
@@ -76,8 +79,6 @@ void fatalf (const std::string& format, ARGS... args)
 	fatal(fmts::sprintf(format, args...));
 }
 
-#define LOG_INIT(LOG_TYPE)::config::global_config.add_entry<LOG_TYPE>(teq::logger_key)
-
 }
 
-#endif // TEQ_LOGS_HPP
+#endif // GLOBAL_LOGS_HPP

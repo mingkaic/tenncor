@@ -27,7 +27,7 @@ static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 	}
 		break;
 	default:
-		teq::fatal("cannot unpack leaf of unknown usage");
+		global::fatal("cannot unpack leaf of unknown usage");
 	}
 	return out;
 }
@@ -88,7 +88,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 // 				break;
 // #endif
 			default:
-				teq::fatalf("unknown onnx type %d", onnx_type);
+				global::fatalf("unknown onnx type %d", onnx_type);
 		}
 		return out;
 	}
@@ -98,7 +98,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 	{
 		if (children.empty())
 		{
-			teq::fatalf("cannot generate func %s without args", opname.c_str());
+			global::fatalf("cannot generate func %s without args", opname.c_str());
 		}
 		egen::_GENERATED_OPCODE opcode = egen::get_op(opname);
 		auto gencode = (egen::_GENERATED_DTYPE) children.front()->get_meta().type_code();

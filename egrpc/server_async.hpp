@@ -40,7 +40,7 @@ struct AsyncServerCall final : public iServerCall
 		cq_(cq), responder_(&ctx_), status_(PROCESS)
 	{
 		req_call_(&ctx_, &req_, &responder_, cq_, cq_, (void*) this);
-		teq::infof("[server %s] rpc %p created", alias_.c_str(), this);
+		global::infof("[server %s] rpc %p created", alias_.c_str(), this);
 	}
 
 	void serve (void) override
@@ -52,13 +52,13 @@ struct AsyncServerCall final : public iServerCall
 			new AsyncServerCall(alias_, req_call_, write_call_, cq_);
 			RES reply;
 			status_ = FINISH;
-			teq::infof("[server %s] rpc %p writing", alias_.c_str(), this);
+			global::infof("[server %s] rpc %p writing", alias_.c_str(), this);
 			auto out_status = write_call_(req_, reply);
 			responder_.Finish(reply, out_status, this);
 		}
 			break;
 		case FINISH:
-			teq::infof("[server %s] rpc %p completed", alias_.c_str(), this);
+			global::infof("[server %s] rpc %p completed", alias_.c_str(), this);
 			shutdown();
 		}
 	}
@@ -108,7 +108,7 @@ struct AsyncServerStreamCall final : public iServerCall
 		cq_(cq), responder_(&ctx_), status_(STARTUP)
 	{
 		req_call_(&ctx_, &req_, &responder_, cq_, cq_, (void*) this);
-		teq::infof("[server %s] rpc %p created", alias_.c_str(), this);
+		global::infof("[server %s] rpc %p created", alias_.c_str(), this);
 	}
 
 	void serve (void) override
@@ -119,7 +119,7 @@ struct AsyncServerStreamCall final : public iServerCall
 		{
 			new AsyncServerStreamCall(
 				alias_, req_call_, init_call_, write_call_, cq_);
-			teq::infof("[server %s] rpc %p initializing",
+			global::infof("[server %s] rpc %p initializing",
 				alias_.c_str(), this);
 			auto out_status = init_call_(ranges_, req_);
 			if (false == out_status.ok())
@@ -137,7 +137,7 @@ struct AsyncServerStreamCall final : public iServerCall
 			if (it_ != ranges_.end())
 			{
 				RES reply;
-				teq::infof("[server %s] rpc %p writing", alias_.c_str(), this);
+				global::infof("[server %s] rpc %p writing", alias_.c_str(), this);
 				bool wrote = write_call_(req_, it_, reply);
 				++it_;
 				if (wrote)
@@ -155,7 +155,7 @@ struct AsyncServerStreamCall final : public iServerCall
 		}
 			break;
 		case FINISH:
-			teq::infof("[server %s] rpc %p completed", alias_.c_str(), this);
+			global::infof("[server %s] rpc %p completed", alias_.c_str(), this);
 			shutdown();
 		}
 	}

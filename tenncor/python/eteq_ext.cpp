@@ -7,15 +7,15 @@ using ETensKeysT = std::unordered_map<std::string,eteq::ETensor<PybindT>>;
 
 void eteq_ext (py::module& m)
 {
-	py::class_<eigen::TensContext,eigen::CtxptrT> context(m, "Context");
+	py::class_<estd::ConfigMap<>,global::CfgMapptrT> context(m, "Context");
 
 	context
-		.def(py::init<>([]() { return std::make_shared<eigen::TensContext>(); }))
+		.def(py::init<>([]() { return std::make_shared<estd::ConfigMap<>>(); }))
 		.def("get_actives",
-		[](eigen::CtxptrT& self)
+		[](global::CfgMapptrT& self)
 		{
 			teq::TensptrSetT actives;
-			for (auto& r : self->registry_)
+			for (auto& r : eteq::get_reg(self))
 			{
 				actives.emplace(r.second);
 			}
@@ -28,11 +28,11 @@ void eteq_ext (py::module& m)
 			return out;
 		})
 		.def("replace",
-		[](eigen::CtxptrT& self, const std::vector<std::pair<
+		[](global::CfgMapptrT& self, const std::vector<std::pair<
 			pytenncor::ETensT,pytenncor::ETensT>>& converts)
 		{
 			teq::TensptrsT actives;
-			for (auto& r : self->registry_)
+			for (auto& r : eteq::get_reg(self))
 			{
 				actives.push_back(r.second);
 			}
@@ -45,7 +45,7 @@ void eteq_ext (py::module& m)
 			graph.replace(conversions);
 		});
 
-	m.attr("global_context") = eigen::global_context();
+	m.attr("global_context") = global::context();
 
 	// ==== data and shape ====
 	auto shape = (py::class_<teq::Shape>) m.attr("Shape");
@@ -86,12 +86,12 @@ void eteq_ext (py::module& m)
 
 	etens
 		.def(py::init(
-		[](teq::TensptrT tens, eigen::CtxptrT& context)
+		[](teq::TensptrT tens, global::CfgMapptrT& ctx)
 		{
-			return pytenncor::ETensT(tens, context);
+			return pytenncor::ETensT(tens, ctx);
 		}),
 		py::arg("tens"),
-		py::arg("ctx") = eigen::global_context())
+		py::arg("ctx") = global::context())
 		.def("__str__",
 		[](const pytenncor::ETensT& self)
 		{
@@ -148,7 +148,7 @@ void eteq_ext (py::module& m)
 				[](eteq::VarptrT<PybindT> var)
 				{
 					return eteq::EVariable<PybindT>(var,
-						eigen::global_context());
+						global::context());
 				});
 			return vars;
 		})
@@ -202,7 +202,7 @@ void eteq_ext (py::module& m)
 	evar
 		.def(py::init(
 		[](py::list slist, PybindT scalar,
-			const std::string& label, eigen::CtxptrT context)
+			const std::string& label, global::CfgMapptrT context)
 		{
 			return eteq::make_variable_scalar<PybindT>(
 				scalar, pyutils::p2cshape(slist), label, context);
@@ -210,10 +210,10 @@ void eteq_ext (py::module& m)
 		py::arg("shape"),
 		py::arg("scalar") = 0,
 		py::arg("label") = "",
-		py::arg("ctx") = eigen::global_context())
+		py::arg("ctx") = global::context())
 		.def("assign",
 		[](eteq::EVariable<PybindT>& self, py::array data,
-			eigen::CtxptrT ctx)
+			global::CfgMapptrT ctx)
 		{
 			teq::ShapedArr<PybindT> arr;
 			pyutils::arr2shapedarr(arr, data);
@@ -221,7 +221,7 @@ void eteq_ext (py::module& m)
 		},
 		"Assign numpy data array to variable",
 		py::arg("data"),
-		py::arg("ctx") = eigen::global_context());
+		py::arg("ctx") = global::context());
 
 	// ==== inline functions ====
 	m
@@ -244,7 +244,7 @@ void eteq_ext (py::module& m)
 		// ==== variable creation ====
 		.def("scalar_variable",
 		[](PybindT scalar, py::list slist,
-			const std::string& label, eigen::CtxptrT context)
+			const std::string& label, global::CfgMapptrT context)
 		{
 			return eteq::make_variable_scalar<PybindT>(
 				scalar, pyutils::p2cshape(slist), label,
@@ -254,10 +254,10 @@ void eteq_ext (py::module& m)
 		py::arg("scalar"),
 		py::arg("slist"),
 		py::arg("label") = "",
-		py::arg("ctx") = eigen::global_context())
+		py::arg("ctx") = global::context())
 		.def("variable_like",
 		[](PybindT scalar, pytenncor::ETensT like,
-			const std::string& label, eigen::CtxptrT context)
+			const std::string& label, global::CfgMapptrT context)
 		{
 			return eteq::make_variable_like<PybindT>(
 				scalar, (teq::TensptrT) like, label,
@@ -267,10 +267,10 @@ void eteq_ext (py::module& m)
 		py::arg("scalar"),
 		py::arg("like"),
 		py::arg("label") = "",
-		py::arg("ctx") = eigen::global_context())
+		py::arg("ctx") = global::context())
 		.def("variable",
 		[](py::array data,
-			const std::string& label, eigen::CtxptrT context)
+			const std::string& label, global::CfgMapptrT context)
 		{
 			teq::ShapedArr<PybindT> arr;
 			pyutils::arr2shapedarr(arr, data);
@@ -281,9 +281,9 @@ void eteq_ext (py::module& m)
 		"Return labelled variable containing numpy data array",
 		py::arg("data"),
 		py::arg("label") = "",
-		py::arg("ctx") = eigen::global_context())
+		py::arg("ctx") = global::context())
 		.def("to_variable",
-		[](const pytenncor::ETensT& tens, eigen::CtxptrT context)
+		[](const pytenncor::ETensT& tens, global::CfgMapptrT context)
 		{
 			auto ctx = tens.get_context();
 			if (nullptr == ctx)
@@ -294,7 +294,7 @@ void eteq_ext (py::module& m)
 				eteq::Variable<PybindT>>((teq::TensptrT) tens), ctx);
 		},
 		py::arg("tens"),
-		py::arg("ctx") = eigen::global_context())
+		py::arg("ctx") = global::context())
 
 		// ==== other stuff ====
 		.def("derive",
@@ -319,54 +319,22 @@ void eteq_ext (py::module& m)
 
 		// ==== optimization ====
 		.def("optimize",
-		[](const std::string& filename, eigen::CtxptrT context)
+		[](const std::string& filename, global::CfgMapptrT context)
 		{
 			eteq::optimize<PybindT>(filename, context);
 		},
 		py::arg("filename") = "cfg/optimizations.json",
-		py::arg("ctx") = eigen::global_context(),
+		py::arg("ctx") = global::context(),
 		"Optimize using rules for specified filename")
 
 		// ==== configmap ====
-		.def("set_log_level",
-		[](const std::string& level)
-		{
-			// auto logger = static_cast<logs::iLogger*>(
-			// 	config::global_config.get_obj(teq::logger_key));
-			// if (nullptr == logger)
-			// {
-			// 	teq::error("missing logger in global config");
-			// 	logs::get_logger().set_log_level(level);
-			// 	return;
-			// }
-			// if (logger->supports_level(level))
-			// {
-			// 	logger->set_log_level(level);
-			// }
-		})
-		.def("get_log_level",
-		[]
-		{
-			// auto logger = static_cast<logs::iLogger*>(
-			// 	config::global_config.get_obj(teq::logger_key));
-			// if (nullptr == logger)
-			// {
-			// 	teq::error("missing logger in global config");
-			// 	return logs::get_logger().get_log_level();
-			// }
-			// return logger->get_log_level();
-		})
+		.def("set_log_level", &global::set_log_level)
+		.def("get_log_level", &global::get_log_level)
 		.def("seed",
 		[](size_t seed)
 		{
-			// auto engine = static_cast<eigen::EngineT*>(
-			// 	config::global_config.get_obj(eigen::rengine_key));
-			// if (nullptr == engine)
-			// {
-			// 	teq::error("missing random engine in global config");
-			// 	engine = &eigen::default_engine();
-			// }
-			// engine->seed(seed);
+			auto& engine = global::get_randengine();
+			engine.seed(seed);
 		},
 		"Seed internal RNG")
 
@@ -375,13 +343,13 @@ void eteq_ext (py::module& m)
 		[](PybindT lower, PybindT upper)
 		{
 			return py::cpp_function(
-				eigen::Randomizer().unif_gen<PybindT>(lower, upper));
+				global::Randomizer().unif_gen<PybindT>(lower, upper));
 		}, py::arg("lower") = 0, py::arg("upper") = 1)
 		.def("norm_gen",
 		[](PybindT mean, PybindT stdev)
 		{
 			return py::cpp_function(
-				eigen::Randomizer().norm_gen<PybindT>(mean, stdev));
+				global::Randomizer().norm_gen<PybindT>(mean, stdev));
 		})
 
 		// ==== serialization ====
@@ -392,12 +360,12 @@ void eteq_ext (py::module& m)
 			std::ifstream input(filename);
 			if (false == input.is_open())
 			{
-				teq::fatalf("file %s not found", filename.c_str());
+				global::fatalf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
 			if (false == pb_model.ParseFromIstream(&input))
 			{
-				teq::fatalf("failed to parse onnx from %s",
+				global::fatalf("failed to parse onnx from %s",
 					filename.c_str());
 			}
 			onnx::TensptrIdT ids;
@@ -428,11 +396,11 @@ void eteq_ext (py::module& m)
 			out.reserve(roots.size());
 			for (const std::string& id : precids)
 			{
-				out.push_back(pytenncor::ETensT(ids.right.at(id), eigen::global_context()));
+				out.push_back(pytenncor::ETensT(ids.right.at(id), global::context()));
 			}
 			for (const std::string& id : root_ids)
 			{
-				out.push_back(pytenncor::ETensT(ids.right.at(id), eigen::global_context()));
+				out.push_back(pytenncor::ETensT(ids.right.at(id), global::context()));
 			}
 			return out;
 		},
@@ -446,7 +414,7 @@ void eteq_ext (py::module& m)
 			std::ofstream output(filename);
 			if (false == output.is_open())
 			{
-				teq::fatalf("file %s not found", filename.c_str());
+				global::fatalf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
 			onnx::TensIdT identified;
@@ -461,17 +429,17 @@ void eteq_ext (py::module& m)
 		py::arg("filename"), py::arg("models"),
 		py::arg("keys") = ETensKeysT{})
 		.def("load_context_file",
-		[](const std::string& filename, eigen::CtxptrT& ctx)
+		[](const std::string& filename, global::CfgMapptrT& ctx)
 		{
 			std::ifstream input(filename);
 			if (false == input.is_open())
 			{
-				teq::fatalf("file %s not found", filename.c_str());
+				global::fatalf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
 			if (false == pb_model.ParseFromIstream(&input))
 			{
-				teq::fatalf("failed to parse onnx from %s",
+				global::fatalf("failed to parse onnx from %s",
 					filename.c_str());
 			}
 			onnx::TensptrIdT ids;
@@ -488,18 +456,17 @@ void eteq_ext (py::module& m)
 			return out;
 		})
 		.def("save_context_file",
-		[](const std::string& filename, const eigen::TensContext& ctx)
+		[](const std::string& filename, global::CfgMapptrT ctx)
 		{
-			auto& reg = ctx.registry_;
 			teq::TensptrSetT roots;
-			for (auto& r : reg)
+			for (auto& r : eteq::get_reg(ctx))
 			{
 				roots.emplace(r.second);
 			}
 			std::ofstream output(filename);
 			if (false == output.is_open())
 			{
-				teq::fatalf("file %s not found", filename.c_str());
+				global::fatalf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
 			onnx::TensIdT ids;

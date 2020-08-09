@@ -31,7 +31,7 @@ struct Functor final : public eigen::Observable
 	{
 		if (children.empty())
 		{
-			teq::fatalf("cannot perform `%s` without arguments",
+			global::fatalf("cannot perform `%s` without arguments",
 				egen::name_op(opcode).c_str());
 		}
 
@@ -42,7 +42,7 @@ struct Functor final : public eigen::Observable
 		{
 			if (tcode != child->get_meta().type_code())
 			{
-				teq::fatalf("incompatible tensor types %s and %s: "
+				global::fatalf("incompatible tensor types %s and %s: "
 					"cross-type functors not supported yet",
 					egen::name_type(tcode).c_str(),
 					child->get_meta().type_label().c_str());
@@ -134,7 +134,7 @@ struct Functor final : public eigen::Observable
 		}
 		if (index >= ndeps)
 		{
-			teq::fatalf("cannot modify dependency %d "
+			global::fatalf("cannot modify dependency %d "
 				"when there are only %d dependencies",
 				index, ndeps);
 		}
@@ -151,7 +151,7 @@ struct Functor final : public eigen::Observable
 				teq::Shape curshape = children_[index]->shape();
 				if (false == nexshape.compatible_after(curshape, 0))
 				{
-					teq::fatalf("cannot update child %d to argument with "
+					global::fatalf("cannot update child %d to argument with "
 						"incompatible shape %s (requires shape %s)",
 						index, nexshape.to_string().c_str(),
 						curshape.to_string().c_str());
@@ -189,7 +189,7 @@ struct Functor final : public eigen::Observable
 	{
 		if (false == has_data())
 		{
-			teq::fatal("cannot get device of uninitialized functor");
+			global::fatal("cannot get device of uninitialized functor");
 		}
 		return *ref_;
 	}
@@ -342,7 +342,7 @@ teq::TensptrT make_functor (egen::_GENERATED_OPCODE opcode,
 	const teq::TensptrsT& children,  ARGS... vargs);
 
 template <typename T, typename ...ARGS>
-ETensor<T> make_functor (eigen::CtxptrT ctx,
+ETensor<T> make_functor (global::CfgMapptrT ctx,
 	egen::_GENERATED_OPCODE opcode,
 	const teq::TensptrsT& children,ARGS... vargs);
 

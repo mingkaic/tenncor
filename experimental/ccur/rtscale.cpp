@@ -27,8 +27,6 @@ double softplus (double x)
 
 int main (int argc, const char** argv)
 {
-	LOG_INIT(logs::DefLogger);
-
 	std::string writepath;
 	flag::FlagSet flags("rt_anubis");
 	flags.add_flags()
@@ -40,7 +38,7 @@ int main (int argc, const char** argv)
 		return 1;
 	}
 
-	teq::get_logger().set_log_level(teq::INFO);
+	global::set_log_level("info");
 
 	std::unordered_map<std::string,size_t> stats;
 	size_t mean_stat = 0;//,
@@ -51,7 +49,7 @@ int main (int argc, const char** argv)
 		size_t stat;
 		auto opcode = (egen::_GENERATED_OPCODE) i;
 		teq::Opcode op{egen::name_op(opcode), opcode};
-		teq::infof("weighing operation %s", op.name_.c_str());
+		global::infof("weighing operation %s", op.name_.c_str());
 		switch (i)
 		{
 			// elementary unary
@@ -220,15 +218,15 @@ int main (int argc, const char** argv)
 		weights->insert({op.first, value});
 	}
 
-	teq::infof("writing to %s", writepath.c_str());
+	global::infof("writing to %s", writepath.c_str());
 	std::fstream out(writepath,
 		std::ios::out | std::ios::trunc | std::ios::binary);
 	if (out.is_open())
 	{
-		teq::infof("opened %s", writepath.c_str());
+		global::infof("opened %s", writepath.c_str());
 		if (opweights.SerializeToOstream(&out))
 		{
-			teq::infof("done writing to %s", writepath.c_str());
+			global::infof("done writing to %s", writepath.c_str());
 		}
 		out.close();
 	}

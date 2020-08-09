@@ -29,7 +29,7 @@ struct NnaryOpt
 		if (redundant)
 		{
 			// assuming empty args is handled before
-			teq::debug("redundantly performing nnary op on a single arg... "
+			global::debug("redundantly performing nnary op on a single arg... "
 				"treating as identity");
 		}
 		return redundant;
@@ -59,7 +59,7 @@ struct ReduceOpt
 		bool redundant = ranks.empty();
 		if (redundant)
 		{
-			teq::debugf("reducing with no significant dimensions... "
+			global::debugf("reducing with no significant dimensions... "
 				"treating as identity: (dims=%s, shape=%s)",
 				fmts::to_string(ranks.begin(), ranks.end()).c_str(),
 				shapes.front().to_string().c_str());
@@ -103,7 +103,7 @@ struct FuncOpt<egen::ARGMAX> final
 		bool redundant = return_dim < teq::rank_cap && shape.at(return_dim) == 1;
 		if (redundant)
 		{
-			teq::debugf("argreducing with no significant dimensions... "
+			global::debugf("argreducing with no significant dimensions... "
 				"treating as identity: (return_dim=%d, shape=%s)",
 				(int) return_dim, shape.to_string().c_str());
 		}
@@ -126,7 +126,7 @@ struct FuncOpt<egen::SLICE> final
 			auto& exts = extents[i];
 			if (exts.second == 0)
 			{
-				teq::fatalf("cannot create slice with 0 dimension at "
+				global::fatalf("cannot create slice with 0 dimension at "
 					"index %d (extents=%s)", i,
 					eigen::to_string(extents).c_str());
 			}
@@ -135,7 +135,7 @@ struct FuncOpt<egen::SLICE> final
 		}
 		if (redundant)
 		{
-			teq::debugf("slice parameter covers whole tensor... "
+			global::debugf("slice parameter covers whole tensor... "
 				"treating as identity: (extents=%s)",
 				eigen::to_string(extents).c_str());
 		}
@@ -157,7 +157,7 @@ struct FuncOpt<egen::PAD> final
 			});
 		if (redundant)
 		{
-			teq::debugf("padding are all zero... "
+			global::debugf("padding are all zero... "
 				"treating as identity: (paddings=%s)",
 				eigen::to_string(paddings).c_str());
 		}
@@ -175,7 +175,7 @@ struct FuncOpt<egen::SCATTER> final
 		bool redundant = shapes.front().compatible_after(outshape, 0);
 		if (redundant)
 		{
-			teq::debugf("scattering produces the same shape %s",
+			global::debugf("scattering produces the same shape %s",
 				outshape.to_string().c_str());
 		}
 		return redundant;
@@ -197,7 +197,7 @@ struct FuncOpt<egen::PERMUTE> final
 		}
 		if (redundant)
 		{
-			teq::debug("permuting with same "
+			global::debug("permuting with same "
 				"dimensions ... treating as identity");
 		}
 		return redundant;
@@ -217,7 +217,7 @@ struct FuncOpt<egen::EXTEND> final
 			[](teq::DimT d) { return 1 == d; }));
 		if (redundant)
 		{
-			teq::debug("extending with nothing... treating as identity");
+			global::debug("extending with nothing... treating as identity");
 		}
 		return redundant;
 	}
@@ -231,7 +231,7 @@ struct FuncOpt<egen::CONCAT> final
 		bool redundant = shapes.size() == 1;
 		if (redundant)
 		{
-			teq::debug("concatenating a single node... treating as identity");
+			global::debug("concatenating a single node... treating as identity");
 		}
 		return redundant;
 	}
@@ -247,7 +247,7 @@ struct FuncOpt<egen::RESHAPE> final
 		bool redundant = outshape.compatible_after(shapes.front(), 0);
 		if (redundant)
 		{
-			teq::debugf("outshape of reshape is the same shape as inshape "
+			global::debugf("outshape of reshape is the same shape as inshape "
 				"%s... treating as identity", outshape.to_string().c_str());
 		}
 		return redundant;

@@ -16,11 +16,6 @@ filegroup(
 )
 
 filegroup(
-    name = "common_hdrs",
-    srcs = glob(["egrpc/*.hpp"]),
-)
-
-filegroup(
     name = "distrib_hdrs",
     srcs = glob([
         "*.hpp",
@@ -60,7 +55,7 @@ filegroup(
 
 cc_library(
     name = "distrib",
-    hdrs = [":distrib_hdrs", ":common_hdrs"],
+    hdrs = [":distrib_hdrs"],
     srcs = [":distrib_srcs"],
     copts = ["-std=c++17"],
     deps = [
@@ -68,6 +63,7 @@ cc_library(
         "//tenncor/eteq:eteq",
         "@boost//:bimap",
         "@com_github_oliora_ppconsul//:consul",
+        "//egrpc:egrpc",
         "@com_github_mingkaic_cppkg//error:error",
     ],
     includes = [".."],

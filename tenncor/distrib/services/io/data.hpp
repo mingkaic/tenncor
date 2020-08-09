@@ -1,6 +1,4 @@
 
-#include "eigen/random.hpp"
-
 #include "distrib/reference.hpp"
 #include "distrib/consul.hpp"
 
@@ -14,7 +12,7 @@ const std::string node_lookup_prefix = "tenncor.node.";
 
 struct DistrIOData
 {
-	DistrIOData (ConsulService& consul) :
+	DistrIOData (ConsulService* consul) :
 		consul_(consul) {}
 
 	std::string cache_tens (teq::TensptrT tens)
@@ -41,9 +39,9 @@ struct DistrIOData
 		{
 			return shareds_.right.at(tensptr);
 		}
-		std::string id = boost::uuids::to_string(eigen::rand_uuid_gen()());
+		std::string id = boost::uuids::to_string(global::get_uuidengine()());
 		shareds_.insert({id, tensptr});
-		consul_.set_kv(node_lookup_prefix + id, consul_.id_);
+		consul_->set_kv(node_lookup_prefix + id, consul_->id_);
 		return id;
 	}
 
@@ -71,7 +69,7 @@ struct DistrIOData
 	std::optional<std::string> get_peer (const std::string& id) const
 	{
 		std::optional<std::string> out;
-		std::string peer_id = consul_.get_kv(node_lookup_prefix + id, "");
+		std::string peer_id = consul_->get_kv(node_lookup_prefix + id, "");
 		if (peer_id.size() > 0)
 		{
 			out = peer_id;
@@ -85,7 +83,7 @@ struct DistrIOData
  	}
 
 private:
-	ConsulService& consul_;
+	ConsulService* consul_;
 
 	DRefptrSetT remotes_;
 

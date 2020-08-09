@@ -6,7 +6,7 @@
 namespace onnx
 {
 
-boost::uuids::random_generator OnnxMarshaler::uuid_gen_;
+global::BoostEngineT OnnxMarshaler::uuid_gen_;
 
 }
 

@@ -13,7 +13,7 @@ struct EVariable final : public ETensor<T>
 {
 	EVariable (void) = default;
 
-	EVariable (VarptrT<T> vars, eigen::CtxptrT ctx = eigen::global_context()) :
+	EVariable (VarptrT<T> vars, global::CfgMapptrT ctx = global::context()) :
 		ETensor<T>(vars, ctx) {}
 
 	friend bool operator == (const EVariable<T>& l, const EVariable<T>& r)

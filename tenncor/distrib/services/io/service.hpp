@@ -1,5 +1,5 @@
 
-#include "distrib/egrpc/server_async.hpp"
+#include "egrpc/server_async.hpp"
 #include "distrib/peer_svc.hpp"
 
 #include "distrib/services/io/client.hpp"
@@ -15,7 +15,7 @@ namespace distr
 #define _ERR_CHECK(ERR, STATUS, ALIAS)\
 if (nullptr != ERR)\
 {\
-	teq::errorf("[server %s] %s", ALIAS,\
+	global::errorf("[server %s] %s", ALIAS,\
 		ERR->to_string().c_str());\
 	return grpc::Status(STATUS, ERR->to_string());\
 }
@@ -23,7 +23,7 @@ if (nullptr != ERR)\
 struct DistrIOService final : public PeerService<DistrIOCli>
 {
 	DistrIOService (
-		ConsulService& consul,
+		ConsulService* consul,
 		const egrpc::ClientConfig& cfg,
 		grpc::ServerBuilder& builder) :
 		PeerService<DistrIOCli>(consul, cfg), data_(consul)
@@ -98,7 +98,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		auto out = lookup_node(err, id, recursive);
 		if (nullptr != err)
 		{
-			teq::fatal(err->to_string());
+			global::fatal(err->to_string());
 		}
 		return out;
 	}
@@ -108,7 +108,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		auto id = lookup_id(tens);
 		if (false != bool(id))
 		{
-			teq::fatalf("failed to find '%s'[%p]", tens->to_string().c_str(), tens);
+			global::fatalf("failed to find '%s'[%p]", tens->to_string().c_str(), tens);
 		}
 		return *id;
 	}
@@ -122,7 +122,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 	{
 		// ListNodes
 		new egrpc::AsyncServerCall<io::ListNodesRequest,io::ListNodesResponse>(
-			fmts::sprintf("%s:ListNodes", consul_.id_.c_str()),
+			fmts::sprintf("%s:ListNodes", get_peer_id().c_str()),
 			[this](grpc::ServerContext* ctx, io::ListNodesRequest* req,
 				grpc::ServerAsyncResponseWriter<io::ListNodesResponse>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
@@ -143,7 +143,7 @@ private:
 		const io::ListNodesRequest& req,
 		io::ListNodesResponse& res)
 	{
-		auto alias = fmts::sprintf("%s:ListNodes", consul_.id_.c_str());
+		auto alias = fmts::sprintf("%s:ListNodes", get_peer_id().c_str());
 		auto& uuids = req.uuids();
 		for (const std::string& uuid : uuids)
 		{
@@ -152,7 +152,7 @@ private:
 			_ERR_CHECK(err, grpc::NOT_FOUND, alias.c_str());
 
 			io::NodeMeta* out = res.add_values();
-			tens_to_node_meta(*out, consul_.id_, uuid, tens);
+			tens_to_node_meta(*out, get_peer_id(), uuid, tens);
 		}
 		return grpc::Status::OK;
 	}

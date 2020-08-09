@@ -44,13 +44,13 @@ struct AsyncClientHandler final : public iClientHandler
 	{
 		if (status_.ok())
 		{
-			teq::infof("[client %s] call %p completed successfully",
+			global::infof("[client %s] call %p completed successfully",
 				alias_.c_str(), this);
 			cb_(reply_);
 		}
 		else
 		{
-			teq::errorf("[client %s] call %p (%d attempts remaining) failed: %s",
+			global::errorf("[client %s] call %p (%d attempts remaining) failed: %s",
 				alias_.c_str(), this, nretries_, status_.error_message().c_str());
 			if (nretries_ > 0)
 			{
@@ -106,14 +106,14 @@ struct AsyncClientStreamHandler final : public iClientHandler
 		case STARTUP:
 			if (event_status)
 			{
-				teq::infof("[client %s] call %p created... processing",
+				global::infof("[client %s] call %p created... processing",
 					alias_.c_str(), this);
 				call_status_ = PROCESS;
 				reader_->Read(&reply_, (void*) this);
 			}
 			else
 			{
-				teq::infof("[client %s] call %p created... finishing",
+				global::infof("[client %s] call %p created... finishing",
 					alias_.c_str(), this);
 				call_status_ = FINISH;
 				reader_->Finish(&status_, (void*)this);
@@ -122,14 +122,14 @@ struct AsyncClientStreamHandler final : public iClientHandler
 		case PROCESS:
 			if (event_status)
 			{
-				teq::infof("[client %s] call %p received... handling",
+				global::infof("[client %s] call %p received... handling",
 					alias_.c_str(), this);
 				handler_(reply_);
 				reader_->Read(&reply_, (void*)this);
 			}
 			else
 			{
-				teq::infof("[client %s] call %p received... finishing",
+				global::infof("[client %s] call %p received... finishing",
 					alias_.c_str(), this);
 				call_status_ = FINISH;
 				reader_->Finish(&status_, (void*)this);
@@ -138,13 +138,13 @@ struct AsyncClientStreamHandler final : public iClientHandler
 		case FINISH:
 			if (status_.ok())
 			{
-				teq::infof("[client %s] call %p completed successfully",
+				global::infof("[client %s] call %p completed successfully",
 					alias_.c_str(), this);
 			}
 			else
 			{
 				error_ = error::error(status_.error_message());
-				teq::errorf("[client %s] call %p failed: %s",
+				global::errorf("[client %s] call %p failed: %s",
 					alias_.c_str(), this, status_.error_message().c_str());
 			}
 			delete this;

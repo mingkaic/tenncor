@@ -19,14 +19,14 @@ struct ShapeParser final
 	{
 		if (shapes.empty())
 		{
-			teq::fatal(noinshape_err);
+			global::fatal(noinshape_err);
 		}
 		teq::Shape outshape = shapes.front();
 		for (size_t i = 1, n = shapes.size(); i < n; ++i)
 		{
 			if (false == shapes[i].compatible_after(outshape, 0))
 			{
-				teq::fatalf("cannot %s with incompatible shapes %s and %s",
+				global::fatalf("cannot %s with incompatible shapes %s and %s",
 					egen::name_op(OPCODE).c_str(),
 					shapes[i].to_string().c_str(),
 					outshape.to_string().c_str());
@@ -45,7 +45,7 @@ struct ReducePacker
 	{
 		if (shapes.empty())
 		{
-			teq::fatal(noinshape_err);
+			global::fatal(noinshape_err);
 		}
 		std::set<teq::RankT> ranks;
 		eigen::Packer<std::set<teq::RankT>>().unpack(ranks, attrs);
@@ -91,7 +91,7 @@ struct ShapeParser<egen::ARGMAX> final
 	{
 		if (shapes.empty())
 		{
-			teq::fatal(noinshape_err);
+			global::fatal(noinshape_err);
 		}
 		teq::RankT return_dim;
 		eigen::Packer<teq::RankT>().unpack(return_dim, attrs);
@@ -114,7 +114,7 @@ struct ShapeParser<egen::SLICE> final
 	{
 		if (shapes.empty())
 		{
-			teq::fatal(noinshape_err);
+			global::fatal(noinshape_err);
 		}
 		eigen::PairVecT<teq::DimT> extents;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, attrs);
@@ -141,7 +141,7 @@ struct ShapeParser<egen::PAD> final
 	{
 		if (shapes.empty())
 		{
-			teq::fatal(noinshape_err);
+			global::fatal(noinshape_err);
 		}
 		eigen::PairVecT<teq::DimT> paddings;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(paddings, attrs);
@@ -167,7 +167,7 @@ struct ShapeParser<egen::STRIDE> final
 	{
 		if (shapes.empty())
 		{
-			teq::fatal(noinshape_err);
+			global::fatal(noinshape_err);
 		}
 		std::vector<teq::DimT> incrs;
 		eigen::Packer<std::vector<teq::DimT>>().unpack(incrs, attrs);
@@ -196,13 +196,13 @@ struct ShapeParser<egen::RESHAPE> final
 	{
 		if (shapes.empty())
 		{
-			teq::fatal(noinshape_err);
+			global::fatal(noinshape_err);
 		}
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
 		if (shapes.front().n_elems() != outshape.n_elems())
 		{
-			teq::fatalf("cannot RESHAPE with shapes of different sizes "
+			global::fatalf("cannot RESHAPE with shapes of different sizes "
 				"%d (shape %s) and %d (shape %s)",
 				shapes.front().n_elems(),
 				shapes.front().to_string().c_str(),
@@ -221,7 +221,7 @@ struct ShapeParser<egen::SCATTER> final
 	{
 		if (shapes.empty())
 		{
-			teq::fatal(noinshape_err);
+			global::fatal(noinshape_err);
 		}
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
@@ -249,14 +249,14 @@ struct ShapeParser<egen::MATMUL> final
 		{
 			if (ashape.at(coms.first) != bshape.at(coms.second))
 			{
-				teq::fatalf("invalid shapes %s and %s do not match "
+				global::fatalf("invalid shapes %s and %s do not match "
 					"common dimensions %s", ashape.to_string().c_str(),
 					bshape.to_string().c_str(),
 					eigen::to_string(ranks).c_str());
 			}
 			if (avisit[coms.first] || bvisit[coms.second])
 			{
-				teq::fatalf("contraction dimensions %s must be unique for "
+				global::fatalf("contraction dimensions %s must be unique for "
 					"each side", eigen::to_string(ranks).c_str());
 			}
 			avisit[coms.first] = bvisit[coms.second] = true;
@@ -297,7 +297,7 @@ struct ShapeParser<egen::CONV> final
 		if (std::any_of(kernelshape.begin() + n, kernelshape.end(),
 			[](teq::DimT d) { return d > 1; }))
 		{
-			teq::fatalf("cannot have ambiguous ranks not specified in "
+			global::fatalf("cannot have ambiguous ranks not specified in "
 				"kernelshape %s (ranks=%s)", kernelshape.to_string().c_str(),
 				fmts::to_string(ranks.begin(), ranks.end()).c_str());
 		}
@@ -316,7 +316,7 @@ struct ShapeParser<egen::CONV> final
 			{
 				if (kdim > sdim)
 				{
-					teq::fatalf("cannot convolve a kernel of shape %s against "
+					global::fatalf("cannot convolve a kernel of shape %s against "
 						"smaller image of shape %s",
 						kernelshape.to_string().c_str(),
 						imgshape.to_string().c_str());
@@ -343,7 +343,7 @@ struct ShapeParser<egen::PERMUTE> final
 		{
 			if (visited[order[i]])
 			{
-				teq::fatalf("permute does not support repeated orders "
+				global::fatalf("permute does not support repeated orders "
 					"(order=%s)", fmts::to_string(
 						order.begin(), order.end()).c_str());
 			}
@@ -377,7 +377,7 @@ struct ShapeParser<egen::EXTEND> final
 		if (std::any_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 0 == d; }))
 		{
-			teq::fatalf("cannot extend using zero dimensions %s",
+			global::fatalf("cannot extend using zero dimensions %s",
 				fmts::to_string(bcast.begin(), bcast.end()).c_str());
 		}
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
@@ -385,7 +385,7 @@ struct ShapeParser<egen::EXTEND> final
 		{
 			if (bcast.at(i) > 1 && shape.at(i) > 1)
 			{
-				teq::fatalf("cannot extend non-singular dimension %d of "
+				global::fatalf("cannot extend non-singular dimension %d of "
 					"shape %s: bcast=%s", i, shape.to_string().c_str(),
 					fmts::to_string(bcast.begin(), bcast.end()).c_str());
 			}
@@ -409,7 +409,7 @@ struct ShapeParser<egen::CONCAT> final
 				[axis](teq::Shape shape)
 				{ return shape.at(axis) != 1; }))
 			{
-				teq::fatal("cannot group concat shapes "
+				global::fatal("cannot group concat shapes "
 					"with dimension that is not one");
 			}
 			teq::Shape initshape = shapes.front();

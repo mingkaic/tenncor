@@ -521,10 +521,10 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::ASSIGN_MUL:
 			case egen::ASSIGN_DIV:
 			case egen::ARGMAX:
-				teq::fatalf("cannot derive %s", opcode.name_.c_str());
+				global::fatalf("cannot derive %s", opcode.name_.c_str());
 				break;
 			default:
-				teq::fatalf("Unknown op %s", opcode.name_.c_str());
+				global::fatalf("Unknown op %s", opcode.name_.c_str());
 		}
 		return (teq::TensptrT) out;
 	}

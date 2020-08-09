@@ -54,7 +54,7 @@ protected:
 		ASSERT_EQ(services.size(), 0);
 	}
 
-	distr::DistMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::DistrMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
 		return std::make_shared<distr::DistrManager>(consul_, port,
 			test_service, id, egrpc::ClientConfig(
@@ -64,7 +64,7 @@ protected:
 			));
 	}
 
-	distr::DistDbgMgrptrT make_dbgmgr (size_t port, const std::string& id = "")
+	distr::DistrDbgMgrptrT make_dbgmgr (size_t port, const std::string& id = "")
 	{
 		return std::make_shared<distr::DistrDbgManager>(consul_, port,
 			test_service, id, egrpc::ClientConfig(
@@ -102,8 +102,8 @@ TEST_F(DISTRIB, SharingNodes)
 		};
 
 		// instance 1
-		distr::DistMgrptrT mgr = make_mgr(5112, "mgr1");
-		tcr::set_distmgr(mgr);
+		auto mgr = make_mgr(5112, "mgr1");
+		tcr::set_distrmgr(mgr);
 
 		eteq::ETensor<double> src =
 			eteq::make_constant<double>(data.data(), shape);
@@ -114,8 +114,8 @@ TEST_F(DISTRIB, SharingNodes)
 		std::string id = tcr::lookup_id(dest);
 
 		// instance 2
-		distr::DistMgrptrT mgr2 = make_mgr(5113, "mgr2");
-		tcr::set_distmgr(mgr2);
+		auto mgr2 = make_mgr(5113, "mgr2");
+		tcr::set_distrmgr(mgr2);
 
 		eteq::ETensor<double> src3 =
 			eteq::make_constant<double>(data3.data(), shape);
@@ -125,16 +125,16 @@ TEST_F(DISTRIB, SharingNodes)
 		ASSERT_NE(nullptr, ref);
 		auto dest2 = eteq::ETensor<double>(ref) * src3;
 
-		tcr::set_distmgr(nullptr);
+		tcr::set_distrmgr(nullptr);
 		eteq::ETensor<double> src4 =
 			eteq::make_constant<double>(data.data(), shape);
 		tcr::try_lookup_id(err, src4);
 		EXPECT_ERR(err, "can only find reference ids using DistrManager");
 	}
 	check_clean();
-	auto& global = eigen::global_context();
-	EXPECT_TRUE(global->owners_.empty());
-	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(global->eval_.get()));
+	auto global = global::context();
+	EXPECT_EQ(nullptr, tcr::get_distrmgr(global));
+	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(&teq::get_eval(global)));
 }
 
 
@@ -169,8 +169,8 @@ TEST_F(DISTRIB, DataPassing)
 		};
 
 		// instance 1
-		distr::DistMgrptrT mgr = make_mgr(5112, "mgr1");
-		tcr::set_distmgr(mgr);
+		auto mgr = make_mgr(5112, "mgr1");
+		tcr::set_distrmgr(mgr);
 
 		eteq::ETensor<double> src =
 			eteq::make_constant<double>(data.data(), shape);
@@ -181,8 +181,8 @@ TEST_F(DISTRIB, DataPassing)
 		std::string id = tcr::lookup_id(dest);
 
 		// instance 2
-		distr::DistMgrptrT mgr2 = make_mgr(5113, "mgr2");
-		tcr::set_distmgr(mgr2);
+		auto mgr2 = make_mgr(5113, "mgr2");
+		tcr::set_distrmgr(mgr2);
 
 		eteq::ETensor<double> src3 =
 			eteq::make_constant<double>(data3.data(), shape);
@@ -204,12 +204,12 @@ TEST_F(DISTRIB, DataPassing)
 			EXPECT_DOUBLE_EQ(exdata[i], goptr[i]);
 		}
 
-		tcr::set_distmgr(nullptr);
+		tcr::set_distrmgr(nullptr);
 	}
 	check_clean();
-	auto& global = eigen::global_context();
-	EXPECT_TRUE(global->owners_.empty());
-	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(global->eval_.get()));
+	auto global = global::context();
+	EXPECT_EQ(nullptr, tcr::get_distrmgr(global));
+	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(&teq::get_eval(global)));
 }
 
 
@@ -254,34 +254,34 @@ TEST_F(DISTRIB, ComplexDataPassing)
 		}
 
 		// instance A
-		auto actx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrA = make_dbgmgr(5112, "mgrA");
-		tcr::set_distmgr(mgrA, actx);
+		auto actx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrA(make_dbgmgr(5112, "mgrA"));
+		tcr::set_distrmgr(mgrA, actx);
 
 		// instance B
-		auto bctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrB = make_dbgmgr(5113, "mgrB");
-		tcr::set_distmgr(mgrB, bctx);
+		auto bctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrB(make_dbgmgr(5113, "mgrB"));
+		tcr::set_distrmgr(mgrB, bctx);
 
 		// instance C
-		auto cctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrC = make_dbgmgr(5114, "mgrC");
-		tcr::set_distmgr(mgrC, cctx);
+		auto cctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrC(make_dbgmgr(5114, "mgrC"));
+		tcr::set_distrmgr(mgrC, cctx);
 
 		// instance D
-		auto dctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrD = make_dbgmgr(5115, "mgrD");
-		tcr::set_distmgr(mgrD, dctx);
+		auto dctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrD(make_dbgmgr(5115, "mgrD"));
+		tcr::set_distrmgr(mgrD, dctx);
 
 		// instance E
-		auto ectx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrE = make_dbgmgr(5116, "mgrE");
-		tcr::set_distmgr(mgrE, ectx);
+		auto ectx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrE(make_dbgmgr(5116, "mgrE"));
+		tcr::set_distrmgr(mgrE, ectx);
 
 		// instance F
-		auto fctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrF = make_dbgmgr(5117, "mgrF");
-		tcr::set_distmgr(mgrF, fctx);
+		auto fctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrF(make_dbgmgr(5117, "mgrF"));
+		tcr::set_distrmgr(mgrF, fctx);
 
 		auto f1 = eteq::make_variable<double>(
 			data.data(), shape, "f1", fctx);
@@ -339,9 +339,9 @@ TEST_F(DISTRIB, ComplexDataPassing)
 		}
 	}
 	check_clean();
-	auto& global = eigen::global_context();
-	EXPECT_TRUE(global->owners_.empty());
-	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(global->eval_.get()));
+	auto global = global::context();
+	EXPECT_EQ(nullptr, tcr::get_distrmgr(global));
+	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(&teq::get_eval(global)));
 }
 
 
@@ -370,22 +370,22 @@ TEST_F(DISTRIB, Reachability)
 		};
 
 		// instance A
-		distr::DistMgrptrT mgrA = make_mgr(5112, "mgrA");
+		distr::iDistrMgrptrT mgrA(make_mgr(5112, "mgrA"));
 
 		// instance B
-		distr::DistMgrptrT mgrB = make_mgr(5113, "mgrB");
+		distr::iDistrMgrptrT mgrB(make_mgr(5113, "mgrB"));
 
 		// instance C
-		distr::DistMgrptrT mgrC = make_mgr(5114, "mgrC");
+		distr::iDistrMgrptrT mgrC(make_mgr(5114, "mgrC"));
 
 		// instance D
-		distr::DistMgrptrT mgrD = make_mgr(5115, "mgrD");
+		distr::iDistrMgrptrT mgrD(make_mgr(5115, "mgrD"));
 
 		// instance E
-		distr::DistMgrptrT mgrE = make_mgr(5116, "mgrE");
+		distr::iDistrMgrptrT mgrE(make_mgr(5116, "mgrE"));
 
 		// instance F
-		distr::DistMgrptrT mgrF = make_mgr(5117, "mgrF");
+		distr::iDistrMgrptrT mgrF(make_mgr(5117, "mgrF"));
 
 		auto f1 = eteq::make_constant<double>(data.data(), shape);
 		auto f2 = eteq::make_constant<double>(data2.data(), shape);
@@ -493,8 +493,8 @@ TEST_F(DISTRIB, RemoteDeriving)
 		}
 
 		// instance 1
-		distr::DistMgrptrT mgr = make_mgr(5112, "mgr1");
-		tcr::set_distmgr(mgr);
+		auto mgr = make_mgr(5112, "mgr1");
+		tcr::set_distrmgr(mgr);
 
 		eteq::EVariable<double> a = eteq::make_variable<double>(data.data(), ashape, "a");
 		eteq::EVariable<double> b = eteq::make_variable<double>(data2.data(), bshape, "b");
@@ -513,8 +513,8 @@ TEST_F(DISTRIB, RemoteDeriving)
 		std::string base_id = tcr::lookup_id(a);
 
 		// instance 2
-		distr::DistMgrptrT mgr2 = make_mgr(5113, "mgr2");
-		tcr::set_distmgr(mgr2);
+		auto mgr2 = make_mgr(5113, "mgr2");
+		tcr::set_distrmgr(mgr2);
 
 		error::ErrptrT err = nullptr;
 		eteq::ETensor<double> root_ref = tcr::try_lookup_node<double>(err, root_id);
@@ -535,12 +535,12 @@ TEST_F(DISTRIB, RemoteDeriving)
 			EXPECT_DOUBLE_EQ(df_data[i], goptr[i]);
 		}
 
-		tcr::set_distmgr(nullptr);
+		tcr::set_distrmgr(nullptr);
 	}
 	check_clean();
-	auto& global = eigen::global_context();
-	EXPECT_TRUE(global->owners_.empty());
-	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(global->eval_.get()));
+	auto global = global::context();
+	EXPECT_EQ(nullptr, tcr::get_distrmgr(global));
+	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(&teq::get_eval(global)));
 }
 
 
@@ -569,34 +569,34 @@ TEST_F(DISTRIB, DebugPrintAscii)
 		};
 
 		// instance A
-		auto actx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrA = make_dbgmgr(5112, "mgrA");
-		tcr::set_distmgr(mgrA, actx);
+		auto actx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrA = make_dbgmgr(5112, "mgrA");
+		tcr::set_distrmgr(mgrA, actx);
 
 		// instance B
-		auto bctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrB = make_dbgmgr(5113, "mgrB");
-		tcr::set_distmgr(mgrB, bctx);
+		auto bctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrB = make_dbgmgr(5113, "mgrB");
+		tcr::set_distrmgr(mgrB, bctx);
 
 		// instance C
-		auto cctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrC = make_dbgmgr(5114, "mgrC");
-		tcr::set_distmgr(mgrC, cctx);
+		auto cctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrC = make_dbgmgr(5114, "mgrC");
+		tcr::set_distrmgr(mgrC, cctx);
 
 		// instance D
-		auto dctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrD = make_dbgmgr(5115, "mgrD");
-		tcr::set_distmgr(mgrD, dctx);
+		auto dctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrD = make_dbgmgr(5115, "mgrD");
+		tcr::set_distrmgr(mgrD, dctx);
 
 		// instance E
-		auto ectx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrE = make_dbgmgr(5116, "mgrE");
-		tcr::set_distmgr(mgrE, ectx);
+		auto ectx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrE = make_dbgmgr(5116, "mgrE");
+		tcr::set_distrmgr(mgrE, ectx);
 
 		// instance F
-		auto fctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrF = make_dbgmgr(5117, "mgrF");
-		tcr::set_distmgr(mgrF, fctx);
+		auto fctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrF = make_dbgmgr(5117, "mgrF");
+		tcr::set_distrmgr(mgrF, fctx);
 
 		auto f1 = eteq::make_variable<double>(
 			data.data(), shape, "f1", fctx);
@@ -705,34 +705,34 @@ TEST_F(DISTRIB, CrossDerive)
 		}
 
 		// instance A
-		auto actx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrA = make_dbgmgr(5112, "mgrA");
-		tcr::set_distmgr(mgrA, actx);
+		auto actx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrA = make_dbgmgr(5112, "mgrA");
+		tcr::set_distrmgr(mgrA, actx);
 
 		// instance B
-		auto bctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrB = make_dbgmgr(5113, "mgrB");
-		tcr::set_distmgr(mgrB, bctx);
+		auto bctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrB = make_dbgmgr(5113, "mgrB");
+		tcr::set_distrmgr(mgrB, bctx);
 
 		// instance C
-		auto cctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrC = make_dbgmgr(5114, "mgrC");
-		tcr::set_distmgr(mgrC, cctx);
+		auto cctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrC = make_dbgmgr(5114, "mgrC");
+		tcr::set_distrmgr(mgrC, cctx);
 
 		// instance D
-		auto dctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrD = make_dbgmgr(5115, "mgrD");
-		tcr::set_distmgr(mgrD, dctx);
+		auto dctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrD = make_dbgmgr(5115, "mgrD");
+		tcr::set_distrmgr(mgrD, dctx);
 
 		// instance E
-		auto ectx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrE = make_dbgmgr(5116, "mgrE");
-		tcr::set_distmgr(mgrE, ectx);
+		auto ectx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrE = make_dbgmgr(5116, "mgrE");
+		tcr::set_distrmgr(mgrE, ectx);
 
 		// instance F
-		auto fctx = std::make_shared<eigen::TensContext>();
-		distr::DistDbgMgrptrT mgrF = make_dbgmgr(5117, "mgrF");
-		tcr::set_distmgr(mgrF, fctx);
+		auto fctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrF = make_dbgmgr(5117, "mgrF");
+		tcr::set_distrmgr(mgrF, fctx);
 
 		auto f1 = eteq::make_variable<double>(
 			data.data(), shape, "f1", fctx);

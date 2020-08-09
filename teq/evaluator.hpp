@@ -49,6 +49,10 @@ struct Evaluator final : public iEvaluator
 
 using EvalptrT = std::shared_ptr<Evaluator>;
 
+void set_eval (iEvaluator* eval, global::CfgMapptrT ctx = global::context());
+
+iEvaluator& get_eval (global::CfgMapptrT ctx = global::context());
+
 }
 
 #endif // TEQ_EVALUATOR_HPP

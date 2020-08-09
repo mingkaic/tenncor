@@ -21,7 +21,7 @@
 static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
 	// Specify the engine and distribution.
-	std::mt19937 mersenne_engine(eigen::default_engine()());
+	std::mt19937 mersenne_engine(global::get_randengine()());
 	std::uniform_real_distribution<PybindT> dist(0, 1);
 
 	auto gen = std::bind(dist, mersenne_engine);
@@ -50,8 +50,6 @@ static inline eteq::ETensor<PybindT> sigmoid (const eteq::ETensor<PybindT>& x)
 int main (int argc, const char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
-	LOG_INIT(logs::DefLogger);
-	RANDOM_INIT;
 
 	auto& tc = tenncor<PybindT>();
 
@@ -93,7 +91,7 @@ int main (int argc, const char** argv)
 	if (seed)
 	{
 		std::cout << "seeding " << seedval << '\n';
-		eigen::default_engine().seed(seedval);
+		global::get_randengine().seed(seedval);
 	}
 
 	uint8_t n_in = 10;
@@ -125,12 +123,12 @@ int main (int argc, const char** argv)
 		}
 		onnx::TensptrIdT ids;
 		pretrained_model = eteq::load_model(ids, pb_model)[0];
-		teq::infof("model successfully loaded from file `%s`", loadpath.c_str());
+		global::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
 	catch (...)
 	{
-		teq::warnf("model failed to loaded from file `%s`", loadpath.c_str());
+		global::warnf("model failed to loaded from file `%s`", loadpath.c_str());
 	}
 
 	uint8_t n_batch = 3;
@@ -142,8 +140,8 @@ int main (int argc, const char** argv)
 			return tc.approx.sgd(error, leaves, 0.9); // learning rate = 0.9
 		};
 	// emit::Emitter emitter("localhost:50051");
-	// auto eval = std::make_shared<dbg::PlugableEvaluator>();
-	// eigen::global_context()->eval_ = eval;
+	// auto eval = new dbg::PlugableEvaluator();
+	// teq::set_eval(eval, global::context());
 	// eval->add_plugin(emitter);
 	{
 
@@ -180,8 +178,8 @@ int main (int argc, const char** argv)
 	{
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		train_input->assign(batch, eigen::global_context());
-		train_exout->assign(batch_out, eigen::global_context());
+		train_input->assign(batch, global::context());
+		train_exout->assign(batch_out, global::context());
 		PybindT* data = (PybindT*) train_err.calc();
 		if (i % show_every_n == show_every_n - 1)
 		{
@@ -210,7 +208,7 @@ int main (int argc, const char** argv)
 		}
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		testin->assign(batch, eigen::global_context());
+		testin->assign(batch, global::context());
 		PybindT* untrained_res = untrained_out.calc();
 		PybindT* trained_res = trained_out.calc();
 		PybindT* pretrained_res = pretrained_out.calc();
@@ -247,13 +245,13 @@ int main (int argc, const char** argv)
 			eteq::save_model(pb_model, teq::TensptrsT{trained_model});
 			if (pb_model.SerializeToOstream(&savestr))
 			{
-				teq::infof("successfully saved model to `%s`", savepath.c_str());
+				global::infof("successfully saved model to `%s`", savepath.c_str());
 			}
 			savestr.close();
 		}
 		else
 		{
-			teq::warnf("failed to save model to `%s`", savepath.c_str());
+			global::warnf("failed to save model to `%s`", savepath.c_str());
 		}
 	}
 

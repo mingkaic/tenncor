@@ -145,7 +145,7 @@ struct Query final : public teq::iOnceTraveler
 			}
 				break;
 			default:
-				teq::fatal("cannot look for unknown node");
+				global::fatal("cannot look for unknown node");
 		}
 		QResultsT results;
 		QReSetT existing_res;
@@ -368,7 +368,7 @@ private:
 				func_filter(paths, cond.op());
 				break;
 			default:
-				teq::fatal("cannot look for unknown node");
+				global::fatal("cannot look for unknown node");
 		}
 	}
 };

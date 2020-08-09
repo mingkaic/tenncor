@@ -17,26 +17,28 @@ struct DistrDbgManager final : public iDistrManager
 {
 	DistrDbgManager (
 		ppconsul::Consul& consul, size_t port,
-		const std::string& service = default_service,
+		const std::string& svc_name = default_service,
 		const std::string& id = "",
 		const egrpc::ClientConfig& cfg = egrpc::ClientConfig(),
-		size_t nthreads = 3) :
-		consul_(consul, port, (id.empty() ?
-			boost::uuids::to_string(eigen::rand_uuid_gen()()) :
-			id), service)
+		size_t nthreads = 3)
 	{
+		std::string svc_id = id.empty() ? boost::uuids::to_string(
+			global::get_uuidengine()()) : id;
+		consul_ = std::make_unique<ConsulService>(
+			consul, port, svc_id, svc_name);
+
 		std::string address = fmts::sprintf("0.0.0.0:%d", port);
 		grpc::ServerBuilder builder;
 		builder.AddListeningPort(address,
 			grpc::InsecureServerCredentials());
 		cq_ = builder.AddCompletionQueue();
 
-		iosvc_ = std::make_unique<DistrIOService>(consul_, cfg, builder);
-		opsvc_ = std::make_unique<DistrOpService>(consul_, cfg, builder, iosvc_.get());
-		printsvc_ = std::make_unique<DistrPrintService>(consul_, cfg, builder, iosvc_.get());
+		iosvc_ = std::make_unique<DistrIOService>(consul_.get(), cfg, builder);
+		opsvc_ = std::make_unique<DistrOpService>(consul_.get(), cfg, builder, iosvc_.get());
+		printsvc_ = std::make_unique<DistrPrintService>(consul_.get(), cfg, builder, iosvc_.get());
 
 		server_ = builder.BuildAndStart();
-		teq::infof("[server %s] listening on %s", consul_.id_.c_str(), address.c_str());
+		global::infof("[server %s] listening on %s", svc_id.c_str(), address.c_str());
 
 		iosvc_->initialize_server_call(*cq_);
 		opsvc_->initialize_server_call(*cq_);
@@ -59,9 +61,18 @@ struct DistrDbgManager final : public iDistrManager
 		}
 	}
 
+	DistrDbgManager (DistrDbgManager&& other) :
+		consul_(std::move(other.consul_)),
+		iosvc_(std::move(other.iosvc_)),
+		opsvc_(std::move(other.opsvc_)),
+		printsvc_(std::move(other.printsvc_)),
+		cq_(std::move(cq_)),
+		server_(std::move(server_)),
+		rpc_jobs_(std::move(other.rpc_jobs_)) {}
+
 	std::string get_id (void) const override
 	{
-		return consul_.id_;
+		return consul_->id_;
 	}
 
 	DistrIOService& get_io (void) override
@@ -99,7 +110,7 @@ private:
 		}
 	}
 
-	ConsulService consul_;
+	std::unique_ptr<ConsulService> consul_;
 
 	std::unique_ptr<DistrIOService> iosvc_;
 
@@ -114,7 +125,7 @@ private:
 	std::vector<std::thread> rpc_jobs_;
 };
 
-using DistDbgMgrptrT = std::shared_ptr<DistrDbgManager>;
+using DistrDbgMgrptrT = std::shared_ptr<DistrDbgManager>;
 
 }
 

@@ -210,7 +210,7 @@ private:
 
 	teq::TensSetT stops_;
 
-	static boost::uuids::random_generator uuid_gen_;
+	static global::BoostEngineT uuid_gen_;
 };
 
 template <typename TS> // todo: use concept tensptr_range

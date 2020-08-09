@@ -1452,7 +1452,7 @@ TEST(CONNECT, TanhRNNTraining)
 		eval.evaluate(device, rights);
 		for (size_t i = 0; i < nders; ++i)
 		{
-			group1_left[i]->assign(*group1_right[i], eigen::global_context());
+			group1_left[i]->assign(*group1_right[i], global::context());
 		}
 
 		for (size_t i = 0; i < nders; ++i)
@@ -1497,7 +1497,7 @@ TEST(CONNECT, TanhRNNTraining)
 		eval.evaluate(device, rights);
 		for (size_t i = 0; i < nders; ++i)
 		{
-			group2_left[i]->assign(*group2_right[i], eigen::global_context());
+			group2_left[i]->assign(*group2_right[i], global::context());
 		}
 
 		for (size_t i = 0; i < nders; ++i)
@@ -1522,7 +1522,7 @@ TEST(CONNECT, TanhRNNTraining)
 		eval.evaluate(device, rights);
 		for (size_t i = 0; i < group3_left.size(); ++i)
 		{
-			group3_left[i]->assign(*group3_right[i], eigen::global_context());
+			group3_left[i]->assign(*group3_right[i], global::context());
 		}
 
 		for (size_t i = 0, ng3 = group3_left.size(); i < ng3; ++i)

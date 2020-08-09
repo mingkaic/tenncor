@@ -26,10 +26,6 @@ namespace py = pybind11;
 //>>> modname
 PYBIND11_MODULE({modname}, m_{modname})
 {{
-
-LOG_INIT(logs::DefLogger);
-RANDOM_INIT;
-
 m_{modname}.doc() = "pybind for {modname} api";
 
 //>>> input_defs
@@ -181,9 +177,8 @@ class PyAPIsPlugin:
                 '"pybind11/pybind11.h"',
                 '"pybind11/stl.h"',
                 '"pybind11/operators.h"',
-                '"teq/config.hpp"',
+                '"global/config.hpp"',
                 '"eigen/device.hpp"',
-                '"eigen/random.hpp"',
             ] + api.get('pybind_includes', []),
             internal_refs=[_pyapi_header, api_header])
 

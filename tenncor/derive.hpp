@@ -55,7 +55,7 @@ eteq::ETensorsT<T> derive (
 	auto root_ctx = root.get_context();
 	if (nullptr == root_ctx)
 	{
-		teq::fatal("root context is null");
+		global::fatal("root context is null");
 	}
 
 	if (std::any_of(targets.begin(), targets.end(),
@@ -64,12 +64,12 @@ eteq::ETensorsT<T> derive (
 			return root_ctx != target.get_context();
 		}))
 	{
-		teq::fatalf(
+		global::fatalf(
 			"some target contexts don't match root %s context",
 			root->to_string().c_str());
 	}
 
-	if (auto mgr = get_distmgr(root_ctx.get()))
+	if (auto mgr = get_distrmgr(root_ctx))
 	{
 		return derive_with_manager(*mgr, root, targets);
 	}

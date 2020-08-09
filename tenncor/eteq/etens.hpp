@@ -14,18 +14,24 @@
 namespace eteq
 {
 
+using TensRegistryT = std::unordered_map<void*,teq::TensptrT>;
+
+void set_reg (TensRegistryT* reg, global::CfgMapptrT ctx = global::context());
+
+TensRegistryT& get_reg (global::CfgMapptrT ctx = global::context());
+
 template <typename T>
 struct ETensor
 {
 	ETensor (void) = default;
 
 	ETensor (teq::TensptrT tens,
-		eigen::CtxptrT ctx = eigen::global_context()) :
+		global::CfgMapptrT ctx = global::context()) :
 		ctx_(ctx)
 	{
 		if (nullptr != ctx && nullptr != tens)
 		{
-			registry_ = &ctx->registry_;
+			registry_ = &get_reg(ctx);
 			registry_->emplace(this, tens);
 		}
 	}
@@ -120,13 +126,13 @@ struct ETensor
 		{
 			auto tens = get();
 			eigen::Device device(max_version);
-			ctx->eval_->evaluate(device, {tens});
+			teq::get_eval(ctx).evaluate(device, {tens});
 			return (T*) tens->device().data();
 		}
 		return nullptr;
 	}
 
-	eigen::CtxptrT get_context (void) const
+	global::CfgMapptrT get_context (void) const
 	{
 		if (ctx_.expired())
 		{
@@ -149,15 +155,15 @@ private:
 	{
 		if (false == ctx_.expired() && nullptr != registry_)
 		{
-			ctx_ = eigen::CtxptrT(nullptr);
+			ctx_ = global::CfgMapptrT(nullptr);
 			registry_->erase(this);
 			registry_ = nullptr;
 		}
 	}
 
-	mutable eigen::CtxrefT ctx_;
+	mutable global::CfgMaprefT ctx_;
 
-	mutable eigen::TensRegistryT* registry_ = nullptr;
+	mutable TensRegistryT* registry_ = nullptr;
 };
 
 template <typename T>

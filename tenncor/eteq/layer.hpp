@@ -144,7 +144,7 @@ ETensor<T> get_input (const ETensor<T>& root)
 {
 	if (nullptr == root)
 	{
-		teq::fatal("cannot get layer attr with null root");
+		global::fatal("cannot get layer attr with null root");
 	}
 	auto froot = estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root);
 	auto layerattr = estd::must_cast<teq::LayerObj>(froot->get_attr(teq::layer_key));

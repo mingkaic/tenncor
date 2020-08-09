@@ -21,7 +21,7 @@ struct Emitter final : public dbg::iPlugin
 		ClientConfig client_cfg = ClientConfig()) :
 		client_(channel, client_cfg)
 	{
-		teq::infof("created evaluator: %s", eval_id_.c_str());
+		global::infof("created evaluator: %s", eval_id_.c_str());
 	}
 
 	Emitter (std::string host,
@@ -30,7 +30,7 @@ struct Emitter final : public dbg::iPlugin
 			grpc::InsecureChannelCredentials()), client_cfg) {}
 
 	/// UUID random generator
-	static boost::uuids::random_generator uuid_gen_;
+	static global::BoostEngineT uuid_gen_;
 
 	void process (
 		const teq::TensSetT& targets,
@@ -206,7 +206,7 @@ private:
 	onnx::TensIdT ids_;
 };
 
-boost::uuids::random_generator Emitter::uuid_gen_;
+global::BoostEngineT Emitter::uuid_gen_;
 
 }
 

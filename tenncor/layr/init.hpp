@@ -45,7 +45,7 @@ void truncated_normal (std::vector<T>& out, teq::Shape shape, T mean, T stdev,
 {
 	size_t n = shape.n_elems();
 	out = std::vector<T>(n);
-	auto gen = eigen::Randomizer().norm_gen<T>(mean, stdev);
+	auto gen = global::Randomizer().norm_gen<T>(mean, stdev);
 	std::generate(out.begin(), out.end(), gen);
 	// if T is not decimal, program would fail to compile therefore T is signed
 	T upperbound = mean + 2 * stdev;

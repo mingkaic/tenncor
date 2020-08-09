@@ -84,7 +84,7 @@ struct GraphEmitterClient final
 			std::string sid = fmts::to_string(std::this_thread::get_id());
 			if (attempt >= max_attempts)
 			{
-				teq::warnf("%s: CreateModelRequest max attempt exceeded", sid.c_str());
+				global::warnf("%s: CreateModelRequest max attempt exceeded", sid.c_str());
 				return true;
 			}
 			grpc::ClientContext context;
@@ -101,18 +101,18 @@ struct GraphEmitterClient final
 				auto res_status = response.status();
 				if (gemitter::Status::OK != res_status)
 				{
-					teq::errorf("%s: %s",
+					global::errorf("%s: %s",
 						gemitter::Status_Name(res_status).c_str(),
 						response.message().c_str());
 				}
 				else
 				{
-					teq::infof("%s: CreateModelRequest success: %s",
+					global::infof("%s: CreateModelRequest success: %s",
 						sid.c_str(), response.message().c_str());
 				}
 				return true;
 			}
-			teq::errorf(
+			global::errorf(
 				"%s: CreateModelRequest attempt %d failure: %s",
 				sid.c_str(), attempt, status.error_message().c_str());
 			std::this_thread::sleep_for(
@@ -146,7 +146,7 @@ struct GraphEmitterClient final
 			{
 				if (false == writer->Write(request))
 				{
-					teq::errorf("failed to write update %d", update_it);
+					global::errorf("failed to write update %d", update_it);
 					break;
 				}
 			}
@@ -158,7 +158,7 @@ struct GraphEmitterClient final
 				auto res_status = response.status();
 				if (gemitter::Status::OK != res_status)
 				{
-					teq::errorf("%s: %s",
+					global::errorf("%s: %s",
 						gemitter::Status_Name(res_status).c_str(),
 						response.message().c_str());
 				}
@@ -169,11 +169,11 @@ struct GraphEmitterClient final
 			}
 			else
 			{
-				teq::errorf(
+				global::errorf(
 					"UpdateNodeData failure: %s",
 					status.error_message().c_str());
 			}
-			teq::warnf("%s: UpdateNodeData terminating", sid.c_str());
+			global::warnf("%s: UpdateNodeData terminating", sid.c_str());
 			return true;
 		}, std::move(requests), std::move(update_it));
 	}
@@ -188,7 +188,7 @@ struct GraphEmitterClient final
 			std::string sid = fmts::to_string(std::this_thread::get_id());
 			if (attempt >= max_attempts)
 			{
-				teq::warnf("%s: DeleteModel max attempt exceeded", sid.c_str());
+				global::warnf("%s: DeleteModel max attempt exceeded", sid.c_str());
 				return true;
 			}
 			grpc::ClientContext context;
@@ -205,18 +205,18 @@ struct GraphEmitterClient final
 				auto res_status = response.status();
 				if (gemitter::Status::OK != res_status)
 				{
-					teq::errorf("%s: %s",
+					global::errorf("%s: %s",
 						gemitter::Status_Name(res_status).c_str(),
 						response.message().c_str());
 				}
 				else
 				{
-					teq::infof("%s: DeleteModel success: %s",
+					global::infof("%s: DeleteModel success: %s",
 						sid.c_str(), response.message().c_str());
 				}
 				return true;
 			}
-			teq::errorf(
+			global::errorf(
 				"%s: DeleteModel attempt %d failure: %s",
 				sid.c_str(), attempt, status.error_message().c_str());
 			std::this_thread::sleep_for(

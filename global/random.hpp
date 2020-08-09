@@ -5,46 +5,42 @@
 /// Define randomization functions used in Eigen operators
 ///
 
-#ifndef EIGEN_RANDOM_HPP
-#define EIGEN_RANDOM_HPP
-
 #include <random>
 #include <type_traits>
 
 #include <boost/uuid/uuid_generators.hpp>
 
-#include "teq/teq.hpp"
+#include "global/config.hpp"
 
-namespace eigen
+#ifndef GLOBAL_RANDOM_HPP
+#define GLOBAL_RANDOM_HPP
+
+namespace global
 {
 
-const std::string rengine_key = "rengine";
-
-// todo: move this to global
-boost::uuids::random_generator& rand_uuid_gen (void);
-
 /// RNG engine used
-using EngineT = std::default_random_engine;
+using RandEngineT = std::default_random_engine;
+
+using BoostEngineT = boost::uuids::random_generator;
 
 /// Function that returns a generated number
 template <typename T>
 using GenF = std::function<T()>;
 
-/// Return global random generator
-EngineT& default_engine (void);
+void set_randengine (RandEngineT* reg,
+	global::CfgMapptrT ctx = context());
+
+RandEngineT& get_randengine (global::CfgMapptrT ctx = context());
+
+void set_uuidengine (BoostEngineT* reg,
+	global::CfgMapptrT ctx = context());
+
+BoostEngineT& get_uuidengine (global::CfgMapptrT ctx = context());
 
 struct Randomizer final
 {
-	Randomizer (void) : engine_(static_cast<EngineT*>(
-		config::global_config.get_obj(rengine_key)))
-	{
-		// fallback to default engine
-		if (nullptr == engine_)
-		{
-			teq::error("missing random engine in global config");
-			engine_ = &default_engine();
-		}
-	}
+	Randomizer (global::CfgMapptrT ctx = context()) :
+		engine_(&get_randengine(ctx)) {}
 
 	/// Return uniformly generated number between a and b (integers only)
 	template <typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
@@ -86,11 +82,9 @@ struct Randomizer final
 		return std::bind(dist, *engine_);
 	}
 
-	mutable EngineT* engine_;
+	mutable RandEngineT* engine_;
 };
-
-#define RANDOM_INIT ::config::global_config.add_entry<eigen::EngineT>(eigen::rengine_key)
 
 }
 
-#endif // EIGEN_RANDOM_HPP
+#endif // GLOBAL_RANDOM_HPP

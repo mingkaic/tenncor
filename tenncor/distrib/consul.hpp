@@ -21,17 +21,17 @@ struct ConsulConfig final
 struct ConsulService final
 {
 	ConsulService (ppconsul::Consul& consul, size_t port,
-		const std::string& id, const std::string& service) :
-		port_(port), id_(id), service_(service),
+		const std::string& id, const std::string& name) :
+		port_(port), id_(id), name_(name),
 		agent_(consul), catalog_(consul), kv_(consul)
 	{
-		teq::infof("[consul %s] serving %s @ 0.0.0.0:%d",
-			id_.c_str(), service_.c_str(), port_);
+		global::infof("[consul %s] serving %s @ 0.0.0.0:%d",
+			id_.c_str(), name_.c_str(), port_);
 		agent_.registerService(
-			ppconsul::agent::kw::name = service_,
+			ppconsul::agent::kw::name = name_,
 			ppconsul::agent::kw::port = port_,
 			ppconsul::agent::kw::id = id_,
-			ppconsul::agent::kw::tags = {service_},
+			ppconsul::agent::kw::tags = {name_},
 			ppconsul::agent::kw::check =
 				ppconsul::agent::TtlCheck{std::chrono::seconds(5)}
 		);
@@ -55,12 +55,12 @@ struct ConsulService final
 		{
 			try
 			{
-				services = catalog_.service(service_);
+				services = catalog_.service(name_);
 				break;
 			}
 			catch (...)
 			{
-				teq::warnf("consul failed to get service, retry %d", i);
+				global::warnf("consul failed to get service, retry %d", i);
 			}
 		}
 		for (auto& service : services)
@@ -96,7 +96,7 @@ struct ConsulService final
 
 	std::string id_;
 
-	std::string service_;
+	std::string name_;
 
 	ppconsul::agent::Agent agent_;
 

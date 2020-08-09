@@ -2,7 +2,7 @@
 #include "pybind11/numpy.h"
 #include "pybind11/stl.h"
 
-#include "teq/logs.hpp"
+#include "global/global.hpp"
 
 #include "ccur/session.hpp"
 
@@ -10,8 +10,6 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(ccur, m)
 {
-	LOG_INIT(logs::DefLogger);
-
 	m.doc() = "ccur session";
 
 	// ==== session ====

@@ -2,8 +2,8 @@
 #include "error/error.hpp"
 
 #include "distrib/consul.hpp"
-#include "distrib/egrpc/client_async.hpp"
-#include "distrib/egrpc/iclient.hpp"
+#include "egrpc/client_async.hpp"
+#include "egrpc/iclient.hpp"
 
 #ifndef DISTRIB_PEER_SVC_HPP
 #define DISTRIB_PEER_SVC_HPP
@@ -14,7 +14,7 @@ namespace distr
 template <typename CLI> // CLI has base egrpc::GrpcClient
 struct PeerService
 {
-	PeerService (ConsulService& consul,
+	PeerService (ConsulService* consul,
 		const egrpc::ClientConfig& cfg,
 		size_t nthreads = 3) :
 		consul_(consul), cfg_(cfg)
@@ -36,12 +36,17 @@ struct PeerService
 		}
 	}
 
+	std::string get_peer_id (void) const
+	{
+		return consul_->id_;
+	}
+
 protected:
 	CLI* get_client (
 		error::ErrptrT& err,
 		const std::string& peer_id)
 	{
-		if (consul_.id_ == peer_id)
+		if (get_peer_id() == peer_id)
 		{
 			err = error::errorf("cannot get client for local server %s",
 				peer_id.c_str());
@@ -62,7 +67,7 @@ protected:
 
 	void update_clients (void)
 	{
-		auto peers = consul_.get_peers();
+		auto peers = consul_->get_peers();
 		for (auto peer : peers)
 		{
 			if (false == estd::has(clients_, peer.first))
@@ -70,18 +75,18 @@ protected:
 				clients_.insert({peer.first, std::make_unique<CLI>(
 					grpc::CreateChannel(peer.second,
 						grpc::InsecureChannelCredentials()), cfg_,
-					consul_.id_ + "->" + peer.first)});
+					get_peer_id() + "->" + peer.first)});
 			}
 		}
 	}
 
 	egrpc::ClientConfig cfg_;
 
-	ConsulService& consul_;
+	ConsulService* consul_;
 
 	grpc::CompletionQueue cq_;
 
-	estd::StrMapT<std::unique_ptr<CLI>> clients_; // todo: add cleanup job for clients
+	types::StrUMapT<std::unique_ptr<CLI>> clients_; // todo: add cleanup job for clients
 
 private:
 	void handle_clients (void)

@@ -1,5 +1,5 @@
 
-#include "distrib/egrpc/server_async.hpp"
+#include "egrpc/server_async.hpp"
 #include "distrib/peer_svc.hpp"
 
 #include "dbg/distr_ext/print/client.hpp"
@@ -15,7 +15,7 @@ namespace distr
 #define _ERR_CHECK(ERR, STATUS, ALIAS)\
 if (nullptr != ERR)\
 {\
-	teq::errorf("[server %s] %s", ALIAS,\
+	global::errorf("[server %s] %s", ALIAS,\
 		ERR->to_string().c_str());\
 	return grpc::Status(STATUS, ERR->to_string());\
 }
@@ -106,7 +106,7 @@ struct AsciiTemplate
 struct DistrPrintService final : public PeerService<DistrPrintCli>
 {
 	DistrPrintService (
-		ConsulService& consul,
+		ConsulService* consul,
 		const egrpc::ClientConfig& cfg,
 		grpc::ServerBuilder& builder,
 		DistrIOService* iosvc,
@@ -126,8 +126,8 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 	void initialize_server_call (grpc::ServerCompletionQueue& cq)
 	{
 		// ListAscii
-		new egrpc::AsyncServerStreamCall<print::ListAsciiRequest,print::AsciiEntry,fmts::StringsT>(
-			fmts::sprintf("%s:ListAscii", consul_.id_.c_str()),
+		new egrpc::AsyncServerStreamCall<print::ListAsciiRequest,print::AsciiEntry,types::StringsT>(
+			fmts::sprintf("%s:ListAscii", get_peer_id().c_str()),
 			[this](grpc::ServerContext* ctx, print::ListAsciiRequest* req,
 				grpc::ServerAsyncWriter<print::AsciiEntry>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
@@ -135,12 +135,12 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 			{
 				this->service_.RequestListAscii(ctx, req, writer, cq, ccq, tag);
 			},
-			[this](fmts::StringsT& states, const print::ListAsciiRequest& req)
+			[this](types::StringsT& states, const print::ListAsciiRequest& req)
 			{
 				return this->startup_list_ascii(states, req);
 			},
 			[this](const print::ListAsciiRequest& req,
-				fmts::StringsT::iterator& it, print::AsciiEntry& reply)
+				types::StringsT::iterator& it, print::AsciiEntry& reply)
 			{
 				return this->process_list_ascii(req, it, reply);
 			}, &cq);
@@ -148,7 +148,7 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 
 private:
 	grpc::Status startup_list_ascii (
-		fmts::StringsT& roots,
+		types::StringsT& roots,
 		const print::ListAsciiRequest& req)
 	{
 		auto& uuids = req.uuids();
@@ -157,7 +157,7 @@ private:
 	}
 
 	bool process_list_ascii (const print::ListAsciiRequest& req,
-		fmts::StringsT::iterator& it,
+		types::StringsT::iterator& it,
 		print::AsciiEntry& reply)
 	{
 		auto uuid = *it;
@@ -166,7 +166,7 @@ private:
 		auto tens = iosvc_->lookup_node(err, uuid, false);
 		if (nullptr != err)
 		{
-			teq::errorf("[server %s] %s", consul_.id_.c_str(), err->to_string().c_str());
+			global::errorf("[server %s] %s", get_peer_id().c_str(), err->to_string().c_str());
 			return false;
 		}
 
@@ -242,13 +242,13 @@ private:
 	AsciiRemotesT resolve_remotes (const AsciiRemotesT& remotes)
 	{
 		AsciiRemotesT nexts;
-		estd::StrMapT<estd::StrSetT> servers;
+		types::StrUMapT<types::StrUSetT> servers;
 		for (auto& dep : remotes)
 		{
 			auto rid = dep.refid_;
 			if (false == estd::has(remote_templates_, rid))
 			{
-				if (dep.clusterid_ == consul_.id_)
+				if (dep.clusterid_ == get_peer_id())
 				{
 					// process local
 					remote_templates_.emplace(rid,
@@ -278,7 +278,7 @@ private:
 			auto client = get_client(err, peer_id);
 			if (nullptr != err)
 			{
-				teq::error(err->to_string());
+				global::error(err->to_string());
 				continue;
 			}
 
@@ -314,13 +314,13 @@ private:
 				std::future_status::timeout);
 			if (auto err = done.get())
 			{
-				teq::fatal(err->to_string());
+				global::fatal(err->to_string());
 			}
 		}
 		return nexts;
 	}
 
-	estd::StrMapT<AsciiTemplate> remote_templates_;
+	types::StrUMapT<AsciiTemplate> remote_templates_;
 
 	DistrIOService* iosvc_;
 

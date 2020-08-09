@@ -41,7 +41,7 @@ eteq::ETensor<T> gibbs_hvh (
 template <typename T>
 layr::VarErrsT<T> bbernoulli_approx (const layr::VarErrsT<T>& assocs,
 	T learning_rate, T discount_factor,
-	eigen::CtxptrT context = eigen::global_context())
+	global::CfgMapptrT context = global::context())
 {
 	// assign momentums before leaves
 	layr::VarErrsT<T> assigns;
@@ -85,11 +85,11 @@ template <typename T>
 layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 	const layr::RBMLayer<T>& model, size_t cdk = 1,
 	eteq::VarptrT<T> persistent = nullptr,
-	eigen::CtxptrT context = eigen::global_context())
+	global::CfgMapptrT context = global::context())
 {
 	if (nullptr == io.visible_)
 	{
-		teq::fatal("cannot call cd_grad_approx with null visible");
+		global::fatal("cannot call cd_grad_approx with null visible");
 	}
 	if (nullptr == io.hidden_)
 	{
@@ -147,7 +147,7 @@ template <typename T>
 eteq::ETensor<T> rbm (const layr::RBMLayer<T>& model,
 	eteq::ETensor<T> visible, T learning_rate, T discount_factor,
 	layr::BErrorF<T> err_func = tenncor<T>().error.sqr_diff, size_t cdk = 1,
-	eigen::CtxptrT context = eigen::global_context())
+	global::CfgMapptrT context = global::context())
 {
 	CDChainIO<T> chain_io(visible);
 	layr::VarErrsT<T> varerrs = cd_grad_approx<T>(chain_io, model, cdk, nullptr, context);

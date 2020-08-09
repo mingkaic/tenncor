@@ -8,53 +8,22 @@
 namespace tcr
 {
 
-const std::string distmgr_key = "DistrManager";
+void set_distrmgr (distr::iDistrMgrptrT mgr,
+	global::CfgMapptrT ctx = global::context());
 
-void set_distmgr (distr::iDistMgrptrT mgr);
-
-template <typename CTX> // concept CTX is TensContext pointer
-void set_distmgr (distr::iDistMgrptrT mgr, CTX ctx)
-{
-	ctx->owners_.erase(distmgr_key);
-	if (nullptr != mgr)
-	{
-		ctx->owners_.insert(std::pair<std::string,eigen::OwnerptrT>{
-			distmgr_key, std::make_unique<distr::ManagerOwner>(mgr)});
-		ctx->eval_ = std::make_shared<distr::DistrEvaluator>(*mgr);
-	}
-	else
-	{
-		ctx->eval_ = std::make_shared<teq::Evaluator>();
-	}
-}
-
-template <typename CTX> // todo: concept CTX is TensContext pointer
-distr::iDistrManager* get_distmgr (const CTX& ctx)
-{
-	if (nullptr == ctx)
-	{
-		teq::fatal("cannot lookup references from null context");
-	}
-	if (false == estd::has(ctx->owners_, distmgr_key))
-	{
-		return nullptr;
-	}
-	return static_cast<distr::iDistrManager*>(
-		ctx->owners_.at(distmgr_key)->get_raw());
-}
+distr::iDistrManager* get_distrmgr (global::CfgMapptrT ctx = global::context());
 
 template <typename T>
 std::string expose_node (const eteq::ETensor<T>& etens)
 {
-	auto mgr = get_distmgr(etens.get_context());
+	auto mgr = get_distrmgr(etens.get_context());
 	return mgr->get_io().expose_node(etens);
 }
 
 template <typename T>
 std::string try_lookup_id (error::ErrptrT& err, eteq::ETensor<T> etens)
 {
-	auto ctx = etens.get_context();
-	auto mgr = get_distmgr(ctx);
+	auto mgr = get_distrmgr(etens.get_context());
 	if (nullptr == mgr)
 	{
 		err = error::error(
@@ -78,7 +47,7 @@ std::string lookup_id (eteq::ETensor<T> etens)
 	auto out = try_lookup_id(err, etens);
 	if (nullptr != err)
 	{
-		teq::fatal(err->to_string());
+		global::fatal(err->to_string());
 	}
 	return out;
 }
@@ -86,9 +55,9 @@ std::string lookup_id (eteq::ETensor<T> etens)
 template <typename T>
 eteq::ETensor<T> try_lookup_node (
 	error::ErrptrT& err, const std::string& id,
-	eigen::CtxptrT ctx = eigen::global_context())
+	global::CfgMapptrT ctx = global::context())
 {
-	auto mgr = get_distmgr(ctx.get());
+	auto mgr = get_distrmgr(ctx);
 	if (nullptr == mgr)
 	{
 		err = error::error(
@@ -100,13 +69,13 @@ eteq::ETensor<T> try_lookup_node (
 
 template <typename T>
 eteq::ETensor<T> lookup_node (const std::string& id,
-	eigen::CtxptrT ctx = eigen::global_context())
+	global::CfgMapptrT ctx = global::context())
 {
 	error::ErrptrT err = nullptr;
 	auto out = try_lookup_node<T>(err, id, ctx);
 	if (nullptr != err)
 	{
-		teq::fatal(err->to_string());
+		global::fatal(err->to_string());
 	}
 	return out;
 }

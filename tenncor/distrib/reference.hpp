@@ -205,7 +205,7 @@ DRefSetT reachable_refs (const TS& roots, const teq::TensSetT& ignored = {})
 
 /// Map reference servers to reference ids of tensors under key server
 void separate_by_server (
-	estd::StrMapT<estd::StrSetT>& out,
+	types::StrUMapT<types::StrUSetT>& out,
 	const DRefSetT& refs);
 
 }

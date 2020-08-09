@@ -1,7 +1,7 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "teq/logs.hpp"
+#include "global/global.hpp"
 
 #include "dbg/peval/emit/emitter.hpp"
 #include "dbg/peval/stats/inspect.hpp"
@@ -12,8 +12,6 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(peval, m)
 {
-	LOG_INIT(logs::DefLogger);
-
 	m.doc() = "dbg teq graphs using interactive grpc evaluator";
 
 	// ==== plugin definition ====

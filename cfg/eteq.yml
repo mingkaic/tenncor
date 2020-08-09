@@ -28,7 +28,7 @@ api:
       type: TenncorAPI<float>
       decl: |
           //
-              static TenncorAPI<float> global(eigen::global_context());
+              static TenncorAPI<float> global(global::context());
               return global;
   funcs:
     - template: typename T
@@ -320,8 +320,8 @@ api:
       init:
         args:
           - name: context
-            type: eigen::CtxptrT
-            default: eigen::global_context()
+            type: global::CfgMapptrT
+            default: global::context()
         initlist:
           random: this
           nn: this
@@ -371,7 +371,7 @@ api:
               }
       members:
         - name: ctx
-          type: eigen::CtxptrT
+          type: global::CfgMapptrT
           public: True
         - name: random
           type: RandomAPI<T>
@@ -404,7 +404,7 @@ api:
                 //
                     if (dependencies.empty())
                     {
-                        teq::fatal("cannot depend on nothing");
+                        global::fatal("cannot depend on nothing");
                     }
                     if (auto dep = std::dynamic_pointer_cast<eigen::Observable>(
                       (teq::TensptrT) dependee))
@@ -836,7 +836,7 @@ api:
                 //
                     if (args.empty())
                     {
-                        teq::fatal("cannot min without arguments");
+                        global::fatal("cannot min without arguments");
                     }
                     eteq::ETensor<T> out = args[0];
                     for (size_t i = 1,n = args.size(); i < n; ++i)
@@ -881,7 +881,7 @@ api:
                 //
                     if (args.empty())
                     {
-                        teq::fatal("cannot max without arguments");
+                        global::fatal("cannot max without arguments");
                     }
                     eteq::ETensor<T> out = args[0];
                     for (size_t i = 1,n = args.size(); i < n; ++i)
@@ -1045,7 +1045,7 @@ api:
                 //
                     if (offset >= teq::rank_cap)
                     {
-                        teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                        global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                             offset,teq::rank_cap);
                     }
                     std::vector<teq::RankT> dims(std::min(ndims,
@@ -1070,7 +1070,7 @@ api:
                 //
                     if (offset >= teq::rank_cap)
                     {
-                        teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                        global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                             offset,teq::rank_cap);
                     }
                     std::vector<teq::RankT> dims(std::min(ndims,
@@ -1095,7 +1095,7 @@ api:
                 //
                     if (offset >= teq::rank_cap)
                     {
-                        teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                        global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                             offset,teq::rank_cap);
                     }
                     std::vector<teq::RankT> dims(std::min(ndims,
@@ -1120,7 +1120,7 @@ api:
                 //
                     if (offset >= teq::rank_cap)
                     {
-                        teq::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                        global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                             offset,teq::rank_cap);
                     }
                     std::vector<teq::RankT> dims(std::min(ndims,
@@ -1401,7 +1401,7 @@ api:
                 //
                     if (minval > maxval)
                     {
-                        teq::fatal("min value is below max");
+                        global::fatal("min value is below max");
                     }
                     auto lo = eteq::make_constant_like<T>(minval,arg,ctx);
                     auto hi = eteq::make_constant_like<T>(maxval,arg,ctx);
@@ -1420,7 +1420,7 @@ api:
                     // todo: parameterize l2norm offset and ndims
                     if (upper == 0)
                     {
-                        teq::fatal("cannot clip_by_norm with a upper limit of 0");
+                        global::fatal("cannot clip_by_norm with a upper limit of 0");
                     }
                     auto norm = this->extend_like(
                         this->reduce_l2norm(arg),arg);
@@ -1439,7 +1439,7 @@ api:
                     switch (nargs)
                     {
                         case 0:
-                            teq::fatal("cannot sum without arguments");
+                            global::fatal("cannot sum without arguments");
                         case 1:
                             return args[0];
                         case 2:
@@ -1460,7 +1460,7 @@ api:
                     switch (nargs)
                     {
                         case 0:
-                            teq::fatal("cannot prod without arguments");
+                            global::fatal("cannot prod without arguments");
                         case 1:
                             return args[0];
                         default:
@@ -1483,7 +1483,7 @@ api:
                 //
                     if (offset + ndims > teq::rank_cap)
                     {
-                        teq::fatalf("cannot perform softmax on dimensions beyond %d",
+                        global::fatalf("cannot perform softmax on dimensions beyond %d",
                             teq::rank_cap);
                     }
                     teq::Shape shape = arg->shape();

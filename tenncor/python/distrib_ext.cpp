@@ -7,20 +7,21 @@
 
 void distrib_ext (py::module& m)
 {
-	auto context = (py::class_<eigen::TensContext>) m.attr("Context");
+	auto context = (py::class_<estd::ConfigMap<>>) m.attr("Context");
 	auto ieval = (py::class_<teq::iEvaluator>) m.attr("iEvaluator");
 
 	// extend the context API
 	context
-		.def("get_manager",
-		[](eigen::CtxptrT& self)
+		.def("get_distrmgr",
+		[](global::CfgMapptrT& self)
 		{
-			return tcr::get_distmgr(self);
+			return tcr::get_distrmgr(self);
 		})
-		.def("set_manager",
-		[](eigen::CtxptrT& self, const distr::iDistMgrptrT& mgr)
+		.def("get_distrmgr",
+		[](global::CfgMapptrT& self, const distr::iDistrMgrptrT& mgr)
 		{
-			tcr::set_distmgr(mgr, self);
+			tcr::set_distrmgr(mgr, self);
+			return tcr::get_distrmgr(self);
 		});
 
 	// todo: internalize or work in some python-native consul API
@@ -34,8 +35,8 @@ void distrib_ext (py::module& m)
 		py::arg("address") = "0.0.0.0:8500");
 
 	// ==== distrib manager ====
-	py::class_<distr::iDistrManager,distr::iDistMgrptrT> imgr(m, "iDistrManager");
-	py::class_<distr::DistrManager,distr::DistMgrptrT> mgr(m, "DistrManager", imgr);
+	py::class_<distr::iDistrManager,distr::iDistrMgrptrT> imgr(m, "iDistrManager");
+	py::class_<distr::DistrManager,distr::DistrMgrptrT> mgr(m, "DistrManager", imgr);
 
 	imgr
 		.def("expose_node",
@@ -61,7 +62,7 @@ void distrib_ext (py::module& m)
 			teq::TensptrT node = self.get_io().lookup_node(err, id, recursive);
 			if (nullptr != err)
 			{
-				teq::errorf("lookup_node err: %s",
+				global::errorf("lookup_node err: %s",
 					err->to_string().c_str());
 			}
 			return pytenncor::ETensT(node);
@@ -94,9 +95,8 @@ void distrib_ext (py::module& m)
 		py::arg("service_name") = distr::default_service,
 		py::arg("alias") = "");
 
-
-	py::class_<distr::DistrDbgManager,distr::DistDbgMgrptrT> dmgr(m, "DistrDbgManager", imgr);
-    dmgr
+	py::class_<distr::DistrDbgManager,distr::DistrDbgMgrptrT> dmgr(m, "DistrDbgManager", imgr);
+	dmgr
 		.def(py::init(
 		[](std::shared_ptr<ppconsul::Consul> consul, size_t port,
 			std::string service_name, std::string alias)
@@ -108,10 +108,10 @@ void distrib_ext (py::module& m)
 		py::arg("port"),
 		py::arg("service_name") = distr::default_service,
 		py::arg("alias") = "")
-        .def("print_ascii",
-        [](distr::DistrDbgManager& self, eteq::ETensor<PybindT> root)
-        {
-            self.get_print().print_ascii(std::cout, root.get());
+		.def("print_ascii",
+		[](distr::DistrDbgManager& self, eteq::ETensor<PybindT> root)
+		{
+			self.get_print().print_ascii(std::cout, root.get());
 		});
 
 	// ==== evaluator ====
@@ -119,7 +119,7 @@ void distrib_ext (py::module& m)
 
 	eval
 		.def(py::init(
-		[](distr::iDistMgrptrT mgr)
+		[](distr::iDistrMgrptrT mgr)
 		{
 			return distr::DistrEvaluator(*mgr);
 		}),

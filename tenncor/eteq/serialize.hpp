@@ -106,7 +106,7 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 					&onnx::TensorProto::add_int64_data);
 				break;
 			default:
-				teq::fatalf("unknown onnx type %d (aka %s)",
+				global::fatalf("unknown onnx type %d (aka %s)",
 					onnx_type, code_name.c_str());
 		}
 	}

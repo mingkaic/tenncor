@@ -33,7 +33,7 @@ funcs:
               size_t nlefts = lefts.size();
               if (nlefts != rights.size())
               {
-                  teq::fatalf(
+                  global::fatalf(
                       "number of lefts (%d) must equal the number of rights (%d)",
                       nlefts,rights.size());
               }
@@ -234,7 +234,7 @@ funcs:
               teq::DimT nseq = inshape.at(seq_dim);
               if (seq_dim == 0)
               {
-                  teq::fatal("spliting input across 0th dimension... "
+                  global::fatal("spliting input across 0th dimension... "
                       "dense connection will not match");
               }
               eteq::ETensor<T> inslice;
@@ -278,7 +278,7 @@ funcs:
               teq::DimT nseq = inshape.at(seq_dim);
               if (seq_dim == 0)
               {
-                  teq::fatal("spliting input across 0th dimension... "
+                  global::fatal("spliting input across 0th dimension... "
                       "dense connection will not match");
               }
               eteq::ETensor<T> inslice;
@@ -327,7 +327,7 @@ funcs:
               teq::DimT nseq = inshape.at(seq_dim);
               if (seq_dim == 0)
               {
-                  teq::fatal("spliting input across 0th dimension... "
+                  global::fatal("spliting input across 0th dimension... "
                       "dense connection will not match");
               }
               eteq::ETensor<T> inslice;
