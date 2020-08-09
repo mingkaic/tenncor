@@ -1,6 +1,4 @@
 
-#include "eteq/eteq.hpp"
-
 #include "layr/layer.hpp"
 #include "layr/approx.hpp"
 

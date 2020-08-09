@@ -23,7 +23,7 @@ void set_distrmgr (distr::iDistrMgrptrT mgr, global::CfgMapptrT ctx)
 	}
 }
 
-distr::iDistrManager* get_distrmgr (global::CfgMapptrT ctx)
+distr::iDistrManager* get_distrmgr (const global::CfgMapptrT& ctx)
 {
 	if (auto ptr = static_cast<distr::iDistrMgrptrT*>(
 		ctx->get_obj(distmgr_key)))

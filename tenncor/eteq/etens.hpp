@@ -18,7 +18,7 @@ using TensRegistryT = std::unordered_map<void*,teq::TensptrT>;
 
 void set_reg (TensRegistryT* reg, global::CfgMapptrT ctx = global::context());
 
-TensRegistryT& get_reg (global::CfgMapptrT ctx = global::context());
+TensRegistryT& get_reg (const global::CfgMapptrT& ctx = global::context());
 
 template <typename T>
 struct ETensor
@@ -26,7 +26,7 @@ struct ETensor
 	ETensor (void) = default;
 
 	ETensor (teq::TensptrT tens,
-		global::CfgMapptrT ctx = global::context()) :
+		const global::CfgMapptrT& ctx = global::context()) :
 		ctx_(ctx)
 	{
 		if (nullptr != ctx && nullptr != tens)

@@ -19,7 +19,7 @@ void set_randengine (RandEngineT* reg, global::CfgMapptrT ctx)
 	}
 }
 
-RandEngineT& get_randengine (global::CfgMapptrT ctx)
+RandEngineT& get_randengine (const global::CfgMapptrT& ctx)
 {
 	auto reg = static_cast<RandEngineT*>(
 		ctx->get_obj(rengine_key));
@@ -41,7 +41,7 @@ void set_uuidengine (BoostEngineT* reg, global::CfgMapptrT ctx)
 	}
 }
 
-BoostEngineT& get_uuidengine (global::CfgMapptrT ctx)
+BoostEngineT& get_uuidengine (const global::CfgMapptrT& ctx)
 {
 	auto reg = static_cast<BoostEngineT*>(
 		ctx->get_obj(uengine_key));
@@ -51,6 +51,11 @@ BoostEngineT& get_uuidengine (global::CfgMapptrT ctx)
 		set_uuidengine(reg, ctx);
 	}
 	return *reg;
+}
+
+void seed (size_t s, global::CfgMapptrT ctx)
+{
+	get_randengine(ctx).seed(s);
 }
 
 }

@@ -4,7 +4,6 @@
 #include <boost/bimap.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "distrib/services/io/service.hpp"
 #include "distrib/services/op/service.hpp"
 
 #ifndef DISTRIB_MANAGER_HPP

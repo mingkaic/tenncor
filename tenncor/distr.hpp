@@ -1,6 +1,5 @@
 
 #include "distrib/distrib.hpp"
-#include "eteq/eteq.hpp"
 
 #ifndef TENNCOR_DISTR_HPP
 #define TENNCOR_DISTR_HPP
@@ -11,7 +10,8 @@ namespace tcr
 void set_distrmgr (distr::iDistrMgrptrT mgr,
 	global::CfgMapptrT ctx = global::context());
 
-distr::iDistrManager* get_distrmgr (global::CfgMapptrT ctx = global::context());
+distr::iDistrManager* get_distrmgr (
+	const global::CfgMapptrT& ctx = global::context());
 
 template <typename T>
 std::string expose_node (const eteq::ETensor<T>& etens)
@@ -55,7 +55,7 @@ std::string lookup_id (eteq::ETensor<T> etens)
 template <typename T>
 eteq::ETensor<T> try_lookup_node (
 	error::ErrptrT& err, const std::string& id,
-	global::CfgMapptrT ctx = global::context())
+	const global::CfgMapptrT& ctx = global::context())
 {
 	auto mgr = get_distrmgr(ctx);
 	if (nullptr == mgr)
@@ -69,7 +69,7 @@ eteq::ETensor<T> try_lookup_node (
 
 template <typename T>
 eteq::ETensor<T> lookup_node (const std::string& id,
-	global::CfgMapptrT ctx = global::context())
+	const global::CfgMapptrT& ctx = global::context())
 {
 	error::ErrptrT err = nullptr;
 	auto out = try_lookup_node<T>(err, id, ctx);

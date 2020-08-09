@@ -18,7 +18,7 @@ void set_reg (TensRegistryT* reg, global::CfgMapptrT ctx)
 	}
 }
 
-TensRegistryT& get_reg (global::CfgMapptrT ctx)
+TensRegistryT& get_reg (const global::CfgMapptrT& ctx)
 {
 	auto reg = static_cast<TensRegistryT*>(
 		ctx->get_obj(reg_key));

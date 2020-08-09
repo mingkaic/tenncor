@@ -1,8 +1,4 @@
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
 #include "opt/opt.hpp"
 
 #include "eteq/make.hpp"
@@ -30,8 +26,6 @@ struct Hasher final : public teq::iOnceTraveler
 
 	teq::TensMapT<boost::uuids::uuid> hashes_;
 
-	global::BoostEngineT uuid_gen_;
-
 private:
 	/// Implementation of iOnceTraveler
 	void visit_leaf (teq::iLeaf& leaf) override
@@ -45,7 +39,7 @@ private:
 		}
 		else
 		{
-			hashes_.emplace(&leaf, uuid_gen_());
+			hashes_.emplace(&leaf, global::get_uuidengine()());
 		}
 	}
 
@@ -96,7 +90,7 @@ private:
 		boost::uuids::uuid uuid;
 		if (false == estd::get(uuid, uuids_, label))
 		{
-			uuid = uuid_gen_();
+			uuid = global::get_uuidengine()();
 			uuids_.emplace(label, uuid);
 		}
 		hashes_.emplace(tens, uuid);

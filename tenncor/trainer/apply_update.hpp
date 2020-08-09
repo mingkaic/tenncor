@@ -11,7 +11,7 @@ namespace trainer
 template <typename T>
 eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
 	layr::ApproxF<T> update, layr::ErrorF<T> err_func,
-	global::CfgMapptrT ctx = global::context())
+	const global::CfgMapptrT& ctx = global::context())
 {
 	auto error = err_func(models);
 	eteq::EVariablesT<T> vars;

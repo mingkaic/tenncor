@@ -6,10 +6,6 @@
 /// Define functions for saving teq graph
 ///
 
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
 #include "onnx/marshal.hpp"
 
 #ifndef ONNX_SAVE_HPP
@@ -197,7 +193,7 @@ private:
 		std::string proposed_id = fmts::to_string(tens_.size());
 		while (estd::has(identified_.right, proposed_id)) // almost never going to loop
 		{
-			proposed_id = boost::uuids::to_string(uuid_gen_());
+			proposed_id = boost::uuids::to_string(global::get_uuidengine()());
 		}
 		return proposed_id;
 	}
@@ -209,8 +205,6 @@ private:
 	const iMarshFuncs& marshaler_;
 
 	teq::TensSetT stops_;
-
-	static global::BoostEngineT uuid_gen_;
 };
 
 template <typename TS> // todo: use concept tensptr_range

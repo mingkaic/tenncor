@@ -17,7 +17,7 @@ void set_logger (logs::iLogger* logger, global::CfgMapptrT ctx)
 	}
 }
 
-logs::iLogger& get_logger (global::CfgMapptrT ctx)
+logs::iLogger& get_logger (const global::CfgMapptrT& ctx)
 {
 	auto log = static_cast<logs::iLogger*>(
 		ctx->get_obj(global::logger_key));
@@ -29,18 +29,18 @@ logs::iLogger& get_logger (global::CfgMapptrT ctx)
 	return *log;
 }
 
-std::string get_log_level (void)
+void set_log_level (const std::string& log_level, global::CfgMapptrT ctx)
 {
-	return get_logger().get_log_level();
-}
-
-void set_log_level (const std::string& log_level)
-{
-	auto& logger = get_logger();
+	auto& logger = get_logger(ctx);
 	if (logger.supports_level(log_level))
 	{
 		logger.set_log_level(log_level);
 	}
+}
+
+std::string get_log_level (const global::CfgMapptrT& ctx)
+{
+	return get_logger(ctx).get_log_level();
 }
 
 #define LOG_DEFN(LOG_LEVEL){\

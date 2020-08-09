@@ -15,7 +15,7 @@
 namespace eteq
 {
 
-static inline size_t get_lastvers (global::CfgMapptrT ctx)
+static inline size_t get_lastvers (const global::CfgMapptrT& ctx)
 {
 	size_t mvers = 0;
 	for (auto& r : get_reg(ctx))
@@ -52,14 +52,14 @@ struct Variable final : public eigen::iMutableLeaf
 
 	Variable<T>& operator = (Variable<T>&& other) = delete;
 
-	void assign (const eigen::TensMapT<T>& input, global::CfgMapptrT ctx)
+	void assign (const eigen::TensMapT<T>& input, const global::CfgMapptrT& ctx)
 	{
 		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
 		this->ref_.data_ = input;
 	}
 
-	void assign (const eigen::TensorT<T>& input, global::CfgMapptrT ctx)
+	void assign (const eigen::TensorT<T>& input, const global::CfgMapptrT& ctx)
 	{
 		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
@@ -68,7 +68,7 @@ struct Variable final : public eigen::iMutableLeaf
 
 	/// Assign void pointer of specified data type enum and shape
 	void assign (const void* input, egen::_GENERATED_DTYPE dtype,
-		teq::Shape shape, global::CfgMapptrT ctx)
+		teq::Shape shape, const global::CfgMapptrT& ctx)
 	{
 		if (false == shape.compatible_after(this->shape_, 0))
 		{
@@ -81,7 +81,7 @@ struct Variable final : public eigen::iMutableLeaf
 		assign(eigen::make_tensmap<T>(data.data(), shape), ctx);
 	}
 
-	void assign (const teq::iTensor& tens, global::CfgMapptrT ctx)
+	void assign (const teq::iTensor& tens, const global::CfgMapptrT& ctx)
 	{
 		const void* input = tens.device().data();
 		teq::Shape inshape = tens.shape();
@@ -90,12 +90,12 @@ struct Variable final : public eigen::iMutableLeaf
 		assign(input, dtype, inshape, ctx);
 	}
 
-	void assign (const T* input, teq::Shape shape, global::CfgMapptrT ctx)
+	void assign (const T* input, teq::Shape shape, const global::CfgMapptrT& ctx)
 	{
 		assign(input, egen::get_type<T>(), shape, ctx);
 	}
 
-	void assign (const teq::ShapedArr<T>& arr, global::CfgMapptrT ctx)
+	void assign (const teq::ShapedArr<T>& arr, const global::CfgMapptrT& ctx)
 	{
 		assign((T*) arr.data_.data(),
 			egen::get_type<T>(), arr.shape_, ctx);
@@ -185,23 +185,23 @@ struct EVariable;
 template <typename T>
 EVariable<T> make_variable_scalar (T scalar,
 	teq::Shape shape, std::string label = "",
-	global::CfgMapptrT ctx = global::context());
+	const global::CfgMapptrT& ctx = global::context());
 
 /// Return variable node filled with scalar matching link shape
 template <typename T>
 EVariable<T> make_variable_like (T scalar,
 	teq::TensptrT like, std::string label = "",
-	global::CfgMapptrT ctx = global::context());
+	const global::CfgMapptrT& ctx = global::context());
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>
 EVariable<T> make_variable (teq::Shape shape, std::string label = "",
-	global::CfgMapptrT ctx = global::context());
+	const global::CfgMapptrT& ctx = global::context());
 
 /// Return variable node given raw array and shape
 template <typename T>
 EVariable<T> make_variable (T* data, teq::Shape shape, std::string label = "",
-	global::CfgMapptrT ctx = global::context());
+	const global::CfgMapptrT& ctx = global::context());
 
 }
 

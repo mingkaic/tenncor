@@ -2,7 +2,6 @@
 #include "eteq/eteq.hpp"
 
 #include "egrpc/server_async.hpp"
-#include "distrib/peer_svc.hpp"
 
 #include "distrib/services/io/service.hpp"
 

@@ -1,9 +1,3 @@
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
-
-#ifndef DBG_EMIT_HPP
-#define DBG_EMIT_HPP
 
 #include "jobs/scope_guard.hpp"
 
@@ -11,6 +5,9 @@
 
 #include "dbg/peval/plugin_eval.hpp"
 #include "dbg/peval/emit/client.hpp"
+
+#ifndef DBG_EMIT_HPP
+#define DBG_EMIT_HPP
 
 namespace emit
 {
@@ -28,9 +25,6 @@ struct Emitter final : public dbg::iPlugin
 		ClientConfig client_cfg = ClientConfig()) :
 		Emitter(grpc::CreateChannel(host,
 			grpc::InsecureChannelCredentials()), client_cfg) {}
-
-	/// UUID random generator
-	static global::BoostEngineT uuid_gen_;
 
 	void process (
 		const teq::TensSetT& targets,
@@ -147,8 +141,7 @@ struct Emitter final : public dbg::iPlugin
 		if (sent_graph_)
 		{
 			client_.delete_model(eval_id_);
-			eval_id_ = boost::uuids::to_string(
-				Emitter::uuid_gen_());
+			eval_id_ = boost::uuids::to_string(global::get_uuidengine()());
 		}
 		update_it_ = 0;
 		sent_graph_ = false;
@@ -194,8 +187,7 @@ private:
 	/// GRPC Client
 	GraphEmitterClient client_;
 
-	std::string eval_id_ = boost::uuids::to_string(
-		Emitter::uuid_gen_());
+	std::string eval_id_ = boost::uuids::to_string(global::get_uuidengine()());
 
 	size_t update_it_ = 0;
 
@@ -205,8 +197,6 @@ private:
 
 	onnx::TensIdT ids_;
 };
-
-global::BoostEngineT Emitter::uuid_gen_;
 
 }
 

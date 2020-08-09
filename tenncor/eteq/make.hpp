@@ -15,7 +15,7 @@ using DimPairsT = std::pair<teq::DimT,teq::DimT>;
 /// Return variable node given scalar and shape
 template <typename T>
 EVariable<T> make_variable_scalar (T scalar,
-	teq::Shape shape, std::string label, global::CfgMapptrT ctx)
+	teq::Shape shape, std::string label, const global::CfgMapptrT& ctx)
 {
 	if (label.empty())
 	{
@@ -28,7 +28,8 @@ EVariable<T> make_variable_scalar (T scalar,
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>
-EVariable<T> make_variable (teq::Shape shape, std::string label, global::CfgMapptrT ctx)
+EVariable<T> make_variable (teq::Shape shape, std::string label, 
+	const global::CfgMapptrT& ctx)
 {
 	return make_variable_scalar<T>(0, shape, label, ctx);
 }
@@ -36,7 +37,7 @@ EVariable<T> make_variable (teq::Shape shape, std::string label, global::CfgMapp
 /// Return variable node filled with scalar matching link shape
 template <typename T>
 EVariable<T> make_variable_like (T scalar, teq::TensptrT like,
-	std::string label, global::CfgMapptrT ctx)
+	std::string label, const global::CfgMapptrT& ctx)
 {
 	return make_variable_scalar(scalar, like->shape(), label, ctx);
 }
@@ -44,7 +45,7 @@ EVariable<T> make_variable_like (T scalar, teq::TensptrT like,
 /// Return variable node given raw array and shape
 template <typename T>
 EVariable<T> make_variable (T* data, teq::Shape shape,
-	std::string label, global::CfgMapptrT ctx)
+	std::string label, const global::CfgMapptrT& ctx)
 {
 	return EVariable<T>(VarptrT<T>(
 		Variable<T>::get(data, shape, label)), ctx);
@@ -52,7 +53,8 @@ EVariable<T> make_variable (T* data, teq::Shape shape,
 
 /// Return constant node given scalar and shape
 template <typename T>
-ETensor<T> make_constant_scalar (T scalar, teq::Shape shape, global::CfgMapptrT ctx)
+ETensor<T> make_constant_scalar (T scalar, teq::Shape shape, 
+	const global::CfgMapptrT& ctx)
 {
 	std::vector<T> data(shape.n_elems(), scalar);
 	return ETensor<T>(teq::TensptrT(
@@ -61,7 +63,8 @@ ETensor<T> make_constant_scalar (T scalar, teq::Shape shape, global::CfgMapptrT 
 
 /// Return constant node filled with scalar matching link shape
 template <typename T>
-ETensor<T> make_constant_like (T scalar, teq::TensptrT like, global::CfgMapptrT ctx)
+ETensor<T> make_constant_like (T scalar, teq::TensptrT like, 
+	const global::CfgMapptrT& ctx)
 {
 	return make_functor<T>(ctx, ::egen::EXTEND,teq::TensptrsT{
 		make_constant_scalar<T>(scalar, teq::Shape())
@@ -70,7 +73,8 @@ ETensor<T> make_constant_like (T scalar, teq::TensptrT like, global::CfgMapptrT 
 
 /// Return constant node given raw array and shape
 template <typename T>
-ETensor<T> make_constant (T* data, teq::Shape shape, global::CfgMapptrT ctx)
+ETensor<T> make_constant (T* data, teq::Shape shape, 
+	const global::CfgMapptrT& ctx)
 {
 	return ETensor<T>(teq::TensptrT(
 		Constant<T>::get(data, shape)), ctx);
@@ -121,7 +125,7 @@ teq::TensptrT make_functor (egen::_GENERATED_OPCODE opcode,
 }
 
 template <typename T, typename ...ARGS>
-ETensor<T> make_functor (global::CfgMapptrT ctx,
+ETensor<T> make_functor (const global::CfgMapptrT& ctx,
 	egen::_GENERATED_OPCODE opcode,
 	const teq::TensptrsT& children, ARGS... vargs)
 {

@@ -3,10 +3,6 @@
 
 #include "pyutils/convert.hpp"
 
-#include "eteq/eteq.hpp"
-
-#include "distrib/distrib.hpp"
-
 #include "tenncor/tenncor.hpp"
 
 #ifndef PYTHON_TENNCOR_UTIL_HPP

@@ -328,15 +328,15 @@ void eteq_ext (py::module& m)
 		"Optimize using rules for specified filename")
 
 		// ==== configmap ====
-		.def("set_log_level", &global::set_log_level)
-		.def("get_log_level", &global::get_log_level)
-		.def("seed",
-		[](size_t seed)
-		{
-			auto& engine = global::get_randengine();
-			engine.seed(seed);
-		},
-		"Seed internal RNG")
+		.def("set_log_level", &global::set_log_level,
+			py::arg("level"), py::arg("ctx") = global::context(),
+			"Set log level")
+		.def("get_log_level", &global::get_log_level,
+			py::arg("ctx") = global::context(),
+			"Get current log level")
+		.def("seed", &global::seed,
+			py::arg("seed"), py::arg("ctx") = global::context(),
+			"Seed internal RNG")
 
 		// ==== use eigen randomizer ====
 		.def("unif_gen",

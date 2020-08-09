@@ -11,13 +11,14 @@ namespace global
 
 void set_logger (logs::iLogger* logger, global::CfgMapptrT ctx = context());
 
-logs::iLogger& get_logger (global::CfgMapptrT ctx = context());
-
-/// Return log level
-std::string get_log_level (void);
+logs::iLogger& get_logger (const global::CfgMapptrT& ctx = context());
 
 /// Set log level
-void set_log_level (const std::string& log_level);
+void set_log_level (const std::string& log_level,
+	global::CfgMapptrT ctx = context());
+
+/// Return log level
+std::string get_log_level (const global::CfgMapptrT& ctx = context());
 
 /// Log at trace level
 void trace (const std::string& msg);

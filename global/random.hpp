@@ -8,7 +8,9 @@
 #include <random>
 #include <type_traits>
 
+#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 #include "global/config.hpp"
 
@@ -30,16 +32,18 @@ using GenF = std::function<T()>;
 void set_randengine (RandEngineT* reg,
 	global::CfgMapptrT ctx = context());
 
-RandEngineT& get_randengine (global::CfgMapptrT ctx = context());
+RandEngineT& get_randengine (const global::CfgMapptrT& ctx = context());
 
 void set_uuidengine (BoostEngineT* reg,
 	global::CfgMapptrT ctx = context());
 
-BoostEngineT& get_uuidengine (global::CfgMapptrT ctx = context());
+BoostEngineT& get_uuidengine (const global::CfgMapptrT& ctx = context());
+
+void seed (size_t s, global::CfgMapptrT ctx = context());
 
 struct Randomizer final
 {
-	Randomizer (global::CfgMapptrT ctx = context()) :
+	Randomizer (const global::CfgMapptrT& ctx = context()) :
 		engine_(&get_randengine(ctx)) {}
 
 	/// Return uniformly generated number between a and b (integers only)
