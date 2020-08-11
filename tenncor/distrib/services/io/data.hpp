@@ -1,4 +1,7 @@
 
+#include <boost/bimap.hpp>
+#include <boost/lexical_cast.hpp>
+
 #include "distrib/reference.hpp"
 #include "distrib/consul.hpp"
 

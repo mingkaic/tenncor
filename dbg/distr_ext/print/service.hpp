@@ -1,10 +1,11 @@
 
 #include "egrpc/server_async.hpp"
-#include "distrib/peer_svc.hpp"
-
-#include "dbg/distr_ext/print/client.hpp"
 
 #include "dbg/print/print.hpp"
+
+#include "distrib/services/io/service.hpp"
+
+#include "dbg/distr_ext/print/client.hpp"
 
 #ifndef DISTRIB_PRINT_SERVICE_HPP
 #define DISTRIB_PRINT_SERVICE_HPP
@@ -19,6 +20,8 @@ if (nullptr != ERR)\
 		ERR->to_string().c_str());\
 	return grpc::Status(STATUS, ERR->to_string());\
 }
+
+const std::string printsvc_key = "dbg_printsvc";
 
 struct AsciiRemote
 {
@@ -105,17 +108,11 @@ struct AsciiTemplate
 
 struct DistrPrintService final : public PeerService<DistrPrintCli>
 {
-	DistrPrintService (
-		ConsulService* consul,
-		const egrpc::ClientConfig& cfg,
-		grpc::ServerBuilder& builder,
+	DistrPrintService (const PeerServiceConfig& cfg,
 		DistrIOService* iosvc,
 		bool showshape = false) :
-		PeerService<DistrPrintCli>(consul, cfg),
-		iosvc_(iosvc), showshape_(showshape)
-	{
-		builder.RegisterService(&service_);
-	}
+		PeerService<DistrPrintCli>(cfg),
+		iosvc_(iosvc), showshape_(showshape) {}
 
 	void print_ascii (std::ostream& os, teq::iTensor* tens)
 	{
@@ -123,7 +120,12 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 		render(os, ascii);
 	}
 
-	void initialize_server_call (grpc::ServerCompletionQueue& cq)
+	void register_service (grpc::ServerBuilder& builder) override
+	{
+		builder.RegisterService(&service_);
+	}
+
+	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
 	{
 		// ListAscii
 		new egrpc::AsyncServerStreamCall<print::ListAsciiRequest,print::AsciiEntry,types::StringsT>(
@@ -332,6 +334,8 @@ private:
 };
 
 #undef _ERR_CHECK
+
+DistrPrintService& get_printsvc (iDistrManager& manager);
 
 }
 

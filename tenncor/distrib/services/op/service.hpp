@@ -4,7 +4,6 @@
 #include "egrpc/server_async.hpp"
 
 #include "distrib/services/io/service.hpp"
-
 #include "distrib/services/op/client.hpp"
 
 #ifndef DISTRIB_OP_SERVICE_HPP
@@ -28,6 +27,8 @@ using OpServiceT = op::DistrOperation::AsyncService;
 
 using DataStatesT = std::unordered_map<std::string,teq::iTensor*>;
 
+const std::string opsvc_key = "distr_opsvc";
+
 struct BackpropMeta
 {
 	// teq::TensptrT root_;
@@ -42,15 +43,8 @@ bool process_get_data (
 
 struct DistrOpService final : public PeerService<DistrOpCli>
 {
-	DistrOpService (
-		ConsulService* consul,
-		const egrpc::ClientConfig& cfg,
-		grpc::ServerBuilder& builder,
-		DistrIOService* iosvc) :
-		PeerService<DistrOpCli>(consul, cfg), iosvc_(iosvc)
-	{
-		builder.RegisterService(&service_);
-	}
+	DistrOpService (const PeerServiceConfig& cfg, DistrIOService* iosvc) :
+		PeerService<DistrOpCli>(cfg), iosvc_(iosvc) {}
 
 	/// Evalute target tensor set ignoring all tensors in ignored set
 	void evaluate (
@@ -384,7 +378,12 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		return out;
 	}
 
-	void initialize_server_call (grpc::ServerCompletionQueue& cq)
+	void register_service (grpc::ServerBuilder& builder) override
+	{
+		builder.RegisterService(&service_);
+	}
+
+	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
 	{
 		// GetData
 		new egrpc::AsyncServerStreamCall<op::GetDataRequest,op::NodeData,DataStatesT>(
@@ -567,6 +566,8 @@ private:
 #undef _MAKE_DERFUNC
 
 #undef _ERR_CHECK
+
+DistrOpService& get_opsvc (iDistrManager& manager);
 
 }
 

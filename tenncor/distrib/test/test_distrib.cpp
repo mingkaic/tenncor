@@ -7,8 +7,7 @@
 
 #include "exam/exam.hpp"
 
-#include "dbg/distr_ext/manager.hpp"
-
+#include "dbg/distr_ext/print/service.hpp"
 #include "distrib/manager.hpp"
 
 #include "eteq/make.hpp"
@@ -54,24 +53,40 @@ protected:
 		ASSERT_EQ(services.size(), 0);
 	}
 
-	distr::DistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
-		return std::make_shared<distr::DistrManager>(consul_, port,
-			test_service, id, egrpc::ClientConfig(
+		auto consul = distr::make_consul(consul_, port, test_service, id);
+		distr::PeerServiceConfig cfg(consul, egrpc::ClientConfig(
 				std::chrono::milliseconds(5000),
 				std::chrono::milliseconds(10000),
 				5
 			));
+		estd::ConfigMap<> svcs;
+		auto iosvc = new distr::DistrIOService(cfg);
+		svcs.add_entry<distr::DistrIOService>(distr::iosvc_key,
+			[&](){ return iosvc; });
+		svcs.add_entry<distr::DistrOpService>(distr::opsvc_key,
+			[&](){ return new distr::DistrOpService(cfg, iosvc); });
+		return std::make_shared<distr::DistrManager>(distr::ConsulSvcptrT(consul), svcs);
 	}
 
-	distr::DistrDbgMgrptrT make_dbgmgr (size_t port, const std::string& id = "")
+	distr::iDistrMgrptrT make_dbgmgr (size_t port, const std::string& id = "")
 	{
-		return std::make_shared<distr::DistrDbgManager>(consul_, port,
-			test_service, id, egrpc::ClientConfig(
+		auto consul = distr::make_consul(consul_, port, test_service, id);
+		distr::PeerServiceConfig cfg(consul, egrpc::ClientConfig(
 				std::chrono::milliseconds(5000),
 				std::chrono::milliseconds(10000),
 				5
 			));
+		estd::ConfigMap<> svcs;
+		auto iosvc = new distr::DistrIOService(cfg);
+		svcs.add_entry<distr::DistrIOService>(distr::iosvc_key,
+			[&](){ return iosvc; });
+		svcs.add_entry<distr::DistrOpService>(distr::opsvc_key,
+			[&](){ return new distr::DistrOpService(cfg, iosvc); });
+		svcs.add_entry<distr::DistrPrintService>(distr::printsvc_key,
+			[&](){ return new distr::DistrPrintService(cfg, iosvc); });
+		return std::make_shared<distr::DistrManager>(distr::ConsulSvcptrT(consul), svcs);
 	}
 
 	ppconsul::Consul consul_;
@@ -192,8 +207,8 @@ TEST_F(DISTRIB, DataPassing)
 		ASSERT_NE(nullptr, ref);
 		auto dest2 = eteq::ETensor<double>(ref) * src3;
 
-		ASSERT_TRUE(mgr->get_io().get_remotes().empty());
-		ASSERT_EQ(mgr2->get_io().get_remotes().size(), 1);
+		ASSERT_TRUE(distr::get_iosvc(*mgr).get_remotes().empty());
+		ASSERT_EQ(distr::get_iosvc(*mgr2).get_remotes().size(), 1);
 
 		auto gotshape = dest2->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -395,51 +410,51 @@ TEST_F(DISTRIB, Reachability)
 		auto e3 = eteq::make_constant<double>(data2.data(), shape);
 		auto e1 = e2 + e3;
 
-		mgrE->get_io().expose_node(e1);
-		mgrF->get_io().expose_node(f1);
-		mgrF->get_io().expose_node(f2);
-		mgrD->get_io().expose_node(d1);
+		distr::get_iosvc(*mgrE).expose_node(e1);
+		distr::get_iosvc(*mgrF).expose_node(f1);
+		distr::get_iosvc(*mgrF).expose_node(f2);
+		distr::get_iosvc(*mgrD).expose_node(d1);
 
-		std::string e1_key = *mgrE->get_io().lookup_id(e1.get());
+		std::string e1_key = *distr::get_iosvc(*mgrE).lookup_id(e1.get());
 
 		error::ErrptrT err = nullptr;
-		std::string f1_key = *mgrF->get_io().lookup_id(f1.get());
-		eteq::ETensor<double> f1_ref = mgrA->get_io().lookup_node(err, f1_key);
+		std::string f1_key = *distr::get_iosvc(*mgrF).lookup_id(f1.get());
+		eteq::ETensor<double> f1_ref = distr::get_iosvc(*mgrA).lookup_node(err, f1_key);
 		ASSERT_NOERR(err);
 		auto a2 = -f1_ref;
-		mgrA->get_io().expose_node(a2);
+		distr::get_iosvc(*mgrA).expose_node(a2);
 
-		std::string d1_key = *mgrD->get_io().lookup_id(d1.get());
-		eteq::ETensor<double> a2_ref = mgrC->get_io().lookup_node(err, *mgrA->get_io().lookup_id(a2.get()));
+		std::string d1_key = *distr::get_iosvc(*mgrD).lookup_id(d1.get());
+		eteq::ETensor<double> a2_ref = distr::get_iosvc(*mgrC).lookup_node(err, *distr::get_iosvc(*mgrA).lookup_id(a2.get()));
 		ASSERT_NOERR(err);
-		eteq::ETensor<double> d1_ref = mgrC->get_io().lookup_node(err, d1_key);
+		eteq::ETensor<double> d1_ref = distr::get_iosvc(*mgrC).lookup_node(err, d1_key);
 		ASSERT_NOERR(err);
 		auto c1 = a2_ref + d1_ref;
-		mgrC->get_io().expose_node(c1);
+		distr::get_iosvc(*mgrC).expose_node(c1);
 
-		eteq::ETensor<double> c1_ref = mgrB->get_io().lookup_node(err, *mgrC->get_io().lookup_id(c1.get()));
+		eteq::ETensor<double> c1_ref = distr::get_iosvc(*mgrB).lookup_node(err, *distr::get_iosvc(*mgrC).lookup_id(c1.get()));
 		ASSERT_NOERR(err);
-		eteq::ETensor<double> f2_ref = mgrB->get_io().lookup_node(err, *mgrF->get_io().lookup_id(f2.get()));
+		eteq::ETensor<double> f2_ref = distr::get_iosvc(*mgrB).lookup_node(err, *distr::get_iosvc(*mgrF).lookup_id(f2.get()));
 		ASSERT_NOERR(err);
 		auto b1 = c1_ref * f2_ref;
-		mgrB->get_io().expose_node(b1);
+		distr::get_iosvc(*mgrB).expose_node(b1);
 
-		eteq::ETensor<double> b1_ref = mgrA->get_io().lookup_node(err, *mgrB->get_io().lookup_id(b1.get()));
+		eteq::ETensor<double> b1_ref = distr::get_iosvc(*mgrA).lookup_node(err, *distr::get_iosvc(*mgrB).lookup_id(b1.get()));
 		ASSERT_NOERR(err);
 		auto a1 = tenncor<double>().sin(b1_ref);
-		mgrA->get_io().expose_node(a1);
+		distr::get_iosvc(*mgrA).expose_node(a1);
 
 		// able to reach across cyclical graph
-		auto reachables = estd::map_keyset(mgrA->get_op().reachable(err, {a1.get()}, {f1_key}));
+		auto reachables = estd::map_keyset(distr::get_opsvc(*mgrA).reachable(err, {a1.get()}, {f1_key}));
 		EXPECT_EQ(1, reachables.size());
 		EXPECT_EQ(a1.get(), *reachables.begin());
 
 		// unable to reach isolated nodes
-		auto nonreachable = mgrA->get_op().reachable(err, {a1.get()}, {e1_key});
+		auto nonreachable = distr::get_opsvc(*mgrA).reachable(err, {a1.get()}, {e1_key});
 		EXPECT_TRUE(nonreachable.empty());
 
 		// unable to reach node unreachable nodes
-		auto nonreachable2 = mgrA->get_op().reachable(err, {a2.get()}, {d1_key});
+		auto nonreachable2 = distr::get_opsvc(*mgrA).reachable(err, {a2.get()}, {d1_key});
 		EXPECT_TRUE(nonreachable2.empty());
 	}
 	check_clean();
@@ -647,7 +662,7 @@ TEST_F(DISTRIB, DebugPrintAscii)
 		// a2 -> f1
 
 		std::stringstream ss;
-		mgrA->get_print().print_ascii(ss, a1.get());
+		distr::get_printsvc(*mgrA).print_ascii(ss, a1.get());
 
 		std::string expect =
 			"(SIN)\n"
@@ -800,7 +815,7 @@ TEST_F(DISTRIB, CrossDerive)
 		{
 			auto df1 = ders[0];
 			std::stringstream ss;
-			mgrA->get_print().print_ascii(ss, df1.get());
+			distr::get_printsvc(*mgrA).print_ascii(ss, df1.get());
 			std::string expect =
 				"(NEG)\n"
 				"_`--[mgrB]:(MUL)\n"

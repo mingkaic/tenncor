@@ -11,16 +11,39 @@
 namespace distr
 {
 
-template <typename CLI> // CLI has base egrpc::GrpcClient
-struct PeerService
+struct iPeerService
 {
-	PeerService (ConsulService* consul,
-		const egrpc::ClientConfig& cfg,
+	virtual ~iPeerService (void) = default;
+
+	virtual void register_service (grpc::ServerBuilder& builder) = 0;
+
+	virtual void initialize_server_call (grpc::ServerCompletionQueue& cq) = 0;
+};
+
+struct PeerServiceConfig
+{
+	PeerServiceConfig (ConsulService* consul,
+		const egrpc::ClientConfig& cli,
 		size_t nthreads = 3) :
-		consul_(consul), cfg_(cfg)
+		nthreads_(nthreads), consul_(consul), cli_(cli) {}
+
+	size_t nthreads_;
+
+	ConsulService* consul_;
+
+	egrpc::ClientConfig cli_;
+};
+
+template <typename CLI> // CLI has base egrpc::GrpcClient
+struct PeerService : public iPeerService
+{
+	PeerService (const PeerServiceConfig& cfg) :
+		consul_(cfg.consul_), cli_(cfg.cli_)
 	{
 		update_clients();
-		for (size_t i = 0; i < nthreads; ++i)
+		// if nthread_ == 0, use 1 thread anyways
+		for (size_t i = 0, nlimits = cfg.nthreads_ > 0 ? cfg.nthreads_ : 1;
+			i < nlimits; ++i)
 		{
 			cli_jobs_.push_back(std::move(std::thread(
 				&PeerService::handle_clients, this)));
@@ -34,11 +57,6 @@ struct PeerService
 		{
 			cli_job.join();
 		}
-	}
-
-	std::string get_peer_id (void) const
-	{
-		return consul_->id_;
 	}
 
 protected:
@@ -74,13 +92,18 @@ protected:
 			{
 				clients_.insert({peer.first, std::make_unique<CLI>(
 					grpc::CreateChannel(peer.second,
-						grpc::InsecureChannelCredentials()), cfg_,
+						grpc::InsecureChannelCredentials()), cli_,
 					get_peer_id() + "->" + peer.first)});
 			}
 		}
 	}
 
-	egrpc::ClientConfig cfg_;
+	std::string get_peer_id (void) const
+	{
+		return consul_->id_;
+	}
+
+	egrpc::ClientConfig cli_;
 
 	ConsulService* consul_;
 

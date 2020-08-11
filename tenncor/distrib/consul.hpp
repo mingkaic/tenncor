@@ -3,6 +3,8 @@
 #include "ppconsul/catalog.h"
 #include "ppconsul/kv.h"
 
+#include "global/global.hpp"
+
 #ifndef DISTRIB_CONSUL_HPP
 #define DISTRIB_CONSUL_HPP
 
@@ -11,12 +13,7 @@ namespace distr
 
 static const size_t consul_nretries = 5;
 
-struct ConsulConfig final
-{
-	std::string id_;
-
-	size_t port_;
-};
+const std::string default_service = "tenncor";
 
 struct ConsulService final
 {
@@ -104,6 +101,11 @@ struct ConsulService final
 
 	ppconsul::kv::Kv kv_;
 };
+
+ConsulService* make_consul (
+	ppconsul::Consul& consul, size_t port,
+	const std::string& svc_name = default_service,
+	const std::string& id = "");
 
 }
 

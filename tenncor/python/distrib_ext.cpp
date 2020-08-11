@@ -1,6 +1,5 @@
 
-#include "dbg/distr_ext/manager.hpp"
-
+#include "dbg/distr_ext/print/service.hpp"
 #include "python/distrib_ext.hpp"
 
 #ifdef PYTHON_DISTRIB_EXT_HPP
@@ -42,13 +41,13 @@ void distrib_ext (py::module& m)
 		.def("expose_node",
 		[](distr::iDistrManager& self, pytenncor::ETensT node)
 		{
-			return self.get_io().expose_node(node);
+			return distr::get_iosvc(self).expose_node(node);
 		})
 		.def("lookup_id",
 		[](distr::iDistrManager& self, pytenncor::ETensT node)
 		{
 			std::string id;
-			if (auto found_id = self.get_io().lookup_id(node.get()))
+			if (auto found_id = distr::get_iosvc(self).lookup_id(node.get()))
 			{
 				id = *found_id;
 			}
@@ -59,7 +58,7 @@ void distrib_ext (py::module& m)
 			const std::string& id, bool recursive)
 		{
 			error::ErrptrT err = nullptr;
-			teq::TensptrT node = self.get_io().lookup_node(err, id, recursive);
+			teq::TensptrT node = distr::get_iosvc(self).lookup_node(err, id, recursive);
 			if (nullptr != err)
 			{
 				global::errorf("lookup_node err: %s",
@@ -80,6 +79,11 @@ void distrib_ext (py::module& m)
 		[](distr::iDistrManager& self)
 		{
 			return self.get_id();
+		})
+		.def("print_ascii",
+		[](distr::iDistrManager& self, eteq::ETensor<PybindT> root)
+		{
+			distr::get_printsvc(self).print_ascii(std::cout, root.get());
 		});
 
 	mgr
@@ -87,32 +91,26 @@ void distrib_ext (py::module& m)
 		[](pytenncor::ConsulT consul, size_t port,
 			std::string service_name, std::string alias)
 		{
-			return std::make_shared<distr::DistrManager>(
-				*consul, port, service_name, alias);
+			auto consulsvc = distr::make_consul(*consul, port, service_name, alias);
+			distr::PeerServiceConfig cfg(consulsvc, egrpc::ClientConfig(
+					std::chrono::milliseconds(5000),
+					std::chrono::milliseconds(10000),
+					5
+				));
+			estd::ConfigMap<> svcs;
+			auto iosvc = new distr::DistrIOService(cfg);
+			svcs.add_entry<distr::DistrIOService>(distr::iosvc_key,
+				[&](){ return iosvc; });
+			svcs.add_entry<distr::DistrOpService>(distr::opsvc_key,
+				[&](){ return new distr::DistrOpService(cfg, iosvc); });
+			svcs.add_entry<distr::DistrPrintService>(distr::printsvc_key,
+				[&](){ return new distr::DistrPrintService(cfg, iosvc); });
+			return std::make_shared<distr::DistrManager>(distr::ConsulSvcptrT(consulsvc), svcs);
 		}),
 		py::arg("consul"),
 		py::arg("port"),
 		py::arg("service_name") = distr::default_service,
 		py::arg("alias") = "");
-
-	py::class_<distr::DistrDbgManager,distr::DistrDbgMgrptrT> dmgr(m, "DistrDbgManager", imgr);
-	dmgr
-		.def(py::init(
-		[](std::shared_ptr<ppconsul::Consul> consul, size_t port,
-			std::string service_name, std::string alias)
-		{
-			return std::make_shared<distr::DistrDbgManager>(
-				*consul, port, service_name, alias);
-		}),
-		py::arg("consul"),
-		py::arg("port"),
-		py::arg("service_name") = distr::default_service,
-		py::arg("alias") = "")
-		.def("print_ascii",
-		[](distr::DistrDbgManager& self, eteq::ETensor<PybindT> root)
-		{
-			self.get_print().print_ascii(std::cout, root.get());
-		});
 
 	// ==== evaluator ====
 	py::class_<distr::DistrEvaluator> eval(m, "DistrEvaluator", ieval);

@@ -17,7 +17,7 @@ template <typename T>
 std::string expose_node (const eteq::ETensor<T>& etens)
 {
 	auto mgr = get_distrmgr(etens.get_context());
-	return mgr->get_io().expose_node(etens);
+	return distr::get_iosvc(*mgr).expose_node(etens);
 }
 
 template <typename T>
@@ -30,7 +30,7 @@ std::string try_lookup_id (error::ErrptrT& err, eteq::ETensor<T> etens)
 			"can only find reference ids using DistrManager");
 		return "";
 	}
-	auto opt_id = mgr->get_io().lookup_id(etens.get());
+	auto opt_id = distr::get_iosvc(*mgr).lookup_id(etens.get());
 	if (false == bool(opt_id))
 	{
 		err = error::errorf("failed to find tensor %s",
@@ -64,7 +64,7 @@ eteq::ETensor<T> try_lookup_node (
 			"can only find references using DistrManager");
 		return eteq::ETensor<T>();
 	}
-	return eteq::ETensor<T>(mgr->get_io().lookup_node(err, id), ctx);
+	return eteq::ETensor<T>(distr::get_iosvc(*mgr).lookup_node(err, id), ctx);
 }
 
 template <typename T>

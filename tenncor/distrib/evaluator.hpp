@@ -9,7 +9,7 @@ namespace distr
 
 struct DistrEvaluator final : public teq::iEvaluator
 {
-	DistrEvaluator (iDistrManager& mgr) : svc_(mgr.get_op()) {}
+	DistrEvaluator (iDistrManager& mgr) : svc_(distr::get_opsvc(mgr)) {}
 
 	/// Implementation of iEvaluator
 	void evaluate (

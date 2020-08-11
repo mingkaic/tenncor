@@ -1,7 +1,7 @@
 
 #include "egrpc/server_async.hpp"
-#include "distrib/peer_svc.hpp"
 
+#include "distrib/imanager.hpp"
 #include "distrib/services/io/client.hpp"
 #include "distrib/services/io/data.hpp"
 #include "distrib/services/io/pb_helper.hpp"
@@ -20,16 +20,12 @@ if (nullptr != ERR)\
 	return grpc::Status(STATUS, ERR->to_string());\
 }
 
+const std::string iosvc_key = "distr_iosvc";
+
 struct DistrIOService final : public PeerService<DistrIOCli>
 {
-	DistrIOService (
-		ConsulService* consul,
-		const egrpc::ClientConfig& cfg,
-		grpc::ServerBuilder& builder) :
-		PeerService<DistrIOCli>(consul, cfg), data_(consul)
-	{
-		builder.RegisterService(&service_);
-	}
+	DistrIOService (const PeerServiceConfig& cfg) :
+		PeerService<DistrIOCli>(cfg), data_(cfg.consul_) {}
 
 	std::string expose_node (teq::TensptrT tens)
 	{
@@ -118,7 +114,12 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		return data_.get_remotes();
  	}
 
-	void initialize_server_call (grpc::ServerCompletionQueue& cq)
+	void register_service (grpc::ServerBuilder& builder) override
+	{
+		builder.RegisterService(&service_);
+	}
+
+	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
 	{
 		// ListNodes
 		new egrpc::AsyncServerCall<io::ListNodesRequest,io::ListNodesResponse>(
@@ -163,6 +164,8 @@ private:
 };
 
 #undef _ERR_CHECK
+
+DistrIOService& get_iosvc (iDistrManager& manager);
 
 }
 

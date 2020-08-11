@@ -31,7 +31,7 @@ eteq::ETensorsT<T> derive_with_manager (
 		{
 			return etens.get();
 		});
-	auto tgrads = mgr.get_op().derive(
+	auto tgrads = distr::get_opsvc(mgr).derive(
 		grads, {root}, distr::BackpropMeta{targset}, builder);
 
 	size_t n = targets.size();

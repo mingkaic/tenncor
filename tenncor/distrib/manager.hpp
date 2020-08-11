@@ -1,9 +1,7 @@
 
 #include <future>
 
-#include <boost/bimap.hpp>
-#include <boost/lexical_cast.hpp>
-
+#include "distrib/imanager.hpp"
 #include "distrib/services/op/service.hpp"
 
 #ifndef DISTRIB_MANAGER_HPP
@@ -12,51 +10,39 @@
 namespace distr
 {
 
-const std::string default_service = "tenncor";
-
-struct iDistrManager
-{
-	virtual ~iDistrManager (void) = default;
-
-	virtual std::string get_id (void) const = 0;
-
-	virtual DistrIOService& get_io (void) = 0;
-
-	virtual DistrOpService& get_op (void) = 0;
-};
-
-using iDistrMgrptrT = std::shared_ptr<iDistrManager>;
+using ConsulSvcptrT = std::unique_ptr<ConsulService>;
 
 struct DistrManager final : public iDistrManager
 {
-	DistrManager (
-		ppconsul::Consul& consul, size_t port,
-		const std::string& svc_name = default_service,
-		const std::string& id = "",
-		const egrpc::ClientConfig& cfg = egrpc::ClientConfig(),
-		size_t nthreads = 3)
+	DistrManager (ConsulSvcptrT&& consul,
+		const estd::ConfigMap<>& svcs, size_t nthreads = 3) :
+		svcs_(svcs), consul_(std::move(consul))
 	{
-		std::string svc_id = id.empty() ?
-			boost::uuids::to_string(global::get_uuidengine()()) : id;
-		consul_ = std::make_unique<ConsulService>(
-			consul, port, svc_id, svc_name);
-
-		std::string address = fmts::sprintf("0.0.0.0:%d", port);
+		std::string address = fmts::sprintf("0.0.0.0:%d", consul_->port_);
 		grpc::ServerBuilder builder;
 		builder.AddListeningPort(address,
 			grpc::InsecureServerCredentials());
 		cq_ = builder.AddCompletionQueue();
 
-		iosvc_ = std::make_unique<DistrIOService>(consul_.get(), cfg, builder);
-		opsvc_ = std::make_unique<DistrOpService>(consul_.get(), cfg, builder, iosvc_.get());
+		auto svc_keys = svcs_.get_keys();
+		for (auto& skey : svc_keys)
+		{
+			static_cast<iPeerService*>(svcs_.get_obj(skey))->
+				register_service(builder);
+		}
 
 		server_ = builder.BuildAndStart();
-		global::infof("[server %s] listening on %s", svc_id.c_str(), address.c_str());
+		global::infof("[server %s] listening on %s",
+			consul_->id_.c_str(), address.c_str());
 
-		iosvc_->initialize_server_call(*cq_);
-		opsvc_->initialize_server_call(*cq_);
+		for (auto& skey : svc_keys)
+		{
+			static_cast<iPeerService*>(svcs_.get_obj(skey))->
+				initialize_server_call(*cq_);
+		}
 
-		for (size_t i = 0; i < nthreads; ++i)
+		for (size_t i = 0, nlimits = nthreads > 0 ? nthreads : 1;
+			i < nlimits; ++i)
 		{
 			rpc_jobs_.push_back(std::thread(
 				&DistrManager::handle_rpcs, this));
@@ -75,10 +61,9 @@ struct DistrManager final : public iDistrManager
 
 	DistrManager (DistrManager&& other) :
 		consul_(std::move(other.consul_)),
-		iosvc_(std::move(other.iosvc_)),
-		opsvc_(std::move(other.opsvc_)),
-		cq_(std::move(cq_)),
-		server_(std::move(server_)),
+		svcs_(std::move(other.svcs_)),
+		cq_(std::move(other.cq_)),
+		server_(std::move(other.server_)),
 		rpc_jobs_(std::move(other.rpc_jobs_)) {}
 
 	std::string get_id (void) const override
@@ -86,14 +71,10 @@ struct DistrManager final : public iDistrManager
 		return consul_->id_;
 	}
 
-	DistrIOService& get_io (void) override
+	iPeerService* get_service (const std::string& svc_key) override
 	{
-		return *iosvc_;
-	}
-
-	DistrOpService& get_op (void) override
-	{
-		return *opsvc_;
+		auto svc = svcs_.get_obj(svc_key);
+		return static_cast<iPeerService*>(svc);
 	}
 
 private:
@@ -116,11 +97,9 @@ private:
 		}
 	}
 
-	std::unique_ptr<ConsulService> consul_;
+	estd::ConfigMap<> svcs_;
 
-	std::unique_ptr<DistrIOService> iosvc_;
-
-	std::unique_ptr<DistrOpService> opsvc_;
+	ConsulSvcptrT consul_;
 
 	std::unique_ptr<grpc::ServerCompletionQueue> cq_;
 

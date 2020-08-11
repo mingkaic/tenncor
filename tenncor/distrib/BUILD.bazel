@@ -105,4 +105,5 @@ py_test(
         "//testutil:pyunit_util",
     ],
     data = ["//:test_models"],
+    size = "small",
 )

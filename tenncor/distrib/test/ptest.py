@@ -6,8 +6,6 @@ import numpy as np
 
 import tenncor as tc
 
-# from dbg.distrib import DistrDbgManager
-
 from testutil.array_testcase import ArrTest
 from testutil.compare_testcase import TestReader
 
@@ -88,7 +86,7 @@ def _distrib_multipass(consul, data, data2, data3):
 
 def _distrib_crossderive(consul, data, data2, data3):
     # mgr1
-    mgr1 = tc.DistrDbgManager(consul, port=5122,
+    mgr1 = tc.DistrManager(consul, port=5122,
         service_name=_test_service, alias='mgr1')
 
     a = tc.variable(data, 'a')
@@ -101,7 +99,7 @@ def _distrib_crossderive(consul, data, data2, data3):
     d_id = mgr1.lookup_id(d)
 
     # mgr2 -> depends on eval1 (reference to d)
-    mgr2 = tc.DistrDbgManager(consul, port=5123,
+    mgr2 = tc.DistrManager(consul, port=5123,
         service_name=_test_service, alias='mgr2')
 
     c = tc.variable(data3, 'c')
@@ -113,7 +111,7 @@ def _distrib_crossderive(consul, data, data2, data3):
     mgr2.expose_node(c)
 
     # mgr3 -> depends on eval1 (reference to d) and eval2 (reference to f)
-    mgr3 = tc.DistrDbgManager(consul, port=5124,
+    mgr3 = tc.DistrManager(consul, port=5124,
         service_name=_test_service, alias='mgr3')
 
     d_ref3 = mgr3.lookup_node(d_id)

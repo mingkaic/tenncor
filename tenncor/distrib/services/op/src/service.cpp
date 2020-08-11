@@ -31,6 +31,17 @@ bool process_get_data (
 	return true;
 }
 
+DistrOpService& get_opsvc (iDistrManager& manager)
+{
+	auto svc = manager.get_service(opsvc_key);
+	if (nullptr == svc)
+	{
+		global::fatalf("%s service not found in %s",
+			opsvc_key.c_str(), manager.get_id().c_str());
+	}
+	return static_cast<DistrOpService&>(*svc);
+}
+
 }
 
 #endif
