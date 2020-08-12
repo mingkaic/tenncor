@@ -24,7 +24,7 @@ void distrib_ext (py::module& m)
 		});
 
 	// todo: internalize or work in some python-native consul API
-	py::class_<ppconsul::Consul,pytenncor::ConsulT> consul(m, "Consul");
+	py::class_<ppconsul::Consul,distr::ConsulptrT> consul(m, "Consul");
 	consul
 		.def(py::init(
 		[](const std::string& address)
@@ -88,29 +88,21 @@ void distrib_ext (py::module& m)
 
 	mgr
 		.def(py::init(
-		[](pytenncor::ConsulT consul, size_t port,
-			std::string service_name, std::string alias)
+		[](distr::ConsulptrT consul, size_t port,
+			const std::string& alias, const std::string& svc_name,
+			global::CfgMapptrT ctx)
 		{
-			auto consulsvc = distr::make_consul(*consul, port, service_name, alias);
-			distr::PeerServiceConfig cfg(consulsvc, egrpc::ClientConfig(
-					std::chrono::milliseconds(5000),
-					std::chrono::milliseconds(10000),
-					5
-				));
-			estd::ConfigMap<> svcs;
-			auto iosvc = new distr::DistrIOService(cfg);
-			svcs.add_entry<distr::DistrIOService>(distr::iosvc_key,
-				[&](){ return iosvc; });
-			svcs.add_entry<distr::DistrOpService>(distr::opsvc_key,
-				[&](){ return new distr::DistrOpService(cfg, iosvc); });
-			svcs.add_entry<distr::DistrPrintService>(distr::printsvc_key,
-				[&](){ return new distr::DistrPrintService(cfg, iosvc); });
-			return std::make_shared<distr::DistrManager>(distr::ConsulSvcptrT(consulsvc), svcs);
+			return tcr::ctxualize_distrmgr(consul, port, alias, {
+				distr::register_iosvc,
+				distr::register_opsvc,
+				distr::register_printsvc,
+			}, svc_name, ctx);
 		}),
 		py::arg("consul"),
 		py::arg("port"),
+		py::arg("alias") = "",
 		py::arg("service_name") = distr::default_service,
-		py::arg("alias") = "");
+		py::arg("ctx") = global::context());
 
 	// ==== evaluator ====
 	py::class_<distr::DistrEvaluator> eval(m, "DistrEvaluator", ieval);
@@ -124,8 +116,18 @@ void distrib_ext (py::module& m)
 		py::arg("mgr"));
 
 	m
+		.def("set_distrmgr", tcr::set_distrmgr,
+		py::arg("mgr"),
+		py::arg("ctx") = global::context())
+		.def("get_distrmgr", tcr::get_distrmgr,
+		py::arg("ctx") = global::context())
 		.def("expose_node", tcr::expose_node<PybindT>,
-		"Expose tensor across the cluster in distributed evaluator");
+		"Expose tensor across the cluster via distribution manager")
+		.def("lookup_id", tcr::lookup_id<PybindT>,
+		"Look up the id of a tensor in local distribution manager")
+		.def("lookup_node", tcr::lookup_node<PybindT>,
+		py::arg("id"), py::arg("ctx") = global::context(),
+		"Look up the id of a tensor in local distribution manager");
 }
 
 #endif

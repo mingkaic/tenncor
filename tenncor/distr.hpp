@@ -7,6 +7,20 @@
 namespace tcr
 {
 
+using RegisterSvcF = std::function<error::ErrptrT(\
+	estd::ConfigMap<>&,const distr::PeerServiceConfig&)>;
+
+/// Make and return DistrManager and set it to context
+distr::DistrMgrptrT ctxualize_distrmgr (
+	distr::ConsulptrT consul, size_t port,
+	const std::string& alias = "",
+	std::vector<RegisterSvcF> regs = {
+		distr::register_iosvc,
+		distr::register_opsvc
+	},
+	const std::string& svc_name = distr::default_service,
+	global::CfgMapptrT ctx = global::context());
+
 void set_distrmgr (distr::iDistrMgrptrT mgr,
 	global::CfgMapptrT ctx = global::context());
 

@@ -6,6 +6,19 @@
 namespace distr
 {
 
+error::ErrptrT register_printsvc (estd::ConfigMap<>& svcs,
+	const PeerServiceConfig& cfg)
+{
+	auto iosvc = static_cast<DistrIOService*>(svcs.get_obj(iosvc_key));
+	if (nullptr == iosvc)
+	{
+		return error::error("printsvc requires iosvc already registered");
+	}
+	svcs.add_entry<DistrPrintService>(printsvc_key,
+		[&](){ return new DistrPrintService(cfg, iosvc); });
+	return nullptr;
+}
+
 DistrPrintService& get_printsvc (iDistrManager& manager)
 {
 	auto svc = manager.get_service(printsvc_key);

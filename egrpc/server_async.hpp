@@ -5,7 +5,7 @@
 #include <grpcpp/impl/codegen/async_unary_call.h>
 #include <grpcpp/impl/codegen/async_stream.h>
 
-#include "teq/teq.hpp"
+#include "global/global.hpp"
 
 #ifndef EGRPC_SERVER_ASYNC_HPP
 #define EGRPC_SERVER_ASYNC_HPP

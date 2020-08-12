@@ -567,6 +567,9 @@ private:
 
 #undef _ERR_CHECK
 
+error::ErrptrT register_opsvc (estd::ConfigMap<>& svcs,
+	const PeerServiceConfig& cfg);
+
 DistrOpService& get_opsvc (iDistrManager& manager);
 
 }

@@ -31,6 +31,19 @@ bool process_get_data (
 	return true;
 }
 
+error::ErrptrT register_opsvc (estd::ConfigMap<>& svcs,
+	const PeerServiceConfig& cfg)
+{
+	auto iosvc = static_cast<DistrIOService*>(svcs.get_obj(iosvc_key));
+	if (nullptr == iosvc)
+	{
+		return error::error("opsvc requires iosvc already registered");
+	}
+	svcs.add_entry<DistrOpService>(opsvc_key,
+		[&](){ return new DistrOpService(cfg, iosvc); });
+	return nullptr;
+}
+
 DistrOpService& get_opsvc (iDistrManager& manager)
 {
 	auto svc = manager.get_service(opsvc_key);

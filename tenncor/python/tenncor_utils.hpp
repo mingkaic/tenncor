@@ -19,8 +19,6 @@ using ETensorsT = eteq::ETensorsT<PybindT>;
 
 using ETensPairT = std::pair<ETensT,ETensT>;
 
-using ConsulT = std::shared_ptr<ppconsul::Consul>;
-
 template <typename T>
 py::array typedata_to_array (T* data, teq::Shape shape,
 	size_t typecode, py::dtype dtype)

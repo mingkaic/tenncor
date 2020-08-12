@@ -335,6 +335,9 @@ private:
 
 #undef _ERR_CHECK
 
+error::ErrptrT register_printsvc (estd::ConfigMap<>& svcs,
+	const PeerServiceConfig& cfg);
+
 DistrPrintService& get_printsvc (iDistrManager& manager);
 
 }

@@ -15,12 +15,14 @@ static const size_t consul_nretries = 5;
 
 const std::string default_service = "tenncor";
 
+using ConsulptrT = std::shared_ptr<ppconsul::Consul>;
+
 struct ConsulService final
 {
-	ConsulService (ppconsul::Consul& consul, size_t port,
+	ConsulService (ConsulptrT consul, size_t port,
 		const std::string& id, const std::string& name) :
-		port_(port), id_(id), name_(name),
-		agent_(consul), catalog_(consul), kv_(consul)
+		consul_(consul), port_(port), id_(id), name_(name),
+		agent_(*consul), catalog_(*consul), kv_(*consul)
 	{
 		global::infof("[consul %s] serving %s @ 0.0.0.0:%d",
 			id_.c_str(), name_.c_str(), port_);
@@ -89,6 +91,8 @@ struct ConsulService final
 			ppconsul::Consistency::Consistent);
 	}
 
+	ConsulptrT consul_;
+
 	size_t port_;
 
 	std::string id_;
@@ -102,8 +106,7 @@ struct ConsulService final
 	ppconsul::kv::Kv kv_;
 };
 
-ConsulService* make_consul (
-	ppconsul::Consul& consul, size_t port,
+ConsulService* make_consul (ConsulptrT consul, size_t port,
 	const std::string& svc_name = default_service,
 	const std::string& id = "");
 

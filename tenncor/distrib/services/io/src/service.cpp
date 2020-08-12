@@ -6,6 +6,14 @@
 namespace distr
 {
 
+error::ErrptrT register_iosvc (estd::ConfigMap<>& svcs,
+	const PeerServiceConfig& cfg)
+{
+	svcs.add_entry<DistrIOService>(iosvc_key,
+		[&](){ return new DistrIOService(cfg); });
+	return nullptr;
+}
+
 DistrIOService& get_iosvc (iDistrManager& manager)
 {
 	auto svc = manager.get_service(iosvc_key);

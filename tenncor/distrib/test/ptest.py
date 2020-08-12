@@ -27,62 +27,58 @@ def _distrib_datapassing(consul, data, data2, data3):
     d = tc.api.matmul(a, b)
     f = tc.api.matmul(tc.api.transpose(d), tc.api.transpose(c))
 
-    mgr1.expose_node(d)
-    mgr1.expose_node(f)
+    tc.expose_node(d)
+    tc.expose_node(f)
 
     # eval2
-    mgr2 = tc.DistrManager(consul, port=5123,
+    tc.DistrManager(consul, port=5123,
         service_name=_test_service, alias='mgr2')
 
-    d_ref = mgr2.lookup_node(mgr1.lookup_id(d))
-    f_ref = mgr2.lookup_node(mgr1.lookup_id(f))
+    d_ref = tc.lookup_node(mgr1.lookup_id(d))
+    f_ref = tc.lookup_node(mgr1.lookup_id(f))
 
     e = tc.api.matmul(c, d_ref)
     root = tc.api.matmul(e, f_ref)
 
-    tc.DistrEvaluator(mgr2).evaluate([root])
-
-    return root.raw()
+    return root.get()
 
 def _distrib_multipass(consul, data, data2, data3):
     # mgr1
     mgr1 = tc.DistrManager(consul, port=5122,
-        service_name=_test_service, alias='mgr1')
+        service_name=_test_service, alias='mgr1') # keep alive
 
     a = tc.variable(data, 'a')
     b = tc.variable(data2, 'b')
 
     d = tc.api.matmul(a, b)
 
-    mgr1.expose_node(d)
-    d_id = mgr1.lookup_id(d)
+    tc.expose_node(d)
+    d_id = tc.lookup_id(d)
 
     # mgr2 -> depends on eval1 (reference to d)
     mgr2 = tc.DistrManager(consul, port=5123,
         service_name=_test_service, alias='mgr2')
 
     c = tc.variable(data3, 'c')
-    d_ref2 = mgr2.lookup_node(d_id)
+    d_ref2 = tc.lookup_node(d_id)
 
     f = tc.api.matmul(tc.api.transpose(d_ref2), tc.api.transpose(c))
 
-    mgr2.expose_node(f)
-    mgr2.expose_node(c)
+    tc.expose_node(f)
+    tc.expose_node(c)
 
     # mgr3 -> depends on eval1 (reference to d) and eval2 (reference to f)
-    mgr3 = tc.DistrManager(consul, port=5124,
+    tc.DistrManager(consul, port=5124,
         service_name=_test_service, alias='mgr3')
 
-    d_ref3 = mgr3.lookup_node(d_id)
-    c_ref = mgr3.lookup_node(mgr2.lookup_id(c))
-    f_ref = mgr3.lookup_node(mgr2.lookup_id(f))
+    d_ref3 = tc.lookup_node(d_id)
+    c_ref = tc.lookup_node(mgr2.lookup_id(c))
+    f_ref = tc.lookup_node(mgr2.lookup_id(f))
 
     e = tc.api.matmul(c_ref, d_ref3)
     root = tc.api.matmul(e, f_ref)
 
-    tc.DistrEvaluator(mgr3).evaluate([root])
-
-    return root.raw()
+    return root.get()
 
 def _distrib_crossderive(consul, data, data2, data3):
     # mgr1
@@ -94,39 +90,38 @@ def _distrib_crossderive(consul, data, data2, data3):
 
     d = tc.api.matmul(a, b)
 
-    mgr1.expose_node(a)
-    mgr1.expose_node(d)
-    d_id = mgr1.lookup_id(d)
+    tc.expose_node(a)
+    tc.expose_node(d)
+    d_id = tc.lookup_id(d)
 
     # mgr2 -> depends on eval1 (reference to d)
     mgr2 = tc.DistrManager(consul, port=5123,
         service_name=_test_service, alias='mgr2')
 
     c = tc.variable(data3, 'c')
-    d_ref2 = mgr2.lookup_node(d_id)
+    d_ref2 = tc.lookup_node(d_id)
 
     f = tc.api.matmul(tc.api.transpose(d_ref2), tc.api.transpose(c))
 
-    mgr2.expose_node(f)
-    mgr2.expose_node(c)
+    tc.expose_node(f)
+    tc.expose_node(c)
 
     # mgr3 -> depends on eval1 (reference to d) and eval2 (reference to f)
     mgr3 = tc.DistrManager(consul, port=5124,
         service_name=_test_service, alias='mgr3')
 
-    d_ref3 = mgr3.lookup_node(d_id)
-    c_ref = mgr3.lookup_node(mgr2.lookup_id(c))
-    f_ref = mgr3.lookup_node(mgr2.lookup_id(f))
+    d_ref3 = tc.lookup_node(d_id)
+    c_ref = tc.lookup_node(mgr2.lookup_id(c))
+    f_ref = tc.lookup_node(mgr2.lookup_id(f))
 
     e = tc.api.matmul(c_ref, d_ref3)
     root = tc.api.matmul(e, f_ref)
 
-    a_ref = mgr3.lookup_node(mgr1.lookup_id(a))
-    dbase = mgr3.derive(root, [a_ref])[0]
+    a_ref = tc.lookup_node(mgr1.lookup_id(a))
+    dbase = tc.derive(root, [a_ref])[0]
     # mgr3.print_ascii(dbase)
-    tc.DistrEvaluator(mgr3).evaluate([dbase])
 
-    return dbase.raw()
+    return dbase.get()
 
 class DISTRIBTest(ArrTest):
     # distributed version of //eteq:ptest

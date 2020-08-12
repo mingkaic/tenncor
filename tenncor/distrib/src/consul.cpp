@@ -5,8 +5,7 @@
 namespace distr
 {
 
-ConsulService* make_consul (
-	ppconsul::Consul& consul, size_t port,
+ConsulService* make_consul (ConsulptrT consul, size_t port,
 	const std::string& svc_name, const std::string& id)
 {
 	std::string svc_id = id.empty() ?

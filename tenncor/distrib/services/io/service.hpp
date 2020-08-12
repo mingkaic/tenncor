@@ -165,6 +165,9 @@ private:
 
 #undef _ERR_CHECK
 
+error::ErrptrT register_iosvc (estd::ConfigMap<>& svcs,
+	const PeerServiceConfig& cfg);
+
 DistrIOService& get_iosvc (iDistrManager& manager);
 
 }
