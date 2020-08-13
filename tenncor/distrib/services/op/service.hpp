@@ -386,8 +386,11 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
 	{
 		// GetData
-		new egrpc::AsyncServerStreamCall<op::GetDataRequest,op::NodeData,DataStatesT>(
-			fmts::sprintf("%s:GetData", get_peer_id().c_str()),
+		auto gdata_logger = std::make_shared<global::FormatLogger>(
+			&global::get_logger(), fmts::sprintf("[server %s:GetData] ",
+				get_peer_id().c_str()));
+		new egrpc::AsyncServerStreamCall<op::GetDataRequest,
+			op::NodeData,DataStatesT>(gdata_logger,
 			[this](grpc::ServerContext* ctx, op::GetDataRequest* req,
 				grpc::ServerAsyncWriter<op::NodeData>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
@@ -402,9 +405,11 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			process_get_data, &cq);
 
 		// ListReachable
+		auto lreachable_logger = std::make_shared<global::FormatLogger>(
+			&global::get_logger(), fmts::sprintf("[server %s:ListReachable] ",
+				get_peer_id().c_str()));
 		new egrpc::AsyncServerCall<op::ListReachableRequest,
-			op::ListReachableResponse>(
-			fmts::sprintf("%s:ListReachable", get_peer_id().c_str()),
+			op::ListReachableResponse>(lreachable_logger,
 			[this](grpc::ServerContext* ctx, op::ListReachableRequest* req,
 				grpc::ServerAsyncResponseWriter<op::ListReachableResponse>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
@@ -420,9 +425,11 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			}, &cq);
 
 		// Derive
+		auto cderive_logger = std::make_shared<global::FormatLogger>(
+			&global::get_logger(), fmts::sprintf("[server %s:CreateDerive] ",
+				get_peer_id().c_str()));
 		new egrpc::AsyncServerCall<op::CreateDeriveRequest,
-			op::CreateDeriveResponse>(
-			fmts::sprintf("%s:CreateDerive", get_peer_id().c_str()),
+			op::CreateDeriveResponse>(cderive_logger,
 			[this](grpc::ServerContext* ctx, op::CreateDeriveRequest* req,
 				grpc::ServerAsyncResponseWriter<op::CreateDeriveResponse>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,

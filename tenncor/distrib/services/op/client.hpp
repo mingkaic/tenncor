@@ -23,8 +23,9 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		const op::GetDataRequest& req,
 		std::function<void(op::NodeData&)> cb)
 	{
-		auto handler = new egrpc::AsyncClientStreamHandler<op::NodeData>(
-			alias_ + ":GetData", cb);
+		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
+			fmts::sprintf("[client %s:GetData] ", alias_.c_str()));
+		auto handler = new egrpc::AsyncClientStreamHandler<op::NodeData>(logger, cb);
 
 		build_ctx(handler->ctx_, false);
 		// prepare to avoid passing to cq before reader_ assignment
@@ -40,8 +41,9 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		std::function<void(op::ListReachableResponse&)> cb)
 	{
 		using ListReachableHandlerT = egrpc::AsyncClientHandler<op::ListReachableResponse>;
-		auto handler = new ListReachableHandlerT(
-			alias_ + ":ListReachable", cb,
+		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
+			fmts::sprintf("[client %s:ListReachable] ", alias_.c_str()));
+		auto handler = new ListReachableHandlerT(logger, cb,
 			[this, &req, &cq](ListReachableHandlerT* handler)
 			{
 				build_ctx(handler->ctx_, false);
@@ -59,8 +61,9 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		std::function<void(op::CreateDeriveResponse&)> cb)
 	{
 		using CreateDeriveHandlerT = egrpc::AsyncClientHandler<op::CreateDeriveResponse>;
-		auto handler = new CreateDeriveHandlerT(
-			alias_ + ":Derive", cb,
+		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
+			fmts::sprintf("[client %s:Derive] ", alias_.c_str()));
+		auto handler = new CreateDeriveHandlerT(logger, cb,
 			[this, &req, &cq](CreateDeriveHandlerT* handler)
 			{
 				build_ctx(handler->ctx_, false);

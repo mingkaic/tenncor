@@ -40,10 +40,11 @@ PYBIND11_MODULE(peval, m)
 		[](std::string host, size_t request_duration, size_t stream_duration)
 		{
 			return std::make_shared<emit::Emitter>(host,
-				emit::ClientConfig{
+				egrpc::ClientConfig(
 					std::chrono::milliseconds(request_duration),
 					std::chrono::milliseconds(stream_duration),
-				});
+					5
+				));
 		}),
 		py::arg("host") = "localhost:50051",
 		py::arg("request_dur") = 1000,

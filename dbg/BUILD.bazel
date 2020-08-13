@@ -127,6 +127,7 @@ cc_library(
         ":gemitter_cc_grpc",
         "//tenncor/eteq:eteq",
         "@boost//:uuid",
+        "@com_github_mingkaic_cppkg//egrpc:egrpc",
         "@com_github_mingkaic_cppkg//jobs:jobs",
     ],
     visibility = ["//visibility:public"],

@@ -19,7 +19,7 @@ void inspect_helper (T* data, teq::Shape shape, const std::string& label)
 	size_t n = shape.n_elems();
 	T min = *std::min_element(data, data + n);
 	T max = *std::max_element(data, data + n);
-	// using logs is slow af (tolerable) (todo: upgrade to formatter whenever c++2a is supported)
+	// using logs is slow af (tolerable) (todo: upgrade to formatter whenever c++17 is supported)
 	global::infof("(%s) => min: %s, max: %s",
 		label.c_str(),
 		fmts::to_string(min).c_str(),

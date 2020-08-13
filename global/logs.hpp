@@ -20,9 +20,6 @@ void set_log_level (const std::string& log_level,
 /// Return log level
 std::string get_log_level (const global::CfgMapptrT& ctx = context());
 
-/// Log at trace level
-void trace (const std::string& msg);
-
 /// Log at debug level
 void debug (const std::string& msg);
 
@@ -37,13 +34,6 @@ void error (const std::string& msg);
 
 /// Log at fatal level
 void fatal (const std::string& msg);
-
-/// Log at trace level with arguments
-template <typename... ARGS>
-void tracef (const std::string& format, ARGS... args)
-{
-	trace(fmts::sprintf(format, args...));
-}
 
 /// Log at debug level with arguments
 template <typename... ARGS>

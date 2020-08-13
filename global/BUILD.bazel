@@ -31,6 +31,7 @@ cc_library(
         "@boost//:uuid",
         "@com_github_mingkaic_cppkg//estd:estd",
         "@com_github_mingkaic_cppkg//logs:logs",
+        "@com_github_kjellkod_g3log//:g3log",
     ],
     visibility = ["//visibility:public"],
 )

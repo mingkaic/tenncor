@@ -63,7 +63,7 @@ cc_library(
         "//tenncor/eteq:eteq",
         "@boost//:bimap",
         "@com_github_oliora_ppconsul//:consul",
-        "//egrpc:egrpc",
+        "@com_github_mingkaic_cppkg//egrpc:egrpc",
         "@com_github_mingkaic_cppkg//error:error",
     ],
     includes = [".."],

@@ -15,14 +15,14 @@ namespace emit
 struct Emitter final : public dbg::iPlugin
 {
 	Emitter (std::shared_ptr<grpc::ChannelInterface> channel,
-		ClientConfig client_cfg = ClientConfig()) :
+		egrpc::ClientConfig client_cfg = egrpc::ClientConfig()) :
 		client_(channel, client_cfg)
 	{
 		global::infof("created evaluator: %s", eval_id_.c_str());
 	}
 
 	Emitter (std::string host,
-		ClientConfig client_cfg = ClientConfig()) :
+		egrpc::ClientConfig client_cfg = egrpc::ClientConfig()) :
 		Emitter(grpc::CreateChannel(host,
 			grpc::InsecureChannelCredentials()), client_cfg) {}
 

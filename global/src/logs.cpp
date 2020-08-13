@@ -1,3 +1,5 @@
+
+#include "global/g3logs.hpp"
 #include "global/logs.hpp"
 
 #ifdef GLOBAL_LOGS_HPP
@@ -23,7 +25,7 @@ logs::iLogger& get_logger (const global::CfgMapptrT& ctx)
 		ctx->get_obj(global::logger_key));
 	if (nullptr == log)
 	{
-		log = new logs::DefLogger();
+		log = new G3Logger();
 		set_logger(log, ctx);
 	}
 	return *log;
@@ -48,9 +50,6 @@ std::string get_log_level (const global::CfgMapptrT& ctx)
 	if (logger.supports_level(LOG_LEVEL))\
 	{ logger.log(LOG_LEVEL, msg); }\
 }
-
-void trace (const std::string& msg)
-LOG_DEFN("trace")
 
 void debug (const std::string& msg)
 LOG_DEFN("debug")

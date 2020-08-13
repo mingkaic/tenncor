@@ -128,8 +128,11 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
 	{
 		// ListAscii
-		new egrpc::AsyncServerStreamCall<print::ListAsciiRequest,print::AsciiEntry,types::StringsT>(
-			fmts::sprintf("%s:ListAscii", get_peer_id().c_str()),
+		auto lascii_logger = std::make_shared<global::FormatLogger>(
+			&global::get_logger(), fmts::sprintf("[server %s:ListAscii] ",
+				get_peer_id().c_str()));
+		new egrpc::AsyncServerStreamCall<print::ListAsciiRequest,
+			print::AsciiEntry,types::StringsT>(lascii_logger,
 			[this](grpc::ServerContext* ctx, print::ListAsciiRequest* req,
 				grpc::ServerAsyncWriter<print::AsciiEntry>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
