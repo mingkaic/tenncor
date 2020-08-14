@@ -273,7 +273,7 @@ private:
 		{
 			return nexts;
 		}
-		std::vector<egrpc::ErrFutureT> completions;
+		std::list<egrpc::ErrPromiseptrT> completions;
 		for (auto server : servers)
 		{
 			auto peer_id = server.first;
@@ -312,15 +312,18 @@ private:
 						AsciiTemplate(res.format(), remotes));
 				}));
 		}
-		for (auto& done : completions)
+		while (false == completions.empty())
 		{
-			while (done.valid() && done.wait_for(
-				std::chrono::milliseconds(1)) ==
-				std::future_status::timeout);
-			if (auto err = done.get())
+			auto done = completions.front()->get_future();
+			wait_on_future(done);
+			if (done.valid())
 			{
-				global::fatal(err->to_string());
+				if (auto err = done.get())
+				{
+					global::fatal(err->to_string());
+				}
 			}
+			completions.pop_front();
 		}
 		return nexts;
 	}

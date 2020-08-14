@@ -19,14 +19,16 @@ struct DistrIOCli final : public egrpc::GrpcClient
 		stub_(io::DistrInOut::NewStub(channel)),
 		alias_(alias) {}
 
-	std::future<void> list_nodes (grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT list_nodes (
+		grpc::CompletionQueue& cq,
 		const io::ListNodesRequest& req,
 		std::function<void(io::ListNodesResponse&)> cb)
 	{
+		auto done = std::make_shared<egrpc::ErrPromiseT>();
 		using ListNodesHandlerT = egrpc::AsyncClientHandler<io::ListNodesResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
 			fmts::sprintf("[client %s:ListNodes] ", alias_.c_str()));
-		auto handler = new ListNodesHandlerT(logger, cb,
+		auto handler = new ListNodesHandlerT(done, logger, cb,
 			[this, &req, &cq](ListNodesHandlerT* handler)
 			{
 				build_ctx(handler->ctx_, false);
@@ -36,7 +38,7 @@ struct DistrIOCli final : public egrpc::GrpcClient
 				handler->reader_->StartCall();
 				handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
 			}, cfg_.request_retry_);
-		return handler->complete_promise_.get_future();
+		return done;
 	}
 
 private:

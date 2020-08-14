@@ -19,13 +19,15 @@ struct DistrPrintCli final : public egrpc::GrpcClient
 		stub_(print::DistrPrint::NewStub(channel)),
 		alias_(alias) {}
 
-	egrpc::ErrFutureT list_ascii (grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT list_ascii (
+		grpc::CompletionQueue& cq,
 		const print::ListAsciiRequest& req,
 		std::function<void(print::AsciiEntry&)> cb)
 	{
+		auto done = std::make_shared<egrpc::ErrPromiseT>();
 		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
 			fmts::sprintf("[client %s:ListAscii] ", alias_.c_str()));
-		auto handler = new egrpc::AsyncClientStreamHandler<print::AsciiEntry>(logger, cb);
+		auto handler = new egrpc::AsyncClientStreamHandler<print::AsciiEntry>(done, logger, cb);
 
 		build_ctx(handler->ctx_, false);
 		// prepare to avoid passing to cq before reader_ assignment
@@ -33,7 +35,7 @@ struct DistrPrintCli final : public egrpc::GrpcClient
 			&handler->ctx_, req, &cq);
 		// make request after reader_ assignment
 		handler->reader_->StartCall((void*) handler);
-		return handler->complete_promise_.get_future();
+		return done;
 	}
 
 private:

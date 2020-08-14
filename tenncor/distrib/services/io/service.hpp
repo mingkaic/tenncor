@@ -67,7 +67,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		io::ListNodesRequest req;
 		DRefptrT ref = nullptr;
 		req.add_uuids(id);
-		auto done = client->list_nodes(cq_, req,
+		auto promise = client->list_nodes(cq_, req,
 			[&, this](io::ListNodesResponse& res)
 			{
 				if (res.values().empty())
@@ -80,9 +80,8 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 				ref = node_meta_to_ref(node);
 				this->data_.cache_tens(ref);
 			});
-		while (done.valid() && done.wait_for(
-			std::chrono::milliseconds(1)) ==
-			std::future_status::timeout);
+		auto done = promise->get_future();
+		wait_on_future(done);
 		return ref;
 	}
 

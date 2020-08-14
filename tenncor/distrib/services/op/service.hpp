@@ -56,7 +56,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		auto refs = reachable_refs(targets, ignored);
 		types::StrUMapT<types::StrUSetT> servers;
 		separate_by_server(servers, refs);
-		std::vector<egrpc::ErrFutureT> completions;
+		std::list<egrpc::ErrPromiseptrT> completions;
 		for (auto& spair : servers)
 		{
 			auto peer_id = spair.first;
@@ -91,15 +91,18 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 				}));
 		}
 		// wait for completion before evaluating in local
-		for (auto& done : completions)
+		while (false == completions.empty())
 		{
-			while (done.valid() && done.wait_for(
-				std::chrono::milliseconds(1)) ==
-				std::future_status::timeout);
-			if (auto err = done.get())
+			auto done = completions.front()->get_future();
+			wait_on_future(done);
+			if (done.valid())
 			{
-				global::fatal(err->to_string());
+				if (auto err = done.get())
+				{
+					global::fatal(err->to_string());
+				}
 			}
+			completions.pop_front();
 		}
 		// locally evaluate
 		teq::TravEvaluator eval(device, ignored);
@@ -174,8 +177,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		}
 		if (remotes.size() > 0)
 		{
-			std::vector<std::future<void>> completions;
-			completions.reserve(remotes.size());
+			std::list<egrpc::ErrPromiseptrT> completions;
 			for (auto& remote : remotes)
 			{
 				auto peer_id = remote.first;
@@ -192,7 +194,8 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 				dest_uuids(dests.begin(), dests.end());
 				req.mutable_srcs()->Swap(&src_uuids);
 				req.mutable_dests()->Swap(&dest_uuids);
-				completions.push_back(client->list_reachable(cq_, req,
+				completions.push_back(
+					client->list_reachable(cq_, req,
 					[&](op::ListReachableResponse& res)
 					{
 						types::StrUMapT<types::StrUSetT> reachables;
@@ -215,11 +218,11 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 						}
 					}));
 			}
-			for (auto& done : completions)
+			while (false == completions.empty())
 			{
-				while (done.valid() && done.wait_for(
-					std::chrono::milliseconds(1)) ==
-					std::future_status::timeout);
+				auto done = completions.front()->get_future();
+				wait_on_future(done);
+				completions.pop_front();
 			}
 		}
 		return reached;
@@ -285,8 +288,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		separate_by_server(remotes, reachrefs);
 		if (remotes.size() > 0)
 		{
-			std::vector<std::future<void>> completions;
-			completions.reserve(remotes.size());
+			std::list<egrpc::ErrPromiseptrT> completions;
 			std::string rootid = "";//*lookup_id(metas.root_.get());
 			for (auto remote : remotes)
 			{
@@ -334,7 +336,8 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 						auto uuid = iosvc_->expose_node(tens);
 						tens_to_node_meta(pbmeta, get_peer_id(), uuid, tens);
 					}
-					completions.push_back(client->create_derive(cq_, req,
+					completions.push_back(
+						client->create_derive(cq_, req,
 						[&](op::CreateDeriveResponse& res)
 						{
 							auto& target_grads = res.grads();
@@ -350,11 +353,11 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 							}
 						}));
 				}
-				for (auto& done : completions)
+				while (false == completions.empty())
 				{
-					while (done.valid() && done.wait_for(
-						std::chrono::milliseconds(1)) ==
-						std::future_status::timeout);
+					auto done = completions.front()->get_future();
+					wait_on_future(done);
+					completions.pop_front();
 				}
 			}
 		}

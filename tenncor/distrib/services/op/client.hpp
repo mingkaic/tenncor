@@ -19,13 +19,16 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		stub_(op::DistrOperation::NewStub(channel)),
 		alias_(alias) {}
 
-	egrpc::ErrFutureT get_data (grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT get_data (
+		grpc::CompletionQueue& cq,
 		const op::GetDataRequest& req,
 		std::function<void(op::NodeData&)> cb)
 	{
+		auto done = std::make_shared<egrpc::ErrPromiseT>();
 		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
 			fmts::sprintf("[client %s:GetData] ", alias_.c_str()));
-		auto handler = new egrpc::AsyncClientStreamHandler<op::NodeData>(logger, cb);
+		auto handler = new egrpc::AsyncClientStreamHandler<
+			op::NodeData>(done, logger, cb);
 
 		build_ctx(handler->ctx_, false);
 		// prepare to avoid passing to cq before reader_ assignment
@@ -33,17 +36,19 @@ struct DistrOpCli final : public egrpc::GrpcClient
 			&handler->ctx_, req, &cq);
 		// make request after reader_ assignment
 		handler->reader_->StartCall((void*) handler);
-		return handler->complete_promise_.get_future();
+		return done;
 	}
 
-	std::future<void> list_reachable (grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT list_reachable (
+		grpc::CompletionQueue& cq,
 		const op::ListReachableRequest& req,
 		std::function<void(op::ListReachableResponse&)> cb)
 	{
+		auto done = std::make_shared<egrpc::ErrPromiseT>();
 		using ListReachableHandlerT = egrpc::AsyncClientHandler<op::ListReachableResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
 			fmts::sprintf("[client %s:ListReachable] ", alias_.c_str()));
-		auto handler = new ListReachableHandlerT(logger, cb,
+		auto handler = new ListReachableHandlerT(done, logger, cb,
 			[this, &req, &cq](ListReachableHandlerT* handler)
 			{
 				build_ctx(handler->ctx_, false);
@@ -53,17 +58,19 @@ struct DistrOpCli final : public egrpc::GrpcClient
 				handler->reader_->StartCall();
 				handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
 			}, cfg_.request_retry_);
-		return handler->complete_promise_.get_future();
+		return done;
 	}
 
-	std::future<void> create_derive (grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT create_derive (
+		grpc::CompletionQueue& cq,
 		const op::CreateDeriveRequest& req,
 		std::function<void(op::CreateDeriveResponse&)> cb)
 	{
+		auto done = std::make_shared<egrpc::ErrPromiseT>();
 		using CreateDeriveHandlerT = egrpc::AsyncClientHandler<op::CreateDeriveResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
 			fmts::sprintf("[client %s:Derive] ", alias_.c_str()));
-		auto handler = new CreateDeriveHandlerT(logger, cb,
+		auto handler = new CreateDeriveHandlerT(done, logger, cb,
 			[this, &req, &cq](CreateDeriveHandlerT* handler)
 			{
 				build_ctx(handler->ctx_, false);
@@ -73,7 +80,7 @@ struct DistrOpCli final : public egrpc::GrpcClient
 				handler->reader_->StartCall();
 				handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
 			}, cfg_.request_retry_);
-		return handler->complete_promise_.get_future();
+		return done;
 	}
 
 private:
