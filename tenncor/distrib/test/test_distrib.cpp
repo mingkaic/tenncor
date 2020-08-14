@@ -29,10 +29,31 @@ struct DISTRIB : public ::testing::Test
 		}
 		std::string address = fmts::sprintf("http://%s:8500", consul_addr);
 		consul_ = std::make_shared<ppconsul::Consul>(address);
+		clean_up();
+	}
+
+	~DISTRIB (void)
+	{
+		clean_up();
 	}
 
 protected:
 	void TearDown (void) override
+	{
+		clean_up();
+	}
+
+	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "",
+		global::CfgMapptrT ctx = global::context())
+	{
+		return tcr::ctxualize_distrmgr(consul_, port, id, {
+			distr::register_iosvc,
+			distr::register_opsvc,
+			distr::register_printsvc,
+		}, test_service, ctx);
+	}
+
+	void clean_up (void)
 	{
 		ppconsul::agent::Agent agent(*consul_);
 		ppconsul::catalog::Catalog catalog(*consul_);
@@ -48,16 +69,6 @@ protected:
 		ppconsul::catalog::Catalog catalog(*consul_);
 		auto services = catalog.service(test_service);
 		ASSERT_EQ(services.size(), 0);
-	}
-
-	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "",
-		global::CfgMapptrT ctx = global::context())
-	{
-		return tcr::ctxualize_distrmgr(consul_, port, id, {
-			distr::register_iosvc,
-			distr::register_opsvc,
-			distr::register_printsvc,
-		}, test_service, ctx);
 	}
 
 	distr::ConsulptrT consul_;
