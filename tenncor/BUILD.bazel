@@ -103,9 +103,47 @@ cc_library(
     include_prefix = "tenncor",
     includes = ["."],
     deps = [
-        "//tenncor/layr:layr",
-        "//tenncor/distrib:distrib",
+        ":distrib",
+        ":layr",
     ],
+)
+
+cc_library(
+    name = "eteq",
+    hdrs = ["//tenncor/eteq:eteq_hdrs"],
+    srcs = ["//tenncor/eteq:eteq_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//opt:opt",
+        "//onnx:onnx",
+    ],
+    includes = ["."],
+)
+
+cc_library(
+    name = "distrib",
+    hdrs = ["//tenncor/distrib:distrib_hdrs"],
+    srcs = ["//tenncor/distrib:distrib_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":eteq",
+        "//tenncor/distrib:distr_cc_grpc",
+        "@boost//:bimap",
+        "@com_github_oliora_ppconsul//:consul",
+        "@com_github_mingkaic_cppkg//egrpc:egrpc",
+        "@com_github_mingkaic_cppkg//error:error",
+    ],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "layr",
+    hdrs = ["//tenncor/layr:layr_hdrs"],
+    srcs = ["//tenncor/layr:layr_srcs"],
+    copts = ["-std=c++17"],
+    deps = [":eteq"],
+    includes = ["."],
 )
 
 pybind_py_library(

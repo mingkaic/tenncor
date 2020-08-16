@@ -15,11 +15,13 @@ filegroup(
 filegroup(
     name = "layr_hdrs",
     srcs = glob(["*.hpp"]),
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
     name = "layr_srcs",
     srcs = glob(["src/*.cpp"]),
+    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -30,18 +32,6 @@ filegroup(
 filegroup(
     name = "ptest_srcs",
     srcs = ["test/ptest.py"],
-)
-
-######### LIBRARY #########
-
-cc_library(
-    name = "layr",
-    hdrs = [":layr_hdrs"],
-    srcs = [":layr_srcs"],
-    copts = ["-std=c++17"],
-    deps = ["//tenncor/eteq:eteq"],
-    includes = [".."],
-    visibility = ["//visibility:public"],
 )
 
 ######### TEST #########

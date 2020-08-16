@@ -79,7 +79,7 @@
 #     srcs = ["rtscale.cpp"],
 #     copts = ["-std=c++17"],
 #     deps = [
-#         "//tenncor/eteq:eteq",
+#         "//tenncor:eteq",
 #         "//ccur:weight_cc_pb",
 #         "@com_github_mingkaic_cppkg//flag:flag",
 #     ],
@@ -94,7 +94,7 @@
 #     deps = [
 #         "//dbg:print",
 #         "//ccur:ccur",
-#         "//tenncor/eteq:eteq",
+#         "//tenncor:eteq",
 #         "@gtest//:gtest",
 #         "@com_github_mingkaic_cppkg//exam:exam",
 #     ],

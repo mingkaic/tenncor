@@ -87,7 +87,7 @@ cc_library(
     name = "compare",
     hdrs = [":compare_hdrs"],
     copts = ["-std=c++17"],
-    deps = ["//tenncor/eteq:eteq"],
+    deps = ["//tenncor:eteq"],
     visibility = ["//visibility:public"],
 )
 
@@ -125,7 +125,7 @@ cc_library(
     deps = [
         ":peval",
         ":gemitter_cc_grpc",
-        "//tenncor/eteq:eteq",
+        "//tenncor:eteq",
         "@boost//:uuid",
         "@com_github_mingkaic_cppkg//egrpc:egrpc",
         "@com_github_mingkaic_cppkg//jobs:jobs",
@@ -174,7 +174,7 @@ cc_library(
     deps = [
         ":print",
         ":distr_cc_grpc",
-        "//tenncor/distrib:distrib",
+        "//tenncor:distrib",
     ],
     visibility = ["//visibility:public"],
 )

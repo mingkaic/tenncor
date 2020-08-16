@@ -1,3 +1,11 @@
+///
+/// funcopt.hpp
+/// eteq
+///
+/// Purpose:
+/// Check if operator represented by opcode is redundant
+/// based on attribute and input shapes
+///
 
 #include "eigen/eigen.hpp"
 
