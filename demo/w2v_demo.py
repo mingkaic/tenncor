@@ -5,6 +5,8 @@ from collections import defaultdict
 
 import tenncor as tc
 
+import extenncor
+print(extenncor)
 from extenncor.embed import Embedding, make_embedding, vdistance
 
 text = "natural language processing and machine learning is fun and exciting"

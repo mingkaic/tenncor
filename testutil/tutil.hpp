@@ -129,6 +129,22 @@ tutil::check_tensordata_real<DTYPE>(EXTENS, GOTENS, __FILE__, __LINE__)
 	EXPECT_EQ(0, compare_str.size()) << compare_str;\
 }
 
+#define EXPECT_ERR(E, MSG)\
+EXPECT_NE(nullptr, E);\
+if (nullptr != E)\
+{\
+	EXPECT_STREQ(MSG, E->to_string().c_str());\
+}
+
+#define ASSERT_NOERR(ERR) {\
+	std::string err_msg;\
+	if (nullptr != ERR)\
+	{\
+		err_msg = ERR->to_string();\
+	}\
+	ASSERT_EQ(nullptr, ERR) << err_msg;\
+}
+
 }
 
 #endif // TEST_TUTIL_HPP

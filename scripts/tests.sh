@@ -30,28 +30,28 @@ if [[ "$MODE" == "fast" ]]; then
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //gen:ptest;
 elif [[ "$MODE" == "eteq" ]]; then
-	bzl_coverage //eteq:ctest;
+	bzl_coverage //tenncor/eteq:ctest;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //eteq:ptest;
+	--remote_http_cache="$REMOTE_CACHE" //tenncor/eteq:ptest;
 elif [[ "$MODE" == "layr" ]]; then
-	bzl_coverage //layr:ctest;
+	bzl_coverage //tenncor/layr:ctest;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //layr:ptest;
+	--remote_http_cache="$REMOTE_CACHE" //tenncor/layr:ptest;
 elif [[ "$MODE" == "distrib" ]]; then
-	bzl_coverage //distrib:ctest;
+	bzl_coverage //tenncor/distrib:ctest;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //distrib:ptest;
+	--remote_http_cache="$REMOTE_CACHE" //tenncor/distrib:ptest;
 else
-	bzl_coverage //eigen:test //eteq:ctest //distrib:ctest \
-	//layr:ctest //marsh:test //onnx:test //opt:test \
+	bzl_coverage //eigen:test //tenncor/eteq:ctest //tenncor/distrib:ctest \
+	//tenncor/layr:ctest //marsh:test //onnx:test //opt:test \
 	//query:test //teq:test //utils:test;
 
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" \
-	//eteq:ptest //gen:ptest //layr:ptest //distrib:ptest;
+	//gen:ptest //tenncor/eteq:ptest //tenncor/layr:ptest //tenncor/distrib:ptest;
 fi
 
 lcov --remove "$COV_DIR/coverage.info" 'external/*' '**/test/*' \

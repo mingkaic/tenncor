@@ -3,11 +3,11 @@
 
 #include "exam/exam.hpp"
 
-#include "teq/logs.hpp"
+#include "global/global.hpp"
 
 int main (int argc, char** argv)
 {
-	LOG_INIT(exam::TestLogger);
+	global::set_logger(new exam::TestLogger());
 
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();

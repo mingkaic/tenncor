@@ -6,9 +6,9 @@ CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0
 
 EIGEN_TEST := //eigen:test
 
-ETEQ_CTEST := //eteq:ctest
+ETEQ_CTEST := //tenncor/eteq:ctest
 
-LAYR_TEST := //layr:test
+LAYR_TEST := //tenncor/layr:test
 
 MARSH_TEST := //marsh:test
 
@@ -23,6 +23,8 @@ TEQ_TEST := //teq:test
 IMAGE_REPO := mkaichen
 IMAGE_TAG := latest
 
+REMOTE_CACHE := ''
+
 
 all: build_test_image build_lib_image build_image
 
@@ -34,7 +36,7 @@ build_test_image:
 
 .PHONY: build_lib_image
 build_lib_image:
-	docker build -f Dockerfile.make -t ${IMAGE_REPO}/tenncor-build:${IMAGE_TAG} .
+	docker build -f Dockerfile.make --build-arg REMOTE_CACHE=${REMOTE_CACHE} -t ${IMAGE_REPO}/tenncor-build:${IMAGE_TAG} .
 	docker tag ${IMAGE_REPO}/tenncor-build:${IMAGE_TAG} ${IMAGE_REPO}/tenncor-build:latest
 
 .PHONY: build_image

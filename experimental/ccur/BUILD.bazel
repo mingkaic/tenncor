@@ -31,13 +31,13 @@
 # ######### LIBRARY #########
 
 # proto_library(
-#     name = "weight_proto",
+#     name = "weight_pb",
 #     srcs = ["//ccur:protos"],
 # )
 
 # cc_proto_library(
-#     name = "weight_cc_proto",
-#     deps = ["//ccur:weight_proto"],
+#     name = "weight_cc_pb",
+#     deps = ["//ccur:weight_pb"],
 # )
 
 # cc_library(
@@ -57,7 +57,7 @@
 #     cc_deps = [
 #         "//ccur:ccur",
 #     ],
-#     py_deps = ["//:tenncor_py"],
+#     py_deps = ["//tenncor:tenncor_py"],
 #     copts = ["-std=c++17"],
 #     visibility = ["//visibility:public"],
 # )
@@ -69,7 +69,7 @@
 #     srcs = glob(["inspector.cpp"]),
 #     copts = ["-std=c++17"],
 #     deps = [
-#         "//ccur:weight_cc_proto",
+#         "//ccur:weight_cc_pb",
 #         "@com_github_mingkaic_cppkg//flag:flag",
 #     ],
 # )
@@ -79,8 +79,8 @@
 #     srcs = ["rtscale.cpp"],
 #     copts = ["-std=c++17"],
 #     deps = [
-#         "//eteq:eteq",
-#         "//ccur:weight_cc_proto",
+#         "//tenncor:eteq",
+#         "//ccur:weight_cc_pb",
 #         "@com_github_mingkaic_cppkg//flag:flag",
 #     ],
 # )
@@ -94,7 +94,7 @@
 #     deps = [
 #         "//dbg:print",
 #         "//ccur:ccur",
-#         "//eteq:eteq",
+#         "//tenncor:eteq",
 #         "@gtest//:gtest",
 #         "@com_github_mingkaic_cppkg//exam:exam",
 #     ],

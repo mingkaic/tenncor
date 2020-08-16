@@ -1,0 +1,93 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":distrib_hdrs",
+        ":distrib_srcs",
+        ":protos",
+        ":ctest_srcs",
+        ":ptest_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "distrib_hdrs",
+    srcs = glob([
+        "*.hpp",
+        "services/**/*.hpp",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "distrib_srcs",
+    srcs = glob([
+        "src/*.cpp",
+        "services/**/*.cpp",
+    ]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "protos",
+    srcs = glob(["services/**/*.proto"]),
+)
+
+filegroup(
+    name = "ctest_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
+filegroup(
+    name = "ptest_srcs",
+    srcs = glob([
+        "test/*.py",
+    ]),
+)
+
+######### LIBRARY #########
+
+proto_library(
+    name = "distr_pb",
+    srcs = [":protos"],
+    visibility = ["//visibility:public"],
+)
+
+cpp_grpc_library(
+    name = "distr_cc_grpc",
+    deps = [":distr_pb"],
+    visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "ctest",
+    srcs = [":ctest_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//dbg:distrib",
+        "//tenncor:tenncor",
+        "//testutil:tutil",
+    ],
+    linkstatic = True,
+    size = "large",
+)
+
+py_test(
+    name = "ptest",
+    srcs = [":ptest_srcs"],
+    deps = [
+        "//tenncor:tenncor_py",
+        "//testutil:pyunit_util",
+    ],
+    data = ["//:test_models"],
+)

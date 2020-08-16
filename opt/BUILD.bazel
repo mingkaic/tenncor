@@ -48,22 +48,22 @@ cc_library(
     srcs = [":opt_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        ":opt_cc_proto",
+        ":opt_cc_pb",
         "//query:query",
     ],
     visibility = ["//visibility:public"],
 )
 
 proto_library(
-    name = "opt_proto",
+    name = "opt_pb",
     srcs = [":protos"],
-    deps = ["//query:query_proto"],
+    deps = ["//query:query_pb"],
     visibility = ["//visibility:public"],
 )
 
 cpp_proto_library(
-    name = "opt_cc_proto",
-    deps = [":opt_proto"],
+    name = "opt_cc_pb",
+    deps = [":opt_pb"],
     visibility = ["//visibility:public"],
 )
 

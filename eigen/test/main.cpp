@@ -3,15 +3,14 @@
 
 #include "exam/exam.hpp"
 
-#include "teq/logs.hpp"
+#include "global/logs.hpp"
+#include "global/random.hpp"
 
 #include "eigen/device.hpp"
-#include "eigen/random.hpp"
 
 int main (int argc, char** argv)
 {
-	LOG_INIT(exam::TestLogger);
-	RANDOM_INIT;
+	global::set_logger(new exam::TestLogger());
 
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();

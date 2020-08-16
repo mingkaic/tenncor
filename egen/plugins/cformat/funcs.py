@@ -12,7 +12,7 @@ _defn_template = '''
 {{
     if ({null_check})
     {{
-        teq::fatal("cannot {funcname} with a null argument");
+        global::fatal("cannot {funcname} with a null argument");
     }}
     {block}
 }}

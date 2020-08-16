@@ -1,0 +1,37 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":global_hdrs",
+        ":global_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "global_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "global_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+######### LIBRARIES #########
+
+cc_library(
+    name = "global",
+    hdrs = [":global_hdrs"],
+    srcs = [":global_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "@boost//:uuid",
+        "@com_github_mingkaic_cppkg//estd:estd",
+        "@com_github_mingkaic_cppkg//logs:logs",
+        "@com_github_kjellkod_g3log//:g3log",
+    ],
+    visibility = ["//visibility:public"],
+)

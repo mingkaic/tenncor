@@ -1,0 +1,58 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":layr_hdrs",
+        ":layr_srcs",
+        ":ctest_srcs",
+        ":ptest_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "layr_hdrs",
+    srcs = glob(["*.hpp"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "layr_srcs",
+    srcs = glob(["src/*.cpp"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "ctest_srcs",
+    srcs = glob(["test/*.cpp"]),
+)
+
+filegroup(
+    name = "ptest_srcs",
+    srcs = ["test/ptest.py"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "ctest",
+    srcs = [":ctest_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//tenncor:tenncor",
+        "//testutil:tutil",
+        "@com_github_mingkaic_cppkg//diff:diff",
+    ],
+    linkstatic = True,
+)
+
+py_test(
+    name = "ptest",
+    srcs = [":ptest_srcs"],
+    deps = [
+        "//tenncor:tenncor_py",
+        "//dbg:print_py",
+    ],
+)

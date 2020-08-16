@@ -5,15 +5,14 @@
 
 #include "exam/exam.hpp"
 
-#include "teq/logs.hpp"
+#include "global/global.hpp"
 
 #include "eigen/eigen.hpp"
 
 int main (int argc, char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
-	LOG_INIT(exam::TestLogger);
-	RANDOM_INIT;
+	global::set_logger(new exam::TestLogger());
 
 	::testing::InitGoogleTest(&argc, argv);
 	int ret = RUN_ALL_TESTS();

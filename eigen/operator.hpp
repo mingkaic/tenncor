@@ -9,7 +9,6 @@
 // todo: make this generated
 
 #include "eigen/device.hpp"
-#include "eigen/random.hpp"
 #include "eigen/packattr.hpp"
 
 #ifndef EIGEN_OPERATOR_HPP
@@ -45,7 +44,7 @@ inline std::array<T,N> dim_copy (std::vector<T> d)
 }
 
 #define _ARRAY_SWITCH(ARR, CASE)switch (ARR.size()) {\
-	case 0: teq::fatal("missing dimensions");\
+	case 0: global::fatal("missing dimensions");\
 	case 1: CASE(ARR,1)\
 	case 2: CASE(ARR,2)\
 	case 3: CASE(ARR,3)\
@@ -138,7 +137,7 @@ EigenptrT reduce_max (teq::Shape outshape, const teq::iTensor& in, const marsh::
 	_ARRAY_SWITCH(vranks, _EIGEN_RMAX_CASE)
 }
 
-#undef _EIGEN_RMIN_CASE
+#undef _EIGEN_RMAX_CASE
 
 /// Return Eigen data object that argmax in tensor at return_dim
 template <typename T>
@@ -1262,7 +1261,7 @@ EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::i
 				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
-				Randomizer rand;
+				global::Randomizer rand;
 				return args[0].binaryExpr(args[1],
 					std::function<T(const T&,const T&)>(
 						[rand](const T& a, const T& b)
@@ -1277,7 +1276,7 @@ EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::i
 			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
-			Randomizer rand;
+			global::Randomizer rand;
 			return args[0].binaryExpr(args[1],
 				std::function<T(const T&,const T&)>(
 					[rand](const T& a, const T& b)
@@ -1365,6 +1364,8 @@ EigenptrT matmul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 
 #undef _EIGEN_MATMUL_CASE
 
+#undef _ARRAY_SWITCH
+
 /// Apply convolution of kernel across input
 template <typename T>
 EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
@@ -1381,7 +1382,7 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 		teq::RankT d = order[i];
 		if (visited[d])
 		{
-			teq::fatalf("convolution does not support repeated kernel "
+			global::fatalf("convolution does not support repeated kernel "
 				"dimensions: %s", fmts::to_string(
 					order.begin(), order.end()).c_str());
 		}
@@ -1392,7 +1393,7 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 	{
 		if (kshape.at(i) > 1)
 		{
-			teq::fatalf("given kernel shape %s, unspecified "
+			global::fatalf("given kernel shape %s, unspecified "
 				"non-singular kernel dimension %d is undefined",
 					kshape.to_string().c_str(), i);
 		}
@@ -1417,8 +1418,6 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 			return args[0].convolve(args[1], dims);
 		});
 }
-
-#undef _ARRAY_SWITCH
 
 template <typename T>
 EigenptrT assign (teq::iTensor& target, const teq::iTensor& source)

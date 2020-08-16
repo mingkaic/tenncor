@@ -18,9 +18,11 @@ TEST(TRAVELER, GraphStat)
 	teq::TensptrT b(new MockLeaf());
 	teq::TensptrT c(new MockLeaf());
 
+	teq::TensptrT d(new MockFunctor(teq::TensptrsT{c}, teq::Opcode{"MOCK2", 0}));
+
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
-	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f}, teq::Opcode{"MOCK0", 0}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{d, f}, teq::Opcode{"MOCK0", 0}));
 
 	teq::GraphStat stat;
 	g->accept(stat);
@@ -38,11 +40,16 @@ TEST(TRAVELER, PathFinder)
 	teq::TensptrT b(new MockLeaf());
 	teq::TensptrT c(new MockLeaf());
 
+	teq::TensptrT d(new MockFunctor(teq::TensptrsT{c}, teq::Opcode{"MOCK2", 0}));
+
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
 
-	teq::TensptrT g(new MockFunctor(teq::TensptrsT{c, f}, teq::Opcode{"MOCK1", 1}));
+	teq::TensptrT g(new MockFunctor(teq::TensptrsT{d, f}, teq::Opcode{"MOCK0", 0}));
 
-	teq::PathFinder finder(a.get());
+	std::string target_key = "target";
+
+	teq::PathFinder finder(
+		teq::TensMapT<std::string>{{a.get(), target_key}});
 	g->accept(finder);
 
 	{
@@ -69,7 +76,8 @@ TEST(TRAVELER, PathFinder)
 		EXPECT_ARRHAS(fdirs["target"].children_, 0);
 	}
 
-	teq::PathFinder finder2(c.get());
+	teq::PathFinder finder2(
+		teq::TensMapT<std::string>{{c.get(), target_key}});
 	g->accept(finder2);
 
 	{
@@ -130,7 +138,7 @@ TEST(TRAVELER, ReverseParentGraph)
 
 TEST(TRAVELER, Owners)
 {
-	teq::OwnerMapT owners;
+	teq::RefMapT owners;
 	teq::TensptrT a(new MockLeaf());
 	teq::TensptrT b(new MockLeaf());
 	teq::TensptrT c(new MockLeaf());
@@ -143,7 +151,7 @@ TEST(TRAVELER, Owners)
 		fref = f.get();
 		gref = g.get();
 
-		owners = teq::track_owners({g});
+		owners = teq::track_ownrefs(teq::TensptrsT{g});
 		ASSERT_HAS(owners, a.get());
 		ASSERT_HAS(owners, b.get());
 		ASSERT_HAS(owners, c.get());

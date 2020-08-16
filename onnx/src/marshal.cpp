@@ -103,12 +103,12 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 
 	void marshal (const marsh::iTuple& tup) override
 	{
-		teq::fatal("onnx does not support tuples");
+		global::fatal("onnx does not support tuples");
 	}
 
 	void marshal (const marsh::Maps& mm) override
 	{
-		teq::fatal("onnx does not support map attributes");
+		global::fatal("onnx does not support map attributes");
 	}
 
 	void marshal (const teq::TensorObj& tens) override
@@ -264,12 +264,12 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 				}
 				else
 				{
-					teq::warnf("unknown graph attribute %s",
+					global::warnf("unknown graph attribute %s",
 						attr_name.c_str());
 				}
 				continue;
 			default:
-				teq::fatalf("unknown onnx attribute type of %s",
+				global::fatalf("unknown onnx attribute type of %s",
 					attr_name.c_str());
 		}
 		out.add_attr(attr_name, marsh::ObjptrT(val));

@@ -1,4 +1,3 @@
 numpy
 pyyaml
 protobuf
-tensorflow_datasets
