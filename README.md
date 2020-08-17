@@ -25,12 +25,6 @@ This module wraps eigen operators using TEQ shape and coordinate arguments.
 
 Eigen objects hold the real data and provides API to manipulate the data.
 
-### [ETEQ (Eigen TEQ)](eteq/README_ETEQ.md)
-
-This module is implements basic operations for Tenncor's TEQ Tensor objects generated through pybinder.
-
-Additionally, ETEQ also defines data format and (de)serialization methods required by PBM.
-
 ### [ONNX (ONNX marshaller)](onnx/README_ONNX.md)
 
 This module marshals any TEQ graph, but requires data serialization functors when saving and loading.
@@ -46,6 +40,12 @@ This module looks up TEQ subgraphs according to structural pattern, attributes, 
 ### [OPT (OPTimizer)](opt/README_OPT.md)
 
 This module specifies graph optimization through TEQ subgraph Query.
+
+### [ETEQ (Eigen TEQ)](eteq/README_ETEQ.md)
+
+This module is implements basic operations for Tenncor's TEQ Tensor objects generated through pybinder.
+
+Additionally, ETEQ also defines data format and (de)serialization methods required by PBM.
 
 ### [LAYR (LAYeR models)](layr/README_LAYR.md)
 

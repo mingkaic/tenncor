@@ -8,12 +8,12 @@
 
 #include "testutil/tutil.hpp"
 
-#include "eteq/derive.hpp"
+#include "tenncor/derive.hpp"
 
 #include "query/querier.hpp"
 #include "query/parse.hpp"
 
-#include "generated/api.hpp"
+#include "tenncor/tenncor.hpp"
 
 
 static eteq::ETensor<double> tc_tanh (const eteq::ETensor<double>& x)
@@ -99,9 +99,9 @@ static teq::TensptrsT rnn_setup (void)
 
 	auto err = tenncor<double>().pow(out - output, 2.);
 
-	auto dw = eteq::derive(err, {weight})[0];
-	auto db = eteq::derive(err, {bias})[0];
-	auto dstate = eteq::derive(err, {istate})[0];
+	auto dw = tcr::derive(err, {weight})[0];
+	auto db = tcr::derive(err, {bias})[0];
+	auto dstate = tcr::derive(err, {istate})[0];
 
 	return teq::TensptrsT{dw, db, dstate, err};
 }
@@ -154,10 +154,7 @@ TEST(ADV, Unknowns)
 	query::Node cond;
 	json_parse(cond, inss);
 	query::Query matcher;
-	for (auto root : rnn_roots)
-	{
-		root->accept(matcher);
-	}
+	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
 
 	ASSERT_EQ(1, results.size());
@@ -260,10 +257,7 @@ TEST(ADV, MisLabelledVariable)
 	query::Node cond;
 	json_parse(cond, inss);
 	query::Query matcher;
-	for (auto root : rnn_roots)
-	{
-		root->accept(matcher);
-	}
+	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
 
 	EXPECT_EQ(0, results.size());
@@ -291,10 +285,7 @@ TEST(ADV, LabelledVariable)
 	query::Node cond;
 	json_parse(cond, inss);
 	query::Query matcher;
-	for (auto root : rnn_roots)
-	{
-		root->accept(matcher);
-	}
+	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
 
 	ASSERT_EQ(1, results.size());
@@ -330,10 +321,7 @@ TEST(ADV, Scalar)
 	query::Node cond;
 	json_parse(cond, inss);
 	query::Query matcher;
-	for (auto root : rnn_roots)
-	{
-		root->accept(matcher);
-	}
+	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
 
 	ASSERT_EQ(1, results.size());

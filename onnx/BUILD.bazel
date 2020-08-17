@@ -39,7 +39,7 @@ cc_library(
     srcs = [":onnx_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        ":onnx_cc_proto",
+        ":onnx_cc_pb",
         "//teq:teq",
         "@boost//:uuid",
         "@boost//:bimap",
@@ -55,19 +55,19 @@ genrule(
 )
 
 proto_library(
-    name = "onnx_proto",
+    name = "onnx_pb",
     srcs = ["onnx.proto"],
     visibility = ["//visibility:public"],
 )
 
 # cpp_proto_library(
-#     name = "onnx_cc_proto",
-#     deps = [":onnx_proto"],
+#     name = "onnx_cc_pb",
+#     deps = [":onnx_pb"],
 #     visibility = ["//visibility:public"],
 # )
 
 cc_library(
-    name = "onnx_cc_proto",
+    name = "onnx_cc_pb",
     hdrs = ["onnx.pb.h"],
     srcs = ["onnx.pb.cc"],
     copts = ["-std=c++17"],
@@ -82,7 +82,7 @@ cc_binary(
     srcs = ["inspector.cpp"],
     copts = ["-std=c++17"],
     deps = [
-        ":onnx_cc_proto",
+        ":onnx_cc_pb",
         "@com_github_mingkaic_cppkg//estd:estd",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],

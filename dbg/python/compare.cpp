@@ -2,11 +2,11 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "teq/logs.hpp"
+#include "global/global.hpp"
 
 #include "dbg/compare/equal.hpp"
 
-#include "generated/pyapi.hpp"
+#include "tenncor/tenncor.hpp"
 
 namespace py = pybind11;
 

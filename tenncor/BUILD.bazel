@@ -1,0 +1,179 @@
+licenses(["notice"])
+
+load("//third_party:tools/pybind.bzl", "pybind_py_library")
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":benchmark_srcs",
+        ":tenncor_hdrs",
+        ":tenncor_srcs",
+        ":pybind_hdrs",
+        ":pybind_srcs",
+        ":trainer_hdrs",
+        "//tenncor/eteq:srcs",
+        "//tenncor/distrib:srcs",
+        "//tenncor/layr:srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "benchmark_srcs",
+    srcs = glob(["bm/*.cpp"]),
+)
+
+filegroup(
+    name = "tenncor_hdrs",
+    srcs = glob(["*.hpp"])
+)
+
+filegroup(
+    name = "tenncor_srcs",
+    srcs = glob(["src/*.cpp"])
+)
+
+filegroup(
+    name = "trainer_hdrs",
+    srcs = glob(["trainer/*.hpp"]),
+)
+
+filegroup(
+    name = "pybind_hdrs",
+    srcs = glob(["python/*.hpp"]),
+)
+
+filegroup(
+    name = "pybind_srcs",
+    srcs = glob(["python/*.cpp"]),
+)
+
+######### LIBRARY #########
+
+GEN_CMD_FMT = """$(location //egen:egen) --plugins \
+plugins.apis:APIsPlugin \
+plugins.pyapis:PyAPIsPlugin \
+--out $(@D)/generated \
+--strip_prefix=$(@D)/.. \
+--ext_path=`dirname $$(echo '$(locations //cfg:eteq_classes)' | awk '{{print $$1}}')` \
+--cfgs $(locations //cfg:{})"""
+
+GEN_HDRS = [
+    "generated/api.hpp",
+    "generated/pyapi.hpp",
+]
+
+genrule(
+    name = "generated_tenncor",
+    srcs = select({
+        "//conditions:default": ["//cfg:eteq_min"],
+        "//eigen:fast_build": ["//cfg:eteq_min"],
+        "//eigen:full_build": ["//cfg:eteq"],
+    }) + ["//cfg:eteq_classes"],
+    outs = GEN_HDRS + [
+        "generated/api.cpp",
+        "generated/pyapi_tenncor.cpp",
+    ],
+    tools = ["//egen:egen"],
+    cmd = select({
+        "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
+        "//eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
+        "//eigen:full_build": GEN_CMD_FMT.format("eteq"),
+    })
+)
+
+cc_library(
+    name = "tenncor",
+    hdrs = [
+        ":tenncor_hdrs",
+        ":trainer_hdrs",
+    ] + [
+        ":"+hdr for hdr in GEN_HDRS
+    ],
+    srcs = [
+        ":generated/api.cpp",
+        ":tenncor_srcs",
+    ],
+    copts = ["-std=c++17"],
+    include_prefix = "tenncor",
+    includes = ["."],
+    deps = [
+        ":distrib",
+        ":layr",
+    ],
+)
+
+cc_library(
+    name = "eteq",
+    hdrs = ["//tenncor/eteq:eteq_hdrs"],
+    srcs = ["//tenncor/eteq:eteq_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//opt:opt",
+        "//onnx:onnx",
+    ],
+    includes = ["."],
+)
+
+cc_library(
+    name = "distrib",
+    hdrs = ["//tenncor/distrib:distrib_hdrs"],
+    srcs = ["//tenncor/distrib:distrib_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":eteq",
+        "//tenncor/distrib:distr_cc_grpc",
+        "@boost//:bimap",
+        "@com_github_oliora_ppconsul//:consul",
+        "@com_github_mingkaic_cppkg//egrpc:egrpc",
+        "@com_github_mingkaic_cppkg//error:error",
+    ],
+    includes = ["."],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "layr",
+    hdrs = ["//tenncor/layr:layr_hdrs"],
+    srcs = ["//tenncor/layr:layr_srcs"],
+    copts = ["-std=c++17"],
+    deps = [":eteq"],
+    includes = ["."],
+)
+
+pybind_py_library(
+    name = "tenncor_py",
+    cc_srcs = [
+        ":pybind_hdrs",
+        ":pybind_srcs",
+        ":generated/pyapi_tenncor.cpp",
+    ],
+    cc_deps = [
+        ":tenncor",
+        "//dbg:distrib",
+        "//pyutils:pyutils",
+    ],
+    copts = [
+        "-std=c++17",
+        "-Itenncor",
+    ],
+    py_imports = ["."]
+)
+
+######### BENCHMARK #########
+
+cc_binary(
+    name = "benchmark",
+    srcs = [":benchmark_srcs"],
+    deps = [
+        ":tenncor",
+        "@com_github_google_benchmark//:benchmark",
+    ],
+    copts = ["-std=c++17"],
+    data = ["//cfg:optimizations"],
+)

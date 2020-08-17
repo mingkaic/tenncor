@@ -68,8 +68,11 @@ def main(args):
 
     if len(outpath) > 0:
         includepath = outpath
-        if includepath and includepath.startswith(strip_prefix):
-            includepath = includepath[len(strip_prefix):].strip("/")
+        if includepath and len(strip_prefix) > 0:
+            fullinclude = os.path.realpath(includepath)
+            fullprefix = os.path.realpath(strip_prefix)
+            if fullinclude.startswith(fullprefix):
+                includepath = fullinclude[len(fullprefix):].strip("/")
         out = FileDump(outpath, includepath=includepath)
     else:
         out = PrintDump()

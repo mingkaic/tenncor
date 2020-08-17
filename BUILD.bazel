@@ -1,7 +1,5 @@
 licenses(["notice"])
 
-load("//third_party:tools/pybind.bzl", "pybind_py_library")
-
 package(
     default_visibility = ["//visibility:public"],
 )
@@ -34,41 +32,21 @@ config_setting(
 filegroup(
     name = "srcs",
     srcs = [
-        ":trainer_hdrs",
-        ":pybind_hdrs",
-        ":pybind_srcs",
         "//cfg:srcs",
         "//dbg:srcs",
-        "//distrib:srcs",
         "//egen:srcs",
         "//eigen:srcs",
-        "//eteq:srcs",
         "//extenncor:srcs",
         "//gen:srcs",
-        "//layr:srcs",
         "//marsh:srcs",
         "//onnx:srcs",
         "//opt:srcs",
         "//pyutils:srcs",
         "//query:srcs",
         "//teq:srcs",
+        "//tenncor:srcs",
         "BUILD.bazel",
     ],
-)
-
-filegroup(
-    name = "trainer_hdrs",
-    srcs = glob(["trainer/*.hpp"]),
-)
-
-filegroup(
-    name = "pybind_hdrs",
-    srcs = glob(["python/*.hpp"]),
-)
-
-filegroup(
-    name = "pybind_srcs",
-    srcs = glob(["python/*.cpp"]),
 )
 
 filegroup(
@@ -87,65 +65,4 @@ filegroup(
         "models/*.json",
         "models/data/*",
     ])
-)
-
-######### TOP-LEVEL LIBRARY #########
-
-GEN_CMD_FMT = """$(location //egen:egen) --plugins \
-plugins.apis:APIsPlugin \
-plugins.pyapis:PyAPIsPlugin \
---out $(@D)/generated \
---strip_prefix=$(@D) \
---ext_path=`dirname $$(echo '$(locations //cfg:eteq_classes)' | awk '{{print $$1}}')` \
---cfgs $(locations //cfg:{})"""
-
-GEN_HDRS = [
-    "generated/api.hpp",
-    "generated/pyapi.hpp",
-]
-
-genrule(
-    name = "generated_tenncor",
-    srcs = select({
-        "//conditions:default": ["//cfg:eteq_min"],
-        "//eigen:fast_build": ["//cfg:eteq_min"],
-        "//eigen:full_build": ["//cfg:eteq"],
-    }) + ["//cfg:eteq_classes"],
-    outs = GEN_HDRS + [
-        "generated/api.cpp",
-        "generated/pyapi_tenncor.cpp",
-    ],
-    tools = ["//egen:egen"],
-    cmd = select({
-        "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
-        "//eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
-        "//eigen:full_build": GEN_CMD_FMT.format("eteq"),
-    })
-)
-
-cc_library(
-    name = "tenncor",
-    hdrs = [":trainer_hdrs"] + [
-        ":"+hdr for hdr in GEN_HDRS
-    ],
-    srcs = [":generated/api.cpp"],
-    copts = ["-std=c++17"],
-    deps = [
-        "//layr:layr",
-        "//distrib:distrib",
-    ],
-)
-
-pybind_py_library(
-    name = "tenncor_py",
-    cc_srcs = [
-        ":pybind_hdrs",
-        ":pybind_srcs",
-        ":generated/pyapi_tenncor.cpp",
-    ],
-    cc_deps = [
-        ":tenncor",
-        "//pyutils:pyutils",
-    ],
-    copts = ["-std=c++17"],
 )

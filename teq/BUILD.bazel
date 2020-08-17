@@ -42,6 +42,7 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//marsh:marsh",
+        "//global:global",
     ],
     visibility = ["//visibility:public"],
 )

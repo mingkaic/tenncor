@@ -10,28 +10,13 @@
 #include <unordered_set>
 
 #include "teq/shape.hpp"
+#include "teq/itraveler.hpp"
 
 #ifndef TEQ_ITENSOR_HPP
 #define TEQ_ITENSOR_HPP
 
 namespace teq
 {
-
-struct iLeaf;
-
-struct iFunctor;
-
-/// Interface to travel through graph, treating iLeaf and iFunctor differently
-struct iTraveler
-{
-	virtual ~iTraveler (void) = default;
-
-	/// Visit leaf node
-	virtual void visit (iLeaf& leaf) = 0;
-
-	/// Visit functor node
-	virtual void visit (iFunctor& func) = 0;
-};
 
 struct iDeviceRef
 {
@@ -74,8 +59,8 @@ struct iTensor
 	/// Obtain concrete information on either leaf or functor implementations
 	virtual void accept (iTraveler& visiter) = 0;
 
-	/// Return device reference to this tensor, device references
-	/// belongs to session and hold the data associated with this node
+	/// Return device reference to this tensor, device references belongs to
+	/// some data-evaluation object and hold the data associated with this node
 	virtual iDeviceRef& device (void) = 0;
 
 	virtual const iDeviceRef& device (void) const = 0;
@@ -116,6 +101,18 @@ using TensMapT = std::unordered_map<iTensor*,V>;
 
 template <typename V>
 using CTensMapT = std::unordered_map<const iTensor*,V>;
+
+template <typename TS> // todo: use with concept tensptr_range
+void multi_visit (iTraveler& traveler, const TS& tensors)
+{
+	for (auto tensor : tensors)
+	{
+		if (nullptr != tensor)
+		{
+			tensor->accept(traveler);
+		}
+	}
+}
 
 }
 

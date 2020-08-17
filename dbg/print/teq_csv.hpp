@@ -107,13 +107,12 @@ private:
 			funcstr += func.shape().to_string();
 		}
 		nodes_.emplace(&func, Node{funcstr, get_ftype_(func), nodes_.size()});
-		auto children = func.get_args();
-		for (size_t i = 0, nchildren = children.size(); i < nchildren; ++i)
+		auto args = func.get_args();
+		for (size_t i = 0, nargs = args.size(); i < nargs; ++i)
 		{
-			auto tens = children[i].get();
-			edges_.push_back(Edge{&func, tens, fmts::to_string(i)});
-			tens->accept(*this);
+			edges_.push_back(Edge{&func, args[i].get(), fmts::to_string(i)});
 		}
+		teq::multi_visit(*this, args);
 	}
 
 	struct Edge

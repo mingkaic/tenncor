@@ -1,0 +1,69 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":eteq_hdrs",
+        ":eteq_srcs",
+        ":ctest_srcs",
+        ":ptest_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "eteq_hdrs",
+    srcs = glob(["*.hpp"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "eteq_srcs",
+    srcs = glob(["src/*.cpp"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "ctest_srcs",
+    srcs = glob(["test/*.cpp"]),
+)
+
+filegroup(
+    name = "ptest_srcs",
+    srcs = ["test/ptest.py"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "ctest",
+    srcs = [":ctest_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//tenncor:tenncor",
+        "//utils:utils",
+        "//testutil:tutil",
+        "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    linkstatic = True,
+    data = [
+        "//:test_models",
+        "//cfg:optimizations",
+    ],
+    size = "enormous",
+)
+
+py_test(
+    name = "ptest",
+    srcs = [":ptest_srcs"],
+    deps = [
+        "//tenncor:tenncor_py",
+        "//testutil:pyunit_util",
+    ],
+    data = [
+        "//:test_models",
+        "//testutil:ead_testcase_template",
+    ],
+)

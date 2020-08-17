@@ -90,7 +90,7 @@ teq::TensptrsT load_graph (TensptrIdT& identified_tens,
 			std::string id = pb_node.name();
 			if (estd::has(identified_tens.right, id))
 			{
-				teq::fatalf("duplicate id %s", id.c_str());
+				global::fatalf("duplicate id %s", id.c_str());
 			}
 			tens = unmarshaler.unmarsh_func(opname, args, std::move(attrs));
 			identified_tens.insert({tens, id});

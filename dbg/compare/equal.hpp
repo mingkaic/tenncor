@@ -50,7 +50,7 @@ bool is_equal (const eteq::ETensor<T>& lroot, const eteq::ETensor<T>& rroot)
 		}
 		if (lheights.upper_ == 0)
 		{
-			auto hid = hasher.uuid_gen_();
+			auto hid = global::get_uuidengine()();
 			hasher.hashes_.emplace(ords.first, hid);
 			hasher.hashes_.emplace(ords.second, hid);
 			hasher.visited_.emplace(ords.first);

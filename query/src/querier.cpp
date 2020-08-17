@@ -100,7 +100,7 @@ bool equals (
 			}
 			break;
 		default:
-			teq::fatal("cannot compare unknown attribute");
+			global::fatal("cannot compare unknown attribute");
 	}
 	return match;
 }

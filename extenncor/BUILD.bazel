@@ -14,15 +14,17 @@ filegroup(
 
 filegroup(
     name = "extenncor_srcs",
-    srcs = glob(["*.py"]),
+    srcs = [
+        "dqn_trainer.py",
+        "embed.py",
+        "tfds_trainer.py",
+        "trainer_cache.py",
+    ],
 )
 
 filegroup(
     name = "protos",
-    srcs = [
-        "dataset.proto",
-        "dqntrainer.proto",
-    ],
+    srcs = glob(["*.proto"]),
 )
 
 ######### LIBRARY #########
@@ -31,20 +33,28 @@ py_library(
     name = "extenncor",
     srcs = [":extenncor_srcs"],
     deps = [
-        ":extenncor_py_proto",
-        "//:tenncor_py",
+        ":extenncor_py_pb",
+        "//tenncor:tenncor_py",
     ],
     visibility = ["//visibility:public"],
 )
 
 proto_library(
-    name = "extenncor_proto",
+    name = "extenncor_pb",
     srcs = [":protos"],
     visibility = ["//visibility:public"],
 )
 
-python_proto_library(
-    name = "extenncor_py_proto",
-    deps = [":extenncor_proto"],
-    visibility = ["//visibility:public"],
+# python_proto_library(
+#     name = "extenncor_py_pb",
+#     deps = [":extenncor_pb"],
+#     visibility = ["//visibility:public"],
+# )
+
+py_library(
+    name = "extenncor_py_pb",
+    srcs = [
+        "dataset_pb2.py",
+        "dqn_trainer_pb2.py",
+    ],
 )

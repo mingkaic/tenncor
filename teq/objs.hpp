@@ -80,7 +80,7 @@ struct TensorObj final : public TensorRef
 		}
 		else
 		{
-			warn("non-teq marshaler cannot marshal "
+			global::warn("non-teq marshaler cannot marshal "
 				"tensor-typed objects");
 		}
 	}
@@ -106,7 +106,7 @@ struct LayerObj final : public TensorRef
 	{
 		if (nullptr == input)
 		{
-			fatalf("cannot `%s` with null input", opname.c_str());
+			global::fatalf("cannot `%s` with null input", opname.c_str());
 		}
 	}
 
@@ -149,7 +149,7 @@ struct LayerObj final : public TensorRef
 		}
 		else
 		{
-			warn("non-teq marshaler cannot marshal "
+			global::warn("non-teq marshaler cannot marshal "
 				"layer-typed objects");
 		}
 	}

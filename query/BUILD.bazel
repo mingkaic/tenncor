@@ -45,7 +45,7 @@ cc_library(
     srcs = [":query_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        ":query_cc_proto",
+        ":query_cc_pb",
         "//eigen:eigen",
         "@boost//:functional",
     ],
@@ -53,14 +53,14 @@ cc_library(
 )
 
 proto_library(
-    name = "query_proto",
+    name = "query_pb",
     srcs = [":protos"],
     visibility = ["//visibility:public"],
 )
 
 cpp_proto_library(
-    name = "query_cc_proto",
-    deps = [":query_proto"],
+    name = "query_cc_pb",
+    deps = [":query_pb"],
     visibility = ["//visibility:public"],
 )
 
@@ -72,7 +72,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         ":query",
-        "//:tenncor",
+        "//tenncor:tenncor",
         "//teq:mock_teq",
         "//dbg:print",
         "//testutil:tutil",

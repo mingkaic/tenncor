@@ -5,38 +5,57 @@
 namespace teq
 {
 
-struct OwnerTracker final : public iOnceTraveler
+TensptrsT get_alldeps (iFunctor& func)
 {
-	OwnerMapT owners_;
-
-private:
-	/// Implementation of iOnceTraveler
-	void visit_leaf (iLeaf& leaf) override {}
-
-	/// Implementation of iOnceTraveler
-	void visit_func (iFunctor& func) override
+	auto deps = func.get_dependencies();
+	auto attrs = func.ls_attrs();
+	TensptrsT out = deps;
+	out.reserve(deps.size() + attrs.size());
+	for (auto attr : attrs)
 	{
-		auto children = func.get_dependencies();
-		for (const TensptrT& tens : children)
+		if (auto tens_attr = dynamic_cast<const TensorRef*>(
+			func.get_attr(attr)))
 		{
-			tens->accept(*this);
-			owners_.emplace(tens.get(), tens);
+			out.push_back(tens_attr->get_tensor());
 		}
 	}
-};
+	return out;
+}
 
-OwnerMapT track_owners (TensptrsT roots)
+TensptrsT get_deps (iFunctor& func)
 {
-	OwnerTracker tracker;
-	for (auto root : roots)
+	return func.get_dependencies();
+}
+
+TensptrsT get_args (iFunctor& func)
+{
+	return func.get_args();
+}
+
+TensptrsT get_attrs (iFunctor& func)
+{
+	auto attrs = func.ls_attrs();
+	TensptrsT out;
+	out.reserve(attrs.size());
+	for (auto attr : attrs)
 	{
-		if (nullptr != root)
+		if (auto tens_attr = dynamic_cast<const TensorRef*>(
+			func.get_attr(attr)))
 		{
-			root->accept(tracker);
-			tracker.owners_.emplace(root.get(), root);
+			out.push_back(tens_attr->get_tensor());
 		}
 	}
-	return tracker.owners_;
+	return out;
+}
+
+OwnMapT convert_ownmap (const RefMapT& refs)
+{
+	OwnMapT owners;
+	for (const auto& rpair : refs)
+	{
+		owners.emplace(rpair.first, rpair.second.lock());
+	}
+	return owners;
 }
 
 }

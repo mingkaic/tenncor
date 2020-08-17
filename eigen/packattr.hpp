@@ -37,7 +37,7 @@ const PairVecT<T> decode_pair (const std::vector<int64_t>& encoding)
 	size_t n = encoding.size();
 	if (1 == n % 2)
 	{
-		teq::fatalf("cannot decode odd vector %s into vec of pairs",
+		global::fatalf("cannot decode odd vector %s into vec of pairs",
 			fmts::to_string(encoding.begin(), encoding.end()).c_str());
 	}
 	out.reserve(n / 2);
@@ -58,12 +58,12 @@ struct Packer final
 
 	void pack (marsh::iAttributed& attrib, T pack) const
 	{
-		teq::fatal("unknown attribute");
+		global::fatal("unknown attribute");
 	}
 
 	void unpack (T& out, const marsh::iAttributed& attrib) const
 	{
-		teq::fatal("unknown attribute");
+		global::fatal("unknown attribute");
 	}
 };
 
@@ -75,7 +75,7 @@ const marsh::iObject* get_attr (const Packer<T>& packer,
 	auto attr = attrib.get_attr(key);
 	if (nullptr == attr)
 	{
-		teq::fatalf("cannot find %s attribute", key.c_str());
+		global::fatalf("cannot find %s attribute", key.c_str());
 	}
 	return attr;
 }
@@ -95,12 +95,12 @@ struct Packer<PairVecT<teq::DimT>>
 		size_t n = dims.size();
 		if (n > teq::rank_cap)
 		{
-			teq::fatalf("cannot specify %d dimensions when %d (rank_cap) "
+			global::fatalf("cannot specify %d dimensions when %d (rank_cap) "
 				"are available", n, teq::rank_cap);
 		}
 		if (n == 0)
 		{
-			teq::fatal("cannot find dimensions");
+			global::fatal("cannot find dimensions");
 		}
 		attrib.add_attr(key_, std::make_unique<marsh::NumArray<int64_t>>(
 			encode_pair(dims)));
@@ -130,12 +130,12 @@ struct Packer<PairVecT<teq::RankT>>
 		size_t n = ranks.size();
 		if (n > teq::rank_cap)
 		{
-			teq::fatalf("cannot specify %d ranks when %d (rank_cap) "
+			global::fatalf("cannot specify %d ranks when %d (rank_cap) "
 				"are available", n, teq::rank_cap);
 		}
 		if (n == 0)
 		{
-			teq::fatal("cannot find pair of ranks");
+			global::fatal("cannot find pair of ranks");
 		}
 		if (std::any_of(ranks.begin(), ranks.end(),
 			[](std::pair<teq::RankT,teq::RankT> rpair)
@@ -144,7 +144,7 @@ struct Packer<PairVecT<teq::RankT>>
 					rpair.second >= teq::rank_cap;
 			}))
 		{
-			teq::fatalf("cannot reference ranks beyond rank_cap %d: %s",
+			global::fatalf("cannot reference ranks beyond rank_cap %d: %s",
 				teq::rank_cap, to_string(ranks).c_str());
 		}
 		attrib.add_attr(key_, std::make_unique<marsh::NumArray<int64_t>>(
@@ -175,12 +175,12 @@ struct Packer<std::vector<teq::DimT>>
 		size_t n = dims.size();
 		if (n > teq::rank_cap)
 		{
-			teq::fatalf("cannot specify %d dimensions when %d (rank_cap) "
+			global::fatalf("cannot specify %d dimensions when %d (rank_cap) "
 				"are available", n, teq::rank_cap);
 		}
 		if (n == 0)
 		{
-			teq::fatal("cannot find dimensions");
+			global::fatal("cannot find dimensions");
 		}
 		std::vector<int64_t> idims(dims.begin(), dims.end());
 		attrib.add_attr(key_,
@@ -211,12 +211,12 @@ struct Packer<std::vector<teq::RankT>>
 		size_t n = ranks.size();
 		if (n > teq::rank_cap)
 		{
-			teq::fatalf("cannot specify %d ranks when %d (rank_cap) "
+			global::fatalf("cannot specify %d ranks when %d (rank_cap) "
 				"are available", n, teq::rank_cap);
 		}
 		if (n == 0)
 		{
-			teq::fatal("cannot find ranks");
+			global::fatal("cannot find ranks");
 		}
 		if (std::any_of(ranks.begin(), ranks.end(),
 			[](teq::RankT rank)
@@ -224,7 +224,7 @@ struct Packer<std::vector<teq::RankT>>
 				return rank >= teq::rank_cap;
 			}))
 		{
-			teq::fatalf("cannot reference ranks beyond rank_cap %d: %s",
+			global::fatalf("cannot reference ranks beyond rank_cap %d: %s",
 				teq::rank_cap, fmts::to_string(
 					ranks.begin(), ranks.end()).c_str());
 		}
@@ -257,7 +257,7 @@ struct Packer<std::set<teq::RankT>>
 		size_t n = ranks.size();
 		if (n > teq::rank_cap)
 		{
-			teq::fatalf("cannot specify %d ranks when %d (rank_cap) "
+			global::fatalf("cannot specify %d ranks when %d (rank_cap) "
 				"are available", n, teq::rank_cap);
 		}
 		std::vector<int64_t> sranks(ranks.begin(), ranks.end());

@@ -115,14 +115,13 @@ TEST(SESSION, Update)
 
 	auto err = tenncor<double>().pow(out - sig1, 2.);
 
-	auto dw0 = eteq::derive(err, weight0);
-	auto db0 = eteq::derive(err, bias0);
-	auto dw1 = eteq::derive(err, weight1);
-	auto db1 = eteq::derive(err, bias1);
+	auto dw0 = tcr::derive(err, weight0);
+	auto db0 = tcr::derive(err, bias0);
+	auto dw1 = tcr::derive(err, weight1);
+	auto db1 = tcr::derive(err, bias1);
 
 	ccur::Session sess(4);
-	sess.track({dw0, db0, dw1, db1});
-	sess.update();
+	sess.evaluate({dw0, db0, dw1, db1});
 
 	std::vector<double> expect_gw0 = {
 		0.0027019915285570115, 0.0049524065585107684, 0.0025163812594914499,

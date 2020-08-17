@@ -91,6 +91,7 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//teq:teq",
+        "@boost//:uuid",
         "@com_github_eigenteam_eigen//:eigen",
     ],
     visibility = ["//visibility:public"],

@@ -41,7 +41,7 @@ TargptrT parse_target (const TargetNode& root,
 		}
 			break;
 		default:
-			teq::fatal("cannot parse unknown element");
+			global::fatal("cannot parse unknown element");
 	}
 	return out;
 }
@@ -69,7 +69,7 @@ void json_parse (OptRulesT& rules,
 		google::protobuf::util::JsonStringToMessage(
 			jstr, &optimization, options))
 	{
-		teq::fatal("failed to parse json optimization");
+		global::fatal("failed to parse json optimization");
 	}
 	parse_optimization(rules, optimization, tfactory);
 }
@@ -107,7 +107,7 @@ marsh::iObject* parse (const query::Attribute& pba, const opt::GraphInfo& graphi
 			auto results = graphinfo.find(pba.node());
 			if (results.size() > 0)
 			{
-				teq::fatal("ambiguous node attribute");
+				global::fatal("ambiguous node attribute");
 			}
 			out = new teq::TensorObj(results.front());
 		}
@@ -118,18 +118,18 @@ marsh::iObject* parse (const query::Attribute& pba, const opt::GraphInfo& graphi
 			if (false == layer.has_input() ||
 				query::Layer::kNameNil == layer.nullable_name_case())
 			{
-				teq::fatal("cannot parse layer attribute unnamed or without input");
+				global::fatal("cannot parse layer attribute unnamed or without input");
 			}
 			auto results = graphinfo.find(layer.input());
 			if (results.size() > 0)
 			{
-				teq::fatal("ambiguous layer attribute");
+				global::fatal("ambiguous layer attribute");
 			}
 			out = new teq::LayerObj(layer.name(), results.front());
 		}
 			break;
 		default:
-			teq::fatal("cannot parse unknown attribute");
+			global::fatal("cannot parse unknown attribute");
 	}
 	return out;
 }

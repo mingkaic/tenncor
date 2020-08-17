@@ -39,7 +39,7 @@ funcs:
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = eteq::derive<T>(error,
+              auto ders = tcr::derive<T>(error,
                   eteq::ETensorsT<T>(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
@@ -73,7 +73,7 @@ funcs:
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = eteq::derive<T>(error,
+              auto ders = tcr::derive<T>(error,
                   eteq::ETensorsT<T>(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
@@ -133,7 +133,7 @@ funcs:
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = eteq::derive<T>(error,
+              auto ders = tcr::derive<T>(error,
                   eteq::ETensorsT<T>(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
@@ -206,7 +206,7 @@ funcs:
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = eteq::derive<T>(error,
+              auto ders = tcr::derive<T>(error,
                   eteq::ETensorsT<T>(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
