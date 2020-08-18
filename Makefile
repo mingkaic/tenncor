@@ -69,7 +69,7 @@ gen-proto: gen-extenncor-proto gen-onnx-proto gen-gemit-proto
 
 .PHONY: gen-extenncor-proto
 gen-extenncor-proto: ${PROTOC}
-	./${PROTOC} --python_out=. -I . extenncor/dataset.proto extenncor/dqn_trainer.proto
+	./${PROTOC} --python_out=. -I . extenncor/dataset_trainer.proto extenncor/dqn_trainer.proto
 
 .PHONY: gen-onnx-proto
 gen-onnx-proto: ${PROTOC}

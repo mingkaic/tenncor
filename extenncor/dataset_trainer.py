@@ -2,7 +2,7 @@
 import tenncor as tc
 
 import extenncor.trainer_cache as ecache
-import extenncor.dataset_pb2 as ds_pb
+import extenncor.dataset_trainer_pb2 as ds_pb
 
 import read_dataset as helper
 import datasets_pb2
