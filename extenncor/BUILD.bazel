@@ -17,7 +17,7 @@ filegroup(
     srcs = [
         "dqn_trainer.py",
         "embed.py",
-        "tfds_trainer.py",
+        "dataset_trainer.py",
         "trainer_cache.py",
     ],
 )
@@ -54,7 +54,7 @@ proto_library(
 py_library(
     name = "extenncor_py_pb",
     srcs = [
-        "dataset_pb2.py",
+        "dataset_trainer_pb2.py",
         "dqn_trainer_pb2.py",
     ],
 )
