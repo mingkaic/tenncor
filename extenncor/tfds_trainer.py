@@ -4,7 +4,9 @@ import tenncor as tc
 import extenncor.trainer_cache as ecache
 import extenncor.dataset_pb2 as ds_pb
 
-import tensorflow_datasets as tfds
+import read_dataset as helper
+import datasets_pb2
+
 from collections.abc import Iterable
 
 _tfds_nio_limit = 100
@@ -19,24 +21,21 @@ _tfds_args = {
 }
 
 @ecache.EnvManager.register
-class TfdsEnv(ecache.EnvManager):
-    def __init__(self, name, train_inputs,
+class OnxDSEnv(ecache.EnvManager):
+    def __init__(self, name, oxfile, train_inputs,
                  connect_fn, trainstep_fn,
                  clean_startup=False, cachedir='/tmp',
                  optimize_cfg='', display_name = None,
-                 ctx = tc.global_context,
-                 **kwargs):
+                 ctx = tc.global_context):
+
+        self.oxfile = oxfile
         def default_init():
             self.name = name
-            ds_params = dict(kwargs)
-            self.ds_params = dict([(key, ds_params[key])
-                for key in ds_params
-                if key in _tfds_args])
             self.dataset_idx = 0
             self.api = tc.TenncorAPI(self.ctx)
 
             # prevent shuffling to allow predictable recovery
-            self.dataset = tfds.load(name, shuffle_files=False, **self.ds_params)
+            self.dataset = helper.load(self.oxfile)
             self.step = self.dataset.as_numpy_iterator()
 
             self.train_inputs = train_inputs
@@ -66,19 +65,13 @@ class TfdsEnv(ecache.EnvManager):
 
     def _backup_env(self, fpath: str) -> bool:
         with open(fpath, 'wb') as envfile:
-            tfds_env = ds_pb.TfdsEnv()
+            oxds_env = ds_pb.OnxDSEnv()
 
-            tfds_env.name = self.name
-            tfds_env.dataset_idx = self.dataset_idx
+            oxds_env.name = self.name
+            oxds_env.dataset_idx = self.dataset_idx
+            oxds_env.oxfile = self.oxfile
 
-            for arg in _tfds_args:
-                ds_val = self.ds_params.get(arg, _tfds_args[arg])
-                if ds_val is not None:
-                    setattr(tfds_env.ds_params, arg, ds_val)
-                else:
-                    setattr(tfds_env.ds_params, arg + '_nil', True)
-
-            envfile.write(tfds_env.SerializeToString())
+            envfile.write(oxds_env.SerializeToString())
             return True
         return False
 
@@ -124,18 +117,16 @@ class TfdsEnv(ecache.EnvManager):
 
         print('loading environment from "{}"'.format(fpath))
         with open(fpath, 'rb') as envfile:
-            tfds_env = ds_pb.TfdsEnv()
-            tfds_env.ParseFromString(envfile.read())
+            oxds_env = ds_pb.OnxDSEnv()
+            oxds_env.ParseFromString(envfile.read())
 
-            self.name = tfds_env.name
-            self.dataset_idx = tfds_env.dataset_idx
+            self.name = oxds_env.name
+            self.dataset_idx = oxds_env.dataset_idx
+            self.oxfile = oxds_env.oxfile
 
-            self.ds_params = dict([(arg, getattr(tfds_env.ds_params, arg))
-                                   for arg in _tfds_args
-                                   if not getattr(tfds_env.ds_params, arg + '_nil')])
-            print('recovered with dataset params: {}'.format(self.ds_params))
+            print('recovered dataset {}'.format(self.oxfile))
 
-            self.dataset = tfds.load(self.name, shuffle_files=False, **self.ds_params)
+            self.dataset = helper.load(self.oxfile)
 
             self.step = self.dataset.as_numpy_iterator()
             print('skipping the first {} images'.format(self.dataset_idx))

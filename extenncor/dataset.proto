@@ -2,39 +2,8 @@ syntax = "proto3";
 
 package dataset;
 
-message TfdsParams {
-    oneof nullable_split {
-        bool split_nil = 1;
-        string split = 2;
-    }
-    oneof nullable_data_dir {
-        bool data_dir_nil = 3;
-        string data_dir = 4;
-    }
-    oneof nullable_batch_size {
-        bool batch_size_nil = 5;
-        int32 batch_size = 6;
-    }
-    oneof nullable_in_memory {
-        bool in_memory_nil = 7;
-        bool in_memory = 8;
-    }
-    oneof nullable_download {
-        bool download_nil = 9;
-        bool download = 10;
-    }
-    oneof nullable_as_supervised {
-        bool as_supervised_nil = 11;
-        bool as_supervised = 12;
-    }
-    oneof nullable_try_gcs {
-        bool try_gcs_nil = 13;
-        bool try_gcs = 14;
-    }
-}
-
-message TfdsEnv {
+message OnxDSEnv {
     string name = 1;
     int32 dataset_idx = 2;
-    TfdsParams ds_params = 3;
+    string oxfile = 3;
 }

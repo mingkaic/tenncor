@@ -100,8 +100,14 @@ py_binary(
 py_binary(
     name = "rbm_demo",
     srcs = ["rbm_demo.py"],
-    deps = ["//tenncor:tenncor_py"],
-    data = ["//:models", "//cfg:optimizations"],
+    deps = [
+        "//tenncor:tenncor_py",
+        "@com_github_mingkaic_onnxds//:read_dataset",
+    ],
+    data = [
+        "//:models",
+        "//cfg:optimizations",
+    ],
 )
 
 py_binary(

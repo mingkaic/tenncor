@@ -24,6 +24,8 @@ IMAGE_REPO := mkaichen
 IMAGE_TAG := latest
 
 REMOTE_CACHE := ''
+PROTOC := bazel-bin/external/com_google_protobuf/protoc
+GRPC_CPP_PLUGIN := bazel-bin/external/com_github_grpc_grpc/src/compiler/grpc_cpp_plugin
 
 
 all: build_test_image build_lib_image build_image
@@ -55,6 +57,28 @@ push_lib_image:
 push_image:
 	docker push ${IMAGE_REPO}/tenncor:${IMAGE_TAG}
 
+
+${PROTOC}:
+	bazel build @com_google_protobuf//:protoc
+
+${GRPC_CPP_PLUGIN}:
+	bazel build @com_github_grpc_grpc//src/compiler:grpc_cpp_plugin
+
+.PHONY: gen-proto
+gen-proto: gen-extenncor-proto gen-onnx-proto gen-gemit-proto
+
+.PHONY: gen-extenncor-proto
+gen-extenncor-proto: ${PROTOC}
+	./${PROTOC} --python_out=. -I . extenncor/dataset.proto extenncor/dqn_trainer.proto
+
+.PHONY: gen-onnx-proto
+gen-onnx-proto: ${PROTOC}
+	./${PROTOC} --cpp_out=. -I . onnx/onnx.proto
+
+.PHONY: gen-gemit-proto
+gen-gemit-proto: ${PROTOC}
+	./${PROTOC} --cpp_out=. -I . dbg/peval/emit/gemitter.proto
+	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . dbg/peval/emit/gemitter.proto
 
 .PHONY: onnx2json
 onnx2json: onnx_test_o2j eteq_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
