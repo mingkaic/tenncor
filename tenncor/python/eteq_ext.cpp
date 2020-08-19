@@ -360,12 +360,12 @@ void eteq_ext (py::module& m)
 			std::ifstream input(filename);
 			if (false == input.is_open())
 			{
-				global::fatalf("file %s not found", filename.c_str());
+				global::throw_errf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
 			if (false == pb_model.ParseFromIstream(&input))
 			{
-				global::fatalf("failed to parse onnx from %s",
+				global::throw_errf("failed to parse onnx from %s",
 					filename.c_str());
 			}
 			onnx::TensptrIdT ids;
@@ -414,7 +414,7 @@ void eteq_ext (py::module& m)
 			std::ofstream output(filename);
 			if (false == output.is_open())
 			{
-				global::fatalf("file %s not found", filename.c_str());
+				global::throw_errf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
 			onnx::TensIdT identified;
@@ -434,12 +434,12 @@ void eteq_ext (py::module& m)
 			std::ifstream input(filename);
 			if (false == input.is_open())
 			{
-				global::fatalf("file %s not found", filename.c_str());
+				global::throw_errf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
 			if (false == pb_model.ParseFromIstream(&input))
 			{
-				global::fatalf("failed to parse onnx from %s",
+				global::throw_errf("failed to parse onnx from %s",
 					filename.c_str());
 			}
 			onnx::TensptrIdT ids;
@@ -466,7 +466,7 @@ void eteq_ext (py::module& m)
 			std::ofstream output(filename);
 			if (false == output.is_open())
 			{
-				global::fatalf("file %s not found", filename.c_str());
+				global::throw_errf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
 			onnx::TensIdT ids;

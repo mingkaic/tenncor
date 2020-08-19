@@ -32,6 +32,9 @@ void warn (const std::string& msg);
 /// Log at error level
 void error (const std::string& msg);
 
+/// Log at throw level
+void throw_err (const std::string& msg);
+
 /// Log at fatal level
 void fatal (const std::string& msg);
 
@@ -61,6 +64,13 @@ template <typename... ARGS>
 void errorf (const std::string& format, ARGS... args)
 {
 	error(fmts::sprintf(format, args...));
+}
+
+/// Log at throw_error level with arguments
+template <typename... ARGS>
+void throw_errf (const std::string& format, ARGS... args)
+{
+	throw_err(fmts::sprintf(format, args...));
 }
 
 /// Log at fatal level with arguments

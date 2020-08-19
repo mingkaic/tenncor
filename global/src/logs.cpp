@@ -52,19 +52,22 @@ std::string get_log_level (const global::CfgMapptrT& ctx)
 }
 
 void debug (const std::string& msg)
-LOG_DEFN("debug")
+LOG_DEFN(logs::debug_level)
 
 void info (const std::string& msg)
-LOG_DEFN("info")
+LOG_DEFN(logs::info_level)
 
 void warn (const std::string& msg)
-LOG_DEFN("warn")
+LOG_DEFN(logs::warn_level)
 
 void error (const std::string& msg)
-LOG_DEFN("error")
+LOG_DEFN(logs::error_level)
+
+void throw_err (const std::string& msg)
+LOG_DEFN(global::throw_err_level)
 
 void fatal (const std::string& msg)
-LOG_DEFN("fatal")
+LOG_DEFN(logs::fatal_level)
 
 #undef LOG_DEFN
 

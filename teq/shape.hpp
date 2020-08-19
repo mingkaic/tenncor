@@ -87,7 +87,7 @@ struct Shape final
 	{
 		if (rank_cap <= idx)
 		{
-			global::fatalf("cannot access out of bounds index %d", idx);
+			global::throw_errf("cannot access out of bounds index %d", idx);
 		}
 		return dims_.at(idx);
 	}
@@ -160,7 +160,7 @@ private:
 				return d == 0;
 			}))
 		{
-			global::fatalf(
+			global::throw_errf(
 				"cannot create shape with vector containing zero: %s",
 				fmts::to_string(dims.begin(), dims.end()).c_str());
 		}

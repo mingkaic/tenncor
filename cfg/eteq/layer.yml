@@ -83,7 +83,10 @@ funcs:
       type: eteq::ETensor<T>
       val: |
           //
-              assert(weight_init);
+              if (!weight_init)
+              {
+                  global::fatal("weight_init must be defined when creating dense layer");
+              }
               eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0,inshape,layr::input_label,super->ctx));
               eteq::EVariable<T> weight = weight_init(layr::gen_rshape(
                   hidden_dims,inshape,dims),layr::weight_label);
@@ -113,7 +116,10 @@ funcs:
       type: eteq::ETensor<T>
       val: |
           //
-              assert(weight_init);
+              if (!weight_init)
+              {
+                  global::fatal("weight_init must be defined when creating conv layer");
+              }
               // image must be in form [in,iwidth,iheight,batch]
               eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0,teq::Shape({
                   in_ncol,filter_hw.second,filter_hw.first,1}),layr::input_label,super->ctx));

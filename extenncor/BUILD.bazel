@@ -35,6 +35,7 @@ py_library(
     deps = [
         ":extenncor_py_pb",
         "//tenncor:tenncor_py",
+        "@com_github_mingkaic_onnxds//onnxds:read_dataset",
     ],
     visibility = ["//visibility:public"],
 )

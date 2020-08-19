@@ -5,7 +5,6 @@ import extenncor.trainer_cache as ecache
 import extenncor.dataset_trainer_pb2 as ds_pb
 
 import onnxds.read_dataset as helper
-import datasets_pb2
 
 from collections.abc import Iterable
 

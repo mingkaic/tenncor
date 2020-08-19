@@ -26,7 +26,7 @@ struct ShapeParser final
 		{
 			if (false == shapes[i].compatible_after(outshape, 0))
 			{
-				global::fatalf("cannot %s with incompatible shapes %s and %s",
+				global::throw_errf("cannot %s with incompatible shapes %s and %s",
 					egen::name_op(OPCODE).c_str(),
 					shapes[i].to_string().c_str(),
 					outshape.to_string().c_str());
@@ -202,7 +202,7 @@ struct ShapeParser<egen::RESHAPE> final
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
 		if (shapes.front().n_elems() != outshape.n_elems())
 		{
-			global::fatalf("cannot RESHAPE with shapes of different sizes "
+			global::throw_errf("cannot RESHAPE with shapes of different sizes "
 				"%d (shape %s) and %d (shape %s)",
 				shapes.front().n_elems(),
 				shapes.front().to_string().c_str(),
@@ -249,14 +249,14 @@ struct ShapeParser<egen::MATMUL> final
 		{
 			if (ashape.at(coms.first) != bshape.at(coms.second))
 			{
-				global::fatalf("invalid shapes %s and %s do not match "
+				global::throw_errf("invalid shapes %s and %s do not match "
 					"common dimensions %s", ashape.to_string().c_str(),
 					bshape.to_string().c_str(),
 					eigen::to_string(ranks).c_str());
 			}
 			if (avisit[coms.first] || bvisit[coms.second])
 			{
-				global::fatalf("contraction dimensions %s must be unique for "
+				global::throw_errf("contraction dimensions %s must be unique for "
 					"each side", eigen::to_string(ranks).c_str());
 			}
 			avisit[coms.first] = bvisit[coms.second] = true;
@@ -297,7 +297,7 @@ struct ShapeParser<egen::CONV> final
 		if (std::any_of(kernelshape.begin() + n, kernelshape.end(),
 			[](teq::DimT d) { return d > 1; }))
 		{
-			global::fatalf("cannot have ambiguous ranks not specified in "
+			global::throw_errf("cannot have ambiguous ranks not specified in "
 				"kernelshape %s (ranks=%s)", kernelshape.to_string().c_str(),
 				fmts::to_string(ranks.begin(), ranks.end()).c_str());
 		}
@@ -316,7 +316,7 @@ struct ShapeParser<egen::CONV> final
 			{
 				if (kdim > sdim)
 				{
-					global::fatalf("cannot convolve a kernel of shape %s against "
+					global::throw_errf("cannot convolve a kernel of shape %s against "
 						"smaller image of shape %s",
 						kernelshape.to_string().c_str(),
 						imgshape.to_string().c_str());
@@ -343,7 +343,7 @@ struct ShapeParser<egen::PERMUTE> final
 		{
 			if (visited[order[i]])
 			{
-				global::fatalf("permute does not support repeated orders "
+				global::throw_errf("permute does not support repeated orders "
 					"(order=%s)", fmts::to_string(
 						order.begin(), order.end()).c_str());
 			}
@@ -377,7 +377,7 @@ struct ShapeParser<egen::EXTEND> final
 		if (std::any_of(bcast.begin(), bcast.end(),
 			[](teq::DimT d) { return 0 == d; }))
 		{
-			global::fatalf("cannot extend using zero dimensions %s",
+			global::throw_errf("cannot extend using zero dimensions %s",
 				fmts::to_string(bcast.begin(), bcast.end()).c_str());
 		}
 		std::vector<teq::DimT> slist(shape.begin(), shape.end());
@@ -385,7 +385,7 @@ struct ShapeParser<egen::EXTEND> final
 		{
 			if (bcast.at(i) > 1 && shape.at(i) > 1)
 			{
-				global::fatalf("cannot extend non-singular dimension %d of "
+				global::throw_errf("cannot extend non-singular dimension %d of "
 					"shape %s: bcast=%s", i, shape.to_string().c_str(),
 					fmts::to_string(bcast.begin(), bcast.end()).c_str());
 			}
@@ -409,7 +409,7 @@ struct ShapeParser<egen::CONCAT> final
 				[axis](teq::Shape shape)
 				{ return shape.at(axis) != 1; }))
 			{
-				global::fatal("cannot group concat shapes "
+				global::throw_err("cannot group concat shapes "
 					"with dimension that is not one");
 			}
 			teq::Shape initshape = shapes.front();

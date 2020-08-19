@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import onnxds.read_dataset as helper
-import datasets_pb2
 
 import tenncor as tc
 

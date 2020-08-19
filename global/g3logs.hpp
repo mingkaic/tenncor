@@ -32,20 +32,27 @@ namespace g3
 
 static const int kErrorValue = 750;
 
+static const int kThrowErrValue = 751;
+
 }
 
 const LEVELS ERROR{g3::kErrorValue, {"ERROR"}};
+
+const LEVELS THROW_ERR{g3::kThrowErrValue, {"THROW_ERR"}};
 
 namespace global
 {
 
 const std::string app_name = "tenncor";
 
+const std::string throw_err_level = "throw_err";
+
 static const types::StrUMapT<LEVELS> str2lvl = {
 	{logs::debug_level, DBUG},
 	{logs::info_level, INFO},
 	{logs::warn_level, WARNING},
 	{logs::error_level, ERROR},
+	{throw_err_level, THROW_ERR},
 	{logs::fatal_level, FATAL},
 };
 
@@ -54,6 +61,7 @@ static const std::unordered_map<int,LEVELS> int2lvl = {
 	{INFO.value, INFO},
 	{WARNING.value, WARNING},
 	{ERROR.value, ERROR},
+	{THROW_ERR.value, THROW_ERR},
 	{FATAL.value, FATAL},
 };
 

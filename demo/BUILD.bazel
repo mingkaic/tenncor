@@ -102,7 +102,7 @@ py_binary(
     srcs = ["rbm_demo.py"],
     deps = [
         "//tenncor:tenncor_py",
-        "@com_github_mingkaic_onnxds//:read_dataset",
+        "@com_github_mingkaic_onnxds//onnxds:read_dataset",
     ],
     data = [
         "//:models",
