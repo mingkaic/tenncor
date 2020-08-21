@@ -68,6 +68,8 @@ void distrib_ext (py::module& m)
 		},
 		py::arg("id"),
 		py::arg("recursive") = true)
+		.def("alias_node", &distr::iDistrManager::alias_node)
+		.def("dealias_node", &distr::iDistrManager::dealias_node)
 		.def("derive",
 		[](distr::iDistrManager& self,
 			eteq::ETensor<PybindT> root,
@@ -116,6 +118,11 @@ void distrib_ext (py::module& m)
 		py::arg("mgr"));
 
 	m
+		.def("localize", tcr::localize<PybindT>,
+		py::arg("root"), py::arg("stop") = eteq::ETensorsT<PybindT>{},
+		py::arg("ctx") = global::context(),
+		"Move all remote references under root subgraph to "
+		"specified context ignoring all subgraphs in stop")
 		.def("set_distrmgr", tcr::set_distrmgr,
 		py::arg("mgr"),
 		py::arg("ctx") = global::context())

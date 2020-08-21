@@ -6,9 +6,9 @@
 /// Draw an equation graph as an ascii tree
 ///
 
-#include "teq/teq.hpp"
+#include "internal/teq/teq.hpp"
 
-#include "teq/mock/functor.hpp"
+#include "internal/teq/mock/functor.hpp"
 
 #include "dbg/print/tree.hpp"
 

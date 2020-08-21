@@ -1,4 +1,4 @@
-#include "eteq/funcopt.hpp"
+#include "tenncor/eteq/funcopt.hpp"
 
 #ifndef ETEQ_SHAPER_HPP
 #define ETEQ_SHAPER_HPP

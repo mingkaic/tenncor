@@ -8,8 +8,6 @@
 
 #include "testutil/tutil.hpp"
 
-#include "eteq/serialize.hpp"
-
 #include "tenncor/tenncor.hpp"
 
 
@@ -61,7 +59,7 @@ TEST(LAYER, DenseSerialization)
 			0, teq::Shape({noutput}), "bias");
 		auto y = tenncor<float>().nn.dense(eteq::ETensor<float>(x),
 			eteq::ETensor<float>(weight), eteq::ETensor<float>(bias));
-		eteq::VarptrsT<float> contents = eteq::get_storage(y);
+		eteq::VarptrsT<float> contents = layr::get_storage(y);
 		ASSERT_EQ(2, contents.size());
 		EXPECT_ARRHAS(contents, weight);
 		EXPECT_ARRHAS(contents, bias);
@@ -79,14 +77,14 @@ TEST(LAYER, DenseSerialization)
 			"_____`--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_________`--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", y);
 
-		eteq::save_model(model, teq::TensptrsT{y});
+		tcr::save_model(model, teq::TensptrsT{y});
 	}
 	ASSERT_EQ(noutput * ninput, weight_data.size());
 	ASSERT_EQ(noutput, bias_data.size());
 	{
 		// load
 		onnx::TensptrIdT ids;
-		teq::TensptrsT roots = eteq::load_model(ids, model);
+		teq::TensptrsT roots = tcr::load_model(ids, model);
 		ASSERT_EQ(1, roots.size());
 
 		EXPECT_GRAPHEQ(

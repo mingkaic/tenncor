@@ -1,0 +1,108 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":onnx_hdrs",
+        ":onnx_srcs",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "onnx_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "onnx_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "onnx",
+    hdrs = [":onnx_hdrs"],
+    srcs = [":onnx_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":onnx_cc_pb",
+        "//internal/teq:teq",
+        "@boost//:uuid",
+        "@boost//:bimap",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "onnx_to_local",
+    srcs = ["@com_github_onnx_onnx//:proto3"],
+    outs = ["onnx.proto"],
+    cmd = "cp $< $@",
+)
+
+proto_library(
+    name = "onnx_pb",
+    srcs = ["onnx.proto"],
+    visibility = ["//visibility:public"],
+)
+
+# cpp_proto_library(
+#     name = "onnx_cc_pb",
+#     deps = [":onnx_pb"],
+#     visibility = ["//visibility:public"],
+# )
+
+cc_library(
+    name = "onnx_cc_pb",
+    hdrs = ["onnx.pb.h"],
+    srcs = ["onnx.pb.cc"],
+    copts = ["-std=c++17"],
+    deps = ["@com_google_protobuf//:protobuf"],
+    visibility = ["//visibility:public"],
+)
+
+######### TOOLS #########
+
+cc_binary(
+    name = "inspector",
+    srcs = ["inspector.cpp"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":onnx_cc_pb",
+        "@com_github_mingkaic_cppkg//estd:estd",
+        "@com_github_mingkaic_cppkg//flag:flag",
+    ],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    size = "small",
+    srcs = [":test_srcs"],
+    deps = [
+        ":onnx",
+        "//internal/teq:mock_teq",
+        "//dbg:print",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    copts = ["-std=c++17"],
+    data = ["//:test_models"],
+    linkstatic = True,
+)

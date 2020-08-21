@@ -8,7 +8,7 @@
 
 #include "exam/exam.hpp"
 
-#include "eteq/eteq.hpp"
+#include "tenncor/eteq/eteq.hpp"
 
 #include "ccur/partition.hpp"
 

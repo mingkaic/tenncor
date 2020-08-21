@@ -35,7 +35,6 @@ class OnxDSEnv(ecache.EnvManager):
 
             # prevent shuffling to allow predictable recovery
             self.dataset = helper.load(self.oxfile)
-            self.step = self.dataset.as_numpy_iterator()
 
             self.train_inputs = train_inputs
             labelled_inputs = [self.api.identity(train_input)
@@ -127,10 +126,9 @@ class OnxDSEnv(ecache.EnvManager):
 
             self.dataset = helper.load(self.oxfile)
 
-            self.step = self.dataset.as_numpy_iterator()
             print('skipping the first {} images'.format(self.dataset_idx))
             for _ in range(self.dataset_idx):
-                next(self.step)
+                next(self.dataset)
 
             print('successfully recovered environment from "{}"'.format(fpath))
             return True
@@ -140,7 +138,7 @@ class OnxDSEnv(ecache.EnvManager):
 
     def train(self):
         try:
-            data = next(self.step)
+            data = next(self.dataset)
             self.trainstep_fn(self.dataset_idx, self.ctx, data, self.train_inputs, self.train_outputs)
             self.dataset_idx += 1
             return True

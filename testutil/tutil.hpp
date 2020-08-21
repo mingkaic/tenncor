@@ -4,8 +4,8 @@
 
 #include "dbg/print/print.hpp"
 
-#include "teq/ileaf.hpp"
-#include "teq/ifunctor.hpp"
+#include "internal/teq/ileaf.hpp"
+#include "internal/teq/ifunctor.hpp"
 
 #ifndef TEST_TUTIL_HPP
 #define TEST_TUTIL_HPP

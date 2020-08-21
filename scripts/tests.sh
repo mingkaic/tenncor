@@ -24,11 +24,11 @@ fi
 
 echo "Test Mode: $MODE";
 if [[ "$MODE" == "fast" ]]; then
-	bzl_coverage //eigen:test //marsh:test //onnx:test \
-	//opt:test //query:test //teq:test //utils:test;
+	bzl_coverage //internal/eigen:test //marsh:test //internal/onnx:test \
+	//opt:test //internal/query:test //teq:test //utils:test;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //gen:ptest;
+	--remote_http_cache="$REMOTE_CACHE" //tools/gen:ptest;
 elif [[ "$MODE" == "eteq" ]]; then
 	bzl_coverage //tenncor/eteq:ctest;
 
@@ -45,13 +45,13 @@ elif [[ "$MODE" == "distrib" ]]; then
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //tenncor/distrib:ptest;
 else
-	bzl_coverage //eigen:test //tenncor/eteq:ctest //tenncor/distrib:ctest \
-	//tenncor/layr:ctest //marsh:test //onnx:test //opt:test \
-	//query:test //teq:test //utils:test;
+	bzl_coverage //internal/eigen:test //tenncor/eteq:ctest //tenncor/distrib:ctest \
+	//tenncor/layr:ctest //marsh:test //internal/onnx:test //opt:test \
+	//internal/query:test //teq:test //utils:test;
 
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" \
-	//gen:ptest //tenncor/eteq:ptest //tenncor/layr:ptest //tenncor/distrib:ptest;
+	//tools/gen:ptest //tenncor/eteq:ptest //tenncor/layr:ptest //tenncor/distrib:ptest;
 fi
 
 lcov --remove "$COV_DIR/coverage.info" 'external/*' '**/test/*' \

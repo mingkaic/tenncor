@@ -190,7 +190,7 @@ funcs:
           //
               auto output = this->fully_connect({input},{weight},bias,dims);
               auto layer_root = super->identity(output);
-              return eteq::ETensor<T>(eteq::make_layer(
+              return eteq::ETensor<T>(layr::make_layer(
                   layer_root,layr::dense_name,input),super->ctx);
   - name: conv
     args:
@@ -211,7 +211,7 @@ funcs:
           //
               auto output = this->conv2d(input,weight,bias,zero_padding);
               auto layer_root = super->identity(output);
-              return eteq::ETensor<T>(eteq::make_layer(
+              return eteq::ETensor<T>(layr::make_layer(
                   layer_root,layr::conv_name,input),super->ctx);
   - name: rnn
     args:
@@ -243,13 +243,13 @@ funcs:
               for (teq::DimT i = 0; i < nseq; ++i)
               {
                   inslice = super->slice(input,i,1,seq_dim);
-                  state = activation(eteq::connect(cell,
+                  state = activation(layr::connect(cell,
                       super->concat(inslice,state,0)));
                   states.push_back(state);
               }
               auto output = super->concat(states,seq_dim);
               auto layer_root = super->identity(output);
-              return eteq::ETensor<T>(eteq::make_layer(
+              return eteq::ETensor<T>(layr::make_layer(
                   layer_root,layr::rnn_name,input),super->ctx);
   - name: lstm
     args:
@@ -291,10 +291,10 @@ funcs:
                   inslice = super->slice(input,i,1,seq_dim);
                   xc = super->concat(inslice,hidden,0);
 
-                  auto gate = super->tanh(eteq::connect(ggate,xc));
-                  auto input = super->sigmoid(eteq::connect(ingate,xc));
-                  auto forget = super->sigmoid(eteq::connect(forgate,xc));
-                  auto output = super->sigmoid(eteq::connect(outgate,xc));
+                  auto gate = super->tanh(layr::connect(ggate,xc));
+                  auto input = super->sigmoid(layr::connect(ingate,xc));
+                  auto forget = super->sigmoid(layr::connect(forgate,xc));
+                  auto output = super->sigmoid(layr::connect(outgate,xc));
                   state = super->add(super->mul(gate,input),
                       super->mul(state,forget));
                   hidden = super->mul(state,output);
@@ -302,7 +302,7 @@ funcs:
               }
               auto output = super->concat(states,seq_dim);
               auto layer_root = super->identity(output);
-              return eteq::ETensor<T>(eteq::make_layer(
+              return eteq::ETensor<T>(layr::make_layer(
                   layer_root,layr::lstm_name,input),super->ctx);
   - name: gru
     args:
@@ -339,9 +339,9 @@ funcs:
                   inslice = super->slice(input,i,1,seq_dim);
                   xc = super->concat(inslice,state,0);
 
-                  auto update = super->sigmoid(eteq::connect(ugate,xc));
-                  auto reset = super->sigmoid(eteq::connect(rgate,xc));
-                  auto hidden = super->tanh(eteq::connect(hgate,
+                  auto update = super->sigmoid(layr::connect(ugate,xc));
+                  auto reset = super->sigmoid(layr::connect(rgate,xc));
+                  auto hidden = super->tanh(layr::connect(hgate,
                       super->concat(inslice,super->mul(reset,state),0)));
                   state = super->add(super->mul(update,state),
                       super->mul(super->sub((T)1,update),hidden));
@@ -349,5 +349,5 @@ funcs:
               }
               auto output = super->concat(states,seq_dim);
               auto layer_root = super->identity(output);
-              return eteq::ETensor<T>(eteq::make_layer(
+              return eteq::ETensor<T>(layr::make_layer(
                   layer_root,layr::gru_name,input),super->ctx);

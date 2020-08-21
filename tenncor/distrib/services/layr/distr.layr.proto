@@ -1,0 +1,5 @@
+syntax = "proto3";
+
+import "internal/onnx/onnx.proto";
+
+package distr.layr;

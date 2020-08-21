@@ -3,8 +3,8 @@
 
 #include "pybind11/functional.h"
 
-#include "trainer/apply_update.hpp"
-#include "trainer/dbn.hpp"
+#include "tenncor/trainer/apply_update.hpp"
+#include "tenncor/trainer/dbn.hpp"
 
 #include "python/tenncor_utils.hpp"
 

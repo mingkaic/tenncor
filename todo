@@ -9,6 +9,7 @@ P5 = "get to it eventually"
    - modify distributed evaluation to solve issue of running out of server completion queue threads in a circular dependency topography
    - check for running out of server resources due to circular server dependencies
    - deprecate frequent use of fatals in favor of error approach especially for netcode
+   - implement copy and moving distributed graphs
    - improve grpc async helper objects to take advantage of asynchonicity
    - support type-anonymous etensors/functors to allow for non-typed derivefuncs
    - upgrade layr to allow restructuring recurrent structure sequence length

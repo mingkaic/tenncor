@@ -2,8 +2,8 @@ api:
   pybind_type: float
   includes:
   - '"tenncor/derive.hpp"'
-  - '"eteq/make.hpp"'
-  - '"eteq/layer.hpp"'
+  - '"tenncor/layer.hpp"'
+  - '"tenncor/eteq/make.hpp"'
   - '"layr/approx.hpp"'
   - '"layr/init.hpp"'
   - '"layr/layer.hpp"'

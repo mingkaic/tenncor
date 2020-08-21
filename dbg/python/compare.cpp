@@ -2,8 +2,6 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "global/global.hpp"
-
 #include "dbg/compare/equal.hpp"
 
 #include "tenncor/tenncor.hpp"

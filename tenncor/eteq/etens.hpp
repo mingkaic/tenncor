@@ -6,7 +6,7 @@
 /// Typed tensor pointer transport object
 ///
 
-#include "eigen/eigen.hpp"
+#include "internal/eigen/eigen.hpp"
 
 #ifndef ETEQ_ETENS_HPP
 #define ETEQ_ETENS_HPP

@@ -8,7 +8,7 @@
 
 // #include "dbg/print/search.hpp"
 
-#include "eteq/optimize.hpp"
+#include "tenncor/optimize.hpp"
 
 #include "tenncor/tenncor.hpp"
 
@@ -327,11 +327,11 @@ TEST(OPTIMIZE, CNNLayer)
 	double l2_decay = 0.0001;
 
 	auto normalized = invar / 255. - 0.5;
-	eteq::ETensor<double> train_out = eteq::connect(model, normalized);
+	eteq::ETensor<double> train_out = layr::connect(model, normalized);
 	auto error = -tenncor<double>().reduce_sum(outvar *
 		tenncor<double>().log(train_out + std::numeric_limits<double>::epsilon()));
 
-	eteq::VarptrsT<double> vars = eteq::get_storage(model);
+	eteq::VarptrsT<double> vars = layr::get_storage(model);
 	auto updates = tenncor<double>().approx.adadelta(
 		error, eteq::EVariablesT<double>(vars.begin(), vars.end()),
 		learning_rate, l2_decay);
@@ -344,7 +344,7 @@ TEST(OPTIMIZE, CNNLayer)
 		deps.push_back(update.second);
 	}
 	auto err = tenncor<double>().identity(tenncor<double>().depends(
-		eteq::trail(error, umap), deps));
+		layr::trail(error, umap), deps));
 
 	std::ifstream rulefile("cfg/optimizations.json");
 	err = eteq::optimize<double>({err}, rulefile)[0];

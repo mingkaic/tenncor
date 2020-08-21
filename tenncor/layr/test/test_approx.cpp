@@ -8,12 +8,12 @@
 
 #include "testutil/tutil.hpp"
 
-#include "eteq/make.hpp"
+#include "tenncor/eteq/make.hpp"
 
-#include "query/querier.hpp"
-#include "query/parse.hpp"
+#include "internal/query/querier.hpp"
+#include "internal/query/parse.hpp"
 
-#include "layr/approx.hpp"
+#include "tenncor/layr/approx.hpp"
 
 #include "tenncor/tenncor.hpp"
 

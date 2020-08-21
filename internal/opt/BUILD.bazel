@@ -1,0 +1,94 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":opt_hdrs",
+        ":opt_srcs",
+        ":protos",
+        ":mock_hdrs",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "opt_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "opt_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = ["optimize.proto"],
+)
+
+filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob(["test/*.cpp"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "opt",
+    hdrs = [":opt_hdrs"],
+    srcs = [":opt_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":opt_cc_pb",
+        "//internal/query:query",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "opt_pb",
+    srcs = [":protos"],
+    deps = ["//internal/query:query_pb"],
+    visibility = ["//visibility:public"],
+)
+
+cpp_proto_library(
+    name = "opt_cc_pb",
+    deps = [":opt_pb"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "mock_opt",
+    hdrs = [":mock_hdrs"],
+    copts = ["-std=c++17"],
+    deps = [":opt"],
+    visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = [":test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":mock_opt",
+        "//dbg:print",
+        "//internal/teq:mock_teq",
+        "//testutil:tutil",
+    ],
+    data = [
+        "//cfg:optimizations",
+    ],
+    linkstatic = True,
+)

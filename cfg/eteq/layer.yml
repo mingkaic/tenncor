@@ -28,7 +28,7 @@ funcs:
                   0,inshape,layr::input_label,super->ctx));
               auto output = unary(input);
               auto layer_root = super->identity(output);
-              return eteq::ETensor<T>(eteq::make_layer(layer_root,layr::bind_name,input),super->ctx);
+              return eteq::ETensor<T>(layr::make_layer(layer_root,layr::bind_name,input),super->ctx);
   - name: link
     args:
     - type: eteq::ETensorsT<T>
@@ -49,22 +49,22 @@ funcs:
               if (nullptr == input)
               {
                   output = layers.front();
-                  input = eteq::get_input(output);
+                  input = layr::get_input(output);
                   layers = eteq::ETensorsT<T>(layers.begin()+1,layers.end());
               }
               for (auto layer : layers)
               {
-                  if (eteq::get_input(layer).get() == output.get())
+                  if (layr::get_input(layer).get() == output.get())
                   {
                       output = layer;
                   }
                   else
                   {
-                      output = eteq::connect(layer,output);
+                      output = layr::connect(layer,output);
                   }
               }
               auto layer_root = super->identity(output);
-              return eteq::ETensor<T>(eteq::make_layer(layer_root,layr::link_name,input),super->ctx);
+              return eteq::ETensor<T>(layr::make_layer(layer_root,layr::link_name,input),super->ctx);
   - name: dense
     args:
     - type: const teq::Shape&

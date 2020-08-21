@@ -1,4 +1,4 @@
-#include "eigen/eigen.hpp"
+#include "internal/eigen/eigen.hpp"
 
 #include "dbg/peval/plugin_eval.hpp"
 

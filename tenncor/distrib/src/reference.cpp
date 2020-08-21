@@ -1,5 +1,5 @@
 
-#include "distrib/reference.hpp"
+#include "tenncor/distrib/reference.hpp"
 
 #ifdef DISTRIB_REFERENCE_HPP
 

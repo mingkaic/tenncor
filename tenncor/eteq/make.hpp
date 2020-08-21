@@ -1,8 +1,8 @@
 #include "estd/cast.hpp"
 
-#include "eteq/constant.hpp"
-#include "eteq/functor.hpp"
-#include "eteq/evars.hpp"
+#include "tenncor/eteq/constant.hpp"
+#include "tenncor/eteq/functor.hpp"
+#include "tenncor/eteq/evars.hpp"
 
 #ifndef ETEQ_MAKE_HPP
 #define ETEQ_MAKE_HPP
@@ -28,7 +28,7 @@ EVariable<T> make_variable_scalar (T scalar,
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>
-EVariable<T> make_variable (teq::Shape shape, std::string label, 
+EVariable<T> make_variable (teq::Shape shape, std::string label,
 	const global::CfgMapptrT& ctx)
 {
 	return make_variable_scalar<T>(0, shape, label, ctx);
@@ -53,7 +53,7 @@ EVariable<T> make_variable (T* data, teq::Shape shape,
 
 /// Return constant node given scalar and shape
 template <typename T>
-ETensor<T> make_constant_scalar (T scalar, teq::Shape shape, 
+ETensor<T> make_constant_scalar (T scalar, teq::Shape shape,
 	const global::CfgMapptrT& ctx)
 {
 	std::vector<T> data(shape.n_elems(), scalar);
@@ -63,7 +63,7 @@ ETensor<T> make_constant_scalar (T scalar, teq::Shape shape,
 
 /// Return constant node filled with scalar matching link shape
 template <typename T>
-ETensor<T> make_constant_like (T scalar, teq::TensptrT like, 
+ETensor<T> make_constant_like (T scalar, teq::TensptrT like,
 	const global::CfgMapptrT& ctx)
 {
 	return make_functor<T>(ctx, ::egen::EXTEND,teq::TensptrsT{
@@ -73,7 +73,7 @@ ETensor<T> make_constant_like (T scalar, teq::TensptrT like,
 
 /// Return constant node given raw array and shape
 template <typename T>
-ETensor<T> make_constant (T* data, teq::Shape shape, 
+ETensor<T> make_constant (T* data, teq::Shape shape,
 	const global::CfgMapptrT& ctx)
 {
 	return ETensor<T>(teq::TensptrT(
@@ -135,9 +135,6 @@ ETensor<T> make_functor (const global::CfgMapptrT& ctx,
 
 teq::TensptrT add_dependencies (teq::TensptrT root,
 	teq::TensptrsT dependencies);
-
-teq::TensptrT make_layer (teq::TensptrT root,
-	const std::string& layername, teq::TensptrT input);
 
 }
 

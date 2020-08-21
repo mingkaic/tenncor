@@ -1,5 +1,5 @@
 
-#include "trainer/rbm.hpp"
+#include "tenncor/trainer/rbm.hpp"
 
 #ifndef DBN_TRAINER_HPP
 #define DBN_TRAINER_HPP
@@ -21,7 +21,7 @@ struct DBNTrainer final
 		batch_size_(batch_size),
 		context_(context)
 	{
-		input_size_ = eteq::get_input(rbms.front().fwd_)->shape().at(0);
+		input_size_ = layr::get_input(rbms.front().fwd_)->shape().at(0);
 		output_size_ = dense->shape().at(0);
 
 		teq::Shape inshape({(teq::DimT) input_size_, batch_size});
@@ -47,8 +47,8 @@ struct DBNTrainer final
 			auto& rx = sample_pipes_[i];
 			auto& ry = sample_pipes_[i + 1];
 			teq::TensSetT to_learn;
-			auto fstorage = eteq::get_storage(rbm.fwd_);
-			auto bstorage = eteq::get_storage(rbm.bwd_);
+			auto fstorage = layr::get_storage(rbm.fwd_);
+			auto bstorage = layr::get_storage(rbm.bwd_);
 			for (auto var : fstorage)
 			{
 				to_learn.emplace(var.get());
@@ -86,10 +86,10 @@ struct DBNTrainer final
 
 		// logistic layer training
 		// todo: improve this adhoc way of training log layer
-		auto contents = eteq::get_storage(dense);
+		auto contents = layr::get_storage(dense);
 		eteq::VarptrT<T> w = contents[0];
 		eteq::VarptrT<T> b = contents[1];
-		auto final_out = api.softmax(eteq::connect(
+		auto final_out = api.softmax(layr::connect(
 			dense, sample_pipes_.back()), softmax_dim, 1);
 		auto diff = trainy_ - final_out;
 		auto l2_regularized = api.matmul(api.transpose(

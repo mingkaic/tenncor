@@ -3,7 +3,7 @@
 #include "ppconsul/catalog.h"
 #include "ppconsul/kv.h"
 
-#include "global/global.hpp"
+#include "internal/global/global.hpp"
 
 #ifndef DISTRIB_CONSUL_HPP
 #define DISTRIB_CONSUL_HPP

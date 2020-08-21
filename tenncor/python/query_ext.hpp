@@ -1,8 +1,6 @@
 
 #include <sstream>
 
-#include "query/query.hpp"
-
 #include "python/tenncor_utils.hpp"
 
 #ifndef PYTHON_QUERY_EXT_HPP

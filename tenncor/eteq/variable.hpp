@@ -7,7 +7,7 @@
 ///	generalized and type-specific data
 ///
 
-#include "eigen/eigen.hpp"
+#include "internal/eigen/eigen.hpp"
 
 #ifndef ETEQ_VARIABLE_HPP
 #define ETEQ_VARIABLE_HPP

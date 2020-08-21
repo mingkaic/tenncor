@@ -6,9 +6,9 @@
 
 #include "exam/exam.hpp"
 
-#include "teq/evaluator.hpp"
+#include "internal/teq/evaluator.hpp"
 
-#include "eteq/optimize.hpp"
+#include "tenncor/optimize.hpp"
 
 #include "tenncor/tenncor.hpp"
 
@@ -917,7 +917,7 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 	auto layer = tenncor<double>().nn.rnn(layer_in, state, cell,
 		[](const eteq::ETensor<double>& x)
 		{ return tenncor<double>().tanh(x); }, seq_dim);
-	auto output = eteq::connect(layer, in);
+	auto output = layr::connect(layer, in);
 
 	auto err = tenncor<double>().pow(out - output, 2.);
 

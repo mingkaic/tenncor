@@ -1,23 +1,9 @@
-#include "eteq/make.hpp"
+#include "tenncor/eteq/make.hpp"
 
 #ifdef ETEQ_MAKE_HPP
 
 namespace eteq
 {
-
-teq::TensptrT make_layer (teq::TensptrT root,
-	const std::string& layername, teq::TensptrT input)
-{
-	auto f = estd::must_cast<teq::iFunctor>(root.get());
-	if (nullptr != f->get_attr(teq::layer_key))
-	{
-		global::fatalf("attempting to attach layer attribute to node %s "
-			"with an existing layer attribute", root->to_string().c_str());
-	}
-	f->add_attr(teq::layer_key,
-		std::make_unique<teq::LayerObj>(layername, input));
-	return root;
-}
 
 teq::TensptrT add_dependencies (teq::TensptrT root,
 	teq::TensptrsT dependencies)

@@ -7,7 +7,7 @@
 /// based on attribute and input shapes
 ///
 
-#include "eigen/eigen.hpp"
+#include "internal/eigen/eigen.hpp"
 
 #ifndef ETEQ_FUNCOPT_HPP
 #define ETEQ_FUNCOPT_HPP

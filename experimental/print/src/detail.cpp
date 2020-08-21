@@ -1,4 +1,4 @@
-#include "teq/ifunctor.hpp"
+#include "internal/teq/ifunctor.hpp"
 
 #include "experimental/print/detail.hpp"
 

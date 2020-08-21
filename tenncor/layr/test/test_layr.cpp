@@ -7,7 +7,7 @@
 
 #include "testutil/tutil.hpp"
 
-#include "layr/layer.hpp"
+#include "tenncor/layr/layer.hpp"
 
 #include "tenncor/tenncor.hpp"
 
@@ -37,8 +37,8 @@ TEST(DENSE, Connection)
 		0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<float>(
 		0, teq::Shape({7, 2}), "x2");
-	auto biasedy = eteq::connect(biased_dense, eteq::ETensor<float>(x));
-	auto y = eteq::connect(dense, eteq::ETensor<float>(x2));
+	auto biasedy = layr::connect(biased_dense, eteq::ETensor<float>(x));
+	auto y = layr::connect(dense, eteq::ETensor<float>(x2));
 
 	EXPECT_GRAPHEQ(
 		"(IDENTITY[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -64,7 +64,7 @@ TEST(CONV, Connection)
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({4, 10, 9, 2}), "x");
-	auto y = eteq::connect(conv, eteq::ETensor<float>(x));
+	auto y = layr::connect(conv, eteq::ETensor<float>(x));
 
 	EXPECT_GRAPHEQ(
 		"(IDENTITY[3\\6\\4\\2\\1\\1\\1\\1])\n"
@@ -141,7 +141,7 @@ TEST(BIND, Sigmoid)
 	auto sgm = tenncor<float>().layer.bind(tc_sigmoid<float>);
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
-	auto s = eteq::connect(sgm, eteq::ETensor<float>(x));
+	auto s = layr::connect(sgm, eteq::ETensor<float>(x));
 
 	EXPECT_GRAPHEQ(
 		"(IDENTITY[6\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -165,8 +165,8 @@ TEST(BIND, Softmax)
 		});
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
-	auto s0 = eteq::connect(sft0, eteq::ETensor<float>(x));
-	auto s1 = eteq::connect(sft1, eteq::ETensor<float>(x));
+	auto s0 = layr::connect(sft0, eteq::ETensor<float>(x));
+	auto s1 = layr::connect(sft1, eteq::ETensor<float>(x));
 
 	std::string eps_str = fmts::to_string(std::numeric_limits<float>::epsilon());
 	auto expect_str0 = fmts::sprintf(
@@ -285,9 +285,9 @@ TEST(CONNECT, TanhRNN)
 			return eteq::make_variable<double>(bias_data.data(), bshape, label);
 		}, seq_dim);
 
-	auto output = eteq::connect(layer, in);
+	auto output = layr::connect(layer, in);
 	auto err = tenncor<double>().pow(out - output, 2.);
-	auto contents = eteq::get_storage(layer);
+	auto contents = layr::get_storage(layer);
 	auto istate = contents[0];
 	auto weight = contents[1];
 	auto bias = contents[2];
@@ -435,10 +435,10 @@ TEST(CONNECT, DenseTanhRNN)
 
 	auto layer = tenncor<double>().layer.link({indense, rnn});
 
-	auto output = eteq::connect(layer, in);
+	auto output = layr::connect(layer, in);
 
 	auto err = tenncor<double>().pow(out - output, 2.);
-	auto contents = eteq::get_storage(layer);
+	auto contents = layr::get_storage(layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];
@@ -653,10 +653,10 @@ TEST(CONNECT, TanhRNNFull)
 		tenncor<double>().layer.bind(tc_sigmoid<double>),
 	});
 
-	auto output = eteq::connect(layer, in);
+	auto output = layr::connect(layer, in);
 
 	auto err = tenncor<double>().pow(out - output, 2.);
-	auto contents = eteq::get_storage(layer);
+	auto contents = layr::get_storage(layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];
@@ -895,13 +895,13 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 		tenncor<double>().layer.bind(tc_sigmoid<double>),
 	});
 
-	auto output = eteq::connect(layer, in);
+	auto output = layr::connect(layer, in);
 
 	double epsilon = 1e-5;
 	auto common = output + epsilon;
 	auto err = tenncor<double>().reduce_mean(-(out * tenncor<double>().log(common) + (1. - out) * tenncor<double>().log(1. - common)));
 
-	auto contents = eteq::get_storage(layer);
+	auto contents = layr::get_storage(layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];
@@ -1328,13 +1328,13 @@ TEST(CONNECT, TanhRNNTraining)
 		tenncor<double>().layer.bind(tc_sigmoid<double>),
 	});
 
-	auto output = eteq::connect(layer, in);
+	auto output = layr::connect(layer, in);
 
 	double epsilon = 1e-5;
 	auto common = output + epsilon;
 	auto err = tenncor<double>().reduce_mean(-(out * tenncor<double>().log(common) + (1. - out) * tenncor<double>().log(1. - common)));
 
-	auto contents = eteq::get_storage(layer);
+	auto contents = layr::get_storage(layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];

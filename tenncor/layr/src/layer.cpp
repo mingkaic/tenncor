@@ -1,4 +1,4 @@
-#include "layr/layer.hpp"
+#include "tenncor/layr/layer.hpp"
 
 #ifdef LAYR_LAYER_HPP
 
@@ -27,6 +27,20 @@ teq::Shape gen_rshape (std::vector<teq::DimT> runcoms,
 		}
 	}
 	return teq::Shape(slist);
+}
+
+teq::TensptrT make_layer (teq::TensptrT root,
+	const std::string& layername, teq::TensptrT input)
+{
+	auto f = estd::must_cast<teq::iFunctor>(root.get());
+	if (nullptr != f->get_attr(teq::layer_key))
+	{
+		global::fatalf("attempting to attach layer attribute to node %s "
+			"with an existing layer attribute", root->to_string().c_str());
+	}
+	f->add_attr(teq::layer_key,
+		std::make_unique<teq::LayerObj>(layername, input));
+	return root;
 }
 
 }

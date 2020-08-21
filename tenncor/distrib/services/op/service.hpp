@@ -1,10 +1,8 @@
 
-#include "eteq/eteq.hpp"
+#include "tenncor/eteq/eteq.hpp"
 
-#include "egrpc/server_async.hpp"
-
-#include "distrib/services/io/service.hpp"
-#include "distrib/services/op/client.hpp"
+#include "tenncor/distrib/services/io/service.hpp"
+#include "tenncor/distrib/services/op/client.hpp"
 
 #ifndef DISTRIB_OP_SERVICE_HPP
 #define DISTRIB_OP_SERVICE_HPP
@@ -545,7 +543,7 @@ private:
 		teq::OwnMapT tgrads;
 		if (parents.size() > 0)
 		{
-			teq::iDerivativeFuncs* builder;
+			teq::iDerivativeFuncs* builder = nullptr;
 			auto dtype = (*parents.begin())->get_meta().type_code();
 			TYPE_LOOKUP(_MAKE_DERFUNC, dtype);
 			tgrads = derive(grads, parents, BackpropMeta{targets}, *builder);

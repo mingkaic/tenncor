@@ -21,7 +21,6 @@ filegroup(
         "*.hpp",
         "services/**/*.hpp",
     ]),
-    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -30,7 +29,6 @@ filegroup(
         "src/*.cpp",
         "services/**/*.cpp",
     ]),
-    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -55,9 +53,26 @@ filegroup(
 
 ######### LIBRARY #########
 
+cc_library(
+    name = "distrib",
+    hdrs = [":distrib_hdrs"],
+    srcs = [":distrib_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//tenncor/eteq:eteq",
+        ":distr_cc_grpc",
+        "@boost//:bimap",
+        "@com_github_oliora_ppconsul//:consul",
+        "@com_github_mingkaic_cppkg//egrpc:egrpc",
+        "@com_github_mingkaic_cppkg//error:error",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 proto_library(
     name = "distr_pb",
     srcs = [":protos"],
+    deps = ["//internal/onnx:onnx_pb"],
     visibility = ["//visibility:public"],
 )
 

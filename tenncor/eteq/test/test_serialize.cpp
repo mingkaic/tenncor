@@ -14,7 +14,7 @@
 
 #include "dbg/print/teq.hpp"
 
-#include "eteq/eteq.hpp"
+#include "tenncor/eteq/eteq.hpp"
 
 #include "tenncor/tenncor.hpp"
 
@@ -66,7 +66,7 @@ TEST(SERIALIZE, SaveGraph)
 	ids.insert({db0.get(), "db0"});
 	ids.insert({dw1.get(), "dw1"});
 	ids.insert({db1.get(), "db1"});
-	eteq::save_model(model, teq::TensptrsT{dw0, db0, dw1, db1}, ids);
+	tcr::save_model(model, teq::TensptrsT{dw0, db0, dw1, db1}, ids);
 	{
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
@@ -117,7 +117,7 @@ TEST(SERIALIZE, SaveDependencies)
 
 	onnx::TensIdT ids;
 	ids.insert({root.get(), "root"});
-	eteq::save_model(model, teq::TensptrsT{root}, ids);
+	tcr::save_model(model, teq::TensptrsT{root}, ids);
 	{
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
@@ -155,7 +155,7 @@ TEST(SERIALIZE, LoadGraph)
 	}
 
 	onnx::TensptrIdT ids;
-	teq::TensptrsT out = eteq::load_model(ids, in);
+	teq::TensptrsT out = tcr::load_model(ids, in);
 	EXPECT_EQ(4, out.size());
 
 	ASSERT_HAS(ids.right, "dw0");

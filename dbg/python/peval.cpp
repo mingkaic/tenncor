@@ -1,12 +1,8 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "global/global.hpp"
-
 #include "dbg/peval/emit/emitter.hpp"
 #include "dbg/peval/stats/inspect.hpp"
-
-#include "tenncor/tenncor.hpp"
 
 namespace py = pybind11;
 

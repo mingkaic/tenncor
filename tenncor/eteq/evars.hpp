@@ -1,6 +1,6 @@
 
-#include "eteq/etens.hpp"
-#include "eteq/variable.hpp"
+#include "tenncor/eteq/etens.hpp"
+#include "tenncor/eteq/variable.hpp"
 
 #ifndef ETEQ_EVARS_HPP
 #define ETEQ_EVARS_HPP

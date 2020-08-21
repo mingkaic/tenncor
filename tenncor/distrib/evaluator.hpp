@@ -1,5 +1,5 @@
 
-#include "distrib/manager.hpp"
+#include "tenncor/distrib/manager.hpp"
 
 #ifndef DISTRIB_OP_EVALUATOR_HPP
 #define DISTRIB_OP_EVALUATOR_HPP

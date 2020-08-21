@@ -6,7 +6,7 @@
 /// Implement constant leaf tensor
 ///
 
-#include "eteq/etens.hpp"
+#include "tenncor/eteq/etens.hpp"
 
 #ifndef ETEQ_CONSTANT_HPP
 #define ETEQ_CONSTANT_HPP

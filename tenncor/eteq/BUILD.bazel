@@ -15,13 +15,11 @@ filegroup(
 filegroup(
     name = "eteq_hdrs",
     srcs = glob(["*.hpp"]),
-    visibility = ["//visibility:public"],
 )
 
 filegroup(
     name = "eteq_srcs",
     srcs = glob(["src/*.cpp"]),
-    visibility = ["//visibility:public"],
 )
 
 filegroup(
@@ -34,6 +32,17 @@ filegroup(
     srcs = ["test/ptest.py"],
 )
 
+######### LIBRARY #########
+
+cc_library(
+    name = "eteq",
+    hdrs = [":eteq_hdrs"],
+    srcs = [":eteq_srcs"],
+    copts = ["-std=c++17"],
+    deps = ["//internal/eigen:eigen"],
+    visibility = ["//visibility:public"],
+)
+
 ######### TEST #########
 
 cc_test(
@@ -42,7 +51,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//tenncor:tenncor",
-        "//utils:utils",
+        "//internal/utils:utils",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",

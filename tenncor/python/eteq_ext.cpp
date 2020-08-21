@@ -134,13 +134,13 @@ void eteq_ext (py::module& m)
 		})
 
 		// layer extensions
-		.def("get_input", eteq::get_input<PybindT>)
-		.def("connect", eteq::connect<PybindT>)
-		.def("deep_clone", eteq::deep_clone<PybindT>)
+		.def("get_input", layr::get_input<PybindT>)
+		.def("connect", tcr::connect<PybindT>)
+		.def("deep_clone", layr::deep_clone<PybindT>)
 		.def("get_storage",
 		[](const pytenncor::ETensT& self)
 		{
-			auto contents = eteq::get_storage<PybindT>(self);
+			auto contents = layr::get_storage<PybindT>(self);
 			eteq::EVariablesT<PybindT> vars;
 			vars.reserve(contents.size());
 			std::transform(contents.begin(), contents.end(),
@@ -314,7 +314,7 @@ void eteq_ext (py::module& m)
 			{
 				inputs.emplace(inp.first.get(), inp.second);
 			}
-			return eteq::trail<PybindT>(root, inputs);
+			return layr::trail<PybindT>(root, inputs);
 		})
 
 		// ==== optimization ====
@@ -369,7 +369,7 @@ void eteq_ext (py::module& m)
 					filename.c_str());
 			}
 			onnx::TensptrIdT ids;
-			auto roots = eteq::load_model(ids, pb_model);
+			auto roots = tcr::load_model(ids, pb_model);
 			input.close();
 
 			std::vector<std::string> precids;
@@ -422,7 +422,7 @@ void eteq_ext (py::module& m)
 			{
 				identified.insert({keyit.second.get(), keyit.first});
 			}
-			eteq::save_model(pb_model, teq::TensptrsT(
+			tcr::save_model(pb_model, teq::TensptrsT(
 				models.begin(), models.end()), identified);
 			return pb_model.SerializeToOstream(&output);
 		},
@@ -443,7 +443,7 @@ void eteq_ext (py::module& m)
 					filename.c_str());
 			}
 			onnx::TensptrIdT ids;
-			auto roots = eteq::load_model(ids, pb_model);
+			auto roots = tcr::load_model(ids, pb_model);
 			input.close();
 			pytenncor::ETensorsT out;
 			out.reserve(roots.size());
@@ -470,7 +470,7 @@ void eteq_ext (py::module& m)
 			}
 			onnx::ModelProto pb_model;
 			onnx::TensIdT ids;
-			eteq::save_model(pb_model, teq::TensptrsT(
+			tcr::save_model(pb_model, teq::TensptrsT(
 				roots.begin(), roots.end()), ids);
 			return pb_model.SerializeToOstream(&output);
 		});

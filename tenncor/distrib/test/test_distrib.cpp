@@ -8,9 +8,9 @@
 #include "exam/exam.hpp"
 
 #include "dbg/distr_ext/print/service.hpp"
-#include "distrib/manager.hpp"
+#include "tenncor/distrib/manager.hpp"
 
-#include "eteq/make.hpp"
+#include "tenncor/eteq/make.hpp"
 
 #include "tenncor/tenncor.hpp"
 

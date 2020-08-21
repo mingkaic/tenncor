@@ -1,10 +1,10 @@
 
 #include "egrpc/server_async.hpp"
 
-#include "distrib/imanager.hpp"
-#include "distrib/services/io/client.hpp"
-#include "distrib/services/io/data.hpp"
-#include "distrib/services/io/pb_helper.hpp"
+#include "tenncor/distrib/imanager.hpp"
+#include "tenncor/distrib/services/io/client.hpp"
+#include "tenncor/distrib/services/io/data.hpp"
+#include "tenncor/distrib/services/io/pb_helper.hpp"
 
 #ifndef DISTRIB_IO_SERVICE_HPP
 #define DISTRIB_IO_SERVICE_HPP

@@ -1,6 +1,6 @@
 
-#include "layr/layer.hpp"
-#include "layr/approx.hpp"
+#include "tenncor/layr/layer.hpp"
+#include "tenncor/layr/approx.hpp"
 
 #include "tenncor/tenncor.hpp"
 

@@ -1,4 +1,4 @@
-#include "teq/teq.hpp"
+#include "internal/teq/teq.hpp"
 
 #ifndef DBG_PLUGIN_EVAL_HPP
 #define DBG_PLUGIN_EVAL_HPP

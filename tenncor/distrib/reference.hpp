@@ -1,5 +1,5 @@
 
-#include "eigen/eigen.hpp"
+#include "internal/eigen/eigen.hpp"
 
 #ifndef DISTRIB_REFERENCE_HPP
 #define DISTRIB_REFERENCE_HPP

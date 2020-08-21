@@ -1,7 +1,7 @@
 
 #include "pybind11/stl.h"
 
-#include "pyutils/convert.hpp"
+#include "tenncor/pyutils/convert.hpp"
 
 #include "tenncor/tenncor.hpp"
 

@@ -1,5 +1,7 @@
 
-#include "eteq/eteq.hpp"
+#include "tenncor/eteq/eteq.hpp"
+
+#include "tenncor/opt/opt.hpp"
 
 #ifndef DBG_GRAPHEQ_HPP
 #define DBG_GRAPHEQ_HPP

@@ -1,4 +1,4 @@
-#include "trainer/trainer.hpp"
+#include "tenncor/trainer/trainer.hpp"
 
 #ifndef TRAINER_SGD_HPP
 #define TRAINER_SGD_HPP
@@ -17,7 +17,7 @@ eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
 	eteq::EVariablesT<T> vars;
 	for (auto& model : models)
 	{
-		auto temp_vars = eteq::get_storage(model);
+		auto temp_vars = layr::get_storage(model);
 		std::transform(temp_vars.begin(), temp_vars.end(),
 			std::back_inserter(vars),
 			[&](eteq::VarptrT<T> var)
@@ -36,7 +36,7 @@ eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
 		deps.push_back(update.second);
 	}
 	// depend on assigns for variables not trailed in error
-	return TenncorAPI<T>(ctx).depends(eteq::trail(error, umap), deps);
+	return TenncorAPI<T>(ctx).depends(layr::trail(error, umap), deps);
 }
 
 }

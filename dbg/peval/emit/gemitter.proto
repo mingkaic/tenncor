@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "onnx/onnx.proto";
+import "internal/onnx/onnx.proto";
 
 package gemitter;
 

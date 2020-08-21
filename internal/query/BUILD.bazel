@@ -1,0 +1,82 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":query_hdrs",
+        ":query_srcs",
+        ":protos",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "query_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "query_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = ["query.proto"],
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "query",
+    hdrs = [":query_hdrs"],
+    srcs = [":query_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":query_cc_pb",
+        "//internal/eigen:eigen",
+        "@boost//:functional",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "query_pb",
+    srcs = [":protos"],
+    visibility = ["//visibility:public"],
+)
+
+cpp_proto_library(
+    name = "query_cc_pb",
+    deps = [":query_pb"],
+    visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = [":test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":query",
+        "//tenncor:tenncor",
+        "//internal/teq:mock_teq",
+        "//dbg:print",
+        "//testutil:tutil",
+    ],
+    linkstatic = True,
+    data = ["//:test_models"],
+)

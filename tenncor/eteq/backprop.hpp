@@ -6,7 +6,7 @@
 /// Implement eteq definition for supporting backward propagation
 ///
 
-#include "eteq/make.hpp"
+#include "tenncor/eteq/make.hpp"
 
 #ifndef ETEQ_BACKPROP_HPP
 #define ETEQ_BACKPROP_HPP

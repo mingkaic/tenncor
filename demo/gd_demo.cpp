@@ -7,7 +7,7 @@
 
 #include "flag/flag.hpp"
 
-#include "eteq/eteq.hpp"
+#include "tenncor/eteq/eteq.hpp"
 
 #include "tenncor/tenncor.hpp"
 
@@ -15,8 +15,8 @@
 // #include "dbg/peval/emit/emitter.hpp"
 #include "dbg/compare/equal.hpp"
 
-#include "layr/layer.hpp"
-#include "trainer/apply_update.hpp"
+#include "tenncor/layr/layer.hpp"
+#include "tenncor/trainer/apply_update.hpp"
 
 static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
@@ -106,8 +106,8 @@ int main (int argc, const char** argv)
 			tc.layer.unif_xavier_init(1), tc.layer.zero_init()),
 		tc.layer.bind(sigmoid),
 	});
-	eteq::ETensor<PybindT> untrained_model = eteq::deep_clone(trained_model);
-	eteq::ETensor<PybindT> pretrained_model = eteq::deep_clone(trained_model);
+	eteq::ETensor<PybindT> untrained_model = layr::deep_clone(trained_model);
+	eteq::ETensor<PybindT> pretrained_model = layr::deep_clone(trained_model);
 
 	std::ifstream loadstr(loadpath);
 	try
@@ -122,7 +122,7 @@ int main (int argc, const char** argv)
 			throw std::exception();
 		}
 		onnx::TensptrIdT ids;
-		pretrained_model = eteq::load_model(ids, pb_model)[0];
+		pretrained_model = tcr::load_model(ids, pb_model)[0];
 		global::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
@@ -161,14 +161,14 @@ int main (int argc, const char** argv)
 		[&](const eteq::ETensorsT<PybindT>& models)
 		{
 			return tc.error.sqr_diff(train_exout,
-				eteq::connect(models.front(), train_input));
+				layr::connect(models.front(), train_input));
 		});
 
 	eteq::EVariable<PybindT> testin = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape({n_in}), "testin");
-	auto untrained_out = eteq::connect(untrained_model, testin);
-	auto trained_out = eteq::connect(trained_model, testin);
-	auto pretrained_out = eteq::connect(pretrained_model, testin);
+	auto untrained_out = layr::connect(untrained_model, testin);
+	auto trained_out = layr::connect(trained_model, testin);
+	auto pretrained_out = layr::connect(pretrained_model, testin);
 
 	eteq::optimize<PybindT>("cfg/optimizations.json");
 
@@ -242,7 +242,7 @@ int main (int argc, const char** argv)
 		if (savestr.is_open())
 		{
 			onnx::ModelProto pb_model;
-			eteq::save_model(pb_model, teq::TensptrsT{trained_model});
+			tcr::save_model(pb_model, teq::TensptrsT{trained_model});
 			if (pb_model.SerializeToOstream(&savestr))
 			{
 				global::infof("successfully saved model to `%s`", savepath.c_str());

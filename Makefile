@@ -1,24 +1,24 @@
 COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 
-COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' '**/mock/*' '**/*.pb.h' '**/*.pb.cc' 'dbg/*' 'dbg/**/*' 'utils/*' 'utils/**/*' 'perf/*' 'perf/**/*'
+COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' '**/mock/*' '**/*.pb.h' '**/*.pb.cc' 'dbg/*' 'dbg/**/*'
 
 CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
-
-EIGEN_TEST := //eigen:test
 
 ETEQ_CTEST := //tenncor/eteq:ctest
 
 LAYR_TEST := //tenncor/layr:test
 
-MARSH_TEST := //marsh:test
+EIGEN_TEST := //internal/eigen:test
 
-ONNX_TEST := //onnx:test
+MARSH_TEST := //internal/marsh:test
 
-OPT_TEST := //opt/...
+ONNX_TEST := //internal/onnx:test
 
-QUERY_TEST := //query:test
+OPT_TEST := //internal/opt/...
 
-TEQ_TEST := //teq:test
+QUERY_TEST := //internal/query:test
+
+TEQ_TEST := //internal/teq:test
 
 IMAGE_REPO := mkaichen
 IMAGE_TAG := latest
@@ -81,108 +81,118 @@ gen-gemit-proto: ${PROTOC}
 	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . dbg/peval/emit/gemitter.proto
 
 .PHONY: onnx2json
-onnx2json: onnx_test_o2j eteq_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
+onnx2json: onnx_test_o2j eteq_test_o2j edeps_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
 
 .PHONY: onnx_test_o2j
 onnx_test_o2j: models/test/onnx.onnx
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/test/onnx.onnx --write /tmp/onnx.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/onnx.onnx --write /tmp/onnx.json
 	mv /tmp/onnx.json models/test
 
 .PHONY: eteq_test_o2j
 eteq_test_o2j: models/test/eteq.onnx
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/test/eteq.onnx --write /tmp/eteq.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq.onnx --write /tmp/eteq.json
 	mv /tmp/eteq.json models/test
+
+.PHONY: edeps_test_o2j
+edeps_test_o2j: models/test/edeps.onnx
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/edeps.onnx --write /tmp/edeps.json
+	mv /tmp/edeps.json models/test
 
 .PHONY: gd_model_o2j
 gd_model_o2j: models/gd.onnx
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/gd.onnx --write /tmp/gd.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/gd.onnx --write /tmp/gd.json
 	mv /tmp/gd.json models
 
 .PHONY: rbm_model_o2j
 rbm_model_o2j: models/rbm.onnx
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/rbm.onnx --write /tmp/rbm.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/rbm.onnx --write /tmp/rbm.json
 	mv /tmp/rbm.json models
 
 .PHONY: dqn_model_o2j
 dqn_model_o2j: models/dqn.onnx
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/dqn.onnx --write /tmp/dqn.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/dqn.onnx --write /tmp/dqn.json
 	mv /tmp/dqn.json models
 
 .PHONY: dbn_model_o2j
 dbn_model_o2j: models/dbn.onnx
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/dbn.onnx --write /tmp/dbn.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/dbn.onnx --write /tmp/dbn.json
 	mv /tmp/dbn.json models
 
 .PHONY: rnn_model_o2j
 rnn_model_o2j: models/rnn.onnx
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/rnn.onnx --write /tmp/rnn.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/rnn.onnx --write /tmp/rnn.json
 	mv /tmp/rnn.json models
 
 .PHONY: lstm_model_o2j
 lstm_model_o2j: models/fast_lstm.onnx models/latin_lstm.onnx
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/fast_lstm.onnx --write /tmp/fast_lstm.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/fast_lstm.onnx --write /tmp/fast_lstm.json
 	mv /tmp/fast_lstm.json models
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/latin_lstm.onnx --write /tmp/latin_lstm.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/latin_lstm.onnx --write /tmp/latin_lstm.json
 	mv /tmp/latin_lstm.json models
 
 .PHONY: gru_model_o2j
 gru_model_o2j: models/fast_gru.onnx models/latin_gru.onnx
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/fast_gru.onnx --write /tmp/fast_gru.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/fast_gru.onnx --write /tmp/fast_gru.json
 	mv /tmp/fast_gru.json models
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/latin_gru.onnx --write /tmp/latin_gru.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/latin_gru.onnx --write /tmp/latin_gru.json
 	mv /tmp/latin_gru.json models
 
 
 .PHONY: json2onnx
-json2onnx: onnx_test_j2o eteq_test_j2o gd_model_j2o dqn_model_j2o rbm_model_j2o dbn_model_j2o rnn_model_j2o lstm_model_j2o gru_model_j2o
+json2onnx: onnx_test_j2o eteq_test_j2o edeps_test_j2o gd_model_j2o dqn_model_j2o rbm_model_j2o dbn_model_j2o rnn_model_j2o lstm_model_j2o gru_model_j2o
 
 .PHONY: onnx_test_j2o
-onnx_test_j2o: models/test/onnx_graph.json
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/test/onnx_graph.json --write /tmp/onnx_graph.onnx
-	mv /tmp/onnx_graph.onnx models/test
+onnx_test_j2o: models/test/onnx.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/onnx.json --write /tmp/onnx.onnx
+	mv /tmp/onnx.onnx models/test
 
 .PHONY: eteq_test_j2o
-eteq_test_j2o: models/test/eteq_graph.json
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/test/eteq_graph.json --write /tmp/eteq_graph.onnx
-	mv /tmp/eteq_graph.onnx models/test
+eteq_test_j2o: models/test/eteq.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq.json --write /tmp/eteq.onnx
+	mv /tmp/eteq.onnx models/test
+
+.PHONY: edeps_test_j2o
+edeps_test_j2o: models/test/edeps.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/edeps.json --write /tmp/edeps.onnx
+	mv /tmp/edeps.onnx models/test
 
 .PHONY: gd_model_j2o
 gd_model_j2o: models/gd.json
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/gd.json --write /tmp/gd.onnx
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/gd.json --write /tmp/gd.onnx
 	mv /tmp/gd.onnx models
 
 .PHONY: rbm_model_j2o
 rbm_model_j2o: models/rbm.json
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/rbm.json --write /tmp/rbm.onnx
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/rbm.json --write /tmp/rbm.onnx
 	mv /tmp/rbm.onnx models
 
 .PHONY: dqn_model_j2o
 dqn_model_j2o: models/dqn.json
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/dqn.json --write /tmp/dqn.onnx
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/dqn.json --write /tmp/dqn.onnx
 	mv /tmp/dqn.onnx models
 
 .PHONY: dbn_model_j2o
 dbn_model_j2o: models/dbn.json
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/dbn.json --write /tmp/dbn.onnx
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/dbn.json --write /tmp/dbn.onnx
 	mv /tmp/dbn.onnx models
 
 .PHONY: rnn_model_j2o
 rnn_model_j2o: models/rnn.json
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/rnn.json --write /tmp/rnn.onnx
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/rnn.json --write /tmp/rnn.onnx
 	mv /tmp/rnn.onnx models
 
 .PHONY: lstm_model_j2o
-lstm_model_j2o: models/fast_lstm.json model/latin_lstm.json
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/fast_lstm.json --write /tmp/fast_lstm.onnx
+lstm_model_j2o: models/fast_lstm.json models/latin_lstm.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/fast_lstm.json --write /tmp/fast_lstm.onnx
 	mv /tmp/fast_lstm.onnx models
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/latin_lstm.json --write /tmp/latin_lstm.onnx
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/latin_lstm.json --write /tmp/latin_lstm.onnx
 	mv /tmp/latin_lstm.onnx models
 
 .PHONY: gru_model_j2o
-gru_model_j2o: models/fast_gru.json model/latin_gru.json
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/fast_gru.json --write /tmp/fast_gru.onnx
+gru_model_j2o: models/fast_gru.json models/latin_gru.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/fast_gru.json --write /tmp/fast_gru.onnx
 	mv /tmp/fast_gru.onnx models
-	bazel run //onnx:inspector -- --read ${CURDIR}/models/latin_gru.json --write /tmp/latin_gru.onnx
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/latin_gru.json --write /tmp/latin_gru.onnx
 	mv /tmp/latin_gru.onnx models
 
 

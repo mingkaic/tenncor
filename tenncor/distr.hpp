@@ -1,5 +1,5 @@
 
-#include "distrib/distrib.hpp"
+#include "tenncor/distrib/distrib.hpp"
 
 #ifndef TENNCOR_DISTR_HPP
 #define TENNCOR_DISTR_HPP
@@ -92,6 +92,14 @@ eteq::ETensor<T> lookup_node (const std::string& id,
 		global::fatal(err->to_string());
 	}
 	return out;
+}
+
+template <typename T>
+eteq::ETensor<T> localize (const eteq::ETensor<T>& root,
+	const eteq::ETensorsT<T>& stop = {},
+	global::CfgMapptrT ctx = global::context())
+{
+	return root;
 }
 
 }

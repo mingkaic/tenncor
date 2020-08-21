@@ -1,5 +1,5 @@
 
-#include "eteq/etens.hpp"
+#include "tenncor/eteq/etens.hpp"
 
 #ifdef ETEQ_ETENS_HPP
 

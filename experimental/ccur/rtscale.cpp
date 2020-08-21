@@ -5,9 +5,9 @@
 
 #include "flag/flag.hpp"
 
-#include "eigen/eigen.hpp"
+#include "internal/eigen/eigen.hpp"
 
-#include "eteq/make.hpp"
+#include "tenncor/eteq/make.hpp"
 
 #include "ccur/weights.pb.h"
 

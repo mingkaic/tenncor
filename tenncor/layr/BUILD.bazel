@@ -34,6 +34,17 @@ filegroup(
     srcs = ["test/ptest.py"],
 )
 
+######### LIBRARY #########
+
+cc_library(
+    name = "layr",
+    hdrs = [":layr_hdrs"],
+    srcs = [":layr_srcs"],
+    copts = ["-std=c++17"],
+    deps = ["//tenncor/eteq:eteq"],
+    visibility = ["//visibility:public"],
+)
+
 ######### TEST #########
 
 cc_test(

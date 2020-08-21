@@ -1,8 +1,7 @@
 
 #include <future>
 
-#include "distrib/imanager.hpp"
-#include "distrib/services/op/service.hpp"
+#include "tenncor/distrib/services/op/service.hpp"
 
 #ifndef DISTRIB_MANAGER_HPP
 #define DISTRIB_MANAGER_HPP
@@ -11,6 +10,8 @@ namespace distr
 {
 
 using ConsulSvcptrT = std::unique_ptr<ConsulService>;
+
+const std::string alias_publish_key = "published_alias_";
 
 struct DistrManager final : public iDistrManager
 {
@@ -60,8 +61,8 @@ struct DistrManager final : public iDistrManager
 	}
 
 	DistrManager (DistrManager&& other) :
-		consul_(std::move(other.consul_)),
 		svcs_(std::move(other.svcs_)),
+		consul_(std::move(other.consul_)),
 		cq_(std::move(other.cq_)),
 		server_(std::move(other.server_)),
 		rpc_jobs_(std::move(other.rpc_jobs_)) {}
@@ -75,6 +76,16 @@ struct DistrManager final : public iDistrManager
 	{
 		auto svc = svcs_.get_obj(svc_key);
 		return static_cast<iPeerService*>(svc);
+	}
+
+	void alias_node (const std::string& alias, const std::string& id) override
+	{
+		consul_->set_kv(alias_publish_key + alias, id);
+	}
+
+	std::string dealias_node (const std::string& alias) override
+	{
+		return consul_->get_kv(alias_publish_key + alias, "");
 	}
 
 private:

@@ -46,7 +46,7 @@
 #     srcs = glob(["src/*.cpp"]),
 #     copts = ["-std=c++17"],
 #     deps = [
-#         "//teq:teq",
+#         "//internal/teq:teq",
 #         "@boost//:asio",
 #     ],
 # )

@@ -48,7 +48,7 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		using ListReachableHandlerT = egrpc::AsyncClientHandler<op::ListReachableResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
 			fmts::sprintf("[client %s:ListReachable] ", alias_.c_str()));
-		auto handler = new ListReachableHandlerT(done, logger, cb,
+		new ListReachableHandlerT(done, logger, cb,
 			[this, &req, &cq](ListReachableHandlerT* handler)
 			{
 				build_ctx(handler->ctx_, false);
@@ -70,7 +70,7 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		using CreateDeriveHandlerT = egrpc::AsyncClientHandler<op::CreateDeriveResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
 			fmts::sprintf("[client %s:Derive] ", alias_.c_str()));
-		auto handler = new CreateDeriveHandlerT(done, logger, cb,
+		new CreateDeriveHandlerT(done, logger, cb,
 			[this, &req, &cq](CreateDeriveHandlerT* handler)
 			{
 				build_ctx(handler->ctx_, false);

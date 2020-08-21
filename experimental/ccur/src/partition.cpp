@@ -1,6 +1,6 @@
 #include <queue>
 
-#include "teq/ifunctor.hpp"
+#include "internal/teq/ifunctor.hpp"
 
 #include "ccur/partition.hpp"
 

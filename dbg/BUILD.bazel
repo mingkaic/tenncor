@@ -87,7 +87,7 @@ cc_library(
     name = "compare",
     hdrs = [":compare_hdrs"],
     copts = ["-std=c++17"],
-    deps = ["//tenncor:eteq"],
+    deps = ["//tenncor/eteq:eteq"],
     visibility = ["//visibility:public"],
 )
 
@@ -95,7 +95,7 @@ cc_library(
     name = "print",
     hdrs = [":print_hdrs"],
     copts = ["-std=c++17"],
-    deps = ["//teq:mock_teq"],
+    deps = ["//internal/teq:mock_teq"],
     visibility = ["//visibility:public"],
 )
 
@@ -103,7 +103,7 @@ cc_library(
     name = "peval",
     hdrs = [":peval_hdrs"],
     copts = ["-std=c++17"],
-    deps = ["//teq:teq"],
+    deps = ["//internal/teq:teq"],
     visibility = ["//visibility:public"],
 )
 
@@ -113,7 +113,7 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         ":peval",
-        "//eigen:eigen",
+        "//internal/eigen:eigen",
     ],
     visibility = ["//visibility:public"],
 )
@@ -125,7 +125,7 @@ cc_library(
     deps = [
         ":peval",
         ":gemitter_cc_grpc",
-        "//tenncor:eteq",
+        "//tenncor:tenncor",
         "@boost//:uuid",
         "@com_github_mingkaic_cppkg//egrpc:egrpc",
         "@com_github_mingkaic_cppkg//jobs:jobs",
@@ -136,7 +136,7 @@ cc_library(
 proto_library(
     name = "gemitter_grpc",
     srcs = [":gemit_plugin_protos"],
-    deps = ["//onnx:onnx_pb"],
+    deps = ["//internal/onnx:onnx_pb"],
     visibility = ["//visibility:public"],
 )
 
@@ -144,7 +144,7 @@ proto_library(
 #     name = "gemitter_cc_grpc",
 #     deps = [
 #         ":gemitter_grpc",
-#         "//onnx:onnx_pb",
+#         "//internal/onnx:onnx_pb",
 #     ],
 #     visibility = ["//visibility:public"],
 # )
@@ -161,7 +161,7 @@ cc_library(
     ],
     copts = ["-std=c++17"],
     deps = [
-        "//onnx:onnx_cc_pb",
+        "//internal/onnx:onnx_cc_pb",
         "@com_github_grpc_grpc//:grpc++",
     ],
 )
@@ -174,7 +174,7 @@ cc_library(
     deps = [
         ":print",
         ":distr_cc_grpc",
-        "//tenncor:distrib",
+        "//tenncor/distrib:distrib",
     ],
     visibility = ["//visibility:public"],
 )

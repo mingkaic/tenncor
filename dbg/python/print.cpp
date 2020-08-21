@@ -4,12 +4,7 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "global/global.hpp"
-#include "teq/teq.hpp"
-
 #include "dbg/print/print.hpp"
-
-#include "eteq/eteq.hpp"
 
 #include "tenncor/tenncor.hpp"
 

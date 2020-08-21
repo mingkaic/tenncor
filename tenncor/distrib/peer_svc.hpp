@@ -1,7 +1,7 @@
 
 #include "error/error.hpp"
 
-#include "distrib/consul.hpp"
+#include "tenncor/distrib/consul.hpp"
 #include "egrpc/client_async.hpp"
 #include "egrpc/iclient.hpp"
 
@@ -38,7 +38,7 @@ template <typename CLI> // CLI has base egrpc::GrpcClient
 struct PeerService : public iPeerService
 {
 	PeerService (const PeerServiceConfig& cfg) :
-		consul_(cfg.consul_), cli_(cfg.cli_)
+		cli_(cfg.cli_), consul_(cfg.consul_)
 	{
 		update_clients();
 		// if nthread_ == 0, use 1 thread anyways

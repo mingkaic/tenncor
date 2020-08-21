@@ -1,4 +1,4 @@
-#include "trainer/trainer.hpp"
+#include "tenncor/trainer/trainer.hpp"
 
 #ifndef TRAINER_RBM_HPP
 #define TRAINER_RBM_HPP
@@ -105,8 +105,8 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 	io.visible_mean_ = tenncor<T>().sigmoid(model.backward_connect(chain_it));
 	io.hidden_mean_ = tenncor<T>().sigmoid(model.connect(io.visible_mean_));
 
-	eteq::VarptrsT<T> fcontent = eteq::get_storage(model.fwd_);
-	eteq::VarptrsT<T> bcontent = eteq::get_storage(model.bwd_);
+	eteq::VarptrsT<T> fcontent = layr::get_storage(model.fwd_);
+	eteq::VarptrsT<T> bcontent = layr::get_storage(model.bwd_);
 	std::unordered_map<std::string,eteq::VarptrT<T>> vars;
 	for (eteq::VarptrT<T> var : fcontent)
 	{
@@ -161,7 +161,7 @@ eteq::ETensor<T> rbm (const layr::RBMLayer<T>& model,
 		deps.push_back(update.second);
 	}
 	eteq::ETensor<T> error = err_func(chain_io.visible_, chain_io.visible_mean_);
-	return tenncor<T>().depends(eteq::trail(error, umap), deps);
+	return tenncor<T>().depends(layr::trail(error, umap), deps);
 }
 
 }

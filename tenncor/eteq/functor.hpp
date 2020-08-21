@@ -6,8 +6,8 @@
 /// Eigen functor implementation of operable func
 ///
 
-#include "eteq/etens.hpp"
-#include "eteq/shaper.hpp"
+#include "tenncor/eteq/etens.hpp"
+#include "tenncor/eteq/shaper.hpp"
 
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP

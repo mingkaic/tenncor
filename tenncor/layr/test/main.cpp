@@ -1,11 +1,11 @@
 
 #include "gtest/gtest.h"
 
-#include "onnx/onnx.pb.h"
+#include "internal/onnx/onnx.pb.h"
 
-#include "global/global.hpp"
+#include "internal/global/global.hpp"
 
-#include "eigen/eigen.hpp"
+#include "internal/eigen/eigen.hpp"
 
 int main (int argc, char** argv)
 {
