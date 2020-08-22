@@ -3,8 +3,7 @@
 
 #include <boost/functional/hash.hpp>
 
-#include "estd/algorithm.hpp"
-#include "estd/hashlist.hpp"
+#include "estd/estd.hpp"
 
 #include "internal/query/query.pb.h"
 #include "internal/query/path.hpp"

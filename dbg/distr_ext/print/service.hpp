@@ -1,5 +1,5 @@
 
-#include "egrpc/server_async.hpp"
+#include "egrpc/egrpc.hpp"
 
 #include "dbg/print/print.hpp"
 

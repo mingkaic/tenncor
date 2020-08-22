@@ -1,9 +1,8 @@
 
 #include "error/error.hpp"
+#include "egrpc/egrpc.hpp"
 
 #include "tenncor/distrib/consul.hpp"
-#include "egrpc/client_async.hpp"
-#include "egrpc/iclient.hpp"
 
 #ifndef DISTRIB_PEER_SVC_HPP
 #define DISTRIB_PEER_SVC_HPP

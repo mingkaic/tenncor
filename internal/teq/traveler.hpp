@@ -6,8 +6,6 @@
 /// Define common traveler implementations
 ///
 
-#include "estd/range.hpp"
-
 #include "internal/teq/ileaf.hpp"
 #include "internal/teq/ifunctor.hpp"
 

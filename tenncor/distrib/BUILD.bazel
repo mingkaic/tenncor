@@ -17,18 +17,22 @@ filegroup(
 
 filegroup(
     name = "distrib_hdrs",
-    srcs = glob([
-        "*.hpp",
-        "services/**/*.hpp",
-    ]),
+    srcs = glob(["*.hpp"]),
 )
 
 filegroup(
     name = "distrib_srcs",
-    srcs = glob([
-        "src/*.cpp",
-        "services/**/*.cpp",
-    ]),
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "distr_svc_hdrs",
+    srcs = glob(["services/**/*.hpp"]),
+)
+
+filegroup(
+    name = "distr_svc_srcs",
+    srcs = glob(["services/**/*.cpp"]),
 )
 
 filegroup(
@@ -66,6 +70,15 @@ cc_library(
         "@com_github_mingkaic_cppkg//egrpc:egrpc",
         "@com_github_mingkaic_cppkg//error:error",
     ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "distrib_svcs",
+    hdrs = [":distr_svc_hdrs"],
+    srcs = [":distr_svc_srcs"],
+    copts = ["-std=c++17"],
+    deps = [":distrib"],
     visibility = ["//visibility:public"],
 )
 

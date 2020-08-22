@@ -10,10 +10,8 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "jobs/managed_job.hpp"
-#include "jobs/sequence.hpp"
-
-#include "egrpc/iclient.hpp"
+#include "jobs/jobs.hpp"
+#include "egrpc/egrpc.hpp"
 
 #include "dbg/peval/emit/gemitter.grpc.pb.h"
 

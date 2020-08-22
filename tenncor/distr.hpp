@@ -1,8 +1,30 @@
 
 #include "tenncor/distrib/distrib.hpp"
+#include "tenncor/distrib/services/op/service.hpp"
 
 #ifndef TENNCOR_DISTR_HPP
 #define TENNCOR_DISTR_HPP
+
+namespace distr
+{
+
+struct DistrEvaluator final : public teq::iEvaluator
+{
+	DistrEvaluator (iDistrManager& mgr) : svc_(distr::get_opsvc(mgr)) {}
+
+	/// Implementation of iEvaluator
+	void evaluate (
+		teq::iDevice& device,
+		const teq::TensSetT& targets,
+		const teq::TensSetT& ignored = {}) override
+	{
+		svc_.evaluate(device, targets, ignored);
+	}
+
+	DistrOpService& svc_;
+};
+
+}
 
 namespace tcr
 {

@@ -1,4 +1,4 @@
-#include "diff/msg.hpp"
+#include "diff/diff.hpp"
 
 #include "testutil/tutil.hpp"
 

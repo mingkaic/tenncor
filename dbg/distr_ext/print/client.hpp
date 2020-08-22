@@ -1,6 +1,5 @@
 
-#include "egrpc/client_async.hpp"
-#include "egrpc/iclient.hpp"
+#include "egrpc/egrpc.hpp"
 
 #include "dbg/distr_ext/print/distr.print.grpc.pb.h"
 

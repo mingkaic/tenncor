@@ -1,4 +1,3 @@
-#include "estd/cast.hpp"
 
 #include "tenncor/eteq/constant.hpp"
 #include "tenncor/eteq/functor.hpp"

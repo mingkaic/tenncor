@@ -1,7 +1,5 @@
 
-#include <future>
-
-#include "tenncor/distrib/services/op/service.hpp"
+#include "tenncor/distrib/imanager.hpp"
 
 #ifndef DISTRIB_MANAGER_HPP
 #define DISTRIB_MANAGER_HPP

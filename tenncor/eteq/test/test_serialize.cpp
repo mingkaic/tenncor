@@ -8,14 +8,12 @@
 
 #include "gtest/gtest.h"
 
-#include "diff/msg.hpp"
-
+#include "diff/diff.hpp"
 #include "exam/exam.hpp"
 
 #include "dbg/print/teq.hpp"
 
 #include "tenncor/eteq/eteq.hpp"
-
 #include "tenncor/tenncor.hpp"
 
 

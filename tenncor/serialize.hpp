@@ -125,7 +125,14 @@ void save_model (onnx::ModelProto& pb_model,
 	// opset->set_domain(tenncor_dom);
 	// opset->set_version(onnx::IR_VERSION);
 	MarshFuncs funcs;
-	onnx::save_graph(*pb_model.mutable_graph(), roots, funcs, identified);
+	if (false)
+	{
+		// distr_save_graph(*pb_model.mutable_graph(), roots, funcs, identified);
+	}
+	else
+	{
+		onnx::save_graph(*pb_model.mutable_graph(), roots, funcs, identified);
+	}
 }
 
 teq::TensptrsT load_model (onnx::TensptrIdT& identified_tens,

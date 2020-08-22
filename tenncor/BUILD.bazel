@@ -106,7 +106,7 @@ cc_library(
     deps = [
         "//internal/onnx:onnx",
         "//tenncor/opt:opt",
-        "//tenncor/distrib:distrib",
+        "//tenncor/distrib:distrib_svcs",
         "//tenncor/trainer:trainer",
     ],
 )

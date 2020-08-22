@@ -1,2 +1,3 @@
 
-#include "tenncor/distrib/evaluator.hpp"
+#include "tenncor/distrib/manager.hpp"
+#include "tenncor/distrib/reference.hpp"
