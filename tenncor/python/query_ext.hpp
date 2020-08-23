@@ -1,10 +1,10 @@
 
+#ifndef PYTHON_QUERY_EXT_HPP
+#define PYTHON_QUERY_EXT_HPP
+
 #include <sstream>
 
 #include "python/tenncor_utils.hpp"
-
-#ifndef PYTHON_QUERY_EXT_HPP
-#define PYTHON_QUERY_EXT_HPP
 
 void query_ext(py::module& m);
 

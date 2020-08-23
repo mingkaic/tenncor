@@ -1,9 +1,9 @@
 
-#include "tenncor/distrib/distrib.hpp"
-#include "tenncor/eteq/opsvc/service.hpp"
-
 #ifndef TENNCOR_DISTR_HPP
 #define TENNCOR_DISTR_HPP
+
+#include "tenncor/distrib/distrib.hpp"
+#include "tenncor/eteq/opsvc/service.hpp"
 
 namespace distr
 {

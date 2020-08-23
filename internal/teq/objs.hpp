@@ -1,9 +1,10 @@
-#include "internal/marsh/marsh.hpp"
-
-#include "internal/teq/itensor.hpp"
 
 #ifndef TEQ_OBJS_HPP
 #define TEQ_OBJS_HPP
+
+#include "internal/marsh/marsh.hpp"
+
+#include "internal/teq/itensor.hpp"
 
 namespace teq
 {

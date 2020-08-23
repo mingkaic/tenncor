@@ -1,12 +1,13 @@
+
+#ifndef MARSH_IOBJ_HPP
+#define MARSH_IOBJ_HPP
+
 #include <functional>
 
 #include "estd/estd.hpp"
 #include "fmts/fmts.hpp"
 
 #include "internal/marsh/imarshal.hpp"
-
-#ifndef MARSH_IOBJ_HPP
-#define MARSH_IOBJ_HPP
 
 namespace marsh
 {

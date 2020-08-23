@@ -1,7 +1,8 @@
-#include "internal/marsh/iobj.hpp"
 
 #ifndef MARSH_ATTRS_HPP
 #define MARSH_ATTRS_HPP
+
+#include "internal/marsh/iobj.hpp"
 
 namespace marsh
 {

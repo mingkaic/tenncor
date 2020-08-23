@@ -6,14 +6,14 @@
 /// Draw an equation graph as an ascii tree
 ///
 
+#ifndef DBG_TEQ_HPP
+#define DBG_TEQ_HPP
+
 #include "internal/teq/teq.hpp"
 
 #include "internal/teq/mock/functor.hpp"
 
 #include "dbg/print/tree.hpp"
-
-#ifndef DBG_TEQ_HPP
-#define DBG_TEQ_HPP
 
 /// Map tensor to label
 using LabelsMapT = teq::TensMapT<std::string>;

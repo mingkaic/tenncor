@@ -1,8 +1,8 @@
 
-#include "tenncor/trainer/rbm.hpp"
-
 #ifndef DBN_TRAINER_HPP
 #define DBN_TRAINER_HPP
+
+#include "tenncor/trainer/rbm.hpp"
 
 namespace trainer
 {

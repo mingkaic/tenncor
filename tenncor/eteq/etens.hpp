@@ -6,10 +6,10 @@
 /// Typed tensor pointer transport object
 ///
 
-#include "internal/eigen/eigen.hpp"
-
 #ifndef ETEQ_ETENS_HPP
 #define ETEQ_ETENS_HPP
+
+#include "internal/eigen/eigen.hpp"
 
 namespace eteq
 {

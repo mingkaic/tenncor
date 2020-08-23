@@ -6,10 +6,10 @@
 /// Define leafs for tensor equation graph
 ///
 
-#include "internal/teq/itensor.hpp"
-
 #ifndef TEQ_ILEAF_HPP
 #define TEQ_ILEAF_HPP
+
+#include "internal/teq/itensor.hpp"
 
 namespace teq
 {

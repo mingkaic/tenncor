@@ -1,10 +1,10 @@
 
+#ifndef TENNCOR_OPT_DUPLICATES_HPP
+#define TENNCOR_OPT_DUPLICATES_HPP
+
 #include "internal/opt/opt.hpp"
 
 #include "tenncor/eteq/eteq.hpp"
-
-#ifndef TENNCOR_OPT_DUPLICATES_HPP
-#define TENNCOR_OPT_DUPLICATES_HPP
 
 namespace eteq
 {

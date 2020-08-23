@@ -6,10 +6,10 @@
 /// Utility APIs for creating layers
 ///
 
-#include "tenncor/layr/init.hpp"
-
 #ifndef LAYR_LAYER_HPP
 #define LAYR_LAYER_HPP
+
+#include "tenncor/layr/init.hpp"
 
 namespace layr
 {

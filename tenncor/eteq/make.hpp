@@ -1,10 +1,10 @@
 
+#ifndef ETEQ_MAKE_HPP
+#define ETEQ_MAKE_HPP
+
 #include "tenncor/eteq/constant.hpp"
 #include "tenncor/eteq/functor.hpp"
 #include "tenncor/eteq/evars.hpp"
-
-#ifndef ETEQ_MAKE_HPP
-#define ETEQ_MAKE_HPP
 
 namespace eteq
 {

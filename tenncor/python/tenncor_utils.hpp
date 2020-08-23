@@ -1,12 +1,12 @@
 
+#ifndef PYTHON_TENNCOR_UTIL_HPP
+#define PYTHON_TENNCOR_UTIL_HPP
+
 #include "pybind11/stl.h"
 
 #include "tenncor/pyutils/convert.hpp"
 
 #include "tenncor/tenncor.hpp"
-
-#ifndef PYTHON_TENNCOR_UTIL_HPP
-#define PYTHON_TENNCOR_UTIL_HPP
 
 namespace py = pybind11;
 

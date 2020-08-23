@@ -1,7 +1,8 @@
-#include "internal/teq/teq.hpp"
 
 #ifndef DBG_PLUGIN_EVAL_HPP
 #define DBG_PLUGIN_EVAL_HPP
+
+#include "internal/teq/teq.hpp"
 
 namespace dbg
 {

@@ -1,11 +1,11 @@
 
+#ifndef DISTRIB_PEER_SVC_HPP
+#define DISTRIB_PEER_SVC_HPP
+
 #include "error/error.hpp"
 #include "egrpc/egrpc.hpp"
 
 #include "tenncor/distrib/consul.hpp"
-
-#ifndef DISTRIB_PEER_SVC_HPP
-#define DISTRIB_PEER_SVC_HPP
 
 namespace distr
 {

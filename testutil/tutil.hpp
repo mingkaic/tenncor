@@ -1,3 +1,7 @@
+
+#ifndef TEST_TUTIL_HPP
+#define TEST_TUTIL_HPP
+
 #include "gtest/gtest.h"
 
 #include "exam/exam.hpp"
@@ -6,9 +10,6 @@
 
 #include "internal/teq/ileaf.hpp"
 #include "internal/teq/ifunctor.hpp"
-
-#ifndef TEST_TUTIL_HPP
-#define TEST_TUTIL_HPP
 
 namespace tutil
 {

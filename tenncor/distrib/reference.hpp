@@ -1,8 +1,8 @@
 
-#include "internal/eigen/eigen.hpp"
-
 #ifndef DISTRIB_REFERENCE_HPP
 #define DISTRIB_REFERENCE_HPP
+
+#include "internal/eigen/eigen.hpp"
 
 namespace distr
 {

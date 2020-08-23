@@ -6,12 +6,12 @@
 /// Define functions for marshal and unmarshal data sources
 ///
 
+#ifndef TENNCOR_SERIALIZE_HPP
+#define TENNCOR_SERIALIZE_HPP
+
 #include "internal/onnx/onnx.hpp"
 
 #include "tenncor/layr/layr.hpp"
-
-#ifndef TENNCOR_SERIALIZE_HPP
-#define TENNCOR_SERIALIZE_HPP
 
 namespace tcr
 {

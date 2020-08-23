@@ -1,7 +1,8 @@
-#include "internal/teq/teq.hpp"
 
 #ifndef EIGEN_PACKATTR_HPP
 #define EIGEN_PACKATTR_HPP
+
+#include "internal/teq/teq.hpp"
 
 namespace eigen
 {

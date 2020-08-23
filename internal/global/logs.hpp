@@ -1,9 +1,9 @@
 
-#include "internal/global/config.hpp"
-#include "internal/global/g3logs.hpp"
-
 #ifndef GLOBAL_LOGS_HPP
 #define GLOBAL_LOGS_HPP
+
+#include "internal/global/config.hpp"
+#include "internal/global/g3logs.hpp"
 
 namespace global
 {

@@ -1,9 +1,9 @@
 
-#include "internal/teq/ievaluator.hpp"
-#include "internal/teq/traveler.hpp"
-
 #ifndef TEQ_EVALUATOR_HPP
 #define TEQ_EVALUATOR_HPP
+
+#include "internal/teq/ievaluator.hpp"
+#include "internal/teq/traveler.hpp"
 
 namespace teq
 {

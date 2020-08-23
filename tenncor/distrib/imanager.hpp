@@ -1,8 +1,8 @@
 
-#include "tenncor/distrib/peer_svc.hpp"
-
 #ifndef DISTRIB_IMANAGER_HPP
 #define DISTRIB_IMANAGER_HPP
+
+#include "tenncor/distrib/peer_svc.hpp"
 
 namespace distr
 {

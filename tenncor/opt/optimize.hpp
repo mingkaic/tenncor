@@ -5,14 +5,14 @@
 /// Extend optimization module by defining ETEQ node parsing
 ///
 
+#ifndef TENNCOR_OPT_OPTIMIZE_HPP
+#define TENNCOR_OPT_OPTIMIZE_HPP
+
 #include <fstream>
 
 #include "tenncor/opt/duplicates.hpp"
 #include "tenncor/opt/cstrules.hpp"
 #include "tenncor/opt/target.hpp"
-
-#ifndef TENNCOR_OPT_OPTIMIZE_HPP
-#define TENNCOR_OPT_OPTIMIZE_HPP
 
 namespace eteq
 {

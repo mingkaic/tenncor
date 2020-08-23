@@ -1,9 +1,9 @@
 
-#include "internal/eigen/convert.hpp"
-#include "internal/eigen/observable.hpp"
-
 #ifndef EIGEN_DEVICE_HPP
 #define EIGEN_DEVICE_HPP
+
+#include "internal/eigen/convert.hpp"
+#include "internal/eigen/observable.hpp"
 
 namespace eigen
 {

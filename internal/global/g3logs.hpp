@@ -1,4 +1,7 @@
 
+#ifndef GLOBAL_G3LOGGER_HPP
+#define GLOBAL_G3LOGGER_HPP
+
 // #include <source_location>
 
 #include <g3log/g3log.hpp>
@@ -7,9 +10,6 @@
 #include "logs/logs.hpp"
 
 #include "estd/estd.hpp"
-
-#ifndef GLOBAL_G3LOGGER_HPP
-#define GLOBAL_G3LOGGER_HPP
 
 namespace std // mock source location until cpp 20 is implemented
 {

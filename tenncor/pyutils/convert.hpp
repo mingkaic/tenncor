@@ -1,10 +1,11 @@
+
+#ifndef PYTUTIL_CONVERT_HPP
+#define PYTUTIL_CONVERT_HPP
+
 #include "pybind11/pybind11.h"
 #include "pybind11/numpy.h"
 
 #include "internal/teq/teq.hpp"
-
-#ifndef PYTUTIL_CONVERT_HPP
-#define PYTUTIL_CONVERT_HPP
 
 namespace pyutils
 {

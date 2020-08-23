@@ -1,10 +1,10 @@
 
+#ifndef TENNCOR_OPT_TARGET_HPP
+#define TENNCOR_OPT_TARGET_HPP
+
 #include "internal/opt/opt.hpp"
 
 #include "tenncor/eteq/eteq.hpp"
-
-#ifndef TENNCOR_OPT_TARGET_HPP
-#define TENNCOR_OPT_TARGET_HPP
 
 namespace eteq
 {

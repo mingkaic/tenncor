@@ -1,12 +1,12 @@
 
+#ifndef DISTRIB_CONSUL_HPP
+#define DISTRIB_CONSUL_HPP
+
 #include "ppconsul/agent.h"
 #include "ppconsul/catalog.h"
 #include "ppconsul/kv.h"
 
 #include "internal/global/global.hpp"
-
-#ifndef DISTRIB_CONSUL_HPP
-#define DISTRIB_CONSUL_HPP
 
 namespace distr
 {

@@ -1,12 +1,12 @@
 
+#ifndef DISTRIB_IO_DATA_HPP
+#define DISTRIB_IO_DATA_HPP
+
 #include <boost/bimap.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include "tenncor/distrib/reference.hpp"
 #include "tenncor/distrib/consul.hpp"
-
-#ifndef DISTRIB_IO_DATA_HPP
-#define DISTRIB_IO_DATA_HPP
 
 namespace distr
 {

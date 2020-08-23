@@ -1,8 +1,8 @@
 
-#include "internal/eigen/emeta.hpp"
-
 #ifndef EIGEN_OBSERVABLE_HPP
 #define EIGEN_OBSERVABLE_HPP
+
+#include "internal/eigen/emeta.hpp"
 
 namespace eigen
 {

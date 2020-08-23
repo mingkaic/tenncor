@@ -1,8 +1,8 @@
 
-#include "internal/teq/itensor.hpp"
-
 #ifndef TEQ_IEVALUATOR_HPP
 #define TEQ_IEVALUATOR_HPP
+
+#include "internal/teq/itensor.hpp"
 
 namespace teq
 {

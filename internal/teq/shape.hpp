@@ -6,15 +6,15 @@
 /// Define shapes models and coordinate to flattened index mapping
 ///
 
+#ifndef TEQ_SHAPE_HPP
+#define TEQ_SHAPE_HPP
+
 #include <array>
 #include <cmath>
 #include <numeric>
 #include <vector>
 
 #include "internal/global/global.hpp"
-
-#ifndef TEQ_SHAPE_HPP
-#define TEQ_SHAPE_HPP
 
 namespace teq
 {

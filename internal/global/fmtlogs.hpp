@@ -1,8 +1,8 @@
 
-#include "logs/logs.hpp"
-
 #ifndef GLOBAL_FMTLOGS_HPP
 #define GLOBAL_FMTLOGS_HPP
+
+#include "logs/logs.hpp"
 
 namespace global
 {

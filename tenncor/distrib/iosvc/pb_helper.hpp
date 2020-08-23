@@ -1,10 +1,10 @@
 
+#ifndef DISTRIB_IO_PB_HELPER_HPP
+#define DISTRIB_IO_PB_HELPER_HPP
+
 #include "tenncor/distrib/reference.hpp"
 
 #include "tenncor/distrib/iosvc/distr.io.grpc.pb.h"
-
-#ifndef DISTRIB_IO_PB_HELPER_HPP
-#define DISTRIB_IO_PB_HELPER_HPP
 
 namespace distr
 {

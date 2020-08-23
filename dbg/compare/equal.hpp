@@ -1,10 +1,10 @@
 
+#ifndef DBG_GRAPHEQ_HPP
+#define DBG_GRAPHEQ_HPP
+
 #include "tenncor/eteq/eteq.hpp"
 
 #include "tenncor/opt/opt.hpp"
-
-#ifndef DBG_GRAPHEQ_HPP
-#define DBG_GRAPHEQ_HPP
 
 /// Return true if lroot and rroot graphs are structurally equal
 template <typename T>

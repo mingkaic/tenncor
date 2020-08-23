@@ -6,10 +6,10 @@
 /// Define functions for saving teq graph
 ///
 
-#include "internal/onnx/marshal.hpp"
-
 #ifndef ONNX_SAVE_HPP
 #define ONNX_SAVE_HPP
+
+#include "internal/onnx/marshal.hpp"
 
 namespace onnx
 {

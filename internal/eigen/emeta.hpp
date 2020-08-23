@@ -1,8 +1,9 @@
-#include "internal/teq/teq.hpp"
-#include "internal/eigen/generated/dtype.hpp"
 
 #ifndef EIGEN_METADATA_HPP
 #define EIGEN_METADATA_HPP
+
+#include "internal/teq/teq.hpp"
+#include "internal/eigen/generated/dtype.hpp"
 
 namespace eigen
 {

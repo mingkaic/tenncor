@@ -1,13 +1,13 @@
 
+#ifndef DBG_EMIT_HPP
+#define DBG_EMIT_HPP
+
 #include "jobs/jobs.hpp"
 
 #include "tenncor/tenncor.hpp"
 
 #include "dbg/peval/plugin_eval.hpp"
 #include "dbg/peval/emit/client.hpp"
-
-#ifndef DBG_EMIT_HPP
-#define DBG_EMIT_HPP
 
 namespace emit
 {

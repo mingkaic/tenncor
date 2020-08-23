@@ -5,6 +5,9 @@
 /// Define randomization functions used in Eigen operators
 ///
 
+#ifndef GLOBAL_RANDOM_HPP
+#define GLOBAL_RANDOM_HPP
+
 #include <random>
 #include <type_traits>
 
@@ -13,9 +16,6 @@
 #include <boost/uuid/uuid_io.hpp>
 
 #include "internal/global/config.hpp"
-
-#ifndef GLOBAL_RANDOM_HPP
-#define GLOBAL_RANDOM_HPP
 
 namespace global
 {

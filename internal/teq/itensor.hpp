@@ -6,14 +6,14 @@
 /// Define interfaces and building blocks for an equation graph
 ///
 
+#ifndef TEQ_ITENSOR_HPP
+#define TEQ_ITENSOR_HPP
+
 #include <unordered_map>
 #include <unordered_set>
 
 #include "internal/teq/shape.hpp"
 #include "internal/teq/itraveler.hpp"
-
-#ifndef TEQ_ITENSOR_HPP
-#define TEQ_ITENSOR_HPP
 
 namespace teq
 {

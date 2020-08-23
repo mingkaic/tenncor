@@ -1,11 +1,11 @@
 
+#ifndef TRAINER_HPP
+#define TRAINER_HPP
+
 #include "tenncor/layr/layer.hpp"
 #include "tenncor/layr/approx.hpp"
 
 #include "tenncor/tenncor.hpp"
-
-#ifndef TRAINER_HPP
-#define TRAINER_HPP
 
 namespace trainer
 {

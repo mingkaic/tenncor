@@ -8,11 +8,11 @@
 ///
 // todo: make this generated
 
-#include "internal/eigen/device.hpp"
-#include "internal/eigen/packattr.hpp"
-
 #ifndef EIGEN_OPERATOR_HPP
 #define EIGEN_OPERATOR_HPP
+
+#include "internal/eigen/device.hpp"
+#include "internal/eigen/packattr.hpp"
 
 namespace eigen
 {

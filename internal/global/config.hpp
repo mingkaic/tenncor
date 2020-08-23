@@ -1,8 +1,8 @@
 
-#include "estd/estd.hpp"
-
 #ifndef GLOBAL_CONFIG_HPP
 #define GLOBAL_CONFIG_HPP
+
+#include "estd/estd.hpp"
 
 namespace global
 {

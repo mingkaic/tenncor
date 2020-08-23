@@ -39,9 +39,7 @@ cc_library(
     hdrs = [":marsh_hdrs"],
     srcs = [":marsh_srcs"],
     copts = ["-std=c++17"],
-    deps = [
-        "@com_github_mingkaic_cppkg//estd:estd",
-    ],
+    deps = ["@com_github_mingkaic_cppkg//estd:estd"],
     visibility = ["//visibility:public"],
 )
 

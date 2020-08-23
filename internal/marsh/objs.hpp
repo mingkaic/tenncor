@@ -1,7 +1,8 @@
-#include "internal/marsh/attrs.hpp"
 
 #ifndef MARSH_OBJS_HPP
 #define MARSH_OBJS_HPP
+
+#include "internal/marsh/attrs.hpp"
 
 namespace marsh
 {

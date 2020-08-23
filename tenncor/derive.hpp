@@ -6,10 +6,10 @@
 /// Implement eteq gradient definition for supported operations
 ///
 
-#include "tenncor/distr.hpp"
-
 #ifndef TENNCOR_DERIVE_HPP
 #define TENNCOR_DERIVE_HPP
+
+#include "tenncor/distr.hpp"
 
 namespace tcr
 {

@@ -6,12 +6,12 @@
 /// Define interface for building derivative graphs
 ///
 
+#ifndef TEQ_DERIVE_HPP
+#define TEQ_DERIVE_HPP
+
 #include <list>
 
 #include "internal/teq/traveler.hpp"
-
-#ifndef TEQ_DERIVE_HPP
-#define TEQ_DERIVE_HPP
 
 namespace teq
 {

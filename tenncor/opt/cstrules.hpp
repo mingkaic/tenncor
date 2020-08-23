@@ -26,12 +26,12 @@ Symbols map has {"root":<op with constant args>}
 Target operates on "root"
 */
 
+#ifndef TENNCOR_OPT_CSTRULES_HPP
+#define TENNCOR_OPT_CSTRULES_HPP
+
 #include "internal/opt/opt.hpp"
 
 #include "tenncor/eteq/eteq.hpp"
-
-#ifndef TENNCOR_OPT_CSTRULES_HPP
-#define TENNCOR_OPT_CSTRULES_HPP
 
 namespace eteq
 {

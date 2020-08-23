@@ -1,10 +1,11 @@
+
+#ifndef EIGEN_STABILIZER_HPP
+#define EIGEN_STABILIZER_HPP
+
 #include "internal/teq/teq.hpp"
 
 #include "internal/eigen/generated/opcode.hpp"
 #include "internal/eigen/generated/dtype.hpp"
-
-#ifndef EIGEN_STABILIZER_HPP
-#define EIGEN_STABILIZER_HPP
 
 namespace eigen // todo: move to its own module
 {

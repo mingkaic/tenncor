@@ -1,7 +1,8 @@
-#include "tenncor/trainer/trainer.hpp"
 
 #ifndef TRAINER_SGD_HPP
 #define TRAINER_SGD_HPP
+
+#include "tenncor/trainer/trainer.hpp"
 
 namespace trainer
 {

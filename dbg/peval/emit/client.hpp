@@ -6,6 +6,9 @@
 /// Implement grpc client that create and update graphs
 ///
 
+#ifndef DBG_GRPC_CLIENT_HPP
+#define DBG_GRPC_CLIENT_HPP
+
 #include <chrono>
 
 #include <grpcpp/grpcpp.h>
@@ -14,9 +17,6 @@
 #include "egrpc/egrpc.hpp"
 
 #include "dbg/peval/emit/gemitter.grpc.pb.h"
-
-#ifndef DBG_GRPC_CLIENT_HPP
-#define DBG_GRPC_CLIENT_HPP
 
 namespace emit
 {

@@ -7,10 +7,10 @@
 /// based on attribute and input shapes
 ///
 
-#include "internal/eigen/eigen.hpp"
-
 #ifndef ETEQ_FUNCOPT_HPP
 #define ETEQ_FUNCOPT_HPP
+
+#include "internal/eigen/eigen.hpp"
 
 namespace eteq
 {

@@ -6,10 +6,10 @@
 /// Define functor nodes of an equation graph
 ///
 
-#include "internal/teq/objs.hpp"
-
 #ifndef TEQ_IFUNCTOR_HPP
 #define TEQ_IFUNCTOR_HPP
+
+#include "internal/teq/objs.hpp"
 
 namespace teq
 {

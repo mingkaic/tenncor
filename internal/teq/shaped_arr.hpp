@@ -6,10 +6,10 @@
 /// Define a shaped data representation
 ///
 
-#include "internal/teq/shape.hpp"
-
 #ifndef TEQ_SHAPED_ARR_HPP
 #define TEQ_SHAPED_ARR_HPP
+
+#include "internal/teq/shape.hpp"
 
 namespace teq
 {

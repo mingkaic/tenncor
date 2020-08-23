@@ -6,13 +6,13 @@
 /// Define Eigen tensor and matrix transformation functions
 ///
 
+#ifndef EIGEN_CONVERT_HPP
+#define EIGEN_CONVERT_HPP
+
 #include "Eigen/Core"
 #include "unsupported/Eigen/CXX11/Tensor"
 
 #include "internal/teq/teq.hpp"
-
-#ifndef EIGEN_CONVERT_HPP
-#define EIGEN_CONVERT_HPP
 
 namespace eigen
 {

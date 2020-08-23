@@ -6,10 +6,10 @@
 /// Define variable initialization algorithms
 ///
 
-#include "tenncor/eteq/eteq.hpp"
-
 #ifndef LAYR_INIT_HPP
 #define LAYR_INIT_HPP
+
+#include "tenncor/eteq/eteq.hpp"
 
 namespace layr
 {

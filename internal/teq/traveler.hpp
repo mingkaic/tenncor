@@ -6,11 +6,11 @@
 /// Define common traveler implementations
 ///
 
-#include "internal/teq/ileaf.hpp"
-#include "internal/teq/ifunctor.hpp"
-
 #ifndef TEQ_TRAVELER_HPP
 #define TEQ_TRAVELER_HPP
+
+#include "internal/teq/ileaf.hpp"
+#include "internal/teq/ifunctor.hpp"
 
 namespace teq
 {
