@@ -1,7 +1,7 @@
 
 #include "egrpc/egrpc.hpp"
 
-#include "tenncor/distrib/services/op/distr.op.grpc.pb.h"
+#include "tenncor/eteq/opsvc/distr.op.grpc.pb.h"
 
 #ifndef DISTRIB_OP_CLIENT_HPP
 #define DISTRIB_OP_CLIENT_HPP

@@ -4,7 +4,7 @@
 // #include "tenncor/eteq/eteq.hpp"
 
 // #include "tenncor/distrib/imanager.hpp"
-// #include "tenncor/distrib/services/serialize/client.hpp"
+// #include "tenncor/eteq/distr_svc/serialize/client.hpp"
 
 // #ifndef DISTRIB_SERIALIZE_SERVICE_HPP
 // #define DISTRIB_SERIALIZE_SERVICE_HPP

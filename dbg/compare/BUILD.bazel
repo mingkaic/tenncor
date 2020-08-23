@@ -1,0 +1,25 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":compare_hdrs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "compare_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "compare",
+    hdrs = [":compare_hdrs"],
+    copts = ["-std=c++17"],
+    deps = ["//tenncor/eteq:eteq"],
+    visibility = ["//visibility:public"],
+)

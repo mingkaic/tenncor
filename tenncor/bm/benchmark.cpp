@@ -2,9 +2,6 @@
 
 #include "benchmark/benchmark.h"
 
-#include "tenncor/eteq/eteq.hpp"
-#include "tenncor/optimize.hpp"
-
 #include "tenncor/tenncor.hpp"
 
 

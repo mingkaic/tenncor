@@ -92,7 +92,7 @@
 #     srcs = ["//ccur:test_srcs"],
 #     copts = ["-std=c++17"],
 #     deps = [
-#         "//dbg:print",
+#         "//dbg/print:print",
 #         "//ccur:ccur",
 #         "//tenncor:eteq",
 #         "@gtest//:gtest",

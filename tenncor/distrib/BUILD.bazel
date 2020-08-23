@@ -1,15 +1,13 @@
 licenses(["notice"])
 
-load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
-
 filegroup(
     name = "srcs",
     srcs = [
         ":distrib_hdrs",
         ":distrib_srcs",
-        ":protos",
         ":ctest_srcs",
         ":ptest_srcs",
+        "//tenncor/distrib/iosvc:srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],
@@ -23,21 +21,6 @@ filegroup(
 filegroup(
     name = "distrib_srcs",
     srcs = glob(["src/*.cpp"]),
-)
-
-filegroup(
-    name = "distr_svc_hdrs",
-    srcs = glob(["services/**/*.hpp"]),
-)
-
-filegroup(
-    name = "distr_svc_srcs",
-    srcs = glob(["services/**/*.cpp"]),
-)
-
-filegroup(
-    name = "protos",
-    srcs = glob(["services/**/*.proto"]),
 )
 
 filegroup(
@@ -63,35 +46,12 @@ cc_library(
     srcs = [":distrib_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//tenncor/eteq:eteq",
-        ":distr_cc_grpc",
+        "//internal/eigen:eigen",
         "@boost//:bimap",
         "@com_github_oliora_ppconsul//:consul",
         "@com_github_mingkaic_cppkg//egrpc:egrpc",
         "@com_github_mingkaic_cppkg//error:error",
     ],
-    visibility = ["//visibility:public"],
-)
-
-cc_library(
-    name = "distrib_svcs",
-    hdrs = [":distr_svc_hdrs"],
-    srcs = [":distr_svc_srcs"],
-    copts = ["-std=c++17"],
-    deps = [":distrib"],
-    visibility = ["//visibility:public"],
-)
-
-proto_library(
-    name = "distr_pb",
-    srcs = [":protos"],
-    deps = ["//internal/onnx:onnx_pb"],
-    visibility = ["//visibility:public"],
-)
-
-cpp_grpc_library(
-    name = "distr_cc_grpc",
-    deps = [":distr_pb"],
     visibility = ["//visibility:public"],
 )
 
@@ -102,7 +62,7 @@ cc_test(
     srcs = [":ctest_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//dbg:distrib",
+        "//dbg/print/printsvc:printsvc",
         "//tenncor:tenncor",
         "//testutil:tutil",
     ],

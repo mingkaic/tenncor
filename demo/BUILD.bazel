@@ -23,8 +23,8 @@ cc_binary(
     copts = ["-std=c++17"],
     deps = [
         "//tenncor:tenncor",
-        "//dbg:compare",
-        # "//dbg:gemit_plugin",
+        "//dbg/compare:compare",
+        # "//dbg/peval:gemit_plugin",
         "@com_github_mingkaic_cppkg//flag:flag",
     ],
     data = ["//:models", "//cfg:optimizations"],

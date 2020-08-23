@@ -1,6 +1,6 @@
 
 #include "tenncor/distrib/distrib.hpp"
-#include "tenncor/distrib/services/op/service.hpp"
+#include "tenncor/eteq/opsvc/service.hpp"
 
 #ifndef TENNCOR_DISTR_HPP
 #define TENNCOR_DISTR_HPP

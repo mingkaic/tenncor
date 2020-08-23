@@ -1,7 +1,7 @@
 
 #include "egrpc/egrpc.hpp"
 
-#include "dbg/distr_ext/print/distr.print.grpc.pb.h"
+#include "dbg/print/printsvc/distr.print.grpc.pb.h"
 
 #ifndef DISTRIB_PRINT_CLIENT_HPP
 #define DISTRIB_PRINT_CLIENT_HPP

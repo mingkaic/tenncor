@@ -74,7 +74,7 @@ cc_test(
         ":query",
         "//tenncor:tenncor",
         "//internal/teq:mock_teq",
-        "//dbg:print",
+        "//dbg/print:print",
         "//testutil:tutil",
     ],
     linkstatic = True,

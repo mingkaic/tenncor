@@ -3,9 +3,9 @@
 
 #include "dbg/print/print.hpp"
 
-#include "tenncor/distrib/services/io/service.hpp"
+#include "tenncor/distrib/iosvc/service.hpp"
 
-#include "dbg/distr_ext/print/client.hpp"
+#include "dbg/print/printsvc/client.hpp"
 
 #ifndef DISTRIB_PRINT_SERVICE_HPP
 #define DISTRIB_PRINT_SERVICE_HPP

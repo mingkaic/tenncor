@@ -1,5 +1,5 @@
 
-#include "dbg/distr_ext/print/service.hpp"
+#include "dbg/print/printsvc/service.hpp"
 
 #ifdef DISTRIB_PRINT_SERVICE_HPP
 

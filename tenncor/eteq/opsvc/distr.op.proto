@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "tenncor/distrib/services/io/distr.io.proto";
+import "tenncor/distrib/iosvc/distr.io.proto";
 
 package distr.op;
 

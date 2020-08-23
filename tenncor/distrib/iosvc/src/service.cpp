@@ -1,5 +1,5 @@
 
-#include "tenncor/distrib/services/io/service.hpp"
+#include "tenncor/distrib/iosvc/service.hpp"
 
 #ifdef DISTRIB_IO_SERVICE_HPP
 

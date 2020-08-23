@@ -1,5 +1,5 @@
 
-#include "tenncor/distrib/services/op/service.hpp"
+#include "tenncor/eteq/opsvc/service.hpp"
 
 #ifdef DISTRIB_OP_SERVICE_HPP
 

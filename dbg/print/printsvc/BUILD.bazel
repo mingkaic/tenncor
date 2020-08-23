@@ -1,0 +1,57 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":printsvc_hdrs",
+        ":printsvc_srcs",
+        ":protos",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "printsvc_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "printsvc_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = glob(["*.proto"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "printsvc",
+    hdrs = [":printsvc_hdrs"],
+    srcs = [":printsvc_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":printsvc_cc_grpc",
+        "//dbg/print:print",
+        "//tenncor/distrib/iosvc:iosvc",
+        "//tenncor/distrib:distrib",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "printsvc_pb",
+    srcs = [":protos"],
+    visibility = ["//visibility:public"],
+)
+
+cpp_grpc_library(
+    name = "printsvc_cc_grpc",
+    deps = [":printsvc_pb"],
+    visibility = ["//visibility:public"],
+)

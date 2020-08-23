@@ -1,8 +1,8 @@
 
 #include "tenncor/eteq/eteq.hpp"
 
-#include "tenncor/distrib/services/io/service.hpp"
-#include "tenncor/distrib/services/op/client.hpp"
+#include "tenncor/distrib/iosvc/service.hpp"
+#include "tenncor/eteq/opsvc/client.hpp"
 
 #ifndef DISTRIB_OP_SERVICE_HPP
 #define DISTRIB_OP_SERVICE_HPP

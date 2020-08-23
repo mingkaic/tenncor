@@ -1,0 +1,26 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":print_hdrs",
+        "//dbg/print/printsvc:srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "print_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "print",
+    hdrs = [":print_hdrs"],
+    copts = ["-std=c++17"],
+    deps = ["//internal/teq:mock_teq"],
+    visibility = ["//visibility:public"],
+)

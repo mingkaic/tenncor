@@ -55,7 +55,7 @@ cc_library(
     hdrs = [":tutil_hdrs"],
     srcs = [":tutil_srcs"],
     deps = [
-        "//dbg:print",
+        "//dbg/print:print",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",

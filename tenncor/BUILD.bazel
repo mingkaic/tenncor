@@ -106,7 +106,7 @@ cc_library(
     deps = [
         "//internal/onnx:onnx",
         "//tenncor/opt:opt",
-        "//tenncor/distrib:distrib_svcs",
+        "//tenncor/eteq/opsvc:opsvc",
         "//tenncor/trainer:trainer",
     ],
 )
@@ -120,7 +120,7 @@ pybind_py_library(
     ],
     cc_deps = [
         ":tenncor",
-        "//dbg:distrib",
+        "//dbg/print/printsvc:printsvc",
         "//tenncor/pyutils:pyutils",
     ],
     copts = [
