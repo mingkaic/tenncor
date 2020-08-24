@@ -119,7 +119,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
 	{
 		// ListNodes
-		auto lnodes_logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
+		auto lnodes_logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[server %s:ListNodes] ", get_peer_id().c_str()));
 		new egrpc::AsyncServerCall<io::ListNodesRequest,
 			io::ListNodesResponse>(lnodes_logger,

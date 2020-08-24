@@ -23,7 +23,7 @@ namespace global
 /// RNG engine used
 using RandEngineT = std::default_random_engine;
 
-using BoostEngineT = boost::uuids::random_generator;
+using UuidEngineT = boost::uuids::random_generator;
 
 /// Function that returns a generated number
 template <typename T>
@@ -34,10 +34,10 @@ void set_randengine (RandEngineT* reg,
 
 RandEngineT& get_randengine (const CfgMapptrT& ctx = context());
 
-void set_uuidengine (BoostEngineT* reg,
+void set_uuidengine (UuidEngineT* reg,
 	CfgMapptrT ctx = context());
 
-BoostEngineT& get_uuidengine (const CfgMapptrT& ctx = context());
+UuidEngineT& get_uuidengine (const CfgMapptrT& ctx = context());
 
 void seed (size_t s, CfgMapptrT ctx = context());
 

@@ -24,7 +24,7 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		std::function<void(op::NodeData&)> cb)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
-		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
+		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:GetData] ", alias_.c_str()));
 		auto handler = new egrpc::AsyncClientStreamHandler<
 			op::NodeData>(done, logger, cb);
@@ -45,7 +45,7 @@ struct DistrOpCli final : public egrpc::GrpcClient
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
 		using ListReachableHandlerT = egrpc::AsyncClientHandler<op::ListReachableResponse>;
-		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
+		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:ListReachable] ", alias_.c_str()));
 		new ListReachableHandlerT(done, logger, cb,
 			[this, &req, &cq](ListReachableHandlerT* handler)
@@ -67,7 +67,7 @@ struct DistrOpCli final : public egrpc::GrpcClient
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
 		using CreateDeriveHandlerT = egrpc::AsyncClientHandler<op::CreateDeriveResponse>;
-		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
+		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:Derive] ", alias_.c_str()));
 		new CreateDeriveHandlerT(done, logger, cb,
 			[this, &req, &cq](CreateDeriveHandlerT* handler)

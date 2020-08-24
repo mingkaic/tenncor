@@ -24,7 +24,7 @@ struct DistrPrintCli final : public egrpc::GrpcClient
 		std::function<void(print::AsciiEntry&)> cb)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
-		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
+		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:ListAscii] ", alias_.c_str()));
 		auto handler = new egrpc::AsyncClientStreamHandler<print::AsciiEntry>(done, logger, cb);
 

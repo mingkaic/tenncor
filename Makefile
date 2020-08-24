@@ -1,32 +1,31 @@
-COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 
-COVERAGE_IGNORE := 'external/*' '**/test/*' 'testutil/*' '**/genfiles/*' '**/mock/*' '**/*.pb.h' '**/*.pb.cc' 'dbg/*' 'dbg/**/*'
+######## TEST SETUP ########
 
-CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
+.PHONY: install_test_deps
+install_test_deps:
+	pip3 install -r requirements.test.txt
 
-ETEQ_CTEST := //tenncor/eteq:ctest
+.PHONY: generate_testcases
+generate_testcases: install_test_deps
+	bazel run //testutil:tf_gen -- /tmp/tf_testcases.json
+	mv /tmp/tf_testcases.json models/test
 
-LAYR_TEST := //tenncor/layr:test
+.PHONY: test_consul_up
+test_consul_up:
+	docker run -d --name=test-consul -e CONSUL_BIND_INTERFACE=eth0 -p 8500:8500 consul
 
-EIGEN_TEST := //internal/eigen:test
+.PHONY: test_consul_down
+test_consul_down:
+	docker rm -f test-consul
 
-MARSH_TEST := //internal/marsh:test
+.PHONY: test_consul_restart
+test_consul_restart: test_consul_down test_consul_up
 
-ONNX_TEST := //internal/onnx:test
-
-OPT_TEST := //internal/opt/...
-
-QUERY_TEST := //internal/query:test
-
-TEQ_TEST := //internal/teq:test
+######## BUILD AND PUSH DOCKER IMAGES ########
 
 IMAGE_REPO := mkaichen
 IMAGE_TAG := latest
-
 REMOTE_CACHE := ''
-PROTOC := bazel-bin/external/com_google_protobuf/protoc
-GRPC_CPP_PLUGIN := bazel-bin/external/com_github_grpc_grpc/src/compiler/grpc_cpp_plugin
-
 
 all: build_test_image build_lib_image build_image
 
@@ -57,6 +56,10 @@ push_lib_image:
 push_image:
 	docker push ${IMAGE_REPO}/tenncor:${IMAGE_TAG}
 
+######## MANUALLY GENERATE PROTOBUF ########
+
+PROTOC := bazel-bin/external/com_google_protobuf/protoc
+GRPC_CPP_PLUGIN := bazel-bin/external/com_github_grpc_grpc/src/compiler/grpc_cpp_plugin
 
 ${PROTOC}:
 	bazel build @com_google_protobuf//:protoc
@@ -79,6 +82,8 @@ gen-onnx-proto: ${PROTOC}
 gen-gemit-proto: ${PROTOC}
 	./${PROTOC} --cpp_out=. -I . dbg/peval/emit/gemitter.proto
 	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . dbg/peval/emit/gemitter.proto
+
+######## MODEL FILE GENERATION ########
 
 .PHONY: onnx2json
 onnx2json: onnx_test_o2j eteq_test_o2j edeps_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
@@ -137,7 +142,6 @@ gru_model_o2j: models/fast_gru.onnx models/latin_gru.onnx
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/latin_gru.onnx --write /tmp/latin_gru.json
 	mv /tmp/latin_gru.json models
 
-
 .PHONY: json2onnx
 json2onnx: onnx_test_j2o eteq_test_j2o edeps_test_j2o gd_model_j2o dqn_model_j2o rbm_model_j2o dbn_model_j2o rnn_model_j2o lstm_model_j2o gru_model_j2o
 
@@ -195,104 +199,102 @@ gru_model_j2o: models/fast_gru.json models/latin_gru.json
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/latin_gru.json --write /tmp/latin_gru.onnx
 	mv /tmp/latin_gru.onnx models
 
+######## COVERAGES ########
+
+LOC_COVERAGE_FILE := coverage.info
+COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
+CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
+ETEQ_CTEST := //tenncor/eteq:ctest
+LAYR_CTEST := //tenncor/layr:ctest
+DISTRIB_CTEST := //tenncor/distrib:ctest
 
 .PHONY: cov_clean
-cov_clean: coverage.info
-	lcov --remove coverage.info $(COVERAGE_IGNORE) -o coverage.info
-	lcov --list coverage.info
+cov_clean: ${LOC_COVERAGE_FILE}
+	rm ${LOC_COVERAGE_FILE}
+	rm -Rf html
 
 .PHONY: cov_genhtml
-cov_genhtml: coverage.info
-	genhtml -o html coverage.info
+cov_genhtml: ${LOC_COVERAGE_FILE}
+	genhtml -o html ${LOC_COVERAGE_FILE}
 
+.PHONY: clean_test_coverage
+clean_test_coverage: ${COVERAGE_INFO_FILE}
+	lcov --remove ${COVERAGE_INFO_FILE} '**/test/*' '**/mock/*' -o ${LOC_COVERAGE_FILE}
 
 .PHONY: coverage
 coverage:
-	$(CCOVER) $(EIGEN_TEST) $(ETEQ_CTEST) $(LAYR_TEST) $(ONNX_TEST) $(OPT_TEST) $(QUERY_TEST) $(TEQ_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
+	${CCOVER} //internal/... ${ETEQ_CTEST} ${DISTRIB_CTEST} ${LAYR_TEST}
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'internal/*' 'tenncor/*' -o ${LOC_COVERAGE_FILE}
 
-.PHONY: cover_eigen
-cover_eigen:
-	$(CCOVER) $(EIGEN_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'opt/*' -o coverage.info
+###### INDIVIDUAL COVERAGES ######
 
-.PHONY: cover_eteq
-cover_eteq:
-	$(CCOVER) $(ETEQ_CTEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'opt/*' 'eigen/*' -o coverage.info
+#### internal coverages ####
 
-.PHONY: cover_layr
-cover_layr:
-	$(CCOVER) $(LAYR_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'opt/*' 'eigen/*' 'eteq/*' -o coverage.info
+.PHONY: cover_global
+cover_global:
+	${CCOVER} //internal/global:test
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'internal/global/*' -o ${LOC_COVERAGE_FILE}
 
 .PHONY: cover_marsh
 cover_marsh:
-	$(CCOVER) $(MARSH_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) -o coverage.info
-
-.PHONY: cover_onnx
-cover_onnx:
-	$(CCOVER) $(ONNX_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' -o coverage.info
-
-.PHONY: cover_opt
-cover_opt:
-	$(CCOVER) $(OPT_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'eigen/*' 'eteq/*' -o coverage.info
-
-.PHONY: cover_query
-cover_query:
-	$(CCOVER) $(QUERY_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' 'teq/*' 'onnx/*' 'opt/*' 'eigen/*' -o coverage.info
+	${CCOVER} //internal/marsh/...
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'internal/marsh/*' -o ${LOC_COVERAGE_FILE}
 
 .PHONY: cover_teq
 cover_teq:
-	$(CCOVER) $(TEQ_TEST)
-	lcov --remove $(COVERAGE_INFO_FILE) 'marsh/*' -o coverage.info
+	${CCOVER} //internal/teq/...
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'internal/teq/*' -o ${LOC_COVERAGE_FILE}
 
+.PHONY: cover_eigen
+cover_eigen:
+	${CCOVER} //internal/eigen/...
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'internal/eigen/*' -o ${LOC_COVERAGE_FILE}
 
-.PHONY: lcov
-lcov: coverage cov_clean
+.PHONY: cover_onnx
+cover_onnx:
+	${CCOVER} //internal/onnx/...
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'internal/onnx/*' -o ${LOC_COVERAGE_FILE}
 
-.PHONY: lcov_eigen
-lcov_eigen: cover_eigen cov_clean
+.PHONY: cover_query
+cover_query:
+	${CCOVER} //internal/query/...
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'internal/query/*' -o ${LOC_COVERAGE_FILE}
 
-.PHONY: lcov_eteq
-lcov_eteq: cover_eteq cov_clean
+.PHONY: cover_opt
+cover_opt:
+	${CCOVER} //internal/opt/...
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'internal/opt/*' -o ${LOC_COVERAGE_FILE}
 
-.PHONY: lcov_layr
-lcov_layr: cover_layr cov_clean
+.PHONY: cover_util
+cover_util:
+	${CCOVER} //internal/util/...
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'internal/util/*' -o ${LOC_COVERAGE_FILE}
 
-.PHONY: lcov_onnx
-lcov_onnx: cover_onnx cov_clean
+#### tenncor coverages ####
 
-.PHONY: lcov_opt
-lcov_opt: cover_opt cov_clean
+.PHONY: cover_eteq
+cover_eteq:
+	${CCOVER} ${ETEQ_CTEST}
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/eteq/*' -o ${LOC_COVERAGE_FILE}
 
-.PHONY: lcov_query
-lcov_query: cover_query cov_clean
+.PHONY: cover_layr
+cover_layr:
+	${CCOVER} ${LAYR_CTEST}
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/layr/*' -o ${LOC_COVERAGE_FILE}
 
-.PHONY: lcov_teq
-lcov_teq: cover_teq cov_clean
-
-.PHONY: install_test_deps
-install_test_deps:
-	pip3 install -r requirements.txt
-	pip3 install -r requirements.test.txt
-
-.PHONY: generate_testcases
-generate_testcases:
-	bazel run //testutil:tf_gen -- /tmp/tf_testcases.json
-	mv /tmp/tf_testcases.json models/test
-
-.PHONY: test_consul_up
-test_consul_up:
-	docker run -d --name=test-consul -e CONSUL_BIND_INTERFACE=eth0 -p 8500:8500 consul
-
-.PHONY: test_consul_down
-test_consul_down:
-	docker rm -f test-consul
-
-.PHONY: test_consul_restart
-test_consul_restart: test_consul_down test_consul_up
+.PHONY: cover_distrib
+cover_distrib:
+	${CCOVER} ${DISTRIB_CTEST}
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/distrib/*' -o ${LOC_COVERAGE_FILE}

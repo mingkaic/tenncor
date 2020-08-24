@@ -20,6 +20,11 @@ filegroup(
     srcs = glob(["src/*.cpp"]),
 )
 
+filegroup(
+    name = "test_srcs",
+    srcs = glob(["test/*.cpp"]),
+)
+
 ######### LIBRARIES #########
 
 cc_library(
@@ -34,4 +39,16 @@ cc_library(
         "@com_github_kjellkod_g3log//:g3log",
     ],
     visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = [":test_srcs"],
+    deps = [
+        ":global",
+        "//testutil:tutil",
+    ],
+    copts = ["-std=c++17"],
 )

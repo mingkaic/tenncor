@@ -129,7 +129,7 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 	{
 		// ListAscii
 		auto lascii_logger = std::make_shared<global::FormatLogger>(
-			&global::get_logger(), fmts::sprintf("[server %s:ListAscii] ",
+			global::get_logger(), fmts::sprintf("[server %s:ListAscii] ",
 				get_peer_id().c_str()));
 		new egrpc::AsyncServerStreamCall<print::ListAsciiRequest,
 			print::AsciiEntry,types::StringsT>(lascii_logger,

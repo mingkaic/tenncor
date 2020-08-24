@@ -31,23 +31,23 @@ RandEngineT& get_randengine (const CfgMapptrT& ctx)
 	return *reg;
 }
 
-void set_uuidengine (BoostEngineT* reg, CfgMapptrT ctx)
+void set_uuidengine (UuidEngineT* reg, CfgMapptrT ctx)
 {
 	ctx->rm_entry(uengine_key);
 	if (reg)
 	{
-		ctx->template add_entry<BoostEngineT>(uengine_key,
+		ctx->template add_entry<UuidEngineT>(uengine_key,
 			[=](){ return reg; });
 	}
 }
 
-BoostEngineT& get_uuidengine (const CfgMapptrT& ctx)
+UuidEngineT& get_uuidengine (const CfgMapptrT& ctx)
 {
-	auto reg = static_cast<BoostEngineT*>(
+	auto reg = static_cast<UuidEngineT*>(
 		ctx->get_obj(uengine_key));
 	if (nullptr == reg)
 	{
-		reg = new BoostEngineT();
+		reg = new UuidEngineT();
 		set_uuidengine(reg, ctx);
 	}
 	return *reg;

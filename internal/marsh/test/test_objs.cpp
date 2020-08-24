@@ -169,6 +169,7 @@ TEST(OBJS, ObjTuple)
 TEST(OBJS, NumArray)
 {
 	marsh::NumArray<double> root({2, 3.3});
+	EXPECT_EQ(0, root.subclass_code());
 
 	EXPECT_EQ(2, root.size());
 	EXPECT_STREQ("[2\\3.3]", root.to_string().c_str());
@@ -265,6 +266,13 @@ TEST(OBJS, Maps)
 	}
 	EXPECT_FALSE(root.equals(big_root));
 	EXPECT_FALSE(big_root.equals(root));
+
+	auto numar = big_root.get_attr("obj1");
+	auto numf = big_root.get_attr("obj2");
+	auto objtup = big_root.get_attr("obj3");
+	EXPECT_EQ(typeid(marsh::NumArray<size_t>).hash_code(), numar->class_code());
+	EXPECT_EQ(typeid(marsh::Number<float>).hash_code(), numf->class_code());
+	EXPECT_EQ(typeid(marsh::ObjTuple).hash_code(), objtup->class_code());
 
 	marsh::Maps imperfect_clone;
 	{

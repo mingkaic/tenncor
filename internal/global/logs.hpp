@@ -67,6 +67,7 @@ void errorf (const std::string& format, ARGS... args)
 
 /// Log at throw_error level with arguments
 template <typename... ARGS>
+[[ noreturn ]]
 void throw_errf (const std::string& format, ARGS... args)
 {
 	throw_err(fmts::sprintf(format, args...));
@@ -74,6 +75,7 @@ void throw_errf (const std::string& format, ARGS... args)
 
 /// Log at fatal level with arguments
 template <typename... ARGS>
+[[ noreturn ]]
 void fatalf (const std::string& format, ARGS... args)
 {
 	fatal(fmts::sprintf(format, args...));

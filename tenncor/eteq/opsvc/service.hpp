@@ -388,7 +388,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 	{
 		// GetData
 		auto gdata_logger = std::make_shared<global::FormatLogger>(
-			&global::get_logger(), fmts::sprintf("[server %s:GetData] ",
+			global::get_logger(), fmts::sprintf("[server %s:GetData] ",
 				get_peer_id().c_str()));
 		new egrpc::AsyncServerStreamCall<op::GetDataRequest,
 			op::NodeData,DataStatesT>(gdata_logger,
@@ -407,7 +407,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 
 		// ListReachable
 		auto lreachable_logger = std::make_shared<global::FormatLogger>(
-			&global::get_logger(), fmts::sprintf("[server %s:ListReachable] ",
+			global::get_logger(), fmts::sprintf("[server %s:ListReachable] ",
 				get_peer_id().c_str()));
 		new egrpc::AsyncServerCall<op::ListReachableRequest,
 			op::ListReachableResponse>(lreachable_logger,
@@ -427,7 +427,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 
 		// Derive
 		auto cderive_logger = std::make_shared<global::FormatLogger>(
-			&global::get_logger(), fmts::sprintf("[server %s:CreateDerive] ",
+			global::get_logger(), fmts::sprintf("[server %s:CreateDerive] ",
 				get_peer_id().c_str()));
 		new egrpc::AsyncServerCall<op::CreateDeriveRequest,
 			op::CreateDeriveResponse>(cderive_logger,

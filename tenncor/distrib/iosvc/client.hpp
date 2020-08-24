@@ -25,7 +25,7 @@ struct DistrIOCli final : public egrpc::GrpcClient
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
 		using ListNodesHandlerT = egrpc::AsyncClientHandler<io::ListNodesResponse>;
-		auto logger = std::make_shared<global::FormatLogger>(&global::get_logger(),
+		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:ListNodes] ", alias_.c_str()));
 		new ListNodesHandlerT(done, logger, cb,
 			[this, &req, &cq](ListNodesHandlerT* handler)

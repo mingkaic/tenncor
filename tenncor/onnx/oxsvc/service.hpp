@@ -60,7 +60,7 @@
 // 	{
 // 		// GetData
 // 		auto gdata_logger = std::make_shared<global::FormatLogger>(
-// 			&global::get_logger(), fmts::sprintf("[server %s:GetData] ",
+// 			global::get_logger(), fmts::sprintf("[server %s:GetData] ",
 // 				get_peer_id().c_str()));
 // 		new egrpc::AsyncServerStreamCall<serialize::GetDataRequest,
 // 			serialize::NodeData,DataStatesT>(gdata_logger,
@@ -79,7 +79,7 @@
 
 // 		// ListReachable
 // 		auto lreachable_logger = std::make_shared<global::FormatLogger>(
-// 			&global::get_logger(), fmts::sprintf("[server %s:ListReachable] ",
+// 			global::get_logger(), fmts::sprintf("[server %s:ListReachable] ",
 // 				get_peer_id().c_str()));
 // 		new egrpc::AsyncServerCall<serialize::ListReachableRequest,
 // 			serialize::ListReachableResponse>(lreachable_logger,
@@ -99,7 +99,7 @@
 
 // 		// Derive
 // 		auto cderive_logger = std::make_shared<global::FormatLogger>(
-// 			&global::get_logger(), fmts::sprintf("[server %s:CreateDerive] ",
+// 			global::get_logger(), fmts::sprintf("[server %s:CreateDerive] ",
 // 				get_peer_id().c_str()));
 // 		new egrpc::AsyncServerCall<serialize::CreateDeriveRequest,
 // 			serialize::CreateDeriveResponse>(cderive_logger,

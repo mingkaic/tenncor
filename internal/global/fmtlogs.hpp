@@ -9,10 +9,10 @@ namespace global
 
 struct FormatLogger final : public logs::iLogger
 {
-	FormatLogger (logs::iLogger* sublogger,
+	FormatLogger (logs::iLogger& sublogger,
 		const std::string& prefix = "",
 		const std::string& affix = "") :
-		sublogger_(sublogger), prefix_(prefix), affix_(affix) {}
+		sublogger_(&sublogger), prefix_(prefix), affix_(affix) {}
 
 	/// Implementation of iLogger
 	std::string get_log_level (void) const override
@@ -39,15 +39,17 @@ struct FormatLogger final : public logs::iLogger
 	}
 
 	/// Implementation of iLogger
-	void log (size_t msg_level, const std::string& msg) override
+	void log (size_t msg_level, const std::string& msg,
+		const logs::SrcLocT& location = logs::SrcLocT::current()) override
 	{
-		sublogger_->log(msg_level, prefix_ + msg + affix_);
+		sublogger_->log(msg_level, prefix_ + msg + affix_, location);
 	}
 
 	/// Implementation of iLogger
-	void log (const std::string& msg_level, const std::string& msg) override
+	void log (const std::string& msg_level, const std::string& msg,
+		const logs::SrcLocT& location = logs::SrcLocT::current()) override
 	{
-		sublogger_->log(msg_level, prefix_ + msg + affix_);
+		sublogger_->log(msg_level, prefix_ + msg + affix_, location);
 	}
 
 	logs::iLogger* sublogger_;
