@@ -6,10 +6,13 @@
 namespace distr
 {
 
+namespace op
+{
+
 bool process_get_data (
-	const op::GetDataRequest& req,
+	const GetDataRequest& req,
 	DataStatesT::iterator& it,
-	op::NodeData& reply)
+	NodeData& reply)
 {
 	auto id = it->first;
 	auto tens = it->second;
@@ -31,28 +34,30 @@ bool process_get_data (
 	return true;
 }
 
+}
+
 error::ErrptrT register_opsvc (estd::ConfigMap<>& svcs,
 	const PeerServiceConfig& cfg)
 {
-	auto iosvc = static_cast<DistrIOService*>(svcs.get_obj(iosvc_key));
+	auto iosvc = static_cast<io::DistrIOService*>(svcs.get_obj(io::iosvc_key));
 	if (nullptr == iosvc)
 	{
 		return error::error("opsvc requires iosvc already registered");
 	}
-	svcs.add_entry<DistrOpService>(opsvc_key,
-		[&](){ return new DistrOpService(cfg, iosvc); });
+	svcs.add_entry<op::DistrOpService>(op::opsvc_key,
+		[&](){ return new op::DistrOpService(cfg, iosvc); });
 	return nullptr;
 }
 
-DistrOpService& get_opsvc (iDistrManager& manager)
+op::DistrOpService& get_opsvc (iDistrManager& manager)
 {
-	auto svc = manager.get_service(opsvc_key);
+	auto svc = manager.get_service(op::opsvc_key);
 	if (nullptr == svc)
 	{
 		global::fatalf("%s service not found in %s",
-			opsvc_key.c_str(), manager.get_id().c_str());
+			op::opsvc_key.c_str(), manager.get_id().c_str());
 	}
-	return static_cast<DistrOpService&>(*svc);
+	return static_cast<op::DistrOpService&>(*svc);
 }
 
 }

@@ -369,7 +369,7 @@ void eteq_ext (py::module& m)
 					filename.c_str());
 			}
 			onnx::TensptrIdT ids;
-			auto roots = tcr::load_model(ids, pb_model);
+			auto roots = tcr::load_model<PybindT>(ids, pb_model);
 			input.close();
 
 			std::vector<std::string> precids;
@@ -411,6 +411,12 @@ void eteq_ext (py::module& m)
 			const eteq::ETensorsT<PybindT>& models,
 			const ETensKeysT& keys)
 		{
+			if (models.empty())
+			{
+				global::warnf("attempting to save to file `%s` without "
+					"specifying models", filename.c_str());
+				return false;
+			}
 			std::ofstream output(filename);
 			if (false == output.is_open())
 			{
@@ -422,8 +428,7 @@ void eteq_ext (py::module& m)
 			{
 				identified.insert({keyit.second.get(), keyit.first});
 			}
-			tcr::save_model(pb_model, teq::TensptrsT(
-				models.begin(), models.end()), identified);
+			tcr::save_model(pb_model, models, identified);
 			return pb_model.SerializeToOstream(&output);
 		},
 		py::arg("filename"), py::arg("models"),
@@ -443,7 +448,7 @@ void eteq_ext (py::module& m)
 					filename.c_str());
 			}
 			onnx::TensptrIdT ids;
-			auto roots = tcr::load_model(ids, pb_model);
+			auto roots = tcr::load_model<PybindT>(ids, pb_model, ctx);
 			input.close();
 			pytenncor::ETensorsT out;
 			out.reserve(roots.size());
@@ -463,6 +468,11 @@ void eteq_ext (py::module& m)
 			{
 				roots.emplace(r.second);
 			}
+			pytenncor::ETensorsT etens;
+			etens.reserve(roots.size());
+			std::transform(roots.begin(), roots.end(), std::back_inserter(etens),
+				[&ctx](teq::TensptrT tens)
+				{ return pytenncor::ETensT(tens, ctx); });
 			std::ofstream output(filename);
 			if (false == output.is_open())
 			{
@@ -470,8 +480,7 @@ void eteq_ext (py::module& m)
 			}
 			onnx::ModelProto pb_model;
 			onnx::TensIdT ids;
-			tcr::save_model(pb_model, teq::TensptrsT(
-				roots.begin(), roots.end()), ids);
+			tcr::save_model(pb_model, etens, ids);
 			return pb_model.SerializeToOstream(&output);
 		});
 }

@@ -82,13 +82,13 @@ struct Emitter final : public dbg::iPlugin
 			gemitter::CreateModelRequest request;
 			auto payload = request.mutable_payload();
 			payload->set_model_id(eval_id_);
-			tcr::save_model(*payload->mutable_model(),
+			serial::save_graph(*(payload->mutable_model()->mutable_graph()),
 				teq::TensT(targets.begin(), targets.end()), existing);
 			client_.create_model(request);
 
 			// update ids
 			onnx::TensptrIdT fullids;
-			tcr::load_model(fullids, payload->model());
+			serial::load_graph(fullids, payload->model().graph());
 			for (auto fullid : fullids)
 			{
 				ids_.insert({fullid.left.get(), fullid.right});

@@ -1,9 +1,9 @@
 
-#include "tenncor/serialize.hpp"
+#include "tenncor/serial/serialize.hpp"
 
-#ifdef TENNCOR_SERIALIZE_HPP
+#ifdef TENNCOR_SERIAL_SERIALIZE_HPP
 
-namespace tcr
+namespace serial
 {
 
 template <typename CAST, typename T>
@@ -57,36 +57,36 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 				out = unpack<int32_t>(usage, shape, label,
 					pb_tens.int32_data());
 				break;
-// #if(ETEQ_CFG==FULL)
-// 			case onnx::TensorProto::UINT8:
-// 				out = unpack<uint8_t>(usage, shape, label,
-// 					pb_tens.int32_data());
-// 				break;
-// 			case onnx::TensorProto::INT8:
-// 				out = unpack<int8_t>(usage, shape, label,
-// 					pb_tens.int32_data());
-// 				break;
-// 			case onnx::TensorProto::UINT16:
-// 				out = unpack<uint16_t>(usage, shape, label,
-// 					pb_tens.int32_data());
-// 				break;
-// 			case onnx::TensorProto::INT16:
-// 				out = unpack<int16_t>(usage, shape, label,
-// 					pb_tens.int32_data());
-// 				break;
-// 			case onnx::TensorProto::UINT32:
-// 				out = unpack<uint32_t>(usage, shape, label,
-// 					pb_tens.uint64_data());
-// 				break;
-// 			case onnx::TensorProto::UINT64:
-// 				out = unpack<uint64_t>(usage, shape, label,
-// 					pb_tens.uint64_data());
-// 				break;
-// 			case onnx::TensorProto::INT64:
-// 				out = unpack<int64_t>(usage, shape, label,
-// 					pb_tens.int64_data());
-// 				break;
-// #endif
+	// #if(ETEQ_CFG==FULL)
+	// 		case onnx::TensorProto::UINT8:
+	// 			out = unpack<uint8_t>(usage, shape, label,
+	// 				pb_tens.int32_data());
+	// 			break;
+	// 		case onnx::TensorProto::INT8:
+	// 			out = unpack<int8_t>(usage, shape, label,
+	// 				pb_tens.int32_data());
+	// 			break;
+	// 		case onnx::TensorProto::UINT16:
+	// 			out = unpack<uint16_t>(usage, shape, label,
+	// 				pb_tens.int32_data());
+	// 			break;
+	// 		case onnx::TensorProto::INT16:
+	// 			out = unpack<int16_t>(usage, shape, label,
+	// 				pb_tens.int32_data());
+	// 			break;
+	// 		case onnx::TensorProto::UINT32:
+	// 			out = unpack<uint32_t>(usage, shape, label,
+	// 				pb_tens.uint64_data());
+	// 			break;
+	// 		case onnx::TensorProto::UINT64:
+	// 			out = unpack<uint64_t>(usage, shape, label,
+	// 				pb_tens.uint64_data());
+	// 			break;
+	// 		case onnx::TensorProto::INT64:
+	// 			out = unpack<int64_t>(usage, shape, label,
+	// 				pb_tens.int64_data());
+	// 			break;
+	// #endif
 			default:
 				global::fatalf("unknown onnx type %d", onnx_type);
 		}
@@ -117,11 +117,11 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 
 #undef _OUT_GENFUNC
 
-teq::TensptrsT load_model (onnx::TensptrIdT& identified_tens,
-	const onnx::ModelProto& pb_model)
+teq::TensptrsT load_graph (onnx::TensptrIdT& identified_tens,
+	const onnx::GraphProto& pb_graph)
 {
 	UnmarshFuncs funcs;
-	return onnx::load_graph(identified_tens, pb_model.graph(), funcs);
+	return onnx::load_graph(identified_tens, pb_graph, funcs);
 }
 
 }

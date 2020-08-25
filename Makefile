@@ -68,7 +68,7 @@ ${GRPC_CPP_PLUGIN}:
 	bazel build @com_github_grpc_grpc//src/compiler:grpc_cpp_plugin
 
 .PHONY: gen-proto
-gen-proto: gen-extenncor-proto gen-onnx-proto gen-gemit-proto
+gen-proto: gen-extenncor-proto gen-onnx-proto gen-gemit-proto gen-oxsvc-proto
 
 .PHONY: gen-extenncor-proto
 gen-extenncor-proto: ${PROTOC}
@@ -76,12 +76,17 @@ gen-extenncor-proto: ${PROTOC}
 
 .PHONY: gen-onnx-proto
 gen-onnx-proto: ${PROTOC}
-	./${PROTOC} --cpp_out=. -I . onnx/onnx.proto
+	./${PROTOC} --cpp_out=. -I . internal/onnx/onnx.proto
 
 .PHONY: gen-gemit-proto
-gen-gemit-proto: ${PROTOC}
+gen-gemit-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
 	./${PROTOC} --cpp_out=. -I . dbg/peval/emit/gemitter.proto
 	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . dbg/peval/emit/gemitter.proto
+
+.PHONY: gen-oxsvc-proto
+gen-oxsvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
+	./${PROTOC} --cpp_out=. -I . tenncor/serial/oxsvc/distr.ox.proto
+	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . tenncor/serial/oxsvc/distr.ox.proto
 
 ######## MODEL FILE GENERATION ########
 

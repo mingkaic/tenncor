@@ -4,6 +4,7 @@
 
 #include "tenncor/distrib/distrib.hpp"
 #include "tenncor/eteq/opsvc/service.hpp"
+#include "tenncor/serial/oxsvc/service.hpp"
 
 namespace distr
 {
@@ -21,7 +22,7 @@ struct DistrEvaluator final : public teq::iEvaluator
 		svc_.evaluate(device, targets, ignored);
 	}
 
-	DistrOpService& svc_;
+	op::DistrOpService& svc_;
 };
 
 }
@@ -38,7 +39,8 @@ distr::DistrMgrptrT ctxualize_distrmgr (
 	const std::string& alias = "",
 	std::vector<RegisterSvcF> regs = {
 		distr::register_iosvc,
-		distr::register_opsvc
+		distr::register_opsvc,
+		distr::register_oxsvc,
 	},
 	const std::string& svc_name = distr::default_service,
 	global::CfgMapptrT ctx = global::context());

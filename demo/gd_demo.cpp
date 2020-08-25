@@ -122,7 +122,7 @@ int main (int argc, const char** argv)
 			throw std::exception();
 		}
 		onnx::TensptrIdT ids;
-		pretrained_model = tcr::load_model(ids, pb_model)[0];
+		pretrained_model = tcr::load_model<PybindT>(ids, pb_model)[0];
 		global::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
@@ -242,7 +242,7 @@ int main (int argc, const char** argv)
 		if (savestr.is_open())
 		{
 			onnx::ModelProto pb_model;
-			tcr::save_model(pb_model, teq::TensptrsT{trained_model});
+			tcr::save_model<PybindT>(pb_model, {trained_model});
 			if (pb_model.SerializeToOstream(&savestr))
 			{
 				global::infof("successfully saved model to `%s`", savepath.c_str());

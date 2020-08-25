@@ -16,7 +16,7 @@
 #include <google/protobuf/port_def.inc>
 extern PROTOBUF_INTERNAL_EXPORT_dbg_2fpeval_2femit_2fgemitter_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_ModelPayload_dbg_2fpeval_2femit_2fgemitter_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_dbg_2fpeval_2femit_2fgemitter_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_NodePayload_dbg_2fpeval_2femit_2fgemitter_2eproto;
-extern PROTOBUF_INTERNAL_EXPORT_onnx_2fonnx_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<3> scc_info_ModelProto_onnx_2fonnx_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_internal_2fonnx_2fonnx_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<3> scc_info_ModelProto_internal_2fonnx_2fonnx_2eproto;
 namespace gemitter {
 class ModelPayloadDefaultTypeInternal {
  public:
@@ -139,7 +139,7 @@ static void InitDefaultsscc_info_ModelPayload_dbg_2fpeval_2femit_2fgemitter_2epr
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_ModelPayload_dbg_2fpeval_2femit_2fgemitter_2eproto =
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_ModelPayload_dbg_2fpeval_2femit_2fgemitter_2eproto}, {
-      &scc_info_ModelProto_onnx_2fonnx_2eproto.base,}};
+      &scc_info_ModelProto_internal_2fonnx_2fonnx_2eproto.base,}};
 
 static void InitDefaultsscc_info_NodePayload_dbg_2fpeval_2femit_2fgemitter_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -275,33 +275,33 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 
 const char descriptor_table_protodef_dbg_2fpeval_2femit_2fgemitter_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\035dbg/peval/emit/gemitter.proto\022\010gemitte"
-  "r\032\017onnx/onnx.proto\"A\n\014ModelPayload\022\020\n\010mo"
-  "del_id\030\001 \001(\t\022\037\n\005model\030\002 \001(\0132\020.onnx.Model"
-  "Proto\">\n\013NodePayload\022\020\n\010model_id\030\001 \001(\t\022\017"
-  "\n\007node_id\030\002 \001(\t\022\014\n\004data\030\003 \003(\002\"\007\n\005Empty\"="
-  "\n\022CreateModelRequest\022\'\n\007payload\030\001 \001(\0132\026."
-  "gemitter.ModelPayload\"H\n\023CreateModelResp"
-  "onse\022 \n\006status\030\001 \001(\0162\020.gemitter.Status\022\017"
-  "\n\007message\030\002 \001(\t\"\?\n\025UpdateNodeDataRequest"
-  "\022&\n\007payload\030\001 \001(\0132\025.gemitter.NodePayload"
-  "\"K\n\026UpdateNodeDataResponse\022 \n\006status\030\001 \001"
-  "(\0162\020.gemitter.Status\022\017\n\007message\030\002 \001(\t\"&\n"
-  "\022DeleteModelRequest\022\020\n\010model_id\030\001 \001(\t\"H\n"
-  "\023DeleteModelResponse\022 \n\006status\030\001 \001(\0162\020.g"
-  "emitter.Status\022\017\n\007message\030\002 \001(\t*>\n\006Statu"
-  "s\022\006\n\002OK\020\000\022\r\n\tBAD_INPUT\020\001\022\020\n\014INTERNAL_ERR"
-  "\020\002\022\013\n\007UNKNOWN\020\0032\256\002\n\014GraphEmitter\022/\n\013Heal"
-  "thCheck\022\017.gemitter.Empty\032\017.gemitter.Empt"
-  "y\022J\n\013CreateModel\022\034.gemitter.CreateModelR"
-  "equest\032\035.gemitter.CreateModelResponse\022U\n"
-  "\016UpdateNodeData\022\037.gemitter.UpdateNodeDat"
-  "aRequest\032 .gemitter.UpdateNodeDataRespon"
-  "se(\001\022J\n\013DeleteModel\022\034.gemitter.DeleteMod"
-  "elRequest\032\035.gemitter.DeleteModelResponse"
-  "b\006proto3"
+  "r\032\030internal/onnx/onnx.proto\"A\n\014ModelPayl"
+  "oad\022\020\n\010model_id\030\001 \001(\t\022\037\n\005model\030\002 \001(\0132\020.o"
+  "nnx.ModelProto\">\n\013NodePayload\022\020\n\010model_i"
+  "d\030\001 \001(\t\022\017\n\007node_id\030\002 \001(\t\022\014\n\004data\030\003 \003(\002\"\007"
+  "\n\005Empty\"=\n\022CreateModelRequest\022\'\n\007payload"
+  "\030\001 \001(\0132\026.gemitter.ModelPayload\"H\n\023Create"
+  "ModelResponse\022 \n\006status\030\001 \001(\0162\020.gemitter"
+  ".Status\022\017\n\007message\030\002 \001(\t\"\?\n\025UpdateNodeDa"
+  "taRequest\022&\n\007payload\030\001 \001(\0132\025.gemitter.No"
+  "dePayload\"K\n\026UpdateNodeDataResponse\022 \n\006s"
+  "tatus\030\001 \001(\0162\020.gemitter.Status\022\017\n\007message"
+  "\030\002 \001(\t\"&\n\022DeleteModelRequest\022\020\n\010model_id"
+  "\030\001 \001(\t\"H\n\023DeleteModelResponse\022 \n\006status\030"
+  "\001 \001(\0162\020.gemitter.Status\022\017\n\007message\030\002 \001(\t"
+  "*>\n\006Status\022\006\n\002OK\020\000\022\r\n\tBAD_INPUT\020\001\022\020\n\014INT"
+  "ERNAL_ERR\020\002\022\013\n\007UNKNOWN\020\0032\256\002\n\014GraphEmitte"
+  "r\022/\n\013HealthCheck\022\017.gemitter.Empty\032\017.gemi"
+  "tter.Empty\022J\n\013CreateModel\022\034.gemitter.Cre"
+  "ateModelRequest\032\035.gemitter.CreateModelRe"
+  "sponse\022U\n\016UpdateNodeData\022\037.gemitter.Upda"
+  "teNodeDataRequest\032 .gemitter.UpdateNodeD"
+  "ataResponse(\001\022J\n\013DeleteModel\022\034.gemitter."
+  "DeleteModelRequest\032\035.gemitter.DeleteMode"
+  "lResponseb\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_dbg_2fpeval_2femit_2fgemitter_2eproto_deps[1] = {
-  &::descriptor_table_onnx_2fonnx_2eproto,
+  &::descriptor_table_internal_2fonnx_2fonnx_2eproto,
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_dbg_2fpeval_2femit_2fgemitter_2eproto_sccs[9] = {
   &scc_info_CreateModelRequest_dbg_2fpeval_2femit_2fgemitter_2eproto.base,
@@ -317,7 +317,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_dbg
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_dbg_2fpeval_2femit_2fgemitter_2eproto_once;
 static bool descriptor_table_dbg_2fpeval_2femit_2fgemitter_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_dbg_2fpeval_2femit_2fgemitter_2eproto = {
-  &descriptor_table_dbg_2fpeval_2femit_2fgemitter_2eproto_initialized, descriptor_table_protodef_dbg_2fpeval_2femit_2fgemitter_2eproto, "dbg/peval/emit/gemitter.proto", 968,
+  &descriptor_table_dbg_2fpeval_2femit_2fgemitter_2eproto_initialized, descriptor_table_protodef_dbg_2fpeval_2femit_2fgemitter_2eproto, "dbg/peval/emit/gemitter.proto", 977,
   &descriptor_table_dbg_2fpeval_2femit_2fgemitter_2eproto_once, descriptor_table_dbg_2fpeval_2femit_2fgemitter_2eproto_sccs, descriptor_table_dbg_2fpeval_2femit_2fgemitter_2eproto_deps, 9, 1,
   schemas, file_default_instances, TableStruct_dbg_2fpeval_2femit_2fgemitter_2eproto::offsets,
   file_level_metadata_dbg_2fpeval_2femit_2fgemitter_2eproto, 9, file_level_enum_descriptors_dbg_2fpeval_2femit_2fgemitter_2eproto, file_level_service_descriptors_dbg_2fpeval_2femit_2fgemitter_2eproto,

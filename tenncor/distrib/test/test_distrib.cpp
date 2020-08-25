@@ -49,6 +49,7 @@ protected:
 		return tcr::ctxualize_distrmgr(consul_, port, id, {
 			distr::register_iosvc,
 			distr::register_opsvc,
+			distr::register_oxsvc,
 			distr::register_printsvc,
 		}, test_service, ctx);
 	}

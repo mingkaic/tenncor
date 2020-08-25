@@ -32,9 +32,11 @@ void warn (const std::string& msg);
 void error (const std::string& msg);
 
 /// Log at throw level
+[[ noreturn ]]
 void throw_err (const std::string& msg);
 
 /// Log at fatal level
+[[ noreturn ]]
 void fatal (const std::string& msg);
 
 /// Log at debug level with arguments

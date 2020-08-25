@@ -5,7 +5,10 @@
 namespace distr
 {
 
-DRefptrT node_meta_to_ref (const io::NodeMeta& meta)
+namespace io
+{
+
+DRefptrT node_meta_to_ref (const NodeMeta& meta)
 {
 	auto tens_id = meta.uuid();
 	auto& slist = meta.shape();
@@ -16,7 +19,7 @@ DRefptrT node_meta_to_ref (const io::NodeMeta& meta)
 		meta.instance(), tens_id);
 }
 
-void tens_to_node_meta (io::NodeMeta& out, const std::string cid,
+void tens_to_node_meta (NodeMeta& out, const std::string cid,
 	const std::string& uuid, const teq::TensptrT& tens)
 {
 	auto& meta = tens->get_meta();
@@ -35,6 +38,8 @@ void tens_to_node_meta (io::NodeMeta& out, const std::string cid,
 	{
 		out.set_instance(cid);
 	}
+}
+
 }
 
 }

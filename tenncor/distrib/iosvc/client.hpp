@@ -9,22 +9,25 @@
 namespace distr
 {
 
+namespace io
+{
+
 struct DistrIOCli final : public egrpc::GrpcClient
 {
 	DistrIOCli (std::shared_ptr<grpc::Channel> channel,
 		const egrpc::ClientConfig& cfg,
 		const std::string& alias) :
 		GrpcClient(cfg),
-		stub_(io::DistrInOut::NewStub(channel)),
+		stub_(DistrInOut::NewStub(channel)),
 		alias_(alias) {}
 
 	egrpc::ErrPromiseptrT list_nodes (
 		grpc::CompletionQueue& cq,
-		const io::ListNodesRequest& req,
-		std::function<void(io::ListNodesResponse&)> cb)
+		const ListNodesRequest& req,
+		std::function<void(ListNodesResponse&)> cb)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
-		using ListNodesHandlerT = egrpc::AsyncClientHandler<io::ListNodesResponse>;
+		using ListNodesHandlerT = egrpc::AsyncClientHandler<ListNodesResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:ListNodes] ", alias_.c_str()));
 		new ListNodesHandlerT(done, logger, cb,
@@ -41,10 +44,12 @@ struct DistrIOCli final : public egrpc::GrpcClient
 	}
 
 private:
-	std::unique_ptr<io::DistrInOut::Stub> stub_;
+	std::unique_ptr<DistrInOut::Stub> stub_;
 
 	std::string alias_;
 };
+
+}
 
 }
 

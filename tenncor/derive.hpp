@@ -32,7 +32,7 @@ eteq::ETensorsT<T> derive_with_manager (
 			return etens.get();
 		});
 	auto tgrads = distr::get_opsvc(mgr).derive(
-		grads, {root}, distr::BackpropMeta{targset}, builder);
+		grads, {root}, distr::op::BackpropMeta{targset}, builder);
 
 	size_t n = targets.size();
 	eteq::ETensorsT<T> results;

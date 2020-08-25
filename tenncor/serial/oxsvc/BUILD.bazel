@@ -1,0 +1,78 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":oxsvc_hdrs",
+        ":oxsvc_srcs",
+        ":protos",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "oxsvc_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "oxsvc_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = glob(["*.proto"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "oxsvc",
+    hdrs = [":oxsvc_hdrs"],
+    srcs = [":oxsvc_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":oxsvc_cc_grpc",
+        "//tenncor/serial:serial",
+        "//tenncor/distrib:distrib",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "oxsvc_pb",
+    srcs = [":protos"],
+    deps = [
+        "//internal/onnx:onnx_pb",
+        "//tenncor/distrib/iosvc:iosvc_pb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# cpp_grpc_library(
+#     name = "oxsvc_cc_grpc",
+#     deps = [":oxsvc_pb"],
+#     visibility = ["//visibility:public"],
+# )
+
+cc_library(
+    name = "oxsvc_cc_grpc",
+    hdrs = [
+        "distr.ox.pb.h",
+        "distr.ox.grpc.pb.h",
+    ],
+    srcs = [
+        "distr.ox.pb.cc",
+        "distr.ox.grpc.pb.cc",
+    ],
+    deps = [
+        "//internal/onnx:onnx_cc_pb",
+        "//tenncor/eteq/opsvc:opsvc_cc_grpc",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+    visibility = ["//visibility:public"],
+)

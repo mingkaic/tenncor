@@ -10,6 +10,9 @@
 namespace distr
 {
 
+namespace io
+{
+
 #define _ERR_CHECK(ERR, STATUS, ALIAS)\
 if (nullptr != ERR)\
 {\
@@ -36,8 +39,9 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 	}
 
 	teq::TensptrT lookup_node (error::ErrptrT& err,
-		const std::string& id, bool recursive = true)
+		const std::string& alias, bool recursive = true)
 	{
+		auto id = data_.id_from_alias(alias);
 		if (auto out = data_.get_tens(id))
 		{
 			return out;
@@ -62,11 +66,11 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 			return nullptr;
 		}
 
-		io::ListNodesRequest req;
+		ListNodesRequest req;
 		DRefptrT ref = nullptr;
 		req.add_uuids(id);
 		auto promise = client->list_nodes(cq_, req,
-			[&, this](io::ListNodesResponse& res)
+			[&, this](ListNodesResponse& res)
 			{
 				if (res.values().empty())
 				{
@@ -116,58 +120,61 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		builder.RegisterService(&service_);
 	}
 
+	std::string id_from_alias (const std::string& alias) const
+	{
+		return data_.id_from_alias(alias);
+	}
+
+	void set_alias (const std::string& alias, const std::string& id)
+	{
+		data_.set_alias(alias, id);
+	}
+
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
 	{
 		// ListNodes
 		auto lnodes_logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[server %s:ListNodes] ", get_peer_id().c_str()));
-		new egrpc::AsyncServerCall<io::ListNodesRequest,
-			io::ListNodesResponse>(lnodes_logger,
-			[this](grpc::ServerContext* ctx, io::ListNodesRequest* req,
-				grpc::ServerAsyncResponseWriter<io::ListNodesResponse>* writer,
+		new egrpc::AsyncServerCall<ListNodesRequest,
+			ListNodesResponse>(lnodes_logger,
+			[this](grpc::ServerContext* ctx, ListNodesRequest* req,
+				grpc::ServerAsyncResponseWriter<ListNodesResponse>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 				void* tag)
 			{
 				this->service_.RequestListNodes(ctx, req, writer, cq, ccq, tag);
 			},
-			[this](
-				const io::ListNodesRequest& req,
-				io::ListNodesResponse& res)
+			[this](const ListNodesRequest& req, ListNodesResponse& res)
 			{
-				return this->list_nodes(req, res);
+				auto alias = fmts::sprintf("%s:ListNodes", get_peer_id().c_str());
+				auto& uuids = req.uuids();
+				for (const std::string& uuid : uuids)
+				{
+					error::ErrptrT err = nullptr;
+					auto tens = lookup_node(err, uuid, false);
+					_ERR_CHECK(err, grpc::NOT_FOUND, alias.c_str());
+
+					NodeMeta* out = res.add_values();
+					tens_to_node_meta(*out, get_peer_id(), uuid, tens);
+				}
+				return grpc::Status::OK;
 			}, &cq);
 	}
 
 private:
-	grpc::Status list_nodes (
-		const io::ListNodesRequest& req,
-		io::ListNodesResponse& res)
-	{
-		auto alias = fmts::sprintf("%s:ListNodes", get_peer_id().c_str());
-		auto& uuids = req.uuids();
-		for (const std::string& uuid : uuids)
-		{
-			error::ErrptrT err = nullptr;
-			auto tens = lookup_node(err, uuid, false);
-			_ERR_CHECK(err, grpc::NOT_FOUND, alias.c_str());
-
-			io::NodeMeta* out = res.add_values();
-			tens_to_node_meta(*out, get_peer_id(), uuid, tens);
-		}
-		return grpc::Status::OK;
-	}
-
-	io::DistrInOut::AsyncService service_;
+	DistrInOut::AsyncService service_;
 
 	DistrIOData data_;
 };
 
 #undef _ERR_CHECK
 
+}
+
 error::ErrptrT register_iosvc (estd::ConfigMap<>& svcs,
 	const PeerServiceConfig& cfg);
 
-DistrIOService& get_iosvc (iDistrManager& manager);
+io::DistrIOService& get_iosvc (iDistrManager& manager);
 
 }
 

@@ -16,6 +16,7 @@ filegroup(
         ":benchmark_srcs",
         "//tenncor/eteq:srcs",
         "//tenncor/opt:srcs",
+        "//tenncor/serial:srcs",
         "//tenncor/trainer:srcs",
         "//tenncor/distrib:srcs",
         "//tenncor/layr:srcs",
@@ -104,9 +105,9 @@ cc_library(
     include_prefix = "tenncor",
     includes = ["."],
     deps = [
-        "//internal/onnx:onnx",
         "//tenncor/opt:opt",
         "//tenncor/eteq/opsvc:opsvc",
+        "//tenncor/serial/oxsvc:oxsvc",
         "//tenncor/trainer:trainer",
     ],
 )

@@ -1,13 +1,16 @@
 
-#include "tenncor/eteq/eteq.hpp"
-
-#include "tenncor/distrib/iosvc/service.hpp"
-#include "tenncor/eteq/opsvc/client.hpp"
-
 #ifndef DISTRIB_OP_SERVICE_HPP
 #define DISTRIB_OP_SERVICE_HPP
 
+#include "tenncor/distrib/iosvc/service.hpp"
+
+#include "tenncor/eteq/eteq.hpp"
+#include "tenncor/eteq/opsvc/client.hpp"
+
 namespace distr
+{
+
+namespace op
 {
 
 #define _ERR_CHECK(ERR, STATUS, ALIAS)\
@@ -21,7 +24,7 @@ if (nullptr != ERR)\
 #define _MAKE_DERFUNC(REAL_TYPE)\
 builder = new eteq::DerivativeFuncs<REAL_TYPE>();
 
-using OpServiceT = op::DistrOperation::AsyncService;
+using OpServiceT = DistrOperation::AsyncService;
 
 using DataStatesT = std::unordered_map<std::string,teq::iTensor*>;
 
@@ -35,13 +38,13 @@ struct BackpropMeta
 };
 
 bool process_get_data (
-	const op::GetDataRequest& req,
+	const GetDataRequest& req,
 	DataStatesT::iterator& it,
-	op::NodeData& reply);
+	NodeData& reply);
 
 struct DistrOpService final : public PeerService<DistrOpCli>
 {
-	DistrOpService (const PeerServiceConfig& cfg, DistrIOService* iosvc) :
+	DistrOpService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc) :
 		PeerService<DistrOpCli>(cfg), iosvc_(iosvc) {}
 
 	/// Evalute target tensor set ignoring all tensors in ignored set
@@ -69,7 +72,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			google::protobuf::RepeatedPtrField<std::string>
 			node_ids(nodes.begin(), nodes.end());
 
-			op::GetDataRequest req;
+			GetDataRequest req;
 			req.mutable_uuids()->Swap(&node_ids);
 			for (auto& ign : ignored)
 			{
@@ -80,7 +83,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			}
 
 			completions.push_back(client->get_data(cq_, req,
-				[this, peer_id](op::NodeData& res)
+				[this, peer_id](NodeData& res)
 				{
 					auto uuid = res.uuid();
 					auto ref = static_cast<iDistrRef*>(
@@ -185,7 +188,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 				{
 					return {};
 				}
-				op::ListReachableRequest req;
+				ListReachableRequest req;
 				google::protobuf::RepeatedPtrField<std::string>
 				src_uuids(subsrcs.begin(), subsrcs.end());
 				google::protobuf::RepeatedPtrField<std::string>
@@ -194,7 +197,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 				req.mutable_dests()->Swap(&dest_uuids);
 				completions.push_back(
 					client->list_reachable(cq_, req,
-					[&](op::ListReachableResponse& res)
+					[&](ListReachableResponse& res)
 					{
 						types::StrUMapT<types::StrUSetT> reachables;
 						auto& res_src = res.srcs();
@@ -320,7 +323,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 						global::fatal(err->to_string());
 					}
 
-					op::CreateDeriveRequest req;
+					CreateDeriveRequest req;
 					req.set_root(rootid);
 					for (auto target : targids)
 					{
@@ -336,7 +339,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 					}
 					completions.push_back(
 						client->create_derive(cq_, req,
-						[&](op::CreateDeriveResponse& res)
+						[&](CreateDeriveResponse& res)
 						{
 							auto& target_grads = res.grads();
 							types::StrUMapT<std::string> tgrads(
@@ -390,16 +393,16 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		auto gdata_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:GetData] ",
 				get_peer_id().c_str()));
-		new egrpc::AsyncServerStreamCall<op::GetDataRequest,
-			op::NodeData,DataStatesT>(gdata_logger,
-			[this](grpc::ServerContext* ctx, op::GetDataRequest* req,
-				grpc::ServerAsyncWriter<op::NodeData>* writer,
+		new egrpc::AsyncServerStreamCall<GetDataRequest,
+			NodeData,DataStatesT>(gdata_logger,
+			[this](grpc::ServerContext* ctx, GetDataRequest* req,
+				grpc::ServerAsyncWriter<NodeData>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 				void* tag)
 			{
 				this->service_.RequestGetData(ctx, req, writer, cq, ccq, tag);
 			},
-			[this](DataStatesT& states, const op::GetDataRequest& req)
+			[this](DataStatesT& states, const GetDataRequest& req)
 			{
 				return this->startup_get_data(states, req);
 			},
@@ -409,18 +412,18 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		auto lreachable_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:ListReachable] ",
 				get_peer_id().c_str()));
-		new egrpc::AsyncServerCall<op::ListReachableRequest,
-			op::ListReachableResponse>(lreachable_logger,
-			[this](grpc::ServerContext* ctx, op::ListReachableRequest* req,
-				grpc::ServerAsyncResponseWriter<op::ListReachableResponse>* writer,
+		new egrpc::AsyncServerCall<ListReachableRequest,
+			ListReachableResponse>(lreachable_logger,
+			[this](grpc::ServerContext* ctx, ListReachableRequest* req,
+				grpc::ServerAsyncResponseWriter<ListReachableResponse>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 				void* tag)
 			{
 				this->service_.RequestListReachable(ctx, req, writer, cq, ccq, tag);
 			},
 			[this](
-				const op::ListReachableRequest& req,
-				op::ListReachableResponse& res)
+				const ListReachableRequest& req,
+				ListReachableResponse& res)
 			{
 				return this->list_reachable(req, res);
 			}, &cq);
@@ -429,18 +432,18 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		auto cderive_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:CreateDerive] ",
 				get_peer_id().c_str()));
-		new egrpc::AsyncServerCall<op::CreateDeriveRequest,
-			op::CreateDeriveResponse>(cderive_logger,
-			[this](grpc::ServerContext* ctx, op::CreateDeriveRequest* req,
-				grpc::ServerAsyncResponseWriter<op::CreateDeriveResponse>* writer,
+		new egrpc::AsyncServerCall<CreateDeriveRequest,
+			CreateDeriveResponse>(cderive_logger,
+			[this](grpc::ServerContext* ctx, CreateDeriveRequest* req,
+				grpc::ServerAsyncResponseWriter<CreateDeriveResponse>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 				void* tag)
 			{
 				this->service_.RequestCreateDerive(ctx, req, writer, cq, ccq, tag);
 			},
 			[this](
-				const op::CreateDeriveRequest& req,
-				op::CreateDeriveResponse& res)
+				const CreateDeriveRequest& req,
+				CreateDeriveResponse& res)
 			{
 				return this->create_derive(req, res);
 			}, &cq);
@@ -448,7 +451,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 
 private:
 	grpc::Status startup_get_data (
-		DataStatesT& states, const op::GetDataRequest& req)
+		DataStatesT& states, const GetDataRequest& req)
 	{
 		auto& uuids = req.uuids();
 		auto& ig_ids = req.ignored();
@@ -477,8 +480,8 @@ private:
 	}
 
 	grpc::Status list_reachable (
-		const op::ListReachableRequest& req,
-		op::ListReachableResponse& res)
+		const ListReachableRequest& req,
+		ListReachableResponse& res)
 	{
 		auto alias = fmts::sprintf("%s:ListReachable",
 			get_peer_id().c_str());
@@ -506,8 +509,8 @@ private:
 	}
 
 	grpc::Status create_derive (
-		const op::CreateDeriveRequest& req,
-		op::CreateDeriveResponse& res)
+		const CreateDeriveRequest& req,
+		CreateDeriveResponse& res)
 	{
 		auto alias = fmts::sprintf("%s:CreateDerive", get_peer_id().c_str());
 		auto& rgrads = req.root_grads();
@@ -563,9 +566,9 @@ private:
 		return grpc::Status::OK;
 	}
 
-	DistrIOService* iosvc_;
+	io::DistrIOService* iosvc_;
 
-	op::DistrOperation::AsyncService service_;
+	DistrOperation::AsyncService service_;
 
 	// todo: move to data obj
 	teq::TensMapT<types::StrUSetT> reach_cache_;
@@ -575,10 +578,12 @@ private:
 
 #undef _ERR_CHECK
 
+}
+
 error::ErrptrT register_opsvc (estd::ConfigMap<>& svcs,
 	const PeerServiceConfig& cfg);
 
-DistrOpService& get_opsvc (iDistrManager& manager);
+op::DistrOpService& get_opsvc (iDistrManager& manager);
 
 }
 

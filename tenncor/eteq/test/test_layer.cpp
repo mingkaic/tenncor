@@ -77,14 +77,14 @@ TEST(LAYER, DenseSerialization)
 			"_____`--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_________`--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", y);
 
-		tcr::save_model(model, teq::TensptrsT{y});
+		tcr::save_model<float>(model, {y});
 	}
 	ASSERT_EQ(noutput * ninput, weight_data.size());
 	ASSERT_EQ(noutput, bias_data.size());
 	{
 		// load
 		onnx::TensptrIdT ids;
-		teq::TensptrsT roots = tcr::load_model(ids, model);
+		auto roots = tcr::load_model<float>(ids, model);
 		ASSERT_EQ(1, roots.size());
 
 		EXPECT_GRAPHEQ(

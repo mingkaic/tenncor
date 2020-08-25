@@ -1484,6 +1484,38 @@ EigenptrT assign_div (teq::iTensor& target, const teq::iTensor& source)
 		});
 }
 
+template <typename OUTTYPE, typename INTYPE>
+using EigenConvertT = typename Eigen::internal::conditional<
+	Eigen::internal::is_same<OUTTYPE,INTYPE>::value,TensMapT<OUTTYPE>,
+	Eigen::TensorConversionOp<OUTTYPE,const TensMapT<INTYPE>>>::type;
+
+#define _EIGEN_CAST_CASE(INTYPE)\
+out = make_eigentensor<T,EigenConvertT<T,INTYPE>,TensMapT<INTYPE>>(\
+shape_convert(input.shape()),make_tensmap(\
+(INTYPE*) input.device().data(), input.shape()),\
+[&](TensMapT<INTYPE>& arg) -> const EigenConvertT<T,INTYPE> {\
+	return arg.template cast<T>();\
+});
+
+/// Convert tensor from one type to specified template type
+template <typename T>
+EigenptrT cast (const teq::iTensor& input)
+{
+	auto intype = (egen::_GENERATED_DTYPE) input.get_meta().type_code();
+	if (egen::get_type<T>() == intype)
+	{
+		global::warnf("cannot convert same type %s",
+			egen::name_type(intype).c_str());
+		return std::make_shared<PtrRef<T>>((T*) input.device().data());
+	}
+
+	EigenptrT out;
+	TYPE_LOOKUP(_EIGEN_CAST_CASE, intype);
+	return out;
+}
+
+#undef _EIGEN_CAST_CASE
+
 }
 
 #endif // EIGEN_OPERATOR_HPP

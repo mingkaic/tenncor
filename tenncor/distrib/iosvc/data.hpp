@@ -11,7 +11,12 @@
 namespace distr
 {
 
+namespace io
+{
+
 const std::string node_lookup_prefix = "tenncor.node.";
+
+const std::string alias_publish_key = "published_alias_";
 
 struct DistrIOData
 {
@@ -80,6 +85,16 @@ struct DistrIOData
 		return out;
 	}
 
+	std::string id_from_alias (const std::string& alias) const
+	{
+		return consul_->get_kv(alias_publish_key + alias, alias);
+	}
+
+	void set_alias (const std::string& alias, const std::string& id)
+	{
+		consul_->set_kv(alias_publish_key + alias, id);
+	}
+
 	DRefptrSetT get_remotes (void) const
 	{
 		return remotes_;
@@ -94,6 +109,8 @@ private:
 
 	boost::bimap<std::string,teq::iTensor*> shareds_;
 };
+
+}
 
 }
 

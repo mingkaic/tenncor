@@ -27,9 +27,9 @@ TEST(LOGGER, SetGet)
 	global::debugf("hello %d", 0);
 	EXPECT_EQ(logs::DEBUG, logger->latest_lvl_);
 	EXPECT_STREQ("hello 0", logger->latest_msg_.c_str());
-	global::warnf("hello %p", nullptr);
+	global::warnf("hello %d", 42);
 	EXPECT_EQ(logs::WARN, logger->latest_lvl_);
-	EXPECT_STREQ("hello (nil)", logger->latest_msg_.c_str());
+	EXPECT_STREQ("hello 42", logger->latest_msg_.c_str());
 	global::errorf("hello %f", 0.0);
 	EXPECT_EQ(logs::ERROR, logger->latest_lvl_);
 	EXPECT_STREQ("hello 0.000000", logger->latest_msg_.c_str());

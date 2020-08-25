@@ -9,8 +9,6 @@ namespace distr
 
 using ConsulSvcptrT = std::unique_ptr<ConsulService>;
 
-const std::string alias_publish_key = "published_alias_";
-
 struct DistrManager final : public iDistrManager
 {
 	DistrManager (ConsulSvcptrT&& consul,
@@ -74,16 +72,6 @@ struct DistrManager final : public iDistrManager
 	{
 		auto svc = svcs_.get_obj(svc_key);
 		return static_cast<iPeerService*>(svc);
-	}
-
-	void alias_node (const std::string& alias, const std::string& id) override
-	{
-		consul_->set_kv(alias_publish_key + alias, id);
-	}
-
-	std::string dealias_node (const std::string& alias) override
-	{
-		return consul_->get_kv(alias_publish_key + alias, "");
 	}
 
 private:

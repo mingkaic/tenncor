@@ -68,8 +68,17 @@ void distrib_ext (py::module& m)
 		},
 		py::arg("id"),
 		py::arg("recursive") = true)
-		.def("alias_node", &distr::iDistrManager::alias_node)
-		.def("dealias_node", &distr::iDistrManager::dealias_node)
+		.def("alias_node",
+		[](distr::iDistrManager& self,
+			const std::string& alias, const std::string& id)
+		{
+			distr::get_iosvc(self).set_alias(alias, id);
+		})
+		.def("dealias_node",
+		[](distr::iDistrManager& self, const std::string& alias)
+		{
+			distr::get_iosvc(self).id_from_alias(alias);
+		})
 		.def("derive",
 		[](distr::iDistrManager& self,
 			eteq::ETensor<PybindT> root,
@@ -97,6 +106,7 @@ void distrib_ext (py::module& m)
 			return tcr::ctxualize_distrmgr(consul, port, alias, {
 				distr::register_iosvc,
 				distr::register_opsvc,
+				distr::register_oxsvc,
 				distr::register_printsvc,
 			}, svc_name, ctx);
 		}),

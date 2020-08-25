@@ -109,3 +109,6 @@ opcode:
     ASSIGN_DIV:
       stmt: out = eigen::assign_div<T>(*in[0], *in[1]);
       idempotent: False
+    CONVERT:
+      stmt: out = eigen::cast<T>(*in[0]);
+      idempotent: False

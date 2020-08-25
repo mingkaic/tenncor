@@ -62,9 +62,11 @@ LOG_DEFN(logs::warn_level)
 void error (const std::string& msg)
 LOG_DEFN(logs::error_level)
 
+[[ noreturn ]]
 void throw_err (const std::string& msg)
 LOG_DEFN(logs::throw_err_level)
 
+[[ noreturn ]]
 void fatal (const std::string& msg)
 LOG_DEFN(logs::fatal_level)
 

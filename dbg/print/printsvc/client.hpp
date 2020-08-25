@@ -1,12 +1,15 @@
 
+#ifndef DISTRIB_PRINT_CLIENT_HPP
+#define DISTRIB_PRINT_CLIENT_HPP
+
 #include "egrpc/egrpc.hpp"
 
 #include "dbg/print/printsvc/distr.print.grpc.pb.h"
 
-#ifndef DISTRIB_PRINT_CLIENT_HPP
-#define DISTRIB_PRINT_CLIENT_HPP
-
 namespace distr
+{
+
+namespace print
 {
 
 struct DistrPrintCli final : public egrpc::GrpcClient
@@ -15,18 +18,18 @@ struct DistrPrintCli final : public egrpc::GrpcClient
 		const egrpc::ClientConfig& cfg,
 		const std::string& alias) :
 		GrpcClient(cfg),
-		stub_(print::DistrPrint::NewStub(channel)),
+		stub_(DistrPrint::NewStub(channel)),
 		alias_(alias) {}
 
 	egrpc::ErrPromiseptrT list_ascii (
 		grpc::CompletionQueue& cq,
-		const print::ListAsciiRequest& req,
-		std::function<void(print::AsciiEntry&)> cb)
+		const ListAsciiRequest& req,
+		std::function<void(AsciiEntry&)> cb)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
 		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:ListAscii] ", alias_.c_str()));
-		auto handler = new egrpc::AsyncClientStreamHandler<print::AsciiEntry>(done, logger, cb);
+		auto handler = new egrpc::AsyncClientStreamHandler<AsciiEntry>(done, logger, cb);
 
 		build_ctx(handler->ctx_, false);
 		// prepare to avoid passing to cq before reader_ assignment
@@ -38,10 +41,12 @@ struct DistrPrintCli final : public egrpc::GrpcClient
 	}
 
 private:
-	std::unique_ptr<print::DistrPrint::Stub> stub_;
+	std::unique_ptr<DistrPrint::Stub> stub_;
 
 	std::string alias_;
 };
+
+}
 
 }
 
