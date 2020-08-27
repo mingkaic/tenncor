@@ -10,7 +10,7 @@ namespace trainer
 /// Return node that needs to be calculated for every training step
 /// The node value contains the error computed from the err_func input
 template <typename T>
-eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
+eteq::ETensor apply_update (const eteq::ETensorsT& models,
 	layr::ApproxF<T> update, layr::ErrorF<T> err_func,
 	const global::CfgMapptrT& ctx = global::context())
 {
@@ -18,7 +18,7 @@ eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
 	eteq::EVariablesT<T> vars;
 	for (auto& model : models)
 	{
-		auto temp_vars = layr::get_storage(model);
+		auto temp_vars = layr::get_storage<T>(model);
 		std::transform(temp_vars.begin(), temp_vars.end(),
 			std::back_inserter(vars),
 			[&](eteq::VarptrT<T> var)
@@ -29,7 +29,7 @@ eteq::ETensor<T> apply_update (const eteq::ETensorsT<T>& models,
 	auto updates = update(error,
 		eteq::EVariablesT<T>(vars.begin(), vars.end()));
 	teq::OwnMapT umap;
-	eteq::ETensorsT<T> deps;
+	eteq::ETensorsT deps;
 	deps.reserve(updates.size());
 	for (auto& update : updates)
 	{

@@ -102,21 +102,6 @@ private:
 	eigen::EMetadata<T> meta_ = eigen::EMetadata<T>(1);
 };
 
-/// Return constant node given scalar and shape
-template <typename T>
-ETensor<T> make_constant_scalar (T scalar, teq::Shape shape,
-	const global::CfgMapptrT& ctx = global::context());
-
-/// Return constant node filled with scalar matching link shape
-template <typename T>
-ETensor<T> make_constant_like (T scalar, teq::TensptrT like,
-	const global::CfgMapptrT& ctx = global::context());
-
-/// Return constant node given raw array and shape
-template <typename T>
-ETensor<T> make_constant (T* data, teq::Shape shape,
-	const global::CfgMapptrT& ctx = global::context());
-
 }
 
 #endif // ETEQ_CONSTANT_HPP

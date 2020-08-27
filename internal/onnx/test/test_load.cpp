@@ -73,7 +73,7 @@ TEST(LOAD, LoadGraph)
 	}
 
 	PrettyEquation artist;
-	artist.showshape_ = true;
+	artist.cfg_.showshape_ = true;
 	std::stringstream gotstr;
 
 	ASSERT_HAS(ids.right, "root1");

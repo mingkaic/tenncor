@@ -645,8 +645,8 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 
 	teq::RankT seq_dim = 1;
 	size_t nseq = in->shape().at(seq_dim);
-	eteq::ETensor<double> state = istate;
-	std::vector<eteq::ETensor<double>> states;
+	eteq::ETensor state = istate;
+	eteq::ETensorsT states;
 	for (size_t i = 0; i < nseq; ++i)
 	{
 		auto inslice = tenncor<double>().slice(in, i, 1, seq_dim);
@@ -777,14 +777,14 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	teq::RankT seq_dim = 1;
-	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
+	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
 	auto cell = tenncor<double>().nn.dense(cell_in, weight, bias);
 
 	auto state = tenncor<double>().extend_like(istate,
 		tenncor<double>().slice(in, 0, 1, seq_dim));
 
 	auto output = tenncor<double>().nn.rnn(in, state, cell,
-		[](const eteq::ETensor<double>& x)
+		[](const eteq::ETensor& x)
 		{ return tenncor<double>().tanh(x); }, seq_dim);
 
 	auto err = tenncor<double>().pow(out - output, 2.);
@@ -907,15 +907,15 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	teq::RankT seq_dim = 1;
-	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
+	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
 	auto cell = tenncor<double>().nn.dense(cell_in, weight, bias);
 
 	auto state = tenncor<double>().extend_like(istate,
 		tenncor<double>().slice(in, 0, 1, seq_dim));
 
-	eteq::ETensor<double> layer_in(eteq::make_variable_scalar<double>(0, teq::Shape({5, 3})));
+	eteq::ETensor layer_in(eteq::make_variable_scalar<double>(0, teq::Shape({5, 3})));
 	auto layer = tenncor<double>().nn.rnn(layer_in, state, cell,
-		[](const eteq::ETensor<double>& x)
+		[](const eteq::ETensor& x)
 		{ return tenncor<double>().tanh(x); }, seq_dim);
 	auto output = layr::connect(layer, in);
 
@@ -1013,7 +1013,7 @@ TEST(EQUATION, OptimizedMatmulComplex)
 		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			roots = eteq::optimize<float>(roots, file);
+			roots = eteq::optimize(roots, file);
 		});
 }
 
@@ -1024,7 +1024,7 @@ TEST(EQUATION, OptimizedSlowSigmoidMLP)
 		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			roots = eteq::optimize<double>(roots, file);
+			roots = eteq::optimize(roots, file);
 		});
 }
 
@@ -1035,7 +1035,7 @@ TEST(EQUATION, OptimizedFastSigmoidMLP)
 		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			roots = eteq::optimize<double>(roots, file);
+			roots = eteq::optimize(roots, file);
 		});
 }
 
@@ -1046,7 +1046,7 @@ TEST(EQUATION, OptimizedTanhRNN)
 		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			roots = eteq::optimize<double>(roots, file);
+			roots = eteq::optimize(roots, file);
 		});
 }
 
@@ -1057,7 +1057,7 @@ TEST(EQUATION, OptimizedTanhRNNLayer)
 		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			roots = eteq::optimize<double>(roots, file);
+			roots = eteq::optimize(roots, file);
 		});
 }
 

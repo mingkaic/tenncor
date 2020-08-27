@@ -6,7 +6,7 @@ void query_ext(py::module& m)
 	py::class_<pytenncor::Statement> stmt(m, "Statement");
 	stmt
 		.def(py::init(
-		[](eteq::ETensorsT<PybindT> roots)
+		[](eteq::ETensorsT roots)
 		{
 			teq::TensptrsT rtens(roots.begin(), roots.end());
 			return pytenncor::Statement(rtens);
@@ -23,7 +23,7 @@ void query_ext(py::module& m)
 
 			auto results = self.sindex_.match(cond);
 			teq::RefMapT owners = teq::track_ownrefs(self.tracked_);
-			eteq::ETensorsT<PybindT> eresults;
+			eteq::ETensorsT eresults;
 			eresults.reserve(results.size());
 			if (sym_cap.empty())
 			{
@@ -31,7 +31,7 @@ void query_ext(py::module& m)
 					std::back_inserter(eresults),
 					[&](query::QueryResult& result)
 					{
-						return eteq::ETensor<PybindT>(
+						return eteq::ETensor(
 							owners.at(result.root_).lock(),
 							global::context());
 					});
@@ -43,7 +43,7 @@ void query_ext(py::module& m)
 					teq::iTensor* res;
 					if (estd::get(res, result.symbs_, sym_cap))
 					{
-						eresults.push_back(eteq::ETensor<PybindT>(
+						eresults.push_back(eteq::ETensor(
 							owners.at(res).lock(),
 							global::context()));
 					}

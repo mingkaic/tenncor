@@ -33,7 +33,7 @@ struct AsciiTemplate
 		format_ << format;
 	}
 
-	AsciiTemplate (teq::iTensor* tens, bool showshape);
+	AsciiTemplate (teq::iTensor* tens, const PrintEqConfig& cfg);
 
 	std::stringstream format_;
 

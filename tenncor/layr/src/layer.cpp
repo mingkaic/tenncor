@@ -43,6 +43,38 @@ teq::TensptrT make_layer (teq::TensptrT root,
 	return root;
 }
 
+eteq::ETensor get_input (const eteq::ETensor& root)
+{
+	if (nullptr == root)
+	{
+		global::fatal("cannot get layer attr with null root");
+	}
+	auto froot = estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root);
+	auto layerattr = estd::must_cast<teq::LayerObj>(froot->get_attr(teq::layer_key));
+	return eteq::ETensor(layerattr->get_tensor(), root.get_context());
+}
+
+eteq::ETensor trail (const eteq::ETensor& root, const teq::OwnMapT& inputs)
+{
+	Trailer trailer(inputs);
+	root->accept(trailer);
+	return eteq::ETensor(estd::try_get(trailer.trailed_, root.get(), nullptr),
+		root.get_context());
+}
+
+eteq::ETensor connect (const eteq::ETensor& root, const eteq::ETensor& input)
+{
+	return trail(root, teq::OwnMapT{
+		{get_input(root).get(), (teq::TensptrT) input}});
+}
+
+eteq::ETensor deep_clone (const eteq::ETensor& root)
+{
+	teq::Copier kamino({get_input(root).get()});
+	root->accept(kamino);
+	return eteq::ETensor(kamino.clones_.at(root.get()), root.get_context());
+}
+
 }
 
 #endif

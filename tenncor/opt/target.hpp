@@ -9,7 +9,6 @@
 namespace eteq
 {
 
-template <typename T>
 struct ScalarTarget final : public opt::iTarget
 {
 	ScalarTarget (double scalar, const std::string& sshape) :
@@ -17,8 +16,8 @@ struct ScalarTarget final : public opt::iTarget
 
 	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
-		return eteq::make_constant_scalar<T>(scalar_,
-			candidates.at(symb_)->shape());
+		return eteq::make_constant_scalar<double>(scalar_,
+			candidates.at(symb_)->shape(), egen::default_dtype);
 	}
 
 	double scalar_;
@@ -26,7 +25,6 @@ struct ScalarTarget final : public opt::iTarget
 	std::string symb_;
 };
 
-template <typename T>
 struct SymbolTarget final : public opt::iTarget
 {
 	SymbolTarget (const std::string& symb, const opt::GraphInfo& graph) :
@@ -42,7 +40,6 @@ struct SymbolTarget final : public opt::iTarget
 	const opt::GraphInfo* graph_;
 };
 
-template <typename T>
 struct FunctorTarget final : public opt::iTarget
 {
 	FunctorTarget (const std::string& opname, const opt::TargptrsT& args,
@@ -58,7 +55,7 @@ struct FunctorTarget final : public opt::iTarget
 		{
 			args.push_back(target->convert(candidates));
 		}
-		return eteq::make_funcattr<T>(egen::get_op(opname_), args, *attrcpy);
+		return eteq::make_funcattr(egen::get_op(opname_), args, *attrcpy);
 	}
 	// testcase:
 	// reduce_sum(scalar)
@@ -77,7 +74,6 @@ struct FunctorTarget final : public opt::iTarget
 	marsh::Maps attr_;
 };
 
-template <typename T>
 struct TargetFactory final : public opt::iTargetFactory
 {
 	TargetFactory (const opt::GraphInfo& graphinfo) :
@@ -86,12 +82,12 @@ struct TargetFactory final : public opt::iTargetFactory
 	opt::TargptrT make_scalar (double scalar,
 		std::string sshape) const override
 	{
-		return std::make_shared<ScalarTarget<T>>(scalar, sshape);
+		return std::make_shared<ScalarTarget>(scalar, sshape);
 	}
 
 	opt::TargptrT make_symbol (const std::string& symbol) const override
 	{
-		return std::make_shared<SymbolTarget<T>>(symbol, *ginfo_);
+		return std::make_shared<SymbolTarget>(symbol, *ginfo_);
 	}
 
 	opt::TargptrT make_functor (const std::string& opname,
@@ -104,7 +100,7 @@ struct TargetFactory final : public opt::iTargetFactory
 			attrmap.add_attr(attrpair.first,
 				marsh::ObjptrT(opt::parse(attrpair.second, *ginfo_)));
 		}
-		return std::make_shared<FunctorTarget<T>>(opname, args, std::move(attrmap));
+		return std::make_shared<FunctorTarget>(opname, args, std::move(attrmap));
 	}
 
 	const opt::GraphInfo* ginfo_;

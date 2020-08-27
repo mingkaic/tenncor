@@ -20,7 +20,6 @@ void set_reg (TensRegistryT* reg, global::CfgMapptrT ctx = global::context());
 
 TensRegistryT& get_reg (const global::CfgMapptrT& ctx = global::context());
 
-template <typename T>
 struct ETensor
 {
 	ETensor (void) = default;
@@ -41,18 +40,18 @@ struct ETensor
 		cleanup();
 	}
 
-	ETensor (const ETensor<T>& other)
+	ETensor (const ETensor& other)
 	{
 		copy(other);
 	}
 
-	ETensor (ETensor<T>&& other)
+	ETensor (ETensor&& other)
 	{
 		copy(other);
 		other.cleanup();
 	}
 
-	ETensor& operator = (const ETensor<T>& other)
+	ETensor& operator = (const ETensor& other)
 	{
 		if (this != &other)
 		{
@@ -62,7 +61,7 @@ struct ETensor
 		return *this;
 	}
 
-	ETensor& operator = (ETensor<T>&& other)
+	ETensor& operator = (ETensor&& other)
 	{
 		if (this != &other)
 		{
@@ -73,22 +72,22 @@ struct ETensor
 		return *this;
 	}
 
-	friend bool operator == (const ETensor<T>& l, const std::nullptr_t&)
+	friend bool operator == (const ETensor& l, const std::nullptr_t&)
 	{
 		return l.get() == nullptr;
 	}
 
-	friend bool operator == (const std::nullptr_t&, const ETensor<T>& r)
+	friend bool operator == (const std::nullptr_t&, const ETensor& r)
 	{
 		return nullptr == r.get();
 	}
 
-	friend bool operator != (const ETensor<T>& l, const std::nullptr_t&)
+	friend bool operator != (const ETensor& l, const std::nullptr_t&)
 	{
 		return l.get() != nullptr;
 	}
 
-	friend bool operator != (const std::nullptr_t&, const ETensor<T>& r)
+	friend bool operator != (const std::nullptr_t&, const ETensor& r)
 	{
 		return nullptr != r.get();
 	}
@@ -114,24 +113,6 @@ struct ETensor
 		return teq::TensptrT(*this).get();
 	}
 
-	T* data (void)
-	{
-		return (T*) get()->device().data();
-	}
-
-	T* calc (teq::TensSetT ignored = {},
-		size_t max_version = std::numeric_limits<size_t>::max())
-	{
-		if (auto ctx = get_context())
-		{
-			auto tens = get();
-			eigen::Device device(max_version);
-			teq::get_eval(ctx).evaluate(device, {tens});
-			return (T*) tens->device().data();
-		}
-		return nullptr;
-	}
-
 	global::CfgMapptrT get_context (void) const
 	{
 		if (ctx_.expired())
@@ -141,8 +122,30 @@ struct ETensor
 		return ctx_.lock();
 	}
 
+	template <typename T>
+	T* data (void)
+	{
+		auto tens = get();
+		assert(tens->get_meta().type_code() == egen::get_type<T>());
+		return (T*) tens->device().data();
+	}
+
+	template <typename T>
+	T* calc (teq::TensSetT ignored = {},
+		size_t max_version = std::numeric_limits<size_t>::max())
+	{
+		if (auto ctx = get_context())
+		{
+			auto tens = get();
+			eigen::Device device(max_version);
+			teq::get_eval(ctx).evaluate(device, {tens});
+			return data<T>();
+		}
+		return nullptr;
+	}
+
 private:
-	void copy (const ETensor<T>& other)
+	void copy (const ETensor& other)
 	{
 		if ((registry_ = other.registry_))
 		{
@@ -166,22 +169,9 @@ private:
 	mutable TensRegistryT* registry_ = nullptr;
 };
 
-template <typename T>
-using ETensorsT = std::vector<ETensor<T>>;
+using ETensorsT = std::vector<ETensor>;
 
-template <typename T>
-teq::TensptrsT to_tensors (const ETensorsT<T>& etensors)
-{
-	teq::TensptrsT tensors;
-	tensors.reserve(etensors.size());
-	std::transform(etensors.begin(), etensors.end(),
-		std::back_inserter(tensors),
-		[](ETensor<T> etens)
-		{
-			return (teq::TensptrT) etens;
-		});
-	return tensors;
-}
+teq::TensptrsT to_tensors (const ETensorsT& etensors);
 
 }
 

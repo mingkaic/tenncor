@@ -65,7 +65,7 @@ PYBIND11_MODULE(peval, m)
 	inspector
 		.def(py::init())
 		.def("add",
-		[](stats::Inspector& self, eteq::ETensor<PybindT> inspect, std::string label)
+		[](stats::Inspector& self, eteq::ETensor inspect, std::string label)
 		{
 			if (auto f = dynamic_cast<teq::iFunctor*>(inspect.get()))
 			{

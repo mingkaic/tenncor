@@ -51,80 +51,22 @@ void set_distrmgr (distr::iDistrMgrptrT mgr,
 distr::iDistrManager* get_distrmgr (
 	const global::CfgMapptrT& ctx = global::context());
 
-template <typename T>
-std::string expose_node (const eteq::ETensor<T>& etens)
-{
-	auto mgr = get_distrmgr(etens.get_context());
-	return distr::get_iosvc(*mgr).expose_node(etens);
-}
+std::string expose_node (const eteq::ETensor& etens);
 
-template <typename T>
-std::string try_lookup_id (error::ErrptrT& err, eteq::ETensor<T> etens)
-{
-	auto mgr = get_distrmgr(etens.get_context());
-	if (nullptr == mgr)
-	{
-		err = error::error(
-			"can only find reference ids using DistrManager");
-		return "";
-	}
-	auto opt_id = distr::get_iosvc(*mgr).lookup_id(etens.get());
-	if (false == bool(opt_id))
-	{
-		err = error::errorf("failed to find tensor %s",
-			etens->to_string().c_str());
-		return "";
-	}
-	return *opt_id;
-}
+std::string try_lookup_id (error::ErrptrT& err, eteq::ETensor etens);
 
-template <typename T>
-std::string lookup_id (eteq::ETensor<T> etens)
-{
-	error::ErrptrT err = nullptr;
-	auto out = try_lookup_id(err, etens);
-	if (nullptr != err)
-	{
-		global::fatal(err->to_string());
-	}
-	return out;
-}
+std::string lookup_id (eteq::ETensor etens);
 
-template <typename T>
-eteq::ETensor<T> try_lookup_node (
+eteq::ETensor try_lookup_node (
 	error::ErrptrT& err, const std::string& id,
-	const global::CfgMapptrT& ctx = global::context())
-{
-	auto mgr = get_distrmgr(ctx);
-	if (nullptr == mgr)
-	{
-		err = error::error(
-			"can only find references using DistrManager");
-		return eteq::ETensor<T>();
-	}
-	return eteq::ETensor<T>(distr::get_iosvc(*mgr).lookup_node(err, id), ctx);
-}
+	const global::CfgMapptrT& ctx = global::context());
 
-template <typename T>
-eteq::ETensor<T> lookup_node (const std::string& id,
-	const global::CfgMapptrT& ctx = global::context())
-{
-	error::ErrptrT err = nullptr;
-	auto out = try_lookup_node<T>(err, id, ctx);
-	if (nullptr != err)
-	{
-		global::fatal(err->to_string());
-	}
-	return out;
-}
+eteq::ETensor lookup_node (const std::string& id,
+	const global::CfgMapptrT& ctx = global::context());
 
-template <typename T>
-eteq::ETensor<T> localize (const eteq::ETensor<T>& root,
-	const eteq::ETensorsT<T>& stop = {},
-	global::CfgMapptrT ctx = global::context())
-{
-	return root;
-}
+eteq::ETensor localize (const eteq::ETensor& root,
+	const eteq::ETensorsT& stop = {},
+	global::CfgMapptrT ctx = global::context());
 
 }
 

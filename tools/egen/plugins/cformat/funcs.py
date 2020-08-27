@@ -1,3 +1,5 @@
+import re
+
 from plugins.template import build_template
 from plugins.common import strip_template_prefix
 from plugins.cformat.args import render as arender
@@ -18,18 +20,18 @@ _defn_template = '''
 }}
 '''
 
-def _handle_comment(obj):
-    comment = obj.get('description', _handle_funcname(obj) + ' ...')
+def _handle_comment(obj, root):
+    comment = obj.get('description', _handle_funcname(obj, root) + ' ...')
     comment_lines = comment.split('\n')
     return '\n'.join(['/// ' + line for line in comment_lines])
 
-def _handle_template_decl(obj):
+def _handle_template_decl(obj, root):
     temp = obj.get('template', '').strip()
     if len(temp) > 0:
         return 'template <{}>\n'.format(temp)
     return ''
 
-def _handle_outtype(obj):
+def _handle_outtype(obj, root):
     assert('out' in obj)
     otype = None
     out = obj['out']
@@ -42,7 +44,7 @@ def _handle_outtype(obj):
         return 'void'
     return otype
 
-def _handle_funcname(obj):
+def _handle_funcname(obj, root):
     assert(('name' in obj) != ('operator' in obj))
     if 'name' in obj:
         return obj['name']
@@ -51,17 +53,21 @@ def _handle_funcname(obj):
     else:
         raise Exception('No name or operator specified in func')
 
-def _handle_null_check(obj):
+def _handle_null_check(obj, root):
+    if root:
+        nullcheck_types = root['nullcheck_type']
+    else:
+        nullcheck_types = []
+    nullcheck_match = r'\b(' + '|'.join(nullcheck_types) + r')\b'
     args = obj.get('args', [])
-    tens = list(filter(lambda arg: arg.get('check_null', True) and (
-        'teq::TensptrT' in arg['type'] or
-        'eteq::ETensor<T>' in arg['type']), args))
+    tens = list(filter(lambda arg: arg.get('check_null', True)
+        and re.search(nullcheck_match, arg['type']) is not None, args))
     if len(tens) == 0:
         return 'false'
     varnames = [ten['name'] for ten in tens]
     return ' || '.join([varname + ' == nullptr' for varname in varnames])
 
-def _handle_block(obj):
+def _handle_block(obj, root):
     assert('out' in obj)
     outval = obj['out']
     if isinstance(outval, dict):
@@ -75,21 +81,46 @@ def render_args(obj, is_decl):
         for arg in obj.get('args', [])
     ])
 
-def render_decl(obj):
-    handlers = dict(globals())
-    handlers['_handle_args'] = lambda obj: render_args(obj, True)
-    return build_template(_decl_template, handlers, obj)
+support_all_format = '''
+#define _GEN_SUPPORT_TYPE({support_type})\\
+{body}
+EVERY_TYPE(_GEN_SUPPORT_TYPE)
+#undef _GEN_SUPPORT_TYPE
+'''
 
-def render_defn(obj, clas=None):
+def render_decl(obj):
+    support_type = obj.get('support_type', None)
+
+    handlers = dict(globals())
+    if support_type:
+        handlers['_handle_comment'] = lambda obj, root: ''
+    handlers['_handle_args'] = lambda obj, root: render_args(obj, True)
+    out = build_template(_decl_template, handlers, obj, None)
+
+    if support_type:
+        comment = _handle_comment(obj, None)
+        out = comment + '\n' + support_all_format.format(
+            support_type=support_type,
+            body='\\\n'.join(out.strip().split('\n')))
+    return out
+
+def render_defn(obj, root=None, clas=None):
     handlers = dict(globals())
     if clas is not None:
         temps = clas.get('template', '')
         if len(temps) > 0:
-            handlers['_handle_template_decl'] = lambda obj: 'template <{}>\n'.format(temps)
+            handlers['_handle_template_decl'] = lambda obj, root: 'template <{}>\n'.format(temps)
             clean_temp = ','.join([strip_template_prefix(t) for t in temps.split(',')])
             func_prefix = '{}<{}>::'.format(clas['name'], clean_temp)
         else:
             func_prefix = clas['name'] + '::'
-        handlers['_handle_funcname'] = lambda obj: func_prefix + _handle_funcname(obj)
-    handlers['_handle_args'] = lambda obj: render_args(obj, False)
-    return build_template(_defn_template, handlers, obj)
+        handlers['_handle_funcname'] = lambda obj, root: func_prefix + _handle_funcname(obj, root)
+    handlers['_handle_args'] = lambda obj, root: render_args(obj, False)
+    out = build_template(_defn_template, handlers, obj, root)
+
+    support_type = obj.get('support_type', None)
+    if support_type:
+        out = support_all_format.format(
+            support_type=support_type,
+            body='\\\n'.join(out.strip().split('\n')))
+    return out

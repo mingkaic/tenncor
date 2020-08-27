@@ -27,14 +27,14 @@ TEST(DEPEND, Chaining)
 	assert(data.size() == n);
 	assert(data2.size() == n);
 
-	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> src2 = eteq::make_constant<double>(data2.data(), shape);
-	eteq::ETensor<double> src3 = eteq::make_constant<double>(data2.data(), shape);
+	eteq::ETensor src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor src2 = eteq::make_constant<double>(data2.data(), shape);
+	eteq::ETensor src3 = eteq::make_constant<double>(data2.data(), shape);
 
 	auto op = src + src2;
 	auto happen_first = src * src2;
 
-	EXPECT_FATAL(tenncor<double>().depends(op, eteq::ETensorsT<double>{}), "cannot depend on nothing");
+	EXPECT_FATAL(tenncor<double>().depends(op, eteq::ETensorsT{}), "cannot depend on nothing");
 
 	auto depped = tenncor<double>().depends(op, {happen_first});
 

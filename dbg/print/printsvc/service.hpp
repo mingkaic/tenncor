@@ -29,9 +29,9 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 {
 	DistrPrintService (const PeerServiceConfig& cfg,
 		io::DistrIOService* iosvc,
-		bool showshape = false) :
+		const PrintEqConfig& printopts = PrintEqConfig()) :
 		PeerService<DistrPrintCli>(cfg),
-		iosvc_(iosvc), showshape_(showshape) {}
+		iosvc_(iosvc), printopts_(printopts) {}
 
 	void print_ascii (std::ostream& os, teq::iTensor* tens);
 
@@ -85,7 +85,7 @@ private:
 
 	io::DistrIOService* iosvc_;
 
-	bool showshape_;
+	PrintEqConfig printopts_;
 
 	size_t depthlimit_ = 10;
 

@@ -11,7 +11,7 @@ namespace print
 
 void DistrPrintService::print_ascii (std::ostream& os, teq::iTensor* tens)
 {
-	AsciiTemplate ascii(tens, showshape_);
+	AsciiTemplate ascii(tens, printopts_);
 	auto remotes = ascii.remotes_;
 	for (size_t depth = 0; depth < depthlimit_ && remotes.size() > 0; ++depth)
 	{
@@ -34,7 +34,7 @@ bool DistrPrintService::process_list_ascii (const ListAsciiRequest& req,
 	}
 
 	reply.set_uuid(uuid);
-	AsciiTemplate temp(tens.get(), showshape_);
+	AsciiTemplate temp(tens.get(), printopts_);
 	reply.set_format(temp.format_.str());
 	for (auto& dep : temp.remotes_)
 	{
@@ -60,7 +60,7 @@ AsciiRemotesT DistrPrintService::print_ascii_remotes (const AsciiRemotesT& remot
 				// process local
 				cache_.remote_templates_.emplace(rid,
 					AsciiTemplate(iosvc_->must_lookup_node(
-						rid, false).get(), showshape_));
+						rid, false).get(), printopts_));
 				auto& temp = cache_.remote_templates_.at(rid);
 				nexts.insert(nexts.end(),
 					temp.remotes_.begin(), temp.remotes_.end());

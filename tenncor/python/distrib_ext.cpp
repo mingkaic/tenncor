@@ -39,12 +39,12 @@ void distrib_ext (py::module& m)
 
 	imgr
 		.def("expose_node",
-		[](distr::iDistrManager& self, pytenncor::ETensT node)
+		[](distr::iDistrManager& self, eteq::ETensor node)
 		{
 			return distr::get_iosvc(self).expose_node(node);
 		})
 		.def("lookup_id",
-		[](distr::iDistrManager& self, pytenncor::ETensT node)
+		[](distr::iDistrManager& self, eteq::ETensor node)
 		{
 			std::string id;
 			if (auto found_id = distr::get_iosvc(self).lookup_id(node.get()))
@@ -64,7 +64,7 @@ void distrib_ext (py::module& m)
 				global::errorf("lookup_node err: %s",
 					err->to_string().c_str());
 			}
-			return pytenncor::ETensT(node);
+			return eteq::ETensor(node);
 		},
 		py::arg("id"),
 		py::arg("recursive") = true)
@@ -81,8 +81,8 @@ void distrib_ext (py::module& m)
 		})
 		.def("derive",
 		[](distr::iDistrManager& self,
-			eteq::ETensor<PybindT> root,
-			const eteq::ETensorsT<PybindT>& targets)
+			eteq::ETensor root,
+			const eteq::ETensorsT& targets)
 		{
 			return tcr::derive_with_manager(self, root, targets);
 		})
@@ -92,7 +92,7 @@ void distrib_ext (py::module& m)
 			return self.get_id();
 		})
 		.def("print_ascii",
-		[](distr::iDistrManager& self, eteq::ETensor<PybindT> root)
+		[](distr::iDistrManager& self, eteq::ETensor root)
 		{
 			distr::get_printsvc(self).print_ascii(std::cout, root.get());
 		});
@@ -128,8 +128,8 @@ void distrib_ext (py::module& m)
 		py::arg("mgr"));
 
 	m
-		.def("localize", tcr::localize<PybindT>,
-		py::arg("root"), py::arg("stop") = eteq::ETensorsT<PybindT>{},
+		.def("localize", tcr::localize,
+		py::arg("root"), py::arg("stop") = eteq::ETensorsT{},
 		py::arg("ctx") = global::context(),
 		"Move all remote references under root subgraph to "
 		"specified context ignoring all subgraphs in stop")
@@ -138,11 +138,11 @@ void distrib_ext (py::module& m)
 		py::arg("ctx") = global::context())
 		.def("get_distrmgr", tcr::get_distrmgr,
 		py::arg("ctx") = global::context())
-		.def("expose_node", tcr::expose_node<PybindT>,
+		.def("expose_node", tcr::expose_node,
 		"Expose tensor across the cluster via distribution manager")
-		.def("lookup_id", tcr::lookup_id<PybindT>,
+		.def("lookup_id", tcr::lookup_id,
 		"Look up the id of a tensor in local distribution manager")
-		.def("lookup_node", tcr::lookup_node<PybindT>,
+		.def("lookup_node", tcr::lookup_node,
 		py::arg("id"), py::arg("ctx") = global::context(),
 		"Look up the id of a tensor in local distribution manager");
 }

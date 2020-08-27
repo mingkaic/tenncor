@@ -11,10 +11,6 @@ namespace eteq
 
 using EqualF = std::function<bool(teq::TensptrT,teq::TensptrT)>;
 
-/// Delete and update equivalent functor and leaves
-void merge_dups (opt::GraphInfo& graph, EqualF equals);
-
-template <typename T>
 struct Hasher final : public teq::iOnceTraveler
 {
 	const boost::uuids::uuid& at (teq::iTensor* tens) const
@@ -33,8 +29,11 @@ private:
 		if (teq::IMMUTABLE == leaf.get_usage())
 		{
 			std::string label = leaf.shape().to_string() + "|";
-			T* data = (T*) leaf.device().data();
-			label += fmts::to_string(data, data + leaf.shape().n_elems());
+			auto& meta = leaf.get_meta();
+			auto data = (const char*) leaf.device().data();
+			label += meta.type_label() + std::string(
+				data, data + leaf.shape().n_elems() *
+				egen::type_size(egen::_GENERATED_DTYPE(meta.type_code())));
 			encode_label(&leaf, label);
 		}
 		else
@@ -99,20 +98,10 @@ private:
 	std::unordered_map<std::string,boost::uuids::uuid> uuids_;
 };
 
-template <typename T>
-void merge_dups (opt::GraphInfo& graph)
-{
-	Hasher<T> hasher;
-	for (auto& root : graph.roots_)
-	{
-		root->accept(hasher);
-	}
-	merge_dups(graph,
-		[&](teq::TensptrT a, teq::TensptrT b)
-		{
-			return hasher.at(a.get()) == hasher.at(b.get());
-		});
-}
+/// Delete and update equivalent functor and leaves
+void merge_dups (opt::GraphInfo& graph, EqualF equals);
+
+void merge_dups (opt::GraphInfo& graph);
 
 }
 

@@ -22,10 +22,10 @@ TEST(LAYER, Dense)
 
 	teq::TensptrT weight2 = eteq::make_variable_scalar<float>(0, teq::Shape({6, ninput2}), "weight");
 
-	auto biasedy = tenncor<float>().nn.dense(eteq::ETensor<float>(x),
-		eteq::ETensor<float>(weight), eteq::ETensor<float>(bias));
-	auto y = tenncor<float>().nn.dense(eteq::ETensor<float>(x2),
-		eteq::ETensor<float>(weight2));
+	auto biasedy = tenncor<float>().nn.dense(eteq::ETensor(x),
+		eteq::ETensor(weight), eteq::ETensor(bias));
+	auto y = tenncor<float>().nn.dense(eteq::ETensor(x2),
+		eteq::ETensor(weight2));
 
 	EXPECT_GRAPHEQ(
 		"(IDENTITY[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -57,9 +57,9 @@ TEST(LAYER, DenseSerialization)
 			0, teq::Shape({noutput, ninput}), "weight");
 		eteq::VarptrT<float> bias = eteq::make_variable_scalar<float>(
 			0, teq::Shape({noutput}), "bias");
-		auto y = tenncor<float>().nn.dense(eteq::ETensor<float>(x),
-			eteq::ETensor<float>(weight), eteq::ETensor<float>(bias));
-		eteq::VarptrsT<float> contents = layr::get_storage(y);
+		auto y = tenncor<float>().nn.dense(eteq::ETensor(x),
+			eteq::ETensor(weight), eteq::ETensor(bias));
+		eteq::VarptrsT<float> contents = layr::get_storage<float>(y);
 		ASSERT_EQ(2, contents.size());
 		EXPECT_ARRHAS(contents, weight);
 		EXPECT_ARRHAS(contents, bias);
@@ -77,14 +77,14 @@ TEST(LAYER, DenseSerialization)
 			"_____`--(EXTEND[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_________`--(variable:bias[5\\1\\1\\1\\1\\1\\1\\1])", y);
 
-		tcr::save_model<float>(model, {y});
+		tcr::save_model(model, {y});
 	}
 	ASSERT_EQ(noutput * ninput, weight_data.size());
 	ASSERT_EQ(noutput, bias_data.size());
 	{
 		// load
 		onnx::TensptrIdT ids;
-		auto roots = tcr::load_model<float>(ids, model);
+		auto roots = tcr::load_model(ids, model);
 		ASSERT_EQ(1, roots.size());
 
 		EXPECT_GRAPHEQ(
@@ -110,8 +110,8 @@ TEST(LAYER, Conv)
 	teq::TensptrT weight = eteq::make_variable_scalar<float>(0,
 		teq::Shape({outdim, indim, filters.second, filters.first}), "weight");
 	teq::TensptrT bias = eteq::make_variable_scalar<float>(0, teq::Shape({outdim}), "bias");
-	auto y = tenncor<float>().nn.conv(eteq::ETensor<float>(x),
-		eteq::ETensor<float>(weight), eteq::ETensor<float>(bias));
+	auto y = tenncor<float>().nn.conv(eteq::ETensor(x),
+		eteq::ETensor(weight), eteq::ETensor(bias));
 
 	EXPECT_GRAPHEQ(
 		"(IDENTITY[3\\6\\4\\2\\1\\1\\1\\1])\n"

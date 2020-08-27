@@ -1,3 +1,4 @@
+from plugins.common import get_template_args
 from plugins.pformat.funcs import render_classfunc, pybindt, clean_templates
 
 _template = 'py::class_<{cname}> cls_{name}({mod}, "{name}");'
@@ -8,7 +9,7 @@ def _render_classmems(obj, name, cname):
         name=name, cname=cname, mem=mem)
 
 def render(obj, mod, namespace):
-    templates = obj.get('template', '').strip().split(',')
+    templates = get_template_args(obj)
     ntemplates = len(templates)
     name = obj['name']
     cname = namespace + '::' + name

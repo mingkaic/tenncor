@@ -1,5 +1,5 @@
 from plugins.template import build_template
-from plugins.common import strip_template_prefix
+from plugins.common import strip_template_prefix, get_template_args
 from plugins.cformat.args import render as arender
 from plugins.cformat.funcs import render_decl as fdecl_render, render_defn as fdefn_render
 
@@ -106,7 +106,7 @@ def _handle_copynmove(obj):
 
     name = obj['name']
     templates = [strip_template_prefix(tmp)
-        for tmp in obj.get('template', '').strip().split(',')]
+        for tmp in get_template_args(obj)]
     if len(templates) > 0:
         typename = name + '<' + ','.join(templates) + '>'
     else:
@@ -184,8 +184,8 @@ def _handle_members(obj):
         ['public:'] + [arender(a, True) + ';' for a in pubs] +
         ['private:'] + [arender(a, True) + ';' for a in privs])
 
-def render(obj, hdr=True):
+def render(api, obj, hdr=True):
     if hdr:
         return build_template(_template_hdr, globals(), obj)
     funcs = obj.get('funcs', [])
-    return '\n\n'.join([fdefn_render(f, clas=obj) for f in funcs])
+    return '\n\n'.join([fdefn_render(f, root=api, clas=obj) for f in funcs])

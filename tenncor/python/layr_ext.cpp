@@ -8,7 +8,7 @@ void layr_ext(py::module& m)
 
 	rbmlayer
 		.def(py::init(
-		[](eteq::ETensor<PybindT> fwd, eteq::ETensor<PybindT> bwd)
+		[](eteq::ETensor fwd, eteq::ETensor bwd)
 		{
 			return layr::RBMLayer<PybindT>{fwd, bwd};
 		}))
@@ -31,7 +31,7 @@ void layr_ext(py::module& m)
 
 	dbntrainer
 		.def(py::init<
-			const std::vector<layr::RBMLayer<PybindT>>&,eteq::ETensor<PybindT>,
+			const std::vector<layr::RBMLayer<PybindT>>&,eteq::ETensor,
 			teq::RankT,teq::DimT,PybindT,PybindT,size_t,PybindT,PybindT,global::CfgMapptrT>(),
 			py::arg("rbms"), py::arg("dense"),
 			py::arg("softmax_dim"), py::arg("batch_size"),
@@ -82,7 +82,7 @@ void layr_ext(py::module& m)
 
 		// ==== layer training ====
 		.def("apply_update",
-		[](const eteq::ETensorsT<PybindT>& models,
+		[](const eteq::ETensorsT& models,
 			layr::ApproxF<PybindT> update, layr::ErrorF<PybindT> err_func, global::CfgMapptrT ctx)
 		{
 			return trainer::apply_update<PybindT>(models, update, err_func, ctx);
@@ -91,7 +91,7 @@ void layr_ext(py::module& m)
 			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
 			py::arg("err_func") = layr::BErrorF<PybindT>(
-			[](const pytenncor::ETensT& l, const pytenncor::ETensT& r)
+			[](const eteq::ETensor& l, const eteq::ETensor& r)
 			{
 				return tenncor<PybindT>().error.sqr_diff(l, r);
 			}),

@@ -57,9 +57,9 @@ static void NAME(benchmark::State& state)\
 		std::vector<double> data = random_data(shape.n_elems(), -35, 35);\
 		std::vector<T> convdata(data.begin(), data.end());\
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::ETensor<T> out = FUNC(var);\
+		eteq::ETensor out = FUNC(var);\
 		state.ResumeTiming();\
-		out.calc();\
+		out.template calc<T>();\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
@@ -77,9 +77,9 @@ static void NAME(benchmark::State& state)\
 		std::vector<double> data = random_data(shape.n_elems(), 0, 35);\
 		std::vector<T> convdata(data.begin(), data.end());\
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::ETensor<T> out = FUNC(var);\
+		eteq::ETensor out = FUNC(var);\
 		state.ResumeTiming();\
-		out.calc();\
+		out.template calc<T>();\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
@@ -127,9 +127,9 @@ static void NAME(benchmark::State& state)\
 		std::vector<T> convdata2(data2.begin(), data2.end());\
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
 		eteq::EVariable<T> var2 = eteq::make_variable<T>(convdata2.data(), shape, "var2");\
-		eteq::ETensor<T> out = FUNC(var, var2);\
+		eteq::ETensor out = FUNC(var, var2);\
 		state.ResumeTiming();\
-		out.calc();\
+		out.template calc<T>();\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
@@ -183,9 +183,9 @@ static void BM_Matmul(benchmark::State& state)
 		std::vector<T> convdata2(data2.begin(), data2.end());
 		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), leftshape, "var");
 		eteq::EVariable<T> var2 = eteq::make_variable<T>(convdata2.data(), rightshape, "var2");
-		eteq::ETensor<T> out = tenncor<T>().matmul(var, var2);
+		eteq::ETensor out = tenncor<T>().matmul(var, var2);
 		state.ResumeTiming();
-		out.calc();
+		out.template calc<T>();
 	}
 	state.SetComplexityN(state.range(0));
 }
@@ -221,7 +221,7 @@ static void BM_MatmulComplex(benchmark::State& state)
 	auto f = tenncor<int32_t>().matmul(tenncor<int32_t>().transpose(d), tenncor<int32_t>().transpose(c));
 	auto dest = tenncor<int32_t>().matmul(e, f);
 
-	eteq::ETensorsT<int32_t> ders = tcr::derive(dest, {a, b, c});
+	eteq::ETensorsT ders = tcr::derive(dest, {a, b, c});
 	auto da = ders[0];
 	auto db = ders[1];
 	auto dc = ders[2];
@@ -239,9 +239,9 @@ static void BM_MatmulComplex(benchmark::State& state)
 		a->assign(data.data(), a->shape(), global::context());
 		b->assign(data2.data(), b->shape(), global::context());
 		c->assign(data3.data(), c->shape(), global::context());
-		da.calc();
-		db.calc();
-		dc.calc();
+		da.template calc<int32_t>();
+		db.template calc<int32_t>();
+		dc.template calc<int32_t>();
 	}
 }
 
@@ -298,10 +298,10 @@ static void BM_SigmoidMLP(benchmark::State& state)
 		bias0->assign(b0_data.data(), bias0->shape(), global::context());
 		weight1->assign(w1_data.data(), weight1->shape(), global::context());
 		bias1->assign(b1_data.data(), bias1->shape(), global::context());
-		dw0.calc();
-		db0.calc();
-		dw1.calc();
-		db1.calc();
+		dw0.template calc<double>();
+		db0.template calc<double>();
+		dw1.template calc<double>();
+		db1.template calc<double>();
 	}
 }
 
@@ -363,10 +363,10 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 		bias0->assign(b0_data.data(), bias0->shape(), global::context());
 		weight1->assign(w1_data.data(), weight1->shape(), global::context());
 		bias1->assign(b1_data.data(), bias1->shape(), global::context());
-		dw0.calc();
-		db0.calc();
-		dw1.calc();
-		db1.calc();
+		dw0.template calc<double>();
+		db0.template calc<double>();
+		dw1.template calc<double>();
+		db1.template calc<double>();
 	}
 }
 

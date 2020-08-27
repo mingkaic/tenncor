@@ -33,15 +33,15 @@ TEST(OPTIMIZE, Depends)
 	assert(data2.size() == n);
 
 	eteq::EVariable<double> target = eteq::make_variable<double>(data.data(), shape);
-	eteq::ETensor<double> a = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> b = eteq::make_constant<double>(data2.data(), shape);
+	eteq::ETensor a = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor b = eteq::make_constant<double>(data2.data(), shape);
 	auto c = a + b;
-	eteq::ETensor<double> d = eteq::make_constant_scalar<double>(4, shape);
+	eteq::ETensor d = eteq::make_constant_scalar<double>(4, shape);
 
 	auto ass = tenncor<double>().depends(tenncor<double>().assign(target, b * d), {c});
 
 	std::ifstream rulefile("cfg/optimizations.json");
-	ass = eteq::optimize<double>({ass}, rulefile)[0];
+	ass = eteq::optimize({ass}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
 		"(ASSIGN[2\\3\\4\\1\\1\\1\\1\\1])\n"
@@ -72,10 +72,10 @@ TEST(OPTIMIZE, DependsNnary)
 	assert(data2.size() == n);
 
 	eteq::EVariable<double> target = eteq::make_variable<double>(data.data(), shape);
-	eteq::ETensor<double> a = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> b = eteq::make_constant<double>(data2.data(), shape);
+	eteq::ETensor a = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor b = eteq::make_constant<double>(data2.data(), shape);
 	auto c = a + b;
-	eteq::ETensor<double> d = eteq::make_constant_scalar<double>(4, shape);
+	eteq::ETensor d = eteq::make_constant_scalar<double>(4, shape);
 
 	auto add = tenncor<double>().depends(tenncor<double>().add(target, b * d), {c});
 
@@ -86,7 +86,7 @@ TEST(OPTIMIZE, DependsNnary)
 	std::vector<double> evdata(expect_data, expect_data + exshape.n_elems());
 
 	std::ifstream rulefile("cfg/optimizations.json");
-	add = eteq::optimize<double>({add}, rulefile)[0];
+	add = eteq::optimize({add}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
 		"(ADD[2\\3\\4\\1\\1\\1\\1\\1])\n"
@@ -172,14 +172,14 @@ TEST(OPTIMIZE, RNNLayer)
 		eteq::make_variable<double>(out_data.data(), out_shape, "out");
 
 	teq::RankT seq_dim = 1;
-	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
+	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
 	auto cell = tenncor<double>().nn.dense(cell_in, weight, bias);
 
 	auto state = tenncor<double>().extend_like(istate,
 		tenncor<double>().slice(in, 0, 1, seq_dim));
 
 	auto output = tenncor<double>().nn.rnn(in, state, cell,
-		[](const eteq::ETensor<double>& x)
+		[](const eteq::ETensor& x)
 		{
 			return tenncor<double>().tanh(x);
 		}, seq_dim);
@@ -190,7 +190,7 @@ TEST(OPTIMIZE, RNNLayer)
 	teq::TensptrsT roots = {ders[0], ders[1], ders[2], err};
 
 	std::ifstream rulefile("cfg/optimizations.json");
-	roots = eteq::optimize<double>(roots, rulefile);
+	roots = eteq::optimize(roots, rulefile);
 
 	{
 		std::string expect_pbfile = testdir + "/opt0.txt";
@@ -317,7 +317,7 @@ TEST(OPTIMIZE, CNNLayer)
 			},
 			{{1, 1}, {1, 1}}), // outputs [2\4\4]
 		tenncor<double>().layer.bind(
-			[](const eteq::ETensor<double>& x)
+			[](const eteq::ETensor& x)
 			{
 				return tenncor<double>().relu(x);
 			}),
@@ -327,16 +327,17 @@ TEST(OPTIMIZE, CNNLayer)
 	double l2_decay = 0.0001;
 
 	auto normalized = invar / 255. - 0.5;
-	eteq::ETensor<double> train_out = layr::connect(model, normalized);
+	eteq::ETensor train_out = layr::connect(model, normalized);
 	auto error = -tenncor<double>().reduce_sum(outvar *
-		tenncor<double>().log(train_out + std::numeric_limits<double>::epsilon()));
+		tenncor<double>().log(train_out +
+			std::numeric_limits<double>::epsilon()));
 
-	eteq::VarptrsT<double> vars = layr::get_storage(model);
+	eteq::VarptrsT<double> vars = layr::get_storage<double>(model);
 	auto updates = tenncor<double>().approx.adadelta(
 		error, eteq::EVariablesT<double>(vars.begin(), vars.end()),
 		learning_rate, l2_decay);
 	teq::OwnMapT umap;
-	eteq::ETensorsT<double> deps;
+	eteq::ETensorsT deps;
 	deps.reserve(updates.size());
 	for (auto& update : updates)
 	{
@@ -347,7 +348,7 @@ TEST(OPTIMIZE, CNNLayer)
 		layr::trail(error, umap), deps));
 
 	std::ifstream rulefile("cfg/optimizations.json");
-	err = eteq::optimize<double>({err}, rulefile)[0];
+	err = eteq::optimize({err}, rulefile)[0];
 
 	std::string expect_pbfile = testdir + "/cnn_opt.txt";
 	std::ifstream expect_ifs(expect_pbfile);

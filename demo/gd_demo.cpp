@@ -42,7 +42,7 @@ static teq::ShapedArr<PybindT> avgevry2 (teq::ShapedArr<PybindT>& in)
 	return out;
 }
 
-static inline eteq::ETensor<PybindT> sigmoid (const eteq::ETensor<PybindT>& x)
+static inline eteq::ETensor sigmoid (const eteq::ETensor& x)
 {
 	return tenncor<PybindT>().sigmoid(x);
 }
@@ -98,7 +98,7 @@ int main (int argc, const char** argv)
 	uint8_t n_hid = 9;
 	uint8_t n_out = n_in / 2;
 
-	eteq::ETensor<PybindT> trained_model = tc.layer.link({
+	eteq::ETensor trained_model = tc.layer.link({
 		tc.layer.dense(teq::Shape({n_in}), {n_hid},
 			tc.layer.unif_xavier_init(1), tc.layer.zero_init()),
 		tc.layer.bind(sigmoid),
@@ -106,8 +106,8 @@ int main (int argc, const char** argv)
 			tc.layer.unif_xavier_init(1), tc.layer.zero_init()),
 		tc.layer.bind(sigmoid),
 	});
-	eteq::ETensor<PybindT> untrained_model = layr::deep_clone(trained_model);
-	eteq::ETensor<PybindT> pretrained_model = layr::deep_clone(trained_model);
+	eteq::ETensor untrained_model = layr::deep_clone(trained_model);
+	eteq::ETensor pretrained_model = layr::deep_clone(trained_model);
 
 	std::ifstream loadstr(loadpath);
 	try
@@ -122,7 +122,7 @@ int main (int argc, const char** argv)
 			throw std::exception();
 		}
 		onnx::TensptrIdT ids;
-		pretrained_model = tcr::load_model<PybindT>(ids, pb_model)[0];
+		pretrained_model = tcr::load_model(ids, pb_model)[0];
 		global::infof("model successfully loaded from file `%s`", loadpath.c_str());
 		loadstr.close();
 	}
@@ -134,7 +134,7 @@ int main (int argc, const char** argv)
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
 	layr::ApproxF<PybindT> approx =
-		[&](const eteq::ETensor<PybindT>& error,
+		[&](const eteq::ETensor& error,
 			const eteq::EVariablesT<PybindT>& leaves)
 		{
 			return tc.approx.sgd(error, leaves, 0.9); // learning rate = 0.9
@@ -158,7 +158,7 @@ int main (int argc, const char** argv)
 	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
 	auto train_exout = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
 	auto train_err = trainer::apply_update<PybindT>({trained_model}, approx,
-		[&](const eteq::ETensorsT<PybindT>& models)
+		[&](const eteq::ETensorsT& models)
 		{
 			return tc.error.sqr_diff(train_exout,
 				layr::connect(models.front(), train_input));
@@ -170,7 +170,7 @@ int main (int argc, const char** argv)
 	auto trained_out = layr::connect(trained_model, testin);
 	auto pretrained_out = layr::connect(pretrained_model, testin);
 
-	eteq::optimize<PybindT>("cfg/optimizations.json");
+	eteq::optimize("cfg/optimizations.json");
 
 	// train mlp to output input
 	start = std::clock();
@@ -180,7 +180,7 @@ int main (int argc, const char** argv)
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
 		train_input->assign(batch, global::context());
 		train_exout->assign(batch_out, global::context());
-		PybindT* data = (PybindT*) train_err.calc();
+		PybindT* data = train_err.template calc<PybindT>();
 		if (i % show_every_n == show_every_n - 1)
 		{
 			PybindT* data_end = data + train_err->shape().n_elems();
@@ -209,9 +209,9 @@ int main (int argc, const char** argv)
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
 		testin->assign(batch, global::context());
-		PybindT* untrained_res = untrained_out.calc();
-		PybindT* trained_res = trained_out.calc();
-		PybindT* pretrained_res = pretrained_out.calc();
+		PybindT* untrained_res = untrained_out.template calc<PybindT>();
+		PybindT* trained_res = trained_out.template calc<PybindT>();
+		PybindT* pretrained_res = pretrained_out.template calc<PybindT>();
 
 		PybindT untrained_avgerr = 0;
 		PybindT trained_avgerr = 0;
@@ -232,8 +232,8 @@ int main (int argc, const char** argv)
 	std::cout << "untrained mlp error rate: " << untrained_err * 100 << "%\n";
 	std::cout << "trained mlp error rate: " << trained_err * 100 << "%\n";
 	std::cout << "pretrained mlp error rate: " << pretrained_err * 100 << "%\n";
-	std::cout << "is structurally equal?: " << is_equal<PybindT>(trained_out, pretrained_out) << "\n";
-	std::cout << "% data equal: " << percent_dataeq<PybindT>(trained_out, pretrained_out) << std::endl;
+	std::cout << "is structurally equal?: " << is_equal(trained_out, pretrained_out) << "\n";
+	std::cout << "% data equal: " << percent_dataeq(trained_out, pretrained_out) << std::endl;
 
 	// try to save
 	if (exit_status == 0)
@@ -242,7 +242,7 @@ int main (int argc, const char** argv)
 		if (savestr.is_open())
 		{
 			onnx::ModelProto pb_model;
-			tcr::save_model<PybindT>(pb_model, {trained_model});
+			tcr::save_model(pb_model, {trained_model});
 			if (pb_model.SerializeToOstream(&savestr))
 			{
 				global::infof("successfully saved model to `%s`", savepath.c_str());

@@ -16,7 +16,7 @@
 #include "tenncor/tenncor.hpp"
 
 
-static eteq::ETensor<double> tc_tanh (const eteq::ETensor<double>& x)
+static eteq::ETensor tc_tanh (const eteq::ETensor& x)
 {
 	return tenncor<double>().tanh(x);
 }
@@ -89,7 +89,7 @@ static teq::TensptrsT rnn_setup (void)
 		eteq::make_variable<double>(out_data.data(), out_shape, "output");
 
 	teq::RankT seq_dim = 1;
-	eteq::ETensor<double> cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
+	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
 	auto cell = tenncor<double>().nn.dense(cell_in, weight, bias);
 
 	auto state = tenncor<double>().extend_like(istate,
@@ -110,7 +110,7 @@ static teq::TensptrsT rnn_setup (void)
 static void result_sort (query::QResultsT& results)
 {
 	PrettyEquation peq;
-	peq.showshape_ = true;
+	peq.cfg_.showshape_ = true;
 	std::unordered_map<teq::iTensor*,std::string> names;
 	for (auto& result : results)
 	{

@@ -3,6 +3,11 @@ import yaml
 
 _template_prefixes = ['typename', 'class']
 
+def get_template_args(obj):
+    temps = obj.get('template', '')
+    temps = [o.strip() for o in temps.split(',')]
+    return [o for o in temps if len(o) > 0]
+
 def strip_template_prefix(template):
     for template_prefix in _template_prefixes:
         if template.strip().startswith(template_prefix):

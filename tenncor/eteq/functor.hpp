@@ -37,18 +37,9 @@ struct Functor final : public eigen::Observable
 
 		teq::ShapesT shapes;
 		shapes.reserve(children.size());
-		egen::_GENERATED_DTYPE tcode = egen::get_type<T>();
-		for (teq::TensptrT child : children)
-		{
-			if (tcode != child->get_meta().type_code())
-			{
-				global::fatalf("incompatible tensor types %s and %s: "
-					"cross-type functors not supported yet",
-					egen::name_type(tcode).c_str(),
-					child->get_meta().type_label().c_str());
-			}
-			shapes.push_back(child->shape());
-		}
+		std::transform(children.begin(), children.end(),
+			std::back_inserter(shapes),
+			[](teq::TensptrT tens) { return tens->shape(); });
 
 		teq::Shape outshape;
 		OPCODE_LOOKUP(_CHOOSE_PARSER, opcode)
@@ -335,16 +326,6 @@ private:
 
 template <typename T>
 using FuncptrT = std::shared_ptr<Functor<T>>;
-
-/// Return functor node given opcode and node arguments
-template <typename T, typename ...ARGS>
-teq::TensptrT make_functor (egen::_GENERATED_OPCODE opcode,
-	const teq::TensptrsT& children,  ARGS... vargs);
-
-template <typename T, typename ...ARGS>
-ETensor<T> make_functor (const global::CfgMapptrT& ctx,
-	egen::_GENERATED_OPCODE opcode,
-	const teq::TensptrsT& children,ARGS... vargs);
 
 }
 

@@ -3,7 +3,7 @@
 
 #ifdef PYTHON_ETEQ_EXT_HPP
 
-using ETensKeysT = std::unordered_map<std::string,eteq::ETensor<PybindT>>;
+using ETensKeysT = std::unordered_map<std::string,eteq::ETensor>;
 
 void eteq_ext (py::module& m)
 {
@@ -19,17 +19,17 @@ void eteq_ext (py::module& m)
 			{
 				actives.emplace(r.second);
 			}
-			pytenncor::ETensorsT out;
+			eteq::ETensorsT out;
 			out.reserve(actives.size());
 			for (auto& tens : actives)
 			{
-				out.push_back(pytenncor::ETensT(tens, self));
+				out.push_back(eteq::ETensor(tens, self));
 			}
 			return out;
 		})
 		.def("replace",
 		[](global::CfgMapptrT& self, const std::vector<std::pair<
-			pytenncor::ETensT,pytenncor::ETensT>>& converts)
+			eteq::ETensor,eteq::ETensor>>& converts)
 		{
 			teq::TensptrsT actives;
 			for (auto& r : eteq::get_reg(self))
@@ -82,28 +82,28 @@ void eteq_ext (py::module& m)
 			});
 
 	// ==== etens ====
-	auto etens = (py::class_<pytenncor::ETensT>) m.attr("ETensor");
+	auto etens = (py::class_<eteq::ETensor>) m.attr("ETensor");
 
 	etens
 		.def(py::init(
 		[](teq::TensptrT tens, global::CfgMapptrT& ctx)
 		{
-			return pytenncor::ETensT(tens, ctx);
+			return eteq::ETensor(tens, ctx);
 		}),
 		py::arg("tens"),
 		py::arg("ctx") = global::context())
 		.def("__str__",
-		[](const pytenncor::ETensT& self)
+		[](const eteq::ETensor& self)
 		{
 			return self->to_string();
 		})
 		.def("__hash__",
-		[](const pytenncor::ETensT& self)
+		[](const eteq::ETensor& self)
 		{
 			return size_t(self.get());
 		})
 		.def("shape",
-		[](const pytenncor::ETensT& self)
+		[](const eteq::ETensor& self)
 		{
 			teq::Shape shape = self->shape();
 			auto pshape = pyutils::c2pshape(shape);
@@ -112,33 +112,33 @@ void eteq_ext (py::module& m)
 		},
 		"Return this instance's shape")
 		.def("raw",
-		[](pytenncor::ETensT& self)
+		[](eteq::ETensor& self)
 		{
-			PybindT* data = self.data();
+			PybindT* data = self.data<PybindT>();
 			return pytenncor::typedata_to_array<PybindT>(data, self->shape(),
 				self->get_meta().type_code(), py::dtype::of<PybindT>());
 		})
 		.def("get",
-		[](pytenncor::ETensT& self, teq::TensSetT ignored, size_t max_version)
+		[](eteq::ETensor& self, teq::TensSetT ignored, size_t max_version)
 		{
-			PybindT* data = self.calc(ignored, max_version);
+			PybindT* data = self.calc<PybindT>(ignored, max_version);
 			return pytenncor::typedata_to_array<PybindT>(data, self->shape(),
 				self->get_meta().type_code(), py::dtype::of<PybindT>());
 		},
 		py::arg("ignored") = teq::TensSetT{},
 		py::arg("max_version") = std::numeric_limits<size_t>::max())
 		.def("get_version",
-		[](const pytenncor::ETensT& self)
+		[](const eteq::ETensor& self)
 		{
 			return self->get_meta().state_version();
 		})
 
 		// layer extensions
-		.def("get_input", layr::get_input<PybindT>)
-		.def("connect", tcr::connect<PybindT>)
-		.def("deep_clone", layr::deep_clone<PybindT>)
+		.def("get_input", layr::get_input)
+		.def("connect", tcr::connect)
+		.def("deep_clone", layr::deep_clone)
 		.def("get_storage",
-		[](const pytenncor::ETensT& self)
+		[](const eteq::ETensor& self)
 		{
 			auto contents = layr::get_storage<PybindT>(self);
 			eteq::EVariablesT<PybindT> vars;
@@ -155,7 +155,7 @@ void eteq_ext (py::module& m)
 
 		// useful for debugging
 		.def("tag",
-		[](pytenncor::ETensT& self,
+		[](eteq::ETensor& self,
 			const std::string& key, const std::string& val)
 		{
 			if (auto f = dynamic_cast<teq::iFunctor*>(self.get()))
@@ -170,16 +170,16 @@ void eteq_ext (py::module& m)
 
 	ieval
 		.def("evaluate",
-		[](teq::iEvaluator& self, std::vector<pytenncor::ETensT> targeted,
-			size_t max_version, std::vector<pytenncor::ETensT> ignored)
+		[](teq::iEvaluator& self, std::vector<eteq::ETensor> targeted,
+			size_t max_version, std::vector<eteq::ETensor> ignored)
 		{
 			teq::TensSetT targeted_set;
 			teq::TensSetT ignored_set;
-			for (pytenncor::ETensT& etens : targeted)
+			for (eteq::ETensor& etens : targeted)
 			{
 				targeted_set.emplace(etens.get());
 			}
-			for (pytenncor::ETensT& etens : ignored)
+			for (eteq::ETensor& etens : ignored)
 			{
 				ignored_set.emplace(etens.get());
 			}
@@ -190,14 +190,14 @@ void eteq_ext (py::module& m)
 		"graph given list of nodes to ignore",
 		py::arg("targeted"),
 		py::arg("max_version") = std::numeric_limits<size_t>::max(),
-		py::arg("ignored") = std::vector<pytenncor::ETensT>{});
+		py::arg("ignored") = std::vector<eteq::ETensor>{});
 
 	py::implicitly_convertible<teq::iEvaluator,teq::Evaluator>();
 	eval
 		.def(py::init([]{ return std::make_shared<teq::Evaluator>(); }));
 
 	// ==== variable ====
-	py::class_<eteq::EVariable<PybindT>,pytenncor::ETensT> evar(m, "EVariable");
+	py::class_<eteq::EVariable<PybindT>,eteq::ETensor> evar(m, "EVariable");
 
 	evar
 		.def(py::init(
@@ -256,7 +256,7 @@ void eteq_ext (py::module& m)
 		py::arg("label") = "",
 		py::arg("ctx") = global::context())
 		.def("variable_like",
-		[](PybindT scalar, pytenncor::ETensT like,
+		[](PybindT scalar, eteq::ETensor like,
 			const std::string& label, global::CfgMapptrT context)
 		{
 			return eteq::make_variable_like<PybindT>(
@@ -283,7 +283,7 @@ void eteq_ext (py::module& m)
 		py::arg("label") = "",
 		py::arg("ctx") = global::context())
 		.def("to_variable",
-		[](const pytenncor::ETensT& tens, global::CfgMapptrT context)
+		[](const eteq::ETensor& tens, global::CfgMapptrT context)
 		{
 			auto ctx = tens.get_context();
 			if (nullptr == ctx)
@@ -297,16 +297,11 @@ void eteq_ext (py::module& m)
 		py::arg("ctx") = global::context())
 
 		// ==== other stuff ====
-		.def("derive",
-		[](eteq::ETensor<PybindT> root,
-			const eteq::ETensorsT<PybindT>& targets)
-		{
-			return tcr::derive<PybindT>(root, targets);
-		},
+		.def("derive", &tcr::derive,
 		"Return derivative of first tensor with respect to second tensor")
 
 		.def("trail",
-		[](const pytenncor::ETensT& root,
+		[](const eteq::ETensor& root,
 			const std::vector<pytenncor::ETensPairT>& inps)
 		{
 			teq::OwnMapT inputs;
@@ -314,14 +309,14 @@ void eteq_ext (py::module& m)
 			{
 				inputs.emplace(inp.first.get(), inp.second);
 			}
-			return layr::trail<PybindT>(root, inputs);
+			return layr::trail(root, inputs);
 		})
 
 		// ==== optimization ====
 		.def("optimize",
 		[](const std::string& filename, global::CfgMapptrT context)
 		{
-			eteq::optimize<PybindT>(filename, context);
+			eteq::optimize(filename, context);
 		},
 		py::arg("filename") = "cfg/optimizations.json",
 		py::arg("ctx") = global::context(),
@@ -369,7 +364,7 @@ void eteq_ext (py::module& m)
 					filename.c_str());
 			}
 			onnx::TensptrIdT ids;
-			auto roots = tcr::load_model<PybindT>(ids, pb_model);
+			auto roots = tcr::load_model(ids, pb_model);
 			input.close();
 
 			std::vector<std::string> precids;
@@ -392,15 +387,15 @@ void eteq_ext (py::module& m)
 				[&key_prec](const std::string& a, const std::string& b)
 				{ return key_prec.at(a) < key_prec.at(b); });
 
-			eteq::ETensorsT<PybindT> out;
+			eteq::ETensorsT out;
 			out.reserve(roots.size());
 			for (const std::string& id : precids)
 			{
-				out.push_back(pytenncor::ETensT(ids.right.at(id), global::context()));
+				out.push_back(eteq::ETensor(ids.right.at(id), global::context()));
 			}
 			for (const std::string& id : root_ids)
 			{
-				out.push_back(pytenncor::ETensT(ids.right.at(id), global::context()));
+				out.push_back(eteq::ETensor(ids.right.at(id), global::context()));
 			}
 			return out;
 		},
@@ -408,7 +403,7 @@ void eteq_ext (py::module& m)
 		py::arg("key_prec") = std::unordered_map<std::string,size_t>{})
 		.def("save_to_file",
 		[](const std::string& filename,
-			const eteq::ETensorsT<PybindT>& models,
+			const eteq::ETensorsT& models,
 			const ETensKeysT& keys)
 		{
 			if (models.empty())
@@ -448,15 +443,15 @@ void eteq_ext (py::module& m)
 					filename.c_str());
 			}
 			onnx::TensptrIdT ids;
-			auto roots = tcr::load_model<PybindT>(ids, pb_model, ctx);
+			auto roots = tcr::load_model(ids, pb_model, ctx);
 			input.close();
-			pytenncor::ETensorsT out;
+			eteq::ETensorsT out;
 			out.reserve(roots.size());
 			std::transform(roots.begin(), roots.end(),
 				std::back_inserter(out),
 				[&](teq::TensptrT tens)
 				{
-					return pytenncor::ETensT(tens, ctx);
+					return eteq::ETensor(tens, ctx);
 				});
 			return out;
 		})
@@ -468,11 +463,11 @@ void eteq_ext (py::module& m)
 			{
 				roots.emplace(r.second);
 			}
-			pytenncor::ETensorsT etens;
+			eteq::ETensorsT etens;
 			etens.reserve(roots.size());
 			std::transform(roots.begin(), roots.end(), std::back_inserter(etens),
 				[&ctx](teq::TensptrT tens)
-				{ return pytenncor::ETensT(tens, ctx); });
+				{ return eteq::ETensor(tens, ctx); });
 			std::ofstream output(filename);
 			if (false == output.is_open())
 			{

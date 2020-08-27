@@ -13,10 +13,10 @@ init:
 funcs:
   - name: sqr_diff
     args:
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: expect
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: got
     out:
-      type: eteq::ETensor<T>
+      type: eteq::ETensor
       val: return super->square(super->sub(expect,got));

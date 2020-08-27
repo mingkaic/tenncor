@@ -20,6 +20,27 @@ using LabelsMapT = teq::TensMapT<std::string>;
 
 const std::string dummy_label = "DEPENDENCIES";
 
+struct PrintEqConfig
+{
+	/// For every label associated with a tensor, show LABEL=value in the tree
+	LabelsMapT labels_;
+
+	/// Print every tensor's shape if true, otherwise don't
+	bool showshape_ = false;
+
+	bool showtype_ = false;
+
+	bool showvers_ = false;
+
+	bool lsattrs_ = false;
+
+	std::string showattr_;
+};
+
+void ten_stream (std::ostream& out,
+	teq::iTensor*& root, const std::string& prefix,
+	const PrintEqConfig& cfg);
+
 /// Use PrettyTree to render teq::TensptrT graph as an ascii art
 struct PrettyEquation final
 {
@@ -52,35 +73,7 @@ struct PrettyEquation final
 		},
 		[this](std::ostream& out, teq::iTensor*& root, const std::string& prefix)
 		{
-			if (root)
-			{
-				auto it = this->labels_.find(root);
-				if (this->labels_.end() != it)
-				{
-					out << it->second << "=";
-				}
-				if (auto var = dynamic_cast<teq::iLeaf*>(root))
-				{
-					out << teq::get_usage_name(var->get_usage()) << ":";
-				}
-				out << root->to_string();
-				if (showshape_)
-				{
-					out << root->shape().to_string();
-				}
-				if (auto fnc = dynamic_cast<teq::iFunctor*>(root))
-				{
-					if (lsattrs_)
-					{
-						auto attrs = fnc->ls_attrs();
-						out << ":attrkeys=" << fmts::to_string(attrs.begin(), attrs.end());
-					}
-					if (auto attr = fnc->get_attr(showattr_))
-					{
-						out << ":attr=" << attr->to_string();
-					}
-				}
-			}
+			ten_stream(out, root, prefix, this->cfg_);
 		}) {}
 
 	/// Stream equation of ptr to out
@@ -97,15 +90,7 @@ struct PrettyEquation final
 		dummies_.clear();
 	}
 
-	/// For every label associated with a tensor, show LABEL=value in the tree
-	LabelsMapT labels_;
-
-	/// Print every tensor's shape if true, otherwise don't
-	bool showshape_ = false;
-
-	bool lsattrs_ = false;
-
-	std::string showattr_;
+	PrintEqConfig cfg_;
 
 private:
 	/// Actual ascii renderer

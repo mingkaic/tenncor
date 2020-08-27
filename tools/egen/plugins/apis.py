@@ -4,7 +4,7 @@ from tools.gen.plugin_base import PluginBase
 from tools.gen.file_rep import FileRep
 
 from plugins.template import build_template
-from plugins.common import order_classes, reference_classes
+from plugins.common import order_classes, reference_classes, get_template_args
 from plugins.cformat.clas import render as crender, _handle_template_decl, _handle_class_name
 from plugins.cformat.funcs import render_decl as fdecl, render_defn as fdefn
 
@@ -32,18 +32,18 @@ def predef_class(obj):
         '_handle_template_decl': _handle_template_decl,
         '_handle_class_name': _handle_class_name}, obj)
 
-def render_classes(classes, defn_funcs=True):
+def render_classes(classes, api, defn_funcs=True):
     if defn_funcs:
         class_defs = dict()
         for clas in classes:
-            class_def = crender(clas, True)
+            class_def = crender(api, clas, hdr=True)
             cname = clas['name']
             class_defs[cname] = class_def
 
         order = order_classes(classes)
         return [predef_class(clas) for clas in classes] +\
             [class_defs[clas] for clas in order]
-    return [crender(clas, False) for clas in classes]
+    return [crender(api, clas, hdr=False) for clas in classes]
 
 def render_globals(mems, hdr):
     out = []
@@ -72,23 +72,23 @@ def render_api(api, ext_path, hdr):
     classes = api.get('classes', [])
     classes = reference_classes(classes, ext_path)
 
-    temp_funcs = [f for f in funcs if len(f.get('template', '')) > 0]
-    norm_funcs = [f for f in funcs if len(f.get('template', '')) == 0]
+    temp_funcs = [f for f in funcs if len(get_template_args(f)) > 0]
+    norm_funcs = [f for f in funcs if len(get_template_args(f)) == 0]
 
-    temp_class = [c for c in classes if len(c.get('template', '')) > 0]
-    norm_class = [c for c in classes if len(c.get('template', '')) == 0]
+    temp_class = [c for c in classes if len(get_template_args(c)) > 0]
+    norm_class = [c for c in classes if len(get_template_args(c)) == 0]
 
     if hdr:
-        lines += render_classes(classes, defn_funcs=True)
+        lines += render_classes(classes, api, defn_funcs=True)
         lines += render_globals(global_mems, hdr)
         lines += [fdecl(f) for f in funcs]
 
-        lines += render_classes(temp_class, defn_funcs=False)
-        lines += [fdefn(f) for f in temp_funcs]
+        lines += render_classes(temp_class, api, defn_funcs=False)
+        lines += [fdefn(f, root=api) for f in temp_funcs]
     else:
         lines += render_globals(global_mems, hdr)
-        lines += render_classes(norm_class, defn_funcs=False)
-        lines += [fdefn(f) for f in norm_funcs]
+        lines += render_classes(norm_class, api, defn_funcs=False)
+        lines += [fdefn(f, root=api) for f in norm_funcs]
     return lines
 
 _plugin_id = "API"

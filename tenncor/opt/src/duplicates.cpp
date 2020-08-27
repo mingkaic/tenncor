@@ -92,6 +92,20 @@ void merge_dups (opt::GraphInfo& graph, EqualF equals)
 	graph.replace(converts);
 }
 
+void merge_dups (opt::GraphInfo& graph)
+{
+	Hasher hasher;
+	for (auto& root : graph.roots_)
+	{
+		root->accept(hasher);
+	}
+	merge_dups(graph,
+		[&](teq::TensptrT a, teq::TensptrT b)
+		{
+			return hasher.at(a.get()) == hasher.at(b.get());
+		});
+}
+
 }
 
 #endif

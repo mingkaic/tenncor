@@ -102,27 +102,27 @@ TEST_F(DISTRIB, SharingNodes)
 		// instance 1
 		auto mgr = make_mgr(5112, "mgr1");
 
-		eteq::ETensor<double> src =
+		eteq::ETensor src =
 			eteq::make_constant<double>(data.data(), shape);
-		eteq::ETensor<double> src2 =
+		eteq::ETensor src2 =
 			eteq::make_constant<double>(data2.data(), shape);
-		eteq::ETensor<double> dest = src + src2;
+		eteq::ETensor dest = src + src2;
 		tcr::expose_node(dest);
 		std::string id = tcr::lookup_id(dest);
 
 		// instance 2
 		auto mgr2 = make_mgr(5113, "mgr2");
 
-		eteq::ETensor<double> src3 =
+		eteq::ETensor src3 =
 			eteq::make_constant<double>(data3.data(), shape);
 		error::ErrptrT err = nullptr;
-		auto ref = tcr::try_lookup_node<double>(err, id);
+		auto ref = tcr::try_lookup_node(err, id);
 		ASSERT_NOERR(err);
 		ASSERT_NE(nullptr, ref);
-		auto dest2 = eteq::ETensor<double>(ref) * src3;
+		auto dest2 = eteq::ETensor(ref) * src3;
 
 		tcr::set_distrmgr(nullptr);
-		eteq::ETensor<double> src4 =
+		eteq::ETensor src4 =
 			eteq::make_constant<double>(data.data(), shape);
 		tcr::try_lookup_id(err, src4);
 		EXPECT_ERR(err, "can only find reference ids using DistrManager");
@@ -167,24 +167,24 @@ TEST_F(DISTRIB, DataPassing)
 		// instance 1
 		auto mgr = make_mgr(5112, "mgr1");
 
-		eteq::ETensor<double> src =
+		eteq::ETensor src =
 			eteq::make_constant<double>(data.data(), shape);
-		eteq::ETensor<double> src2 =
+		eteq::ETensor src2 =
 			eteq::make_constant<double>(data2.data(), shape);
-		eteq::ETensor<double> dest = src + src2;
+		eteq::ETensor dest = src + src2;
 		tcr::expose_node(dest);
 		std::string id = tcr::lookup_id(dest);
 
 		// instance 2
 		auto mgr2 = make_mgr(5113, "mgr2");
 
-		eteq::ETensor<double> src3 =
+		eteq::ETensor src3 =
 			eteq::make_constant<double>(data3.data(), shape);
 		error::ErrptrT err = nullptr;
-		auto ref = tcr::try_lookup_node<double>(err, id);
+		auto ref = tcr::try_lookup_node(err, id);
 		ASSERT_NOERR(err);
 		ASSERT_NE(nullptr, ref);
-		auto dest2 = eteq::ETensor<double>(ref) * src3;
+		auto dest2 = eteq::ETensor(ref) * src3;
 
 		ASSERT_TRUE(distr::get_iosvc(*mgr).get_remotes().empty());
 		ASSERT_EQ(distr::get_iosvc(*mgr2).get_remotes().size(), 1);
@@ -192,7 +192,7 @@ TEST_F(DISTRIB, DataPassing)
 		auto gotshape = dest2->shape();
 		ASSERT_ARREQ(shape, gotshape);
 
-		double* goptr = dest2.calc();
+		double* goptr = dest2.calc<double>();
 		for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 		{
 			EXPECT_DOUBLE_EQ(exdata[i], goptr[i]);
@@ -243,7 +243,7 @@ TEST_F(DISTRIB, ComplexDataPassing)
 
 			auto exshape = a1->shape();
 			ASSERT_ARREQ(shape, exshape);
-			auto exptr = a1.calc();
+			auto exptr = a1.template calc<double>();
 			exdata = std::vector<double>(exptr, exptr + exshape.n_elems());
 		}
 
@@ -292,34 +292,34 @@ TEST_F(DISTRIB, ComplexDataPassing)
 
 		error::ErrptrT err = nullptr;
 		std::string f1_key = tcr::lookup_id(f1);
-		auto f1_ref = tcr::lookup_node<double>(f1_key, actx);
+		auto f1_ref = tcr::lookup_node(f1_key, actx);
 		ASSERT_NOERR(err);
 		auto a2 = TenncorAPI<double>(actx).neg(f1_ref);
 		tcr::expose_node(a2);
 
 		std::string d1_key = tcr::lookup_id(d1);
-		auto a2_ref = tcr::lookup_node<double>(tcr::lookup_id(a2), cctx);
+		auto a2_ref = tcr::lookup_node(tcr::lookup_id(a2), cctx);
 		ASSERT_NOERR(err);
-		auto d1_ref = tcr::lookup_node<double>(d1_key, cctx);
-		auto d1_ref_fromA = tcr::lookup_node<double>(d1_key, actx);
+		auto d1_ref = tcr::lookup_node(d1_key, cctx);
+		auto d1_ref_fromA = tcr::lookup_node(d1_key, actx);
 		ASSERT_NOERR(err);
 		auto c1 = TenncorAPI<double>(cctx).add(a2_ref, d1_ref);
 		tcr::expose_node(c1);
 
-		auto c1_ref = tcr::lookup_node<double>(tcr::lookup_id(c1), bctx);
+		auto c1_ref = tcr::lookup_node(tcr::lookup_id(c1), bctx);
 		ASSERT_NOERR(err);
-		auto f2_ref = tcr::lookup_node<double>(tcr::lookup_id(f2), bctx);
+		auto f2_ref = tcr::lookup_node(tcr::lookup_id(f2), bctx);
 		ASSERT_NOERR(err);
 		auto b1 = TenncorAPI<double>(bctx).mul(c1_ref, f2_ref);
 		tcr::expose_node(b1);
 
-		auto b1_ref = tcr::lookup_node<double>(tcr::lookup_id(b1), actx);
+		auto b1_ref = tcr::lookup_node(tcr::lookup_id(b1), actx);
 		ASSERT_NOERR(err);
 		auto a1 = TenncorAPI<double>(actx).sin(b1_ref);
 
 		auto gotshape = a1->shape();
 		ASSERT_ARREQ(shape, gotshape);
-		auto goptr = a1.calc();
+		auto goptr = a1.template calc<double>();
 
 		for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 		{
@@ -392,27 +392,27 @@ TEST_F(DISTRIB, Reachability)
 
 		error::ErrptrT err = nullptr;
 		std::string f1_key = *distr::get_iosvc(*mgrF).lookup_id(f1.get());
-		eteq::ETensor<double> f1_ref = distr::get_iosvc(*mgrA).lookup_node(err, f1_key);
+		eteq::ETensor f1_ref = distr::get_iosvc(*mgrA).lookup_node(err, f1_key);
 		ASSERT_NOERR(err);
 		auto a2 = -f1_ref;
 		distr::get_iosvc(*mgrA).expose_node(a2);
 
 		std::string d1_key = *distr::get_iosvc(*mgrD).lookup_id(d1.get());
-		eteq::ETensor<double> a2_ref = distr::get_iosvc(*mgrC).lookup_node(err, *distr::get_iosvc(*mgrA).lookup_id(a2.get()));
+		eteq::ETensor a2_ref = distr::get_iosvc(*mgrC).lookup_node(err, *distr::get_iosvc(*mgrA).lookup_id(a2.get()));
 		ASSERT_NOERR(err);
-		eteq::ETensor<double> d1_ref = distr::get_iosvc(*mgrC).lookup_node(err, d1_key);
+		eteq::ETensor d1_ref = distr::get_iosvc(*mgrC).lookup_node(err, d1_key);
 		ASSERT_NOERR(err);
 		auto c1 = a2_ref + d1_ref;
 		distr::get_iosvc(*mgrC).expose_node(c1);
 
-		eteq::ETensor<double> c1_ref = distr::get_iosvc(*mgrB).lookup_node(err, *distr::get_iosvc(*mgrC).lookup_id(c1.get()));
+		eteq::ETensor c1_ref = distr::get_iosvc(*mgrB).lookup_node(err, *distr::get_iosvc(*mgrC).lookup_id(c1.get()));
 		ASSERT_NOERR(err);
-		eteq::ETensor<double> f2_ref = distr::get_iosvc(*mgrB).lookup_node(err, *distr::get_iosvc(*mgrF).lookup_id(f2.get()));
+		eteq::ETensor f2_ref = distr::get_iosvc(*mgrB).lookup_node(err, *distr::get_iosvc(*mgrF).lookup_id(f2.get()));
 		ASSERT_NOERR(err);
 		auto b1 = c1_ref * f2_ref;
 		distr::get_iosvc(*mgrB).expose_node(b1);
 
-		eteq::ETensor<double> b1_ref = distr::get_iosvc(*mgrA).lookup_node(err, *distr::get_iosvc(*mgrB).lookup_id(b1.get()));
+		eteq::ETensor b1_ref = distr::get_iosvc(*mgrA).lookup_node(err, *distr::get_iosvc(*mgrB).lookup_id(b1.get()));
 		ASSERT_NOERR(err);
 		auto a1 = tenncor<double>().sin(b1_ref);
 		distr::get_iosvc(*mgrA).expose_node(a1);
@@ -476,7 +476,7 @@ TEST_F(DISTRIB, RemoteDeriving)
 
 			auto exshape = exd->shape();
 			ASSERT_ARREQ(ashape, exshape);
-			auto exptr = exd.calc();
+			auto exptr = exd.template calc<double>();
 			df_data = std::vector<double>(exptr, exptr + exshape.n_elems());
 		}
 
@@ -503,9 +503,9 @@ TEST_F(DISTRIB, RemoteDeriving)
 		auto mgr2 = make_mgr(5113, "mgr2");
 
 		error::ErrptrT err = nullptr;
-		eteq::ETensor<double> root_ref = tcr::try_lookup_node<double>(err, root_id);
+		eteq::ETensor root_ref = tcr::try_lookup_node(err, root_id);
 		ASSERT_NOERR(err);
-		eteq::ETensor<double> base_ref = tcr::try_lookup_node<double>(err, base_id);
+		eteq::ETensor base_ref = tcr::try_lookup_node(err, base_id);
 		ASSERT_NOERR(err);
 
 		auto remote_ders = tcr::derive(root_ref, {base_ref});
@@ -514,7 +514,7 @@ TEST_F(DISTRIB, RemoteDeriving)
 
 		auto gotshape = dbase->shape();
 		ASSERT_ARREQ(ashape, gotshape);
-		auto goptr = dbase.calc();
+		auto goptr = dbase.template calc<double>();
 
 		for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 		{
@@ -598,26 +598,26 @@ TEST_F(DISTRIB, DebugPrintAscii)
 		tcr::expose_node(d1);
 
 		error::ErrptrT err = nullptr;
-		auto f1_ref = tcr::lookup_node<double>(tcr::lookup_id(f1), actx);
+		auto f1_ref = tcr::lookup_node(tcr::lookup_id(f1), actx);
 		ASSERT_NOERR(err);
 		auto a2 = TenncorAPI<double>(actx).neg(f1_ref);
 		tcr::expose_node(a2);
 
-		auto a2_ref = tcr::lookup_node<double>(tcr::lookup_id(a2), cctx);
+		auto a2_ref = tcr::lookup_node(tcr::lookup_id(a2), cctx);
 		ASSERT_NOERR(err);
-		auto d1_ref = tcr::lookup_node<double>(tcr::lookup_id(d1), cctx);
+		auto d1_ref = tcr::lookup_node(tcr::lookup_id(d1), cctx);
 		ASSERT_NOERR(err);
 		auto c1 = TenncorAPI<double>(cctx).add(a2_ref, d1_ref);
 		tcr::expose_node(c1);
 
-		auto c1_ref = tcr::lookup_node<double>(tcr::lookup_id(c1), bctx);
+		auto c1_ref = tcr::lookup_node(tcr::lookup_id(c1), bctx);
 		ASSERT_NOERR(err);
-		auto f2_ref = tcr::lookup_node<double>(tcr::lookup_id(f2), bctx);
+		auto f2_ref = tcr::lookup_node(tcr::lookup_id(f2), bctx);
 		ASSERT_NOERR(err);
 		auto b1 = TenncorAPI<double>(bctx).mul(c1_ref, f2_ref);
 		tcr::expose_node(b1);
 
-		auto b1_ref = tcr::lookup_node<double>(tcr::lookup_id(b1), actx);
+		auto b1_ref = tcr::lookup_node(tcr::lookup_id(b1), actx);
 		ASSERT_NOERR(err);
 		auto a1 = TenncorAPI<double>(actx).sin(b1_ref);
 		tcr::expose_node(a1);
@@ -676,11 +676,15 @@ TEST_F(DISTRIB, CrossDerive)
 			auto c1 = a2 + d1;
 			auto b1 = c1 * f2;
 			auto a1 = tenncor<double>().sin(b1);
-			auto exd = tcr::derive(a1, {f1})[0];
+			auto exds = tcr::derive(a1, {f1});
+			ASSERT_EQ(1, exds.size());
+			auto exd = exds.front();
+			ASSERT_NE(nullptr, exd);
+			exd = tenncor<double>().cast(exd);
 
 			auto exshape = exd->shape();
 			ASSERT_ARREQ(shape, exshape);
-			auto exptr = exd.calc();
+			auto exptr = exd.template calc<double>();
 			df_data = std::vector<double>(exptr, exptr + exshape.n_elems());
 		}
 
@@ -729,28 +733,28 @@ TEST_F(DISTRIB, CrossDerive)
 
 		error::ErrptrT err = nullptr;
 		std::string f1_key = tcr::lookup_id(f1);
-		auto f1_ref = tcr::lookup_node<double>(f1_key, actx);
+		auto f1_ref = tcr::lookup_node(f1_key, actx);
 		ASSERT_NOERR(err);
 		auto a2 = TenncorAPI<double>(actx).neg(f1_ref);
 		tcr::expose_node(a2);
 
 		std::string d1_key = tcr::lookup_id(d1);
-		auto a2_ref = tcr::lookup_node<double>(tcr::lookup_id(a2), cctx);
+		auto a2_ref = tcr::lookup_node(tcr::lookup_id(a2), cctx);
 		ASSERT_NOERR(err);
-		auto d1_ref = tcr::lookup_node<double>(d1_key, cctx);
-		auto d1_ref_fromA = tcr::lookup_node<double>(d1_key, actx);
+		auto d1_ref = tcr::lookup_node(d1_key, cctx);
+		auto d1_ref_fromA = tcr::lookup_node(d1_key, actx);
 		ASSERT_NOERR(err);
 		auto c1 = TenncorAPI<double>(cctx).add(a2_ref, d1_ref);
 		tcr::expose_node(c1);
 
-		auto c1_ref = tcr::lookup_node<double>(tcr::lookup_id(c1), bctx);
+		auto c1_ref = tcr::lookup_node(tcr::lookup_id(c1), bctx);
 		ASSERT_NOERR(err);
-		auto f2_ref = tcr::lookup_node<double>(tcr::lookup_id(f2), bctx);
+		auto f2_ref = tcr::lookup_node(tcr::lookup_id(f2), bctx);
 		ASSERT_NOERR(err);
 		auto b1 = TenncorAPI<double>(bctx).mul(c1_ref, f2_ref);
 		tcr::expose_node(b1);
 
-		auto b1_ref = tcr::lookup_node<double>(tcr::lookup_id(b1), actx);
+		auto b1_ref = tcr::lookup_node(tcr::lookup_id(b1), actx);
 		ASSERT_NOERR(err);
 		auto a1 = TenncorAPI<double>(actx).sin(b1_ref);
 		tcr::expose_node(a1);
@@ -766,33 +770,37 @@ TEST_F(DISTRIB, CrossDerive)
 		// A -> grads={a2:[f2*cos(b1)],f1:[-f2*cos(b1)]} -> F
 		// F -> grads={f1:[-f2*cos(b1)]}
 
-		auto e1_ref = tcr::lookup_node<double>(tcr::lookup_id(e1), actx);
+		auto e1_ref = tcr::lookup_node(tcr::lookup_id(e1), actx);
 		auto ders = tcr::derive(a1, {f1_ref, e1_ref});
 		ASSERT_EQ(2, ders.size());
 
 		// able to derive across cyclical graph
 		{
 			auto df1 = ders[0];
+			df1 = TenncorAPI<double>(actx).cast(df1);
+			auto goptr = df1.template calc<double>();
+
 			std::stringstream ss;
 			distr::get_printsvc(*mgrA).print_ascii(ss, df1.get());
 			std::string expect =
-				"(NEG)\n"
-				"_`--[mgrB]:(MUL)\n"
-				"_____`--[mgrF]:(variable:f2)\n"
-				"_____`--[mgrA]:(MUL)\n"
-				"_________`--(COS)\n"
-				"_________|___`--[mgrB]:(MUL)\n"
-				"_________|_______`--[mgrC]:(ADD)\n"
-				"_________|_______|___`--[mgrA]:(NEG)\n"
-				"_________|_______|___|___`--[mgrF]:(variable:f1)\n"
-				"_________|_______|___`--[mgrD]:(variable:d1)\n"
-				"_________|_______`--[mgrF]:(variable:f2)\n"
-				"_________`--(constant:1)\n";
+				"(CAST)\n"
+				"_`--(NEG)\n"
+				"_____`--[mgrB]:(MUL)\n"
+				"_________`--[mgrF]:(variable:f2)\n"
+				"_________`--[mgrA]:(MUL)\n"
+				"_____________`--(COS)\n"
+				"_____________|___`--[mgrB]:(MUL)\n"
+				"_____________|_______`--[mgrC]:(ADD)\n"
+				"_____________|_______|___`--[mgrA]:(NEG)\n"
+				"_____________|_______|___|___`--[mgrF]:(variable:f1)\n"
+				"_____________|_______|___`--[mgrD]:(variable:d1)\n"
+				"_____________|_______`--[mgrF]:(variable:f2)\n"
+				"_____________`--(CAST)\n"
+				"_________________`--(constant:1)\n";
 			EXPECT_STREQ(expect.c_str(), ss.str().c_str());
 
 			auto gotshape = df1->shape();
 			ASSERT_ARREQ(shape, gotshape);
-			auto goptr = df1.calc();
 
 			for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 			{
@@ -803,10 +811,11 @@ TEST_F(DISTRIB, CrossDerive)
 		// unable to reach isolated nodes
 		{
 			auto de1 = ders[1];
+			de1 = TenncorAPI<double>(actx).cast(de1);
 
 			auto gotshape = de1->shape();
 			ASSERT_ARREQ(shape, gotshape);
-			auto goptr = de1.calc();
+			auto goptr = de1.template calc<double>();
 
 			for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 			{
@@ -819,10 +828,11 @@ TEST_F(DISTRIB, CrossDerive)
 			auto ders2 = tcr::derive(a2, {d1_ref_fromA});
 			ASSERT_EQ(1, ders2.size());
 			auto dd1 = ders2[0];
+			dd1 = TenncorAPI<double>(actx).cast(dd1);
 
 			auto gotshape = dd1->shape();
 			ASSERT_ARREQ(shape, gotshape);
-			auto goptr = dd1.calc();
+			auto goptr = dd1.template calc<double>();
 
 			for (size_t i = 0, n = gotshape.n_elems(); i < n; ++i)
 			{

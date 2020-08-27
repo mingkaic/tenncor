@@ -14,12 +14,18 @@ filegroup(
     srcs = glob(["*.hpp"]),
 )
 
+filegroup(
+    name = "compare_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
 ######### LIBRARY #########
 
 cc_library(
     name = "compare",
     hdrs = [":compare_hdrs"],
+    srcs = [":compare_srcs"],
     copts = ["-std=c++17"],
-    deps = ["//tenncor/eteq:eteq"],
+    deps = ["//tenncor:tenncor"],
     visibility = ["//visibility:public"],
 )

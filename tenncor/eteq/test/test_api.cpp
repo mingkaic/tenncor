@@ -18,16 +18,16 @@
 using UnaryDblF = std::function<double(double)>;
 
 template <typename T>
-using UnaryOpF = std::function<eteq::ETensor<T>(eteq::ETensor<T>&)>;
+using UnaryOpF = std::function<eteq::ETensor(eteq::ETensor&)>;
 
 template <typename T>
-using BinaryOpF = std::function<eteq::ETensor<T>(eteq::ETensor<T>&,eteq::ETensor<T>&)>;
+using BinaryOpF = std::function<eteq::ETensor(eteq::ETensor&,eteq::ETensor&)>;
 
 template <typename T>
-using LhsBinaryOpF = std::function<eteq::ETensor<T>(eteq::ETensor<T>&,T&)>;
+using LhsBinaryOpF = std::function<eteq::ETensor(eteq::ETensor&,T&)>;
 
 template <typename T>
-using RhsBinaryOpF = std::function<eteq::ETensor<T>(T&,eteq::ETensor<T>&)>;
+using RhsBinaryOpF = std::function<eteq::ETensor(T&,eteq::ETensor&)>;
 
 template <typename T>
 using BinaryFwdF = std::function<T(T,T)>;
@@ -40,7 +40,7 @@ using MatVecT = std::vector<std::vector<int32_t>>;
 static const int FREIVALD_N = 10;
 
 
-static MatVecT create_2d (eteq::ETensor<int32_t> data,
+static MatVecT create_2d (eteq::ETensor data,
 	std::pair<teq::RankT,teq::RankT> dims = {0, 1})
 {
 	int32_t* ptr = (int32_t*) data->device().data();
@@ -131,7 +131,7 @@ static bool freivald (MatVecT a, MatVecT b, MatVecT c)
 
 
 static void unary_generic (UnaryOpF<double> op,
-	std::function<void(eteq::ETensor<double>,teq::Shape&,std::vector<double>&)> verify,
+	std::function<void(eteq::ETensor,teq::Shape&,std::vector<double>&)> verify,
 	std::function<void(double*,std::vector<double>&)> bwverify)
 {
 	eigen::Device device;
@@ -141,8 +141,8 @@ static void unary_generic (UnaryOpF<double> op,
 		56, 50, 19, 13, 12, 10, 31, 40, 60, 54, 6, 83
 	};
 
-	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> dest = op(src);
+	eteq::ETensor src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor dest = op(src);
 
 	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
 	{
@@ -152,15 +152,17 @@ static void unary_generic (UnaryOpF<double> op,
 	verify(dest, shape, data);
 
 	teq::Evaluator eval;
-	eteq::ETensorsT<double> gsrc = tcr::derive(dest, {src});
+	eteq::ETensorsT gsrc = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
-	ASSERT_NE(nullptr, gsrc.front());
-	eval.evaluate(device, {gsrc[0].get()});
-	eval.evaluate(device, {gsrc[0].get()}); // idempotency check
+	auto gs = gsrc.front();
+	ASSERT_NE(nullptr, gs);
+	gs = tenncor<double>().cast(gs);
+	eval.evaluate(device, {gs.get()});
+	eval.evaluate(device, {gs.get()}); // idempotency check
 
-	auto gotshape = gsrc[0]->shape();
+	auto gotshape = gs->shape();
 	ASSERT_ARREQ(shape, gotshape);
-	double* goptr = (double*) gsrc[0]->device().data();
+	double* goptr = (double*) gs->device().data();
 	bwverify(goptr, data);
 }
 
@@ -175,9 +177,9 @@ static void unar_elem (std::vector<double> data,
 	teq::NElemT n = shape.n_elems();
 	assert(data.size() == n);
 
-	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> dest = op(src);
-	eteq::ETensor<double> uninit_dest = op(src);
+	eteq::ETensor src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor dest = op(src);
+	eteq::ETensor uninit_dest = op(src);
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -193,20 +195,19 @@ static void unar_elem (std::vector<double> data,
 		}
 	}
 
-	eteq::ETensorsT<double> gsrc = tcr::derive(uninit_dest, {src});
+	eteq::ETensorsT gsrc = tcr::derive(uninit_dest, {src});
 	ASSERT_EQ(1, gsrc.size());
-	ASSERT_NE(nullptr, gsrc.front());
-	teq::TensSetT targets;
-	std::transform(gsrc.begin(), gsrc.end(),
-		std::inserter(targets, targets.end()),
-		[](eteq::ETensor<double>& g) { return g.get(); });
+	auto gs = gsrc.front();
+	ASSERT_NE(nullptr, gs);
+	gs = tenncor<double>().cast(gs);
+	teq::TensSetT targets = {gs.get()};
 	eval.evaluate(device, targets);
 	eval.evaluate(device, targets); // idempotency check
 	{
-		auto gotshape = gsrc[0]->shape();
+		auto gotshape = gs->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr = (double*) gsrc[0]->device().data();
+	auto goptr = (double*) gs->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i]), goptr[i]);
@@ -247,11 +248,11 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	assert(data.size() == n);
 	assert(data2.size() == n);
 
-	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> src2 = eteq::make_constant<double>(data2.data(), shape);
-	eteq::ETensor<double> dest = op(src, src2);
-	eteq::ETensor<double> clhs = lhs_op(src, cst);
-	eteq::ETensor<double> crhs = rhs_op(cst, src2);
+	eteq::ETensor src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor src2 = eteq::make_constant<double>(data2.data(), shape);
+	eteq::ETensor dest = op(src, src2);
+	eteq::ETensor clhs = lhs_op(src, cst);
+	eteq::ETensor crhs = rhs_op(cst, src2);
 
 	teq::Evaluator eval;
 	eval.evaluate(device, {dest.get()});
@@ -287,47 +288,53 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 		EXPECT_DOUBLE_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
 
-	eteq::ETensor<double> dest2 = op(src, src);
-	eteq::ETensorsT<double> gsame = tcr::derive(dest2, {src});
+	eteq::ETensor dest2 = op(src, src);
+	eteq::ETensorsT gsame = tcr::derive(dest2, {src});
 	ASSERT_EQ(1, gsame.size());
-	ASSERT_NE(nullptr, gsame.front());
-	eval.evaluate(device, {gsame.front().get()});
-	eval.evaluate(device, {gsame.front().get()}); // idempotency check
+	auto gs = gsame.front();
+	ASSERT_NE(nullptr, gs);
+	gs = tenncor<double>().cast(gs);
+	eval.evaluate(device, {gs.get()});
+	eval.evaluate(device, {gs.get()}); // idempotency check
 	{
-		auto gotshape = gsame[0]->shape();
+		auto gotshape = gs->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr = (double*) gsame[0]->device().data();
+	double* goptr = (double*) gs->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1., 1.), goptr[i]);
 	}
 
-	eteq::ETensorsT<double> gleft = tcr::derive(dest, {src});
+	eteq::ETensorsT gleft = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gleft.size());
-	ASSERT_NE(nullptr, gleft.front());
-	eval.evaluate(device, {gleft.front().get()});
-	eval.evaluate(device, {gleft.front().get()}); // idempotency check
+	auto gl = gleft.front();
+	ASSERT_NE(nullptr, gl);
+	gl = tenncor<double>().cast(gl);
+	eval.evaluate(device, {gl.get()});
+	eval.evaluate(device, {gl.get()}); // idempotency check
 	{
-		auto gotshape = gleft[0]->shape();
+		auto gotshape = gl->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr2 = (double*) gleft[0]->device().data();
+	double* goptr2 = (double*) gl->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 1., 0.), goptr2[i]);
 	}
 
-	eteq::ETensorsT<double> gright = tcr::derive(dest, {src2});
+	eteq::ETensorsT gright = tcr::derive(dest, {src2});
 	ASSERT_EQ(1, gright.size());
-	ASSERT_NE(nullptr, gright.front());
-	eval.evaluate(device, {gright.front().get()});
-	eval.evaluate(device, {gright.front().get()}); // idempotency check
+	auto gr = gright.front();
+	ASSERT_NE(nullptr, gr);
+	gr = tenncor<double>().cast(gr);
+	eval.evaluate(device, {gr.get()});
+	eval.evaluate(device, {gr.get()}); // idempotency check
 	{
-		auto gotshape = gright[0]->shape();
+		auto gotshape = gr->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr3 = (double*) gright[0]->device().data();
+	double* goptr3 = (double*) gr->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 0., 1.), goptr3[i]);
@@ -382,11 +389,11 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	teq::Shape shape(shape_list);
 	teq::NElemT n = shape.n_elems();
 
-	eteq::ETensor<int32_t> src = eteq::make_constant<int32_t>(data.data(), shape);
-	eteq::ETensor<int32_t> src2 = eteq::make_constant<int32_t>(data2.data(), shape);
-	eteq::ETensor<int32_t> dest = op(src, src2);
-	eteq::ETensor<int32_t> clhs = lhs_op(src, cst);
-	eteq::ETensor<int32_t> crhs = rhs_op(cst, src2);
+	eteq::ETensor src = eteq::make_constant<int32_t>(data.data(), shape);
+	eteq::ETensor src2 = eteq::make_constant<int32_t>(data2.data(), shape);
+	eteq::ETensor dest = op(src, src2);
+	eteq::ETensor clhs = lhs_op(src, cst);
+	eteq::ETensor crhs = rhs_op(cst, src2);
 
 	teq::Evaluator eval;
 	eval.evaluate(device, {dest.get()});
@@ -422,47 +429,53 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 		EXPECT_EQ(fwd(cst, data2[i]), rptr[i]);
 	}
 
-	eteq::ETensor<int32_t> dest2 = op(src, src);
-	eteq::ETensorsT<int32_t> gsame = tcr::derive(dest2, {src});
+	eteq::ETensor dest2 = op(src, src);
+	eteq::ETensorsT gsame = tcr::derive(dest2, {src});
 	ASSERT_EQ(1, gsame.size());
-	ASSERT_NE(nullptr, gsame.front());
-	eval.evaluate(device, {gsame.front().get()});
-	eval.evaluate(device, {gsame.front().get()}); // idempotency check
+	auto gs = gsame.front();
+	ASSERT_NE(nullptr, gs);
+	gs = tenncor<int32_t>().cast(gs);
+	eval.evaluate(device, {gs.get()});
+	eval.evaluate(device, {gs.get()}); // idempotency check
 	{
-		auto gotshape = gsame[0]->shape();
+		auto gotshape = gs->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	int32_t* goptr = (int32_t*) gsame[0]->device().data();
+	int32_t* goptr = (int32_t*) gs->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(bwd(data[i], data[i], 1., 1.), goptr[i]);
 	}
 
-	eteq::ETensorsT<int32_t> gleft = tcr::derive(dest, {src});
+	eteq::ETensorsT gleft = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gleft.size());
-	ASSERT_NE(nullptr, gleft.front());
-	eval.evaluate(device, {gleft.front().get()});
-	eval.evaluate(device, {gleft.front().get()}); // idempotency check
+	auto gl = gleft.front();
+	ASSERT_NE(nullptr, gl);
+	gl = tenncor<int32_t>().cast(gl);
+	eval.evaluate(device, {gl.get()});
+	eval.evaluate(device, {gl.get()}); // idempotency check
 	{
-		auto gotshape = gleft[0]->shape();
+		auto gotshape = gl->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	int32_t* goptr2 = (int32_t*) gleft[0]->device().data();
+	int32_t* goptr2 = (int32_t*) gl->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(bwd(data[i], data2[i], 1., 0.), goptr2[i]);
 	}
 
-	eteq::ETensorsT<int32_t> gright = tcr::derive(dest, {src2});
+	eteq::ETensorsT gright = tcr::derive(dest, {src2});
 	ASSERT_EQ(1, gright.size());
-	ASSERT_NE(nullptr, gright.front());
-	eval.evaluate(device, {gright.front().get()});
-	eval.evaluate(device, {gright.front().get()}); // idempotency check
+	auto gr = gright.front();
+	ASSERT_NE(nullptr, gr);
+	gr = tenncor<int32_t>().cast(gr);
+	eval.evaluate(device, {gr.get()});
+	eval.evaluate(device, {gr.get()}); // idempotency check
 	{
-		auto gotshape = gright[0]->shape();
+		auto gotshape = gr->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	int32_t* goptr3 = (int32_t*) gright[0]->device().data();
+	int32_t* goptr3 = (int32_t*) gr->device().data();
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(bwd(data[i], data2[i], 0., 1.), goptr3[i]);
@@ -513,14 +526,14 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 	teq::Shape shape(shape_list);
 	teq::NElemT n = shape.n_elems();
 
-	eteq::ETensorsT<double> srcs;
+	eteq::ETensorsT srcs;
 	srcs.reserve(datas.size());
 	for (auto& data : datas)
 	{
 		assert(data.size() == n);
 		srcs.push_back(eteq::make_constant<double>(data.data(), shape));
 	}
-	eteq::ETensor<double> dest = tenncor<double>().sum(srcs);
+	auto dest = tenncor<double>().sum(srcs);
 
 	teq::Evaluator eval;
 	eval.evaluate(device, {dest.get()});
@@ -536,22 +549,22 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 		EXPECT_DOUBLE_EQ(expect, optr[i]);
 	}
 
-	for (size_t i = 0, m = datas.size(); i < m; ++i)
+	eteq::ETensorsT gsrc = tcr::derive(dest, {srcs});
+	size_t m = datas.size();
+	ASSERT_EQ(datas.size(), gsrc.size());
+	for (size_t i = 0; i < m; ++i)
 	{
-		eteq::ETensorsT<double> gsrc = tcr::derive(dest, {srcs[i]});
-		ASSERT_EQ(1, gsrc.size());
-		ASSERT_NE(nullptr, gsrc.front());
-		teq::TensSetT targets;
-		std::transform(gsrc.begin(), gsrc.end(),
-			std::inserter(targets, targets.end()),
-			[](eteq::ETensor<double>& g) { return g.get(); });
+		auto gs = gsrc[i];
+		ASSERT_NE(nullptr, gs);
+		gs = tenncor<double>().cast(gs);
+		teq::TensSetT targets = {gs.get()};
 		eval.evaluate(device, targets);
 		eval.evaluate(device, targets); // idempotency check
 		{
-			auto gotshape = gsrc[0]->shape();
+			auto gotshape = gs->shape();
 			ASSERT_ARREQ(shape, gotshape);
 		}
-		double* goptr = (double*) gsrc[0]->device().data();
+		double* goptr = (double*) gs->device().data();
 		for (size_t j = 0; j < n; ++j)
 		{
 			double expect = calc_grad(i, j);
@@ -581,7 +594,7 @@ TEST(API, Assign)
 
 	eteq::EVariable<double> target1 = eteq::make_variable<double>(data.data(), shape);
 	eteq::EVariable<double> target2 = eteq::make_variable<double>(data.data(), shape);
-	eteq::ETensor<double> src = eteq::make_constant<double>(data2.data(), shape);
+	eteq::ETensor src = eteq::make_constant<double>(data2.data(), shape);
 
 	auto ass1 = tenncor<double>().assign(target1, src);
 	auto ass2 = tenncor<double>().assign(target2, -src);
@@ -624,12 +637,22 @@ TEST(API, Assign)
 }
 
 
-TEST(API, Identity)
+TEST(API, Identity) // todo: check for non-idempotency
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().identity(tenncor<double>().abs(a)); },
+		[](eteq::ETensor& a) { return tenncor<double>().identity(tenncor<double>().abs(a)); },
 		[](double d) { return std::abs(d); },
 		[](double d) { return d / std::abs(d); });
+}
+
+
+TEST(API, Cast) // check for non-idempotency
+{
+	unary_elementary(
+		[](eteq::ETensor& a) { return tenncor<double>().cast(tenncor<int32_t>().cast(
+			tenncor<double>().cos(a) * 2.1 + 4.5) / int32_t(2)); },
+		[](double d) { return double(int32_t(std::cos(d) * 2.1 + 4.5) / 2); },
+		[](double d) { return -std::sin(d) * 2.1 / 2; });
 }
 
 
@@ -652,8 +675,8 @@ TEST(API, Depends)
 	assert(data2.size() == n);
 
 	eteq::EVariable<double> target = eteq::make_variable<double>(data.data(), shape);
-	eteq::ETensor<double> a = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> b = eteq::make_constant<double>(data2.data(), shape);
+	eteq::ETensor a = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor b = eteq::make_constant<double>(data2.data(), shape);
 	auto c = a + b;
 
 	auto ass = tenncor<double>().depends(tenncor<double>().assign(target, b), {c});
@@ -707,8 +730,8 @@ TEST(API, DependsRunOnce)
 	assert(data2.size() == n);
 
 	eteq::EVariable<double> target = eteq::make_variable_scalar<double>(0, shape);
-	eteq::ETensor<double> a = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> b = eteq::make_constant<double>(data2.data(), shape);
+	eteq::ETensor a = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor b = eteq::make_constant<double>(data2.data(), shape);
 	auto c = a + b;
 
 	// assign add is non-idempotent
@@ -744,7 +767,7 @@ TEST(API, DependsRunOnce)
 TEST(API, Abs)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().abs(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().abs(a); },
 		[](double d) { return std::abs(d); },
 		[](double d) { return d / std::abs(d); });
 }
@@ -755,10 +778,10 @@ TEST(API, Neg)
 	auto fwd = [](double d) { return -d; };
 	auto bwd = [](double d) { return -1.; };
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().neg(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().neg(a); },
 		fwd, bwd);
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return -a; },
+		[](eteq::ETensor& a) { return -a; },
 		fwd, bwd);
 }
 
@@ -766,7 +789,7 @@ TEST(API, Neg)
 TEST(API, Sin)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().sin(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().sin(a); },
 		[](double d) { return std::sin(d); },
 		[](double d) { return std::cos(d); });
 }
@@ -775,7 +798,7 @@ TEST(API, Sin)
 TEST(API, Cos)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().cos(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().cos(a); },
 		[](double d) { return std::cos(d); },
 		[](double d) { return -std::sin(d); });
 }
@@ -784,7 +807,7 @@ TEST(API, Cos)
 TEST(API, Tan)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().tan(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().tan(a); },
 		[](double d) { return std::tan(d); },
 		[](double d) {
 			double denom = std::cos(d);
@@ -796,7 +819,7 @@ TEST(API, Tan)
 TEST(API, Exp)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().exp(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().exp(a); },
 		[](double d) { return std::exp(d); },
 		[](double d) { return std::exp(d); });
 }
@@ -805,7 +828,7 @@ TEST(API, Exp)
 TEST(API, Log)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().log(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().log(a); },
 		[](double d) { return std::log(d); },
 		[](double d) { return 1. / d; });
 }
@@ -814,7 +837,7 @@ TEST(API, Log)
 TEST(API, Sqrt)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().sqrt(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().sqrt(a); },
 		[](double d) { return std::sqrt(d); },
 		[](double d) { return 1. / (2 * std::sqrt(d)); });
 }
@@ -823,7 +846,7 @@ TEST(API, Sqrt)
 TEST(API, Round)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().round(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().round(a); },
 		[](double d) { return std::round(d); },
 		[](double d) { return 1.; });
 }
@@ -832,7 +855,7 @@ TEST(API, Round)
 TEST(API, Sigmoid)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().sigmoid(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().sigmoid(a); },
 		[](double d) { return 1 / (1 + std::exp(-d)); },
 		[](double d)
 		{
@@ -845,7 +868,7 @@ TEST(API, Sigmoid)
 TEST(API, Tanh)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().tanh(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().tanh(a); },
 		[](double d)
 		{
 			double e2d = std::exp(2 * d);
@@ -863,7 +886,7 @@ TEST(API, Tanh)
 TEST(API, Square)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().square(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().square(a); },
 		[](double d) { return d * d; },
 		[](double d) { return 2 * d; });
 }
@@ -872,7 +895,7 @@ TEST(API, Square)
 TEST(API, Cube)
 {
 	unary_elementary(
-		[](eteq::ETensor<double>& a) { return tenncor<double>().cube(a); },
+		[](eteq::ETensor& a) { return tenncor<double>().cube(a); },
 		[](double d) { return d * d * d; },
 		[](double d) { return 3 * d * d; });
 }
@@ -881,11 +904,11 @@ TEST(API, Cube)
 TEST(API, Pow)
 {
 	binary_elementary(
-		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return tenncor<double>().pow(a, b); },
-		[](eteq::ETensor<double>& a, double& b)
+		[](eteq::ETensor& a, double& b)
 		{ return tenncor<double>().pow(a, b); },
-		[](double& a, eteq::ETensor<double>& b)
+		[](double& a, eteq::ETensor& b)
 		{ return tenncor<double>().pow(a, b); },
 		[](double a, double b) { return std::pow(a, b); },
 		[](double a, double b, double leftg, double rightg)
@@ -902,19 +925,19 @@ TEST(API, Add)
 	auto bwd = [](double a, double b, double leftg, double rightg)
 		{ return leftg + rightg; };
 	binary_elementary(
-		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return tenncor<double>().add(a, b); },
-		[](eteq::ETensor<double>& a, double& b)
+		[](eteq::ETensor& a, double& b)
 		{ return tenncor<double>().add(a, b); },
-		[](double& a, eteq::ETensor<double>& b)
+		[](double& a, eteq::ETensor& b)
 		{ return tenncor<double>().add(a, b); },
 		fwd, bwd);
 	binary_elementary(
-		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return a + b; },
-		[](eteq::ETensor<double>& a, double& b)
+		[](eteq::ETensor& a, double b)
 		{ return a + b; },
-		[](double& a, eteq::ETensor<double>& b)
+		[](double a, eteq::ETensor& b)
 		{ return a + b; },
 		fwd, bwd);
 }
@@ -926,19 +949,19 @@ TEST(API, Sub)
 	auto bwd = [](double a, double b, double leftg, double rightg)
 		{ return leftg - rightg; };
 	binary_elementary(
-		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return tenncor<double>().sub(a, b); },
-		[](eteq::ETensor<double>& a, double& b)
+		[](eteq::ETensor& a, double& b)
 		{ return tenncor<double>().sub(a, b); },
-		[](double& a, eteq::ETensor<double>& b)
+		[](double& a, eteq::ETensor& b)
 		{ return tenncor<double>().sub(a, b); },
 		fwd, bwd);
 	binary_elementary(
-		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return a - b; },
-		[](eteq::ETensor<double>& a, double& b)
+		[](eteq::ETensor& a, double& b)
 		{ return a - b; },
-		[](double& a, eteq::ETensor<double>& b)
+		[](double& a, eteq::ETensor& b)
 		{ return a - b; },
 		fwd, bwd);
 }
@@ -952,19 +975,19 @@ TEST(API, Mul)
 			return leftg * b + rightg * a;
 		};
 	binary_elementary(
-		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return tenncor<double>().mul(a, b); },
-		[](eteq::ETensor<double>& a, double& b)
+		[](eteq::ETensor& a, double& b)
 		{ return tenncor<double>().mul(a, b); },
-		[](double& a, eteq::ETensor<double>& b)
+		[](double& a, eteq::ETensor& b)
 		{ return tenncor<double>().mul(a, b); },
 		fwd, bwd);
 	binary_elementary(
-		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return a * b; },
-		[](eteq::ETensor<double>& a, double& b)
+		[](eteq::ETensor& a, double& b)
 		{ return a * b; },
-		[](double& a, eteq::ETensor<double>& b)
+		[](double& a, eteq::ETensor& b)
 		{ return a * b; },
 		fwd, bwd);
 }
@@ -978,19 +1001,19 @@ TEST(API, Div)
 			return (leftg * b - rightg * a) / (b * b);
 		};
 	binary_elementary(
-		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return tenncor<double>().div(a, b); },
-		[](eteq::ETensor<double>& a, double& b)
+		[](eteq::ETensor& a, double& b)
 		{ return tenncor<double>().div(a, b); },
-		[](double& a, eteq::ETensor<double>& b)
+		[](double& a, eteq::ETensor& b)
 		{ return tenncor<double>().div(a, b); },
 		fwd, bwd);
 	binary_elementary(
-		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return a / b; },
-		[](eteq::ETensor<double>& a, double& b)
+		[](eteq::ETensor& a, double& b)
 		{ return a / b; },
-		[](double& a, eteq::ETensor<double>& b)
+		[](double& a, eteq::ETensor& b)
 		{ return a / b; },
 		fwd, bwd);
 }
@@ -999,11 +1022,11 @@ TEST(API, Div)
 TEST(API, Min)
 {
 	binary_elementary(
-		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return tenncor<double>().min(a, b); },
-		[](eteq::ETensor<double>& a, double& b)
+		[](eteq::ETensor& a, double& b)
 		{ return tenncor<double>().min(a, b); },
-		[](double& a, eteq::ETensor<double>& b)
+		[](double& a, eteq::ETensor& b)
 		{ return tenncor<double>().min(a, b); },
 		[](double a, double b) { return std::min(a, b); },
 		[](double a, double b, double leftg, double rightg)
@@ -1025,11 +1048,11 @@ TEST(API, Min)
 TEST(API, Max)
 {
 	binary_elementary(
-		[](eteq::ETensor<double>& a, eteq::ETensor<double>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return tenncor<double>().max(a, b); },
-		[](eteq::ETensor<double>& a, double& b)
+		[](eteq::ETensor& a, double& b)
 		{ return tenncor<double>().max(a, b); },
-		[](double& a, eteq::ETensor<double>& b)
+		[](double& a, eteq::ETensor& b)
 		{ return tenncor<double>().max(a, b); },
 		[](double a, double b) { return std::max(a, b); },
 		[](double a, double b, double leftg, double rightg)
@@ -1097,13 +1120,13 @@ TEST(API, Select)
 		assert(data.size() == n);
 		assert(data2.size() == n);
 
-		eteq::ETensor<double> cond_src =
+		eteq::ETensor cond_src =
 			eteq::make_constant<double>(cond.data(), shape);
-		eteq::ETensor<double> src =
+		eteq::ETensor src =
 			eteq::make_constant<double>(data.data(), shape);
-		eteq::ETensor<double> src2 =
+		eteq::ETensor src2 =
 			eteq::make_constant<double>(data2.data(), shape);
-		eteq::ETensor<double> dest =
+		eteq::ETensor dest =
 			tenncor<double>().if_then_else(cond_src, src, src2);
 
 		auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
@@ -1122,42 +1145,40 @@ TEST(API, Select)
 		}
 
 		teq::Evaluator eval;
-		eteq::ETensor<double> dest2 = tenncor<double>().if_then_else(cond_src, src, src);
+		eteq::ETensor dest2 = tenncor<double>().if_then_else(cond_src, src, src);
 		EXPECT_EQ(dest2.get(), src.get());
 
-		eteq::ETensorsT<double> gleft = tcr::derive(dest, {src});
+		eteq::ETensorsT gleft = tcr::derive(dest, {src});
 		ASSERT_EQ(1, gleft.size());
-		ASSERT_NE(nullptr, gleft.front());
-		teq::TensSetT ltargets;
-		std::transform(gleft.begin(), gleft.end(),
-			std::inserter(ltargets, ltargets.end()),
-			[](eteq::ETensor<double>& g) { return g.get(); });
+		auto gl = gleft.front();
+		ASSERT_NE(nullptr, gl);
+		gl = tenncor<double>().cast(gl);
+		teq::TensSetT ltargets = {gl.get()};
 		eval.evaluate(device, ltargets);
 		eval.evaluate(device, ltargets); // idempotency check
 		{
-			auto gotshape = gleft[0]->shape();
+			auto gotshape = gl->shape();
 			ASSERT_ARREQ(shape, gotshape);
 		}
-		double* goptr = (double*) gleft[0]->device().data();
+		double* goptr = (double*) gl->device().data();
 		for (size_t i = 0; i < n; ++i)
 		{
 			EXPECT_DOUBLE_EQ(cond[i], goptr[i]);
 		}
 
-		eteq::ETensorsT<double> gright = tcr::derive(dest, {src2});
+		eteq::ETensorsT gright = tcr::derive(dest, {src2});
 		ASSERT_EQ(1, gright.size());
-		ASSERT_NE(nullptr, gright.front());
-		teq::TensSetT rtargets;
-		std::transform(gright.begin(), gright.end(),
-			std::inserter(rtargets, rtargets.end()),
-			[](eteq::ETensor<double>& g) { return g.get(); });
+		auto gr = gright.front();
+		ASSERT_NE(nullptr, gr);
+		gr = tenncor<double>().cast(gr);
+		teq::TensSetT rtargets = {gr.get()};
 		eval.evaluate(device, rtargets);
 		eval.evaluate(device, rtargets); // idempotency check
 		{
-			auto gotshape = gright[0]->shape();
+			auto gotshape = gr->shape();
 			ASSERT_ARREQ(shape, gotshape);
 		}
-		double* goptr2 = (double*) gright[0]->device().data();
+		double* goptr2 = (double*) gr->device().data();
 		for (size_t i = 0; i < n; ++i)
 		{
 			EXPECT_DOUBLE_EQ((0==cond[i]), goptr2[i]);
@@ -1184,9 +1205,9 @@ TEST(API, Slice)
 	teq::NElemT n = shape.n_elems();
 	assert(data.size() == n);
 
-	eteq::ETensor<double> src =
+	eteq::ETensor src =
 		eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> dest = tenncor<double>().slice(src, {{0, 3}, {1, 1}});
+	eteq::ETensor dest = tenncor<double>().slice(src, {{0, 3}, {1, 1}});
 
 	teq::Shape exshape({3, 1, 4});
 	std::vector<double> exdata = {
@@ -1212,16 +1233,17 @@ TEST(API, Slice)
 		0, 0, 0, 1, 1, 1,
 	};
 	teq::Evaluator eval;
-	eteq::ETensorsT<double> g = tcr::derive(dest, {src});
-	teq::TensSetT targets;
-	std::transform(g.begin(), g.end(),
-		std::inserter(targets, targets.end()),
-		[](eteq::ETensor<double>& g) { return g.get(); });
+	eteq::ETensorsT gsrcs = tcr::derive(dest, {src});
+	ASSERT_EQ(1, gsrcs.size());
+	auto gs = gsrcs.front();
+	ASSERT_NE(nullptr, gs);
+	gs = tenncor<double>().cast(gs);
+	teq::TensSetT targets = {gs.get()};
 	eval.evaluate(device, targets);
 	eval.evaluate(device, targets); // idempotency check
-	auto gotshape2 = g[0]->shape();
+	auto gotshape2 = gs->shape();
 	ASSERT_ARREQ(shape, gotshape2);
-	double* goptr = (double*) g[0]->device().data();
+	double* goptr = (double*) gs->device().data();
 	std::vector<double> gotdata2(goptr, goptr + gotshape2.n_elems());
 	EXPECT_VECEQ(exdata2, gotdata2);
 }
@@ -1233,19 +1255,19 @@ TEST(API, Eq)
 	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{ return 0; };
 	binary_elementary_int(
-		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return tenncor<int32_t>().eq(a, b); },
-		[](eteq::ETensor<int32_t>& a, int32_t& b)
+		[](eteq::ETensor& a, int32_t& b)
 		{ return tenncor<int32_t>().eq(a, b); },
-		[](int32_t& a, eteq::ETensor<int32_t>& b)
+		[](int32_t& a, eteq::ETensor& b)
 		{ return tenncor<int32_t>().eq(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
-		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return a == b; },
-		[](eteq::ETensor<int32_t>& a, int32_t& b)
+		[](eteq::ETensor& a, int32_t& b)
 		{ return a == b; },
-		[](int32_t& a, eteq::ETensor<int32_t>& b)
+		[](int32_t& a, eteq::ETensor& b)
 		{ return a == b; },
 		fwd, bwd);
 }
@@ -1257,19 +1279,19 @@ TEST(API, Neq)
 	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{ return 0; };
 	binary_elementary_int(
-		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return tenncor<int32_t>().neq(a, b); },
-		[](eteq::ETensor<int32_t>& a, int32_t& b)
+		[](eteq::ETensor& a, int32_t& b)
 		{ return tenncor<int32_t>().neq(a, b); },
-		[](int32_t& a, eteq::ETensor<int32_t>& b)
+		[](int32_t& a, eteq::ETensor& b)
 		{ return tenncor<int32_t>().neq(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
-		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return a != b; },
-		[](eteq::ETensor<int32_t>& a, int32_t& b)
+		[](eteq::ETensor& a, int32_t& b)
 		{ return a != b; },
-		[](int32_t& a, eteq::ETensor<int32_t>& b)
+		[](int32_t& a, eteq::ETensor& b)
 		{ return a != b; },
 		fwd, bwd);
 }
@@ -1281,19 +1303,19 @@ TEST(API, Lt)
 	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{ return 0; };
 	binary_elementary_int(
-		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return tenncor<int32_t>().lt(a, b); },
-		[](eteq::ETensor<int32_t>& a, int32_t& b)
+		[](eteq::ETensor& a, int32_t& b)
 		{ return tenncor<int32_t>().lt(a, b); },
-		[](int32_t& a, eteq::ETensor<int32_t>& b)
+		[](int32_t& a, eteq::ETensor& b)
 		{ return tenncor<int32_t>().lt(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
-		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return a < b; },
-		[](eteq::ETensor<int32_t>& a, int32_t& b)
+		[](eteq::ETensor& a, int32_t& b)
 		{ return a < b; },
-		[](int32_t& a, eteq::ETensor<int32_t>& b)
+		[](int32_t& a, eteq::ETensor& b)
 		{ return a < b; },
 		fwd, bwd);
 }
@@ -1305,19 +1327,19 @@ TEST(API, Gt)
 	auto bwd = [](int32_t a, int32_t b, int32_t leftg, int32_t rightg)
 		{ return 0; };
 	binary_elementary_int(
-		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return tenncor<int32_t>().gt(a, b); },
-		[](eteq::ETensor<int32_t>& a, int32_t& b)
+		[](eteq::ETensor& a, int32_t& b)
 		{ return tenncor<int32_t>().gt(a, b); },
-		[](int32_t& a, eteq::ETensor<int32_t>& b)
+		[](int32_t& a, eteq::ETensor& b)
 		{ return tenncor<int32_t>().gt(a, b); },
 		fwd, bwd);
 	binary_elementary_int(
-		[](eteq::ETensor<int32_t>& a, eteq::ETensor<int32_t>& b)
+		[](eteq::ETensor& a, eteq::ETensor& b)
 		{ return a > b; },
-		[](eteq::ETensor<int32_t>& a, int32_t& b)
+		[](eteq::ETensor& a, int32_t& b)
 		{ return a > b; },
-		[](int32_t& a, eteq::ETensor<int32_t>& b)
+		[](int32_t& a, eteq::ETensor& b)
 		{ return a > b; },
 		fwd, bwd);
 }
@@ -1326,8 +1348,8 @@ TEST(API, Gt)
 TEST(API, NElems)
 {
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor<double>().n_elems(src); },
-		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>&)
+		[](eteq::ETensor& src) { return tenncor<double>().n_elems(src); },
+		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>&)
 		{
 			ASSERT_EQ(1, out->shape().n_elems());
 			double got = *((double*) out->device().data());
@@ -1348,8 +1370,8 @@ TEST(API, NDims)
 {
 	teq::RankT dim = 2;
 	unary_generic(
-		[dim](eteq::ETensor<double>& src) { return tenncor<double>().n_dims(src, dim); },
-		[dim](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>&)
+		[dim](eteq::ETensor& src) { return tenncor<double>().n_dims(src, dim); },
+		[dim](eteq::ETensor out, teq::Shape& shape, std::vector<double>&)
 		{
 			ASSERT_EQ(1, out->shape().n_elems());
 			double got = *((double*) out->device().data());
@@ -1374,8 +1396,8 @@ TEST(API, Argmax)
 		56, 50, 19, 13, 12, 10, 31, 40, 60, 54, 6, 83
 	};
 
-	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> dest = tenncor<double>().argmax(src);
+	eteq::ETensor src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor dest = tenncor<double>().argmax(src);
 
 	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
 	{
@@ -1395,8 +1417,8 @@ TEST(API, Argmax)
 TEST(API, Rsum)
 {
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_sum(src); },
-		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor& src) { return tenncor<double>().reduce_sum(src); },
+		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
 			{
@@ -1415,8 +1437,8 @@ TEST(API, Rsum)
 			}
 		});
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_sum(src, 1, 1); },
-		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor& src) { return tenncor<double>().reduce_sum(src, 1, 1); },
+		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
@@ -1464,9 +1486,9 @@ TEST(API, Rprod)
 		7, 2,
 	};
 
-	eteq::ETensor<int32_t> src = eteq::make_constant<int32_t>(data.data(), shape);
-	eteq::ETensor<int32_t> dest = tenncor<int32_t>().reduce_prod(src);
-	eteq::ETensor<int32_t> dest2 = tenncor<int32_t>().reduce_prod(src, 1, 1);
+	eteq::ETensor src = eteq::make_constant<int32_t>(data.data(), shape);
+	eteq::ETensor dest = tenncor<int32_t>().reduce_prod(src);
+	eteq::ETensor dest2 = tenncor<int32_t>().reduce_prod(src, 1, 1);
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -1510,10 +1532,16 @@ TEST(API, Rprod)
 	}
 
 	teq::Evaluator eval;
-	eteq::ETensor<int32_t> gsrc = tcr::derive(dest, {src})[0];
-	eteq::ETensor<int32_t> gsrc2 = tcr::derive(dest2, {src})[0];
+	eteq::ETensorsT gsrcs = tcr::derive(dest, {src});
+	eteq::ETensorsT gsrcs2 = tcr::derive(dest2, {src});
+	ASSERT_EQ(1, gsrcs.size());
+	ASSERT_EQ(1, gsrcs2.size());
+	auto gsrc = gsrcs.front();
+	auto gsrc2 = gsrcs2.front();
 	ASSERT_NE(nullptr, gsrc);
 	ASSERT_NE(nullptr, gsrc2);
+	gsrc = tenncor<int32_t>().cast(gsrc);
+	gsrc2 = tenncor<int32_t>().cast(gsrc2);
 	eval.evaluate(device, {gsrc.get(), gsrc2.get()});
 	eval.evaluate(device, {gsrc.get(), gsrc2.get()}); // idempotency check
 
@@ -1561,8 +1589,8 @@ TEST(API, Rprod)
 TEST(API, Rmin)
 {
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_min(src); },
-		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor& src) { return tenncor<double>().reduce_min(src); },
+		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
 			ASSERT_EQ(1, n);
@@ -1587,8 +1615,8 @@ TEST(API, Rmin)
 			}
 		});
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_min(src, 1, 1); },
-		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor& src) { return tenncor<double>().reduce_min(src, 1, 1); },
+		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
@@ -1643,8 +1671,8 @@ TEST(API, Rmin)
 TEST(API, Rmax)
 {
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_max(src); },
-		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor& src) { return tenncor<double>().reduce_max(src); },
+		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
 			size_t n = out->shape().n_elems();
 			ASSERT_EQ(1, n);
@@ -1669,8 +1697,8 @@ TEST(API, Rmax)
 			}
 		});
 	unary_generic(
-		[](eteq::ETensor<double>& src) { return tenncor<double>().reduce_max(src, 1, 1); },
-		[](eteq::ETensor<double> out, teq::Shape& shape, std::vector<double>& data)
+		[](eteq::ETensor& src) { return tenncor<double>().reduce_max(src, 1, 1); },
+		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
 			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
@@ -1734,8 +1762,8 @@ TEST(API, Permute)
 		75, 64, 30, 17, 90, 79, 21, 54, 6, 7, 69, 53
 	};
 
-	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> dest = tenncor<double>().permute(src, pidx);
+	eteq::ETensor src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor dest = tenncor<double>().permute(src, pidx);
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -1757,25 +1785,20 @@ TEST(API, Permute)
 	}
 
 	teq::Evaluator eval;
-	eteq::ETensorsT<double> gsrc = tcr::derive(dest, {src});
+	eteq::ETensorsT gsrc = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
-	ASSERT_NE(nullptr, gsrc.front());
-	teq::TensSetT tset;
-	for (auto& g : gsrc)
-	{
-		tset.emplace(g.get());
-	}
-	teq::TensSetT targets;
-	std::transform(gsrc.begin(), gsrc.end(),
-		std::inserter(targets, targets.end()),
-		[](eteq::ETensor<double>& g) { return g.get(); });
+	auto gs = gsrc.front();
+	ASSERT_NE(nullptr, gs);
+	gs = tenncor<double>().cast(gs);
+	teq::TensSetT tset = {gs.get()};
+	teq::TensSetT targets = {gs.get()};
 	eval.evaluate(device, targets);
 	eval.evaluate(device, targets); // idempotency check
 	{
-		auto gotshape = gsrc[0]->shape();
+		auto gotshape = gs->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr = (double*) gsrc[0]->device().data();
+	double* goptr = (double*) gs->device().data();
 	for (size_t i = 0, n = data.size(); i < n; ++i)
 	{
 		EXPECT_EQ(1, goptr[i]);
@@ -1794,8 +1817,8 @@ TEST(API, Extend)
 		51, 42, 9, 43, 37, 36, 65, 95, 10, 33
 	};
 
-	eteq::ETensor<double> src = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> dest = tenncor<double>().extend(src, slist.size(), ext);
+	eteq::ETensor src = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor dest = tenncor<double>().extend(src, slist.size(), ext);
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -1817,20 +1840,19 @@ TEST(API, Extend)
 	}
 
 	teq::Evaluator eval;
-	eteq::ETensorsT<double> gsrc = tcr::derive(dest, {src});
+	eteq::ETensorsT gsrc = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gsrc.size());
-	ASSERT_NE(nullptr, gsrc.front());
-	teq::TensSetT targets;
-	std::transform(gsrc.begin(), gsrc.end(),
-		std::inserter(targets, targets.end()),
-		[](eteq::ETensor<double>& g) { return g.get(); });
+	auto gs = gsrc.front();
+	ASSERT_NE(nullptr, gs);
+	gs = tenncor<double>().cast(gs);
+	teq::TensSetT targets = {gs.get()};
 	eval.evaluate(device, targets);
 	eval.evaluate(device, targets); // idempotency check
 	{
-		auto gotshape = gsrc[0]->shape();
+		auto gotshape = gs->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr = (double*) gsrc[0]->device().data();
+	double* goptr = (double*) gs->device().data();
 	for (size_t i = 0, n = data.size(); i < n; ++i)
 	{
 		EXPECT_EQ(ext_nelem, goptr[i]);
@@ -1872,9 +1894,9 @@ TEST(API, Matmul)
 		23+77, 23+77, 23+77, 23+77,
 	};
 
-	eteq::ETensor<int32_t> a = eteq::make_constant<int32_t>(data.data(), ashape);
-	eteq::ETensor<int32_t> b = eteq::make_constant<int32_t>(data2.data(), bshape);
-	eteq::ETensor<int32_t> dest = tenncor<int32_t>().matmul(a, b);
+	eteq::ETensor a = eteq::make_constant<int32_t>(data.data(), ashape);
+	eteq::ETensor b = eteq::make_constant<int32_t>(data2.data(), bshape);
+	eteq::ETensor dest = tenncor<int32_t>().matmul(a, b);
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -1892,51 +1914,48 @@ TEST(API, Matmul)
 	EXPECT_TRUE(freivald(dda, ddb, ddc));
 
 	teq::Evaluator eval;
-	eteq::ETensor<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
-	eteq::ETensor<int32_t> dest2 = tenncor<int32_t>().matmul(c, c);
-	eteq::ETensorsT<int32_t> gsame = tcr::derive(dest2, {c});
+	eteq::ETensor c = eteq::make_constant<int32_t>(data3.data(), cshape);
+	eteq::ETensor dest2 = tenncor<int32_t>().matmul(c, c);
+	eteq::ETensorsT gsame = tcr::derive(dest2, {c});
 	ASSERT_EQ(1, gsame.size());
-	ASSERT_NE(nullptr, gsame.front());
-	teq::TensSetT targets;
-	std::transform(gsame.begin(), gsame.end(),
-		std::inserter(targets, targets.end()),
-		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	auto gs = gsame.front();
+	ASSERT_NE(nullptr, gs);
+	gs = tenncor<int32_t>().cast(gs);
+	teq::TensSetT targets = {gs.get()};
 	eval.evaluate(device, targets);
 	eval.evaluate(device, targets); // idempotency check
-	teq::Shape gcshape = gsame[0]->shape();
+	teq::Shape gcshape = gs->shape();
 	ASSERT_ARREQ(cshape, gcshape);
 
-	eteq::ETensorsT<int32_t> gleft = tcr::derive(dest, {a});
+	eteq::ETensorsT gleft = tcr::derive(dest, {a});
 	ASSERT_EQ(1, gleft.size());
-	ASSERT_NE(nullptr, gleft.front());
-	teq::TensSetT ltargets;
-	std::transform(gleft.begin(), gleft.end(),
-		std::inserter(ltargets, ltargets.end()),
-		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	auto gl = gleft.front();
+	ASSERT_NE(nullptr, gl);
+	gl = tenncor<int32_t>().cast(gl);
+	teq::TensSetT ltargets = {gl.get()};
 	eval.evaluate(device, ltargets);
 	eval.evaluate(device, ltargets); // idempotency check
-	teq::Shape gashape = gleft[0]->shape();
+	teq::Shape gashape = gl->shape();
 	{
 		ASSERT_ARREQ(ashape, gashape);
-		int32_t* ga = (int32_t*) gleft[0]->device().data();
+		int32_t* ga = (int32_t*) gl->device().data();
 		ASSERT_NE(nullptr, ga);
 		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
 		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
-	eteq::ETensorsT<int32_t> gright = tcr::derive(dest, {b});
+	eteq::ETensorsT gright = tcr::derive(dest, {b});
 	ASSERT_EQ(1, gright.size());
-	ASSERT_NE(nullptr, gright.front());
-	teq::TensSetT rtargets;
-	std::transform(gright.begin(), gright.end(),
-		std::inserter(rtargets, rtargets.end()),
-		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	auto gr = gright.front();
+	ASSERT_NE(nullptr, gr);
+	gr = tenncor<int32_t>().cast(gr);
+	teq::TensSetT rtargets = {gr.get()};
 	eval.evaluate(device, rtargets);
 	eval.evaluate(device, rtargets); // idempotency check
-	teq::Shape gbshape = gright[0]->shape();
+	teq::Shape gbshape = gr->shape();
 	{
 		ASSERT_ARREQ(bshape, gbshape);
-		int32_t* gb = (int32_t*) gright[0]->device().data();
+		int32_t* gb = (int32_t*) gr->device().data();
 		ASSERT_NE(nullptr, gb);
 		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
 		ASSERT_VECEQ(expect_gb, gb_data);
@@ -1977,9 +1996,9 @@ TEST(API, Contract)
 		23+77, 23+77, 23+77, 23+77,
 	};
 
-	eteq::ETensor<int32_t> a = eteq::make_constant<int32_t>(data.data(), ashape);
-	eteq::ETensor<int32_t> b = eteq::make_constant<int32_t>(data2.data(), bshape);
-	eteq::ETensor<int32_t> dest = tenncor<int32_t>().contract(a, b, {{0, 2}});
+	eteq::ETensor a = eteq::make_constant<int32_t>(data.data(), ashape);
+	eteq::ETensor b = eteq::make_constant<int32_t>(data2.data(), bshape);
+	eteq::ETensor dest = tenncor<int32_t>().contract(a, b, {{0, 2}});
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -1999,51 +2018,48 @@ TEST(API, Contract)
 	EXPECT_TRUE(freivald(dda, ddb, ddc));
 
 	teq::Evaluator eval;
-	eteq::ETensor<int32_t> c = eteq::make_constant<int32_t>(data3.data(), cshape);
-	eteq::ETensor<int32_t> dest2 = tenncor<int32_t>().contract(c, c, {{0, 0}});
-	eteq::ETensorsT<int32_t> gsame = tcr::derive(dest2, {c});
+	eteq::ETensor c = eteq::make_constant<int32_t>(data3.data(), cshape);
+	eteq::ETensor dest2 = tenncor<int32_t>().contract(c, c, {{0, 0}});
+	eteq::ETensorsT gsame = tcr::derive(dest2, {c});
 	ASSERT_EQ(1, gsame.size());
-	ASSERT_NE(nullptr, gsame.front());
-	teq::TensSetT targets;
-	std::transform(gsame.begin(), gsame.end(),
-		std::inserter(targets, targets.end()),
-		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	auto gs = gsame.front();
+	ASSERT_NE(nullptr, gs);
+	gs = tenncor<int32_t>().cast(gs);
+	teq::TensSetT targets = {gs.get()};
 	eval.evaluate(device, targets);
 	eval.evaluate(device, targets); // idempotency check
-	teq::Shape gcshape = gsame[0]->shape();
+	teq::Shape gcshape = gs->shape();
 	ASSERT_ARREQ(cshape, gcshape);
 
-	eteq::ETensorsT<int32_t> gleft = tcr::derive(dest, {a});
+	eteq::ETensorsT gleft = tcr::derive(dest, {a});
 	ASSERT_EQ(1, gleft.size());
-	ASSERT_NE(nullptr, gleft.front());
-	teq::TensSetT ltargets;
-	std::transform(gleft.begin(), gleft.end(),
-		std::inserter(ltargets, ltargets.end()),
-		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	auto gl = gleft.front();
+	ASSERT_NE(nullptr, gl);
+	gl = tenncor<int32_t>().cast(gl);
+	teq::TensSetT ltargets = {gl.get()};
 	eval.evaluate(device, ltargets);
 	eval.evaluate(device, ltargets); // idempotency check
-	teq::Shape gashape = gleft[0]->shape();
+	teq::Shape gashape = gl->shape();
 	{
 		ASSERT_ARREQ(ashape, gashape);
-		int32_t* ga = (int32_t*) gleft[0]->device().data();
+		int32_t* ga = (int32_t*) gl->device().data();
 		ASSERT_NE(nullptr, ga);
 		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
 		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
-	eteq::ETensorsT<int32_t> gright = tcr::derive(dest, {b});
+	eteq::ETensorsT gright = tcr::derive(dest, {b});
 	ASSERT_EQ(1, gright.size());
-	ASSERT_NE(nullptr, gright.front());
-	teq::TensSetT rtargets;
-	std::transform(gright.begin(), gright.end(),
-		std::inserter(rtargets, rtargets.end()),
-		[](eteq::ETensor<int32_t>& g) { return g.get(); });
+	auto gr = gright.front();
+	ASSERT_NE(nullptr, gr);
+	gr = tenncor<int32_t>().cast(gr);
+	teq::TensSetT rtargets = {gr.get()};
 	eval.evaluate(device, rtargets);
 	eval.evaluate(device, rtargets); // idempotency check
-	teq::Shape gbshape = gright[0]->shape();
+	teq::Shape gbshape = gr->shape();
 	{
 		ASSERT_ARREQ(bshape, gbshape);
-		int32_t* gb = (int32_t*) gright[0]->device().data();
+		int32_t* gb = (int32_t*) gr->device().data();
 		ASSERT_NE(nullptr, gb);
 		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
 		ASSERT_VECEQ(expect_gb, gb_data);
@@ -2058,9 +2074,9 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	double lo = 0.2547977589;
 	teq::Shape shape(shape_list);
 
-	eteq::ETensor<double> src = eteq::make_constant_scalar<double>(lo, shape);
-	eteq::ETensor<double> src2 = eteq::make_constant_scalar<double>(hi, shape);
-	eteq::ETensor<double> dest = tenncor<double>().random.rand_unif(src, src2);
+	eteq::ETensor src = eteq::make_constant_scalar<double>(lo, shape);
+	eteq::ETensor src2 = eteq::make_constant_scalar<double>(hi, shape);
+	eteq::ETensor dest = tenncor<double>().random.rand_unif(src, src2);
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -2079,36 +2095,34 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 	}
 
 	teq::Evaluator eval;
-	eteq::ETensorsT<double> gleft = tcr::derive(dest, {src});
+	eteq::ETensorsT gleft = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gleft.size());
-	ASSERT_NE(nullptr, gleft.front());
-	teq::TensSetT ltargets;
-	std::transform(gleft.begin(), gleft.end(),
-		std::inserter(ltargets, ltargets.end()),
-		[](eteq::ETensor<double>& g) { return g.get(); });
+	auto gl = gleft.front();
+	ASSERT_NE(nullptr, gl);
+	gl = tenncor<double>().cast(gl);
+	teq::TensSetT ltargets = {gl.get()};
 	eval.evaluate(device, ltargets);
 	eval.evaluate(device, ltargets); // idempotency check
 	{
-		auto gotshape = gleft[0]->shape();
+		auto gotshape = gl->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr2 = (double*) gleft[0]->device().data();
+	double* goptr2 = (double*) gl->device().data();
 	EXPECT_DOUBLE_EQ(0, goptr2[0]);
 
-	eteq::ETensorsT<double> gright = tcr::derive(dest, {src});
+	eteq::ETensorsT gright = tcr::derive(dest, {src});
 	ASSERT_EQ(1, gright.size());
-	ASSERT_NE(nullptr, gright.front());
-	teq::TensSetT rtargets;
-	std::transform(gright.begin(), gright.end(),
-		std::inserter(rtargets, rtargets.end()),
-		[](eteq::ETensor<double>& g) { return g.get(); });
+	auto gr = gright.front();
+	ASSERT_NE(nullptr, gr);
+	gr = tenncor<int32_t>().cast(gr);
+	teq::TensSetT rtargets = {gr.get()};
 	eval.evaluate(device, rtargets);
 	eval.evaluate(device, rtargets); // idempotency check
 	{
-		auto gotshape = gright[0]->shape();
+		auto gotshape = gr->shape();
 		ASSERT_ARREQ(shape, gotshape);
 	}
-	double* goptr3 = (double*) gright[0]->device().data();
+	double* goptr3 = (double*) gr->device().data();
 	EXPECT_DOUBLE_EQ(0, goptr3[0]);
 }
 
@@ -2181,11 +2195,11 @@ TEST(API, Convolution)
 		2083, 2021,
 	};
 
-	eteq::ETensor<double> img = eteq::make_constant<double>(data.data(), shape);
-	eteq::ETensor<double> kernel = eteq::make_constant<double>(data2.data(), kshape);
+	eteq::ETensor img = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor kernel = eteq::make_constant<double>(data2.data(), kshape);
 	std::vector<teq::RankT> dims(teq::rank_cap);
 	std::iota(dims.begin(), dims.end(), 0);
-	eteq::ETensor<double> dest = tenncor<double>().convolution(img, kernel, dims);
+	eteq::ETensor dest = tenncor<double>().convolution(img, kernel, dims);
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
@@ -2202,38 +2216,34 @@ TEST(API, Convolution)
 	}
 
 	teq::Evaluator eval;
-	eteq::ETensorsT<double> gleft = tcr::derive(dest, {img});
+	eteq::ETensorsT gleft = tcr::derive(dest, {img});
 	ASSERT_EQ(1, gleft.size());
-	ASSERT_NE(nullptr, gleft.front());
-	ASSERT_NE(nullptr, gleft[0].get());
-	teq::TensSetT ltargets;
-	std::transform(gleft.begin(), gleft.end(),
-		std::inserter(ltargets, ltargets.end()),
-		[](eteq::ETensor<double>& g) { return g.get(); });
+	auto gl = gleft.front();
+	ASSERT_NE(nullptr, gl);
+	gl = tenncor<double>().cast(gl);
+	teq::TensSetT ltargets = {gl.get()};
 	eval.evaluate(device, ltargets);
 	eval.evaluate(device, ltargets); // idempotency check
 	{
-		auto gashape = gleft[0]->shape();
+		auto gashape = gl->shape();
 		ASSERT_ARREQ(shape, gashape);
-		double* ga = (double*) gleft[0]->device().data();
+		double* ga = (double*) gl->device().data();
 		std::vector<double> ga_data(ga, ga + gashape.n_elems());
 		ASSERT_VECEQ(expect_ga, ga_data);
 	}
 
-	eteq::ETensorsT<double> gright = tcr::derive(dest, {kernel});
+	eteq::ETensorsT gright = tcr::derive(dest, {kernel});
 	ASSERT_EQ(1, gright.size());
-	ASSERT_NE(nullptr, gright.front());
-	ASSERT_NE(nullptr, gright[0].get());
-	teq::TensSetT rtargets;
-	std::transform(gright.begin(), gright.end(),
-		std::inserter(rtargets, rtargets.end()),
-		[](eteq::ETensor<double>& g) { return g.get(); });
+	auto gr = gright.front();
+	ASSERT_NE(nullptr, gr);
+	gr = tenncor<double>().cast(gr);
+	teq::TensSetT rtargets = {gr.get()};
 	eval.evaluate(device, rtargets);
 	eval.evaluate(device, rtargets); // idempotency check
 	{
-		auto gbshape = gright[0]->shape();
+		auto gbshape = gr->shape();
 		ASSERT_ARREQ(kshape, gbshape);
-		double* gb = (double*) gright[0]->device().data();
+		double* gb = (double*) gr->device().data();
 		std::vector<double> gb_data(gb, gb + gbshape.n_elems());
 		ASSERT_VECEQ(expect_gb, gb_data);
 	}

@@ -24,7 +24,7 @@ funcs:
 
                 x_next = x - learning_rate * f'(x)
     args:
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: error
     - type: const eteq::EVariablesT<T>&
       name: variables
@@ -39,8 +39,8 @@ funcs:
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = tcr::derive<T>(error,
-                  eteq::ETensorsT<T>(variables.begin(),variables.end()));
+              auto ders = tcr::derive(error,
+                  eteq::ETensorsT(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
                   auto& x = variables[i];
@@ -55,7 +55,7 @@ funcs:
               return out;
   - name: adagrad
     args:
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: error
     - type: const eteq::EVariablesT<T>&
       name: variables
@@ -73,8 +73,8 @@ funcs:
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = tcr::derive<T>(error,
-                  eteq::ETensorsT<T>(variables.begin(),variables.end()));
+              auto ders = tcr::derive(error,
+                  eteq::ETensorsT(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
                   auto& x = variables[i];
@@ -112,7 +112,7 @@ funcs:
                 E(dx_next^2) = decay * E(dx^2) + (1 - decay) * dx ^ 2
                 x_next = x - dx
     args:
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: error
     - type: const eteq::EVariablesT<T>&
       name: variables
@@ -133,8 +133,8 @@ funcs:
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = tcr::derive<T>(error,
-                  eteq::ETensorsT<T>(variables.begin(),variables.end()));
+              auto ders = tcr::derive(error,
+                  eteq::ETensorsT(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
                   auto& x = variables[i];
@@ -185,7 +185,7 @@ funcs:
                 momentum_next = discount_factor * m + (1 - discount_factor) * f'(x) ^ 2
                 x_next = x - (learning * f'(x)) / (sqrt(epsilon + momentum_next))
     args:
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: error
     - type: const eteq::EVariablesT<T>&
       name: variables
@@ -206,8 +206,8 @@ funcs:
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = tcr::derive<T>(error,
-                  eteq::ETensorsT<T>(variables.begin(),variables.end()));
+              auto ders = tcr::derive(error,
+                  eteq::ETensorsT(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
                   auto& x = variables[i];

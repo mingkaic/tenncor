@@ -12,7 +12,7 @@ namespace trainer
 template <typename T>
 struct DBNTrainer final
 {
-	DBNTrainer (const std::vector<layr::RBMLayer<T>>& rbms, eteq::ETensor<T> dense,
+	DBNTrainer (const std::vector<layr::RBMLayer<T>>& rbms, eteq::ETensor dense,
 		teq::RankT softmax_dim, teq::DimT batch_size,
 		T pretrain_lr = 0.1, T train_lr = 0.1,
 		size_t cdk = 10, T l2_reg = 0., T lr_scaling = 0.95,
@@ -47,8 +47,8 @@ struct DBNTrainer final
 			auto& rx = sample_pipes_[i];
 			auto& ry = sample_pipes_[i + 1];
 			teq::TensSetT to_learn;
-			auto fstorage = layr::get_storage(rbm.fwd_);
-			auto bstorage = layr::get_storage(rbm.bwd_);
+			auto fstorage = layr::get_storage<T>(rbm.fwd_);
+			auto bstorage = layr::get_storage<T>(rbm.bwd_);
 			for (auto var : fstorage)
 			{
 				to_learn.emplace(var.get());
@@ -86,14 +86,14 @@ struct DBNTrainer final
 
 		// logistic layer training
 		// todo: improve this adhoc way of training log layer
-		auto contents = layr::get_storage(dense);
+		auto contents = layr::get_storage<T>(dense);
 		eteq::VarptrT<T> w = contents[0];
 		eteq::VarptrT<T> b = contents[1];
 		auto final_out = api.softmax(layr::connect(
 			dense, sample_pipes_.back()), softmax_dim, 1);
 		auto diff = trainy_ - final_out;
 		auto l2_regularized = api.matmul(api.transpose(
-			sample_pipes_.back()), diff) - l2_reg * eteq::ETensor<T>(w, context);
+			sample_pipes_.back()), diff) - l2_reg * eteq::ETensor(w, context);
 
 		auto wshape = w->shape();
 		auto bshape = b->shape();
@@ -110,7 +110,7 @@ struct DBNTrainer final
 		auto dtrain_lr = tlr_placeholder * lr_scaling;
 
 		tupdate_ = api.depends(api.assign(tlr_placeholder, dtrain_lr),
-			eteq::ETensorsT<T>{
+			eteq::ETensorsT{
 				api.assign_add(eteq::EVariable<T>(w, context), dw),
 				api.assign_add(eteq::EVariable<T>(b, context), db),
 			});
@@ -168,12 +168,12 @@ struct DBNTrainer final
 		auto to_ignore = sample_pipes_.back();
 		auto prev_ignore = sample_pipes_[nlayers_ - 1].get();
 		assert(static_cast<eteq::Functor<T>*>(prev_ignore)->has_data());
-		to_ignore.calc({prev_ignore});
+		to_ignore.template calc<T>({prev_ignore});
 
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)
 		{
 			// train log layer
-			tupdate_.calc({to_ignore.get()});
+			tupdate_.template calc<T>({to_ignore.get()});
 			if (logger)
 			{
 				logger(epoch);
@@ -184,12 +184,12 @@ struct DBNTrainer final
 	T reconstruction_cost (size_t layer)
 	{
 		auto& rcost = rcosts_[layer];
-		return *rcost.calc();
+		return *rcost.template calc<T>();
 	}
 
 	T training_cost (void)
 	{
-		return *tcost_.calc();
+		return *tcost_.template calc<T>();
 	}
 
 	size_t nlayers_;
@@ -204,15 +204,15 @@ struct DBNTrainer final
 
 	eteq::EVariable<T> trainy_;
 
-	eteq::ETensorsT<T> sample_pipes_;
+	eteq::ETensorsT sample_pipes_;
 
 	std::vector<teq::TensptrSetT> rupdates_;
 
-	eteq::ETensor<T> tupdate_;
+	eteq::ETensor tupdate_;
 
-	eteq::ETensorsT<T> rcosts_;
+	eteq::ETensorsT rcosts_;
 
-	eteq::ETensor<T> tcost_;
+	eteq::ETensor tcost_;
 
 	global::CfgMapptrT context_;
 };

@@ -13,11 +13,7 @@ namespace py = pybind11;
 namespace pytenncor
 {
 
-using ETensT = eteq::ETensor<PybindT>;
-
-using ETensorsT = eteq::ETensorsT<PybindT>;
-
-using ETensPairT = std::pair<ETensT,ETensT>;
+using ETensPairT = std::pair<eteq::ETensor,eteq::ETensor>;
 
 template <typename T>
 py::array typedata_to_array (T* data, teq::Shape shape,

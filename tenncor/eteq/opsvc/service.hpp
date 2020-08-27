@@ -21,9 +21,6 @@ if (nullptr != ERR)\
 	return grpc::Status(STATUS, ERR->to_string());\
 }
 
-#define _MAKE_DERFUNC(REAL_TYPE)\
-builder = new eteq::DerivativeFuncs<REAL_TYPE>();
-
 using OpServiceT = DistrOperation::AsyncService;
 
 using DataStatesT = std::unordered_map<std::string,teq::iTensor*>;
@@ -546,11 +543,8 @@ private:
 		teq::OwnMapT tgrads;
 		if (parents.size() > 0)
 		{
-			teq::iDerivativeFuncs* builder = nullptr;
-			auto dtype = (*parents.begin())->get_meta().type_code();
-			TYPE_LOOKUP(_MAKE_DERFUNC, dtype);
-			tgrads = derive(grads, parents, BackpropMeta{targets}, *builder);
-			delete builder;
+			eteq::DerivativeFuncs builder;
+			tgrads = derive(grads, parents, BackpropMeta{targets}, builder);
 		}
 		// populate response grads
 		auto resgrads = res.mutable_grads();
@@ -573,8 +567,6 @@ private:
 	// todo: move to data obj
 	teq::TensMapT<types::StrUSetT> reach_cache_;
 };
-
-#undef _MAKE_DERFUNC
 
 #undef _ERR_CHECK
 

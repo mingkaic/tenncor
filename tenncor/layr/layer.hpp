@@ -34,24 +34,6 @@ const std::string lstm_name = "_LSTM_LAYER";
 
 const std::string gru_name = "_GRU_LAYER";
 
-teq::Shape gen_rshape (std::vector<teq::DimT> runcoms,
-	teq::Shape left, eigen::PairVecT<teq::RankT> lrdims);
-
-teq::TensptrT make_layer (teq::TensptrT root,
-	const std::string& layername, teq::TensptrT input);
-
-template <typename T>
-eteq::ETensor<T> get_input (const eteq::ETensor<T>& root)
-{
-	if (nullptr == root)
-	{
-		global::fatal("cannot get layer attr with null root");
-	}
-	auto froot = estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root);
-	auto layerattr = estd::must_cast<teq::LayerObj>(froot->get_attr(teq::layer_key));
-	return eteq::ETensor<T>(layerattr->get_tensor(), root.get_context());
-}
-
 static inline teq::TensMapT<std::string> replace_targets (
 	const teq::OwnMapT& inputs)
 {
@@ -63,7 +45,21 @@ static inline teq::TensMapT<std::string> replace_targets (
 	return targets;
 }
 
-template <typename T>
+teq::Shape gen_rshape (std::vector<teq::DimT> runcoms,
+	teq::Shape left, eigen::PairVecT<teq::RankT> lrdims);
+
+teq::TensptrT make_layer (teq::TensptrT root,
+	const std::string& layername, teq::TensptrT input);
+
+eteq::ETensor get_input (const eteq::ETensor& root);
+
+/// Copy everything from input.first to root, except replacing input.first with input.second
+eteq::ETensor trail (const eteq::ETensor& root, const teq::OwnMapT& inputs);
+
+eteq::ETensor connect (const eteq::ETensor& root, const eteq::ETensor& input);
+
+eteq::ETensor deep_clone (const eteq::ETensor& root);
+
 struct Trailer final : public teq::iOnceTraveler
 {
 	Trailer (const teq::OwnMapT& inputs) :
@@ -115,7 +111,7 @@ private:
 			children[i] = trailed_.at(child.get());
 		}
 
-		trailed_.emplace(&func, eteq::make_funcattr<T>(
+		trailed_.emplace(&func, eteq::make_funcattr(
 			(egen::_GENERATED_OPCODE) func.get_opcode().code_,
 			children, dup_attrs));
 	}
@@ -174,26 +170,8 @@ private:
 	}
 };
 
-/// Copy everything from input.first to root, except replacing input.first with input.second
 template <typename T>
-eteq::ETensor<T> trail (const eteq::ETensor<T>& root,
-	const teq::OwnMapT& inputs)
-{
-	Trailer<T> trailer(inputs);
-	root->accept(trailer);
-	return eteq::ETensor<T>(estd::try_get(trailer.trailed_, root.get(), nullptr),
-		root.get_context());
-}
-
-template <typename T>
-eteq::ETensor<T> connect (const eteq::ETensor<T>& root, const eteq::ETensor<T>& input)
-{
-	return trail(root, teq::OwnMapT{
-		{get_input(root).get(), (teq::TensptrT) input}});
-}
-
-template <typename T>
-eteq::VarptrsT<T> get_storage (const eteq::ETensor<T>& root)
+eteq::VarptrsT<T> get_storage (const eteq::ETensor& root)
 {
 	teq::RefMapT owner = teq::track_ownrefs(teq::TensptrsT{root});
 
@@ -215,41 +193,33 @@ eteq::VarptrsT<T> get_storage (const eteq::ETensor<T>& root)
 }
 
 template <typename T>
-eteq::ETensor<T> deep_clone (const eteq::ETensor<T>& root)
-{
-	teq::Copier kamino({get_input(root).get()});
-	root->accept(kamino);
-	return eteq::ETensor<T>(kamino.clones_.at(root.get()), root.get_context());
-}
-
-template <typename T>
-using UnaryF = std::function<eteq::ETensor<T>(const eteq::ETensor<T>&)>;
-
-template <typename T>
 struct RBMLayer final
 {
 	RBMLayer<T> deep_clone (void) const
 	{
 		return RBMLayer<T>{
-			::layr::deep_clone<T>(fwd_),
-			::layr::deep_clone<T>(bwd_)
+			::layr::deep_clone(fwd_),
+			::layr::deep_clone(bwd_)
 		};
 	}
 
-	eteq::ETensor<T> connect (const eteq::ETensor<T>& input) const
+	eteq::ETensor connect (const eteq::ETensor& input) const
 	{
-		return ::layr::connect<T>(fwd_, input);
+		return ::layr::connect(fwd_, input);
 	}
 
-	eteq::ETensor<T> backward_connect (const eteq::ETensor<T>& output) const
+	eteq::ETensor backward_connect (const eteq::ETensor& output) const
 	{
-		return ::layr::connect<T>(bwd_, output);
+		return ::layr::connect(bwd_, output);
 	}
 
-	eteq::ETensor<T> fwd_;
+	eteq::ETensor fwd_;
 
-	eteq::ETensor<T> bwd_;
+	eteq::ETensor bwd_;
 };
+
+template <typename T>
+using UnaryF = std::function<eteq::ETensor(const eteq::ETensor&)>;
 
 }
 

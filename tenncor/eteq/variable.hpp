@@ -178,31 +178,6 @@ using VarptrT = std::shared_ptr<Variable<T>>;
 template <typename T>
 using VarptrsT = std::vector<VarptrT<T>>;
 
-template <typename T>
-struct EVariable;
-
-/// Return variable node given scalar and shape
-template <typename T>
-EVariable<T> make_variable_scalar (T scalar,
-	teq::Shape shape, std::string label = "",
-	const global::CfgMapptrT& ctx = global::context());
-
-/// Return variable node filled with scalar matching link shape
-template <typename T>
-EVariable<T> make_variable_like (T scalar,
-	teq::TensptrT like, std::string label = "",
-	const global::CfgMapptrT& ctx = global::context());
-
-/// Return zero-initialized variable node of specified shape
-template <typename T>
-EVariable<T> make_variable (teq::Shape shape, std::string label = "",
-	const global::CfgMapptrT& ctx = global::context());
-
-/// Return variable node given raw array and shape
-template <typename T>
-EVariable<T> make_variable (T* data, teq::Shape shape, std::string label = "",
-	const global::CfgMapptrT& ctx = global::context());
-
 }
 
 #endif // ETEQ_VARIABLE_HPP

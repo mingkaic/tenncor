@@ -70,7 +70,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(opcode, {var});
+				auto f = eteq::make_functor(opcode, {var});
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
@@ -92,7 +92,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(opcode, {var, var});
+				auto f = eteq::make_functor(opcode, {var, var});
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
@@ -106,7 +106,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(opcode, {var}, 1, 1);
+				auto f = eteq::make_functor(opcode, {var}, 1, 1);
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}

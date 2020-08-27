@@ -15,8 +15,8 @@ std::string compare_graph (std::istream& expectstr, teq::iTensor* root,
 	bool showshape, LabelsMapT labels)
 {
 	PrettyEquation artist;
-	artist.showshape_ = showshape;
-	artist.labels_ = labels;
+	artist.cfg_.showshape_ = showshape;
+	artist.cfg_.labels_ = labels;
 	std::stringstream gotstr;
 	artist.print(gotstr, root);
 	std::string out;

@@ -17,17 +17,17 @@ PYBIND11_MODULE(print, m)
 	m
 		// ==== to stdout functions ====
 		.def("print_graph",
-		[](eteq::ETensor<PybindT> root, bool showshape)
+		[](eteq::ETensor root, bool showshape)
 		{
 			PrettyEquation peq;
-			peq.showshape_ = showshape;
+			peq.cfg_.showshape_ = showshape;
 			peq.print(std::cout, root);
 		},
 		"Print graph of root tensor to stdout",
 		py::arg("root"),
 		py::arg("showshape") = false)
 		.def("print_graphcsv",
-		[](eteq::ETensor<PybindT> root, bool showshape)
+		[](eteq::ETensor root, bool showshape)
 		{
 			CSVEquation ceq;
 			ceq.showshape_ = showshape;
@@ -40,11 +40,11 @@ PYBIND11_MODULE(print, m)
 
 		// ==== to string functions ====
 		.def("graph_to_str",
-		[](eteq::ETensor<PybindT> root, bool showshape)
+		[](eteq::ETensor root, bool showshape)
 		{
 			std::stringstream ss;
 			PrettyEquation peq;
-			peq.showshape_ = showshape;
+			peq.cfg_.showshape_ = showshape;
 			peq.print(ss, root);
 			return ss.str();
 		},
@@ -52,7 +52,7 @@ PYBIND11_MODULE(print, m)
 		py::arg("root"),
 		py::arg("showshape") = false)
 		.def("graph_to_csvstr",
-		[](eteq::ETensor<PybindT> root, bool showshape)
+		[](eteq::ETensor root, bool showshape)
 		{
 			std::stringstream ss;
 			CSVEquation ceq;
@@ -65,7 +65,7 @@ PYBIND11_MODULE(print, m)
 		py::arg("root"),
 		py::arg("showshape") = false)
 		.def("multigraph_to_csvstr",
-		[](eteq::ETensorsT<PybindT> roots, bool showshape)
+		[](eteq::ETensorsT roots, bool showshape)
 		{
 			std::stringstream ss;
 			CSVEquation ceq;
@@ -83,13 +83,13 @@ PYBIND11_MODULE(print, m)
 
 		// ==== to file functions ====
 		.def("graph_to_file",
-		[](eteq::ETensor<PybindT> root, std::string filename, bool showshape)
+		[](eteq::ETensor root, std::string filename, bool showshape)
 		{
 			std::ofstream outstr(filename);
 			if (outstr.is_open())
 			{
 				PrettyEquation peq;
-				peq.showshape_ = showshape;
+				peq.cfg_.showshape_ = showshape;
 				peq.print(outstr, root);
 			}
 			else
@@ -103,7 +103,7 @@ PYBIND11_MODULE(print, m)
 		py::arg("filename"),
 		py::arg("showshape") = false)
 		.def("graph_to_csvfile",
-		[](eteq::ETensor<PybindT> root, std::string filename, bool showshape)
+		[](eteq::ETensor root, std::string filename, bool showshape)
 		{
 			std::ofstream outstr(filename);
 			if (outstr.is_open())
@@ -123,7 +123,7 @@ PYBIND11_MODULE(print, m)
 		py::arg("filename"),
 		py::arg("showshape") = false)
 		.def("multigraph_to_csvfile",
-		[](eteq::ETensorsT<PybindT> roots, std::string filename, bool showshape)
+		[](eteq::ETensorsT roots, std::string filename, bool showshape)
 		{
 			std::ofstream outstr(filename);
 			if (outstr.is_open())

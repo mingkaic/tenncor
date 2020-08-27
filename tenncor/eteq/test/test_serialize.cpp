@@ -23,7 +23,7 @@ const std::string testdir = "models/test";
 TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/eteq.onnx";
-	std::string got_pbfile = "got_eteq.onnx";
+	std::string got_pbfile = "/tmp/got_eteq.onnx";
 	onnx::ModelProto model;
 
 	teq::Shape in_shape({10, 3});
@@ -33,21 +33,21 @@ TEST(SERIALIZE, SaveGraph)
 	teq::Shape bias1_shape({5});
 	teq::Shape out_shape({5,3});
 
-	eteq::ETensor<double> in = eteq::ETensor<double>(eteq::make_variable<double>(
+	eteq::ETensor in = eteq::ETensor(eteq::make_variable<double>(
 		std::vector<double>(in_shape.n_elems()).data(), in_shape, "in"));
-	eteq::ETensor<double> weight0 = eteq::ETensor<double>(eteq::make_variable<double>(
+	eteq::ETensor weight0 = eteq::ETensor(eteq::make_variable<double>(
 		std::vector<double>(weight0_shape.n_elems()).data(), weight0_shape, "weight0"));
-	eteq::ETensor<double> bias0 = eteq::ETensor<double>(eteq::make_variable<double>(
+	eteq::ETensor bias0 = eteq::ETensor(eteq::make_variable<double>(
 		std::vector<double>(bias0_shape.n_elems()).data(), bias0_shape, "bias0"));
-	eteq::ETensor<double> weight1 = eteq::ETensor<double>(eteq::make_variable<double>(
+	eteq::ETensor weight1 = eteq::ETensor(eteq::make_variable<double>(
 		std::vector<double>(weight1_shape.n_elems()).data(), weight1_shape, "weight1"));
-	eteq::ETensor<double> bias1 = eteq::ETensor<double>(eteq::make_variable<double>(
+	eteq::ETensor bias1 = eteq::ETensor(eteq::make_variable<double>(
 		std::vector<double>(bias1_shape.n_elems()).data(), bias1_shape, "bias1"));
-	eteq::ETensor<double> out = eteq::ETensor<double>(eteq::make_variable<double>(
+	eteq::ETensor out = eteq::ETensor(eteq::make_variable<double>(
 		std::vector<double>(out_shape.n_elems()).data(), out_shape, "out"));
 
 	auto layer0 = tenncor<double>().matmul(in, weight0) + tenncor<double>().extend(bias0, 1, {3});
-	auto sig0 = 1. / (1. + tenncor<double>().exp(-layer0));
+	auto sig0 = 1. / ((double) 1. + tenncor<double>().exp(-layer0));
 
 	auto layer1 = tenncor<double>().matmul(sig0, weight1) + tenncor<double>().extend(bias1, 1, {3});
 	auto sig1 = 1. / (1. + tenncor<double>().exp(-layer1));
@@ -64,7 +64,7 @@ TEST(SERIALIZE, SaveGraph)
 	ids.insert({db0.get(), "db0"});
 	ids.insert({dw1.get(), "dw1"});
 	ids.insert({db1.get(), "db1"});
-	tcr::save_model<double>(model, {dw0, db0, dw1, db1}, ids);
+	tcr::save_model(model, {dw0, db0, dw1, db1}, ids);
 	{
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
@@ -99,23 +99,23 @@ TEST(SERIALIZE, SaveDependencies)
 
 	teq::Shape shape({10, 2});
 
-	eteq::ETensor<double> a = eteq::ETensor<double>(eteq::make_variable<double>(
+	eteq::ETensor a = eteq::ETensor(eteq::make_variable<double>(
 		std::vector<double>(shape.n_elems()).data(), shape, "a"));
-	eteq::ETensor<double> b = eteq::ETensor<double>(eteq::make_variable<double>(
+	eteq::ETensor b = eteq::ETensor(eteq::make_variable<double>(
 		std::vector<double>(shape.n_elems()).data(), shape, "b"));
-	eteq::ETensor<double> root = a * b;
+	eteq::ETensor root = a * b;
 
-	eteq::ETensor<double> c = eteq::ETensor<double>(eteq::make_variable<double>(
+	eteq::ETensor c = eteq::ETensor(eteq::make_variable<double>(
 		std::vector<double>(shape.n_elems()).data(), shape, "c"));
-	eteq::ETensor<double> dep = a + c;
-	eteq::ETensor<double> dep2 = a / c - b;
+	eteq::ETensor dep = a + c;
+	eteq::ETensor dep2 = a / c - b;
 
 	eteq::add_dependencies(root, {dep});
 	eteq::add_dependencies(root, {dep2});
 
 	onnx::TensIdT ids;
 	ids.insert({root.get(), "root"});
-	tcr::save_model<double>(model, {root}, ids);
+	tcr::save_model(model, {root}, ids);
 	{
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
@@ -153,7 +153,7 @@ TEST(SERIALIZE, LoadGraph)
 	}
 
 	onnx::TensptrIdT ids;
-	auto out = tcr::load_model<double>(ids, in);
+	auto out = tcr::load_model(ids, in);
 	EXPECT_EQ(4, out.size());
 
 	ASSERT_HAS(ids.right, "dw0");
@@ -191,6 +191,12 @@ TEST(SERIALIZE, LoadGraph)
 	artist.print(gotstr, db0);
 	artist.print(gotstr, dw1);
 	artist.print(gotstr, db1);
+
+	std::ofstream os("/tmp/eteq.json");
+	artist.print(os, dw0);
+	artist.print(os, db0);
+	artist.print(os, dw1);
+	artist.print(os, db1);
 
 	while (std::getline(gotstr, line))
 	{

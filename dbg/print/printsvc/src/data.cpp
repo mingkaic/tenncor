@@ -11,7 +11,7 @@ namespace print
 
 static const std::string ascii_formatkey = "{xj]yq<";
 
-AsciiTemplate::AsciiTemplate (teq::iTensor* tens, bool showshape)
+AsciiTemplate::AsciiTemplate (teq::iTensor* tens, const PrintEqConfig& cfg)
 {
 	teq::TensptrsT dummies;
 	PrettyTree<teq::iTensor*> renderer(
@@ -41,28 +41,21 @@ AsciiTemplate::AsciiTemplate (teq::iTensor* tens, bool showshape)
 			}
 			return {};
 		},
-		[&, this](std::ostream& out, teq::iTensor*& root, const std::string& prefix)
+		[&](std::ostream& out, teq::iTensor*& root, const std::string& prefix)
 		{
-			if (root)
+			if (nullptr == root)
 			{
-				if (auto ref = dynamic_cast<iDistrRef*>(root))
-				{
-					out << ascii_formatkey;
-					remotes_.push_back(AsciiRemote{ref->node_id(), ref->cluster_id(), prefix});
-					return;
-				}
-				out << "(";
-				if (auto var = dynamic_cast<teq::iLeaf*>(root))
-				{
-					out << teq::get_usage_name(var->get_usage()) << ":";
-				}
-				out << root->to_string();
-				if (showshape)
-				{
-					out << root->shape().to_string();
-				}
-				out << ")";
+				return;
 			}
+			if (auto ref = dynamic_cast<iDistrRef*>(root))
+			{
+				out << ascii_formatkey;
+				remotes_.push_back(AsciiRemote{ref->node_id(), ref->cluster_id(), prefix});
+				return;
+			}
+			out << "(";
+			ten_stream(out, root, prefix, cfg);
+			out << ")";
 		});
 	renderer.node_wrap = {"", ""};
 	renderer.print(format_, tens);

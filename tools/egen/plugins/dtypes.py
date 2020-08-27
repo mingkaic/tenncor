@@ -12,6 +12,8 @@ _header_template = '''
 namespace egen
 {{
 
+{config_defines}
+
 enum _GENERATED_DTYPE
 {{
     BAD_TYPE = 0,
@@ -20,9 +22,13 @@ enum _GENERATED_DTYPE
     _N_GENERATED_DTYPES,
 }};
 
+const _GENERATED_DTYPE default_dtype = {default_dtype};
+
 std::string name_type (_GENERATED_DTYPE type);
 
 uint8_t type_size (_GENERATED_DTYPE type);
+
+size_t type_precision (_GENERATED_DTYPE type);
 
 _GENERATED_DTYPE get_type (const std::string& name);
 
@@ -57,6 +63,9 @@ void type_convert (OUTTYPE* out, const void* input,
                 name_type(intype).c_str());
     }}
 }}
+
+#define EVERY_TYPE(GENERIC_MACRO)\\
+{apply_everytype}
 
 // GENERIC_MACRO must accept a real type as an argument.
 // e.g.:
@@ -115,6 +124,18 @@ uint8_t type_size (_GENERATED_DTYPE type)
     return 0;
 }}
 
+
+size_t type_precision (_GENERATED_DTYPE type)
+{{
+    switch (type)
+    {{
+        //>>> precisions
+        {precisions}
+        default: break;
+    }}
+    return 0;
+}}
+
 //>>> get_types
 {get_types}
 
@@ -123,7 +144,16 @@ uint8_t type_size (_GENERATED_DTYPE type)
 #endif
 '''
 
-def _handle_enumeration(dtypes):
+dtype_key = 'dtype'
+
+def _handle_config_defines(arguments):
+    defns = arguments.get('defines', None)
+    if defns:
+        return '\n'.join(['#define {}'.format(defn) for defn in defns])
+    return ''
+
+def _handle_enumeration(arguments):
+    dtypes = arguments[dtype_key]
     assert(len(dtypes))
     dtype_codes = list(dtypes.keys())
     return ',\n    '.join(dtype_codes) + ','
@@ -139,9 +169,10 @@ struct TypeInfo<{dtype}>
     TypeInfo (void) = delete;
 }};'''
 
-def _handle_mapping(dtypes):
+def _handle_mapping(arguments):
+    dtypes = arguments[dtype_key]
     return '\n\n'.join([
-        _dtype_mapping_tmp.format(code=code, dtype=dtypes[code])
+        _dtype_mapping_tmp.format(code=code, dtype=dtypes[code]['ctype'])
         for code in dtypes
     ])
 
@@ -151,40 +182,53 @@ _convert_tmp = '''case {code}:
             std::memcpy(out, temp.data(), sizeof(OUTTYPE) * nelems);
         }}
             break;'''
-def _handle_conversions(dtypes):
+def _handle_conversions(arguments):
+    dtypes = arguments[dtype_key]
     return '\n        '.join([
-        _convert_tmp.format(code=code, dtype=dtypes[code])
+        _convert_tmp.format(code=code, dtype=dtypes[code]['ctype'])
         for code in dtypes
     ])
 
-def _handle_cases(dtypes):
+def _handle_cases(arguments):
+    dtypes = arguments[dtype_key]
     _dtype_case_tmp = 'case egen::{code}: GENERIC_MACRO({dtype}) break;'
     return '\\\n    '.join([
-        _dtype_case_tmp.format(code=code, dtype=dtypes[code])
+        _dtype_case_tmp.format(code=code, dtype=dtypes[code]['ctype'])
         for code in dtypes
     ])
 
-def _handle_type2names(dtypes):
+def _handle_type2names(arguments):
+    dtypes = arguments[dtype_key]
     _dtype2names_tmp = '{{ {code}, "{code}" }}'
     return ',\n    '.join([
         _dtype2names_tmp.format(code=code)
         for code in dtypes
     ])
 
-def _handle_name2types(dtypes):
+def _handle_name2types(arguments):
+    dtypes = arguments[dtype_key]
     _names2dtype_tmp = '{{ "{code}", {code} }}'
     return ',\n    '.join([
         _names2dtype_tmp.format(code=code)
         for code in dtypes
     ])
 
-def _handle_typesizes(dtypes):
+def _handle_typesizes(arguments):
+    dtypes = arguments[dtype_key]
     _size_case_tmp = 'case egen::{code}: return sizeof({dtype});'
     return '\n    '.join([
-        _size_case_tmp.format(code=code, dtype=dtypes[code])
+        _size_case_tmp.format(code=code, dtype=dtypes[code]['ctype'])
         for code in dtypes
     ])
 
+def _handle_precisions(arguments):
+    dtypes = arguments[dtype_key]
+    _precision_case_tmp = 'case egen::{code}: return {precision};'
+    return '\n    '.join([
+        _precision_case_tmp.format(code=code,
+            precision=dtypes[code].get('precision', 0))
+        for code in dtypes
+    ])
 
 _get_type_tmp = '''
 template <>
@@ -193,9 +237,22 @@ _GENERATED_DTYPE get_type<{dtype}> (void)
     return {code};
 }}
 '''
-def _handle_get_types(dtypes):
+def _handle_get_types(arguments):
+    dtypes = arguments[dtype_key]
     return ''.join([
-        _get_type_tmp.format(code=code, dtype=dtypes[code])
+        _get_type_tmp.format(code=code, dtype=dtypes[code]['ctype'])
+        for code in dtypes
+    ])
+
+def _handle_default_dtype(arguments):
+    deftype = arguments.get('default_type',
+        list(arguments[dtype_key].keys())[0])
+    return deftype
+
+def _handle_apply_everytype(arguments):
+    dtypes = arguments[dtype_key]
+    return '\\\n'.join([
+        'GENERIC_MACRO({})'.format(dtypes[code]['ctype'])
         for code in dtypes
     ])
 
@@ -210,22 +267,21 @@ class DTypesPlugin:
     def process(self, generated_files, arguments, **kwargs):
         _hdr_file = 'dtype.hpp'
         _src_file = 'dtype.cpp'
-        plugin_key = 'dtype'
-        if plugin_key not in arguments:
+        dtype_key = 'dtype'
+        if dtype_key not in arguments:
             logging.warning(
                 'no relevant arguments found for plugin %s', _plugin_id)
             return
 
         module = globals()
-        dtypes = arguments[plugin_key]
 
         generated_files[_hdr_file] = FileRep(
-            build_template(_header_template, module, dtypes),
+            build_template(_header_template, module, arguments),
             user_includes=['<string>', '<cstring>', '"internal/global/global.hpp"'],
             internal_refs=[])
 
         generated_files[_src_file] = FileRep(
-            build_template(_source_template, module, dtypes),
+            build_template(_source_template, module, arguments),
             user_includes=['"estd/contain.hpp"'],
             internal_refs=[_hdr_file])
 

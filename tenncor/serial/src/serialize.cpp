@@ -32,9 +32,6 @@ static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 	return out;
 }
 
-#define _OUT_GENFUNC(realtype)\
-func = eteq::make_funcattr<realtype>(opcode, children, attrs);
-
 struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 {
 	teq::TensptrT unmarsh_leaf (const onnx::TensorProto& pb_tens,
@@ -57,36 +54,36 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 				out = unpack<int32_t>(usage, shape, label,
 					pb_tens.int32_data());
 				break;
-	// #if(ETEQ_CFG==FULL)
-	// 		case onnx::TensorProto::UINT8:
-	// 			out = unpack<uint8_t>(usage, shape, label,
-	// 				pb_tens.int32_data());
-	// 			break;
-	// 		case onnx::TensorProto::INT8:
-	// 			out = unpack<int8_t>(usage, shape, label,
-	// 				pb_tens.int32_data());
-	// 			break;
-	// 		case onnx::TensorProto::UINT16:
-	// 			out = unpack<uint16_t>(usage, shape, label,
-	// 				pb_tens.int32_data());
-	// 			break;
-	// 		case onnx::TensorProto::INT16:
-	// 			out = unpack<int16_t>(usage, shape, label,
-	// 				pb_tens.int32_data());
-	// 			break;
-	// 		case onnx::TensorProto::UINT32:
-	// 			out = unpack<uint32_t>(usage, shape, label,
-	// 				pb_tens.uint64_data());
-	// 			break;
-	// 		case onnx::TensorProto::UINT64:
-	// 			out = unpack<uint64_t>(usage, shape, label,
-	// 				pb_tens.uint64_data());
-	// 			break;
-	// 		case onnx::TensorProto::INT64:
-	// 			out = unpack<int64_t>(usage, shape, label,
-	// 				pb_tens.int64_data());
-	// 			break;
-	// #endif
+#ifdef EGEN_FULLTYPE
+			case onnx::TensorProto::UINT8:
+				out = unpack<uint8_t>(usage, shape, label,
+					pb_tens.int32_data());
+				break;
+			case onnx::TensorProto::INT8:
+				out = unpack<int8_t>(usage, shape, label,
+					pb_tens.int32_data());
+				break;
+			case onnx::TensorProto::UINT16:
+				out = unpack<uint16_t>(usage, shape, label,
+					pb_tens.int32_data());
+				break;
+			case onnx::TensorProto::INT16:
+				out = unpack<int16_t>(usage, shape, label,
+					pb_tens.int32_data());
+				break;
+			case onnx::TensorProto::UINT32:
+				out = unpack<uint32_t>(usage, shape, label,
+					pb_tens.uint64_data());
+				break;
+			case onnx::TensorProto::UINT64:
+				out = unpack<uint64_t>(usage, shape, label,
+					pb_tens.uint64_data());
+				break;
+			case onnx::TensorProto::INT64:
+				out = unpack<int64_t>(usage, shape, label,
+					pb_tens.int64_data());
+				break;
+#endif
 			default:
 				global::fatalf("unknown onnx type %d", onnx_type);
 		}
@@ -101,10 +98,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 			global::fatalf("cannot generate func %s without args", opname.c_str());
 		}
 		egen::_GENERATED_OPCODE opcode = egen::get_op(opname);
-		auto gencode = (egen::_GENERATED_DTYPE) children.front()->get_meta().type_code();
-		teq::TensptrT func;
-		TYPE_LOOKUP(_OUT_GENFUNC, gencode);
-		return func;
+		return eteq::make_funcattr(opcode, children, attrs);
 	}
 
 	teq::TensptrT unmarsh_layr (std::string layername,

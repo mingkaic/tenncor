@@ -36,8 +36,10 @@ Target operates on "root"
 namespace eteq
 {
 
+#define _CHOOSE_CST_TARGETTYPE(REALTYPE)\
+out = make_constant<REALTYPE>((REALTYPE*)data, root->shape());
+
 // custom target for calculating constant values
-template <typename T>
 struct ConstantTarget final : public opt::iTarget
 {
 	ConstantTarget (const opt::GraphInfo& graph,
@@ -48,14 +50,19 @@ struct ConstantTarget final : public opt::iTarget
 		teq::iTensor* root = candidates.at("root");
 		eigen::Device device;
 		teq::get_eval(ctx_).evaluate(device, {root});
-		T* data = (T*) root->device().data();
-		return make_constant<T>(data, root->shape());
+		void* data = root->device().data();
+		auto outtype = (egen::_GENERATED_DTYPE) root->get_meta().type_code();
+		teq::TensptrT out;
+		TYPE_LOOKUP(_CHOOSE_CST_TARGETTYPE, outtype);
+		return out;
 	}
 
 	const opt::GraphInfo* graph_;
 
 	global::CfgMapptrT ctx_;
 };
+
+#undef _CHOOSE_CST_TARGETTYPE
 
 // source graph for certain branching factor of certain operator
 static inline void get_cstsource (query::Node& node, std::string opname, size_t nbranch)
@@ -73,35 +80,9 @@ static inline void get_cstsource (query::Node& node, std::string opname, size_t 
 
 // gather branching factor of all operators,
 // then append rule converting constant source to constant target
-template <typename T>
 void generate_cstrules (opt::OptRulesT& rules,
-	const opt::GraphInfo& graph, global::CfgMapptrT context = global::context())
-{
-	std::unordered_map<std::string,std::unordered_set<size_t>> branches;
-	for (const auto& owner : graph.get_owners())
-	{
-		if (auto f = dynamic_cast<const teq::iFunctor*>(owner.first))
-		{
-			branches[f->to_string()].emplace(f->get_args().size());
-		}
-	}
-	if (branches.empty())
-	{
-		// for some reason...
-		return;
-	}
-	google::protobuf::RepeatedPtrField<query::Node> srcs;
-	for (auto& branch : branches)
-	{
-		for (size_t bfactor : branch.second)
-		{
-			query::Node* src = srcs.Add();
-			get_cstsource(*src, branch.first, bfactor);
-		}
-	}
-	rules.push_back(opt::OptRule{srcs,
-		std::make_shared<ConstantTarget<T>>(graph, context)});
-}
+	const opt::GraphInfo& graph,
+	global::CfgMapptrT context = global::context());
 
 }
 

@@ -9,12 +9,12 @@ namespace eteq
 {
 
 template <typename T>
-struct EVariable final : public ETensor<T>
+struct EVariable final : public ETensor
 {
 	EVariable (void) = default;
 
 	EVariable (VarptrT<T> vars, const global::CfgMapptrT& ctx = global::context()) :
-		ETensor<T>(vars, ctx) {}
+		ETensor(vars, ctx) {}
 
 	friend bool operator == (const EVariable<T>& l, const EVariable<T>& r)
 	{
