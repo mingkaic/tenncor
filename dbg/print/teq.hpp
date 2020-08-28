@@ -22,15 +22,15 @@ const std::string dummy_label = "DEPENDENCIES";
 
 struct PrintEqConfig
 {
-	/// For every label associated with a tensor, show LABEL=value in the tree
-	LabelsMapT labels_;
-
 	/// Print every tensor's shape if true, otherwise don't
 	bool showshape_ = false;
 
 	bool showtype_ = false;
 
 	bool showvers_ = false;
+
+	/// For every label associated with a tensor, show LABEL=value in the tree
+	LabelsMapT labels_;
 
 	bool lsattrs_ = false;
 

@@ -44,11 +44,11 @@ TEST(OPTIMIZE, Depends)
 	ass = eteq::optimize({ass}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
-		"(ASSIGN[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(variable:[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:[88\\60\\296\\152\\244\\...][2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(DEPENDENCIES[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_____`--(constant:[81\\25\\102\\48\\128\\...][2\\3\\4\\1\\1\\1\\1\\1])\n", ass);
+		"(ASSIGN<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(constant:[88\\60\\296\\152\\244\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(DEPENDENCIES<no_type>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_____`--(constant:[81\\25\\102\\48\\128\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n", ass);
 }
 
 
@@ -89,11 +89,11 @@ TEST(OPTIMIZE, DependsNnary)
 	add = eteq::optimize({add}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
-		"(ADD[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(variable:[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:[88\\60\\296\\152\\244\\...][2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(DEPENDENCIES[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_____`--(constant:[81\\25\\102\\48\\128\\...][2\\3\\4\\1\\1\\1\\1\\1])\n", add);
+		"(ADD<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(constant:[88\\60\\296\\152\\244\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(DEPENDENCIES<no_type>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_____`--(constant:[81\\25\\102\\48\\128\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n", add);
 
 	eval.evaluate(device, {add.get()});
 	teq::Shape gotshape = add->shape();
@@ -193,6 +193,12 @@ TEST(OPTIMIZE, RNNLayer)
 	roots = eteq::optimize(roots, rulefile);
 
 	{
+	std::ofstream os("/tmp/opt0.txt");
+	PrettyEquation artist;
+	artist.cfg_.showshape_ = true;
+	artist.cfg_.showtype_ = true;
+	artist.print(os, roots[0]);
+
 		std::string expect_pbfile = testdir + "/opt0.txt";
 		std::ifstream expect_ifs(expect_pbfile);
 		std::string expect(
@@ -201,6 +207,12 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[0]);
 	}
 	{
+	std::ofstream os("/tmp/opt1.txt");
+	PrettyEquation artist;
+	artist.cfg_.showshape_ = true;
+	artist.cfg_.showtype_ = true;
+	artist.print(os, roots[1]);
+
 		std::string expect_pbfile = testdir + "/opt1.txt";
 		std::ifstream expect_ifs(expect_pbfile);
 		std::string expect(
@@ -209,6 +221,12 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[1]);
 	}
 	{
+	std::ofstream os("/tmp/opt2.txt");
+	PrettyEquation artist;
+	artist.cfg_.showshape_ = true;
+	artist.cfg_.showtype_ = true;
+	artist.print(os, roots[2]);
+
 		std::string expect_pbfile = testdir + "/opt2.txt";
 		std::ifstream expect_ifs(expect_pbfile);
 		std::string expect(
@@ -217,6 +235,12 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[2]);
 	}
 	{
+	std::ofstream os("/tmp/opt3.txt");
+	PrettyEquation artist;
+	artist.cfg_.showshape_ = true;
+	artist.cfg_.showtype_ = true;
+	artist.print(os, roots[3]);
+
 		std::string expect_pbfile = testdir + "/opt3.txt";
 		std::ifstream expect_ifs(expect_pbfile);
 		std::string expect(
@@ -356,6 +380,12 @@ TEST(OPTIMIZE, CNNLayer)
 		(std::istreambuf_iterator<char>(expect_ifs)),
 		(std::istreambuf_iterator<char>()));
 	EXPECT_GRAPHEQ(expect.c_str(), err);
+
+	std::ofstream os("/tmp/cnn_opt.txt");
+	PrettyEquation artist;
+	artist.cfg_.showshape_ = true;
+	artist.cfg_.showtype_ = true;
+	artist.print(os, err);
 
 	teq::Evaluator eval;
 	eval.evaluate(device, {err.get()});

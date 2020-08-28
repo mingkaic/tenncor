@@ -14,11 +14,11 @@
 namespace tutil
 {
 
-std::string compare_graph (std::istream& expectstr, teq::iTensor* root,
-	bool showshape = true, LabelsMapT labels = {});
+std::string compare_graph (std::istream& expectstr,
+	teq::iTensor* root, const PrintEqConfig& printopt);
 
-std::string compare_graph (std::istream& expectstr, teq::TensptrT root,
-	bool showshape = true, LabelsMapT labels = {});
+std::string compare_graph (std::istream& expectstr,
+	teq::TensptrT root, const PrintEqConfig& printopt);
 
 template <typename T>
 void check_tensordata (teq::iTensor* xpc, teq::iTensor* got, const char* fname, size_t lno)
@@ -126,7 +126,8 @@ tutil::check_tensordata_real<DTYPE>(EXTENS, GOTENS, __FILE__, __LINE__)
 
 #define EXPECT_GRAPHEQ(MSG, ROOT) {\
 	std::istringstream ss(MSG);\
-	auto compare_str = tutil::compare_graph(ss, ROOT);\
+	auto compare_str = tutil::compare_graph(\
+	ss, ROOT, PrintEqConfig{true, true});\
 	EXPECT_EQ(0, compare_str.size()) << compare_str;\
 }
 

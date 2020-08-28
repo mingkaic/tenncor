@@ -11,12 +11,11 @@ const size_t peek_limit = 256;
 
 const std::unordered_set<char> cset = {' ', '\t', '\n', default_indent};
 
-std::string compare_graph (std::istream& expectstr, teq::iTensor* root,
-	bool showshape, LabelsMapT labels)
+std::string compare_graph (std::istream& expectstr,
+	teq::iTensor* root, const PrintEqConfig& printopt)
 {
 	PrettyEquation artist;
-	artist.cfg_.showshape_ = showshape;
-	artist.cfg_.labels_ = labels;
+	artist.cfg_ = printopt;
 	std::stringstream gotstr;
 	artist.print(gotstr, root);
 	std::string out;
@@ -56,10 +55,10 @@ std::string compare_graph (std::istream& expectstr, teq::iTensor* root,
 	return out;
 }
 
-std::string compare_graph (std::istream& expectstr, teq::TensptrT root,
-	bool showshape, LabelsMapT labels)
+std::string compare_graph (std::istream& expectstr,
+	teq::TensptrT root, const PrintEqConfig& printopt)
 {
-	return compare_graph(expectstr, root.get(), showshape, labels);
+	return compare_graph(expectstr, root.get(), printopt);
 }
 
 }
