@@ -6,10 +6,12 @@
 /// Implement eteq gradient definition for supported operations
 ///
 
-#ifndef TENNCOR_DERIVE_HPP
-#define TENNCOR_DERIVE_HPP
+#ifndef TENNCOR_ETEQ_HPP
+#define TENNCOR_ETEQ_HPP
 
-#include "tenncor/distr.hpp"
+#include "tenncor/eteq/eteq.hpp"
+
+#include "tenncor/distrib.hpp"
 
 namespace tcr
 {
@@ -23,4 +25,4 @@ eteq::ETensorsT derive (eteq::ETensor root, const eteq::ETensorsT& targets);
 
 }
 
-#endif // TENNCOR_DERIVE_HPP
+#endif // TENNCOR_ETEQ_HPP

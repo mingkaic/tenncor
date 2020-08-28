@@ -1,7 +1,7 @@
 
-#include "tenncor/derive.hpp"
+#include "tenncor/eteq.hpp"
 
-#ifdef TENNCOR_DERIVE_HPP
+#ifdef TENNCOR_ETEQ_HPP
 
 namespace tcr
 {

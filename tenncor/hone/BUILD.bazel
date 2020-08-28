@@ -1,27 +1,22 @@
 licenses(["notice"])
 
-load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
-
 filegroup(
     name = "srcs",
     srcs = [
-        ":eteq_hdrs",
-        ":eteq_srcs",
-        ":ctest_srcs",
-        ":ptest_srcs",
-        "//tenncor/eteq/opsvc:srcs",
+        ":hone_hdrs",
+        ":hone_srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],
 )
 
 filegroup(
-    name = "eteq_hdrs",
+    name = "hone_hdrs",
     srcs = glob(["*.hpp"]),
 )
 
 filegroup(
-    name = "eteq_srcs",
+    name = "hone_srcs",
     srcs = glob(["src/*.cpp"]),
 )
 
@@ -30,19 +25,17 @@ filegroup(
     srcs = glob(["test/*.cpp"]),
 )
 
-filegroup(
-    name = "ptest_srcs",
-    srcs = ["test/ptest.py"],
-)
-
 ######### LIBRARY #########
 
 cc_library(
-    name = "eteq",
-    hdrs = [":eteq_hdrs"],
-    srcs = [":eteq_srcs"],
+    name = "hone",
+    hdrs = [":hone_hdrs"],
+    srcs = [":hone_srcs"],
     copts = ["-std=c++17"],
-    deps = ["//internal/eigen:eigen"],
+    deps = [
+        "//internal/opt:opt",
+        "//tenncor/eteq:eteq",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -63,18 +56,5 @@ cc_test(
     data = [
         "//:test_models",
         "//cfg:optimizations",
-    ],
-)
-
-py_test(
-    name = "ptest",
-    srcs = [":ptest_srcs"],
-    deps = [
-        "//tenncor:tenncor_py",
-        "//testutil:pyunit_util",
-    ],
-    data = [
-        "//:test_models",
-        "//testutil:ead_testcase_template",
     ],
 )

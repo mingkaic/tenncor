@@ -1,12 +1,12 @@
 
-#ifndef TENNCOR_OPT_DUPLICATES_HPP
-#define TENNCOR_OPT_DUPLICATES_HPP
+#ifndef HONE_DUPLICATES_HPP
+#define HONE_DUPLICATES_HPP
 
 #include "internal/opt/opt.hpp"
 
-#include "tenncor/eteq/eteq.hpp"
+#include "internal/eigen/eigen.hpp"
 
-namespace eteq
+namespace hone
 {
 
 using EqualF = std::function<bool(teq::TensptrT,teq::TensptrT)>;
@@ -105,4 +105,4 @@ void merge_dups (opt::GraphInfo& graph);
 
 }
 
-#endif // TENNCOR_OPT_DUPLICATES_HPP
+#endif // HONE_DUPLICATES_HPP

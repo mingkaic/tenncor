@@ -1,0 +1,57 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":hosvc_hdrs",
+        ":hosvc_srcs",
+        ":protos",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "hosvc_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "hosvc_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = glob(["*.proto"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "hosvc",
+    hdrs = [":hosvc_hdrs"],
+    srcs = [":hosvc_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":hosvc_cc_grpc",
+        "//tenncor/hone:hone",
+        "//tenncor/distrib:distrib",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "hosvc_pb",
+    srcs = [":protos"],
+    deps = ["//internal/opt:opt_pb"],
+    visibility = ["//visibility:public"],
+)
+
+cpp_grpc_library(
+    name = "hosvc_cc_grpc",
+    deps = [":hosvc_pb"],
+    visibility = ["//visibility:public"],
+)

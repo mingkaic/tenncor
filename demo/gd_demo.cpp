@@ -170,7 +170,7 @@ int main (int argc, const char** argv)
 	auto trained_out = layr::connect(trained_model, testin);
 	auto pretrained_out = layr::connect(pretrained_model, testin);
 
-	eteq::optimize("cfg/optimizations.json");
+	hone::optimize("cfg/optimizations.json");
 
 	// train mlp to output input
 	start = std::clock();

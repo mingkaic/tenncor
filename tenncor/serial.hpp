@@ -1,17 +1,17 @@
 ///
-/// serialize.hpp
+/// serial.hpp
 /// tenncor
 ///
 /// Purpose:
 /// Define functions for marshal and unmarshal data sources
 ///
 
-#ifndef TENNCOR_SERIALIZE_HPP
-#define TENNCOR_SERIALIZE_HPP
+#ifndef TENNCOR_SERIAL_HPP
+#define TENNCOR_SERIAL_HPP
 
 #include "tenncor/serial/serial.hpp"
 
-#include "tenncor/distr.hpp"
+#include "tenncor/distrib.hpp"
 
 namespace tcr
 {
@@ -26,4 +26,4 @@ eteq::ETensorsT load_model (onnx::TensptrIdT& identified_tens,
 
 }
 
-#endif // TENNCOR_SERIALIZE_HPP
+#endif // TENNCOR_SERIAL_HPP

@@ -13,7 +13,7 @@
 
 #include "dbg/print/teq.hpp"
 
-#include "tenncor/eteq/eteq.hpp"
+#include "tenncor/serial/serial.hpp"
 #include "tenncor/tenncor.hpp"
 
 
@@ -23,7 +23,7 @@ const std::string testdir = "models/test";
 TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/eteq.onnx";
-	std::string got_pbfile = "/tmp/got_eteq.onnx";
+	std::string got_pbfile = "got_eteq.onnx";
 	onnx::ModelProto model;
 
 	teq::Shape in_shape({10, 3});
@@ -192,7 +192,7 @@ TEST(SERIALIZE, LoadGraph)
 	artist.print(gotstr, dw1);
 	artist.print(gotstr, db1);
 
-	std::ofstream os("/tmp/eteq.json");
+	std::ofstream os("eteq.json");
 	artist.print(os, dw0);
 	artist.print(os, db0);
 	artist.print(os, dw1);

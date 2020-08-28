@@ -8,8 +8,6 @@
 
 #include "testutil/tutil.hpp"
 
-#include "tenncor/derive.hpp"
-
 #include "internal/query/querier.hpp"
 #include "internal/query/parse.hpp"
 

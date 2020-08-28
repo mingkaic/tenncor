@@ -6,7 +6,6 @@ P4 = "nice to have/need investigating"
 P5 = "get to it eventually"
 
 >>>>>>> inprogress >>>>>>>
-   - support type-anonymous etensors/functors to allow for non-typed derivefuncs
    - modify distributed evaluation to solve issue of running out of server completion queue threads in a circular dependency topography
    - check for running out of server resources due to circular server dependencies
    - deprecate frequent use of fatal/throws in favor of error approach especially for netcode

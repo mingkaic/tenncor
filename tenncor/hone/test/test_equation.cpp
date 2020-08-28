@@ -8,7 +8,7 @@
 
 #include "internal/teq/evaluator.hpp"
 
-#include "tenncor/optimize.hpp"
+#include "tenncor/hone/hone.hpp"
 
 #include "tenncor/tenncor.hpp"
 
@@ -1013,7 +1013,7 @@ TEST(EQUATION, OptimizedMatmulComplex)
 		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			roots = eteq::optimize(roots, file);
+			roots = hone::optimize(roots, file);
 		});
 }
 
@@ -1024,7 +1024,7 @@ TEST(EQUATION, OptimizedSlowSigmoidMLP)
 		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			roots = eteq::optimize(roots, file);
+			roots = hone::optimize(roots, file);
 		});
 }
 
@@ -1035,7 +1035,7 @@ TEST(EQUATION, OptimizedFastSigmoidMLP)
 		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			roots = eteq::optimize(roots, file);
+			roots = hone::optimize(roots, file);
 		});
 }
 
@@ -1046,7 +1046,7 @@ TEST(EQUATION, OptimizedTanhRNN)
 		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			roots = eteq::optimize(roots, file);
+			roots = hone::optimize(roots, file);
 		});
 }
 
@@ -1057,7 +1057,7 @@ TEST(EQUATION, OptimizedTanhRNNLayer)
 		[](teq::TensptrsT& roots)
 		{
 			std::ifstream file("cfg/optimizations.json");
-			roots = eteq::optimize(roots, file);
+			roots = hone::optimize(roots, file);
 		});
 }
 

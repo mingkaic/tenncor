@@ -35,7 +35,7 @@ bool is_equal (const eteq::ETensor& lroot, const eteq::ETensor& rroot)
 	lroot->accept(lstat);
 	rroot->accept(rstat);
 
-	eteq::Hasher hasher;
+	hone::Hasher hasher;
 	for (auto& ords : orders)
 	{
 		auto& lheights = lstat.at(ords.first);

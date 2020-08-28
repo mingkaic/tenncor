@@ -1,8 +1,8 @@
-#include "tenncor/opt/cstrules.hpp"
+#include "tenncor/hone/cstrules.hpp"
 
-#ifdef TENNCOR_OPT_CSTRULES_HPP
+#ifdef HONE_CSTRULES_HPP
 
-namespace eteq
+namespace hone
 {
 
 void generate_cstrules (opt::OptRulesT& rules,

@@ -21,6 +21,11 @@ filegroup(
     srcs = glob(["src/*.cpp"]),
 )
 
+filegroup(
+    name = "ctest_srcs",
+    srcs = glob(["test/*.cpp"]),
+)
+
 ######### LIBRARY #########
 
 cc_library(
@@ -34,4 +39,21 @@ cc_library(
         "//tenncor/distrib/iosvc:iosvc",
     ],
     visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "ctest",
+    srcs = [":ctest_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//tenncor:tenncor",
+        "//internal/utils:utils",
+        "//testutil:tutil",
+        "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    linkstatic = True,
+    data = ["//:test_models"],
 )

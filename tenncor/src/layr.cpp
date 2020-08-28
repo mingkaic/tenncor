@@ -1,7 +1,7 @@
 
-#include "tenncor/layer.hpp"
+#include "tenncor/layr.hpp"
 
-#ifdef TENNCOR_LAYER_HPP
+#ifdef TENNCOR_LAYR_HPP
 
 namespace tcr
 {

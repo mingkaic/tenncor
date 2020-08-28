@@ -28,7 +28,7 @@ struct MockMarshFuncs final : public onnx::iMarshFuncs
 TEST(SAVE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/onnx.onnx";
-	std::string got_pbfile = "/tmp/got_onnx.onnx";
+	std::string got_pbfile = "got_onnx.onnx";
 
 	{
 		onnx::ModelProto model;

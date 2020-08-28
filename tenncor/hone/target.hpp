@@ -1,16 +1,16 @@
 
-#ifndef TENNCOR_OPT_TARGET_HPP
-#define TENNCOR_OPT_TARGET_HPP
+#ifndef HONE_TARGET_HPP
+#define HONE_TARGET_HPP
 
 #include "internal/opt/opt.hpp"
 
 #include "tenncor/eteq/eteq.hpp"
 
-namespace eteq
+namespace hone
 {
 
 #define _CHOOSE_SCALAR_TARGETTYPE(REALTYPE)\
-out = make_constant_scalar<REALTYPE>((REALTYPE)scalar_, outshape);
+out = eteq::make_constant_scalar<REALTYPE>((REALTYPE)scalar_, outshape);
 
 struct ScalarTarget final : public opt::iTarget
 {
@@ -119,4 +119,4 @@ struct TargetFactory final : public opt::iTargetFactory
 
 }
 
-#endif // TENNCOR_OPT_TARGET_HPP
+#endif // HONE_TARGET_HPP

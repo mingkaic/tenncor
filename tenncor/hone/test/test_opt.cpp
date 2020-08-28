@@ -8,7 +8,7 @@
 
 // #include "dbg/print/search.hpp"
 
-#include "tenncor/optimize.hpp"
+#include "tenncor/hone/hone.hpp"
 
 #include "tenncor/tenncor.hpp"
 
@@ -41,7 +41,7 @@ TEST(OPTIMIZE, Depends)
 	auto ass = tenncor().depends(tenncor().assign(target, b * d), {c});
 
 	std::ifstream rulefile("cfg/optimizations.json");
-	ass = eteq::optimize({ass}, rulefile)[0];
+	ass = hone::optimize({ass}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
 		"(ASSIGN<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
@@ -86,7 +86,7 @@ TEST(OPTIMIZE, DependsNnary)
 	std::vector<double> evdata(expect_data, expect_data + exshape.n_elems());
 
 	std::ifstream rulefile("cfg/optimizations.json");
-	add = eteq::optimize({add}, rulefile)[0];
+	add = hone::optimize({add}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
 		"(ADD<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
@@ -190,10 +190,10 @@ TEST(OPTIMIZE, RNNLayer)
 	teq::TensptrsT roots = {ders[0], ders[1], ders[2], err};
 
 	std::ifstream rulefile("cfg/optimizations.json");
-	roots = eteq::optimize(roots, rulefile);
+	roots = hone::optimize(roots, rulefile);
 
 	{
-	std::ofstream os("/tmp/opt0.txt");
+	std::ofstream os("opt0.txt");
 	PrettyEquation artist;
 	artist.cfg_.showshape_ = true;
 	artist.cfg_.showtype_ = true;
@@ -207,7 +207,7 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[0]);
 	}
 	{
-	std::ofstream os("/tmp/opt1.txt");
+	std::ofstream os("opt1.txt");
 	PrettyEquation artist;
 	artist.cfg_.showshape_ = true;
 	artist.cfg_.showtype_ = true;
@@ -221,7 +221,7 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[1]);
 	}
 	{
-	std::ofstream os("/tmp/opt2.txt");
+	std::ofstream os("opt2.txt");
 	PrettyEquation artist;
 	artist.cfg_.showshape_ = true;
 	artist.cfg_.showtype_ = true;
@@ -235,7 +235,7 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[2]);
 	}
 	{
-	std::ofstream os("/tmp/opt3.txt");
+	std::ofstream os("opt3.txt");
 	PrettyEquation artist;
 	artist.cfg_.showshape_ = true;
 	artist.cfg_.showtype_ = true;
@@ -372,7 +372,7 @@ TEST(OPTIMIZE, CNNLayer)
 		layr::trail(error, umap), deps));
 
 	std::ifstream rulefile("cfg/optimizations.json");
-	err = eteq::optimize({err}, rulefile)[0];
+	err = hone::optimize({err}, rulefile)[0];
 
 	std::string expect_pbfile = testdir + "/cnn_opt.txt";
 	std::ifstream expect_ifs(expect_pbfile);
@@ -381,7 +381,7 @@ TEST(OPTIMIZE, CNNLayer)
 		(std::istreambuf_iterator<char>()));
 	EXPECT_GRAPHEQ(expect.c_str(), err);
 
-	std::ofstream os("/tmp/cnn_opt.txt");
+	std::ofstream os("cnn_opt.txt");
 	PrettyEquation artist;
 	artist.cfg_.showshape_ = true;
 	artist.cfg_.showtype_ = true;

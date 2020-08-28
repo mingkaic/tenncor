@@ -1,12 +1,8 @@
 api:
   pybind_type: float
   includes:
-  - '"tenncor/derive.hpp"'
-  - '"tenncor/layer.hpp"'
-  - '"tenncor/eteq/make.hpp"'
-  - '"layr/approx.hpp"'
-  - '"layr/init.hpp"'
-  - '"layr/layer.hpp"'
+  - '"tenncor/eteq.hpp"'
+  - '"tenncor/layr.hpp"'
   nullcheck_type:
     - teq::TensptrT
     - eteq::ETensor

@@ -1,9 +1,9 @@
 
-#include "tenncor/opt/duplicates.hpp"
+#include "tenncor/hone/duplicates.hpp"
 
-#ifdef TENNCOR_OPT_DUPLICATES_HPP
+#ifdef HONE_DUPLICATES_HPP
 
-namespace eteq
+namespace hone
 {
 
 void merge_dups (opt::GraphInfo& graph, EqualF equals)

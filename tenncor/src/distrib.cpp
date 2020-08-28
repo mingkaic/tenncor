@@ -1,5 +1,5 @@
 
-#include "tenncor/distr.hpp"
+#include "tenncor/distrib.hpp"
 
 #ifdef TENNCOR_DISTR_HPP
 
@@ -41,7 +41,7 @@ void set_distrmgr (distr::iDistrMgrptrT mgr, global::CfgMapptrT ctx)
 	{
 		ctx->template add_entry<distr::iDistrMgrptrT>(
 			distmgr_key, [mgr](){ return new distr::iDistrMgrptrT(mgr); });
-		teq::set_eval(new distr::DistrEvaluator(*mgr), ctx);
+		teq::set_eval(new DistrEvaluator(*mgr), ctx);
 	}
 	else
 	{

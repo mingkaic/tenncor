@@ -117,13 +117,13 @@ void distrib_ext (py::module& m)
 		py::arg("ctx") = global::context());
 
 	// ==== evaluator ====
-	py::class_<distr::DistrEvaluator> eval(m, "DistrEvaluator", ieval);
+	py::class_<tcr::DistrEvaluator> eval(m, "DistrEvaluator", ieval);
 
 	eval
 		.def(py::init(
 		[](distr::iDistrMgrptrT mgr)
 		{
-			return distr::DistrEvaluator(*mgr);
+			return tcr::DistrEvaluator(*mgr);
 		}),
 		py::arg("mgr"));
 

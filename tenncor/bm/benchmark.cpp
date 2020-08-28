@@ -345,7 +345,7 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	auto db1 = tcr::derive(err, {bias1});
 
 	// optimize
-	eteq::optimize("cfg/optimizations.json");
+	hone::optimize("cfg/optimizations.json");
 
 	for (auto _ : state)
 	{

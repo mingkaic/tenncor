@@ -26,18 +26,18 @@ Symbols map has {"root":<op with constant args>}
 Target operates on "root"
 */
 
-#ifndef TENNCOR_OPT_CSTRULES_HPP
-#define TENNCOR_OPT_CSTRULES_HPP
+#ifndef HONE_CSTRULES_HPP
+#define HONE_CSTRULES_HPP
 
 #include "internal/opt/opt.hpp"
 
 #include "tenncor/eteq/eteq.hpp"
 
-namespace eteq
+namespace hone
 {
 
 #define _CHOOSE_CST_TARGETTYPE(REALTYPE)\
-out = make_constant<REALTYPE>((REALTYPE*)data, root->shape());
+out = eteq::make_constant<REALTYPE>((REALTYPE*)data, root->shape());
 
 // custom target for calculating constant values
 struct ConstantTarget final : public opt::iTarget
@@ -82,8 +82,8 @@ static inline void get_cstsource (query::Node& node, std::string opname, size_t 
 // then append rule converting constant source to constant target
 void generate_cstrules (opt::OptRulesT& rules,
 	const opt::GraphInfo& graph,
-	global::CfgMapptrT context = global::context());
+	global::CfgMapptrT ctx = global::context());
 
 }
 
-#endif // TENNCOR_OPT_CSTRULES_HPP
+#endif // HONE_CSTRULES_HPP

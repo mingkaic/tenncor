@@ -1,6 +1,6 @@
-#include "tenncor/serialize.hpp"
+#include "tenncor/serial.hpp"
 
-#ifdef TENNCOR_SERIALIZE_HPP
+#ifdef TENNCOR_SERIAL_HPP
 
 namespace tcr
 {

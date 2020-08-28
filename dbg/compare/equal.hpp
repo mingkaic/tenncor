@@ -4,7 +4,7 @@
 
 #include "tenncor/eteq/eteq.hpp"
 
-#include "tenncor/opt/opt.hpp"
+#include "tenncor/hone/hone.hpp"
 
 /// Return true if lroot and rroot graphs are structurally equal
 bool is_equal (const eteq::ETensor& lroot, const eteq::ETensor& rroot);

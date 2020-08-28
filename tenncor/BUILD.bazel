@@ -15,7 +15,7 @@ filegroup(
         ":pybind_srcs",
         ":benchmark_srcs",
         "//tenncor/eteq:srcs",
-        "//tenncor/opt:srcs",
+        "//tenncor/hone:srcs",
         "//tenncor/serial:srcs",
         "//tenncor/trainer:srcs",
         "//tenncor/distrib:srcs",
@@ -105,7 +105,7 @@ cc_library(
     include_prefix = "tenncor",
     includes = ["."],
     deps = [
-        "//tenncor/opt:opt",
+        "//tenncor/hone:hone",
         "//tenncor/eteq/opsvc:opsvc",
         "//tenncor/serial/oxsvc:oxsvc",
         "//tenncor/trainer:trainer",

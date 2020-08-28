@@ -1,14 +1,16 @@
-#include "tenncor/opt/optimize.hpp"
+#include "tenncor/hone/optimize.hpp"
 
-#ifdef TENNCOR_OPT_OPTIMIZE_HPP
+#ifdef HONE_OPTIMIZE_HPP
 
-namespace eteq
+namespace hone
 {
+
+using ApplyRulesF = std::function<void(opt::OptRulesT&,const TargetFactory&)>;
 
 static const size_t convert_round_limit = 50;
 
-teq::TensptrsT optimize (teq::TensptrsT roots,
-	std::istream& rulestr, GenCstF gen_cst)
+static teq::TensptrsT general_optimize (
+	teq::TensptrsT roots, GenCstF gen_cst, ApplyRulesF apply_rules)
 {
 	opt::OptRulesT rules;
 	opt::GraphInfo graph(roots);
@@ -19,7 +21,7 @@ teq::TensptrsT optimize (teq::TensptrsT roots,
 	{
 		gen_cst(rules, graph); // populate with constant rules
 	}
-	opt::json_parse(rules, rulestr, impl_factory);
+	apply_rules(rules, impl_factory);
 	bool converted = true;
 	for (size_t i = 0; converted && i < convert_round_limit; ++i)
 	{
@@ -29,17 +31,30 @@ teq::TensptrsT optimize (teq::TensptrsT roots,
 	return graph.get_roots();
 }
 
-teq::TensptrsT optimize (teq::TensptrsT roots, std::istream& rulestr)
+teq::TensptrsT optimize (teq::TensptrsT roots,
+	const opt::Optimization& pb_opt, GenCstF gen_cst)
 {
-	return optimize(roots, rulestr,
-		[](opt::OptRulesT& rule, const opt::GraphInfo& graph)
-		{ generate_cstrules(rule, graph); });
+	return general_optimize(roots, gen_cst,
+	[&pb_opt](opt::OptRulesT& rules, const TargetFactory& tfac)
+	{
+		opt::parse_optimization(rules, pb_opt, tfac);
+	});
+}
+
+teq::TensptrsT optimize (teq::TensptrsT roots,
+	std::istream& rulestr, GenCstF gen_cst)
+{
+	return general_optimize(roots, gen_cst,
+	[&rulestr](opt::OptRulesT& rules, const TargetFactory& tfac)
+	{
+		opt::json_parse(rules, rulestr, tfac);
+	});
 }
 
 void optimize (std::string filename, const global::CfgMapptrT& ctx)
 {
 	std::ifstream rulefile(filename);
-	auto& reg = get_reg(ctx);
+	auto& reg = eteq::get_reg(ctx);
 	teq::TensptrSetT roots;
 	for (auto& rpairs : reg)
 	{
@@ -49,10 +64,10 @@ void optimize (std::string filename, const global::CfgMapptrT& ctx)
 	teq::OwnMapT changed;
 	teq::TensptrsT inroots(roots.begin(), roots.end());
 	auto outroots = optimize(inroots, rulefile,
-		[&ctx](opt::OptRulesT& rules, const opt::GraphInfo& graph)
-		{
-			generate_cstrules(rules, graph, ctx);
-		});
+	[&ctx](opt::OptRulesT& rules, const opt::GraphInfo& ginfo)
+	{
+		generate_cstrules(rules, ginfo, ctx);
+	});
 	assert(inroots.size() == outroots.size());
 	for (size_t i = 0, n = inroots.size(); i < n; ++i)
 	{

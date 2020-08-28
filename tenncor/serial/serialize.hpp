@@ -121,4 +121,4 @@ teq::TensptrsT load_graph (onnx::TensptrIdT& identified_tens,
 
 }
 
-#endif // TENNCOR_OPT_SERIALIZE_HPP
+#endif // HONE_SERIALIZE_HPP

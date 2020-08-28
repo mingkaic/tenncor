@@ -11,7 +11,7 @@
 #include "tenncor/tenncor.hpp"
 
 
-TEST(LAYER, Dense)
+TEST(API, Dense)
 {
 	teq::DimT ninput = 6, noutput = 5, ninput2 = 7;
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({ninput, 2}), "x");
@@ -44,7 +44,7 @@ TEST(LAYER, Dense)
 }
 
 
-TEST(LAYER, DenseSerialization)
+TEST(API, DenseSerialization)
 {
 	onnx::ModelProto model;
 
@@ -99,7 +99,7 @@ TEST(LAYER, DenseSerialization)
 }
 
 
-TEST(LAYER, Conv)
+TEST(API, Conv)
 {
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({4, 10, 9, 2}), "x");

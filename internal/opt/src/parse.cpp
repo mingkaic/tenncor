@@ -1,7 +1,5 @@
 #include <google/protobuf/util/json_util.h>
 
-#include "internal/opt/optimize.pb.h"
-
 #include "internal/opt/parse.hpp"
 
 #ifdef OPT_PARSE_HPP
@@ -46,6 +44,19 @@ TargptrT parse_target (const TargetNode& root,
 	return out;
 }
 
+void json2optimization (Optimization& pb_opt, std::istream& json_in)
+{
+	std::string jstr(std::istreambuf_iterator<char>(json_in), {});
+	google::protobuf::util::JsonParseOptions options;
+	options.ignore_unknown_fields = true;
+	if (google::protobuf::util::Status::OK !=
+		google::protobuf::util::JsonStringToMessage(
+			jstr, &pb_opt, options))
+	{
+		global::fatal("failed to parse json optimization");
+	}
+}
+
 void parse_optimization (OptRulesT& rules,
 	const Optimization& pb_opt, const iTargetFactory& tfactory)
 {
@@ -61,16 +72,8 @@ void parse_optimization (OptRulesT& rules,
 void json_parse (OptRulesT& rules,
 	std::istream& json_in, const iTargetFactory& tfactory)
 {
-	std::string jstr(std::istreambuf_iterator<char>(json_in), {});
-	google::protobuf::util::JsonParseOptions options;
-	options.ignore_unknown_fields = true;
 	Optimization optimization;
-	if (google::protobuf::util::Status::OK !=
-		google::protobuf::util::JsonStringToMessage(
-			jstr, &optimization, options))
-	{
-		global::fatal("failed to parse json optimization");
-	}
+	json2optimization(optimization, json_in);
 	parse_optimization(rules, optimization, tfactory);
 }
 

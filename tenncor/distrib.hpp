@@ -6,12 +6,12 @@
 #include "tenncor/eteq/opsvc/service.hpp"
 #include "tenncor/serial/oxsvc/service.hpp"
 
-namespace distr
+namespace tcr
 {
 
 struct DistrEvaluator final : public teq::iEvaluator
 {
-	DistrEvaluator (iDistrManager& mgr) : svc_(distr::get_opsvc(mgr)) {}
+	DistrEvaluator (distr::iDistrManager& mgr) : svc_(distr::get_opsvc(mgr)) {}
 
 	/// Implementation of iEvaluator
 	void evaluate (
@@ -22,13 +22,8 @@ struct DistrEvaluator final : public teq::iEvaluator
 		svc_.evaluate(device, targets, ignored);
 	}
 
-	op::DistrOpService& svc_;
+	distr::op::DistrOpService& svc_;
 };
-
-}
-
-namespace tcr
-{
 
 using RegisterSvcF = std::function<error::ErrptrT(\
 	estd::ConfigMap<>&,const distr::PeerServiceConfig&)>;
