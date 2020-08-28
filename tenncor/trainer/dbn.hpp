@@ -37,7 +37,7 @@ struct DBNTrainer final
 			sample_pipes_.push_back(sample_v2h(rbms[i], sample_pipes_[i]));
 		}
 
-		TenncorAPI<T> api(context);
+		TenncorAPI api(context);
 
 		// layer-wise rbm reconstruction
 		teq::TensptrSetT to_track;
@@ -67,9 +67,9 @@ struct DBNTrainer final
 				// if var is a weight or bias add assign with learning rate
 				// otherwise assign directly
 				auto assign = estd::has(to_learn, varerr.first.get()) ?
-					api.assign_add(eteq::EVariable<T>(varerr.first, context),
+					api.assign_add<T>(eteq::EVariable<T>(varerr.first, context),
 						pretrain_lr * varerr.second) :
-					api.assign(eteq::EVariable<T>(varerr.first, context), varerr.second);
+					api.assign<T>(eteq::EVariable<T>(varerr.first, context), varerr.second);
 				assigns.emplace(assign);
 				to_track.emplace(assign);
 			}
@@ -109,10 +109,10 @@ struct DBNTrainer final
 			api.reduce_mean_1d(diff, 1);
 		auto dtrain_lr = tlr_placeholder * lr_scaling;
 
-		tupdate_ = api.depends(api.assign(tlr_placeholder, dtrain_lr),
+		tupdate_ = api.depends(api.assign<T>(tlr_placeholder, dtrain_lr),
 			eteq::ETensorsT{
-				api.assign_add(eteq::EVariable<T>(w, context), dw),
-				api.assign_add(eteq::EVariable<T>(b, context), db),
+				api.assign_add<T>(eteq::EVariable<T>(w, context), dw),
+				api.assign_add<T>(eteq::EVariable<T>(b, context), db),
 			});
 		tcost_ = -api.reduce_mean(
 			api.reduce_sum_1d(trainy_ * api.log(final_out) +

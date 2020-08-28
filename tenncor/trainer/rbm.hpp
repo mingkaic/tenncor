@@ -11,16 +11,16 @@ template <typename T>
 eteq::ETensor sample_v2h (
 	const layr::RBMLayer<T>& model, eteq::ETensor vis)
 {
-	return tenncor<T>().random.rand_binom_one(
-		tenncor<T>().sigmoid(model.connect(vis)));
+	return tenncor().random.rand_binom_one(
+		tenncor().sigmoid(model.connect(vis)));
 }
 
 template <typename T>
 eteq::ETensor sample_h2v (
 	const layr::RBMLayer<T>& model, eteq::ETensor hid)
 {
-	return tenncor<T>().random.rand_binom_one(
-		tenncor<T>().sigmoid(model.backward_connect(hid)));
+	return tenncor().random.rand_binom_one(
+		tenncor().sigmoid(model.backward_connect(hid)));
 }
 
 template <typename T>
@@ -57,8 +57,8 @@ layr::VarErrsT<T> bbernoulli_approx (const layr::VarErrsT<T>& assocs,
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
 
 		assigns.push_back({verrs.first,
-			tenncor<T>().assign_add(eteq::EVariable<T>(verrs.first),
-				tenncor<T>().assign(momentum, momentum_next))});
+			tenncor().assign_add(eteq::EVariable<T>(verrs.first),
+				tenncor().assign(momentum, momentum_next))});
 	}
 	return assigns;
 }
@@ -103,8 +103,8 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 		chain_it = gibbs_hvh(model, chain_it);
 	}
 
-	io.visible_mean_ = tenncor<T>().sigmoid(model.backward_connect(chain_it));
-	io.hidden_mean_ = tenncor<T>().sigmoid(model.connect(io.visible_mean_));
+	io.visible_mean_ = tenncor().sigmoid(model.backward_connect(chain_it));
+	io.hidden_mean_ = tenncor().sigmoid(model.connect(io.visible_mean_));
 
 	eteq::VarptrsT<T> fcontent = layr::get_storage<T>(model.fwd_);
 	eteq::VarptrsT<T> bcontent = layr::get_storage<T>(model.bwd_);
@@ -119,8 +119,8 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 	}
 
 	auto grad_w =
-		tenncor<T>().matmul(tenncor<T>().transpose(io.visible_), io.hidden_) -
-		tenncor<T>().matmul(tenncor<T>().transpose(io.visible_mean_), io.hidden_mean_);
+		tenncor().matmul(tenncor().transpose(io.visible_), io.hidden_) -
+		tenncor().matmul(tenncor().transpose(io.visible_mean_), io.hidden_mean_);
 	layr::VarErrsT<T> varerrs = {
 		{eteq::EVariable<T>(vars[layr::weight_label], context), grad_w},
 	};
@@ -129,12 +129,12 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 	std::string vis_key = "v" + layr::bias_label;
 	if (estd::has(vars, hid_key))
 	{
-		auto grad_hb = tenncor<T>().reduce_mean_1d(io.hidden_ - io.hidden_mean_, 1);
+		auto grad_hb = tenncor().reduce_mean_1d(io.hidden_ - io.hidden_mean_, 1);
 		varerrs.push_back({eteq::EVariable<T>(vars[hid_key], context), grad_hb});
 	}
 	if (estd::has(vars, vis_key))
 	{
-		auto grad_vb = tenncor<T>().reduce_mean_1d(io.visible_ - io.visible_mean_, 1);
+		auto grad_vb = tenncor().reduce_mean_1d(io.visible_ - io.visible_mean_, 1);
 		varerrs.push_back({eteq::EVariable<T>(vars[vis_key], context), grad_vb});
 	}
 	if (nullptr != persistent)
@@ -147,7 +147,10 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 template <typename T>
 eteq::ETensor rbm (const layr::RBMLayer<T>& model,
 	eteq::ETensor visible, T learning_rate, T discount_factor,
-	layr::BErrorF<T> err_func = tenncor<T>().error.sqr_diff, size_t cdk = 1,
+	layr::BErrorF err_func = [](const eteq::ETensor& a, const eteq::ETensor& b)
+	{
+		return tenncor().error.sqr_diff(a, b);
+	}, size_t cdk = 1,
 	global::CfgMapptrT context = global::context())
 {
 	CDChainIO<T> chain_io(visible);
@@ -162,7 +165,7 @@ eteq::ETensor rbm (const layr::RBMLayer<T>& model,
 		deps.push_back(update.second);
 	}
 	eteq::ETensor error = err_func(chain_io.visible_, chain_io.visible_mean_);
-	return tenncor<T>().depends(layr::trail(error, umap), deps);
+	return tenncor().depends(layr::trail(error, umap), deps);
 }
 
 }

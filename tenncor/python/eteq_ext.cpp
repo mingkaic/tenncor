@@ -7,6 +7,14 @@ using ETensKeysT = std::unordered_map<std::string,eteq::ETensor>;
 
 void eteq_ext (py::module& m)
 {
+#define DEF_GENERATED_DTYPE_ENUM(CODE,REALTYPE).value(#REALTYPE, CODE)
+
+	py::enum_<egen::_GENERATED_DTYPE>(m, "Dtype", py::module_local())
+	EVERY_TYPE(DEF_GENERATED_DTYPE_ENUM)
+	.export_values();
+
+#undef DEF_GENERATED_DTYPE_ENUM
+
 	py::class_<estd::ConfigMap<>,global::CfgMapptrT> context(m, "Context");
 
 	context
@@ -114,16 +122,26 @@ void eteq_ext (py::module& m)
 		.def("raw",
 		[](eteq::ETensor& self)
 		{
-			PybindT* data = self.data<PybindT>();
-			return pytenncor::typedata_to_array<PybindT>(data, self->shape(),
-				self->get_meta().type_code(), py::dtype::of<PybindT>());
+			auto dtype = (egen::_GENERATED_DTYPE) self->get_meta().type_code();
+#define _CHOOSE_RAWTYPE(REALTYPE)\
+			return pytenncor::typedata_to_array<REALTYPE>(\
+				self.data<REALTYPE>(), self->shape(),\
+				self->get_meta().type_code(), py::dtype::of<REALTYPE>());
+TYPE_LOOKUP(_CHOOSE_RAWTYPE, dtype);
+#undef _CHOOSE_RAWTYPE
+			global::fatal("cannot get raw data from non-supported dtype");
 		})
 		.def("get",
 		[](eteq::ETensor& self, teq::TensSetT ignored, size_t max_version)
 		{
-			PybindT* data = self.calc<PybindT>(ignored, max_version);
-			return pytenncor::typedata_to_array<PybindT>(data, self->shape(),
-				self->get_meta().type_code(), py::dtype::of<PybindT>());
+			auto dtype = (egen::_GENERATED_DTYPE) self->get_meta().type_code();
+#define _CHOOSE_CALCTYPE(REALTYPE)\
+			return pytenncor::typedata_to_array<REALTYPE>(\
+				self.calc<REALTYPE>(ignored, max_version), self->shape(),\
+				self->get_meta().type_code(), py::dtype::of<REALTYPE>());
+TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
+#undef _CHOOSE_CALCTYPE
+			global::fatal("cannot calculate data from non-supported dtype");
 		},
 		py::arg("ignored") = teq::TensSetT{},
 		py::arg("max_version") = std::numeric_limits<size_t>::max())

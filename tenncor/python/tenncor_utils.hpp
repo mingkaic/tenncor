@@ -19,7 +19,6 @@ template <typename T>
 py::array typedata_to_array (T* data, teq::Shape shape,
 	size_t typecode, py::dtype dtype)
 {
-	assert(egen::get_type<PybindT>() == typecode);
 	auto pshape = pyutils::c2pshape(shape);
 	return py::array(dtype, py::array::ShapeContainer(
 		pshape.begin(), pshape.end()), data);

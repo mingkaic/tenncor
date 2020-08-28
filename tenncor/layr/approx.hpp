@@ -23,7 +23,6 @@ template <typename T>
 using VarErrsT = std::vector<VarErrT<T>>;
 
 /// Function that returns error given two tensor inputs
-template <typename T>
 using BErrorF = std::function<eteq::ETensor(const eteq::ETensor&,const eteq::ETensor&)>;
 
 /// Function that returns the error given list of tensor inputs

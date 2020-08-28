@@ -24,9 +24,9 @@ TEST(APPROX, StochasticGD)
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "leaf");
-	auto err = tenncor<PybindT>().abs(leaf);
+	auto err = tenncor().abs(leaf);
 
-	auto groups = tenncor<PybindT>().approx.sgd(
+	auto groups = tenncor().approx.sgd<PybindT>(
 		err, eteq::EVariablesT<PybindT>{leaf}, 0.67);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
@@ -51,9 +51,9 @@ TEST(APPROX, Adagrad)
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "leaf");
-	auto err = tenncor<PybindT>().abs(leaf);
+	auto err = tenncor().abs(leaf);
 
-	auto groups = tenncor<PybindT>().approx.adagrad(
+	auto groups = tenncor().approx.adagrad<PybindT>(
 		err, eteq::EVariablesT<PybindT>{leaf}, 0.67);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
@@ -94,12 +94,12 @@ TEST(APPROX, Adadelta)
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(
 		0, shape, "leaf");
-	auto err = tenncor<PybindT>().sin(leaf);
+	auto err = tenncor().sin(leaf);
 
 	PybindT step_rate = 1;
 	PybindT decay = 0.91;
 	PybindT offset = 0.16;
-	auto groups = tenncor<PybindT>().approx.adadelta(
+	auto groups = tenncor().approx.adadelta(
 		err, eteq::EVariablesT<PybindT>{leaf}, step_rate, decay, offset);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
@@ -284,11 +284,11 @@ TEST(APPROX, RmsMomentum)
 	teq::Shape shape({5});
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(0, shape, "leaf");
-	auto err = tenncor<PybindT>().sin(leaf) / 2.f;
+	auto err = tenncor().sin(leaf) / 2.f;
 
 	PybindT learning_rate = 1.;
 	PybindT discount_rate = 0.52;
-	layr::VarErrsT<PybindT> groups = tenncor<PybindT>().approx.rms_momentum(
+	layr::VarErrsT<PybindT> groups = tenncor().approx.rms_momentum(
 		err, eteq::EVariablesT<PybindT>{leaf},
 		learning_rate, discount_rate,
 		std::numeric_limits<PybindT>::epsilon());

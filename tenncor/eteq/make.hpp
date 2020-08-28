@@ -192,6 +192,15 @@ ETensor make_constant_like (T scalar, teq::TensptrT like,
 		teq::TensptrsT{cst}, (teq::TensptrT) like), ctx);
 }
 
+template <typename T>
+ETensor make_constant_like_uncast (T scalar, teq::TensptrT like,
+	const global::CfgMapptrT& ctx = global::context())
+{
+	return ETensor(make_functor(::egen::EXTEND,
+		teq::TensptrsT{make_constant_scalar<T>(scalar, teq::Shape())},
+		(teq::TensptrT) like), ctx);
+}
+
 teq::TensptrT add_dependencies (teq::TensptrT root,
 	teq::TensptrsT dependencies);
 

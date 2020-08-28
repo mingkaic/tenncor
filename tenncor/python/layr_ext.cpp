@@ -90,10 +90,10 @@ void layr_ext(py::module& m)
 		.def("rbm_train", &trainer::rbm<PybindT>,
 			py::arg("rbm_model"), py::arg("visible"),
 			py::arg("learning_rate"), py::arg("discount_factor"),
-			py::arg("err_func") = layr::BErrorF<PybindT>(
+			py::arg("err_func") = layr::BErrorF(
 			[](const eteq::ETensor& l, const eteq::ETensor& r)
 			{
-				return tenncor<PybindT>().error.sqr_diff(l, r);
+				return tenncor().error.sqr_diff(l, r);
 			}),
 			py::arg("cdk") = 1,
 			py::arg("ctx") = global::context());

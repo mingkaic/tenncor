@@ -44,14 +44,14 @@ static teq::ShapedArr<PybindT> avgevry2 (teq::ShapedArr<PybindT>& in)
 
 static inline eteq::ETensor sigmoid (const eteq::ETensor& x)
 {
-	return tenncor<PybindT>().sigmoid(x);
+	return tenncor().sigmoid(x);
 }
 
 int main (int argc, const char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	auto& tc = tenncor<PybindT>();
+	auto& tc = tenncor();
 
 	bool seed;
 	size_t seedval;
@@ -99,12 +99,12 @@ int main (int argc, const char** argv)
 	uint8_t n_out = n_in / 2;
 
 	eteq::ETensor trained_model = tc.layer.link({
-		tc.layer.dense(teq::Shape({n_in}), {n_hid},
-			tc.layer.unif_xavier_init(1), tc.layer.zero_init()),
-		tc.layer.bind(sigmoid),
-		tc.layer.dense(teq::Shape({n_hid}), {n_out},
-			tc.layer.unif_xavier_init(1), tc.layer.zero_init()),
-		tc.layer.bind(sigmoid),
+		tc.layer.dense<PybindT>(teq::Shape({n_in}), {n_hid},
+			tc.layer.unif_xavier_init<PybindT>(1), tc.layer.zero_init<PybindT>()),
+		tc.layer.bind<PybindT>(sigmoid),
+		tc.layer.dense<PybindT>(teq::Shape({n_hid}), {n_out},
+			tc.layer.unif_xavier_init<PybindT>(1), tc.layer.zero_init<PybindT>()),
+		tc.layer.bind<PybindT>(sigmoid),
 	});
 	eteq::ETensor untrained_model = layr::deep_clone(trained_model);
 	eteq::ETensor pretrained_model = layr::deep_clone(trained_model);
@@ -137,7 +137,7 @@ int main (int argc, const char** argv)
 		[&](const eteq::ETensor& error,
 			const eteq::EVariablesT<PybindT>& leaves)
 		{
-			return tc.approx.sgd(error, leaves, 0.9); // learning rate = 0.9
+			return tc.approx.sgd<PybindT>(error, leaves, 0.9); // learning rate = 0.9
 		};
 	// emit::Emitter emitter("localhost:50051");
 	// auto eval = new dbg::PlugableEvaluator();
@@ -180,7 +180,7 @@ int main (int argc, const char** argv)
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
 		train_input->assign(batch, global::context());
 		train_exout->assign(batch_out, global::context());
-		PybindT* data = train_err.template calc<PybindT>();
+		PybindT* data = train_err.calc<PybindT>();
 		if (i % show_every_n == show_every_n - 1)
 		{
 			PybindT* data_end = data + train_err->shape().n_elems();
@@ -209,9 +209,9 @@ int main (int argc, const char** argv)
 		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
 		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
 		testin->assign(batch, global::context());
-		PybindT* untrained_res = untrained_out.template calc<PybindT>();
-		PybindT* trained_res = trained_out.template calc<PybindT>();
-		PybindT* pretrained_res = pretrained_out.template calc<PybindT>();
+		PybindT* untrained_res = untrained_out.calc<PybindT>();
+		PybindT* trained_res = trained_out.calc<PybindT>();
+		PybindT* pretrained_res = pretrained_out.calc<PybindT>();
 
 		PybindT untrained_avgerr = 0;
 		PybindT trained_avgerr = 0;

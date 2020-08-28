@@ -9,15 +9,23 @@
 namespace eteq
 {
 
+#define _CHOOSE_SCALAR_TARGETTYPE(REALTYPE)\
+out = make_constant_scalar<REALTYPE>((REALTYPE)scalar_, outshape);
+
 struct ScalarTarget final : public opt::iTarget
 {
 	ScalarTarget (double scalar, const std::string& sshape) :
 		scalar_(scalar), symb_(sshape) {}
 
-	teq::TensptrT convert (const query::SymbMapT& candidates) const override
+	teq::TensptrT convert (
+		const query::SymbMapT& candidates) const override
 	{
-		return eteq::make_constant_scalar<double>(scalar_,
-			candidates.at(symb_)->shape(), egen::default_dtype);
+		auto cand = candidates.at(symb_);
+		teq::TensptrT out;
+		auto outtype = (egen::_GENERATED_DTYPE) cand->get_meta().type_code();
+		auto outshape = cand->shape();
+		TYPE_LOOKUP(_CHOOSE_SCALAR_TARGETTYPE, outtype);
+		return out;
 	}
 
 	double scalar_;
@@ -25,12 +33,15 @@ struct ScalarTarget final : public opt::iTarget
 	std::string symb_;
 };
 
+#undef _CHOOSE_SCALAR_TARGETTYPE
+
 struct SymbolTarget final : public opt::iTarget
 {
 	SymbolTarget (const std::string& symb, const opt::GraphInfo& graph) :
 		symb_(symb), graph_(&graph) {}
 
-	teq::TensptrT convert (const query::SymbMapT& candidates) const override
+	teq::TensptrT convert (
+		const query::SymbMapT& candidates) const override
 	{
 		return graph_->get_owner(candidates.at(symb_));
 	}

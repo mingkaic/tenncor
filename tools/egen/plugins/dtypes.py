@@ -252,7 +252,7 @@ def _handle_default_dtype(arguments):
 def _handle_apply_everytype(arguments):
     dtypes = arguments[dtype_key]
     return '\\\n'.join([
-        'GENERIC_MACRO({})'.format(dtypes[code]['ctype'])
+        'GENERIC_MACRO(egen::{},{})'.format(code, dtypes[code]['ctype'])
         for code in dtypes
     ])
 

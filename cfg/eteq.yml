@@ -11,6 +11,7 @@ api:
     - teq::TensptrT
     - eteq::ETensor
   pyignore_type:
+    - float
     - SUPPORTED_TYPE
     - teq::RankT
     - teq::DimT
@@ -19,7 +20,8 @@ api:
     - eteq::EVariable<T>
     - eteq::ETensorsT
     - eteq::EVariablesT<T>
-    - layr::UnaryF<T>
+    - layr::UnaryF
+    - layr::ShapeFactorF
     - layr::InitF<T>
     - std::set<teq::RankT>
     - std::vector<teq::DimT>
@@ -29,20 +31,19 @@ api:
   pybind_module: tenncor
   pyglobal:
     - name: api
-      type: TenncorAPI<float>
+      type: TenncorAPI
       decl: |
           //
-              static TenncorAPI<float> global(global::context());
+              static TenncorAPI global(global::context());
               return global;
   funcs:
-    - template: typename T
-      description: Get global tenncor api instance
+    - description: Get global tenncor api instance
       name: tenncor
       out:
-        type: TenncorAPI<T>&
+        type: TenncorAPI&
         val: |
             //
-                static TenncorAPI<T> api;
+                static TenncorAPI api;
                 return api;
       pyignores: True
     - description: Negation operator with output ETensor using the same context as the input
@@ -52,7 +53,7 @@ api:
         name: arg
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<float>(arg.get_context()).neg(arg);
+        val: return TenncorAPI(arg.get_context()).neg(arg);
     - description: Addition operator with output ETensor using the same context as the left input
       operator: +
       args:
@@ -62,7 +63,7 @@ api:
         name: b
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<float>(a.get_context()).add(a,b);
+        val: return TenncorAPI(a.get_context()).add(a,b);
     - support_type: SUPPORTED_TYPE
       description: Addition operator with output ETensor using the same context as the tensor input
       operator: +
@@ -73,7 +74,7 @@ api:
         name: scalar
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).add(arg,scalar);
+        val: return TenncorAPI(arg.get_context()).add(arg,scalar);
     - support_type: SUPPORTED_TYPE
       description: Addition operator with output ETensor using the same context as the tensor input
       operator: +
@@ -84,7 +85,7 @@ api:
         name: arg
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).add(scalar,arg);
+        val: return TenncorAPI(arg.get_context()).add(scalar,arg);
     - description: Subtraction operator with output ETensor using the same context as the left input
       operator: "-"
       args:
@@ -94,7 +95,7 @@ api:
         name: b
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<float>(a.get_context()).sub(a,b);
+        val: return TenncorAPI(a.get_context()).sub(a,b);
     - support_type: SUPPORTED_TYPE
       description: Subtraction operator with output ETensor using the same context as the tensor input
       operator: "-"
@@ -105,7 +106,7 @@ api:
         name: scalar
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).sub(arg,scalar);
+        val: return TenncorAPI(arg.get_context()).sub(arg,scalar);
     - support_type: SUPPORTED_TYPE
       description: Subtraction operator with output ETensor using the same context as the tensor input
       operator: "-"
@@ -116,7 +117,7 @@ api:
         name: arg
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).sub(scalar,arg);
+        val: return TenncorAPI(arg.get_context()).sub(scalar,arg);
     - description: Multiplication operator with output ETensor using the same context as the left input
       operator: "*"
       args:
@@ -126,7 +127,7 @@ api:
         name: b
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<double>(a.get_context()).mul(a,b);
+        val: return TenncorAPI(a.get_context()).mul(a,b);
     - support_type: SUPPORTED_TYPE
       description: Multiplication operator with output ETensor using the same context as the tensor input
       operator: "*"
@@ -137,7 +138,7 @@ api:
         name: scalar
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).mul(arg,scalar);
+        val: return TenncorAPI(arg.get_context()).mul(arg,scalar);
     - support_type: SUPPORTED_TYPE
       description: Multiplication operator with output ETensor using the same context as the tensor input
       operator: "*"
@@ -148,7 +149,7 @@ api:
         name: arg
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).mul(scalar,arg);
+        val: return TenncorAPI(arg.get_context()).mul(scalar,arg);
     - description: Division operator with output ETensor using the same context as the left input
       operator: /
       args:
@@ -158,7 +159,7 @@ api:
         name: b
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<float>(a.get_context()).div(a,b);
+        val: return TenncorAPI(a.get_context()).div(a,b);
     - support_type: SUPPORTED_TYPE
       description: Division operator with output ETensor using the same context as the tensor input
       operator: /
@@ -169,7 +170,7 @@ api:
         name: scalar
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).div(arg,scalar);
+        val: return TenncorAPI(arg.get_context()).div(arg,scalar);
     - support_type: SUPPORTED_TYPE
       description: Division operator with output ETensor using the same context as the tensor input
       operator: /
@@ -180,7 +181,7 @@ api:
         name: arg
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).div(scalar,arg);
+        val: return TenncorAPI(arg.get_context()).div(scalar,arg);
     - description: Equality operator with output ETensor using the same context as the left input
       operator: ==
       args:
@@ -190,7 +191,7 @@ api:
         name: b
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<float>(a.get_context()).eq(a,b);
+        val: return TenncorAPI(a.get_context()).eq(a,b);
     - support_type: SUPPORTED_TYPE
       description: Equality operator with output ETensor using the same context as the tensor input
       operator: ==
@@ -201,7 +202,7 @@ api:
         name: scalar
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).eq(arg,scalar);
+        val: return TenncorAPI(arg.get_context()).eq(arg,scalar);
     - support_type: SUPPORTED_TYPE
       description: Equality operator with output ETensor using the same context as the tensor input
       operator: ==
@@ -212,7 +213,7 @@ api:
         name: arg
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).eq(scalar,arg);
+        val: return TenncorAPI(arg.get_context()).eq(scalar,arg);
     - description: Inequality operator with output ETensor using the same context as the left input
       operator: "!="
       args:
@@ -222,7 +223,7 @@ api:
         name: b
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<double>(a.get_context()).neq(a,b);
+        val: return TenncorAPI(a.get_context()).neq(a,b);
     - support_type: SUPPORTED_TYPE
       description: Inequality operator with output ETensor using the same context as the tensor input
       operator: "!="
@@ -233,7 +234,7 @@ api:
         name: scalar
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).neq(arg,scalar);
+        val: return TenncorAPI(arg.get_context()).neq(arg,scalar);
     - support_type: SUPPORTED_TYPE
       description: Inequality operator with output ETensor using the same context as the tensor input
       operator: "!="
@@ -244,7 +245,7 @@ api:
         name: arg
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).neq(scalar,arg);
+        val: return TenncorAPI(arg.get_context()).neq(scalar,arg);
     - description: Lesser than operator with output ETensor using the same context as the left input
       operator: <
       args:
@@ -254,7 +255,7 @@ api:
         name: b
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<double>(a.get_context()).lt(a,b);
+        val: return TenncorAPI(a.get_context()).lt(a,b);
     - support_type: SUPPORTED_TYPE
       description: Lesser than operator with output ETensor using the same context as the tensor input
       operator: <
@@ -265,7 +266,7 @@ api:
         name: scalar
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).lt(arg,scalar);
+        val: return TenncorAPI(arg.get_context()).lt(arg,scalar);
     - support_type: SUPPORTED_TYPE
       description: Lesser than operator with output ETensor using the same context as the tensor input
       operator: <
@@ -276,7 +277,7 @@ api:
         name: arg
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).lt(scalar,arg);
+        val: return TenncorAPI(arg.get_context()).lt(scalar,arg);
     - description: Greater than operator with output ETensor using the same context as the left input
       operator: ">"
       args:
@@ -286,7 +287,7 @@ api:
         name: b
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<double>(a.get_context()).gt(a,b);
+        val: return TenncorAPI(a.get_context()).gt(a,b);
     - support_type: SUPPORTED_TYPE
       description: Greater than operator with output ETensor using the same context as the tensor input
       operator: ">"
@@ -297,7 +298,7 @@ api:
         name: scalar
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).gt(arg,scalar);
+        val: return TenncorAPI(arg.get_context()).gt(arg,scalar);
     - support_type: SUPPORTED_TYPE
       description: Greater than operator with output ETensor using the same context as the tensor input
       operator: ">"
@@ -308,10 +309,15 @@ api:
         name: arg
       out:
         type: eteq::ETensor
-        val: return TenncorAPI<SUPPORTED_TYPE>(arg.get_context()).gt(scalar,arg);
+        val: return TenncorAPI(arg.get_context()).gt(scalar,arg);
   classes:
-    - name: TenncorAPI
-      template: typename T
+    - requires:
+        - ApproxAPI
+        - ErrorAPI
+        - LayerAPI
+        - NnAPI
+        - RandomAPI
+      name: TenncorAPI
       init:
         args:
           - name: context
@@ -338,11 +344,11 @@ api:
               if (&other != this)
               {
                   this->ctx = other.ctx;
-                  this->random = RandomAPI<T>(this);
-                  this->nn = NnAPI<T>(this);
-                  this->layer = LayerAPI<T>(this);
-                  this->error = ErrorAPI<T>(this);
-                  this->approx = ApproxAPI<T>(this);
+                  this->random = RandomAPI(this);
+                  this->nn = NnAPI(this);
+                  this->layer = LayerAPI(this);
+                  this->error = ErrorAPI(this);
+                  this->approx = ApproxAPI(this);
               }
       move:
         other: other
@@ -358,33 +364,52 @@ api:
               if (&other != this)
               {
                   this->ctx = other.ctx;
-                  this->random = RandomAPI<T>(this);
-                  this->nn = NnAPI<T>(this);
-                  this->layer = LayerAPI<T>(this);
-                  this->error = ErrorAPI<T>(this);
-                  this->approx = ApproxAPI<T>(this);
+                  this->random = RandomAPI(this);
+                  this->nn = NnAPI(this);
+                  this->layer = LayerAPI(this);
+                  this->error = ErrorAPI(this);
+                  this->approx = ApproxAPI(this);
               }
       members:
         - name: ctx
           type: global::CfgMapptrT
           public: True
         - name: random
-          type: RandomAPI<T>
+          type: RandomAPI
           public: True
         - name: nn
-          type: NnAPI<T>
+          type: NnAPI
           public: True
         - name: layer
-          type: LayerAPI<T>
+          type: LayerAPI
           public: True
         - name: error
-          type: ErrorAPI<T>
+          type: ErrorAPI
           public: True
         - name: approx
-          type: ApproxAPI<T>
+          type: ApproxAPI
           public: True
       funcs:
-        - name: cast
+        - python_only: True
+          description: Return a node that casts arg to specified dtype
+          name: cast
+          args:
+          - type: const eteq::ETensor&
+            name: arg
+          - type: egen::_GENERATED_DTYPE
+            name: dtype
+          out:
+            type: eteq::ETensor
+            val: |
+                //
+                    eteq::ETensor out;
+                #define _CHOOSE_CAST(REALTYPE)out = self.cast<REALTYPE>(out);
+                    TYPE_LOOKUP(_CHOOSE_CAST, dtype);
+                #undef _CHOOSE_CAST
+                    return out;
+        - nopython: True
+          template: typename T
+          name: cast
           description: Return a node that casts arg to specified template.
           args:
           - type: const eteq::ETensor&
@@ -416,7 +441,8 @@ api:
                             dependencies.begin(), dependencies.end()));
                     }
                     return dependee;
-        - name: assign
+        - template: typename T
+          name: assign
           args:
           - type: const eteq::EVariable<T>&
             name: target
@@ -425,7 +451,8 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN,teq::TensptrsT{target,source}),ctx);
-        - name: assign_add
+        - template: typename T
+          name: assign_add
           args:
           - type: const eteq::EVariable<T>&
             name: target
@@ -434,7 +461,8 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_ADD,teq::TensptrsT{target,source}),ctx);
-        - name: assign_sub
+        - template: typename T
+          name: assign_sub
           args:
           - type: const eteq::EVariable<T>&
             name: target
@@ -443,7 +471,8 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_SUB,teq::TensptrsT{target,source}),ctx);
-        - name: assign_mul
+        - template: typename T
+          name: assign_mul
           args:
           - type: const eteq::EVariable<T>&
             name: target
@@ -452,7 +481,8 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_MUL,teq::TensptrsT{target,source}),ctx);
-        - name: assign_div
+        - template: typename T
+          name: assign_div
           args:
           - type: const eteq::EVariable<T>&
             name: target
@@ -568,24 +598,26 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::POW,teq::TensptrsT{a,b}),ctx);
-        - name: pow
+        - support_type: SUPPORTED_TYPE
+          name: pow
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           out:
             type: eteq::ETensor
-            val: return this->pow(arg,eteq::make_constant_like<T>(scalar,arg));
-        - name: pow
+            val: return this->pow(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+        - support_type: SUPPORTED_TYPE
+          name: pow
           args:
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->pow(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
+            val: return this->pow(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
         - name: add
           args:
           - type: const eteq::ETensor&
@@ -595,24 +627,26 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::ADD,teq::TensptrsT{a,b}),ctx);
-        - name: add
+        - support_type: SUPPORTED_TYPE
+          name: add
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           out:
             type: eteq::ETensor
-            val: return this->add(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
-        - name: add
+            val: return this->add(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+        - support_type: SUPPORTED_TYPE
+          name: add
           args:
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->add(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
+            val: return this->add(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
         - name: sub
           args:
           - type: const eteq::ETensor&
@@ -622,24 +656,26 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::SUB,teq::TensptrsT{a,b}),ctx);
-        - name: sub
+        - support_type: SUPPORTED_TYPE
+          name: sub
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           out:
             type: eteq::ETensor
-            val: return this->sub(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
-        - name: sub
+            val: return this->sub(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+        - support_type: SUPPORTED_TYPE
+          name: sub
           args:
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->sub(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
+            val: return this->sub(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
         - name: mul
           args:
           - type: const eteq::ETensor&
@@ -649,24 +685,26 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::MUL,teq::TensptrsT{a,b}),ctx);
-        - name: mul
+        - support_type: SUPPORTED_TYPE
+          name: mul
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           out:
             type: eteq::ETensor
-            val: return this->mul(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
-        - name: mul
+            val: return this->mul(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+        - support_type: SUPPORTED_TYPE
+          name: mul
           args:
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->mul(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
+            val: return this->mul(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
         - name: div
           args:
           - type: const eteq::ETensor&
@@ -676,24 +714,26 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::DIV,teq::TensptrsT{a,b}),ctx);
-        - name: div
+        - support_type: SUPPORTED_TYPE
+          name: div
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           out:
             type: eteq::ETensor
-            val: return this->div(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
-        - name: div
+            val: return this->div(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+        - support_type: SUPPORTED_TYPE
+          name: div
           args:
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->div(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
+            val: return this->div(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
         - name: eq
           args:
           - type: const eteq::ETensor&
@@ -703,24 +743,26 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::EQ,teq::TensptrsT{a,b}),ctx);
-        - name: eq
+        - support_type: SUPPORTED_TYPE
+          name: eq
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           out:
             type: eteq::ETensor
-            val: return this->eq(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
-        - name: eq
+            val: return this->eq(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+        - support_type: SUPPORTED_TYPE
+          name: eq
           args:
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->eq(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
+            val: return this->eq(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
         - name: neq
           args:
           - type: const eteq::ETensor&
@@ -730,24 +772,26 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::NEQ,teq::TensptrsT{a,b}),ctx);
-        - name: neq
+        - support_type: SUPPORTED_TYPE
+          name: neq
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           out:
             type: eteq::ETensor
-            val: return this->neq(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
-        - name: neq
+            val: return this->neq(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+        - support_type: SUPPORTED_TYPE
+          name: neq
           args:
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->neq(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
+            val: return this->neq(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
         - name: lt
           args:
           - type: const eteq::ETensor&
@@ -757,24 +801,26 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::LT,teq::TensptrsT{a,b}),ctx);
-        - name: lt
+        - support_type: SUPPORTED_TYPE
+          name: lt
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           out:
             type: eteq::ETensor
-            val: return this->lt(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
-        - name: lt
+            val: return this->lt(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+        - support_type: SUPPORTED_TYPE
+          name: lt
           args:
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->lt(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
+            val: return this->lt(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
         - name: gt
           args:
           - type: const eteq::ETensor&
@@ -784,24 +830,26 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::GT,teq::TensptrsT{a,b}),ctx);
-        - name: gt
+        - support_type: SUPPORTED_TYPE
+          name: gt
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           out:
             type: eteq::ETensor
-            val: return this->gt(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
-        - name: gt
+            val: return this->gt(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+        - support_type: SUPPORTED_TYPE
+          name: gt
           args:
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->gt(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
+            val: return this->gt(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
         - name: min
           args:
           - type: const eteq::ETensor&
@@ -811,24 +859,26 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::MIN,teq::TensptrsT{a,b}),ctx);
-        - name: min
+        - support_type: SUPPORTED_TYPE
+          name: min
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           out:
             type: eteq::ETensor
-            val: return this->min(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
-        - name: min
+            val: return this->min(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+        - support_type: SUPPORTED_TYPE
+          name: min
           args:
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->min(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
+            val: return this->min(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
         - name: min
           args:
           - type: const eteq::ETensorsT&
@@ -856,24 +906,26 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::MAX,teq::TensptrsT{a,b}),ctx);
-        - name: max
+        - support_type: SUPPORTED_TYPE
+          name: max
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           out:
             type: eteq::ETensor
-            val: return this->max(arg,eteq::make_constant_like<T>(scalar,arg,ctx));
-        - name: max
+            val: return this->max(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+        - support_type: SUPPORTED_TYPE
+          name: max
           args:
-          - type: T
+          - type: SUPPORTED_TYPE
             name: scalar
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->max(eteq::make_constant_like<T>(scalar,arg,ctx),arg);
+            val: return this->max(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
         - name: max
           args:
           - type: const eteq::ETensorsT&
@@ -1147,7 +1199,7 @@ api:
             name: arg
           out:
             type: eteq::ETensor
-            val: return eteq::make_constant_scalar<T>(arg->shape().n_elems(),teq::Shape(),(egen::_GENERATED_DTYPE)arg->get_meta().type_code(),ctx);
+            val: return eteq::make_constant_scalar<teq::NElemT>(arg->shape().n_elems(),teq::Shape(),(egen::_GENERATED_DTYPE)arg->get_meta().type_code(),ctx);
         - name: n_dims
           args:
           - type: const eteq::ETensor&
@@ -1156,7 +1208,7 @@ api:
             name: rank
           out:
             type: eteq::ETensor
-            val: return eteq::make_constant_scalar<T>(arg->shape().at(rank),teq::Shape(),(egen::_GENERATED_DTYPE)arg->get_meta().type_code(),ctx);
+            val: return eteq::make_constant_scalar<teq::DimT>(arg->shape().at(rank),teq::Shape(),(egen::_GENERATED_DTYPE)arg->get_meta().type_code(),ctx);
         - description: extents vector consists of pairs offset and extent for each dimension
           name: slice
           args:
@@ -1366,7 +1418,7 @@ api:
             val: |
                 //
                     auto red = this->reduce_sum_1d(arg,dimension);
-                    auto dim = eteq::make_constant_like<T>(arg->shape().at(dimension),red,ctx);
+                    auto dim = eteq::make_constant_like<teq::DimT>(arg->shape().at(dimension),red,ctx);
                     return this->div(red,dim);
         - name: reduce_l2norm
           args:
@@ -1390,7 +1442,8 @@ api:
           out:
             type: eteq::ETensor
             val: return this->sqrt(this->reduce_sum_1d(this->square(arg),dimension));
-        - name: clip_by_range
+        - template: typename T
+          name: clip_by_range
           args:
           - type: const eteq::ETensor&
             name: arg
@@ -1409,7 +1462,8 @@ api:
                     auto lo = eteq::make_constant_like<T>(minval,arg,ctx);
                     auto hi = eteq::make_constant_like<T>(maxval,arg,ctx);
                     return this->max(this->min(arg,hi),lo);
-        - description: clip by l2norm
+        - template: typename T
+          description: clip by l2norm
           name: clip_by_l2norm
           args:
           - type: const eteq::ETensor&
@@ -1498,28 +1552,28 @@ api:
                     return this->div(exarg,
                         this->extend_like(this->add(
                             this->reduce_sum(exarg,offset,ndims),
-                            std::numeric_limits<T>::epsilon()),exarg));
+                            std::numeric_limits<float>::epsilon()),exarg));
         - name: relu
           args:
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->max(arg,(T) 0);
+            val: return this->max(arg,(float) 0);
         - name: softplus
           args:
           - type: const eteq::ETensor&
             name: arg
           out:
             type: eteq::ETensor
-            val: return this->log(this->add((T) 1,this->exp(arg)));
+            val: return this->log(this->add((float) 1,this->exp(arg)));
         - name: sign
           args:
           - type: const eteq::ETensor&
             name: x
           out:
             type: eteq::ETensor
-            val: return this->add(this->mul((T)-2,this->lt(x,(T)0)),(T)1);
+            val: return this->add(this->mul((float)-2,this->lt(x,(float)0)),(float)1);
     - approx.yml
     - error.yml
     - layer.yml

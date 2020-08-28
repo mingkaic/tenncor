@@ -64,10 +64,10 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 	eteq::EVariable<float> c =
 		eteq::make_variable<float>(data3.data(), cshape);
 
-	auto d = tenncor<float>().matmul(a, b);
-	auto e = tenncor<float>().matmul(c, d);
-	auto f = tenncor<float>().matmul(tenncor<float>().transpose(d), tenncor<float>().transpose(c));
-	auto dest = tenncor<float>().matmul(e, f);
+	auto d = tenncor().matmul(a, b);
+	auto e = tenncor().matmul(c, d);
+	auto f = tenncor().matmul(tenncor().transpose(d), tenncor().transpose(c));
+	auto dest = tenncor().matmul(e, f);
 
 	auto ders = tcr::derive(dest, {a, b, c});
 	auto da = ders[0];
@@ -280,13 +280,13 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 	eteq::EVariable<double> out =
 		eteq::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = tenncor<double>().matmul(in, weight0) + tenncor<double>().extend(bias0, 1, {3});
-	auto sig0 = 1. / (1. + tenncor<double>().exp(-layer0));
+	auto layer0 = tenncor().matmul(in, weight0) + tenncor().extend(bias0, 1, {3});
+	auto sig0 = 1. / (1. + tenncor().exp(-layer0));
 
-	auto layer1 = tenncor<double>().matmul(sig0, weight1) + tenncor<double>().extend(bias1, 1, {3});
-	auto sig1 = 1. / (1. + tenncor<double>().exp(-layer1));
+	auto layer1 = tenncor().matmul(sig0, weight1) + tenncor().extend(bias1, 1, {3});
+	auto sig1 = 1. / (1. + tenncor().exp(-layer1));
 
-	auto err = tenncor<double>().pow(out - sig1, 2.);
+	auto err = tenncor().pow(out - sig1, 2.);
 
 	auto ders = tcr::derive(err, {weight0, bias0, weight1, bias1});
 	auto dw0 = ders[0];
@@ -507,13 +507,13 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 	eteq::EVariable<double> out =
 		eteq::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = tenncor<double>().matmul(in, weight0) + tenncor<double>().extend(bias0, 1, {3});
-	auto sig0 = tenncor<double>().sigmoid(layer0);
+	auto layer0 = tenncor().matmul(in, weight0) + tenncor().extend(bias0, 1, {3});
+	auto sig0 = tenncor().sigmoid(layer0);
 
-	auto layer1 = tenncor<double>().matmul(sig0, weight1) + tenncor<double>().extend(bias1, 1, {3});
-	auto sig1 = tenncor<double>().sigmoid(layer1);
+	auto layer1 = tenncor().matmul(sig0, weight1) + tenncor().extend(bias1, 1, {3});
+	auto sig1 = tenncor().sigmoid(layer1);
 
-	auto err = tenncor<double>().pow(out - sig1, 2.);
+	auto err = tenncor().pow(out - sig1, 2.);
 
 	auto ders = tcr::derive(err, {weight0, bias0, weight1, bias1});
 	auto dw0 = ders[0];
@@ -649,15 +649,15 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 	eteq::ETensorsT states;
 	for (size_t i = 0; i < nseq; ++i)
 	{
-		auto inslice = tenncor<double>().slice(in, i, 1, seq_dim);
-		state = tenncor<double>().tanh(tenncor<double>().nn.fully_connect(
-			{tenncor<double>().concat(inslice, state, 0)},
+		auto inslice = tenncor().slice(in, i, 1, seq_dim);
+		state = tenncor().tanh(tenncor().nn.fully_connect(
+			{tenncor().concat(inslice, state, 0)},
 			{weight}, bias));
 		states.push_back(state);
 	}
-	auto output = tenncor<double>().concat(states, seq_dim);
+	auto output = tenncor().concat(states, seq_dim);
 
-	auto err = tenncor<double>().pow(out - output, 2.);
+	auto err = tenncor().pow(out - output, 2.);
 
 	auto ders = tcr::derive(err, {weight, bias, istate});
 	auto dw = ders[0];
@@ -778,16 +778,16 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell = tenncor<double>().nn.dense(cell_in, weight, bias);
+	auto cell = tenncor().nn.dense(cell_in, weight, bias);
 
-	auto state = tenncor<double>().extend_like(istate,
-		tenncor<double>().slice(in, 0, 1, seq_dim));
+	auto state = tenncor().extend_like(istate,
+		tenncor().slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor<double>().nn.rnn(in, state, cell,
+	auto output = tenncor().nn.rnn(in, state, cell,
 		[](const eteq::ETensor& x)
-		{ return tenncor<double>().tanh(x); }, seq_dim);
+		{ return tenncor().tanh(x); }, seq_dim);
 
-	auto err = tenncor<double>().pow(out - output, 2.);
+	auto err = tenncor().pow(out - output, 2.);
 
 	auto ders = tcr::derive(err, {weight, bias, istate});
 	auto dw = ders[0];
@@ -908,18 +908,18 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell = tenncor<double>().nn.dense(cell_in, weight, bias);
+	auto cell = tenncor().nn.dense(cell_in, weight, bias);
 
-	auto state = tenncor<double>().extend_like(istate,
-		tenncor<double>().slice(in, 0, 1, seq_dim));
+	auto state = tenncor().extend_like(istate,
+		tenncor().slice(in, 0, 1, seq_dim));
 
 	eteq::ETensor layer_in(eteq::make_variable_scalar<double>(0, teq::Shape({5, 3})));
-	auto layer = tenncor<double>().nn.rnn(layer_in, state, cell,
+	auto layer = tenncor().nn.rnn(layer_in, state, cell,
 		[](const eteq::ETensor& x)
-		{ return tenncor<double>().tanh(x); }, seq_dim);
+		{ return tenncor().tanh(x); }, seq_dim);
 	auto output = layr::connect(layer, in);
 
-	auto err = tenncor<double>().pow(out - output, 2.);
+	auto err = tenncor().pow(out - output, 2.);
 
 	auto ders = tcr::derive(err, {weight, bias, istate});
 	auto dw = ders[0];

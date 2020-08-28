@@ -18,7 +18,7 @@
 
 static eteq::ETensor tc_tanh (const eteq::ETensor& x)
 {
-	return tenncor<double>().tanh(x);
+	return tenncor().tanh(x);
 }
 
 
@@ -90,14 +90,14 @@ static teq::TensptrsT rnn_setup (void)
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell = tenncor<double>().nn.dense(cell_in, weight, bias);
+	auto cell = tenncor().nn.dense(cell_in, weight, bias);
 
-	auto state = tenncor<double>().extend_like(istate,
-		tenncor<double>().slice(in, 0, 1, seq_dim));
+	auto state = tenncor().extend_like(istate,
+		tenncor().slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor<double>().nn.rnn(in, state, cell, tc_tanh, seq_dim);
+	auto output = tenncor().nn.rnn(in, state, cell, tc_tanh, seq_dim);
 
-	auto err = tenncor<double>().pow(out - output, 2.);
+	auto err = tenncor().pow(out - output, 2.);
 
 	auto dw = tcr::derive(err, {weight})[0];
 	auto db = tcr::derive(err, {bias})[0];

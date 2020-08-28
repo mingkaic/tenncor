@@ -82,13 +82,16 @@ def render_args(obj, is_decl):
     ])
 
 support_all_format = '''
-#define _GEN_SUPPORT_TYPE({support_type})\\
+#define _GEN_SUPPORT_TYPE(_,{support_type})\\
 {body}
 EVERY_TYPE(_GEN_SUPPORT_TYPE)
 #undef _GEN_SUPPORT_TYPE
 '''
 
 def render_decl(obj):
+    if obj.get('python_only', False):
+        return ''
+
     support_type = obj.get('support_type', None)
 
     handlers = dict(globals())
@@ -105,11 +108,15 @@ def render_decl(obj):
     return out
 
 def render_defn(obj, root=None, clas=None):
+    if obj.get('python_only', False):
+        return ''
+
     handlers = dict(globals())
     if clas is not None:
         temps = clas.get('template', '')
         if len(temps) > 0:
-            handlers['_handle_template_decl'] = lambda obj, root: 'template <{}>\n'.format(temps)
+            handlers['_handle_template_decl'] = lambda obj, root: \
+                'template <{}>\n'.format(temps) + _handle_template_decl(obj, root)
             clean_temp = ','.join([strip_template_prefix(t) for t in temps.split(',')])
             func_prefix = '{}<{}>::'.format(clas['name'], clean_temp)
         else:

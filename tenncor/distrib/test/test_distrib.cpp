@@ -239,7 +239,7 @@ TEST_F(DISTRIB, ComplexDataPassing)
 			auto a2 = -f1;
 			auto c1 = a2 + d1;
 			auto b1 = c1 * f2;
-			auto a1 = tenncor<double>().sin(b1);
+			auto a1 = tenncor().sin(b1);
 
 			auto exshape = a1->shape();
 			ASSERT_ARREQ(shape, exshape);
@@ -283,7 +283,7 @@ TEST_F(DISTRIB, ComplexDataPassing)
 			data.data(), shape, "e2", ectx);
 		auto e3 = eteq::make_variable<double>(
 			data2.data(), shape, "e3", ectx);
-		auto e1 = TenncorAPI<double>(ectx).add(e2, e3);
+		auto e1 = TenncorAPI(ectx).add(e2, e3);
 
 		tcr::expose_node(e1);
 		tcr::expose_node(f1);
@@ -294,7 +294,7 @@ TEST_F(DISTRIB, ComplexDataPassing)
 		std::string f1_key = tcr::lookup_id(f1);
 		auto f1_ref = tcr::lookup_node(f1_key, actx);
 		ASSERT_NOERR(err);
-		auto a2 = TenncorAPI<double>(actx).neg(f1_ref);
+		auto a2 = TenncorAPI(actx).neg(f1_ref);
 		tcr::expose_node(a2);
 
 		std::string d1_key = tcr::lookup_id(d1);
@@ -303,19 +303,19 @@ TEST_F(DISTRIB, ComplexDataPassing)
 		auto d1_ref = tcr::lookup_node(d1_key, cctx);
 		auto d1_ref_fromA = tcr::lookup_node(d1_key, actx);
 		ASSERT_NOERR(err);
-		auto c1 = TenncorAPI<double>(cctx).add(a2_ref, d1_ref);
+		auto c1 = TenncorAPI(cctx).add(a2_ref, d1_ref);
 		tcr::expose_node(c1);
 
 		auto c1_ref = tcr::lookup_node(tcr::lookup_id(c1), bctx);
 		ASSERT_NOERR(err);
 		auto f2_ref = tcr::lookup_node(tcr::lookup_id(f2), bctx);
 		ASSERT_NOERR(err);
-		auto b1 = TenncorAPI<double>(bctx).mul(c1_ref, f2_ref);
+		auto b1 = TenncorAPI(bctx).mul(c1_ref, f2_ref);
 		tcr::expose_node(b1);
 
 		auto b1_ref = tcr::lookup_node(tcr::lookup_id(b1), actx);
 		ASSERT_NOERR(err);
-		auto a1 = TenncorAPI<double>(actx).sin(b1_ref);
+		auto a1 = TenncorAPI(actx).sin(b1_ref);
 
 		auto gotshape = a1->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -414,7 +414,7 @@ TEST_F(DISTRIB, Reachability)
 
 		eteq::ETensor b1_ref = distr::get_iosvc(*mgrA).lookup_node(err, *distr::get_iosvc(*mgrB).lookup_id(b1.get()));
 		ASSERT_NOERR(err);
-		auto a1 = tenncor<double>().sin(b1_ref);
+		auto a1 = tenncor().sin(b1_ref);
 		distr::get_iosvc(*mgrA).expose_node(a1);
 
 		// able to reach across cyclical graph
@@ -464,12 +464,12 @@ TEST_F(DISTRIB, RemoteDeriving)
 			eteq::EVariable<double> b = eteq::make_variable<double>(data2.data(), bshape, "b");
 			eteq::EVariable<double> c = eteq::make_variable<double>(data3.data(), cshape, "c");
 
-			auto d = tenncor<double>().matmul(b, a);
-			auto e = tenncor<double>().matmul(c, d);
-			auto f = tenncor<double>().matmul(
-				tenncor<double>().transpose(d),
-				tenncor<double>().transpose(c));
-			auto root = tenncor<double>().matmul(e, f);
+			auto d = tenncor().matmul(b, a);
+			auto e = tenncor().matmul(c, d);
+			auto f = tenncor().matmul(
+				tenncor().transpose(d),
+				tenncor().transpose(c));
+			auto root = tenncor().matmul(e, f);
 
 			auto ders = tcr::derive(root, {a});
 			auto exd = ders.front();
@@ -487,12 +487,12 @@ TEST_F(DISTRIB, RemoteDeriving)
 		eteq::EVariable<double> b = eteq::make_variable<double>(data2.data(), bshape, "b");
 		eteq::EVariable<double> c = eteq::make_variable<double>(data3.data(), cshape, "c");
 
-		auto d = tenncor<double>().matmul(b, a);
-		auto e = tenncor<double>().matmul(c, d);
-		auto f = tenncor<double>().matmul(
-			tenncor<double>().transpose(d),
-			tenncor<double>().transpose(c));
-		auto root = tenncor<double>().matmul(e, f);
+		auto d = tenncor().matmul(b, a);
+		auto e = tenncor().matmul(c, d);
+		auto f = tenncor().matmul(
+			tenncor().transpose(d),
+			tenncor().transpose(c));
+		auto root = tenncor().matmul(e, f);
 
 		tcr::expose_node(root);
 		tcr::expose_node(a);
@@ -590,7 +590,7 @@ TEST_F(DISTRIB, DebugPrintAscii)
 			data.data(), shape, "e2", ectx);
 		auto e3 = eteq::make_variable<double>(
 			data2.data(), shape, "e3", ectx);
-		auto e1 = TenncorAPI<double>(ectx).add(e2, e3);
+		auto e1 = TenncorAPI(ectx).add(e2, e3);
 
 		tcr::expose_node(e1);
 		tcr::expose_node(f1);
@@ -600,26 +600,26 @@ TEST_F(DISTRIB, DebugPrintAscii)
 		error::ErrptrT err = nullptr;
 		auto f1_ref = tcr::lookup_node(tcr::lookup_id(f1), actx);
 		ASSERT_NOERR(err);
-		auto a2 = TenncorAPI<double>(actx).neg(f1_ref);
+		auto a2 = TenncorAPI(actx).neg(f1_ref);
 		tcr::expose_node(a2);
 
 		auto a2_ref = tcr::lookup_node(tcr::lookup_id(a2), cctx);
 		ASSERT_NOERR(err);
 		auto d1_ref = tcr::lookup_node(tcr::lookup_id(d1), cctx);
 		ASSERT_NOERR(err);
-		auto c1 = TenncorAPI<double>(cctx).add(a2_ref, d1_ref);
+		auto c1 = TenncorAPI(cctx).add(a2_ref, d1_ref);
 		tcr::expose_node(c1);
 
 		auto c1_ref = tcr::lookup_node(tcr::lookup_id(c1), bctx);
 		ASSERT_NOERR(err);
 		auto f2_ref = tcr::lookup_node(tcr::lookup_id(f2), bctx);
 		ASSERT_NOERR(err);
-		auto b1 = TenncorAPI<double>(bctx).mul(c1_ref, f2_ref);
+		auto b1 = TenncorAPI(bctx).mul(c1_ref, f2_ref);
 		tcr::expose_node(b1);
 
 		auto b1_ref = tcr::lookup_node(tcr::lookup_id(b1), actx);
 		ASSERT_NOERR(err);
-		auto a1 = TenncorAPI<double>(actx).sin(b1_ref);
+		auto a1 = TenncorAPI(actx).sin(b1_ref);
 		tcr::expose_node(a1);
 
 		// a1 -> b1 -> c1, f2
@@ -675,12 +675,12 @@ TEST_F(DISTRIB, CrossDerive)
 			auto a2 = -f1;
 			auto c1 = a2 + d1;
 			auto b1 = c1 * f2;
-			auto a1 = tenncor<double>().sin(b1);
+			auto a1 = tenncor().sin(b1);
 			auto exds = tcr::derive(a1, {f1});
 			ASSERT_EQ(1, exds.size());
 			auto exd = exds.front();
 			ASSERT_NE(nullptr, exd);
-			exd = tenncor<double>().cast(exd);
+			exd = tenncor().cast<double>(exd);
 
 			auto exshape = exd->shape();
 			ASSERT_ARREQ(shape, exshape);
@@ -724,7 +724,7 @@ TEST_F(DISTRIB, CrossDerive)
 			data.data(), shape, "e2", ectx);
 		auto e3 = eteq::make_variable<double>(
 			data2.data(), shape, "e3", ectx);
-		auto e1 = TenncorAPI<double>(ectx).add(e2, e3);
+		auto e1 = TenncorAPI(ectx).add(e2, e3);
 
 		tcr::expose_node(e1);
 		tcr::expose_node(f1);
@@ -735,7 +735,7 @@ TEST_F(DISTRIB, CrossDerive)
 		std::string f1_key = tcr::lookup_id(f1);
 		auto f1_ref = tcr::lookup_node(f1_key, actx);
 		ASSERT_NOERR(err);
-		auto a2 = TenncorAPI<double>(actx).neg(f1_ref);
+		auto a2 = TenncorAPI(actx).neg(f1_ref);
 		tcr::expose_node(a2);
 
 		std::string d1_key = tcr::lookup_id(d1);
@@ -744,19 +744,19 @@ TEST_F(DISTRIB, CrossDerive)
 		auto d1_ref = tcr::lookup_node(d1_key, cctx);
 		auto d1_ref_fromA = tcr::lookup_node(d1_key, actx);
 		ASSERT_NOERR(err);
-		auto c1 = TenncorAPI<double>(cctx).add(a2_ref, d1_ref);
+		auto c1 = TenncorAPI(cctx).add(a2_ref, d1_ref);
 		tcr::expose_node(c1);
 
 		auto c1_ref = tcr::lookup_node(tcr::lookup_id(c1), bctx);
 		ASSERT_NOERR(err);
 		auto f2_ref = tcr::lookup_node(tcr::lookup_id(f2), bctx);
 		ASSERT_NOERR(err);
-		auto b1 = TenncorAPI<double>(bctx).mul(c1_ref, f2_ref);
+		auto b1 = TenncorAPI(bctx).mul(c1_ref, f2_ref);
 		tcr::expose_node(b1);
 
 		auto b1_ref = tcr::lookup_node(tcr::lookup_id(b1), actx);
 		ASSERT_NOERR(err);
-		auto a1 = TenncorAPI<double>(actx).sin(b1_ref);
+		auto a1 = TenncorAPI(actx).sin(b1_ref);
 		tcr::expose_node(a1);
 
 		// a1 -> b1 -> c1, f2
@@ -777,7 +777,7 @@ TEST_F(DISTRIB, CrossDerive)
 		// able to derive across cyclical graph
 		{
 			auto df1 = ders[0];
-			df1 = TenncorAPI<double>(actx).cast(df1);
+			df1 = TenncorAPI(actx).cast<double>(df1);
 			auto goptr = df1.template calc<double>();
 
 			std::stringstream ss;
@@ -811,7 +811,7 @@ TEST_F(DISTRIB, CrossDerive)
 		// unable to reach isolated nodes
 		{
 			auto de1 = ders[1];
-			de1 = TenncorAPI<double>(actx).cast(de1);
+			de1 = TenncorAPI(actx).cast<double>(de1);
 
 			auto gotshape = de1->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -828,7 +828,7 @@ TEST_F(DISTRIB, CrossDerive)
 			auto ders2 = tcr::derive(a2, {d1_ref_fromA});
 			ASSERT_EQ(1, ders2.size());
 			auto dd1 = ders2[0];
-			dd1 = TenncorAPI<double>(actx).cast(dd1);
+			dd1 = TenncorAPI(actx).cast<double>(dd1);
 
 			auto gotshape = dd1->shape();
 			ASSERT_ARREQ(shape, gotshape);

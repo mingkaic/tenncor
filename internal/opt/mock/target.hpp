@@ -13,7 +13,8 @@ struct MockTarget final : public opt::iTarget
 	MockTarget (teq::TensptrT tag, const opt::TargptrsT& targs = {}) :
 		tag_(tag), targs_(targs) {}
 
-	teq::TensptrT convert (const query::SymbMapT& candidates) const override
+	teq::TensptrT convert (
+		const query::SymbMapT& candidates) const override
 	{
 		return tag_;
 	}

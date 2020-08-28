@@ -107,13 +107,13 @@ TEST(SESSION, Update)
 	eteq::EVariable<double> bias1 = eteq::make_variable<double>(b1_data.data(), bias1_shape);
 	eteq::EVariable<double> out = eteq::make_variable<double>(out_data.data(), out_shape);
 
-	auto layer0 = tenncor<double>().matmul(in, weight0) + tenncor<double>().extend(bias0, 1, {3});
-	auto sig0 = tenncor<double>().sigmoid(layer0);
+	auto layer0 = tenncor().matmul(in, weight0) + tenncor().extend(bias0, 1, {3});
+	auto sig0 = tenncor().sigmoid(layer0);
 
-	auto layer1 = tenncor<double>().matmul(sig0, weight1) + tenncor<double>().extend(bias1, 1, {3});
-	auto sig1 = tenncor<double>().sigmoid(layer1);
+	auto layer1 = tenncor().matmul(sig0, weight1) + tenncor().extend(bias1, 1, {3});
+	auto sig1 = tenncor().sigmoid(layer1);
 
-	auto err = tenncor<double>().pow(out - sig1, 2.);
+	auto err = tenncor().pow(out - sig1, 2.);
 
 	auto dw0 = tcr::derive(err, weight0);
 	auto db0 = tcr::derive(err, bias0);

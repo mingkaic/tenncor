@@ -1,13 +1,11 @@
-template: typename T
-requires: TenncorAPI
 name: ErrorAPI
 members:
   - name: super
-    type: TenncorAPI<T>*
+    type: TenncorAPI*
 init:
   args:
     - name: super
-      type: TenncorAPI<T>*
+      type: TenncorAPI*
   initlist:
     super: super
 funcs:

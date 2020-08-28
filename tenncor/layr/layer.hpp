@@ -218,7 +218,6 @@ struct RBMLayer final
 	eteq::ETensor bwd_;
 };
 
-template <typename T>
 using UnaryF = std::function<eteq::ETensor(const eteq::ETensor&)>;
 
 }

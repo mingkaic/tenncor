@@ -1,13 +1,11 @@
-template: typename T
-requires: TenncorAPI
 name: RandomAPI
 members:
   - name: super
-    type: TenncorAPI<T>*
+    type: TenncorAPI*
 init:
   args:
     - name: super
-      type: TenncorAPI<T>*
+      type: TenncorAPI*
   initlist:
     super: super
 funcs:
@@ -29,6 +27,6 @@ funcs:
       val: |
           //
               auto trial = this->rand_unif(
-                  eteq::make_variable_like<T>((T) 0,arg,"0",super->ctx),
-                  eteq::make_variable_like<T>((T) 1,arg,"1",super->ctx));
+                  eteq::make_variable_like<float>(0,arg,"0",super->ctx),
+                  eteq::make_variable_like<float>(1,arg,"1",super->ctx));
               return super->lt(trial,arg);

@@ -1,21 +1,20 @@
-template: typename T
 requires:
-  - TenncorAPI
   - NnAPI
 name: LayerAPI
 members:
   - name: super
-    type: TenncorAPI<T>*
+    type: TenncorAPI*
 init:
   args:
     - name: super
-      type: TenncorAPI<T>*
+      type: TenncorAPI*
   initlist:
     super: super
 funcs:
-  - name: bind
+  - template: typename T
+    name: bind
     args:
-    - type: layr::UnaryF<T>
+    - type: layr::UnaryF
       name: unary
     - type: const teq::Shape&
       name: inshape
@@ -65,7 +64,8 @@ funcs:
               }
               auto layer_root = super->identity(output);
               return eteq::ETensor(layr::make_layer(layer_root,layr::link_name,input),super->ctx);
-  - name: dense
+  - template: typename T
+    name: dense
     args:
     - type: const teq::Shape&
       name: inshape
@@ -96,7 +96,8 @@ funcs:
                   bias = bias_init(teq::Shape(hidden_dims),layr::bias_label);
               }
               return super->nn.dense(input,weight,bias,dims);
-  - name: conv
+  - template: typename T
+    name: conv
     args:
     - type: const eteq::DimPairsT&
       name: filter_hw
@@ -131,13 +132,14 @@ funcs:
                   bias = bias_init(teq::Shape({out_ncol}),layr::bias_label);
               }
               return super->nn.conv(input,weight,bias,zero_padding);
-  - name: rnn
+  - template: typename T
+    name: rnn
     args:
     - type: teq::DimT
       name: indim
     - type: teq::DimT
       name: hidden_dim
-    - type: const layr::UnaryF<T>&
+    - type: const layr::UnaryF&
       name: activation
     - type: teq::DimT
       name: nseq
@@ -170,7 +172,8 @@ funcs:
                   super->slice(input,0,1,seq_dim));
 
               return super->nn.rnn(input,state,cell,activation,seq_dim);
-  - name: lstm
+  - template: typename T
+    name: lstm
     args:
     - type: const teq::Shape&
       name: inshape
@@ -216,7 +219,8 @@ funcs:
 
               return super->nn.lstm(input,state,hidden,
                   ggate,forgate,ingate,outgate,seq_dim);
-  - name: gru
+  - template: typename T
+    name: gru
     args:
     - type: const teq::Shape&
       name: inshape
@@ -260,7 +264,8 @@ funcs:
 
               return super->nn.gru(input,state,
                   ugate,rgate,hgate,seq_dim);
-  - name: rbm
+  - template: typename T
+    name: rbm
     args:
     - type: teq::DimT
       name: nvisible
@@ -294,7 +299,8 @@ funcs:
                   super->nn.dense(bwdinput,
                       super->transpose(weight),vbias,{{0,1}})
               };
-  - name: zero_init
+  - template: typename T
+    name: zero_init
     description: Return initialization function that makes zero variables
     out:
       type: layr::InitF<T>
@@ -306,7 +312,8 @@ funcs:
               {
                   return eteq::make_variable_scalar<T>(0, shape, label, ctx);
               };
-  - name: variance_scaling_init
+  - template: typename T
+    name: variance_scaling_init
     description: |
                 Return initialization function that makes variance scaling variables
                 (see https://www.tensorflow.org/versions/r1.14/api_docs/python/tf/contrib/layers/variance_scaling_initializer)
@@ -329,7 +336,8 @@ funcs:
                   layr::truncated_normal<T>(vec, shape, 0, stdev);
                   return eteq::make_variable(vec.data(), shape, label, ctx);
               };
-  - name: unif_xavier_init
+  - template: typename T
+    name: unif_xavier_init
     description: |
                 Return initialization function that makes xavier initialized variables (that uses uniform distribution)
                 (see https://andyljones.tumblr.com/post/110998971763/an-explanation-of-xavier-initialization)
@@ -350,7 +358,8 @@ funcs:
                   std::generate(vec.begin(), vec.end(), global::Randomizer().unif_gen<T>(-bound, bound));
                   return eteq::make_variable(vec.data(), shape, label, ctx);
               };
-  - name: norm_xavier_init
+  - template: typename T
+    name: norm_xavier_init
     description: |
                 Return initialization function that makes xavier initialized variables (that uses gaussian distribution)
                 (see https://andyljones.tumblr.com/post/110998971763/an-explanation-of-xavier-initialization)

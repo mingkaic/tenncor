@@ -67,8 +67,23 @@ def process_modname(atype):
     endtype = atype.split('<', 1)[0].split('::')[-1]
     return 'm_' + endtype
 
+def generate_functemplate(obj, mod, fname, params, pargs, block, comment):
+    if obj.get('python_only', False):
+        block = obj['out']['val']
+    out = _template.format(mod=mod, fname=fname,
+        func=_render_func(params, pargs, block, comment))
+    support_type = obj.get('support_type', None)
+    if support_type:
+        out = support_all_format.format(
+            support_type=support_type,
+            body='\\\n'.join(out.strip().split('\n')))
+    return out
+
 def render_classfunc(obj, class_type, namespace, mod):
-    templates = get_template_args(class_type)
+    if obj.get('nopython', False):
+        return '', []
+
+    templates = get_template_args(class_type) + get_template_args(obj)
     cname = 'cls_' + class_type['name']
 
     assert('out' in obj)
@@ -106,10 +121,15 @@ def render_classfunc(obj, class_type, namespace, mod):
     # process name
     assert(('name' in obj) != ('operator' in obj))
     if 'name' in obj:
-        block = 'return self.{name}({args});'.format(name=name,
+        if 'template' in obj:
+            temp = '<' + pybindt + '>'
+        else:
+            temp = ''
+        block = 'return self.{name}{temp}({args});'.format(
+            name=name, temp=temp,
             args=', '.join([arg['name'] for arg in args]))
-        return _template.format(mod=cname, fname=name,
-            func=_render_func(params, pargs, block, comment)), func_inputs
+
+        return generate_functemplate(obj, cname, name, params, pargs, block, comment), func_inputs
 
     if 'operator' not in obj:
         raise Exception('No name or operator specified in func')
@@ -123,28 +143,30 @@ def render_classfunc(obj, class_type, namespace, mod):
         else:
             block = 'return ' + op.join(fullargs[::-1])
         block = ';'
-        funcs.append(_template.format(mod=cname, fname=name,
-            func=_render_func(params, pargs, block, comment)))
+        funcs.append(generate_functemplate(obj, cname, name, params, pargs, block, comment))
 
     if len(fullargs) == 1:
         block = 'return ' + op + fullargs[0]
     else:
         block = 'return ' + op.join(fullargs)
     block = ';'
+
     name = _py_op[(op, 1 + len(args))]
-    funcs.append(_template.format(mod=cname, fname=name,
-        func=_render_func(params, pargs, block, comment)))
+    funcs.append(generate_functemplate(obj, cname, name, params, pargs, block, comment))
 
     return '\n'.join(funcs), func_inputs
 
 support_all_format = '''
-#define _GEN_SUPPORT_TYPE({support_type})\\
+#define _GEN_SUPPORT_TYPE(_,{support_type})\\
 {body}
 EVERY_TYPE(_GEN_SUPPORT_TYPE)
 #undef _GEN_SUPPORT_TYPE
 '''
 
 def render(obj, mod, namespace):
+    if obj.get('nopython', False):
+        return '', []
+
     templates = get_template_args(obj)
 
     assert('out' in obj)
@@ -169,7 +191,12 @@ def render(obj, mod, namespace):
     assert(('name' in obj) != ('operator' in obj))
     if 'name' in obj:
         name = obj['name']
-        block = 'return {name}({args});'.format(name=namespace + "::" + name,
+        if 'template' in obj:
+            temp = '<' + pybindt + '>'
+        else:
+            temp = ''
+        block = 'return {name}{temp}({args});'.format(
+            name=namespace + "::" + name, temp=temp,
             args=', '.join([param['name'] for param in params]))
         args = params
     elif 'operator' in obj:
@@ -202,12 +229,6 @@ def render(obj, mod, namespace):
     comment = obj.get('description', name + ' ...')
     params = ', '.join([param['type'] + ' ' + param['name'] for param in params])
     args = ', '.join([_render_pyarg(arg, templates) for arg in args])
-    out = _template.format(mod=mod, fname=name,
-        func=_render_func(params, args, block, comment))
 
-    support_type = obj.get('support_type', None)
-    if support_type:
-        out = support_all_format.format(
-            support_type=support_type,
-            body='\\\n'.join(out.strip().split('\n')))
+    out = generate_functemplate(obj, mod, name, params, args, block, comment)
     return out, func_inputs

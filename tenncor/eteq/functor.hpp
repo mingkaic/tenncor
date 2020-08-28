@@ -41,6 +41,17 @@ struct Functor final : public eigen::Observable
 			std::back_inserter(shapes),
 			[](teq::TensptrT tens) { return tens->shape(); });
 
+		auto ctype = children.front()->get_meta().type_code();
+		for (auto it = children.begin(), et = children.end();
+			it != et; ++it)
+		{
+			auto child = *it;
+			if (ctype != child->get_meta().type_code())
+			{
+				global::fatal("children types are not all the same");
+			}
+		}
+
 		teq::Shape outshape;
 		OPCODE_LOOKUP(_CHOOSE_PARSER, opcode)
 		return new Functor<T>(
@@ -146,6 +157,14 @@ struct Functor final : public eigen::Observable
 						"incompatible shape %s (requires shape %s)",
 						index, nexshape.to_string().c_str(),
 						curshape.to_string().c_str());
+				}
+				auto nextype = arg->get_meta().type_label();
+				auto curtype = children_[index]->get_meta().type_label();
+				if (curtype != nextype)
+				{
+					global::fatalf("cannot update child %d to argument with "
+						"different type %s (requires type %s)",
+						index, nextype.c_str(), curtype.c_str());
 				}
 				children_[index] = arg;
 				if (auto f = dynamic_cast<eigen::Observable*>(arg.get()))

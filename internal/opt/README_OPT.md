@@ -33,5 +33,5 @@ For example:
 given a source of `{"op": "SIN", "args": [{"symb": "X"}]}`
 and a dest of `{"symb": "X"}`
 
-`tenncor<double>().add(tenncor<double>().sin(a),tenncor<double>().cos(b))` will be transformed to
-`tenncor<double>().add(a,tenncor<double>().cos(b))`
+`tenncor().add(tenncor().sin(a),tenncor().cos(b))` will be transformed to
+`tenncor().add(a,tenncor().cos(b))`

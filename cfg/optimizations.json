@@ -54,29 +54,6 @@
 {
     "srcs":[{
         "op":{
-            "opname":"CAST",
-            "args":[{
-                "op":{
-                    "opname":"CAST",
-                    "args":[{
-                        "symb":"X"
-                    }]
-                }
-           }]
-        }
-    }],
-    "dest":{
-        "op":{
-            "opname":"CAST",
-            "args":[{
-                "symb":"X"
-            }]
-        }
-    }
-},
-{
-    "srcs":[{
-        "op":{
             "opname":"POW",
             "args":[{
                 "symb":"X"

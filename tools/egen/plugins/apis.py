@@ -35,15 +35,23 @@ def predef_class(obj):
 def render_classes(classes, api, defn_funcs=True):
     if defn_funcs:
         class_defs = dict()
+        cfunc_defs = []
         for clas in classes:
-            class_def = crender(api, clas, hdr=True)
+            class_def, func_defs = crender(api, clas, hdr=True)
             cname = clas['name']
             class_defs[cname] = class_def
+            cfunc_defs.append(func_defs)
 
         order = order_classes(classes)
         return [predef_class(clas) for clas in classes] +\
-            [class_defs[clas] for clas in order]
-    return [crender(api, clas, hdr=False) for clas in classes]
+            [class_defs[clas] for clas in order] + cfunc_defs
+    else:
+        impls = []
+        for clas in classes:
+            class_def, func_defs = crender(api, clas, hdr=False)
+            impls.append(class_def)
+            impls.append(func_defs)
+        return impls
 
 def render_globals(mems, hdr):
     out = []

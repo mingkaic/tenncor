@@ -30,18 +30,24 @@ def _handle_class_name(obj):
     assert('name' in obj)
     return obj['name']
 
-_template_init = '''{cname} ({args}) {initlist}
+_template_init_decl = '{cname} ({args});'
+
+_template_init_defn = '''{cname}::{cname} ({args}) {initlist}
 {{{do}}}
 '''
 
-def _handle_init(obj):
+def _handle_init(obj, decl=True):
+    if decl:
+        temp = _template_init_decl
+    else:
+        temp = _template_init_defn
     init = obj.get('init', None)
     if init is not None:
         args = init.get('args', [])
         ilist = init.get('initlist', {})
         doblock = init.get('do', '')
 
-        args = ', '.join([arender(arg) for arg in args])
+        args = ', '.join([arender(arg, accept_def=decl) for arg in args])
         if len(ilist) > 0:
             # order the initializer list by class members declaration
             member = obj.get('members', [])
@@ -63,7 +69,7 @@ def _handle_init(obj):
                 '\t' + doline
                 for doline in doblock.split('\n')
             ] + [''])
-        return _template_init.format(
+        return temp.format(
             cname=obj['name'],
             args=args, initlist=ilist, do = doblock)
     return ''
@@ -73,11 +79,16 @@ _template_defcopy = '''
 {typename}& operator = (const {typename}& other) = default;
 '''
 
-_template_copy = '''
-{name} (const {typename}& {oname}{args}){ilist} {{
+_template_copy_decl = '''
+{name} (const {typename}& {oname}{args});
+{typename}& operator = (const {typename}& {oname});
+'''
+
+_template_copy_defn = '''
+{name}::{name} (const {typename}& {oname}{args}){ilist} {{
     {do}
 }}
-{typename}& operator = (const {typename}& {oname}) {{
+{typename}& {name}::operator = (const {typename}& {oname}) {{
     {do}
     return *this;
 }}
@@ -88,17 +99,22 @@ _template_defmove = '''
 {typename}& operator = ({typename}&& other) = default;
 '''
 
-_template_move = '''
-{name} ({typename}&& {oname}{args}){ilist} {{
+_template_move_decl = '''
+{name} ({typename}&& {oname}{args});
+{typename}& operator = ({typename}&& {oname});
+'''
+
+_template_move_defn = '''
+{name}::{name} ({typename}&& {oname}{args}){ilist} {{
     {do}
 }}
-{typename}& operator = ({typename}&& {oname}) {{
+{typename}& {name}::operator = ({typename}&& {oname}) {{
     {do}
     return *this;
 }}
 '''
 
-def _handle_copynmove(obj):
+def _handle_copynmove(obj, decl=True):
     cp = obj.get('copy', None)
     mv = obj.get('move', None)
     if cp is None and mv is None:
@@ -115,9 +131,14 @@ def _handle_copynmove(obj):
     if cp is None:
         cp = _template_defcopy.format(name=name, typename=typename)
     else:
+        if decl:
+            cpytemp = _template_copy_decl
+        else:
+            cpytemp = _template_copy_defn
+
         oname = cp.get('other', 'other')
         args = ', '.join([''] + [
-            arender(arg, accept_def=True)
+            arender(arg, accept_def=decl)
             for arg in cp.get('args', [])
         ])
         ilist = cp.get('initlist', {})
@@ -130,16 +151,21 @@ def _handle_copynmove(obj):
         else:
             ilist = ''
 
-        cp = _template_copy.format(name=name,
+        cp = cpytemp.format(name=name,
             typename=typename, oname=oname,
             args=args, do=cp['do'], ilist=ilist)
 
     if mv is None:
         mv = _template_defmove.format(name=name, typename=typename)
     else:
+        if decl:
+            mvtemp = _template_move_decl
+        else:
+            mvtemp = _template_move_defn
+
         oname = mv.get('other', 'other')
         args = ', '.join([''] + [
-            arender(arg, accept_def=True)
+            arender(arg, accept_def=decl)
             for arg in mv.get('args', [])
         ])
         ilist = mv.get('initlist', {})
@@ -152,7 +178,7 @@ def _handle_copynmove(obj):
         else:
             ilist = ''
 
-        mv = _template_move.format(name=name,
+        mv = mvtemp.format(name=name,
             typename=typename, oname=oname,
             args=args, do=mv['do'], ilist=ilist)
 
@@ -186,6 +212,32 @@ def _handle_members(obj):
 
 def render(api, obj, hdr=True):
     if hdr:
-        return build_template(_template_hdr, globals(), obj)
-    funcs = obj.get('funcs', [])
-    return '\n\n'.join([fdefn_render(f, root=api, clas=obj) for f in funcs])
+        clas_decls = build_template(_template_hdr, globals(), obj)
+        funcs = obj.get('funcs', [])
+        if 'template' in obj:
+            initfuncs = [
+                _handle_init(obj, decl=False),
+                _handle_copynmove(obj, decl=False)
+            ]
+        else:
+            initfuncs = []
+            funcs = [func for func in funcs if 'template' in func]
+        func_decls = '\n\n'.join(initfuncs + [
+            fdefn_render(f, root=api, clas=obj)
+            for f in funcs
+        ])
+        return clas_decls, func_decls
+    elif 'template' not in obj:
+        initfuncs = [
+            _handle_init(obj, decl=False),
+            _handle_copynmove(obj, decl=False)
+        ]
+        funcs = obj.get('funcs', [])
+        funcs = [func for func in funcs if not 'template' in func]
+        func_defns = '\n\n'.join(initfuncs + [
+            fdefn_render(f, root=api, clas=obj)
+            for f in funcs
+        ])
+        return '', func_defns
+    else:
+        return '', ''
