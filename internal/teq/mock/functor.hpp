@@ -1,7 +1,7 @@
+
 #include "internal/marsh/objs.hpp"
 
 #include "internal/teq/ifunctor.hpp"
-
 #include "internal/teq/mock/leaf.hpp"
 #include "internal/teq/mock/meta.hpp"
 
@@ -42,12 +42,7 @@ struct MockFunctor : public teq::iFunctor
 		return children_;
 	}
 
-	teq::TensptrsT get_dependencies (void) const override
-	{
-		return children_;
-	}
-
-	std::vector<std::string> ls_attrs (void) const override
+	types::StringsT ls_attrs (void) const override
 	{
 		return attrs_.ls_attrs();
 	}
@@ -70,6 +65,11 @@ struct MockFunctor : public teq::iFunctor
 	void rm_attr (const std::string& attr_key) override
 	{
 		attrs_.rm_attr(attr_key);
+	}
+
+	size_t size (void) const override
+	{
+		return attrs_.size();
 	}
 
 	void update_child (teq::TensptrT arg, size_t index) override

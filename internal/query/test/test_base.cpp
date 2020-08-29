@@ -47,7 +47,7 @@ TEST(BASE, NoComNoSymbs)
 		"_`--(constant:X)\n";
 
 	PrettyEquation peq;
-	std::vector<std::string> dets;
+	types::StringsT dets;
 	for (auto& det : roots)
 	{
 		std::stringstream ss;

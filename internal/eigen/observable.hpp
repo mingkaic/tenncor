@@ -76,7 +76,7 @@ struct Observable : public teq::iFunctor
 	virtual bool prop_version (size_t max_version) = 0;
 
 	/// Implementation of iAttributed
-	std::vector<std::string> ls_attrs (void) const override
+	types::StringsT ls_attrs (void) const override
 	{
 		return attrs_.ls_attrs();
 	}
@@ -103,6 +103,12 @@ struct Observable : public teq::iFunctor
 	void rm_attr (const std::string& attr_key) override
 	{
 		attrs_.rm_attr(attr_key);
+	}
+
+	/// Implementation of iAttributed
+	size_t size (void) const override
+	{
+		return attrs_.size();
 	}
 
 protected:

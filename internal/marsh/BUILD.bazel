@@ -23,6 +23,11 @@ filegroup(
 )
 
 filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
     name = "test_hdrs",
     srcs = glob(["test/*.hpp"]),
 )
@@ -40,6 +45,14 @@ cc_library(
     srcs = [":marsh_srcs"],
     copts = ["-std=c++17"],
     deps = ["@com_github_mingkaic_cppkg//estd:estd"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "mock_marsh",
+    hdrs = [":mock_hdrs"],
+    copts = ["-std=c++17"],
+    deps = [":marsh"],
     visibility = ["//visibility:public"],
 )
 

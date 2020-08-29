@@ -182,7 +182,7 @@ struct PtrArray final : public iArray
 
 	std::string to_string (void) const override
 	{
-		std::vector<std::string> strs;
+		types::StringsT strs;
 		strs.reserve(contents_.size());
 		for (auto& c : contents_)
 		{
@@ -362,7 +362,7 @@ struct ObjTuple final : public iTuple
 
 	std::string to_string (void) const override
 	{
-		std::vector<std::string> strs;
+		types::StringsT strs;
 		strs.reserve(contents_.size());
 		for (auto& c : contents_)
 		{
@@ -481,9 +481,9 @@ struct Maps final : public iObject, public iAttributed
 		marshaler.marshal(*this);
 	}
 
-	std::vector<std::string> ls_attrs (void) const override
+	types::StringsT ls_attrs (void) const override
 	{
-		std::vector<std::string> out;
+		types::StringsT out;
 		out.reserve(contents_.size());
 		for (auto& cpair : contents_)
 		{
@@ -513,6 +513,11 @@ struct Maps final : public iObject, public iAttributed
 	void rm_attr (const std::string& attr_key) override
 	{
 		contents_.erase(attr_key);
+	}
+
+	size_t size (void) const override
+	{
+		return contents_.size();
 	}
 
 private:

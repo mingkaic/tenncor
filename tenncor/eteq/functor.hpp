@@ -106,25 +106,6 @@ struct Functor final : public eigen::Observable
 	}
 
 	/// Implementation of iFunctor
-	teq::TensptrsT get_dependencies (void) const override
-	{
-		auto deps = children_;
-		if (auto deps_attr = dynamic_cast<const marsh::iArray*>(
-			this->get_attr(dependency_key)))
-		{
-			deps_attr->foreach(
-				[&](size_t, const marsh::iObject* obj)
-				{
-					if (auto dep = dynamic_cast<const teq::TensorObj*>(obj))
-					{
-						deps.push_back(dep->get_tensor());
-					}
-				});
-		}
-		return deps;
-	}
-
-	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
 		auto deps_attr = dynamic_cast<teq::TensArrayT*>(

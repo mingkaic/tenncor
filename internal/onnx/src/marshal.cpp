@@ -33,10 +33,10 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 
 	void marshal (const marsh::iArray& arr) override
 	{
-		std::vector<std::string> strs;
+		types::StringsT strs;
 		std::vector<int64_t> ints;
 		std::vector<double> floats;
-		std::vector<std::string> tensors;
+		types::StringsT tensors;
 		arr.foreach(
 			[&](size_t i, const marsh::iObject* obj)
 			{
@@ -134,7 +134,7 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib,
 	const teq::CTensMapT<std::string>& tensid)
 {
-	std::vector<std::string> attr_keys = attrib.ls_attrs();
+	types::StringsT attr_keys = attrib.ls_attrs();
 	for (const std::string& attr_key : attr_keys)
 	{
 		if (attr_key == teq::layer_key)

@@ -385,8 +385,8 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 			auto roots = tcr::load_model(ids, pb_model);
 			input.close();
 
-			std::vector<std::string> precids;
-			std::vector<std::string> root_ids;
+			types::StringsT precids;
+			types::StringsT root_ids;
 			precids.reserve(key_prec.size());
 			root_ids.reserve(roots.size());
 			for (teq::TensptrT root : roots)

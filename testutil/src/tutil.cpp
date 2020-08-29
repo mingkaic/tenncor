@@ -23,8 +23,8 @@ std::string compare_graph (std::istream& expectstr,
 	exrun = gorun = true;
 	while (out.empty() && (exrun || gorun))
 	{
-		std::vector<std::string> expects;
-		std::vector<std::string> gots;
+		types::StringsT expects;
+		types::StringsT gots;
 		std::string line;
 		for (size_t i = 0; i < peek_limit && exrun; ++i)
 		{

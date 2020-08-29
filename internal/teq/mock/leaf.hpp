@@ -1,5 +1,5 @@
-#include "internal/teq/ileaf.hpp"
 
+#include "internal/teq/ileaf.hpp"
 #include "internal/teq/mock/device.hpp"
 #include "internal/teq/mock/meta.hpp"
 

@@ -32,11 +32,9 @@ void warn (const std::string& msg);
 void error (const std::string& msg);
 
 /// Log at throw level
-[[ noreturn ]]
 void throw_err (const std::string& msg);
 
 /// Log at fatal level
-[[ noreturn ]]
 void fatal (const std::string& msg);
 
 /// Log at debug level with arguments
@@ -69,7 +67,6 @@ void errorf (const std::string& format, ARGS... args)
 
 /// Log at throw_error level with arguments
 template <typename... ARGS>
-[[ noreturn ]]
 void throw_errf (const std::string& format, ARGS... args)
 {
 	throw_err(fmts::sprintf(format, args...));
@@ -77,7 +74,6 @@ void throw_errf (const std::string& format, ARGS... args)
 
 /// Log at fatal level with arguments
 template <typename... ARGS>
-[[ noreturn ]]
 void fatalf (const std::string& format, ARGS... args)
 {
 	fatal(fmts::sprintf(format, args...));

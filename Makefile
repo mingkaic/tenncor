@@ -228,7 +228,7 @@ clean_test_coverage: ${COVERAGE_INFO_FILE}
 
 .PHONY: coverage
 coverage:
-	${CCOVER} //internal/... ${ETEQ_CTEST} ${DISTRIB_CTEST} ${LAYR_TEST}
+	${CCOVER} //internal/... ${DISTRIB_CTEST} ${ETEQ_CTEST} ${HONE_CTEST} ${LAYR_CTEST} ${SERIAL_CTEST}
 	@make clean_test_coverage
 	lcov --extract ${LOC_COVERAGE_FILE} 'internal/*' 'tenncor/*' -o ${LOC_COVERAGE_FILE}
 
@@ -286,11 +286,23 @@ cover_util:
 
 #### tenncor coverages ####
 
+.PHONY: cover_distrib
+cover_distrib:
+	${CCOVER} ${DISTRIB_CTEST}
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/distrib/*' -o ${LOC_COVERAGE_FILE}
+
 .PHONY: cover_eteq
 cover_eteq:
 	${CCOVER} ${ETEQ_CTEST}
 	@make clean_test_coverage
 	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/eteq/*' -o ${LOC_COVERAGE_FILE}
+
+.PHONY: cover_hone
+cover_hone:
+	${CCOVER} ${HONE_CTEST}
+	@make clean_test_coverage
+	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/hone/*' -o ${LOC_COVERAGE_FILE}
 
 .PHONY: cover_layr
 cover_layr:
@@ -298,8 +310,8 @@ cover_layr:
 	@make clean_test_coverage
 	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/layr/*' -o ${LOC_COVERAGE_FILE}
 
-.PHONY: cover_distrib
-cover_distrib:
-	${CCOVER} ${DISTRIB_CTEST}
+.PHONY: cover_serial
+cover_serial:
+	${CCOVER} ${SERIAL_CTEST}
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/distrib/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/serial/*' -o ${LOC_COVERAGE_FILE}

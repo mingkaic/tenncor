@@ -60,16 +60,12 @@ std::string const_encode (const T* data, const Shape& shape)
 	if (std::all_of(data + 1, data + nelems,
 		[&](const T& e) { return e == data[0]; }))
 	{
-		if (0 == data[0]) // prevent -0
-		{
-			return "0";
-		}
 		return fmts::to_string(data[0]);
 	}
 	std::string out;
 	if (nelems > label_limit)
 	{
-		std::vector<std::string> strs;
+		types::StringsT strs;
 		strs.reserve(label_limit + 1);
 		std::transform(data, data + label_limit, std::back_inserter(strs),
 			[](T e) { return fmts::to_string(e); });

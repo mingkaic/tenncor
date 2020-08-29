@@ -46,7 +46,7 @@ private:
 	void visit_func (teq::iFunctor& func) override
 	{
 		auto deps = func.get_dependencies();
-		std::vector<std::string> hshs;
+		types::StringsT hshs;
 		hshs.reserve(deps.size());
 		teq::multi_visit(*this, deps);
 		for (teq::TensptrT dep : deps)

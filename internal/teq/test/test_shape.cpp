@@ -49,6 +49,30 @@ TEST(SHAPE, Init)
 }
 
 
+TEST(SHAPE, Iterators)
+{
+	teq::Shape vec({12, 43, 56});
+	auto it = vec.begin();
+	auto et = vec.end();
+	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+	{
+		EXPECT_NE(it + i, et);
+	}
+	EXPECT_EQ(it + teq::rank_cap, et);
+
+	{
+		const teq::Shape cvec({12, 43, 56});
+		auto cit = cvec.begin();
+		auto cet = cvec.end();
+		for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+		{
+			EXPECT_NE(cit + i, cet);
+		}
+		EXPECT_EQ(cit + teq::rank_cap, cet);
+	}
+}
+
+
 TEST(SHAPE, VecAssign)
 {
 	std::vector<teq::DimT> zerolist = {3, 0, 11, 89};

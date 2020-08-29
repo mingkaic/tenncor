@@ -46,8 +46,21 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 	/// Return vector of functor arguments
 	virtual TensptrsT get_args (void) const = 0;
 
-	/// Return vector of functor dependencies
-	virtual TensptrsT get_dependencies (void) const = 0;
+	/// Return vector of functor dependencies including attribute tensor refs
+	teq::TensptrsT get_dependencies (void) const
+	{
+		auto deps = get_args();
+		if (this->size() > 0)
+		{
+			marsh::Maps attrs;
+			marsh::get_attrs(attrs, *this);
+			FindTensAttr attrf;
+			attrs.accept(attrf);
+			auto& subdeps = attrf.deps_;
+			deps.insert(deps.end(), subdeps.begin(), subdeps.end());
+		}
+		return deps;
+	}
 
 	/// Update child at specified index
 	virtual void update_child (TensptrT arg, size_t index) = 0;

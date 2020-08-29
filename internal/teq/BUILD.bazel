@@ -62,6 +62,7 @@ cc_test(
     srcs = [":test_srcs"],
     deps = [
         ":mock_teq",
+        "//internal/marsh:mock_marsh",
         "//testutil:tutil",
     ],
     copts = ["-std=c++17"],

@@ -232,6 +232,91 @@ TEST(OBJS, NumArray)
 }
 
 
+TEST(OBJS, PtrArray)
+{
+	marsh::PtrArray<marsh::Number<double>> root;
+	root.contents_.insert(root.contents_.end(),
+		std::make_unique<marsh::Number<double>>(2));
+	root.contents_.insert(root.contents_.end(),
+		std::make_unique<marsh::Number<double>>(3.3));
+	EXPECT_EQ(typeid(marsh::Number<double>).hash_code(),
+		root.subclass_code());
+
+	marsh::String str;
+	EXPECT_FALSE(root.equals(str));
+
+	EXPECT_EQ(2, root.size());
+	EXPECT_STREQ("[2\\3.3]", root.to_string().c_str());
+
+	marsh::PtrArray<marsh::Number<double>> empty;
+	EXPECT_FALSE(root.equals(empty));
+	EXPECT_FALSE(empty.equals(root));
+
+	marsh::PtrArray<marsh::Number<double>> root_clone;
+	root_clone.contents_.insert(root_clone.contents_.end(),
+		std::make_unique<marsh::Number<double>>(2));
+	root_clone.contents_.insert(root_clone.contents_.end(),
+		std::make_unique<marsh::Number<double>>(3.3));
+	EXPECT_TRUE(root.equals(root_clone));
+	EXPECT_TRUE(root_clone.equals(root));
+
+	marsh::PtrArray<marsh::Number<double>> big_root;
+	big_root.contents_.insert(big_root.contents_.end(),
+		std::make_unique<marsh::Number<double>>(2));
+	big_root.contents_.insert(big_root.contents_.end(),
+		std::make_unique<marsh::Number<double>>(3.3));
+	big_root.contents_.insert(big_root.contents_.end(),
+		std::make_unique<marsh::Number<double>>(5.2));
+	EXPECT_FALSE(root.equals(big_root));
+	EXPECT_FALSE(big_root.equals(root));
+
+	marsh::PtrArray<marsh::Number<double>> imperfect_clone;
+	imperfect_clone.contents_.insert(imperfect_clone.contents_.end(),
+		std::make_unique<marsh::Number<double>>(2));
+	imperfect_clone.contents_.insert(imperfect_clone.contents_.end(),
+		std::make_unique<marsh::Number<double>>(3));
+	EXPECT_FALSE(root.equals(imperfect_clone));
+	EXPECT_FALSE(imperfect_clone.equals(root));
+
+	std::vector<double> values;
+	root.foreach(
+		[&values](size_t i, marsh::iObject* obj)
+		{
+			ASSERT_EQ(typeid(marsh::Number<double>).hash_code(),
+				obj->class_code());
+			auto num = static_cast<marsh::Number<double>*>(obj);
+			values.push_back(num->val_);
+		});
+	ASSERT_EQ(2, values.size());
+	EXPECT_DOUBLE_EQ(2, values[0]);
+	EXPECT_DOUBLE_EQ(3.3, values[1]);
+
+	marsh::JsonMarshaler parser;
+	std::string parsed_root = parser.parse(root, false);
+	fmts::trim(parsed_root);
+	EXPECT_STREQ("{\"\":\"2\",\"\":\"3.3\"}", parsed_root.c_str());
+	EXPECT_STREQ("[]", parser.parse(empty, false).c_str());
+
+	EXPECT_FALSE(empty.is_primitive());
+	EXPECT_FALSE(empty.is_integral());
+
+	auto r = root.clone();
+	auto e = empty.clone();
+	auto big = big_root.clone();
+	auto imperfect = imperfect_clone.clone();
+
+	ASSERT_TRUE(r->equals(root));
+	ASSERT_TRUE(e->equals(empty));
+	ASSERT_TRUE(big->equals(big_root));
+	ASSERT_TRUE(imperfect->equals(imperfect_clone));
+
+	delete r;
+	delete e;
+	delete big;
+	delete imperfect;
+}
+
+
 TEST(OBJS, Maps)
 {
 	marsh::Maps root;
@@ -309,6 +394,18 @@ TEST(OBJS, Maps)
 	ASSERT_EQ(2, keys.size());
 	EXPECT_ARRHAS(keys, "obj1");
 	EXPECT_ARRHAS(keys, "obj3");
+
+	marsh::Maps dump;
+	marsh::get_attrs(dump, big_root);
+
+	auto numar_dump = dump.get_attr("obj1");
+	auto numf_dump = dump.get_attr("obj2");
+	auto objtup_dump = dump.get_attr("obj3");
+	ASSERT_NE(nullptr, numar_dump);
+	ASSERT_EQ(nullptr, numf_dump);
+	ASSERT_NE(nullptr, objtup_dump);
+	EXPECT_EQ(typeid(marsh::NumArray<size_t>).hash_code(), numar_dump->class_code());
+	EXPECT_EQ(typeid(marsh::ObjTuple).hash_code(), objtup_dump->class_code());
 
 	delete r;
 	delete c;

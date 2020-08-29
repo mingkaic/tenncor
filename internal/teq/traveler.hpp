@@ -23,8 +23,6 @@ using OwnMapT = TensMapT<TensptrT>;
 /// Map between tensor and its corresponding weak pointer
 using RefMapT = TensMapT<TensrefT>;
 
-TensptrsT get_alldeps (iFunctor& func);
-
 TensptrsT get_deps (iFunctor& func);
 
 TensptrsT get_args (iFunctor& func);
@@ -231,7 +229,7 @@ protected:
 struct PathDirection
 {
 	std::vector<size_t> children_;
-	std::vector<std::string> attrs_;
+	types::StringsT attrs_;
 };
 
 using PathNodeT = std::unordered_map<std::string,PathDirection>;
@@ -247,7 +245,7 @@ struct PathFinder final : public iOnceTraveler
 {
 	/// For multiple targets, the first target found overshadows target nodes under the first subgraph (todo: label roads)
 	PathFinder (TensMapT<std::string> targets,
-		GetDepsF get_fdep = get_alldeps) :
+		GetDepsF get_fdep = get_deps) :
 		targets_(targets), get_fdep_(get_fdep) {}
 
 	void clear (void) override
@@ -278,7 +276,7 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override
 	{
-		auto deps = func.get_dependencies();
+		auto args = func.get_args();
 		auto attrs = func.ls_attrs();
 
 		TensptrsT to_visit = get_fdep_(func);
@@ -289,11 +287,11 @@ private:
 				tens->accept(*this);
 			}
 		}
-		size_t n = deps.size();
+		size_t n = args.size();
 		PathNodeT nexts;
 		for (size_t i = 0; i < n; ++i)
 		{
-			TensptrT tens = deps[i];
+			TensptrT tens = args[i];
 			std::string label;
 			if (estd::get(label, targets_, tens.get()))
 			{

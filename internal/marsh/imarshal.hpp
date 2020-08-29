@@ -18,7 +18,7 @@ struct iMarshaler
 {
 	virtual ~iMarshaler (void) = default;
 
-	virtual void marshal (const String& num) = 0;
+	virtual void marshal (const String& str) = 0;
 
 	virtual void marshal (const iNumber& num) = 0;
 

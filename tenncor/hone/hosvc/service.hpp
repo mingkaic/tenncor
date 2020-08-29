@@ -32,7 +32,7 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 
 	void optimize (const opt::Optimization& optimize)
 	{
-        //
+		//
 	}
 
 	void register_service (grpc::ServerBuilder& builder) override
