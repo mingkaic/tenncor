@@ -2,7 +2,7 @@
 
 #include "testutil/tutil.hpp"
 
-#ifdef TEST_TUTIL_HPP
+#ifdef TEST_GRAPH_COMP_HPP
 
 namespace tutil
 {

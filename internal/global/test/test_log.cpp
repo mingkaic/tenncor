@@ -183,43 +183,11 @@ TEST(LOGGER, G3Logger)
 }
 
 
-struct NoSupportLogger final : public logs::iLogger
-{
-	/// Implementation of iLogger
-	std::string get_log_level (void) const override { return ""; }
-
-	/// Implementation of iLogger
-	void set_log_level (const std::string& log_level) override {}
-
-	/// Implementation of iLogger
-	bool supports_level (size_t msg_level) const override { return false; }
-
-	/// Implementation of iLogger
-	bool supports_level (const std::string& msg_level) const override { return false; }
-
-	/// Implementation of iLogger
-	void log (size_t msg_level, const std::string& msg,
-		const logs::SrcLocT& location = logs::SrcLocT::current()) override
-	{
-		called_ = true;
-	}
-
-	/// Implementation of iLogger
-	void log (const std::string& msg_level, const std::string& msg,
-		const logs::SrcLocT& location = logs::SrcLocT::current()) override
-	{
-		called_ = true;
-	}
-
-	bool called_ = false;
-};
-
-
 TEST(LOGGER, NoSupport)
 {
-	global::set_logger(new NoSupportLogger());
+	global::set_logger(new tutil::NoSupportLogger());
 
-	auto logger = dynamic_cast<NoSupportLogger*>(&global::get_logger());
+	auto logger = dynamic_cast<tutil::NoSupportLogger*>(&global::get_logger());
 	global::infof("hello %s", "world");
 	EXPECT_FALSE(logger->called_);
 	global::debugf("hello %d", 0);

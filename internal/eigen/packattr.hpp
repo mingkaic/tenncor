@@ -76,7 +76,7 @@ const marsh::iObject* get_attr (const Packer<T>& packer,
 	auto attr = attrib.get_attr(key);
 	if (nullptr == attr)
 	{
-		global::fatalf("cannot find %s attribute", key.c_str());
+		global::fatalf("cannot find `%s` attribute", key.c_str());
 	}
 	return attr;
 }
@@ -94,14 +94,9 @@ struct Packer<PairVecT<teq::DimT>>
 	void pack (marsh::iAttributed& attrib, PairVecT<teq::DimT> dims) const
 	{
 		size_t n = dims.size();
-		if (n > teq::rank_cap)
-		{
-			global::fatalf("cannot specify %d dimensions when %d (rank_cap) "
-				"are available", n, teq::rank_cap);
-		}
 		if (n == 0)
 		{
-			global::fatal("cannot find dimensions");
+			global::fatal("cannot find pair of dimensions");
 		}
 		attrib.add_attr(key_, std::make_unique<marsh::NumArray<int64_t>>(
 			encode_pair(dims)));
@@ -110,7 +105,7 @@ struct Packer<PairVecT<teq::DimT>>
 	void unpack (PairVecT<teq::DimT>& out, const marsh::iAttributed& attrib) const
 	{
 		auto attr = get_attr(*this, attrib);
-		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& narr = static_cast<const marsh::NumArray<int64_t>&>(*attr);
 		auto& encoding = narr.contents_;
 		out = decode_pair<teq::DimT>(encoding);
 	}
@@ -129,11 +124,6 @@ struct Packer<PairVecT<teq::RankT>>
 	void pack (marsh::iAttributed& attrib, PairVecT<teq::RankT> ranks) const
 	{
 		size_t n = ranks.size();
-		if (n > teq::rank_cap)
-		{
-			global::fatalf("cannot specify %d ranks when %d (rank_cap) "
-				"are available", n, teq::rank_cap);
-		}
 		if (n == 0)
 		{
 			global::fatal("cannot find pair of ranks");
@@ -155,7 +145,7 @@ struct Packer<PairVecT<teq::RankT>>
 	void unpack (PairVecT<teq::RankT>& out, const marsh::iAttributed& attrib) const
 	{
 		auto attr = get_attr(*this, attrib);
-		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& narr = static_cast<const marsh::NumArray<int64_t>&>(*attr);
 		auto& encoding = narr.contents_;
 		out = decode_pair<teq::RankT>(encoding);
 	}
@@ -174,11 +164,6 @@ struct Packer<std::vector<teq::DimT>>
 	void pack (marsh::iAttributed& attrib, std::vector<teq::DimT> dims) const
 	{
 		size_t n = dims.size();
-		if (n > teq::rank_cap)
-		{
-			global::fatalf("cannot specify %d dimensions when %d (rank_cap) "
-				"are available", n, teq::rank_cap);
-		}
 		if (n == 0)
 		{
 			global::fatal("cannot find dimensions");
@@ -191,7 +176,7 @@ struct Packer<std::vector<teq::DimT>>
 	void unpack (std::vector<teq::DimT>& out, const marsh::iAttributed& attrib) const
 	{
 		auto attr = get_attr(*this, attrib);
-		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& narr = static_cast<const marsh::NumArray<int64_t>&>(*attr);
 		auto& encoding = narr.contents_;
 		out = std::vector<teq::DimT>(encoding.begin(), encoding.end());
 	}
@@ -210,11 +195,6 @@ struct Packer<std::vector<teq::RankT>>
 	void pack (marsh::iAttributed& attrib, std::vector<teq::RankT> ranks) const
 	{
 		size_t n = ranks.size();
-		if (n > teq::rank_cap)
-		{
-			global::fatalf("cannot specify %d ranks when %d (rank_cap) "
-				"are available", n, teq::rank_cap);
-		}
 		if (n == 0)
 		{
 			global::fatal("cannot find ranks");
@@ -237,7 +217,7 @@ struct Packer<std::vector<teq::RankT>>
 	void unpack (std::vector<teq::RankT>& out, const marsh::iAttributed& attrib) const
 	{
 		auto attr = get_attr(*this, attrib);
-		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& narr = static_cast<const marsh::NumArray<int64_t>&>(*attr);
 		auto& encoding = narr.contents_;
 		out = std::vector<teq::RankT>(encoding.begin(), encoding.end());
 	}
@@ -256,6 +236,10 @@ struct Packer<std::set<teq::RankT>>
 	void pack (marsh::iAttributed& attrib, std::set<teq::RankT> ranks) const
 	{
 		size_t n = ranks.size();
+		if (n == 0)
+		{
+			global::fatal("cannot find ranks");
+		}
 		if (n > teq::rank_cap)
 		{
 			global::fatalf("cannot specify %d ranks when %d (rank_cap) "
@@ -263,6 +247,16 @@ struct Packer<std::set<teq::RankT>>
 		}
 		std::vector<int64_t> sranks(ranks.begin(), ranks.end());
 		std::sort(sranks.begin(), sranks.end());
+		if (std::any_of(sranks.begin(), sranks.end(),
+			[](teq::RankT rank)
+			{
+				return rank > teq::rank_cap;
+			}))
+		{
+			global::fatalf("cannot reference ranks beyond rank_cap %d: %s",
+				teq::rank_cap, fmts::to_string(
+					sranks.begin(), sranks.end()).c_str());
+		}
 		attrib.add_attr(key_,
 			std::make_unique<marsh::NumArray<int64_t>>(sranks));
 	}
@@ -270,7 +264,7 @@ struct Packer<std::set<teq::RankT>>
 	void unpack (std::set<teq::RankT>& out, const marsh::iAttributed& attrib) const
 	{
 		auto attr = get_attr(*this, attrib);
-		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& narr = static_cast<const marsh::NumArray<int64_t>&>(*attr);
 		auto& encoding = narr.contents_;
 		out = std::set<teq::RankT>(encoding.begin(), encoding.end());
 	}
@@ -294,7 +288,7 @@ struct Packer<teq::RankT>
 	void unpack (teq::RankT& out, const marsh::iAttributed& attrib) const
 	{
 		auto attr = get_attr(*this, attrib);
-		auto& narr = dynamic_cast<const marsh::Number<int64_t>&>(*attr);
+		auto& narr = static_cast<const marsh::Number<int64_t>&>(*attr);
 		out = narr.val_;
 	}
 };
@@ -319,7 +313,7 @@ struct Packer<teq::Shape>
 	void unpack (teq::Shape& out, const marsh::iAttributed& attrib) const
 	{
 		auto attr = get_attr(*this, attrib);
-		auto& narr = dynamic_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& narr = static_cast<const marsh::NumArray<int64_t>&>(*attr);
 		auto& encoding = narr.contents_;
 		std::vector<teq::DimT> slist(encoding.begin(), encoding.end());
 		out = teq::Shape(slist);
@@ -345,7 +339,7 @@ struct Packer<teq::TensptrT>
 	void unpack (teq::TensptrT& out, const marsh::iAttributed& attrib) const
 	{
 		auto attr = get_attr(*this, attrib);
-		auto& tarr = dynamic_cast<const teq::TensorObj&>(*attr);
+		auto& tarr = static_cast<const teq::TensorObj&>(*attr);
 		out = tarr.get_tensor();
 	}
 };

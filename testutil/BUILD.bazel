@@ -18,12 +18,16 @@ filegroup(
 
 filegroup(
     name = "tutil_hdrs",
-    srcs = ["tutil.hpp"],
+    srcs = [
+        "tutil.hpp",
+        "graph_comp.hpp",
+        "nosupport_log.hpp",
+    ],
 )
 
 filegroup(
     name = "tutil_srcs",
-    srcs = ["src/tutil.cpp"],
+    srcs = ["src/graph_comp.cpp"],
 )
 
 filegroup(

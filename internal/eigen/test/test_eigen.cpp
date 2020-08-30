@@ -4,7 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "exam/exam.hpp"
+#include "testutil/tutil.hpp"
 
 #include "internal/teq/mock/leaf.hpp"
 
@@ -17,8 +17,9 @@ TEST(EIGEN, PairEncodeDecode)
 
 	auto vecs = eigen::encode_pair(pairs);
 	auto apairs = eigen::decode_pair<double>(vecs);
-	ASSERT_EQ(pairs.size(), apairs.size());
-	for (size_t i = 0; i < 3; ++i)
+	size_t n = pairs.size();
+	ASSERT_EQ(n, apairs.size());
+	for (size_t i = 0; i < n; ++i)
 	{
 		auto orig = pairs[i];
 		auto apair = apairs[i];
@@ -110,6 +111,248 @@ TEST(EIGEN, MakeEigenmap)
 		"cannot get matmap from nullptr");
 	EXPECT_FATAL(eigen::make_tensmap<double>(nullptr, teq::Shape()),
 		"cannot get tensmap from nullptr");
+}
+
+
+TEST(EIGEN, BadPacker)
+{
+	eigen::Packer<std::string> badpack;
+	EXPECT_STREQ("", badpack.get_key().c_str());
+	marsh::Maps attr;
+	EXPECT_FATAL(eigen::get_attr(badpack, attr), "cannot find `` attribute");
+
+	std::string str;
+	EXPECT_FATAL(badpack.pack(attr, str), "unknown attribute");
+	EXPECT_FATAL(badpack.unpack(str, attr), "unknown attribute");
+
+	global::set_logger(new tutil::NoSupportLogger());
+	std::string special_input = "abc///input22z";
+	badpack.pack(attr, special_input);
+	badpack.unpack(str, attr);
+	EXPECT_STRNE(special_input.c_str(), str.c_str());
+	EXPECT_STREQ("", str.c_str());
+	global::set_logger(new exam::TestLogger());
+}
+
+
+TEST(EIGEN, PackerDimPairs)
+{
+	eigen::PairVecT<teq::DimT> dims = {
+		{2, 2},
+		{3, 4},
+	};
+	eigen::PairVecT<teq::DimT> emptydims;
+	eigen::PairVecT<teq::DimT> outdims;
+
+	eigen::Packer<eigen::PairVecT<teq::DimT>> packer;
+	marsh::Maps attrs;
+	EXPECT_FATAL(packer.unpack(outdims, attrs), "cannot find `dimension_pairs` attribute");
+	EXPECT_FATAL(packer.pack(attrs, emptydims), "cannot find pair of dimensions");
+	packer.pack(attrs, dims);
+
+	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
+	packer.unpack(outdims, attrs);
+
+	size_t n = dims.size();
+	ASSERT_EQ(n, outdims.size());
+	for (size_t i = 0; i < n; ++i)
+	{
+		auto orig = dims[i];
+		auto apair = outdims[i];
+		EXPECT_EQ(orig.first, apair.first);
+		EXPECT_EQ(orig.second, apair.second);
+	}
+}
+
+
+TEST(EIGEN, PackerRankPairs)
+{
+	eigen::PairVecT<teq::RankT> ranks = {
+		{2, 2},
+		{3, 4},
+	};
+	eigen::PairVecT<teq::RankT> emptyranks;
+	eigen::PairVecT<teq::RankT> badranks = {
+		{teq::rank_cap, 3},
+		{4, teq::rank_cap + 2},
+	};
+	eigen::PairVecT<teq::RankT> outranks;
+
+	eigen::Packer<eigen::PairVecT<teq::RankT>> packer;
+	marsh::Maps attrs;
+	EXPECT_FATAL(packer.unpack(outranks, attrs), "cannot find `rank_pairs` attribute");
+	EXPECT_FATAL(packer.pack(attrs, emptyranks), "cannot find pair of ranks");
+	EXPECT_FATAL(packer.pack(attrs, badranks),
+		"cannot reference ranks beyond rank_cap 8: [8:3\\4:10]");
+	packer.pack(attrs, ranks);
+
+	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
+	packer.unpack(outranks, attrs);
+
+	size_t n = ranks.size();
+	ASSERT_EQ(n, outranks.size());
+	for (size_t i = 0; i < n; ++i)
+	{
+		auto orig = ranks[i];
+		auto apair = outranks[i];
+		EXPECT_EQ(orig.first, apair.first);
+		EXPECT_EQ(orig.second, apair.second);
+	}
+}
+
+
+TEST(EIGEN, PackerDims)
+{
+	std::vector<teq::DimT> dims = {2, 2, 3, 4};
+	std::vector<teq::DimT> emptydims;
+	std::vector<teq::DimT> outdims;
+
+	eigen::Packer<std::vector<teq::DimT>> packer;
+	marsh::Maps attrs;
+	EXPECT_FATAL(packer.unpack(outdims, attrs), "cannot find `dimensions` attribute");
+	EXPECT_FATAL(packer.pack(attrs, emptydims), "cannot find dimensions");
+	packer.pack(attrs, dims);
+
+	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
+	packer.unpack(outdims, attrs);
+
+	size_t n = dims.size();
+	ASSERT_EQ(n, outdims.size());
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_EQ(dims[i], outdims[i]);
+	}
+}
+
+
+TEST(EIGEN, PackerRanks)
+{
+	std::vector<teq::RankT> ranks = {2, 2, 3, 4};
+	std::vector<teq::RankT> emptyranks;
+	std::vector<teq::RankT> badranks = {
+		teq::rank_cap, 3, 4, teq::rank_cap + 2};
+	std::vector<teq::RankT> outranks;
+
+	eigen::Packer<std::vector<teq::RankT>> packer;
+	marsh::Maps attrs;
+	EXPECT_FATAL(packer.unpack(outranks, attrs), "cannot find `ranks` attribute");
+	EXPECT_FATAL(packer.pack(attrs, emptyranks), "cannot find ranks");
+	EXPECT_FATAL(packer.pack(attrs, badranks),
+		"cannot reference ranks beyond rank_cap 8: [8\\3\\4\\10]");
+	packer.pack(attrs, ranks);
+
+	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
+	packer.unpack(outranks, attrs);
+
+	size_t n = ranks.size();
+	ASSERT_EQ(n, outranks.size());
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_EQ(ranks[i], outranks[i]);
+	}
+}
+
+
+TEST(EIGEN, PackerRankSet)
+{
+	std::set<teq::RankT> ranks = {2, 6, 3, 4};
+	std::set<teq::RankT> emptyranks;
+	std::set<teq::RankT> badranks = {
+		teq::rank_cap, 3, 4, teq::rank_cap + 2};
+	std::set<teq::RankT> bigranks = {1, 2, 3, 4, 5,
+		teq::rank_cap, 6, 7, teq::rank_cap + 2};
+	std::set<teq::RankT> outranks;
+
+	eigen::Packer<std::set<teq::RankT>> packer;
+	marsh::Maps attrs;
+	EXPECT_FATAL(packer.unpack(outranks, attrs), "cannot find `rank_set` attribute");
+	EXPECT_FATAL(packer.pack(attrs, emptyranks), "cannot find ranks");
+	EXPECT_FATAL(packer.pack(attrs, badranks),
+		"cannot reference ranks beyond rank_cap 8: [3\\4\\8\\10]");
+	EXPECT_FATAL(packer.pack(attrs, bigranks),
+		"cannot specify 9 ranks when 8 (rank_cap) are available");
+	packer.pack(attrs, ranks);
+
+	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
+	packer.unpack(outranks, attrs);
+
+	EXPECT_VECEQ(ranks, outranks);
+}
+
+
+TEST(EIGEN, PackerRank)
+{
+	teq::RankT rank = 2;
+	teq::RankT outrank;
+
+	eigen::Packer<teq::RankT> packer;
+	marsh::Maps attrs;
+	EXPECT_FATAL(packer.unpack(outrank, attrs), "cannot find `rank` attribute");
+	packer.pack(attrs, rank);
+
+	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
+	packer.unpack(outrank, attrs);
+
+	EXPECT_EQ(rank, outrank);
+}
+
+
+TEST(EIGEN, PackerShape)
+{
+	teq::Shape shape({2, 1, 4});
+	teq::Shape outshape;
+
+	eigen::Packer<teq::Shape> packer;
+	marsh::Maps attrs;
+	EXPECT_FATAL(packer.unpack(outshape, attrs), "cannot find `shape` attribute");
+	packer.pack(attrs, shape);
+
+	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
+	packer.unpack(outshape, attrs);
+
+	EXPECT_ARREQ(shape, outshape);
+}
+
+
+TEST(EIGEN, PackerTensor)
+{
+	teq::TensptrT tens(new MockLeaf());
+
+	eigen::Packer<teq::TensptrT> packer;
+	marsh::Maps attrs;
+	packer.pack(attrs, tens);
+
+	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
+	teq::TensptrT outtens;
+	packer.unpack(outtens, attrs);
+
+	EXPECT_EQ(tens, outtens);
+}
+
+
+TEST(EIGEN, ExtendPacking)
+{
+	teq::Shape inshape({1, 2, 3});
+	std::vector<teq::DimT> extends = {4, 1, 1, 2, 1, 1, 1, 1};
+	teq::Shape outshape({4, 2, 3, 2});
+
+	{ // extend by explicit broadcast
+		eigen::Packer<std::vector<teq::DimT>> packer;
+		marsh::Maps attrs;
+		packer.pack(attrs, extends);
+
+		auto ext = eigen::unpack_extend(inshape, attrs);
+		EXPECT_VECEQ(extends, ext);
+	}
+	{ // extend by tensor similarity
+		teq::TensptrT tens(new MockLeaf(outshape));
+		eigen::Packer<teq::TensptrT> packer;
+		marsh::Maps attrs;
+		packer.pack(attrs, tens);
+
+		auto ext = eigen::unpack_extend(inshape, attrs);
+		EXPECT_VECEQ(extends, ext);
+	}
 }
 
 
