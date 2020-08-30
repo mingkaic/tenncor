@@ -15,6 +15,19 @@
 static MockDevice mdevice;
 
 
+TEST(EVALUATOR, SetGet)
+{
+	global::CfgMapptrT ctx = std::make_shared<estd::ConfigMap<>>();
+
+	auto& eval = teq::get_eval(ctx);
+	void* origptr = &eval;
+	auto oeval = new teq::Evaluator();
+	teq::set_eval(oeval, ctx);
+	EXPECT_NE(origptr, &teq::get_eval(ctx));
+	EXPECT_EQ(oeval, &teq::get_eval(ctx));
+}
+
+
 TEST(EVALUATOR, Update)
 {
 	teq::Shape shape;

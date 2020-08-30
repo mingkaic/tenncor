@@ -20,12 +20,13 @@ void set_eval (iEvaluator* eval, global::CfgMapptrT ctx)
 
 iEvaluator& get_eval (const global::CfgMapptrT& ctx)
 {
-	static Evaluator defeval;
-	if (auto eval = static_cast<iEvaluator*>(ctx->get_obj(eval_key)))
+	auto eval = static_cast<iEvaluator*>(ctx->get_obj(eval_key));
+	if (nullptr == eval)
 	{
-		return *static_cast<iEvaluator*>(eval);
+		eval = new Evaluator();
+		set_eval(eval, ctx);
 	}
-	return defeval;
+	return *eval;
 }
 
 }

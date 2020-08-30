@@ -194,4 +194,14 @@ TEST(SHAPE, ToString)
 }
 
 
+TEST(SHAPE, NarrowShape)
+{
+	std::vector<teq::DimT> slist = {1, 2, 3, 4, 1};
+	std::vector<teq::DimT> elist = {1, 2, 3, 4};
+	teq::Shape shape(slist);
+	auto outs = teq::narrow_shape(shape);
+	EXPECT_VECEQ(elist, outs);
+}
+
+
 #endif // DISABLE_SHAPE_TEST

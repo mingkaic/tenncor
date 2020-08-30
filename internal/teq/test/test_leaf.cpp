@@ -21,4 +21,15 @@ TEST(LEAF, ConstEncoding)
 }
 
 
+TEST(LEAF, GetUsage)
+{
+	auto immstr = teq::get_usage_name(teq::IMMUTABLE);
+	auto varstr = teq::get_usage_name(teq::VARUSAGE);
+	auto plcstr = teq::get_usage_name(teq::PLACEHOLDER);
+	EXPECT_EQ(teq::IMMUTABLE, teq::get_named_usage(immstr));
+	EXPECT_EQ(teq::VARUSAGE, teq::get_named_usage(varstr));
+	EXPECT_EQ(teq::PLACEHOLDER, teq::get_named_usage(plcstr));
+}
+
+
 #endif // DISABLE_LEAF_TEST

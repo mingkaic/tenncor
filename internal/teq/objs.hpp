@@ -39,50 +39,6 @@ struct TensorRef : public marsh::iObject
 	virtual TensorRef* copynreplace (TensptrT) const = 0;
 };
 
-struct FindTensAttr final : public marsh::iMarshaler
-{
-	void marshal (const marsh::String& num) override {}
-
-	void marshal (const marsh::iNumber& num) override {}
-
-	void marshal (const marsh::iArray& arr) override
-	{
-		arr.foreach([this](size_t,const marsh::iObject* obj){ process(obj); });
-	}
-
-	void marshal (const marsh::iTuple& tup) override
-	{
-		tup.foreach([this](size_t,const marsh::iObject* obj){ process(obj); });
-	}
-
-	void marshal (const marsh::Maps& mm) override
-	{
-		auto keys = mm.ls_attrs();
-		for (auto key : keys)
-		{
-			process(mm.get_attr(key));
-		}
-	}
-
-	void process (const marsh::iObject* obj)
-	{
-		if (nullptr == obj)
-		{
-			return;
-		}
-		if (auto dep = dynamic_cast<const teq::TensorRef*>(obj))
-		{
-			deps_.push_back(dep->get_tensor());
-		}
-		else
-		{
-			obj->accept(*this);
-		}
-	}
-
-	teq::TensptrsT deps_;
-};
-
 struct TensorObj final : public TensorRef
 {
 	TensorObj (TensptrT tens) : tens_(tens) {}

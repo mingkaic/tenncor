@@ -93,7 +93,7 @@ void partial_derive (TensMapT<TensptrsT>& grads,
 		return;
 	}
 
-	PathFinder pfinder(tids, get_args);
+	PathFinder pfinder(tids, [](iFunctor& f){ return f.get_args(); });
 	multi_visit(pfinder, parents);
 	if (pfinder.roadmap_.empty())
 	{

@@ -123,6 +123,25 @@ TEST(OPERATOR, Permute)
 		std::vector<double> got_raw(raw, raw + outshape.n_elems());
 		EXPECT_VECEQ(expect_raw, got_raw);
 	}
+	{ // same thing as above block except exclude 6 and 7 values
+		marsh::Maps mvalues;
+		eigen::Packer<std::vector<teq::RankT>>().pack(mvalues,
+			{2, 0, 1, 3, 4, 5});
+
+		teq::Shape outshape({3, 2, 2});
+		MockLeaf edge(std::vector<double>{2, 8, 4, 5, 6, 7, 1, 0, 9, 11, 10, 12}, teq::Shape({2, 2, 3}));
+		auto r = eigen::permute<double>(outshape, edge, mvalues);
+
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {
+			2, 6, 9, 8, 7, 11,
+			4, 1, 10, 5, 0, 12,
+		};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
 	{
 		marsh::Maps mvalues;
 		eigen::Packer<std::vector<teq::RankT>>().pack(mvalues,
@@ -201,60 +220,608 @@ TEST(OPERATOR, MultiConcat)
 {
 	marsh::Maps mvalues;
 	eigen::Packer<teq::RankT>().pack(mvalues, 0);
+	{
+		teq::Shape outshape({2, 4});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5}, teq::Shape({1, 4}));
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0, 3, 9}, teq::Shape({1, 4}));
+		auto r = eigen::concat<double>(outshape, teq::TensptrsT{
+			edgea, edgeb}, mvalues);
 
-	teq::Shape outshape({2, 4});
-	auto edgea = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 8, 4, 5}, teq::Shape({1, 4}));
-	auto edgeb = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 0, 3, 9}, teq::Shape({1, 4}));
-	auto r = eigen::concat<double>(outshape, teq::TensptrsT{edgea, edgeb}, mvalues);
+		double* raw = (double*) r->data();
+		r->assign();
 
-	double* raw = (double*) r->data();
-	r->assign();
+		std::vector<double> expect_raw = {
+			2, 1,
+			8, 0,
+			4, 3,
+			5, 9,
+		};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({3, 4});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5}, teq::Shape({1, 4}));
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0, 3, 9}, teq::Shape({1, 4}));
+		auto edgec = std::make_shared<MockLeaf>(
+			std::vector<double>{3, 7, 2, 11}, teq::Shape({1, 4}));
+		auto r = eigen::concat<double>(outshape, teq::TensptrsT{
+			edgea, edgeb, edgec}, mvalues);
 
-	std::vector<double> expect_raw = {2, 1, 8, 0, 4, 3, 5, 9};
-	std::vector<double> got_raw(raw, raw + outshape.n_elems());
-	EXPECT_VECEQ(expect_raw, got_raw);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {
+			2, 1, 3,
+			8, 0, 7,
+			4, 3, 2,
+			5, 9, 11,
+		};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
 }
 
 
-TEST(OPERATOR, MultiAdd)
+TEST(OPERATOR, Pow)
 {
-	teq::Shape outshape({2, 3});
-	auto edgea = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 8, 4, 5, 6, 7}, teq::Shape({2, 3}));
-	auto edgeb = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 0, 3, 9, 10, 11}, teq::Shape({2, 3}));
-	auto edgec = std::make_shared<MockLeaf>(
-		std::vector<double>{4.2, 1, 7.1, 1, 2, 1.1}, teq::Shape({2, 3}));
-	auto r = eigen::add<double>(outshape, teq::TensptrsT{edgea, edgeb, edgec});
+	{
+		teq::Shape outshape({2, 3});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0, 3, 3, 2, 4}, outshape);
+		auto r = eigen::pow<double>(outshape, *edgea, *edgeb);
 
-	double* raw = (double*) r->data();
-	r->assign();
+		double* raw = (double*) r->data();
+		r->assign();
 
-	std::vector<double> expect_raw = {7.2, 9, 14.1, 15, 18, 19.1};
-	std::vector<double> got_raw(raw, raw + outshape.n_elems());
-	EXPECT_VECEQ(expect_raw, got_raw);
+		std::vector<double> expect_raw = {2, 1, 64, 125, 36, 2401};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7, 4, 2}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0, 3, 3, 2, 4, 2, 3}, outshape);
+		auto r = eigen::pow<double>(outshape, *edgea, *edgeb);
+
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {2, 1, 64, 125, 36, 2401, 16, 8};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
 }
 
 
-TEST(OPERATOR, MultiMul)
+TEST(OPERATOR, Add)
 {
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7, 8, 11}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0, 3, 9, 10, 11, 6, 1.2}, outshape);
+
+		auto r = eigen::add<double>(outshape, teq::TensptrsT{
+			edgea, edgeb});
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {3, 8, 7, 14, 16, 18, 14, 12.2};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
 	teq::Shape outshape({2, 3});
 	auto edgea = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 8, 4, 5, 6, 7}, teq::Shape({2, 3}));
+		std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
 	auto edgeb = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 0, 3, 9, 10, 11}, teq::Shape({2, 3}));
+		std::vector<double>{1, 0, 3, 9, 10, 11}, outshape);
 	auto edgec = std::make_shared<MockLeaf>(
-		std::vector<double>{4, 1, 7, 1, 2, 1}, teq::Shape({2, 3}));
-	auto r = eigen::mul<double>(outshape, teq::TensptrsT{edgea, edgeb, edgec});
+		std::vector<double>{4.2, 1, 7.1, 1, 2, 1.1}, outshape);
 
-	double* raw = (double*) r->data();
-	r->assign();
+	{
+		auto r = eigen::add<double>(outshape, teq::TensptrsT{
+			edgea, edgeb});
+		double* raw = (double*) r->data();
+		r->assign();
 
-	std::vector<double> expect_raw = {8, 0, 84, 45, 120, 77};
-	std::vector<double> got_raw(raw, raw + outshape.n_elems());
-	EXPECT_VECEQ(expect_raw, got_raw);
+		std::vector<double> expect_raw = {3, 8, 7, 14, 16, 18};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		auto r = eigen::add<double>(outshape, teq::TensptrsT{
+			edgea, edgeb, edgec});
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {7.2, 9, 14.1, 15, 18, 19.1};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+}
+
+
+TEST(OPERATOR, Sub)
+{
+	{
+		teq::Shape outshape({2, 3});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0, 3, 9, 10, 11}, outshape);
+
+		auto r = eigen::sub<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {1, 8, 1, -4, -4, -4};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7, 8, 11}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0, 3, 9, 10, 11, 6, 1.2}, outshape);
+
+		auto r = eigen::sub<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {1, 8, 1, -4, -4, -4, 2, 9.8};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+}
+
+
+TEST(OPERATOR, Mul)
+{
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7, 1.2, 3}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0, 3, 9, 10, 11, 2, 1.7}, outshape);
+
+		auto r = eigen::mul<double>(outshape, teq::TensptrsT{
+			edgea, edgeb});
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {2, 0, 12, 45, 60, 77, 2.4, 5.1};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+
+	teq::Shape outshape({2, 3});
+	auto edgea = std::make_shared<MockLeaf>(
+		std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
+	auto edgeb = std::make_shared<MockLeaf>(
+		std::vector<double>{1, 0, 3, 9, 10, 11}, outshape);
+	auto edgec = std::make_shared<MockLeaf>(
+		std::vector<double>{4, 1, 7, 1, 2, 1}, outshape);
+
+	{
+		auto r = eigen::mul<double>(outshape, teq::TensptrsT{
+			edgea, edgeb});
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {2, 0, 12, 45, 60, 77};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		auto r = eigen::mul<double>(outshape, teq::TensptrsT{
+			edgea, edgeb, edgec});
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {8, 0, 84, 45, 120, 77};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+}
+
+
+TEST(OPERATOR, Div)
+{
+	{
+		teq::Shape outshape({2, 3});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 3, 9, 10, 11}, outshape);
+
+		auto r = eigen::div<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {2, 16, 4./3, 5./9, 0.6, 7./11};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7, 1.2, 3}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 3, 9, 10, 11, 2, 1.7}, outshape);
+
+		auto r = eigen::div<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {2, 16, 4./3, 5./9, 0.6, 7./11, 0.6, 3/1.7};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+}
+
+
+TEST(OPERATOR, Eq)
+{
+	{
+		teq::Shape outshape({2, 3});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11}, outshape);
+
+		auto r = eigen::eq<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {0, 0, 1, 0, 1, 0};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7, 3, 8}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11, 3, 3}, outshape);
+
+		auto r = eigen::eq<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {0, 0, 1, 0, 1, 0, 1, 0};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+}
+
+
+TEST(OPERATOR, Neq)
+{
+	{
+		teq::Shape outshape({2, 3});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11}, outshape);
+
+		auto r = eigen::neq<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {1, 1, 0, 1, 0, 1};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7, 3, 8}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11, 3, 3}, outshape);
+
+		auto r = eigen::neq<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {1, 1, 0, 1, 0, 1, 0, 1};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+}
+
+
+TEST(OPERATOR, Lt)
+{
+	{
+		teq::Shape outshape({2, 3});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11}, outshape);
+
+		auto r = eigen::lt<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {0, 0, 0, 1, 0, 1};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7, 3, 8}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11, 3, 3}, outshape);
+
+		auto r = eigen::lt<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {0, 0, 0, 1, 0, 1, 0, 0};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+}
+
+
+TEST(OPERATOR, Gt)
+{
+	{
+		teq::Shape outshape({2, 3});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11}, outshape);
+
+		auto r = eigen::gt<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {1, 1, 0, 0, 0, 0};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7, 3, 8}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11, 3, 3}, outshape);
+
+		auto r = eigen::gt<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {1, 1, 0, 0, 0, 0, 0, 1};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+}
+
+
+TEST(OPERATOR, Min)
+{
+	{
+		teq::Shape outshape({2, 3});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11}, outshape);
+
+		auto r = eigen::min<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {1, 0.5, 4, 5, 6, 7};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7, 3, 8}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11, 3, 3}, outshape);
+
+		auto r = eigen::min<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {1, 0.5, 4, 5, 6, 7, 3, 3};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+}
+
+
+TEST(OPERATOR, Max)
+{
+	{
+		teq::Shape outshape({2, 3});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11}, outshape);
+
+		auto r = eigen::max<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {2, 8, 4, 9, 6, 11};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 4, 5, 6, 7, 3, 8}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11, 3, 3}, outshape);
+
+		auto r = eigen::max<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {2, 8, 4, 9, 6, 11, 3, 8};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+}
+
+
+TEST(OPERATOR, RandUniform)
+{
+	{
+		teq::Shape outshape({2, 3});
+		std::vector<double> a{1, 0.5, 3.5, 5, 6, 7};
+		std::vector<double> b{2, 8, 4, 9, 6, 11};
+		auto edgea = std::make_shared<MockLeaf>(a, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(b, outshape);
+
+		auto r = eigen::rand_uniform<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		for (size_t i = 0, n = got_raw.size(); i < n; ++i)
+		{
+			double e = got_raw[i];
+			EXPECT_LE(a[i], e);
+			EXPECT_GE(b[i], e);
+		}
+	}
+	{
+		teq::Shape outshape({2, 2, 2});
+		std::vector<double> a{1, 0.5, 3.5, 5, 6, 7, 3, 8};
+		std::vector<double> b{2, 0.5, 4, 9, 6, 11, 4, 13};
+		auto edgea = std::make_shared<MockLeaf>(a, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(b, outshape);
+
+		auto r = eigen::rand_uniform<double>(outshape, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		for (size_t i = 0, n = got_raw.size(); i < n; ++i)
+		{
+			double e = got_raw[i];
+			EXPECT_LE(a[i], e);
+			EXPECT_GE(b[i], e);
+		}
+	}
+}
+
+
+TEST(OPERATOR, Select)
+{
+	{
+		teq::Shape outshape({2, 3});
+		auto comp = std::make_shared<MockLeaf>(
+			std::vector<double>{0, 1, 0, 0, 1, 1}, outshape);
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 9, 5, 8, 7}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11}, outshape);
+
+		auto r = eigen::select<double>(outshape,
+			*comp, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {1, 8, 4, 9, 8, 7};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({2, 2, 2});
+		auto comp = std::make_shared<MockLeaf>(
+			std::vector<double>{0, 1, 0, 0, 1, 1, 0, 1}, outshape);
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{2, 8, 9, 5, 8, 7, 4, 8}, outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{1, 0.5, 4, 9, 6, 11, 3, 3}, outshape);
+
+		auto r = eigen::select<double>(outshape,
+			*comp, *edgea, *edgeb);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {1, 8, 4, 9, 8, 7, 3, 8};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+}
+
+
+TEST(OPERATOR, Matmul)
+{
+	{
+		teq::Shape outshape({2, 3});
+		teq::Shape lshape({4, 3});
+		teq::Shape rshape({2, 4});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{
+				2, 8, 9, 5, 8, 7,
+				1, 9, 4.2, 3, 2, 6,
+			}, lshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{
+				1, 0.5, 4, 9,
+				6, 11, 3, 8,
+			}, rshape);
+
+		marsh::Maps mvalues;
+		eigen::Packer<eigen::PairVecT<teq::RankT>>().pack(mvalues, {{0, 1}});
+		auto r = eigen::matmul<double>(outshape, *edgea, *edgeb, mvalues);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {103, 212, 69, 150, 46.2, 99.1};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
+	{
+		teq::Shape outshape({2, 3});
+		teq::Shape lshape({4, 2, 3});
+		teq::Shape rshape({2, 4, 2});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<double>{
+				2, 8, 9, 5, 8, 7,
+				1, 9, 4.2, 3, 2, 6,
+				2, 8, 9, 5, 8, 7,
+				1, 9, 4.2, 3, 2, 6,
+			}, lshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<double>{
+				1, 0.5, 4, 9,
+				6, 11, 3, 8,
+				1, 0.5, 4, 9,
+				6, 11, 3, 8,
+			}, rshape);
+
+		marsh::Maps mvalues;
+		eigen::Packer<eigen::PairVecT<teq::RankT>>().pack(mvalues,
+			{{0, 1}, {1, 2}});
+		auto r = eigen::matmul<double>(outshape, *edgea, *edgeb, mvalues);
+		double* raw = (double*) r->data();
+		r->assign();
+
+		std::vector<double> expect_raw = {172, 362, 149.2, 311.1, 115.2, 249.1};
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		EXPECT_VECEQ(expect_raw, got_raw);
+	}
 }
 
 
@@ -507,6 +1074,36 @@ TEST(OPERATOR, Cube)
 
 TEST(OPERATOR, Convolution)
 {
+	{
+		marsh::Maps mvalues;
+		eigen::Packer<std::vector<teq::RankT>>().pack(mvalues, {1, 1});
+		teq::Shape outshape({3, 2});
+		MockLeaf image(std::vector<double>{
+			2, 8, 4,
+			5, 7, 6,
+			9, 1, 0,
+		}, teq::Shape({3, 3}));
+		MockLeaf kernel(std::vector<double>{0.3, 0.6}, teq::Shape({2}));
+
+		EXPECT_FATAL(eigen::convolution<double>(outshape, image, kernel, mvalues),
+			"convolution does not support repeated kernel dimensions: [1\\1]");
+	}
+
+	{
+		marsh::Maps mvalues;
+		eigen::Packer<std::vector<teq::RankT>>().pack(mvalues, {1});
+		teq::Shape outshape({3, 2});
+		MockLeaf image(std::vector<double>{
+			2, 8, 4,
+			5, 7, 6,
+			9, 1, 0,
+		}, teq::Shape({3, 3}));
+		MockLeaf kernel(std::vector<double>{0.3, 0.6, 4.0, 2.2}, teq::Shape({2, 2}));
+
+		EXPECT_FATAL(eigen::convolution<double>(outshape, image, kernel, mvalues),
+			"given kernel shape [2\\2\\1\\1\\1\\1\\1\\1], unspecified non-singular kernel dimension 1 is undefined");
+	}
+
 	marsh::Maps mvalues;
 	eigen::Packer<std::vector<teq::RankT>>().pack(mvalues, {1});
 

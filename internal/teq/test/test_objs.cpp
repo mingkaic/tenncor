@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_OBJ_TEST
+#ifndef DISABLE_TEQ_OBJ_TEST
 
 
 #include "gtest/gtest.h"

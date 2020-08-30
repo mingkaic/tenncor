@@ -23,12 +23,6 @@ using OwnMapT = TensMapT<TensptrT>;
 /// Map between tensor and its corresponding weak pointer
 using RefMapT = TensMapT<TensrefT>;
 
-TensptrsT get_deps (iFunctor& func);
-
-TensptrsT get_args (iFunctor& func);
-
-TensptrsT get_attrs (iFunctor& func);
-
 struct LambdaVisit final : public iTraveler
 {
 	LambdaVisit (
@@ -245,7 +239,7 @@ struct PathFinder final : public iOnceTraveler
 {
 	/// For multiple targets, the first target found overshadows target nodes under the first subgraph (todo: label roads)
 	PathFinder (TensMapT<std::string> targets,
-		GetDepsF get_fdep = get_deps) :
+		GetDepsF get_fdep = [](iFunctor& f){ return f.get_dependencies(); }) :
 		targets_(targets), get_fdep_(get_fdep) {}
 
 	void clear (void) override

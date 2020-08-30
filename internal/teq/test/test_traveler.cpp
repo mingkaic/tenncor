@@ -220,6 +220,12 @@ TEST(TRAVELER, Owners)
 	EXPECT_FALSE(owners[c.get()].expired());
 	EXPECT_TRUE(owners[fref].expired());
 	EXPECT_TRUE(owners[gref].expired());
+
+	auto master = teq::convert_ownmap(owners);
+	ASSERT_EQ(3, master.size());
+	EXPECT_HAS(master, a.get());
+	EXPECT_HAS(master, b.get());
+	EXPECT_HAS(master, c.get());
 }
 
 
