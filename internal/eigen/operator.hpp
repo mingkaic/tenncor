@@ -1504,7 +1504,7 @@ EigenptrT cast (const teq::iTensor& input)
 	auto intype = (egen::_GENERATED_DTYPE) input.get_meta().type_code();
 	if (egen::get_type<T>() == intype)
 	{
-		global::warnf("cannot convert same type %s",
+		global::warnf("pointless to convert the same type %s",
 			egen::name_type(intype).c_str());
 		return std::make_shared<PtrRef<T>>((T*) input.device().data());
 	}

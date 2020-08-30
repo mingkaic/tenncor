@@ -22,6 +22,11 @@ filegroup(
 )
 
 filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
     name = "test_srcs",
     srcs = glob([
         "test/*.hpp",
@@ -97,6 +102,17 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
+cc_library(
+    name = "mock_eigen",
+    hdrs = [":mock_hdrs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":eigen",
+        "//internal/teq:mock_teq",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 ######### TEST #########
 
 cc_test(
@@ -104,8 +120,7 @@ cc_test(
     srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        ":eigen",
-        "//internal/teq:mock_teq",
+        ":mock_eigen",
         "//dbg/print:print",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//diff:diff",

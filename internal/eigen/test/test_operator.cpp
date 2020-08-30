@@ -6,8 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "internal/teq/mock/leaf.hpp"
-
+#include "internal/eigen/mock/mutable_leaf.hpp"
 #include "internal/eigen/operator.hpp"
 
 
@@ -1046,14 +1045,18 @@ TEST(OPERATOR, Round)
 
 TEST(OPERATOR, Sigmoid)
 {
-	elementary_unary(eigen::sigmoid<double>,
+	elementary_unary(
+		[](teq::Shape outshape, const teq::iTensor& in)
+		{ return eigen::sigmoid<double>(outshape, in); },
 		[](double e) { return 1. / (1. + std::exp(-e)); });
 }
 
 
 TEST(OPERATOR, Tanh)
 {
-	elementary_unary(eigen::tanh<double>,
+	elementary_unary(
+		[](teq::Shape outshape, const teq::iTensor& in)
+		{ return eigen::tanh<double>(outshape, in); },
 		[](double e) { return std::tanh(e); });
 }
 
@@ -1067,7 +1070,9 @@ TEST(OPERATOR, Square)
 
 TEST(OPERATOR, Cube)
 {
-	elementary_unary(eigen::cube<double>,
+	elementary_unary(
+		[](teq::Shape outshape, const teq::iTensor& in)
+		{ return eigen::cube<double>(outshape, in); },
 		[](double e) { return e * e * e; });
 }
 
@@ -1125,6 +1130,129 @@ TEST(OPERATOR, Convolution)
 	};
 	std::vector<double> got_raw(raw, raw + outshape.n_elems());
 	ASSERT_ARRDBLEQ(expect_raw, got_raw);
+}
+
+
+TEST(OPERATOR, Assign)
+{
+	teq::Shape outshape({2, 3});
+	std::vector<double> a{2, 8, 4, 5, 6, 7};
+	std::vector<double> b{1, 0, 3, 9, 10, 11};
+	auto edgea = std::make_shared<MockMutableLeaf>(a, outshape);
+	auto edgeb = std::make_shared<MockLeaf>(b, outshape);
+
+	auto r = eigen::assign<double>(*edgea, *edgeb);
+	double* raw = (double*) r->data();
+	EXPECT_EQ(raw, edgea->device().data());
+	r->assign();
+
+	std::vector<double> got_raw(raw, raw + outshape.n_elems());
+	ASSERT_ARRDBLEQ(b, got_raw);
+}
+
+
+TEST(OPERATOR, AssignAdd)
+{
+	teq::Shape outshape({2, 3});
+	std::vector<double> a{2, 8, 4, 5, 6, 7};
+	std::vector<double> b{1, 0, 3, 9, 10, 11};
+	auto edgea = std::make_shared<MockMutableLeaf>(a, outshape);
+	auto edgeb = std::make_shared<MockLeaf>(b, outshape);
+
+	auto r = eigen::assign_add<double>(*edgea, *edgeb);
+	double* raw = (double*) r->data();
+	EXPECT_EQ(raw, edgea->device().data());
+	r->assign();
+
+	std::vector<double> expect_raw = {3, 8, 7, 14, 16, 18};
+	std::vector<double> got_raw(raw, raw + outshape.n_elems());
+	ASSERT_ARRDBLEQ(expect_raw, got_raw);
+}
+
+
+TEST(OPERATOR, AssignSub)
+{
+	teq::Shape outshape({2, 3});
+	std::vector<double> a{2, 8, 4, 5, 6, 7};
+	std::vector<double> b{1, 0, 3, 9, 10, 11};
+	auto edgea = std::make_shared<MockMutableLeaf>(a, outshape);
+	auto edgeb = std::make_shared<MockLeaf>(b, outshape);
+
+	auto r = eigen::assign_sub<double>(*edgea, *edgeb);
+	double* raw = (double*) r->data();
+	EXPECT_EQ(raw, edgea->device().data());
+	r->assign();
+
+	std::vector<double> expect_raw = {1, 8, 1, -4, -4, -4};
+	std::vector<double> got_raw(raw, raw + outshape.n_elems());
+	ASSERT_ARRDBLEQ(expect_raw, got_raw);
+}
+
+
+TEST(OPERATOR, AssignMul)
+{
+	teq::Shape outshape({2, 3});
+	std::vector<double> a{2, 8, 4, 5, 6, 7};
+	std::vector<double> b{1, 0, 3, 9, 10, 11};
+	auto edgea = std::make_shared<MockMutableLeaf>(a, outshape);
+	auto edgeb = std::make_shared<MockLeaf>(b, outshape);
+
+	auto r = eigen::assign_mul<double>(*edgea, *edgeb);
+	double* raw = (double*) r->data();
+	EXPECT_EQ(raw, edgea->device().data());
+	r->assign();
+
+	std::vector<double> expect_raw = {2, 0, 12, 45, 60, 77};
+	std::vector<double> got_raw(raw, raw + outshape.n_elems());
+	ASSERT_ARRDBLEQ(expect_raw, got_raw);
+}
+
+
+TEST(OPERATOR, AssignDiv)
+{
+	teq::Shape outshape({2, 3});
+	std::vector<double> a{2, 8, 4, 5, 6, 7};
+	std::vector<double> b{1, 2, 3, 9, 10, 11};
+	auto edgea = std::make_shared<MockMutableLeaf>(a, outshape);
+	auto edgeb = std::make_shared<MockLeaf>(b, outshape);
+
+	auto r = eigen::assign_div<double>(*edgea, *edgeb);
+	double* raw = (double*) r->data();
+	EXPECT_EQ(raw, edgea->device().data());
+	r->assign();
+
+	std::vector<double> expect_raw = {2, 4, 4./3, 5./9, 0.6, 7./11};
+	std::vector<double> got_raw(raw, raw + outshape.n_elems());
+	ASSERT_ARRDBLEQ(expect_raw, got_raw);
+}
+
+
+TEST(OPERATOR, Cast)
+{
+	teq::Shape outshape({2, 3});
+	std::vector<double> a{2.1, 8.5, 4.3, 5.2, 6.1, 7.2};
+	auto edgea = std::make_shared<MockLeaf>(a, outshape);
+	edgea->meta_.tcode_ = egen::DOUBLE;
+	edgea->meta_.tname_ = egen::name_type(egen::DOUBLE);
+
+	{
+		auto r = eigen::cast<double>(*edgea);
+		double* raw = (double*) r->data();
+		EXPECT_EQ(raw, edgea->device().data());
+		r->assign();
+
+		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		ASSERT_ARRDBLEQ(a, got_raw);
+	}
+	{
+		auto r = eigen::cast<int32_t>(*edgea);
+		int32_t* raw = (int32_t*) r->data();
+		r->assign();
+
+		std::vector<int32_t> expect_raw = {2, 8, 4, 5, 6, 7};
+		std::vector<int32_t> got_raw(raw, raw + outshape.n_elems());
+		ASSERT_ARREQ(expect_raw, got_raw);
+	}
 }
 
 

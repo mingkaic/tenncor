@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_INTERNAL_TEST
+#ifndef DISABLE_EIGEN_TEST
 
 
 #include "gtest/gtest.h"
@@ -11,28 +11,30 @@
 #include "internal/eigen/operator.hpp"
 
 
-TEST(INTERNAL, PairEncodeDecode)
+TEST(EIGEN, PairEncodeDecode)
 {
-	eigen::PairVecT<int64_t> pairs = {{1, 2}, {3, 4}, {5, 6}};
+	eigen::PairVecT<double> pairs = {{1.2, 2.3}, {3.4, 4.6}, {5.5, 6.7}};
 
 	auto vecs = eigen::encode_pair(pairs);
-	auto apairs = eigen::decode_pair<size_t>(vecs);
+	auto apairs = eigen::decode_pair<double>(vecs);
 	ASSERT_EQ(pairs.size(), apairs.size());
 	for (size_t i = 0; i < 3; ++i)
 	{
 		auto orig = pairs[i];
 		auto apair = apairs[i];
-		EXPECT_EQ(orig.first, apair.first);
-		EXPECT_EQ(orig.second, apair.second);
+		EXPECT_EQ(int64_t(orig.first), apair.first);
+		EXPECT_EQ(int64_t(orig.second), apair.second);
 	}
 
 	std::vector<int64_t> bad = {1, 2, 3, 4, 5};
 	EXPECT_FATAL(eigen::decode_pair<size_t>(bad),
 		"cannot decode odd vector [1\\2\\3\\4\\5] into vec of pairs");
+
+	EXPECT_STREQ("[1:2\\3:4\\5:6]", eigen::to_string(pairs).c_str());
 }
 
 
-TEST(INTERNAL, Conversions)
+TEST(EIGEN, Conversions)
 {
 	std::vector<int64_t> values = {
 		1, 2, 4, 8, 16, 32, 64, 128, 256};
@@ -75,7 +77,7 @@ TEST(INTERNAL, Conversions)
 }
 
 
-TEST(INTERNAL, MakeEigenmap)
+TEST(EIGEN, MakeEigenmap)
 {
 	std::vector<double> a = {1, 2, 3, 4, 5, 6};
 	teq::Shape shape({2, 3});
@@ -111,4 +113,4 @@ TEST(INTERNAL, MakeEigenmap)
 }
 
 
-#endif // DISABLE_INTERNAL_TEST
+#endif // DISABLE_EIGEN_TEST
