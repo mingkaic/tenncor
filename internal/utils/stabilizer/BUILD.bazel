@@ -1,0 +1,55 @@
+licenses(["notice"])
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":stabilizer_hdrs",
+        ":stabilizer_srcs",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "stabilizer_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "stabilizer_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob(["test/*.cpp"]),
+    visibility = ["//visibility:public"],
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "stabilizer",
+    hdrs = [":stabilizer_hdrs"],
+    deps = ["//internal/eigen:eigen"],
+    copts = ["-std=c++17"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = [":test_srcs"],
+    deps = [
+        ":stabilizer",
+        "//internal/teq:mock_teq",
+        "@gtest//:gtest",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    copts = ["-std=c++17"],
+)

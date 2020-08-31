@@ -54,7 +54,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//tenncor:tenncor",
-        "//internal/utils:utils",
+        "//internal/utils/coord:coord",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",

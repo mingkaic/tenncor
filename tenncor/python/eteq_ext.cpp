@@ -129,7 +129,7 @@ void eteq_ext (py::module& m)
 				self->get_meta().type_code(), py::dtype::of<REALTYPE>());
 TYPE_LOOKUP(_CHOOSE_RAWTYPE, dtype);
 #undef _CHOOSE_RAWTYPE
-			global::fatal("cannot get raw data from non-supported dtype");
+			return py::array();
 		})
 		.def("get",
 		[](eteq::ETensor& self, teq::TensSetT ignored, size_t max_version)
@@ -141,7 +141,7 @@ TYPE_LOOKUP(_CHOOSE_RAWTYPE, dtype);
 				self->get_meta().type_code(), py::dtype::of<REALTYPE>());
 TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 #undef _CHOOSE_CALCTYPE
-			global::fatal("cannot calculate data from non-supported dtype");
+			return py::array();
 		},
 		py::arg("ignored") = teq::TensSetT{},
 		py::arg("max_version") = std::numeric_limits<size_t>::max())

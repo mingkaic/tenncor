@@ -6,7 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "internal/utils/coord.hpp"
+#include "internal/utils/coord/coord.hpp"
 
 
 TEST(SHAPE, Coordinates)

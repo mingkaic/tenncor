@@ -37,7 +37,7 @@ static T cube (const T& arg)
 
 template <typename T, typename std::enable_if<
 	std::is_integral<T>::value>::type* = nullptr>
-static estd::NumRange<T> pow_range (const NumRangesT<T>& ranges)
+static estd::NumRange<T> power_ranger (const NumRangesT<T>& ranges)
 {
 	T lower_base = ranges[0].lower_;
 	T upper_base = ranges[0].upper_;
@@ -82,7 +82,7 @@ static estd::NumRange<T> pow_range (const NumRangesT<T>& ranges)
 
 template <typename T, typename std::enable_if<
 	!std::is_integral<T>::value>::type* = nullptr>
-static estd::NumRange<T> pow_range (const NumRangesT<T>& ranges)
+static estd::NumRange<T> power_ranger (const NumRangesT<T>& ranges)
 {
 	T lower_base = ranges[0].lower_;
 	T upper_base = ranges[0].upper_;
@@ -314,7 +314,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 		}
 			break;
 		case egen::POW:
-			outrange = pow_range(ranges);
+			outrange = power_ranger(ranges);
 			break;
 		case egen::ADD:
 			outrange = std::accumulate(ranges.begin(), ranges.end(),

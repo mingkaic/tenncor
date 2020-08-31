@@ -9,7 +9,7 @@
 #include "internal/teq/mock/leaf.hpp"
 #include "internal/teq/mock/functor.hpp"
 
-#include "internal/eigen/stabilizer.hpp"
+#include "internal/utils/stabilizer/stabilizer.hpp"
 
 
 TEST(STABILIZER, Abs)

@@ -1,4 +1,4 @@
-#include "internal/utils/coord.hpp"
+#include "internal/utils/coord/coord.hpp"
 
 #ifdef TEQ_COORD_HPP
 

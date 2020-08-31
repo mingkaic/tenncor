@@ -91,7 +91,7 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 	virtual TensptrsT get_args (void) const = 0;
 
 	/// Return vector of functor dependencies including attribute tensor refs
-	teq::TensptrsT get_dependencies (void) const
+	virtual teq::TensptrsT get_dependencies (void) const
 	{
 		auto deps = get_args();
 		if (this->size() > 0)

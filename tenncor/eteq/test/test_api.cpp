@@ -8,7 +8,7 @@
 
 #include "internal/teq/evaluator.hpp"
 
-#include "internal/utils/coord.hpp"
+#include "internal/utils/coord/coord.hpp"
 
 #include "tenncor/eteq/make.hpp"
 

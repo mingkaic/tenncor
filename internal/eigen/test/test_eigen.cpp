@@ -141,13 +141,11 @@ TEST(EIGEN, PackerDimPairs)
 		{2, 2},
 		{3, 4},
 	};
-	eigen::PairVecT<teq::DimT> emptydims;
 	eigen::PairVecT<teq::DimT> outdims;
 
 	eigen::Packer<eigen::PairVecT<teq::DimT>> packer;
 	marsh::Maps attrs;
 	EXPECT_FATAL(packer.unpack(outdims, attrs), "cannot find `dimension_pairs` attribute");
-	EXPECT_FATAL(packer.pack(attrs, emptydims), "cannot find pair of dimensions");
 	packer.pack(attrs, dims);
 
 	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
@@ -171,7 +169,6 @@ TEST(EIGEN, PackerRankPairs)
 		{2, 2},
 		{3, 4},
 	};
-	eigen::PairVecT<teq::RankT> emptyranks;
 	eigen::PairVecT<teq::RankT> badranks = {
 		{teq::rank_cap, 3},
 		{4, teq::rank_cap + 2},
@@ -181,7 +178,6 @@ TEST(EIGEN, PackerRankPairs)
 	eigen::Packer<eigen::PairVecT<teq::RankT>> packer;
 	marsh::Maps attrs;
 	EXPECT_FATAL(packer.unpack(outranks, attrs), "cannot find `rank_pairs` attribute");
-	EXPECT_FATAL(packer.pack(attrs, emptyranks), "cannot find pair of ranks");
 	EXPECT_FATAL(packer.pack(attrs, badranks),
 		"cannot reference ranks beyond rank_cap 8: [8:3\\4:10]");
 	packer.pack(attrs, ranks);
@@ -204,13 +200,11 @@ TEST(EIGEN, PackerRankPairs)
 TEST(EIGEN, PackerDims)
 {
 	std::vector<teq::DimT> dims = {2, 2, 3, 4};
-	std::vector<teq::DimT> emptydims;
 	std::vector<teq::DimT> outdims;
 
 	eigen::Packer<std::vector<teq::DimT>> packer;
 	marsh::Maps attrs;
 	EXPECT_FATAL(packer.unpack(outdims, attrs), "cannot find `dimensions` attribute");
-	EXPECT_FATAL(packer.pack(attrs, emptydims), "cannot find dimensions");
 	packer.pack(attrs, dims);
 
 	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
@@ -228,7 +222,6 @@ TEST(EIGEN, PackerDims)
 TEST(EIGEN, PackerRanks)
 {
 	std::vector<teq::RankT> ranks = {2, 2, 3, 4};
-	std::vector<teq::RankT> emptyranks;
 	std::vector<teq::RankT> badranks = {
 		teq::rank_cap, 3, 4, teq::rank_cap + 2};
 	std::vector<teq::RankT> outranks;
@@ -236,7 +229,6 @@ TEST(EIGEN, PackerRanks)
 	eigen::Packer<std::vector<teq::RankT>> packer;
 	marsh::Maps attrs;
 	EXPECT_FATAL(packer.unpack(outranks, attrs), "cannot find `ranks` attribute");
-	EXPECT_FATAL(packer.pack(attrs, emptyranks), "cannot find ranks");
 	EXPECT_FATAL(packer.pack(attrs, badranks),
 		"cannot reference ranks beyond rank_cap 8: [8\\3\\4\\10]");
 	packer.pack(attrs, ranks);
@@ -256,7 +248,6 @@ TEST(EIGEN, PackerRanks)
 TEST(EIGEN, PackerRankSet)
 {
 	std::set<teq::RankT> ranks = {2, 6, 3, 4};
-	std::set<teq::RankT> emptyranks;
 	std::set<teq::RankT> badranks = {
 		teq::rank_cap, 3, 4, teq::rank_cap + 2};
 	std::set<teq::RankT> bigranks = {1, 2, 3, 4, 5,
@@ -266,7 +257,6 @@ TEST(EIGEN, PackerRankSet)
 	eigen::Packer<std::set<teq::RankT>> packer;
 	marsh::Maps attrs;
 	EXPECT_FATAL(packer.unpack(outranks, attrs), "cannot find `rank_set` attribute");
-	EXPECT_FATAL(packer.pack(attrs, emptyranks), "cannot find ranks");
 	EXPECT_FATAL(packer.pack(attrs, badranks),
 		"cannot reference ranks beyond rank_cap 8: [3\\4\\8\\10]");
 	EXPECT_FATAL(packer.pack(attrs, bigranks),

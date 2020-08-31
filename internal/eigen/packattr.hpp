@@ -93,11 +93,6 @@ struct Packer<PairVecT<teq::DimT>>
 
 	void pack (marsh::iAttributed& attrib, PairVecT<teq::DimT> dims) const
 	{
-		size_t n = dims.size();
-		if (n == 0)
-		{
-			global::fatal("cannot find pair of dimensions");
-		}
 		attrib.add_attr(key_, std::make_unique<marsh::NumArray<int64_t>>(
 			encode_pair(dims)));
 	}
@@ -123,11 +118,6 @@ struct Packer<PairVecT<teq::RankT>>
 
 	void pack (marsh::iAttributed& attrib, PairVecT<teq::RankT> ranks) const
 	{
-		size_t n = ranks.size();
-		if (n == 0)
-		{
-			global::fatal("cannot find pair of ranks");
-		}
 		if (std::any_of(ranks.begin(), ranks.end(),
 			[](std::pair<teq::RankT,teq::RankT> rpair)
 			{
@@ -163,11 +153,6 @@ struct Packer<std::vector<teq::DimT>>
 
 	void pack (marsh::iAttributed& attrib, std::vector<teq::DimT> dims) const
 	{
-		size_t n = dims.size();
-		if (n == 0)
-		{
-			global::fatal("cannot find dimensions");
-		}
 		std::vector<int64_t> idims(dims.begin(), dims.end());
 		attrib.add_attr(key_,
 			std::make_unique<marsh::NumArray<int64_t>>(idims));
@@ -194,11 +179,6 @@ struct Packer<std::vector<teq::RankT>>
 
 	void pack (marsh::iAttributed& attrib, std::vector<teq::RankT> ranks) const
 	{
-		size_t n = ranks.size();
-		if (n == 0)
-		{
-			global::fatal("cannot find ranks");
-		}
 		if (std::any_of(ranks.begin(), ranks.end(),
 			[](teq::RankT rank)
 			{
@@ -236,10 +216,6 @@ struct Packer<std::set<teq::RankT>>
 	void pack (marsh::iAttributed& attrib, std::set<teq::RankT> ranks) const
 	{
 		size_t n = ranks.size();
-		if (n == 0)
-		{
-			global::fatal("cannot find ranks");
-		}
 		if (n > teq::rank_cap)
 		{
 			global::fatalf("cannot specify %d ranks when %d (rank_cap) "

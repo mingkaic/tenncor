@@ -105,6 +105,24 @@ struct Functor final : public eigen::Observable
 		return children_;
 	}
 
+	/// Override of iFunctor
+	teq::TensptrsT get_dependencies (void) const override
+	{
+		auto deps = get_args();
+		if (this->size() > 0)
+		{
+			if (auto tensattr = dynamic_cast<const teq::TensArrayT*>(
+				get_attr(dependency_key)))
+			{
+				teq::FindTensAttr attrf;
+				tensattr->accept(attrf);
+				auto& subdeps = attrf.deps_;
+				deps.insert(deps.end(), subdeps.begin(), subdeps.end());
+			}
+		}
+		return deps;
+	}
+
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
