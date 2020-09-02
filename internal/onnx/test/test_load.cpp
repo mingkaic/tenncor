@@ -43,7 +43,7 @@ struct MockUnmarshFuncs final : public onnx::iUnmarshFuncs
 	}
 };
 
-TEST(LOAD, LoadGraph)
+TEST(LOAD, SimpleGraph)
 {
 	onnx::ModelProto model;
 	{

@@ -64,7 +64,7 @@ struct GraphStat final : public iTraveler
 		{
 			return;
 		}
-		auto deps = func.get_dependencies();
+		auto deps = func.get_argndeps();
 		size_t ndeps = deps.size();
 		std::vector<size_t> max_heights;
 		std::vector<size_t> min_heights;
@@ -124,7 +124,7 @@ struct GraphIndex final : public iTraveler
 		{
 			return;
 		}
-		auto deps = func.get_dependencies();
+		auto deps = func.get_argndeps();
 		multi_visit(*this, deps);
 		indices_.emplace(&func, indices_.size());
 	}
@@ -158,7 +158,7 @@ struct ParentFinder final : public iTraveler
 		{
 			return;
 		}
-		auto deps = func.get_dependencies();
+		auto deps = func.get_argndeps();
 		multi_visit(*this, deps);
 		for (size_t i = 0, n = deps.size(); i < n; ++i)
 		{
@@ -239,7 +239,7 @@ struct PathFinder final : public iOnceTraveler
 {
 	/// For multiple targets, the first target found overshadows target nodes under the first subgraph (todo: label roads)
 	PathFinder (TensMapT<std::string> targets,
-		GetDepsF get_fdep = [](iFunctor& f){ return f.get_dependencies(); }) :
+		GetDepsF get_fdep = [](iFunctor& f){ return f.get_argndeps(); }) :
 		targets_(targets), get_fdep_(get_fdep) {}
 
 	void clear (void) override
@@ -270,20 +270,16 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override
 	{
-		auto args = func.get_args();
-		auto attrs = func.ls_attrs();
+		if (estd::has(targets_, &func))
+		{
+			return;
+		}
 
 		TensptrsT to_visit = get_fdep_(func);
-		for (auto tens : to_visit)
-		{
-			if (false == estd::has(targets_, tens.get()))
-			{
-				tens->accept(*this);
-			}
-		}
-		size_t n = args.size();
+		multi_visit(*this, to_visit);
 		PathNodeT nexts;
-		for (size_t i = 0; i < n; ++i)
+		auto args = func.get_args();
+		for (size_t i = 0, n = args.size(); i < n; ++i)
 		{
 			TensptrT tens = args[i];
 			std::string label;
@@ -300,20 +296,22 @@ private:
 				}
 			}
 		}
+		auto attrs = func.ls_attrs();
 		for (auto attr : attrs)
 		{
-			if (auto tens_attr = dynamic_cast<const TensorRef*>(
-				func.get_attr(attr)))
+			auto obj = func.get_attr(attr);
+			FindTensAttr finder;
+			obj->accept(finder);
+			for (auto ten : finder.tens_)
 			{
-				auto tens = tens_attr->get_tensor();
 				std::string label;
-				if (estd::get(label, targets_, tens.get()))
+				if (estd::get(label, targets_, ten.get()))
 				{
 					nexts[label].attrs_.push_back(attr);
 				}
-				else if (estd::has(roadmap_, tens.get()))
+				else if (estd::has(roadmap_, ten.get()))
 				{
-					auto& subnode = at(tens.get());
+					auto& subnode = at(ten.get());
 					for (auto& spair : subnode)
 					{
 						nexts[spair.first].attrs_.push_back(attr);
@@ -358,7 +356,7 @@ private:
 		{
 			return;
 		}
-		auto deps = func.get_dependencies();
+		auto deps = func.get_argndeps();
 		auto fcpy = func.clone();
 		multi_visit(*this, deps);
 		for (size_t i = 0, n = deps.size(); i < n; ++i)
@@ -400,7 +398,7 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override
 	{
-		auto deps = func.get_dependencies();
+		auto deps = func.get_argndeps();
 		multi_visit(*this, deps);
 		for (const TensptrT& dep : deps)
 		{

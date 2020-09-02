@@ -201,9 +201,6 @@ ETensor make_constant_like_uncast (T scalar, teq::TensptrT like,
 		(teq::TensptrT) like), ctx);
 }
 
-teq::TensptrT add_dependencies (teq::TensptrT root,
-	teq::TensptrsT dependencies);
-
 }
 
 #endif // ETEQ_MAKE_HPP

@@ -14,49 +14,9 @@
 namespace teq
 {
 
-struct FindTensAttr final : public marsh::iMarshaler
-{
-	void marshal (const marsh::String& num) override {}
+const std::string dependency_key = "dependencies";
 
-	void marshal (const marsh::iNumber& num) override {}
-
-	void marshal (const marsh::iArray& arr) override
-	{
-		arr.foreach([this](size_t,const marsh::iObject* obj){ process(obj); });
-	}
-
-	void marshal (const marsh::iTuple& tup) override
-	{
-		tup.foreach([this](size_t,const marsh::iObject* obj){ process(obj); });
-	}
-
-	void marshal (const marsh::Maps& mm) override
-	{
-		auto keys = mm.ls_attrs();
-		for (auto key : keys)
-		{
-			process(mm.get_attr(key));
-		}
-	}
-
-	void process (const marsh::iObject* obj)
-	{
-		if (nullptr == obj)
-		{
-			return;
-		}
-		if (auto dep = dynamic_cast<const teq::TensorRef*>(obj))
-		{
-			deps_.push_back(dep->get_tensor());
-		}
-		else
-		{
-			obj->accept(*this);
-		}
-	}
-
-	teq::TensptrsT deps_;
-};
+const std::string layer_key = "layer";
 
 /// Encoding of operation
 struct Opcode final
@@ -67,6 +27,14 @@ struct Opcode final
 	/// Numerical encoding of operation
 	size_t code_;
 };
+
+using TensptrRefT = std::reference_wrapper<TensptrT>;
+
+using TensptrCRefT = std::reference_wrapper<const TensptrT>;
+
+using TensptrRefsT = std::vector<TensptrRefT>;
+
+using TensptrCRefsT = std::vector<TensptrCRefT>;
 
 /// Interface of iOperation-defined operation node
 struct iFunctor : public iTensor, public marsh::iAttributed
@@ -90,20 +58,67 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 	/// Return vector of functor arguments
 	virtual TensptrsT get_args (void) const = 0;
 
-	/// Return vector of functor dependencies including attribute tensor refs
-	virtual teq::TensptrsT get_dependencies (void) const
+	/// Return vector of functor dependencies
+	TensptrRefsT get_dependencies (void)
 	{
-		auto deps = get_args();
-		if (this->size() > 0)
+		TensptrRefsT deps;
+		if (auto tensattr = dynamic_cast<TensArrayT*>(
+			get_attr(dependency_key)))
 		{
-			marsh::Maps attrs;
-			marsh::get_attrs(attrs, *this);
-			FindTensAttr attrf;
-			attrs.accept(attrf);
-			auto& subdeps = attrf.deps_;
-			deps.insert(deps.end(), subdeps.begin(), subdeps.end());
+			deps.reserve(tensattr->size());
+			tensattr->foreach(
+			[&](size_t, marsh::iObject* obj)
+			{
+				deps.push_back(
+					static_cast<TensorObj*>(obj)->get_tensor());
+			});
 		}
 		return deps;
+	}
+
+	TensptrCRefsT get_dependencies (void) const
+	{
+		TensptrCRefsT deps;
+		if (auto tensattr = dynamic_cast<const TensArrayT*>(
+			get_attr(dependency_key)))
+		{
+			deps.reserve(tensattr->size());
+			tensattr->foreach(
+			[&](size_t, const marsh::iObject* obj)
+			{
+				deps.push_back(
+					static_cast<const TensorObj*>(obj)->get_tensor());
+			});
+		}
+		return deps;
+	}
+
+	void add_dependencies (TensptrsT dependencies)
+	{
+		auto deps_attr = dynamic_cast<TensArrayT*>(
+			get_attr(dependency_key));
+		if (nullptr == deps_attr)
+		{
+			add_attr(dependency_key,
+				std::make_unique<TensArrayT>());
+			deps_attr = static_cast<TensArrayT*>(
+				get_attr(dependency_key));
+		}
+		auto& contents = deps_attr->contents_;
+		for (auto& tens : dependencies)
+		{
+			contents.emplace(contents.end(),
+				std::make_unique<TensorObj>(tens));
+		}
+	}
+
+	/// Return vector of functor arguments and dependencies attributes
+	TensptrsT get_argndeps (void) const
+	{
+		auto argndeps = get_args();
+		auto deps = get_dependencies();
+		argndeps.insert(argndeps.end(), deps.begin(), deps.end());
+		return argndeps;
 	}
 
 	/// Update child at specified index

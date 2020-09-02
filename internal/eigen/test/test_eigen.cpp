@@ -160,6 +160,10 @@ TEST(EIGEN, PackerDimPairs)
 		EXPECT_EQ(orig.first, apair.first);
 		EXPECT_EQ(orig.second, apair.second);
 	}
+
+	marsh::Maps attrs2;
+	eigen::pack_attr(attrs2, dims);
+	EXPECT_NE(nullptr, attrs2.get_attr(packer.get_key()));
 }
 
 
@@ -194,6 +198,10 @@ TEST(EIGEN, PackerRankPairs)
 		EXPECT_EQ(orig.first, apair.first);
 		EXPECT_EQ(orig.second, apair.second);
 	}
+
+	marsh::Maps attrs2;
+	eigen::pack_attr(attrs2, ranks);
+	EXPECT_NE(nullptr, attrs2.get_attr(packer.get_key()));
 }
 
 
@@ -216,6 +224,10 @@ TEST(EIGEN, PackerDims)
 	{
 		EXPECT_EQ(dims[i], outdims[i]);
 	}
+
+	marsh::Maps attrs2;
+	eigen::pack_attr(attrs2, dims);
+	EXPECT_NE(nullptr, attrs2.get_attr(packer.get_key()));
 }
 
 
@@ -242,6 +254,10 @@ TEST(EIGEN, PackerRanks)
 	{
 		EXPECT_EQ(ranks[i], outranks[i]);
 	}
+
+	marsh::Maps attrs2;
+	eigen::pack_attr(attrs2, ranks);
+	EXPECT_NE(nullptr, attrs2.get_attr(packer.get_key()));
 }
 
 
@@ -267,6 +283,10 @@ TEST(EIGEN, PackerRankSet)
 	packer.unpack(outranks, attrs);
 
 	EXPECT_VECEQ(ranks, outranks);
+
+	marsh::Maps attrs2;
+	eigen::pack_attr(attrs2, ranks);
+	EXPECT_NE(nullptr, attrs2.get_attr(packer.get_key()));
 }
 
 
@@ -284,6 +304,10 @@ TEST(EIGEN, PackerRank)
 	packer.unpack(outrank, attrs);
 
 	EXPECT_EQ(rank, outrank);
+
+	marsh::Maps attrs2;
+	eigen::pack_attr(attrs2, rank);
+	EXPECT_NE(nullptr, attrs2.get_attr(packer.get_key()));
 }
 
 
@@ -301,6 +325,10 @@ TEST(EIGEN, PackerShape)
 	packer.unpack(outshape, attrs);
 
 	EXPECT_ARREQ(shape, outshape);
+
+	marsh::Maps attrs2;
+	eigen::pack_attr(attrs2, shape);
+	EXPECT_NE(nullptr, attrs2.get_attr(packer.get_key()));
 }
 
 
@@ -317,6 +345,18 @@ TEST(EIGEN, PackerTensor)
 	packer.unpack(outtens, attrs);
 
 	EXPECT_EQ(tens, outtens);
+
+	marsh::Maps attrs2;
+	eigen::pack_attr(attrs2, tens);
+	EXPECT_NE(nullptr, attrs2.get_attr(packer.get_key()));
+}
+
+
+TEST(EIGEN, EmptyPacking)
+{
+	marsh::Maps attrs;
+	eigen::pack_attr(attrs);
+	EXPECT_EQ(0, attrs.size());
 }
 
 

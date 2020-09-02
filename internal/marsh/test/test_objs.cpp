@@ -325,8 +325,11 @@ TEST(OBJS, Maps)
 	root.add_attr("obj2",
 		std::make_unique<marsh::Number<float>>(2.3));
 	EXPECT_STREQ("[obj1:[]\\obj2:2.3]", root.to_string().c_str());
+	EXPECT_EQ(2, root.size());
 
 	marsh::Maps empty;
+	EXPECT_EQ(0, empty.size());
+
 	EXPECT_FALSE(root.equals(empty));
 	EXPECT_FALSE(empty.equals(root));
 

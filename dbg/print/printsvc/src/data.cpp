@@ -28,7 +28,7 @@ AsciiTemplate::AsciiTemplate (teq::iTensor* tens, const PrintEqConfig& cfg)
 					{
 						return child.get();
 					});
-				auto deps = f->get_dependencies();
+				auto deps = f->get_argndeps();
 				if (deps.size() > children.size())
 				{
 					auto dummy = std::make_shared<MockFunctor>(

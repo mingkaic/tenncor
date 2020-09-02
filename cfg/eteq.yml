@@ -433,7 +433,7 @@ api:
                     if (auto dep = std::dynamic_pointer_cast<eigen::Observable>(
                       (teq::TensptrT) dependee))
                     {
-                        eteq::add_dependencies(dependee, teq::TensptrsT(
+                        dep->add_dependencies(teq::TensptrsT(
                             dependencies.begin(), dependencies.end()));
                     }
                     return dependee;

@@ -184,7 +184,7 @@ private:
 	void visit_func (teq::iFunctor& func) override
 	{
 		sindex_[func.get_opcode().name_].push_back(&func);
-		auto deps = func.get_dependencies();
+		auto deps = func.get_argndeps();
 		teq::multi_visit(*this, deps);
 	}
 

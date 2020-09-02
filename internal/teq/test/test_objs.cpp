@@ -92,45 +92,4 @@ TEST(OBJ, LayerObj)
 }
 
 
-TEST(OBJ, FindAttrs)
-{
-	teq::TensptrT a(new MockLeaf(teq::Shape({1, 2, 3}), "A"));
-	teq::TensptrT b(new MockLeaf(teq::Shape({4, 2, 3}), "B"));
-	teq::TensptrT c(new MockLeaf(teq::Shape({4, 1, 3}), "C"));
-
-	marsh::Maps root;
-	root.add_attr("obj1",
-		std::make_unique<marsh::PtrArray<teq::TensorObj>>());
-	root.add_attr("obj2",
-		std::make_unique<marsh::Number<float>>(2.3));
-	root.add_attr("obj3",
-		std::make_unique<marsh::ObjTuple>());
-	root.add_attr("obj4",
-		std::make_unique<teq::LayerObj>("onion", b));
-	root.add_attr("null",std::unique_ptr<marsh::String>());
-
-	auto arr = static_cast<marsh::PtrArray<teq::TensorObj>*>(
-		root.get_attr("obj1"));
-	auto tup = static_cast<marsh::ObjTuple*>(root.get_attr("obj3"));
-
-	arr->contents_.insert(arr->contents_.end(),
-		std::make_unique<teq::TensorObj>(a));
-	arr->contents_.insert(arr->contents_.end(),
-		std::make_unique<teq::TensorObj>(c));
-
-	tup->contents_.insert(tup->contents_.end(),
-		std::make_unique<marsh::String>("zzz"));
-	tup->contents_.insert(tup->contents_.end(),
-		std::make_unique<teq::TensorObj>(b));
-
-	teq::FindTensAttr finder;
-	root.accept(finder);
-	EXPECT_EQ(4, finder.deps_.size());
-
-	EXPECT_ARRHAS(finder.deps_, a);
-	EXPECT_ARRHAS(finder.deps_, b);
-	EXPECT_ARRHAS(finder.deps_, c);
-}
-
-
 #endif // DISABLE_OBJ_TEST

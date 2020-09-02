@@ -59,10 +59,10 @@ struct PrettyEquation final
 						return child.get();
 					});
 				auto deps = f->get_dependencies();
-				if (deps.size() > children.size())
+				if (deps.size() > 0)
 				{
 					auto dummy = std::make_shared<MockFunctor>(
-						teq::TensptrsT(deps.begin() + children.size(), deps.end()),
+						teq::TensptrsT(deps.begin(), deps.end()),
 						teq::Opcode{dummy_label, 0});
 					tens.push_back(dummy.get());
 					this->dummies_.push_back(dummy);

@@ -72,7 +72,7 @@ struct Emitter final : public dbg::iPlugin
 					std::string id = ids_.left.at(tens);
 					existing.insert({tens, id});
 				}
-				auto deps = func.get_dependencies();
+				auto deps = func.get_argndeps();
 				teq::multi_visit(trav, deps);
 			});
 		teq::multi_visit(vis, targets);

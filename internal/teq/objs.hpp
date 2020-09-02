@@ -34,7 +34,9 @@ struct iTeqMarshaler : public marsh::iMarshaler
 
 struct TensorRef : public marsh::iObject
 {
-	virtual TensptrT get_tensor (void) const = 0;
+	virtual TensptrT& get_tensor (void) = 0;
+
+	virtual const TensptrT& get_tensor (void) const = 0;
 
 	virtual TensorRef* copynreplace (TensptrT) const = 0;
 };
@@ -86,7 +88,12 @@ struct TensorObj final : public TensorRef
 		}
 	}
 
-	TensptrT get_tensor (void) const override
+	TensptrT& get_tensor (void) override
+	{
+		return tens_;
+	}
+
+	const TensptrT& get_tensor (void) const override
 	{
 		return tens_;
 	}
@@ -155,7 +162,12 @@ struct LayerObj final : public TensorRef
 		}
 	}
 
-	TensptrT get_tensor (void) const override
+	TensptrT& get_tensor (void) override
+	{
+		return input_;
+	}
+
+	const TensptrT& get_tensor (void) const override
 	{
 		return input_;
 	}
@@ -178,7 +190,59 @@ private:
 
 using TensArrayT = marsh::PtrArray<TensorObj>;
 
-const std::string layer_key = "layer";
+struct FindTensAttr final : public iTeqMarshaler
+{
+	void marshal (const marsh::String& num) override {}
+
+	void marshal (const marsh::iNumber& num) override {}
+
+	void marshal (const marsh::iArray& arr) override
+	{
+		arr.foreach([this](size_t,const marsh::iObject* obj){ process(obj); });
+	}
+
+	void marshal (const marsh::iTuple& tup) override
+	{
+		tup.foreach([this](size_t,const marsh::iObject* obj){ process(obj); });
+	}
+
+	void marshal (const marsh::Maps& mm) override
+	{
+		auto keys = mm.ls_attrs();
+		for (auto key : keys)
+		{
+			process(mm.get_attr(key));
+		}
+	}
+
+	void marshal (const TensorObj& tens) override
+	{
+		process(&tens);
+	}
+
+	void marshal (const LayerObj& layer) override
+	{
+		process(&layer);
+	}
+
+	void process (const marsh::iObject* obj)
+	{
+		if (nullptr == obj)
+		{
+			return;
+		}
+		if (auto dep = dynamic_cast<const TensorRef*>(obj))
+		{
+			tens_.push_back(dep->get_tensor());
+		}
+		else
+		{
+			obj->accept(*this);
+		}
+	}
+
+	TensptrsT tens_;
+};
 
 }
 

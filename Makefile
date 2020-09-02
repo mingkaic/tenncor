@@ -224,7 +224,7 @@ cov_genhtml: ${LOC_COVERAGE_FILE}
 
 .PHONY: clean_test_coverage
 clean_test_coverage: ${COVERAGE_INFO_FILE}
-	lcov --remove ${COVERAGE_INFO_FILE} '**/test/*' '**/mock/*' -o ${LOC_COVERAGE_FILE}
+	lcov --remove ${COVERAGE_INFO_FILE} '**/test/*' '**/mock/*' '**/*.pb.*' -o ${LOC_COVERAGE_FILE}
 
 .PHONY: coverage
 coverage:

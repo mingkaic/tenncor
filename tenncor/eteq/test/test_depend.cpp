@@ -42,15 +42,11 @@ TEST(DEPEND, Chaining)
 	ASSERT_NE(nullptr, fdep);
 	auto attrs = fdep->ls_attrs();
 	EXPECT_EQ(1, attrs.size());
-	auto deps_attr = dynamic_cast<teq::TensArrayT*>(
-		fdep->get_attr(eteq::dependency_key));
-	EXPECT_NE(nullptr, deps_attr);
-	EXPECT_EQ(1, deps_attr->size());
 
 	auto children = fdep->get_args();
 	ASSERT_EQ(2, children.size());
 
-	auto depends = fdep->get_dependencies();
+	auto depends = fdep->get_argndeps();
 	ASSERT_EQ(3, depends.size());
 	EXPECT_EQ(children[0].get(), depends[0].get());
 	EXPECT_EQ(children[1].get(), depends[1].get());

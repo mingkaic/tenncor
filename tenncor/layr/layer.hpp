@@ -103,7 +103,7 @@ private:
 		}
 
 		auto& child_directions = target_dir.children_;
-		teq::TensptrsT children = func.get_dependencies();
+		teq::TensptrsT children = func.get_args();
 		for (size_t i : child_directions)
 		{
 			auto child = children[i];
@@ -111,9 +111,9 @@ private:
 			children[i] = trailed_.at(child.get());
 		}
 
-		trailed_.emplace(&func, eteq::make_funcattr(
-			(egen::_GENERATED_OPCODE) func.get_opcode().code_,
-			children, dup_attrs));
+		auto opcode = (egen::_GENERATED_OPCODE) func.get_opcode().code_;
+		auto fcpy = eteq::make_funcattr(opcode, children, dup_attrs);
+		trailed_.emplace(&func, fcpy);
 	}
 
 	teq::PathFinder pfinder_;
@@ -131,7 +131,7 @@ private:
 
 	void visit_func (teq::iFunctor& func) override
 	{
-		auto deps = func.get_dependencies();
+		auto deps = func.get_argndeps();
 		teq::multi_visit(*this, deps);
 		breadth_.emplace(&func, breadth_.size());
 	}
@@ -165,7 +165,7 @@ private:
 		{
 			return;
 		}
-		auto deps = func.get_dependencies();
+		auto deps = func.get_argndeps();
 		teq::multi_visit(*this, deps);
 	}
 };

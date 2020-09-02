@@ -15,8 +15,6 @@
 namespace eteq
 {
 
-const std::string dependency_key = "dependencies";
-
 #define _CHOOSE_PARSER(OPCODE)\
 outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
 
@@ -105,40 +103,9 @@ struct Functor final : public eigen::Observable
 		return children_;
 	}
 
-	/// Override of iFunctor
-	teq::TensptrsT get_dependencies (void) const override
-	{
-		auto deps = get_args();
-		if (this->size() > 0)
-		{
-			if (auto tensattr = dynamic_cast<const teq::TensArrayT*>(
-				get_attr(dependency_key)))
-			{
-				teq::FindTensAttr attrf;
-				tensattr->accept(attrf);
-				auto& subdeps = attrf.deps_;
-				deps.insert(deps.end(), subdeps.begin(), subdeps.end());
-			}
-		}
-		return deps;
-	}
-
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		auto deps_attr = dynamic_cast<teq::TensArrayT*>(
-			this->get_attr(dependency_key));
-		size_t ndeps = children_.size();
-		if (nullptr != deps_attr)
-		{
-			ndeps += deps_attr->contents_.size();
-		}
-		if (index >= ndeps)
-		{
-			global::fatalf("cannot modify dependency %d "
-				"when there are only %d dependencies",
-				index, ndeps);
-		}
 		if (index < children_.size())
 		{
 			if (arg != children_[index])
@@ -174,11 +141,17 @@ struct Functor final : public eigen::Observable
 		}
 		else
 		{
+			auto deps = get_dependencies();
 			size_t idep = index - children_.size();
-			if (arg != deps_attr->contents_[idep]->get_tensor())
+			if (idep >= deps.size())
 			{
-				deps_attr->contents_[idep] =
-					std::make_unique<teq::TensorObj>(arg);
+				global::fatalf("cannot modify dependency %d "
+					"when there are only %d dependencies",
+					index, children_.size() + deps.size());
+			}
+			if (arg != deps.at(idep).get())
+			{
+				deps.at(idep).get() = arg;
 			}
 		}
 	}

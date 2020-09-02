@@ -110,8 +110,8 @@ TEST(SERIALIZE, SaveDependencies)
 	eteq::ETensor dep = a + c;
 	eteq::ETensor dep2 = a / c - b;
 
-	eteq::add_dependencies(root, {dep});
-	eteq::add_dependencies(root, {dep2});
+	tenncor().depends(root, {dep});
+	tenncor().depends(root, {dep2});
 
 	onnx::TensIdT ids;
 	ids.insert({root.get(), "root"});

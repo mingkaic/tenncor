@@ -100,7 +100,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 private:
 	void marshal_func (teq::iFunctor& func)
 	{
-		auto deps = func.get_dependencies();
+		auto deps = func.get_argndeps();
 		teq::multi_visit(*this, deps);
 		auto attrs = func.ls_attrs();
 		for (auto attr : attrs)
