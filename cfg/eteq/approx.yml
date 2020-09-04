@@ -167,8 +167,9 @@ funcs:
                           super->mul(nodecay,super->square(delta))
                       )
                   );
-                  out.push_back({x,super->depends(
-                      super->assign_sub(x,delta),{msd_next})});
+                  out.push_back({x,
+                      super->assign_sub(x,super->identity(delta, {msd_next}))
+                  });
               }
               return out;
   - template: typename T

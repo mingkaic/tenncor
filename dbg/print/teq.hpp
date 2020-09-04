@@ -11,8 +11,6 @@
 
 #include "internal/teq/teq.hpp"
 
-#include "internal/teq/mock/functor.hpp"
-
 #include "dbg/print/tree.hpp"
 
 /// Map tensor to label
@@ -45,28 +43,19 @@ void ten_stream (std::ostream& out,
 struct PrettyEquation final
 {
 	PrettyEquation (void) : renderer_(
-		[this](teq::iTensor*& root, size_t depth) -> teq::TensT
+		[](teq::iTensor*& root, size_t depth) -> teq::TensT
 		{
 			if (auto f = dynamic_cast<teq::iFunctor*>(root))
 			{
-				auto children = f->get_args();
-				std::vector<teq::iTensor*> tens;
-				tens.reserve(children.size());
-				std::transform(children.begin(), children.end(),
+				auto args = f->get_args();
+				teq::TensT tens;
+				tens.reserve(args.size());
+				std::transform(args.begin(), args.end(),
 					std::back_inserter(tens),
 					[](teq::TensptrT child)
 					{
 						return child.get();
 					});
-				auto deps = f->get_dependencies();
-				if (deps.size() > 0)
-				{
-					auto dummy = std::make_shared<MockFunctor>(
-						teq::TensptrsT(deps.begin(), deps.end()),
-						teq::Opcode{dummy_label, 0});
-					tens.push_back(dummy.get());
-					this->dummies_.push_back(dummy);
-				}
 				return tens;
 			}
 			return {};
@@ -80,14 +69,12 @@ struct PrettyEquation final
 	void print (std::ostream& out, const teq::TensptrT& ptr)
 	{
 		renderer_.print(out, ptr.get());
-		dummies_.clear();
 	}
 
 	/// Stream equation of raw ptr to out
 	void print (std::ostream& out, teq::iTensor* ptr)
 	{
 		renderer_.print(out, ptr);
-		dummies_.clear();
 	}
 
 	PrintEqConfig cfg_;
@@ -95,8 +82,6 @@ struct PrettyEquation final
 private:
 	/// Actual ascii renderer
 	PrettyTree<teq::iTensor*> renderer_;
-
-	teq::TensptrsT dummies_;
 };
 
 #endif // DBG_TEQ_HPP

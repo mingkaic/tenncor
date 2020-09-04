@@ -28,14 +28,6 @@ struct Opcode final
 	size_t code_;
 };
 
-using TensptrRefT = std::reference_wrapper<TensptrT>;
-
-using TensptrCRefT = std::reference_wrapper<const TensptrT>;
-
-using TensptrRefsT = std::vector<TensptrRefT>;
-
-using TensptrCRefsT = std::vector<TensptrCRefT>;
-
 /// Interface of iOperation-defined operation node
 struct iFunctor : public iTensor, public marsh::iAttributed
 {
@@ -58,66 +50,10 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 	/// Return vector of functor arguments
 	virtual TensptrsT get_args (void) const = 0;
 
-	/// Return vector of functor dependencies
-	TensptrRefsT get_dependencies (void)
-	{
-		TensptrRefsT deps;
-		if (auto tensattr = dynamic_cast<TensArrayT*>(
-			get_attr(dependency_key)))
-		{
-			deps.reserve(tensattr->size());
-			tensattr->foreach(
-			[&](size_t, marsh::iObject* obj)
-			{
-				deps.push_back(
-					static_cast<TensorObj*>(obj)->get_tensor());
-			});
-		}
-		return deps;
-	}
-
-	TensptrCRefsT get_dependencies (void) const
-	{
-		TensptrCRefsT deps;
-		if (auto tensattr = dynamic_cast<const TensArrayT*>(
-			get_attr(dependency_key)))
-		{
-			deps.reserve(tensattr->size());
-			tensattr->foreach(
-			[&](size_t, const marsh::iObject* obj)
-			{
-				deps.push_back(
-					static_cast<const TensorObj*>(obj)->get_tensor());
-			});
-		}
-		return deps;
-	}
-
-	void add_dependencies (TensptrsT dependencies)
-	{
-		auto deps_attr = dynamic_cast<TensArrayT*>(
-			get_attr(dependency_key));
-		if (nullptr == deps_attr)
-		{
-			add_attr(dependency_key,
-				std::make_unique<TensArrayT>());
-			deps_attr = static_cast<TensArrayT*>(
-				get_attr(dependency_key));
-		}
-		auto& contents = deps_attr->contents_;
-		for (auto& tens : dependencies)
-		{
-			contents.emplace(contents.end(),
-				std::make_unique<TensorObj>(tens));
-		}
-	}
-
 	/// Return vector of functor arguments and dependencies attributes
 	TensptrsT get_argndeps (void) const
 	{
 		auto argndeps = get_args();
-		auto deps = get_dependencies();
-		argndeps.insert(argndeps.end(), deps.begin(), deps.end());
 		return argndeps;
 	}
 

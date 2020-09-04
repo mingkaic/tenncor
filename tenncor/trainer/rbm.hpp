@@ -157,15 +157,12 @@ eteq::ETensor rbm (const layr::RBMLayer<T>& model,
 	layr::VarErrsT<T> varerrs = cd_grad_approx<T>(chain_io, model, cdk, nullptr, context);
 	auto updates = bbernoulli_approx<T>(varerrs, learning_rate, discount_factor, context);
 	teq::OwnMapT umap;
-	eteq::ETensorsT deps;
-	deps.reserve(updates.size());
 	for (auto& update : updates)
 	{
 		umap.emplace(update.first.get(), update.second);
-		deps.push_back(update.second);
 	}
 	eteq::ETensor error = err_func(chain_io.visible_, chain_io.visible_mean_);
-	return tenncor().depends(layr::trail(error, umap), deps);
+	return layr::trail(error, umap);
 }
 
 }

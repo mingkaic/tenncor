@@ -37,7 +37,7 @@ eteq::ETensor apply_update (const eteq::ETensorsT& models,
 		deps.push_back(update.second);
 	}
 	// depend on assigns for variables not trailed in error
-	return TenncorAPI(ctx).depends(layr::trail(error, umap), deps);
+	return TenncorAPI(ctx).identity(layr::trail(error, umap), deps);
 }
 
 }

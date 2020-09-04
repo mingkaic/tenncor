@@ -38,7 +38,7 @@ TEST(OPTIMIZE, Depends)
 	auto c = a + b;
 	eteq::ETensor d = eteq::make_constant_scalar<double>(4, shape);
 
-	auto ass = tenncor().depends(tenncor().assign(target, b * d), {c});
+	auto ass = tenncor().assign(target, tenncor().identity(b * d, {c}));
 
 	std::ifstream rulefile("cfg/optimizations.json");
 	ass = hone::optimize({ass}, rulefile)[0];
@@ -77,7 +77,7 @@ TEST(OPTIMIZE, DependsNnary)
 	auto c = a + b;
 	eteq::ETensor d = eteq::make_constant_scalar<double>(4, shape);
 
-	auto add = tenncor().depends(tenncor().add(target, b * d), {c});
+	auto add = tenncor().assign(target, tenncor().identity(b * d, {c}));
 
 	teq::Evaluator eval;
 	eval.evaluate(device, {add.get()});
@@ -368,8 +368,7 @@ TEST(OPTIMIZE, CNNLayer)
 		umap.emplace(update.first.get(), update.second);
 		deps.push_back(update.second);
 	}
-	auto err = tenncor().identity(tenncor().depends(
-		layr::trail(error, umap), deps));
+	auto err = tenncor().identity(layr::trail(error, umap), deps);
 
 	std::ifstream rulefile("cfg/optimizations.json");
 	err = hone::optimize({err}, rulefile)[0];

@@ -102,7 +102,7 @@ private:
 			}
 		}
 
-		auto& child_directions = target_dir.children_;
+		auto& child_directions = target_dir.args_;
 		teq::TensptrsT children = func.get_args();
 		for (size_t i : child_directions)
 		{

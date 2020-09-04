@@ -6,7 +6,7 @@ import argparse
 import numpy as np
 
 import tenncor as tc
-import extenncor.dqntrainer as etc
+import extenncor.dqn_trainer as etc
 
 prog_description = 'Demo dqn trainer'
 

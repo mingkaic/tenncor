@@ -141,18 +141,7 @@ struct Functor final : public eigen::Observable
 		}
 		else
 		{
-			auto deps = get_dependencies();
-			size_t idep = index - children_.size();
-			if (idep >= deps.size())
-			{
-				global::fatalf("cannot modify dependency %d "
-					"when there are only %d dependencies",
-					index, children_.size() + deps.size());
-			}
-			if (arg != deps.at(idep).get())
-			{
-				deps.at(idep).get() = arg;
-			}
+			global::warn("no longer modifying dependencies");
 		}
 	}
 

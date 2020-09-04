@@ -5,6 +5,7 @@
 #include "tenncor/eteq/constant.hpp"
 #include "tenncor/eteq/functor.hpp"
 #include "tenncor/eteq/evars.hpp"
+#include "tenncor/eteq/typer.hpp"
 
 namespace eteq
 {

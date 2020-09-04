@@ -56,12 +56,12 @@ TEST(TRAVELER, PathFinder)
 		ASSERT_HAS(finder.roadmap_, g.get());
 		auto& gdirs = finder.roadmap_[g.get()];
 		ASSERT_HAS(gdirs, "target");
-		EXPECT_ARRHAS(gdirs["target"].children_, 1);
+		EXPECT_ARRHAS(gdirs["target"].args_, 1);
 
 		ASSERT_HAS(finder.roadmap_, f.get());
 		auto& fdirs = finder.roadmap_[f.get()];
 		ASSERT_HAS(fdirs, "target")
-		EXPECT_ARRHAS(fdirs["target"].children_, 0);
+		EXPECT_ARRHAS(fdirs["target"].args_, 0);
 	}
 
 	finder.clear();
@@ -73,7 +73,7 @@ TEST(TRAVELER, PathFinder)
 		ASSERT_HAS(finder.roadmap_, f.get());
 		auto& fdirs = finder.roadmap_[f.get()];
 		ASSERT_HAS(fdirs, "target")
-		EXPECT_ARRHAS(fdirs["target"].children_, 0);
+		EXPECT_ARRHAS(fdirs["target"].args_, 0);
 	}
 
 	teq::PathFinder finder2(
@@ -84,7 +84,7 @@ TEST(TRAVELER, PathFinder)
 		ASSERT_HAS(finder2.roadmap_, g.get());
 		auto& gdirs = finder2.roadmap_[g.get()];
 		ASSERT_HAS(gdirs, "target")
-		EXPECT_ARRHAS(gdirs["target"].children_, 0);
+		EXPECT_ARRHAS(gdirs["target"].args_, 0);
 	}
 
 	finder2.clear();
@@ -92,46 +92,6 @@ TEST(TRAVELER, PathFinder)
 
 	EXPECT_HASNOT(finder2.roadmap_, f.get());
 	EXPECT_EQ(0, finder2.roadmap_.size());
-}
-
-
-TEST(TRAVELER, PathFinderDepsOnly)
-{
-	teq::TensptrT a(new MockLeaf());
-	teq::TensptrT b(new MockLeaf());
-	teq::TensptrT c(new MockLeaf());
-
-	auto df = new MockFunctor(teq::TensptrsT{b}, teq::Opcode{"MOCK2", 0});
-	teq::TensptrT d(df);
-	df->add_dependencies({c});
-	df->add_attr("tensors", std::make_unique<teq::TensorObj>(b)); // should ignore this tensor
-
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, c}, teq::Opcode{"MOCK1", 1}));
-
-	auto gf = new MockFunctor(teq::TensptrsT{a, d}, teq::Opcode{"MOCK0", 0});
-	teq::TensptrT g(gf);
-	gf->add_dependencies({f});
-	gf->add_attr("numbers", std::make_unique<marsh::Number<double>>(333.4));
-	gf->add_attr("tensors", std::make_unique<teq::TensorObj>(a)); // should ignore this tensor
-
-	std::string target_key = "target";
-
-	teq::PathFinder finder(
-		teq::TensMapT<std::string>{{c.get(), target_key}});
-	g->accept(finder);
-
-	ASSERT_HAS(finder.roadmap_, g.get());
-	auto& gdirs = finder.roadmap_[g.get()];
-	ASSERT_HAS(gdirs, target_key);
-	EXPECT_EQ(1, gdirs[target_key].attrs_.size());
-	ASSERT_ARRHAS(gdirs[target_key].attrs_, teq::dependency_key);
-
-	ASSERT_HAS(finder.roadmap_, d.get());
-	auto& ddirs = finder.roadmap_[d.get()];
-	ASSERT_HAS(ddirs, target_key);
-	EXPECT_TRUE(ddirs[target_key].children_.empty());
-	EXPECT_EQ(1, ddirs[target_key].attrs_.size());
-	ASSERT_ARRHAS(ddirs[target_key].attrs_, teq::dependency_key);
 }
 
 
@@ -143,14 +103,12 @@ TEST(TRAVELER, PathFinderAttr)
 
 	auto df = new MockFunctor(teq::TensptrsT{b}, teq::Opcode{"MOCK2", 0});
 	teq::TensptrT d(df);
-	df->add_dependencies({b});
 	df->add_attr("yodoo", std::make_unique<teq::TensorObj>(c));
 
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, c}, teq::Opcode{"MOCK1", 1}));
 
 	auto gf = new MockFunctor(teq::TensptrsT{a, d}, teq::Opcode{"MOCK0", 0});
 	teq::TensptrT g(gf);
-	gf->add_dependencies({a});
 	gf->add_attr("numbers", std::make_unique<marsh::Number<double>>(333.4));
 	gf->add_attr("tensors", std::make_unique<teq::TensorObj>(f));
 
@@ -179,7 +137,7 @@ TEST(TRAVELER, PathFinderAttr)
 	ASSERT_HAS(finder.roadmap_, d.get());
 	auto& ddirs = finder.roadmap_[d.get()];
 	ASSERT_HAS(ddirs, target_key);
-	EXPECT_TRUE(ddirs[target_key].children_.empty());
+	EXPECT_TRUE(ddirs[target_key].args_.empty());
 	EXPECT_EQ(1, ddirs[target_key].attrs_.size());
 	ASSERT_ARRHAS(ddirs[target_key].attrs_, "yodoo");
 }

@@ -142,7 +142,7 @@ void partial_derive (TensMapT<TensptrsT>& grads,
 		assert(prevs.size() > 0);
 		TensptrT bwd = prevs.size() > 1 ? funcs.add(prevs) : prevs.front();
 		// bwd = derive root wrt tens
-		auto& nexts = pfinder.at(tens).at(target_label).children_;
+		auto& nexts = pfinder.at(tens).at(target_label).args_;
 		auto visitable_ptr = std::static_pointer_cast<iFunctor>(
 			owners[tens].lock());
 		TensptrsT children = tens->get_args();

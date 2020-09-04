@@ -23,7 +23,11 @@ P5 = "get to it eventually"
    - select and integrate some other CUDA-supported LinAlgebra libraries
    - make global context configurable through python
 
-   - rethink mechanisms for representing different dependencies [tensor (shape-dependent relationship), dependencies (execution-based relationship), layers (utility structural relationship)]
+   - rethink mechanisms for representing different dependencies [
+      tensor (shape-dependent relationship),
+      dependencies (execution-based relationship),
+      layers (utility structural relationship),
+   ]
 
 === transparency/code readability ===
    - restructure so that core/utility modules, and generator are clear

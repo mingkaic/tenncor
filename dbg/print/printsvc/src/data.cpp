@@ -13,30 +13,20 @@ static const std::string ascii_formatkey = "{xj]yq<";
 
 AsciiTemplate::AsciiTemplate (teq::iTensor* tens, const PrintEqConfig& cfg)
 {
-	teq::TensptrsT dummies;
 	PrettyTree<teq::iTensor*> renderer(
-		[&](teq::iTensor*& root, size_t depth) -> teq::TensT
+		[](teq::iTensor*& root, size_t depth) -> teq::TensT
 		{
 			if (auto f = dynamic_cast<teq::iFunctor*>(root))
 			{
-				auto children = f->get_args();
-				std::vector<teq::iTensor*> tens;
-				tens.reserve(children.size());
-				std::transform(children.begin(), children.end(),
+				auto args = f->get_args();
+				teq::TensT tens;
+				tens.reserve(args.size());
+				std::transform(args.begin(), args.end(),
 					std::back_inserter(tens),
 					[](teq::TensptrT child)
 					{
 						return child.get();
 					});
-				auto deps = f->get_argndeps();
-				if (deps.size() > children.size())
-				{
-					auto dummy = std::make_shared<MockFunctor>(
-						teq::TensptrsT(deps.begin() + children.size(), deps.end()),
-						teq::Opcode{dummy_label, 0});
-					tens.push_back(dummy.get());
-					dummies.push_back(dummy);
-				}
 				return tens;
 			}
 			return {};

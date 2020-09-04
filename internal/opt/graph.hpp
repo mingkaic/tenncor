@@ -58,7 +58,7 @@ struct GraphInfo final
 				for (auto& ppair : pmap)
 				{
 					auto f = static_cast<teq::iFunctor*>(ppair.first);
-					for (size_t i : ppair.second)
+					for (size_t i : ppair.second.args_)
 					{
 						f->update_child(target, i);
 					}

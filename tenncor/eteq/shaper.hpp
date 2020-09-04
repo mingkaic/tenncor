@@ -7,7 +7,7 @@
 namespace eteq
 {
 
-const std::string noinshape_err = "cannot generated shape without input shape(s)";
+const std::string noinshape_err = "cannot generate shape without input shape(s)";
 
 // todo: move these to eigen and auto-generate
 template <egen::_GENERATED_OPCODE OPCODE>
@@ -34,6 +34,22 @@ struct ShapeParser final
 			}
 		}
 		return outshape;
+	}
+};
+
+template <>
+struct ShapeParser<egen::IDENTITY> final
+{
+	/// Return shape of first argument, identity ignores shapes of
+	/// all other arguments (which are operational dependencies)
+	teq::Shape shape (const marsh::iAttributed& attrs,
+		const teq::ShapesT& shapes) const
+	{
+		if (shapes.empty())
+		{
+			global::fatal(noinshape_err);
+		}
+		return shapes.front();
 	}
 };
 

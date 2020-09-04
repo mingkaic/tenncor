@@ -27,6 +27,6 @@ cc_library(
     hdrs = [":print_hdrs"],
     srcs = [":print_srcs"],
     copts = ["-std=c++17"],
-    deps = ["//internal/teq:mock_teq"],
+    deps = ["//internal/teq:teq"],
     visibility = ["//visibility:public"],
 )

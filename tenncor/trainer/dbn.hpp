@@ -109,11 +109,10 @@ struct DBNTrainer final
 			api.reduce_mean_1d(diff, 1);
 		auto dtrain_lr = tlr_placeholder * lr_scaling;
 
-		tupdate_ = api.depends(api.assign<T>(tlr_placeholder, dtrain_lr),
-			eteq::ETensorsT{
-				api.assign_add<T>(eteq::EVariable<T>(w, context), dw),
-				api.assign_add<T>(eteq::EVariable<T>(b, context), db),
-			});
+		tupdate_ = api.assign<T>(tlr_placeholder, api.identity(dtrain_lr, {
+			api.assign_add<T>(eteq::EVariable<T>(w, context), dw),
+			api.assign_add<T>(eteq::EVariable<T>(b, context), db),
+		}));
 		tcost_ = -api.reduce_mean(
 			api.reduce_sum_1d(trainy_ * api.log(final_out) +
 			((T) 1 - trainy_) * api.log((T) 1 - final_out), 0));

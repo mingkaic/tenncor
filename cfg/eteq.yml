@@ -413,30 +413,6 @@ api:
           out:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_tfunctor<T>(::egen::CAST,teq::TensptrsT{arg}),ctx);
-        - name: depends
-          description: |
-                      Return a node that takes on the identity of dependee except dependencies are children of the node.
-                      Meaning, in order to calculate the latest value of dependee, dependencies needs to be calculated as well.
-          args:
-          - type: const eteq::ETensor&
-            name: dependee
-          - type: const eteq::ETensorsT&
-            name: dependencies
-          out:
-            type: eteq::ETensor
-            val: |
-                //
-                    if (dependencies.empty())
-                    {
-                        global::fatal("cannot depend on nothing");
-                    }
-                    if (auto dep = std::dynamic_pointer_cast<eigen::Observable>(
-                      (teq::TensptrT) dependee))
-                    {
-                        dep->add_dependencies(teq::TensptrsT(
-                            dependencies.begin(), dependencies.end()));
-                    }
-                    return dependee;
         - template: typename T
           name: assign
           args:
@@ -488,12 +464,22 @@ api:
             type: eteq::ETensor
             val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_DIV,teq::TensptrsT{target,source}),ctx);
         - name: identity
+          description: |
+                      Return a node that takes on the reference of arg except any additional arguments are just operational dependencies.
+                      Operational dependencies are calculated at the same time as arg.
           args:
           - type: const eteq::ETensor&
             name: arg
+          - type: const eteq::ETensorsT&
+            name: execute_in_parallel
+            default: eteq::ETensorsT()
           out:
             type: eteq::ETensor
-            val: return eteq::ETensor(eteq::make_functor(::egen::IDENTITY,teq::TensptrsT{arg}),ctx);
+            val: |
+                //
+                    teq::TensptrsT args = {arg};
+                    args.insert(args.end(), execute_in_parallel.begin(), execute_in_parallel.end());
+                    return eteq::ETensor(eteq::make_functor(::egen::IDENTITY,args),ctx);
         - name: abs
           args:
           - type: const eteq::ETensor&

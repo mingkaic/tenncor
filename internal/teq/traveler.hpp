@@ -139,46 +139,6 @@ struct GraphIndex final : public iTraveler
 	TensMapT<size_t> indices_;
 };
 
-/// Map tensors to indices of children
-using ParentMapT = TensMapT<std::vector<size_t>>;
-
-/// Traveler that for each child tracks the relationship to all parents
-struct ParentFinder final : public iTraveler
-{
-	/// Implementation of iTraveler
-	void visit (iLeaf& leaf) override
-	{
-		parents_.emplace(&leaf, ParentMapT());
-	}
-
-	/// Implementation of iTraveler
-	void visit (iFunctor& func) override
-	{
-		if (estd::has(parents_, &func))
-		{
-			return;
-		}
-		auto deps = func.get_argndeps();
-		multi_visit(*this, deps);
-		for (size_t i = 0, n = deps.size(); i < n; ++i)
-		{
-			parents_[deps[i].get()][&func].push_back(i);
-		}
-		parents_.emplace(&func, ParentMapT());
-	}
-
-	const ParentMapT& at (iTensor* tens) const
-	{
-		return estd::must_getf(parents_, tens,
-			"failed to find parents for %s",
-			tens->to_string().c_str());
-	}
-
-	/// Tracks child to parents relationship
-	/// Maps child tensor to parent mapping to indices that point to child
-	TensMapT<ParentMapT> parents_;
-};
-
 /// Generic traveler that visits every node in the graph once
 struct iOnceTraveler : public iTraveler
 {
@@ -222,8 +182,8 @@ protected:
 
 struct PathDirection
 {
-	std::vector<size_t> children_;
-	types::StringsT attrs_;
+	std::vector<size_t> args_;
+	std::vector<std::string> attrs_;
 };
 
 using PathNodeT = std::unordered_map<std::string,PathDirection>;
@@ -277,9 +237,9 @@ private:
 			return;
 		}
 
-		TensptrsT to_visit = get_fdep_(func);
-		multi_visit(*this, to_visit);
+		multi_visit(*this, get_fdep_(func));
 		PathNodeT nexts;
+
 		auto args = func.get_args();
 		for (size_t i = 0, n = args.size(); i < n; ++i)
 		{
@@ -287,14 +247,14 @@ private:
 			std::string label;
 			if (estd::get(label, targets_, tens.get()))
 			{
-				nexts[label].children_.push_back(i);
+				nexts[label].args_.push_back(i);
 			}
 			else if (estd::has(roadmap_, tens.get()))
 			{
 				auto& subnode = at(tens.get());
 				for (auto& spair : subnode)
 				{
-					nexts[spair.first].children_.push_back(i);
+					nexts[spair.first].args_.push_back(i);
 				}
 			}
 		}
@@ -304,16 +264,16 @@ private:
 			auto obj = func.get_attr(attr);
 			FindTensAttr finder;
 			obj->accept(finder);
-			for (auto ten : finder.tens_)
+			for (auto tensor : finder.tens_)
 			{
 				std::string label;
-				if (estd::get(label, targets_, ten.get()))
+				if (estd::get(label, targets_, tensor.get()))
 				{
 					nexts[label].attrs_.push_back(attr);
 				}
-				else if (estd::has(roadmap_, ten.get()))
+				else if (estd::has(roadmap_, tensor.get()))
 				{
-					auto& subnode = at(ten.get());
+					auto& subnode = at(tensor.get());
 					for (auto& spair : subnode)
 					{
 						nexts[spair.first].attrs_.push_back(attr);
@@ -329,6 +289,67 @@ private:
 
 	/// Target of tensor all paths are travelling to
 	TensMapT<std::string> targets_;
+
+	GetDepsF get_fdep_;
+};
+
+/// Map tensors to indices of children
+using ParentMapT = TensMapT<PathDirection>;
+
+/// Traveler that for each child tracks the relationship to all parents
+struct ParentFinder final : public iTraveler
+{
+	ParentFinder (GetDepsF get_fdep =
+		[](iFunctor& f){ return f.get_argndeps(); }) : get_fdep_(get_fdep) {}
+
+	/// Implementation of iTraveler
+	void visit (iLeaf& leaf) override
+	{
+		parents_.emplace(&leaf, ParentMapT());
+	}
+
+	/// Implementation of iTraveler
+	void visit (iFunctor& func) override
+	{
+		if (estd::has(parents_, &func))
+		{
+			return;
+		}
+
+		multi_visit(*this, get_fdep_(func));
+
+		auto args = func.get_args();
+		for (size_t i = 0, n = args.size(); i < n; ++i)
+		{
+			parents_[args[i].get()][&func].args_.push_back(i);
+		}
+		auto attrs = func.ls_attrs();
+		for (auto attr : attrs)
+		{
+			auto obj = func.get_attr(attr);
+			FindTensAttr finder;
+			obj->accept(finder);
+			for (auto tensor : finder.tens_)
+			{
+				if (estd::has(parents_, tensor.get()))
+				{
+					parents_[tensor.get()][&func].attrs_.push_back(attr);
+				}
+			}
+		}
+		parents_.emplace(&func, ParentMapT());
+	}
+
+	const ParentMapT& at (iTensor* tens) const
+	{
+		return estd::must_getf(parents_, tens,
+			"failed to find parents for %s",
+			tens->to_string().c_str());
+	}
+
+	/// Tracks child to parents relationship
+	/// Maps child tensor to parent mapping to indices that point to child
+	TensMapT<ParentMapT> parents_;
 
 	GetDepsF get_fdep_;
 };

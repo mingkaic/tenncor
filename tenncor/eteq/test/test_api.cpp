@@ -637,6 +637,88 @@ TEST(API, Assign)
 }
 
 
+TEST(API, AssignHighToLowPrecision)
+{
+	eigen::Device device;
+	// tensor operation
+	std::vector<teq::DimT> slist = {2, 3, 4};
+	std::vector<float> data = {
+		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
+		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
+	};
+	std::vector<double> data2 = {
+		22, 15, 74, 38, 61, 95, 62, 81, 99, 76, 7, 22,
+		56, 50, 19, 13, 12, 10, 31, 40, 60, 54, 6, 83
+	};
+	teq::Shape shape(slist);
+	teq::NElemT n = shape.n_elems();
+	assert(data.size() == n);
+	assert(data2.size() == n);
+
+	eteq::EVariable<float> target1 = eteq::make_variable<float>(data.data(), shape, "target1");
+	eteq::EVariable<float> target2 = eteq::make_variable<float>(data.data(), shape, "target2");
+	eteq::ETensor src = eteq::make_constant<double>(data2.data(), shape);
+
+	auto ass1 = tenncor().assign(target1, src);
+	auto ass2 = tenncor().assign(target2, -src);
+
+	EXPECT_GRAPHEQ(
+		"(ASSIGN<FLOAT>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:target1<FLOAT>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(CAST<FLOAT>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_____`--(constant:[22\\15\\74\\38\\61\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n",
+		ass1);
+
+	EXPECT_GRAPHEQ(
+		"(ASSIGN<FLOAT>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:target2<FLOAT>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(CAST<FLOAT>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_____`--(NEG<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_________`--(constant:[22\\15\\74\\38\\61\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n",
+		ass2);
+
+	// Assignments must take type of target even if source has higher precision
+	ASSERT_EQ(egen::FLOAT, ass1->get_meta().type_code());
+	ASSERT_EQ(egen::FLOAT, ass2->get_meta().type_code());
+
+	teq::Evaluator eval;
+	eval.evaluate(device, {ass1.get()});
+	eval.evaluate(device, {ass1.get()}); // idempotency check
+	{
+		auto gotshape = target1->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		auto gotshape2 = ass1->shape();
+		ASSERT_ARREQ(shape, gotshape2);
+	}
+	float* optr = (float*) target1->device().data();
+	float* aptr = (float*) ass1->device().data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(data2[i], optr[i]);
+		EXPECT_DOUBLE_EQ(data2[i], aptr[i]);
+	}
+
+	eval.evaluate(device, {ass2.get()});
+	eval.evaluate(device, {ass2.get()}); // idempotency check
+	{
+		auto gotshape = target2->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		auto gotshape2 = ass2->shape();
+		ASSERT_ARREQ(shape, gotshape2);
+	}
+	float* optr2 = (float*) target2->device().data();
+	float* aptr2 = (float*) ass2->device().data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(-data2[i], optr2[i]);
+		EXPECT_DOUBLE_EQ(-data2[i], aptr2[i]);
+	}
+
+	EXPECT_FATAL(tcr::derive(ass1, {src}), "cannot derive ASSIGN");
+	EXPECT_FATAL(tcr::derive(ass2, {src}), "cannot derive ASSIGN");
+}
+
+
 TEST(API, Identity) // todo: check for non-idempotency
 {
 	unary_elementary(
@@ -656,7 +738,7 @@ TEST(API, Cast) // check for non-idempotency
 }
 
 
-TEST(API, Depends)
+TEST(API, IdentityDependency)
 {
 	eigen::Device device;
 	// tensor operation
@@ -679,7 +761,7 @@ TEST(API, Depends)
 	eteq::ETensor b = eteq::make_constant<double>(data2.data(), shape);
 	auto c = a + b;
 
-	auto ass = tenncor().depends(tenncor().assign(target, b), {c});
+	auto ass = tenncor().assign(target, tenncor().identity(b, {c}));
 
 	teq::Evaluator eval;
 	eval.evaluate(device, {ass.get()});
@@ -735,7 +817,7 @@ TEST(API, DependsRunOnce)
 	auto c = a + b;
 
 	// assign add is non-idempotent
-	auto ass = tenncor().depends(tenncor().assign_add(target, b), {c});
+	auto ass = tenncor().assign(target, tenncor().identity(b, {c}));
 
 	teq::Evaluator eval;
 	eval.evaluate(device, {ass.get()});
