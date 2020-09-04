@@ -230,6 +230,8 @@ using PathNodeT = std::unordered_map<std::string,PathDirection>;
 
 using TensPathsT = TensMapT<PathNodeT>;
 
+TensptrsT get_alldeps (iFunctor& func);
+
 /// Traveler that paints paths to a target tensor
 /// All nodes in the path are added as keys to the roadmap_ map with the values
 /// being a boolean vector denoting nodes leading to target
@@ -239,7 +241,7 @@ struct PathFinder final : public iOnceTraveler
 {
 	/// For multiple targets, the first target found overshadows target nodes under the first subgraph (todo: label roads)
 	PathFinder (TensMapT<std::string> targets,
-		GetDepsF get_fdep = [](iFunctor& f){ return f.get_argndeps(); }) :
+		GetDepsF get_fdep = get_alldeps) :
 		targets_(targets), get_fdep_(get_fdep) {}
 
 	void clear (void) override
