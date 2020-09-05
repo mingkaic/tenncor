@@ -3,6 +3,7 @@
 #define EIGEN_PACKATTR_HPP
 
 #include "internal/teq/teq.hpp"
+#include "internal/eigen/generated/dtype.hpp"
 
 namespace eigen
 {
@@ -80,6 +81,30 @@ const marsh::iObject* get_attr (const Packer<T>& packer,
 	}
 	return attr;
 }
+
+template <>
+struct Packer<egen::_GENERATED_DTYPE>
+{
+	static std::string key_;
+
+	std::string get_key (void) const
+	{
+		return key_;
+	}
+
+	void pack (marsh::iAttributed& attrib, egen::_GENERATED_DTYPE dtye) const
+	{
+		attrib.add_attr(key_,
+			std::make_unique<marsh::String>(egen::name_type(dtye)));
+	}
+
+	void unpack (egen::_GENERATED_DTYPE& out, const marsh::iAttributed& attrib) const
+	{
+		auto attr = get_attr(*this, attrib);
+		auto& sarr = static_cast<const marsh::String&>(*attr);
+		out = egen::get_type(sarr.to_string());
+	}
+};
 
 template <>
 struct Packer<PairVecT<teq::DimT>>

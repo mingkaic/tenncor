@@ -604,7 +604,23 @@
     "name": "37",
     "opType": "CAST",
     "domain": "",
-    "attribute": [],
+    "attribute": [
+     {
+      "name": "dtype",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "RE9VQkxF",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
     "docString": ""
    },
    {
@@ -998,7 +1014,23 @@
     "name": "61",
     "opType": "CAST",
     "domain": "",
-    "attribute": [],
+    "attribute": [
+     {
+      "name": "dtype",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "RE9VQkxF",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
     "docString": ""
    },
    {
@@ -1352,7 +1384,23 @@
     "name": "84",
     "opType": "CAST",
     "domain": "",
-    "attribute": [],
+    "attribute": [
+     {
+      "name": "dtype",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "RE9VQkxF",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
     "docString": ""
    },
    {
@@ -1631,7 +1679,23 @@
     "name": "101",
     "opType": "CAST",
     "domain": "",
-    "attribute": [],
+    "attribute": [
+     {
+      "name": "dtype",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "RE9VQkxF",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
     "docString": ""
    },
    {

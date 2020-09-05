@@ -118,7 +118,7 @@ TEST(TRAVELER, PathFinderAttr)
 		teq::TensMapT<std::string>{{c.get(), target_key}},
 		[](teq::iFunctor& f)
 		{
-			auto deps = f.get_argndeps();
+			auto deps = f.get_args();
 			marsh::Maps attrs;
 			marsh::get_attrs(attrs, f);
 			teq::FindTensAttr attrf;

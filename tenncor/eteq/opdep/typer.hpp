@@ -31,6 +31,22 @@ struct TypeParser final
 	}
 };
 
+template <>
+struct TypeParser<egen::CAST> final
+{
+	egen::_GENERATED_DTYPE dtype (const marsh::iAttributed& attrs,
+		const DTypesT& dtypes) const
+	{
+		if (attrs.get_attr(eigen::Packer<egen::_GENERATED_DTYPE>::key_))
+		{
+			egen::_GENERATED_DTYPE out;
+			eigen::Packer<egen::_GENERATED_DTYPE>().unpack(out, attrs);
+			return out;
+		}
+		return dtypes.front();
+	}
+};
+
 struct AssignTyper
 {
 	virtual ~AssignTyper (void) = default;

@@ -41,7 +41,7 @@ struct FuncOpt<egen::CAST>
 			global::debugf("redundantly casting to same type %s",
 				egen::name_type(argtype).c_str());
 		}
-		return false;
+		return redundant;
 	}
 };
 

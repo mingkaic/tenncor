@@ -10,6 +10,7 @@
 #define ETEQ_FUNCTOR_HPP
 
 #include "tenncor/eteq/etens.hpp"
+
 #include "tenncor/eteq/opdep/shaper.hpp"
 #include "tenncor/eteq/opdep/funcopt.hpp"
 
@@ -109,8 +110,8 @@ struct Functor final : public eigen::Observable
 	{
 		if (index >= children_.size())
 		{
-			global::throw_err("cannot replace argument %d when only "
-				"there are only %d available", index, args_.size());
+			global::throw_errf("cannot replace argument %d when only "
+				"there are only %d available", index, children_.size());
 		}
 		uninitialize();
 		if (auto f = dynamic_cast<eigen::Observable*>(children_[index].get()))

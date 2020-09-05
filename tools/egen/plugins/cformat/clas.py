@@ -36,6 +36,23 @@ _template_init_defn = '''{cname}::{cname} ({args}) {initlist}
 {{{do}}}
 '''
 
+def _render_initlist(ilist: dict, members: list):
+    if len(ilist) > 0:
+        # order the initializer list by class members declaration
+        mem_order = dict([(mem['name'], i)
+            for i, mem in enumerate(members)])
+        ikeys = list(ilist.keys())
+        assert(all([k in mem_order for k in ikeys]))
+        ikeys.sort(key=lambda k: mem_order[k])
+
+        ilist = [
+            '{key}({val})'.format(key=k, val=ilist[k])
+            for k in ikeys
+        ]
+        return ': ' + ', '.join(ilist)
+    else:
+        return ''
+
 def _handle_init(obj, decl=True):
     if decl:
         temp = _template_init_decl
@@ -44,26 +61,10 @@ def _handle_init(obj, decl=True):
     init = obj.get('init', None)
     if init is not None:
         args = init.get('args', [])
-        ilist = init.get('initlist', {})
+        ilist = _render_initlist(init.get('initlist', {}), obj.get('members', []))
         doblock = init.get('do', '')
 
         args = ', '.join([arender(arg, accept_def=decl) for arg in args])
-        if len(ilist) > 0:
-            # order the initializer list by class members declaration
-            member = obj.get('members', [])
-            mem_order = dict([(mem['name'], i)
-                for i, mem in enumerate(member)])
-            ikeys = list(ilist.keys())
-            assert(all([k in mem_order for k in ikeys]))
-            ikeys.sort(key=lambda k: mem_order[k])
-
-            ilist = [
-                '{key}({val})'.format(key=k, val=ilist[k])
-                for k in ikeys
-            ]
-            ilist = ': ' + ', '.join(ilist)
-        else:
-            ilist = ''
         if len(doblock) > 0:
             doblock = '\n'.join([''] + [
                 '\t' + doline
@@ -141,15 +142,7 @@ def _handle_copynmove(obj, decl=True):
             arender(arg, accept_def=decl)
             for arg in cp.get('args', [])
         ])
-        ilist = cp.get('initlist', {})
-        if len(ilist) > 0:
-            ilist = [
-                '{key}({val})'.format(key=k, val=ilist[k])
-                for k in ilist
-            ]
-            ilist = ': ' + ', '.join(ilist)
-        else:
-            ilist = ''
+        ilist = _render_initlist(cp.get('initlist', {}), obj.get('members', []))
 
         cp = cpytemp.format(name=name,
             typename=typename, oname=oname,
@@ -168,15 +161,7 @@ def _handle_copynmove(obj, decl=True):
             arender(arg, accept_def=decl)
             for arg in mv.get('args', [])
         ])
-        ilist = mv.get('initlist', {})
-        if len(ilist) > 0:
-            ilist = [
-                '{key}({val})'.format(key=k, val=ilist[k])
-                for k in ilist
-            ]
-            ilist = ': ' + ', '.join(ilist)
-        else:
-            ilist = ''
+        ilist = _render_initlist(mv.get('initlist', {}), obj.get('members', []))
 
         mv = mvtemp.format(name=name,
             typename=typename, oname=oname,

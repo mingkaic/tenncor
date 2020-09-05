@@ -137,7 +137,7 @@ void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib,
 	types::StringsT attr_keys = attrib.ls_attrs();
 	for (const std::string& attr_key : attr_keys)
 	{
-		if (attr_key == teq::layer_key)
+		if (attr_key == teq::layer_attr)
 		{
 			continue; // ignore: since marshaler resolves graph info
 		}
@@ -258,7 +258,7 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 			}
 				break;
 			case AttributeProto::GRAPH:
-				if (attr_name == teq::layer_key)
+				if (attr_name == teq::layer_attr)
 				{
 					subgraph = &pb_attr.g();
 				}

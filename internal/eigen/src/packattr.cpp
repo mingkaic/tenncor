@@ -5,6 +5,8 @@
 namespace eigen
 {
 
+std::string Packer<egen::_GENERATED_DTYPE>::key_ = "dtype";
+
 std::string Packer<PairVecT<teq::DimT>>::key_ = "dimension_pairs";
 
 std::string Packer<PairVecT<teq::RankT>>::key_ = "rank_pairs";

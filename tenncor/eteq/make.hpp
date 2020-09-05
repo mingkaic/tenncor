@@ -5,34 +5,14 @@
 #include "tenncor/eteq/constant.hpp"
 #include "tenncor/eteq/functor.hpp"
 #include "tenncor/eteq/evars.hpp"
+
 #include "tenncor/eteq/opdep/typer.hpp"
+#include "tenncor/eteq/opdep/caster.hpp"
 
 namespace eteq
 {
 
 using DimPairsT = std::pair<teq::DimT,teq::DimT>;
-
-// auto cast children to desired output type
-template <typename T>
-teq::TensptrsT autocast_children (const teq::TensptrsT& children)
-{
-	marsh::Maps attrs;
-	auto type = egen::get_type<T>();
-	teq::TensptrsT outs;
-	outs.reserve(children.size());
-	std::transform(children.begin(), children.end(),
-	std::back_inserter(outs),
-	[&](teq::TensptrT child)
-	{
-		if (child->get_meta().type_code() != type)
-		{
-			return teq::TensptrT(Functor<T>::get(
-				egen::CAST, {child}, std::move(attrs)));
-		}
-		return child;
-	});
-	return outs;
-}
 
 /// Return variable node given scalar and shape
 template <typename T>
@@ -83,6 +63,9 @@ teq::TensptrT make_funcattr (egen::_GENERATED_OPCODE opcode,
 #define _CHOOSE_FUNCOPT(OPCODE)\
 redundant = FuncOpt<OPCODE>().is_redundant<T>(attrs, children);
 
+#define _CHOOSE_TYPECAST(OPCODE)\
+children = TypeCaster<OPCODE>().cast<T>(children);
+
 template <typename T>
 teq::TensptrT make_tfuncattr (egen::_GENERATED_OPCODE opcode,
 	teq::TensptrsT children, marsh::Maps& attrs)
@@ -99,8 +82,7 @@ teq::TensptrT make_tfuncattr (egen::_GENERATED_OPCODE opcode,
 	{
 		return children.front();
 	}
-
-	children = autocast_children<T>(children);
+	OPCODE_LOOKUP(_CHOOSE_TYPECAST, opcode)
 	return teq::TensptrT(Functor<T>::get(opcode, children, std::move(attrs)));
 }
 

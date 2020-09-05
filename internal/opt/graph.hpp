@@ -44,7 +44,7 @@ struct GraphInfo final
 			teq::TensptrT target = convert.second;
 			if (auto f = dynamic_cast<teq::iFunctor*>(src))
 			{
-				auto children = f->get_argndeps();
+				auto children = f->get_args();
 				for (auto child : children)
 				{
 					clean_children[child.get()].emplace(src);

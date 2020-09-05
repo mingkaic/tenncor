@@ -783,20 +783,19 @@ TEST_F(DISTRIB, CrossDerive)
 			std::stringstream ss;
 			distr::get_printsvc(*mgrA).print_ascii(ss, df1.get());
 			std::string expect =
-				"(CAST)\n"
-				"_`--(NEG)\n"
-				"_____`--[mgrB]:(MUL)\n"
-				"_________`--[mgrF]:(variable:f2)\n"
-				"_________`--[mgrA]:(MUL)\n"
-				"_____________`--(COS)\n"
-				"_____________|___`--[mgrB]:(MUL)\n"
-				"_____________|_______`--[mgrC]:(ADD)\n"
-				"_____________|_______|___`--[mgrA]:(NEG)\n"
-				"_____________|_______|___|___`--[mgrF]:(variable:f1)\n"
-				"_____________|_______|___`--[mgrD]:(variable:d1)\n"
-				"_____________|_______`--[mgrF]:(variable:f2)\n"
-				"_____________`--(CAST)\n"
-				"_________________`--(constant:1)\n";
+				"(NEG)\n"
+				"_`--[mgrB]:(MUL)\n"
+				"_____`--[mgrF]:(variable:f2)\n"
+				"_____`--[mgrA]:(MUL)\n"
+				"_________`--(COS)\n"
+				"_________|___`--[mgrB]:(MUL)\n"
+				"_________|_______`--[mgrC]:(ADD)\n"
+				"_________|_______|___`--[mgrA]:(NEG)\n"
+				"_________|_______|___|___`--[mgrF]:(variable:f1)\n"
+				"_________|_______|___`--[mgrD]:(variable:d1)\n"
+				"_________|_______`--[mgrF]:(variable:f2)\n"
+				"_________`--(CAST)\n"
+				"_____________`--(constant:1)\n";
 			EXPECT_STREQ(expect.c_str(), ss.str().c_str());
 
 			auto gotshape = df1->shape();

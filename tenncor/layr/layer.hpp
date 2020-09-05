@@ -131,7 +131,7 @@ private:
 
 	void visit_func (teq::iFunctor& func) override
 	{
-		auto deps = func.get_argndeps();
+		auto deps = func.get_args();
 		teq::multi_visit(*this, deps);
 		breadth_.emplace(&func, breadth_.size());
 	}
@@ -165,7 +165,7 @@ private:
 		{
 			return;
 		}
-		auto deps = func.get_argndeps();
+		auto deps = func.get_args();
 		teq::multi_visit(*this, deps);
 	}
 };

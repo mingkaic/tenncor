@@ -9,6 +9,8 @@
 namespace teq
 {
 
+const std::string layer_attr = "layer";
+
 struct TensorObj;
 
 struct LayerObj;

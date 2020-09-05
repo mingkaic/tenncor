@@ -14,10 +14,6 @@
 namespace teq
 {
 
-const std::string dependency_key = "dependencies";
-
-const std::string layer_key = "layer";
-
 /// Encoding of operation
 struct Opcode final
 {
@@ -49,13 +45,6 @@ struct iFunctor : public iTensor, public marsh::iAttributed
 
 	/// Return vector of functor arguments
 	virtual TensptrsT get_args (void) const = 0;
-
-	/// Return vector of functor arguments and dependencies attributes
-	TensptrsT get_argndeps (void) const
-	{
-		auto argndeps = get_args();
-		return argndeps;
-	}
 
 	/// Update child at specified index
 	virtual void update_child (TensptrT arg, size_t index) = 0;

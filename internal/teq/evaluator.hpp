@@ -26,7 +26,7 @@ private:
 		{
 			return;
 		}
-		auto dependencies = func.get_argndeps();
+		auto dependencies = func.get_args();
 		multi_visit(*this, dependencies);
 		device_->calc(func);
 	}

@@ -64,7 +64,7 @@ struct GraphStat final : public iTraveler
 		{
 			return;
 		}
-		auto deps = func.get_argndeps();
+		auto deps = func.get_args();
 		size_t ndeps = deps.size();
 		std::vector<size_t> max_heights;
 		std::vector<size_t> min_heights;
@@ -124,7 +124,7 @@ struct GraphIndex final : public iTraveler
 		{
 			return;
 		}
-		auto deps = func.get_argndeps();
+		auto deps = func.get_args();
 		multi_visit(*this, deps);
 		indices_.emplace(&func, indices_.size());
 	}
@@ -190,8 +190,6 @@ using PathNodeT = std::unordered_map<std::string,PathDirection>;
 
 using TensPathsT = TensMapT<PathNodeT>;
 
-TensptrsT get_alldeps (iFunctor& func);
-
 /// Traveler that paints paths to a target tensor
 /// All nodes in the path are added as keys to the roadmap_ map with the values
 /// being a boolean vector denoting nodes leading to target
@@ -199,10 +197,24 @@ TensptrsT get_alldeps (iFunctor& func);
 /// x is true if the ith child leads to target
 struct PathFinder final : public iOnceTraveler
 {
-	/// For multiple targets, the first target found overshadows target nodes under the first subgraph (todo: label roads)
-	PathFinder (TensMapT<std::string> targets,
-		GetDepsF get_fdep = get_alldeps) :
-		targets_(targets), get_fdep_(get_fdep) {}
+	/// For multiple targets, the first target found overshadows
+	/// target nodes under the first subgraph (todo: label roads)
+	PathFinder (TensMapT<std::string> targets, GetDepsF get_fdep =
+		[](iFunctor& func)
+		{
+			auto deps = func.get_args();
+			if (func.size() > 0)
+			{
+				marsh::Maps attrs;
+				get_attrs(attrs, func);
+
+				FindTensAttr finder;
+				attrs.accept(finder);
+				deps.insert(deps.end(),
+					finder.tens_.begin(), finder.tens_.end());
+			}
+			return deps;
+		}) : targets_(targets), get_fdep_(get_fdep) {}
 
 	void clear (void) override
 	{
@@ -300,7 +312,7 @@ using ParentMapT = TensMapT<PathDirection>;
 struct ParentFinder final : public iTraveler
 {
 	ParentFinder (GetDepsF get_fdep =
-		[](iFunctor& f){ return f.get_argndeps(); }) : get_fdep_(get_fdep) {}
+		[](iFunctor& f){ return f.get_args(); }) : get_fdep_(get_fdep) {}
 
 	/// Implementation of iTraveler
 	void visit (iLeaf& leaf) override
@@ -379,7 +391,7 @@ private:
 		{
 			return;
 		}
-		auto deps = func.get_argndeps();
+		auto deps = func.get_args();
 		auto fcpy = func.clone();
 		multi_visit(*this, deps);
 		for (size_t i = 0, n = deps.size(); i < n; ++i)
@@ -421,7 +433,7 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override
 	{
-		auto deps = func.get_argndeps();
+		auto deps = func.get_args();
 		multi_visit(*this, deps);
 		for (const TensptrT& dep : deps)
 		{

@@ -91,7 +91,7 @@ TEST(SERIALIZE, SaveGraph)
 }
 
 
-TEST(SERIALIZE, SaveDependencies)
+TEST(SERIALIZE, DISABLED_SaveDependencies)
 {
 	std::string expect_pbfile = testdir + "/edeps.onnx";
 	std::string got_pbfile = "got_edeps.onnx";

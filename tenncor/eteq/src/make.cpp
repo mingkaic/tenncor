@@ -15,7 +15,7 @@ teq::TensptrT make_funcattr (egen::_GENERATED_OPCODE opcode,
 	teq::TensptrsT children, marsh::Maps& attrs)
 {
 	teq::TensptrT out;
-	egen::_GENERATED_DTYPE typecode;
+	egen::_GENERATED_DTYPE typecode = egen::BAD_TYPE;
 	DTypesT dtypes;
 	dtypes.reserve(children.size());
 	std::transform(children.begin(), children.end(), std::back_inserter(dtypes),

@@ -45,7 +45,7 @@ private:
 	/// Implementation of iOnceTraveler
 	void visit_func (teq::iFunctor& func) override
 	{
-		auto deps = func.get_argndeps();
+		auto deps = func.get_args();
 		types::StringsT hshs;
 		hshs.reserve(deps.size());
 		teq::multi_visit(*this, deps);

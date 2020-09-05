@@ -160,7 +160,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 						reach_cache_[src].emplace(id);
 						return;
 					}
-					teq::multi_visit(trav, func.get_argndeps());
+					teq::multi_visit(trav, func.get_args());
 				});
 			src->accept(vis);
 			if (false == estd::has(reached, src))

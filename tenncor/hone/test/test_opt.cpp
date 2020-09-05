@@ -46,8 +46,8 @@ TEST(OPTIMIZE, Depends)
 	EXPECT_GRAPHEQ(
 		"(ASSIGN<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		"_`--(variable:<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:[88\\60\\296\\152\\244\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(DEPENDENCIES<no_type>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(IDENTITY<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_____`--(constant:[88\\60\\296\\152\\244\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		"_____`--(constant:[81\\25\\102\\48\\128\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n", ass);
 }
 
@@ -77,7 +77,7 @@ TEST(OPTIMIZE, DependsNnary)
 	auto c = a + b;
 	eteq::ETensor d = eteq::make_constant_scalar<double>(4, shape);
 
-	auto add = tenncor().assign(target, tenncor().identity(b * d, {c}));
+	auto add = tenncor().add(target, tenncor().identity(b * d, {c}));
 
 	teq::Evaluator eval;
 	eval.evaluate(device, {add.get()});
@@ -91,8 +91,8 @@ TEST(OPTIMIZE, DependsNnary)
 	EXPECT_GRAPHEQ(
 		"(ADD<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		"_`--(variable:<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:[88\\60\\296\\152\\244\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
-		"_`--(DEPENDENCIES<no_type>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_`--(IDENTITY<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
+		"_____`--(constant:[88\\60\\296\\152\\244\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"
 		"_____`--(constant:[81\\25\\102\\48\\128\\...]<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n", add);
 
 	eval.evaluate(device, {add.get()});

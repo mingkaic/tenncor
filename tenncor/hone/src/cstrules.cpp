@@ -26,8 +26,11 @@ void generate_cstrules (opt::OptRulesT& rules,
 	{
 		for (size_t bfactor : branch.second)
 		{
-			query::Node* src = srcs.Add();
-			get_cstsource(*src, branch.first, bfactor);
+			if (branch.first != egen::name_op(egen::IDENTITY)) // todo: move to generated output
+			{
+				query::Node* src = srcs.Add();
+				get_cstsource(*src, branch.first, bfactor);
+			}
 		}
 	}
 	rules.push_back(opt::OptRule{srcs,

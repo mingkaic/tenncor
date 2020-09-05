@@ -33,12 +33,12 @@ teq::TensptrT make_layer (teq::TensptrT root,
 	const std::string& layername, teq::TensptrT input)
 {
 	auto f = estd::must_cast<teq::iFunctor>(root.get());
-	if (nullptr != f->get_attr(teq::layer_key))
+	if (nullptr != f->get_attr(teq::layer_attr))
 	{
 		global::fatalf("attempting to attach layer attribute to node %s "
 			"with an existing layer attribute", root->to_string().c_str());
 	}
-	f->add_attr(teq::layer_key,
+	f->add_attr(teq::layer_attr,
 		std::make_unique<teq::LayerObj>(layername, input));
 	return root;
 }
@@ -50,7 +50,7 @@ eteq::ETensor get_input (const eteq::ETensor& root)
 		global::fatal("cannot get layer attr with null root");
 	}
 	auto froot = estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root);
-	auto layerattr = estd::must_cast<teq::LayerObj>(froot->get_attr(teq::layer_key));
+	auto layerattr = estd::must_cast<teq::LayerObj>(froot->get_attr(teq::layer_attr));
 	return eteq::ETensor(layerattr->get_tensor(), root.get_context());
 }
 

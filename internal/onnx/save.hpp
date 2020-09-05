@@ -82,7 +82,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 			return;
 		}
 
-		if (auto lattr = func.get_attr(teq::layer_key))
+		if (auto lattr = func.get_attr(teq::layer_attr))
 		{
 			marshal_layer(func,
 				static_cast<const teq::LayerObj*>(lattr));
@@ -100,7 +100,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 private:
 	void marshal_func (teq::iFunctor& func)
 	{
-		auto deps = func.get_argndeps();
+		auto deps = func.get_args();
 		teq::multi_visit(*this, deps);
 		auto attrs = func.ls_attrs();
 		for (auto attr : attrs)
@@ -142,7 +142,7 @@ private:
 		pb_node->set_op_type(layer->get_opname());
 		auto pb_attrs = pb_node->mutable_attribute();
 		AttributeProto* inner_workings = pb_attrs->Add();
-		inner_workings->set_name(teq::layer_key);
+		inner_workings->set_name(teq::layer_attr);
 		inner_workings->set_type(AttributeProto::GRAPH);
 		GraphProto* subgraph = inner_workings->mutable_g();
 
