@@ -5,7 +5,7 @@
 #include "tenncor/eteq/constant.hpp"
 #include "tenncor/eteq/functor.hpp"
 #include "tenncor/eteq/evars.hpp"
-#include "tenncor/eteq/typer.hpp"
+#include "tenncor/eteq/opdep/typer.hpp"
 
 namespace eteq
 {
@@ -14,18 +14,24 @@ using DimPairsT = std::pair<teq::DimT,teq::DimT>;
 
 // auto cast children to desired output type
 template <typename T>
-void autocast_children (teq::TensptrsT& children)
+teq::TensptrsT autocast_children (const teq::TensptrsT& children)
 {
 	marsh::Maps attrs;
 	auto type = egen::get_type<T>();
-	for (teq::TensptrT& child : children)
+	teq::TensptrsT outs;
+	outs.reserve(children.size());
+	std::transform(children.begin(), children.end(),
+	std::back_inserter(outs),
+	[&](teq::TensptrT child)
 	{
 		if (child->get_meta().type_code() != type)
 		{
-			child = teq::TensptrT(Functor<T>::get(
+			return teq::TensptrT(Functor<T>::get(
 				egen::CAST, {child}, std::move(attrs)));
 		}
-	}
+		return child;
+	});
+	return outs;
 }
 
 /// Return variable node given scalar and shape
@@ -75,7 +81,7 @@ teq::TensptrT make_funcattr (egen::_GENERATED_OPCODE opcode,
 	teq::TensptrsT children, marsh::Maps& attrs);
 
 #define _CHOOSE_FUNCOPT(OPCODE)\
-redundant = FuncOpt<OPCODE>().is_redundant(attrs, shapes);
+redundant = FuncOpt<OPCODE>().is_redundant<T>(attrs, children);
 
 template <typename T>
 teq::TensptrT make_tfuncattr (egen::_GENERATED_OPCODE opcode,
@@ -87,14 +93,6 @@ teq::TensptrT make_tfuncattr (egen::_GENERATED_OPCODE opcode,
 			egen::name_op(opcode).c_str());
 	}
 
-	teq::ShapesT shapes;
-	shapes.reserve(children.size());
-	std::transform(children.begin(), children.end(),
-		std::back_inserter(shapes),
-		[](teq::TensptrT child)
-		{
-			return child->shape();
-		});
 	bool redundant = false;
 	OPCODE_LOOKUP(_CHOOSE_FUNCOPT, opcode)
 	if (redundant)
@@ -102,7 +100,7 @@ teq::TensptrT make_tfuncattr (egen::_GENERATED_OPCODE opcode,
 		return children.front();
 	}
 
-	autocast_children<T>(children);
+	children = autocast_children<T>(children);
 	return teq::TensptrT(Functor<T>::get(opcode, children, std::move(attrs)));
 }
 

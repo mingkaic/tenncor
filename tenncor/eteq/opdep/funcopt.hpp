@@ -20,8 +20,27 @@ template <egen::_GENERATED_OPCODE OPCODE>
 struct FuncOpt final
 {
 	/// Return true if functor is redunant provided attrs and shapes
-	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
 	{
+		return false;
+	}
+};
+
+template <>
+struct FuncOpt<egen::CAST>
+{
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
+	{
+		auto argtype = (egen::_GENERATED_DTYPE)
+			args.front()->get_meta().type_code();
+		bool redundant = argtype == egen::get_type<T>();
+		if (redundant)
+		{
+			global::debugf("redundantly casting to same type %s",
+				egen::name_type(argtype).c_str());
+		}
 		return false;
 	}
 };
@@ -30,9 +49,10 @@ struct NnaryOpt
 {
 	virtual ~NnaryOpt (void) = default;
 
-	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
 	{
-		bool redundant = shapes.size() < 2;
+		bool redundant = args.size() < 2;
 		if (redundant)
 		{
 			// assuming empty args is handled before
@@ -59,7 +79,8 @@ struct ReduceOpt
 {
 	virtual ~ReduceOpt (void) = default;
 
-	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
 	{
 		std::set<teq::RankT> ranks;
 		eigen::Packer<std::set<teq::RankT>>().unpack(ranks, attrs);
@@ -69,7 +90,7 @@ struct ReduceOpt
 			global::debugf("reducing with no significant dimensions... "
 				"treating as identity: (dims=%s, shape=%s)",
 				fmts::to_string(ranks.begin(), ranks.end()).c_str(),
-				shapes.front().to_string().c_str());
+				args.front()->shape().to_string().c_str());
 		}
 		return redundant;
 	}
@@ -102,11 +123,12 @@ struct FuncOpt<egen::REDUCE_MAX> final : private ReduceOpt
 template <>
 struct FuncOpt<egen::ARGMAX> final
 {
-	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
 	{
 		teq::RankT return_dim;
 		eigen::Packer<teq::RankT>().unpack(return_dim, attrs);
-		teq::Shape shape = shapes.front();
+		teq::Shape shape = args.front()->shape();
 		bool redundant = return_dim < teq::rank_cap && shape.at(return_dim) == 1;
 		if (redundant)
 		{
@@ -121,11 +143,12 @@ struct FuncOpt<egen::ARGMAX> final
 template <>
 struct FuncOpt<egen::SLICE> final
 {
-	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
 	{
 		eigen::PairVecT<teq::DimT> extents;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, attrs);
-		teq::Shape shape = shapes.front();
+		teq::Shape shape = args.front()->shape();
 		bool redundant = true;
 		for (size_t i = 0, n = std::min(extents.size(),
 			(size_t) teq::rank_cap); i < n && redundant; ++i)
@@ -153,7 +176,8 @@ struct FuncOpt<egen::SLICE> final
 template <>
 struct FuncOpt<egen::PAD> final
 {
-	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
 	{
 		eigen::PairVecT<teq::DimT> paddings;
 		eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(paddings, attrs);
@@ -175,11 +199,12 @@ struct FuncOpt<egen::PAD> final
 template <>
 struct FuncOpt<egen::SCATTER> final
 {
-	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
 	{
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
-		bool redundant = shapes.front().compatible_after(outshape, 0);
+		bool redundant = args.front()->shape().compatible_after(outshape, 0);
 		if (redundant)
 		{
 			global::debugf("scattering produces the same shape %s",
@@ -192,7 +217,8 @@ struct FuncOpt<egen::SCATTER> final
 template <>
 struct FuncOpt<egen::PERMUTE> final
 {
-	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
 	{
 		std::vector<teq::RankT> order;
 		eigen::Packer<std::vector<teq::RankT>>().unpack(order, attrs);
@@ -214,10 +240,11 @@ struct FuncOpt<egen::PERMUTE> final
 template <>
 struct FuncOpt<egen::EXTEND> final
 {
-	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
 	{
 		std::vector<teq::DimT> bcast = eigen::unpack_extend(
-			shapes.front(), attrs);
+			args.front()->shape(), attrs);
 		bool redundant = nullptr != attrs.get_attr(
 			eigen::Packer<std::vector<teq::DimT>>().get_key()) &&
 			(bcast.empty() || std::all_of(bcast.begin(), bcast.end(),
@@ -233,9 +260,10 @@ struct FuncOpt<egen::EXTEND> final
 template <>
 struct FuncOpt<egen::CONCAT> final
 {
-	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
 	{
-		bool redundant = shapes.size() == 1;
+		bool redundant = args.size() == 1;
 		if (redundant)
 		{
 			global::debug("concatenating a single node... treating as identity");
@@ -247,11 +275,12 @@ struct FuncOpt<egen::CONCAT> final
 template <>
 struct FuncOpt<egen::RESHAPE> final
 {
-	bool is_redundant (const marsh::Maps& attrs, const teq::ShapesT& shapes)
+	template <typename T>
+	bool is_redundant (const marsh::Maps& attrs, const teq::TensptrsT& args)
 	{
 		teq::Shape outshape;
 		eigen::Packer<teq::Shape>().unpack(outshape, attrs);
-		bool redundant = outshape.compatible_after(shapes.front(), 0);
+		bool redundant = outshape.compatible_after(args.front()->shape(), 0);
 		if (redundant)
 		{
 			global::debugf("outshape of reshape is the same shape as inshape "

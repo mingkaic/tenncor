@@ -2,7 +2,7 @@
 #ifndef ETEQ_SHAPER_HPP
 #define ETEQ_SHAPER_HPP
 
-#include "tenncor/eteq/funcopt.hpp"
+#include "internal/eigen/eigen.hpp"
 
 namespace eteq
 {

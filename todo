@@ -25,7 +25,6 @@ P5 = "get to it eventually"
 
    - rethink mechanisms for representing different dependencies [
       tensor (shape-dependent relationship),
-      dependencies (execution-based relationship),
       layers (utility structural relationship),
    ]
 

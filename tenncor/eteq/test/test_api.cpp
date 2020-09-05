@@ -731,8 +731,26 @@ TEST(API, Identity) // todo: check for non-idempotency
 TEST(API, Cast) // check for non-idempotency
 {
 	unary_elementary(
-		[](eteq::ETensor& a) { return tenncor().cast<double>(tenncor().cast<int32_t>(
-			tenncor().cos(a) * 2.1 + 4.5) / int32_t(2)); },
+		[](eteq::ETensor& a)
+		{
+			auto out = tenncor().cast<double>(tenncor().cast<int32_t>(
+				tenncor().cos(a) * 2.1 + 4.5) / int32_t(2));
+			EXPECT_GRAPH_STRUCTEQ(
+				"(CAST<DOUBLE>)\n"
+				"_`--(DIV<INT32>)\n"
+				"_____`--(CAST<INT32>)\n"
+				"_____|___`--(ADD<DOUBLE>)\n"
+				"_____|_______`--(MUL<DOUBLE>)\n"
+				"_____|_______|___`--(COS<DOUBLE>)\n"
+				"_____|_______|___|___`--(constant:[59\\10\\28\\10\\67\\...]<DOUBLE>)\n"
+				"_____|_______|___`--(EXTEND<DOUBLE>)\n"
+				"_____|_______|_______`--(constant:2.1<DOUBLE>)\n"
+				"_____|_______`--(EXTEND<DOUBLE>)\n"
+				"_____|___________`--(constant:4.5<DOUBLE>)\n"
+				"_____`--(EXTEND<INT32>)\n"
+				"_________`--(constant:2<INT32>)\n", out); // make sure we don't double cast
+			return out;
+		},
 		[](double d) { return double(int32_t(std::cos(d) * 2.1 + 4.5) / 2); },
 		[](double d) { return -std::sin(d) * 2.1 / 2; });
 }

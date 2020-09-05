@@ -17,7 +17,10 @@ filegroup(
 
 filegroup(
     name = "eteq_hdrs",
-    srcs = glob(["*.hpp"]),
+    srcs = glob([
+        "*.hpp",
+        "opdep/*.hpp",
+    ]),
 )
 
 filegroup(

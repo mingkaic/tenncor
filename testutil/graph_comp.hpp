@@ -131,6 +131,13 @@ tutil::check_tensordata_real<DTYPE>(EXTENS, GOTENS, __FILE__, __LINE__)
 	EXPECT_EQ(0, compare_str.size()) << compare_str;\
 }
 
+#define EXPECT_GRAPH_STRUCTEQ(MSG, ROOT) {\
+	std::istringstream ss(MSG);\
+	auto compare_str = tutil::compare_graph(\
+	ss, ROOT, PrintEqConfig{false, true});\
+	EXPECT_EQ(0, compare_str.size()) << compare_str;\
+}
+
 #define EXPECT_ERR(E, MSG)\
 EXPECT_NE(nullptr, E);\
 if (nullptr != E)\

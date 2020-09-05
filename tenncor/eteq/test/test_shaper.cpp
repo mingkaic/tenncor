@@ -6,7 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "tenncor/eteq/shaper.hpp"
+#include "tenncor/eteq/opdep/shaper.hpp"
 
 
 TEST(SHAPER, Default)

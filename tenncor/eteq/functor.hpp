@@ -10,7 +10,8 @@
 #define ETEQ_FUNCTOR_HPP
 
 #include "tenncor/eteq/etens.hpp"
-#include "tenncor/eteq/shaper.hpp"
+#include "tenncor/eteq/opdep/shaper.hpp"
+#include "tenncor/eteq/opdep/funcopt.hpp"
 
 namespace eteq
 {
@@ -106,42 +107,37 @@ struct Functor final : public eigen::Observable
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		if (index < children_.size())
+		if (index >= children_.size())
 		{
-			if (arg != children_[index])
-			{
-				uninitialize();
-				if (auto f = dynamic_cast<eigen::Observable*>(children_[index].get()))
-				{
-					f->unsubscribe(this);
-				}
-				teq::Shape nexshape = arg->shape();
-				teq::Shape curshape = children_[index]->shape();
-				if (false == nexshape.compatible_after(curshape, 0))
-				{
-					global::fatalf("cannot update child %d to argument with "
-						"incompatible shape %s (requires shape %s)",
-						index, nexshape.to_string().c_str(),
-						curshape.to_string().c_str());
-				}
-				auto nextype = arg->get_meta().type_label();
-				auto curtype = children_[index]->get_meta().type_label();
-				if (curtype != nextype)
-				{
-					global::fatalf("cannot update child %d to argument with "
-						"different type %s (requires type %s)",
-						index, nextype.c_str(), curtype.c_str());
-				}
-				children_[index] = arg;
-				if (auto f = dynamic_cast<eigen::Observable*>(arg.get()))
-				{
-					f->subscribe(this);
-				}
-			}
+			global::throw_err("cannot replace argument %d when only "
+				"there are only %d available", index, args_.size());
 		}
-		else
+		uninitialize();
+		if (auto f = dynamic_cast<eigen::Observable*>(children_[index].get()))
 		{
-			global::warn("no longer modifying dependencies");
+			f->unsubscribe(this);
+		}
+		teq::Shape nexshape = arg->shape();
+		teq::Shape curshape = children_[index]->shape();
+		if (false == nexshape.compatible_after(curshape, 0))
+		{
+			global::fatalf("cannot update child %d to argument with "
+				"incompatible shape %s (requires shape %s)",
+				index, nexshape.to_string().c_str(),
+				curshape.to_string().c_str());
+		}
+		auto nextype = arg->get_meta().type_label();
+		auto curtype = children_[index]->get_meta().type_label();
+		if (curtype != nextype)
+		{
+			global::fatalf("cannot update child %d to argument with "
+				"different type %s (requires type %s)",
+				index, nextype.c_str(), curtype.c_str());
+		}
+		children_[index] = arg;
+		if (auto f = dynamic_cast<eigen::Observable*>(arg.get()))
+		{
+			f->subscribe(this);
 		}
 	}
 
