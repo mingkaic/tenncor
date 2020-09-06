@@ -11,6 +11,7 @@
 
 #include "internal/teq/ileaf.hpp"
 #include "internal/teq/ifunctor.hpp"
+#include "internal/teq/findattr.hpp"
 
 namespace teq
 {
@@ -206,7 +207,7 @@ struct PathFinder final : public iOnceTraveler
 			if (func.size() > 0)
 			{
 				marsh::Maps attrs;
-				get_attrs(attrs, func);
+				marsh::get_attrs(attrs, func);
 
 				FindTensAttr finder;
 				attrs.accept(finder);

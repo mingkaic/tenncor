@@ -48,20 +48,29 @@ TEST(TRAVELER, PathFinder)
 
 	std::string target_key = "target";
 
-	teq::PathFinder finder(
-		teq::TensMapT<std::string>{{a.get(), target_key}});
+	teq::PathFinder finder(teq::TensMapT<std::string>{
+		{a.get(), target_key},
+		{d.get(), target_key + "2"}
+	});
 	g->accept(finder);
 
 	{
 		ASSERT_HAS(finder.roadmap_, g.get());
 		auto& gdirs = finder.roadmap_[g.get()];
 		ASSERT_HAS(gdirs, "target");
+		EXPECT_EQ(1, gdirs["target"].args_.size());
 		EXPECT_ARRHAS(gdirs["target"].args_, 1);
+
+		ASSERT_HAS(gdirs, "target2");
+		EXPECT_EQ(1, gdirs["target2"].args_.size());
+		EXPECT_ARRHAS(gdirs["target2"].args_, 0);
 
 		ASSERT_HAS(finder.roadmap_, f.get());
 		auto& fdirs = finder.roadmap_[f.get()];
 		ASSERT_HAS(fdirs, "target")
 		EXPECT_ARRHAS(fdirs["target"].args_, 0);
+
+		ASSERT_HASNOT(finder.roadmap_, d.get());
 	}
 
 	finder.clear();
@@ -115,17 +124,7 @@ TEST(TRAVELER, PathFinderAttr)
 	std::string target_key = "target";
 
 	teq::PathFinder finder(
-		teq::TensMapT<std::string>{{c.get(), target_key}},
-		[](teq::iFunctor& f)
-		{
-			auto deps = f.get_args();
-			marsh::Maps attrs;
-			marsh::get_attrs(attrs, f);
-			teq::FindTensAttr attrf;
-			attrs.accept(attrf);
-			deps.insert(deps.end(), attrf.tens_.begin(), attrf.tens_.end());
-			return deps;
-		});
+		teq::TensMapT<std::string>{{c.get(), target_key}});
 	g->accept(finder);
 
 	ASSERT_HAS(finder.roadmap_, g.get());
@@ -143,7 +142,7 @@ TEST(TRAVELER, PathFinderAttr)
 }
 
 
-TEST(TRAVELER, ReverseParentGraph)
+TEST(TRAVELER, ParentGraph)
 {
 	teq::TensptrT a(new MockLeaf());
 	teq::TensptrT b(new MockLeaf());
@@ -181,6 +180,60 @@ TEST(TRAVELER, ReverseParentGraph)
 	EXPECT_HAS(fparents, g.get());
 	EXPECT_HAS(fparents, h.get());
 	EXPECT_HAS(gparents, h.get());
+}
+
+
+TEST(TRAVELER, ParentFinderAttr)
+{
+	teq::TensptrT a(new MockLeaf());
+	teq::TensptrT b(new MockLeaf());
+	teq::TensptrT c(new MockLeaf());
+
+	auto df = new MockFunctor(teq::TensptrsT{b}, teq::Opcode{"MOCK2", 0});
+	teq::TensptrT d(df);
+	df->add_attr("yodoo", std::make_unique<teq::TensorObj>(c));
+
+	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, c}, teq::Opcode{"MOCK1", 1}));
+
+	auto gf = new MockFunctor(teq::TensptrsT{a, d}, teq::Opcode{"MOCK0", 0});
+	teq::TensptrT g(gf);
+	gf->add_attr("numbers", std::make_unique<marsh::Number<double>>(333.4));
+	gf->add_attr("tensors", std::make_unique<teq::TensorObj>(f));
+
+	std::string target_key = "target";
+
+	teq::ParentFinder finder(
+		[](teq::iFunctor& func)
+		{
+			auto deps = func.get_args();
+			if (func.size() > 0)
+			{
+				marsh::Maps attrs;
+				marsh::get_attrs(attrs, func);
+
+				teq::FindTensAttr finder;
+				attrs.accept(finder);
+				deps.insert(deps.end(),
+					finder.tens_.begin(), finder.tens_.end());
+			}
+			return deps;
+		});
+	g->accept(finder);
+
+	auto& parents = finder.parents_;
+	auto aparents = parents[a.get()];
+	auto bparents = parents[b.get()];
+	auto cparents = parents[c.get()];
+	auto dparents = parents[d.get()];
+	auto fparents = parents[f.get()];
+	auto gparents = parents[g.get()];
+
+	EXPECT_EQ(2, aparents.size());
+	EXPECT_EQ(1, bparents.size());
+	EXPECT_EQ(2, cparents.size());
+	EXPECT_EQ(1, dparents.size());
+	EXPECT_EQ(1, fparents.size());
+	EXPECT_EQ(0, gparents.size());
 }
 
 

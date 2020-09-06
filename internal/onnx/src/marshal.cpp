@@ -244,7 +244,7 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 			case AttributeProto::TENSORS:
 			{
 				auto& pb_values = pb_attr.tensors();
-				auto tens = new teq::TensArrayT();
+				auto tens = new marsh::PtrArray<teq::TensorObj>();
 				val = tens;
 				auto& content = tens->contents_;
 				for (const auto& pb_tens : pb_values)
