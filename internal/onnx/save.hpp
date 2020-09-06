@@ -101,6 +101,16 @@ private:
 	void marshal_func (teq::iFunctor& func)
 	{
 		auto deps = func.get_args();
+		if (func.size() > 0)
+		{
+			marsh::Maps attrs;
+			marsh::get_attrs(attrs, func);
+
+			teq::FindTensAttr finder;
+			attrs.accept(finder);
+			deps.insert(deps.end(),
+				finder.tens_.begin(), finder.tens_.end());
+		}
 		teq::multi_visit(*this, deps);
 		auto attrs = func.ls_attrs();
 		for (auto attr : attrs)

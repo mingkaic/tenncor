@@ -94,9 +94,11 @@ gen-oxsvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
 onnx2json: onnx_test_o2j eteq_test_o2j edeps_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
 
 .PHONY: onnx_test_o2j
-onnx_test_o2j: models/test/onnx.onnx
-	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/onnx.onnx --write /tmp/onnx.json
-	mv /tmp/onnx.json models/test
+onnx_test_o2j: models/test/simple_onnx.onnx models/test/layer_onnx.onnx
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/simple_onnx.onnx --write /tmp/simple_onnx.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/layer_onnx.onnx --write /tmp/layer_onnx.json
+	mv /tmp/simple_onnx.json models/test
+	mv /tmp/layer_onnx.json models/test
 
 .PHONY: eteq_test_o2j
 eteq_test_o2j: models/test/eteq.onnx
@@ -151,9 +153,11 @@ gru_model_o2j: models/fast_gru.onnx models/latin_gru.onnx
 json2onnx: onnx_test_j2o eteq_test_j2o edeps_test_j2o gd_model_j2o dqn_model_j2o rbm_model_j2o dbn_model_j2o rnn_model_j2o lstm_model_j2o gru_model_j2o
 
 .PHONY: onnx_test_j2o
-onnx_test_j2o: models/test/onnx.json
-	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/onnx.json --write /tmp/onnx.onnx
-	mv /tmp/onnx.onnx models/test
+onnx_test_j2o: models/test/simple_onnx.json models/test/layer_onnx.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/simple_onnx.json --write /tmp/simple_onnx.onnx
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/layer_onnx.json --write /tmp/layer_onnx.onnx
+	mv /tmp/simple_onnx.onnx models/test
+	mv /tmp/layer_onnx.onnx models/test
 
 .PHONY: eteq_test_j2o
 eteq_test_j2o: models/test/eteq.json

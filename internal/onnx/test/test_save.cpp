@@ -27,8 +27,8 @@ struct MockMarshFuncs final : public onnx::iMarshFuncs
 
 TEST(SAVE, SimpleGraph)
 {
-	std::string expect_pbfile = testdir + "/onnx.onnx";
-	std::string got_pbfile = "got_onnx.onnx";
+	std::string expect_pbfile = testdir + "/simple_onnx.onnx";
+	std::string got_pbfile = "got_simple_onnx.onnx";
 
 	{
 		onnx::ModelProto model;
@@ -119,8 +119,8 @@ TEST(SAVE, SimpleGraph)
 
 TEST(SAVE, LayerGraph)
 {
-	std::string expect_pbfile = testdir + "/onnx.onnx";
-	std::string got_pbfile = "got_onnx.onnx";
+	std::string expect_pbfile = testdir + "/layer_onnx.onnx";
+	std::string got_pbfile = "/tmp/layer_onnx.onnx";
 
 	{
 		onnx::ModelProto model;
@@ -135,6 +135,8 @@ TEST(SAVE, LayerGraph)
 		teq::TensptrT osrc2 = std::make_shared<MockLeaf>(
 			std::vector<double>{}, shape2, "osrc2");
 
+		static_cast<MockLeaf*>(osrc2.get())->usage_ = teq::PLACEHOLDER;
+
 		{
 			teq::Shape shape3({3, 1, 7});
 			teq::TensptrT src = std::make_shared<MockLeaf>(
@@ -142,19 +144,31 @@ TEST(SAVE, LayerGraph)
 			teq::TensptrT src2 = std::make_shared<MockLeaf>(
 				std::vector<double>{}, shape3, "src2");
 
+			auto f0 = std::make_shared<MockFunctor>(teq::TensptrsT{
+				src}, teq::Opcode{"sin", 5});
+			f0->add_attr("num", std::make_unique<marsh::Number<size_t>>(54));
+			f0->add_attr("array", std::make_unique<marsh::NumArray<double>>(
+				std::vector<double>{3.3, 2.1, 7.6}));
+			auto f1 = std::make_shared<MockFunctor>(teq::TensptrsT{
+				f0, src,
+			}, teq::Opcode{"+", 4});
+			f1->add_attr(teq::layer_attr,
+				std::make_unique<teq::LayerObj>("onion", f0));
+			f1->add_attr("array", std::make_unique<marsh::NumArray<size_t>>(
+				std::vector<size_t>{4, 6, 2}));
+			f1->add_attr("num", std::make_unique<marsh::Number<double>>(4.3));
+			// ids.insert({f1.get(), "7"});
+
 			teq::TensptrT dest = std::make_shared<MockFunctor>(teq::TensptrsT{
-				src2,
-				std::make_shared<MockFunctor>(teq::TensptrsT{
+				src2, std::make_shared<MockFunctor>(teq::TensptrsT{
 					std::make_shared<MockFunctor>(teq::TensptrsT{
-						std::make_shared<MockFunctor>(teq::TensptrsT{osrc}, teq::Opcode{"neg", 3}),
 						std::make_shared<MockFunctor>(teq::TensptrsT{
-							std::make_shared<MockFunctor>(teq::TensptrsT{src}, teq::Opcode{"sin", 5}),
-							src,
-						}, teq::Opcode{"+", 4}),
+							osrc}, teq::Opcode{"neg", 3}), f1,
 					}, teq::Opcode{"/", 2}),
 					osrc2,
 				}, teq::Opcode{"@", 1}),
 			}, teq::Opcode{"-", 0});
+
 			roots.push_back(dest);
 			ids.insert({dest.get(), "root1"});
 		}
@@ -169,14 +183,32 @@ TEST(SAVE, LayerGraph)
 			teq::TensptrT src3 = std::make_shared<MockLeaf>(
 				std::vector<double>{}, mshape, "s2src3");
 
-			teq::TensptrT dest = std::make_shared<MockFunctor>(teq::TensptrsT{
-				src,
-				std::make_shared<MockFunctor>(teq::TensptrsT{
-					std::make_shared<MockFunctor>(teq::TensptrsT{src}, teq::Opcode{"abs", 7}),
-					std::make_shared<MockFunctor>(teq::TensptrsT{src2}, teq::Opcode{"exp", 8}),
-					std::make_shared<MockFunctor>(teq::TensptrsT{src3}, teq::Opcode{"neg", 3}),
-				}, teq::Opcode{"*", 6}),
+			auto f0 = std::make_shared<MockFunctor>(
+				teq::TensptrsT{src}, teq::Opcode{"abs", 7});
+			auto strs = std::make_unique<marsh::PtrArray<marsh::String>>();
+			strs->contents_.insert(strs->contents_.end(),
+				std::make_unique<marsh::String>("world"));
+			strs->contents_.insert(strs->contents_.end(),
+				std::make_unique<marsh::String>("food"));
+			f0->add_attr("strs", std::move(strs));
+			auto tensors = std::make_unique<marsh::PtrArray<teq::TensorObj>>();
+			tensors->contents_.insert(tensors->contents_.end(),
+				std::make_unique<teq::TensorObj>(osrc));
+			tensors->contents_.insert(tensors->contents_.end(),
+				std::make_unique<teq::TensorObj>(src3));
+			f0->add_attr("tensors", std::move(tensors));
+			auto f1 = std::make_shared<MockFunctor>(teq::TensptrsT{f0,
+				std::make_shared<MockFunctor>(teq::TensptrsT{src2}, teq::Opcode{"exp", 8}),
+				std::make_shared<MockFunctor>(teq::TensptrsT{src3}, teq::Opcode{"neg", 3}),
+			}, teq::Opcode{"*", 6});
+			f1->add_attr("str", std::make_unique<marsh::String>("hello"));
+			auto destf = std::make_shared<MockFunctor>(teq::TensptrsT{
+				src, f1,
 			}, teq::Opcode{"-", 0});
+			destf->add_attr("pineapple",
+				std::make_unique<teq::TensorObj>(osrc));
+			teq::TensptrT dest = destf;
+
 			roots.push_back(dest);
 			ids.insert({dest.get(), "root2"});
 		}

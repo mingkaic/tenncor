@@ -43,11 +43,12 @@ struct MockUnmarshFuncs final : public onnx::iUnmarshFuncs
 	}
 };
 
+
 TEST(LOAD, SimpleGraph)
 {
 	onnx::ModelProto model;
 	{
-		std::fstream inputstr(testdir + "/onnx.onnx",
+		std::fstream inputstr(testdir + "/simple_onnx.onnx",
 			std::ios::in | std::ios::binary);
 		ASSERT_TRUE(inputstr.is_open());
 		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
@@ -61,7 +62,62 @@ TEST(LOAD, SimpleGraph)
 	std::string expect;
 	std::string got;
 	std::string line;
-	std::ifstream expectstr(testdir + "/onnx.txt");
+	std::ifstream expectstr(testdir + "/simple_onnx.txt");
+	ASSERT_TRUE(expectstr.is_open());
+	while (std::getline(expectstr, line))
+	{
+		fmts::trim(line);
+		if (line.size() > 0)
+		{
+			expect += line + '\n';
+		}
+	}
+
+	PrettyEquation artist;
+	artist.cfg_.showshape_ = true;
+	std::stringstream gotstr;
+
+	ASSERT_HAS(ids.right, "root1");
+	ASSERT_HAS(ids.right, "root2");
+	auto root1 = ids.right.at("root1");
+	auto root2 = ids.right.at("root2");
+	ASSERT_NE(nullptr, root1);
+	ASSERT_NE(nullptr, root2);
+	artist.print(gotstr, root1);
+	artist.print(gotstr, root2);
+
+	while (std::getline(gotstr, line))
+	{
+		fmts::trim(line);
+		if (line.size() > 0)
+		{
+			got += line + '\n';
+		}
+	}
+
+	EXPECT_STREQ(expect.c_str(), got.c_str());
+}
+
+
+TEST(LOAD, LayerGraph)
+{
+	onnx::ModelProto model;
+	{
+		std::fstream inputstr(testdir + "/layer_onnx.onnx",
+			std::ios::in | std::ios::binary);
+		ASSERT_TRUE(inputstr.is_open());
+		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
+	}
+
+	MockUnmarshFuncs unmarsh;
+	onnx::TensptrIdT ids;
+	teq::TensptrsT graph_roots = onnx::load_graph(ids, model.graph(), unmarsh);
+	EXPECT_EQ(2, graph_roots.size());
+
+	std::string expect;
+	std::string got;
+	std::string line;
+	std::ifstream expectstr(testdir + "/layer_onnx.txt");
 	ASSERT_TRUE(expectstr.is_open());
 	while (std::getline(expectstr, line))
 	{
