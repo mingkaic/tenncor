@@ -6,7 +6,7 @@ namespace eteq
 {
 
 #define _CHOOSE_TYPER(OPCODE)\
-typecode = TypeParser<OPCODE>().dtype(attrs, dtypes);
+typecode = egen::TypeParser<OPCODE>()(attrs, dtypes);
 
 #define _CHOOSE_FUNCTYPE(REALTYPE)\
 out = make_tfuncattr<REALTYPE>(opcode, children, attrs);
@@ -16,7 +16,7 @@ teq::TensptrT make_funcattr (egen::_GENERATED_OPCODE opcode,
 {
 	teq::TensptrT out;
 	egen::_GENERATED_DTYPE typecode = egen::BAD_TYPE;
-	DTypesT dtypes;
+	eigen::DTypesT dtypes;
 	dtypes.reserve(children.size());
 	std::transform(children.begin(), children.end(), std::back_inserter(dtypes),
 	[](teq::TensptrT child)

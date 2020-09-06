@@ -11,14 +11,11 @@
 
 #include "tenncor/eteq/etens.hpp"
 
-#include "tenncor/eteq/opdep/shaper.hpp"
-#include "tenncor/eteq/opdep/funcopt.hpp"
-
 namespace eteq
 {
 
 #define _CHOOSE_PARSER(OPCODE)\
-outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
+outshape = egen::ShapeParser<OPCODE>()(attrs, shapes);
 
 /// Functor implementation of operable functor of Eigen operators
 template <typename T>

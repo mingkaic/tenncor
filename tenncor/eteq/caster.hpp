@@ -11,7 +11,7 @@ template <egen::_GENERATED_OPCODE OPCODE>
 struct TypeCaster final
 {
 	template <typename T>
-	teq::TensptrsT cast (const teq::TensptrsT& children) const
+	teq::TensptrsT operator() (const teq::TensptrsT& children) const
 	{
 		marsh::Maps attrs;
 		auto type = egen::get_type<T>();
@@ -37,7 +37,7 @@ template <>
 struct TypeCaster<egen::CAST> final
 {
 	template <typename T>
-	teq::TensptrsT cast (const teq::TensptrsT& children) const
+	teq::TensptrsT operator() (const teq::TensptrsT& children) const
 	{
 		return children;
 	}

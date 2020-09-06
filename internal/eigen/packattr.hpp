@@ -8,6 +8,10 @@
 namespace eigen
 {
 
+const std::string no_argument_err = "cannot operate without inputs";
+
+using DTypesT = std::vector<egen::_GENERATED_DTYPE>;
+
 template <typename T>
 using PairVecT = std::vector<std::pair<T,T>>;
 

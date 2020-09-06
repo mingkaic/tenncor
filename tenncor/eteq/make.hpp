@@ -5,9 +5,7 @@
 #include "tenncor/eteq/constant.hpp"
 #include "tenncor/eteq/functor.hpp"
 #include "tenncor/eteq/evars.hpp"
-
-#include "tenncor/eteq/opdep/typer.hpp"
-#include "tenncor/eteq/opdep/caster.hpp"
+#include "tenncor/eteq/caster.hpp"
 
 namespace eteq
 {
@@ -61,10 +59,10 @@ teq::TensptrT make_funcattr (egen::_GENERATED_OPCODE opcode,
 	teq::TensptrsT children, marsh::Maps& attrs);
 
 #define _CHOOSE_FUNCOPT(OPCODE)\
-redundant = FuncOpt<OPCODE>().is_redundant<T>(attrs, children);
+redundant = egen::FuncOpt<OPCODE>().operator()<T>(attrs, children);
 
 #define _CHOOSE_TYPECAST(OPCODE)\
-children = TypeCaster<OPCODE>().cast<T>(children);
+children = TypeCaster<OPCODE>().operator()<T>(children);
 
 template <typename T>
 teq::TensptrT make_tfuncattr (egen::_GENERATED_OPCODE opcode,

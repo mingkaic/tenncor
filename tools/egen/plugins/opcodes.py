@@ -4,6 +4,7 @@ from tools.gen.plugin_base import PluginBase
 from tools.gen.file_rep import FileRep
 
 from plugins.template import build_template
+from plugins.cformat.funcs import render_args
 
 _header_template = '''
 #ifndef _GENERATED_OPCODES_HPP
@@ -57,6 +58,9 @@ switch (OPCODE)\\
     default: global::fatal("executing bad op");\\
 }}
 //>>> ^ cases
+
+//>>> per_op
+{per_op}
 
 }}
 
@@ -136,51 +140,123 @@ bool is_idempotent (const std::string& name)
 #endif
 '''
 
-def _handle_opcodes(params, opcalls):
+def _handle_opcodes(params, opcalls, per_op):
     assert(len(opcalls))
     dopcodes = list(opcalls.keys())
     return ',\n    '.join(dopcodes) + ','
 
-def _handle_params(params, opcalls):
+def _handle_params(params, opcalls, per_op):
     return params.strip()
 
-def _handle_ops(params, opcalls):
+def _handle_ops(params, opcalls, per_op):
     _opcode_case_tmp = 'case {code}: {stmt} break;'
     return '\n        '.join([
         _opcode_case_tmp.format(code=opcode, stmt=opcalls[opcode]['stmt'])
         for opcode in opcalls
     ])
 
-def _handle_cases(params, opcalls):
+def _handle_cases(params, opcalls, per_op):
     _lookup_case_tmp = 'case egen::{code}: GENERIC_MACRO(::egen::{code}) break;'
     return '\\\n    '.join([
         _lookup_case_tmp.format(code=opcode)
         for opcode in opcalls
     ])
 
-def _handle_code2names(params, opcalls):
+def _handle_code2names(params, opcalls, per_op):
     _code2names_tmp = '{{ {code}, "{code}" }}'
     return ',\n    '.join([
         _code2names_tmp.format(code=code)
         for code in list(opcalls.keys())
     ])
 
-def _handle_name2codes(params, opcalls):
+def _handle_name2codes(params, opcalls, per_op):
     _name2codes_tmp = '{{ "{code}", {code} }}'
     return ',\n    '.join([
         _name2codes_tmp.format(code=code)
         for code in list(opcalls.keys())
     ])
 
-def _handle_commcodes(params, opcalls):
+def _handle_commcodes(params, opcalls, per_op):
     return ',\n    '.join(filter(
         lambda code: opcalls[code].get("commutative", False),
         list(opcalls.keys())))
 
-def _handle_idemcodes(params, opcalls):
+def _handle_idemcodes(params, opcalls, per_op):
     return ',\n    '.join(filter(
         lambda code: opcalls[code].get("idempotent", True),
         list(opcalls.keys())))
+
+_per_op_template = '''
+template <_GENERATED_OPCODE OPCODE>
+struct {name} final
+{{
+    {template}{type} operator() ({args})
+    {{
+        {val}
+    }}
+}};
+'''
+
+_specialized_per_op_template = '''
+template <>
+struct {name}<{opcode}> final
+{{
+    {template}{type} operator() ({args})
+    {{
+        {val}
+    }}
+}};
+'''
+
+def _handle_per_op(params, opcalls, per_op):
+    defns = []
+    opmapping = {}
+    for op in per_op:
+        key = op['name']
+        temp = op.get('template', '')
+        args = render_args(op, is_decl=True)
+        outtype = op['out'].get('type', 'void')
+        val = op['out']['val']
+
+        if len(temp) > 0:
+            temp = 'template <{}>\n    '.format(temp)
+        opmapping[key] = {
+            'template': temp,
+            'args': args,
+            'out.type': outtype,
+            'out.val': val,
+        }
+
+        defns.append(_per_op_template.format(
+            name=key, template=temp,
+            type=outtype, args=args, val=val))
+
+    perops = set(opmapping.keys())
+    for opcall in opcalls:
+        specs = set(opcalls[opcall].keys()).intersection(perops)
+        for key in specs:
+            replacements = opcalls[opcall][key]
+            default_perop = opmapping[key]
+            temp = default_perop['template']
+            args = default_perop['args']
+            outtype = default_perop['out.type']
+            val = default_perop['out.val']
+
+            if isinstance(replacements, str): # replacements is a reference to an opcode
+                replacements = opcalls[replacements][key]
+
+            temp = replacements.get('template', temp)
+            if 'args' in replacements:
+                args = render_args(replacements, is_decl=True)
+            if 'out' in replacements:
+                outtype = replacements['out'].get('type', outtype)
+                val = replacements['out'].get('val', val)
+
+            defns.append(_specialized_per_op_template.format(
+                name=key, opcode=opcall, template=temp,
+                type=outtype, args=args, val=val))
+
+    return '\n'.join(defns)
 
 _plugin_id = "OPCODE"
 
@@ -202,10 +278,11 @@ class OpcodesPlugin:
         module = globals()
         opcodes = arguments[plugin_key]
 
-        operator_include = []
-        if 'operator_path' in opcodes:
-            operator_include.append(
-                '"' + opcodes['operator_path'].strip() + '"')
+        operator_includes = opcodes.get('includes', [])
+        if isinstance(operator_includes, str):
+            operator_includes = [operator_includes]
+        operator_includes = ['"' + include.strip() + '"'
+            for include in operator_includes]
 
         if 'params' not in opcodes:
             raise Exception('params not in opcodes. keys:' + str(opcodes.keys()))
@@ -215,13 +292,13 @@ class OpcodesPlugin:
 
         generated_files[_hdr_file] = FileRep(
             build_template(_header_template, module,
-                opcodes['params'], opcodes['opcalls']),
-            user_includes=['<string>', '"logs/logs.hpp"'] + operator_include,
+                opcodes['params'], opcodes['opcalls'], opcodes.get('per_op', [])),
+            user_includes=['<string>', '"logs/logs.hpp"'] + operator_includes,
             internal_refs=[])
 
         generated_files[_src_file] = FileRep(
             build_template(_source_template, module,
-                opcodes['params'], opcodes['opcalls']),
+                opcodes['params'], opcodes['opcalls'], opcodes.get('per_op', [])),
             user_includes=['"estd/contain.hpp"'],
             internal_refs=[_hdr_file])
 
