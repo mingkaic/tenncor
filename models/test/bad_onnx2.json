@@ -283,6 +283,176 @@
       "tensors": [],
       "graphs": [],
       "sparseTensors": []
+     },
+     {
+      "name": "peanut",
+      "refAttrName": "",
+      "docString": "",
+      "type": "GRAPH",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "g": {
+       "node": [
+        {
+         "input": [
+          "4",
+          "3"
+         ],
+         "output": [
+          "7"
+         ],
+         "name": "7",
+         "opType": "+",
+         "domain": "",
+         "attribute": [
+          {
+           "name": "array",
+           "refAttrName": "",
+           "docString": "",
+           "type": "INTS",
+           "f": 0,
+           "i": "0",
+           "s": "",
+           "floats": [],
+           "ints": [
+            "4",
+            "6",
+            "2"
+           ],
+           "strings": [],
+           "tensors": [],
+           "graphs": [],
+           "sparseTensors": []
+          },
+          {
+           "name": "num",
+           "refAttrName": "",
+           "docString": "",
+           "type": "FLOAT",
+           "f": 4.3,
+           "i": "0",
+           "s": "",
+           "floats": [],
+           "ints": [],
+           "strings": [],
+           "tensors": [],
+           "graphs": [],
+           "sparseTensors": []
+          }
+         ],
+         "docString": ""
+        }
+       ],
+       "name": "",
+       "initializer": [],
+       "sparseInitializer": [],
+       "docString": "",
+       "input": [
+        {
+         "name": "4",
+         "type": {
+          "tensorType": {
+           "elemType": 0,
+           "shape": {
+            "dim": [
+             {
+              "denotation": "",
+              "dimValue": "3"
+             },
+             {
+              "denotation": "",
+              "dimValue": "7"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             }
+            ]
+           }
+          },
+          "denotation": ""
+         },
+         "docString": ""
+        }
+       ],
+       "output": [
+        {
+         "name": "7",
+         "type": {
+          "tensorType": {
+           "elemType": 0,
+           "shape": {
+            "dim": [
+             {
+              "denotation": "",
+              "dimValue": "3"
+             },
+             {
+              "denotation": "",
+              "dimValue": "7"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             },
+             {
+              "denotation": "",
+              "dimValue": "1"
+             }
+            ]
+           }
+          },
+          "denotation": ""
+         },
+         "docString": ""
+        }
+       ],
+       "valueInfo": [],
+       "quantizationAnnotation": []
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
      }
     ],
     "docString": ""

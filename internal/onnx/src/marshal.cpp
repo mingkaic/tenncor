@@ -5,132 +5,6 @@
 namespace onnx
 {
 
-struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
-{
-	OnnxAttrMarshaler (AttributeProto* out,
-		const teq::CTensMapT<std::string>& tensid) :
-		out_(out), tensid_(tensid) {}
-
-	void marshal (const marsh::String& str) override
-	{
-		out_->set_type(AttributeProto::STRING);
-		out_->set_s(str.to_string());
-	}
-
-	void marshal (const marsh::iNumber& num) override
-	{
-		if (num.is_integral())
-		{
-			out_->set_type(AttributeProto::INT);
-			out_->set_i(num.to_int64());
-		}
-		else
-		{
-			out_->set_type(AttributeProto::FLOAT);
-			out_->set_f(num.to_float64());
-		}
-	}
-
-	void marshal (const marsh::iArray& arr) override
-	{
-		types::StringsT strs;
-		std::vector<int64_t> ints;
-		std::vector<double> floats;
-		types::StringsT tensors;
-		arr.foreach(
-			[&](size_t i, const marsh::iObject* obj)
-			{
-				if (auto str = dynamic_cast<const marsh::String*>(obj))
-				{
-					strs.push_back(str->to_string());
-				}
-				else if (auto num = dynamic_cast<const marsh::iNumber*>(obj))
-				{
-					if (num->is_integral())
-					{
-						ints.push_back(num->to_int64());
-					}
-					else
-					{
-						floats.push_back(num->to_float64());
-					}
-				}
-				else if (auto tens = dynamic_cast<const teq::TensorObj*>(obj))
-				{
-					auto mtens = tens->get_tensor().get();
-					auto id = estd::must_getf(tensid_, mtens,
-						"cannot find %s", mtens->to_string().c_str());
-					tensors.push_back(id);
-				}
-			});
-		if (false == arr.is_primitive())
-		{
-			if (typeid(marsh::String).hash_code() == arr.subclass_code())
-			{
-				out_->set_type(AttributeProto::STRINGS);
-				for (auto str : strs)
-				{
-					out_->add_strings(str);
-				}
-			}
-			else
-			{
-				out_->set_type(AttributeProto::TENSORS);
-				for (auto id : tensors)
-				{
-					auto tens = out_->add_tensors();
-					tens->set_name(id);
-				}
-			}
-		}
-		else if (arr.is_integral())
-		{
-			out_->set_type(AttributeProto::INTS);
-			for (auto num : ints)
-			{
-				out_->add_ints(num);
-			}
-		}
-		else
-		{
-			out_->set_type(AttributeProto::FLOATS);
-			for (auto num : floats)
-			{
-				out_->add_floats(num);
-			}
-		}
-	}
-
-	void marshal (const marsh::iTuple& tup) override
-	{
-		global::fatal("onnx does not support tuples");
-	}
-
-	void marshal (const marsh::Maps& mm) override
-	{
-		global::fatal("onnx does not support map attributes");
-	}
-
-	void marshal (const teq::TensorObj& tens) override
-	{
-		auto mtens = tens.get_tensor().get();
-		auto id = estd::must_getf(tensid_, mtens,
-			"cannot find %s", mtens->to_string().c_str());
-		out_->set_type(AttributeProto::TENSOR);
-		auto pb_tens = out_->mutable_t();
-		pb_tens->set_name(id);
-	}
-
-	void marshal (const teq::LayerObj& layer) override
-	{
-		// ignore: since marshaler resolves graph info
-	}
-
-	AttributeProto* out_;
-
-	const teq::CTensMapT<std::string>& tensid_;
-};
-
 void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib,
 	const teq::CTensMapT<std::string>& tensid)
 {
@@ -264,12 +138,12 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 				}
 				else
 				{
-					global::warnf("unknown graph attribute %s",
+					global::fatalf("unknown graph attribute `%s`",
 						attr_name.c_str());
 				}
 				continue;
 			default:
-				global::fatalf("unknown onnx attribute type of %s",
+				global::fatalf("unknown onnx attribute type of `%s`",
 					attr_name.c_str());
 		}
 		out.add_attr(attr_name, marsh::ObjptrT(val));
@@ -277,40 +151,11 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 	return subgraph;
 }
 
-teq::Shape unmarshal_shape (const TensorShapeProto& shape)
-{
-	const auto& dims = shape.dim();
-	std::vector<teq::DimT> slist;
-	slist.reserve(dims.size());
-	std::transform(dims.begin(), dims.end(), std::back_inserter(slist),
-		[](const TensorShapeProto::Dimension& dim)
-		{
-			return dim.dim_value();
-		});
-	return teq::Shape(slist);
-}
-
 teq::Shape unmarshal_shape (const TensorProto& tens)
 {
 	auto dims = tens.dims();
 	std::vector<teq::DimT> slist(dims.begin(), dims.end());
 	return teq::Shape(slist);
-}
-
-std::unordered_map<std::string,TensorT> unmarshal_io (
-	const google::protobuf::RepeatedPtrField<ValueInfoProto>& values)
-{
-	std::unordered_map<std::string,TensorT> out;
-	for (const ValueInfoProto& value : values)
-	{
-		std::string id = value.name();
-		const TypeProto& type = value.type();
-		assert(type.has_tensor_type());
-		const TypeProto::Tensor& tens_type = type.tensor_type();
-		out.emplace(id, TensorT{tens_type.elem_type(),
-			unmarshal_shape(tens_type.shape())});
-	}
-	return out;
 }
 
 std::unordered_map<std::string,AnnotationsT> unmarshal_annotation (

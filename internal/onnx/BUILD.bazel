@@ -98,7 +98,7 @@ cc_test(
         ":onnx",
         "//internal/teq:mock_teq",
         "//dbg/print:print",
-        "@gtest//:gtest",
+        "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],

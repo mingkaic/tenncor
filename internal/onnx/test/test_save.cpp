@@ -8,6 +8,8 @@
 
 #include "gtest/gtest.h"
 
+#include "testutil/tutil.hpp"
+
 #include "internal/teq/mock/leaf.hpp"
 #include "internal/teq/mock/functor.hpp"
 
@@ -23,6 +25,48 @@ struct MockMarshFuncs final : public onnx::iMarshFuncs
 
 	void marsh_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf) const override {}
 };
+
+
+TEST(SAVE, BadMarshal)
+{
+	onnx::AttributeProto proto;
+	teq::CTensMapT<std::string> tensid;
+	onnx::OnnxAttrMarshaler marshal(&proto, tensid);
+
+	marsh::ObjTuple tup;
+	EXPECT_FATAL(tup.accept(marshal),
+		"onnx does not support tuple attributes");
+
+	marsh::Maps mm;
+	EXPECT_FATAL(mm.accept(marshal),
+		"onnx does not support map attributes");
+
+	teq::LayerObj layer("banana_split",
+		std::make_shared<MockLeaf>(std::vector<double>{3}, teq::Shape(), "m"));
+	EXPECT_FATAL(layer.accept(marshal),
+		"onnx does not support layer attributes");
+
+	{
+		auto nllog = new tutil::NoSupportLogger();
+		global::set_logger(nllog);
+		tup.accept(marshal);
+		EXPECT_FALSE(nllog->called_);
+	}
+	{
+		auto nllog = new tutil::NoSupportLogger();
+		global::set_logger(nllog);
+		mm.accept(marshal);
+		EXPECT_FALSE(nllog->called_);
+	}
+	{
+		auto nllog = new tutil::NoSupportLogger();
+		global::set_logger(nllog);
+		layer.accept(marshal);
+		EXPECT_FALSE(nllog->called_);
+	}
+
+	global::set_logger(new exam::TestLogger());
+}
 
 
 TEST(SAVE, SimpleGraph)
