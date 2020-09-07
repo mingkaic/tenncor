@@ -23,10 +23,16 @@ P5 = "get to it eventually"
    - select and integrate some other CUDA-supported LinAlgebra libraries
    - make global context configurable through python
 
-   - rethink mechanisms for representing different dependencies [
-      tensor (shape-dependent relationship),
-      layers (utility structural relationship),
-   ]
+- generate random graphs for query, opt, and serial tests
+- maximize per-module test coverage for:
+   - query
+   - opt
+   - eteq
+   - serial
+   - hone
+   - distrib
+   - layr
+   - trainer
 
 === transparency/code readability ===
    - restructure so that core/utility modules, and generator are clear

@@ -47,7 +47,7 @@ bool is_equal (const eteq::ETensor& lroot, const eteq::ETensor& rroot)
 		}
 		if (lheights.upper_ == 0)
 		{
-			auto hid = global::get_uuidengine()();
+			auto hid = global::get_generator()->get_str();
 			hasher.hashes_.emplace(ords.first, hid);
 			hasher.hashes_.emplace(ords.second, hid);
 			hasher.visited_.emplace(ords.first);

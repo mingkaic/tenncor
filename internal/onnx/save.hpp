@@ -203,7 +203,7 @@ private:
 		std::string proposed_id = fmts::to_string(tens_.size());
 		while (estd::has(identified_.right, proposed_id)) // almost never going to loop
 		{
-			proposed_id = boost::uuids::to_string(global::get_uuidengine()());
+			proposed_id = global::get_generator()->get_str();
 		}
 		return proposed_id;
 	}

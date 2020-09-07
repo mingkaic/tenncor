@@ -356,13 +356,13 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 		[](PybindT lower, PybindT upper)
 		{
 			return py::cpp_function(
-				global::Randomizer().unif_gen<PybindT>(lower, upper));
+				global::get_generator()->unif_decgen(lower, upper));
 		}, py::arg("lower") = 0, py::arg("upper") = 1)
 		.def("norm_gen",
 		[](PybindT mean, PybindT stdev)
 		{
 			return py::cpp_function(
-				global::Randomizer().norm_gen<PybindT>(mean, stdev));
+				global::get_generator()->norm_decgen(mean, stdev));
 		})
 
 		// ==== serialization ====

@@ -11,41 +11,33 @@ TEST(RANDOM, SetGet)
 {
 	global::CfgMapptrT ctx = std::make_shared<estd::ConfigMap<>>();
 
-	auto& rengine = global::get_randengine(ctx);
-	void* origptr = &rengine;
-	auto orengine = new global::RandEngineT();
-	global::set_randengine(orengine, ctx);
-	EXPECT_NE(origptr, &global::get_randengine(ctx));
-	EXPECT_EQ(orengine, &global::get_randengine(ctx));
-
-	auto& uengine = global::get_uuidengine(ctx);
-	void* origptr2 = &uengine;
-	auto ouengine = new global::UuidEngineT();
-	global::set_uuidengine(ouengine, ctx);
-	EXPECT_NE(origptr2, &global::get_uuidengine(ctx));
-	EXPECT_EQ(ouengine, &global::get_uuidengine(ctx));
+	auto generator = global::get_generator(ctx);
+	void* origptr = generator.get();
+	auto ogenerator = std::make_shared<global::Randomizer>();
+	global::set_generator(ogenerator, ctx);
+	EXPECT_NE(origptr, global::get_generator(ctx).get());
+	EXPECT_EQ(ogenerator.get(), global::get_generator(ctx).get());
 }
 
 
 TEST(RANDOM, Randomizer)
 {
-	global::CfgMapptrT ctx = std::make_shared<estd::ConfigMap<>>();
-	global::Randomizer rand(ctx);
-	global::seed(0, ctx);
+	global::Randomizer rand;
+	rand.seed(0);
 
-	auto inum = rand.unif<size_t>(2, 7);
+	auto inum = rand.unif_int(2, 7);
 	EXPECT_LE(2, inum);
 	EXPECT_GE(7, inum);
 
-	auto fnum = rand.unif<float>(2, 7);
+	auto fnum = rand.unif_dec(2, 7);
 	EXPECT_LE(2, fnum);
 	EXPECT_GE(7, fnum);
 
-	auto igen = rand.unif_gen<size_t>(2, 7);
+	auto igen = rand.unif_intgen(2, 7);
 	EXPECT_LE(2, igen());
 	EXPECT_GE(7, igen());
 
-	auto fgen = rand.unif_gen<float>(2, 7);
+	auto fgen = rand.unif_decgen(2, 7);
 	EXPECT_LE(2, fgen());
 	EXPECT_GE(7, fgen());
 }

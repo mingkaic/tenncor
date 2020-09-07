@@ -355,7 +355,8 @@ funcs:
               {
                   std::vector<T> vec(shape.n_elems());
                   T bound = factor * std::sqrt(6. / layr::fanio<T>(shape));
-                  std::generate(vec.begin(), vec.end(), global::Randomizer().unif_gen<T>(-bound, bound));
+                  std::generate(vec.begin(), vec.end(),
+                      global::get_generator()->unif_decgen(-bound, bound));
                   return eteq::make_variable(vec.data(), shape, label, ctx);
               };
   - template: typename T
@@ -377,6 +378,6 @@ funcs:
               {
                   std::vector<T> vec(shape.n_elems());
                   T stdev = factor * std::sqrt(2. / layr::fanio<T>(shape));
-                  std::generate(vec.begin(), vec.end(), global::Randomizer().norm_gen<T>(0., stdev));
+                  std::generate(vec.begin(), vec.end(), global::get_generator()->norm_decgen(0., stdev));
                   return eteq::make_variable(vec.data(), shape, label, ctx);
               };

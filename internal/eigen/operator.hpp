@@ -1247,7 +1247,7 @@ EigenptrT max (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 /// Given arguments a, and b, for every pair of mapped elements sharing the
 /// same index apply std::uniform_distributon function
 /// Only accept 2 arguments
-template <typename T>
+template <typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
 EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
@@ -1261,11 +1261,11 @@ EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::i
 				make_matmap((T*) b.device().data(), b.shape())},
 			[](std::vector<MatMapT<T>>& args)
 			{
-				global::Randomizer rand;
+				auto generator = global::get_generator();
 				return args[0].binaryExpr(args[1],
 					std::function<T(const T&,const T&)>(
-						[rand](const T& a, const T& b)
-						{ return rand.unif<T>(a, b); }));
+						[generator](const T& a, const T& b)
+						{ return generator->unif_int(a, b); }));
 			});
 	}
 	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
@@ -1276,11 +1276,48 @@ EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::i
 			make_tensmap((T*) b.device().data(), b.shape())},
 		[](std::vector<TensMapT<T>>& args)
 		{
-			global::Randomizer rand;
+			auto generator = global::get_generator();
 			return args[0].binaryExpr(args[1],
 				std::function<T(const T&,const T&)>(
-					[rand](const T& a, const T& b)
-					{ return rand.unif<T>(a, b); }));
+					[generator](const T& a, const T& b)
+					{ return generator->unif_int(a, b); }));
+		});
+}
+
+template <typename T, typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>
+EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
+{
+	if (is_2d(outshape))
+	{
+		// use matrix when possible
+		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
+			std::function<T(const T&,const T&)>,
+			const MatMapT<T>,const MatMapT<T>>,
+			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+				make_matmap((T*) a.device().data(), a.shape()),
+				make_matmap((T*) b.device().data(), b.shape())},
+			[](std::vector<MatMapT<T>>& args)
+			{
+				auto generator = global::get_generator();
+				return args[0].binaryExpr(args[1],
+					std::function<T(const T&,const T&)>(
+						[generator](const T& a, const T& b)
+						{ return generator->unif_dec(a, b); }));
+			});
+	}
+	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
+		std::function<T(const T&,const T&)>,
+		const TensMapT<T>,const TensMapT<T>>,
+		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+			make_tensmap((T*) a.device().data(), a.shape()),
+			make_tensmap((T*) b.device().data(), b.shape())},
+		[](std::vector<TensMapT<T>>& args)
+		{
+			auto generator = global::get_generator();
+			return args[0].binaryExpr(args[1],
+				std::function<T(const T&,const T&)>(
+					[generator](const T& a, const T& b)
+					{ return generator->unif_dec(a, b); }));
 		});
 }
 

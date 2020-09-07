@@ -13,7 +13,7 @@ TEST(RANDOM, UniformValueDouble)
 {
 	double a = 4;
 	double b = 16;
-	double c = global::Randomizer().unif(a, b);
+	double c = global::Randomizer().unif_dec(a, b);
 	EXPECT_LE(a, c);
 	EXPECT_GE(b, c);
 }
@@ -23,7 +23,7 @@ TEST(RANDOM, UniformValueInt)
 {
 	size_t a = 4;
 	size_t b = 16;
-	size_t c = global::Randomizer().unif(a, b);
+	size_t c = global::Randomizer().unif_int(a, b);
 	EXPECT_LE(a, c);
 	EXPECT_GE(b, c);
 }
@@ -33,7 +33,7 @@ TEST(RANDOM, UniformGenDouble)
 {
 	double a = 4;
 	double b = 16;
-	auto gen = global::Randomizer().unif_gen(a, b);
+	auto gen = global::Randomizer().unif_decgen(a, b);
 	std::vector<double> out(10);
 	std::generate(out.begin(), out.end(), gen);
 	for (auto c : out)
@@ -48,7 +48,7 @@ TEST(RANDOM, UniformGenInt)
 {
 	size_t a = 4;
 	size_t b = 16;
-	auto gen = global::Randomizer().unif_gen(a, b);
+	auto gen = global::Randomizer().unif_intgen(a, b);
 	std::vector<size_t> out(10);
 	std::generate(out.begin(), out.end(), gen);
 	for (auto c : out)
@@ -63,7 +63,7 @@ TEST(RANDOM, UniformGenInt)
 // {
 // 	double a = 16;
 // 	double b = 4;
-// 	auto gen = global::Randomizer().norm_gen(a, b);
+// 	auto gen = global::Randomizer().norm_decgen(a, b);
 // 	std::vector<size_t> out(1000);
 // 	std::generate(out.begin(), out.end(), gen);
 // 	size_t stdevs[3];

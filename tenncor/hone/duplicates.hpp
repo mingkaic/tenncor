@@ -13,14 +13,14 @@ using EqualF = std::function<bool(teq::TensptrT,teq::TensptrT)>;
 
 struct Hasher final : public teq::iOnceTraveler
 {
-	const boost::uuids::uuid& at (teq::iTensor* tens) const
+	const std::string& at (teq::iTensor* tens) const
 	{
 		return estd::must_getf(hashes_, tens,
 			"failed to find hash for %s",
 			tens->to_string().c_str());
 	}
 
-	teq::TensMapT<boost::uuids::uuid> hashes_;
+	teq::TensMapT<std::string> hashes_;
 
 private:
 	/// Implementation of iOnceTraveler
@@ -38,7 +38,7 @@ private:
 		}
 		else
 		{
-			hashes_.emplace(&leaf, global::get_uuidengine()());
+			hashes_.emplace(&leaf, global::get_generator()->get_str());
 		}
 	}
 
@@ -51,8 +51,7 @@ private:
 		teq::multi_visit(*this, deps);
 		for (teq::TensptrT dep : deps)
 		{
-			hshs.push_back(boost::uuids::to_string(
-				at(dep.get())));
+			hshs.push_back(at(dep.get()));
 		}
 		if (egen::is_commutative(
 			(egen::_GENERATED_OPCODE) func.get_opcode().code_))
@@ -69,8 +68,7 @@ private:
 				{
 					auto ref = tref->get_tensor();
 					ref->accept(*this);
-					attrs.emplace(key, boost::uuids::to_string(
-						at(ref.get())));
+					attrs.emplace(key, at(ref.get()));
 				}
 				else
 				{
@@ -86,16 +84,16 @@ private:
 
 	void encode_label (teq::iTensor* tens, const std::string& label)
 	{
-		boost::uuids::uuid uuid;
+		std::string uuid;
 		if (false == estd::get(uuid, uuids_, label))
 		{
-			uuid = global::get_uuidengine()();
+			uuid = global::get_generator()->get_str();
 			uuids_.emplace(label, uuid);
 		}
 		hashes_.emplace(tens, uuid);
 	}
 
-	std::unordered_map<std::string,boost::uuids::uuid> uuids_;
+	std::unordered_map<std::string,std::string> uuids_;
 };
 
 /// Delete and update equivalent functor and leaves

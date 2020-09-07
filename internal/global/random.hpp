@@ -20,73 +20,129 @@
 namespace global
 {
 
-/// RNG engine used
-using RandEngineT = std::default_random_engine;
-
-using UuidEngineT = boost::uuids::random_generator;
-
-/// Function that returns a generated number
+/// Function that returns a generated value
 template <typename T>
 using GenF = std::function<T()>;
 
-void set_randengine (RandEngineT* reg,
-	CfgMapptrT ctx = context());
-
-RandEngineT& get_randengine (const CfgMapptrT& ctx = context());
-
-void set_uuidengine (UuidEngineT* reg,
-	CfgMapptrT ctx = context());
-
-UuidEngineT& get_uuidengine (const CfgMapptrT& ctx = context());
-
-void seed (size_t s, CfgMapptrT ctx = context());
-
-struct Randomizer final
+struct iGenerator
 {
-	Randomizer (const CfgMapptrT& ctx = context()) :
-		engine_(&get_randengine(ctx)) {}
+	virtual ~iGenerator (void) = default;
 
-	/// Return uniformly generated number between a and b (integers only)
-	template <typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
-	T unif (const T& a, const T& b) const
+	/// Return random string
+	virtual std::string get_str (void) const = 0;
+
+	/// Return uniformly generate integer between a and b
+	virtual int64_t unif_int (
+		const int64_t& lower, const int64_t& upper) const = 0;
+
+	/// Return uniformly generate decimal between a and b
+	virtual double unif_dec (
+		const double& lower, const double& upper) const = 0;
+
+	/// Return normally generate decimal with mean and stdev
+	virtual double norm_dec (
+		const double& mean, const double& stdev) const = 0;
+
+	/// Return random string generator function
+	virtual GenF<std::string> get_strgen (void) const = 0;
+
+	/// Return generator function that uniformly generates integers between a and b
+	virtual GenF<int64_t> unif_intgen (
+		const int64_t& lower, const int64_t& upper) const = 0;
+
+	/// Return generator function that uniformly generates decimals between a and b
+	virtual GenF<double> unif_decgen (
+		const double& lower, const double& upper) const = 0;
+
+	/// Return generator function that normally generate decimal with mean and stdev
+	virtual GenF<double> norm_decgen (
+		const double& mean, const double& stdev) const = 0;
+};
+
+using GenPtrT = std::shared_ptr<iGenerator>;
+
+struct iRandGenerator : public iGenerator
+{
+	virtual ~iRandGenerator (void) = default;
+
+	/// Seed the random engine using seed specified
+	virtual void seed (size_t s) = 0;
+};
+
+void set_generator (GenPtrT gen, CfgMapptrT ctx = context());
+
+GenPtrT get_generator (const CfgMapptrT& ctx = context());
+
+void seed (size_t s, const CfgMapptrT& ctx = context());
+
+struct Randomizer final : public iRandGenerator
+{
+	/// Implementation of iGenerator
+	std::string get_str (void) const override
 	{
-		std::uniform_int_distribution<T> dist(a, b);
-		return dist(*engine_);
+		return boost::uuids::to_string(uengine_());
 	}
 
-	/// Return uniformly generate number between a and b (decimals only)
-	template <typename T, typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>
-	T unif (const T& a, const T& b) const
+	/// Implementation of iGenerator
+	int64_t unif_int (const int64_t& lower, const int64_t& upper) const override
 	{
-		std::uniform_real_distribution<T> dist(a, b);
-		return dist(*engine_);
+		std::uniform_int_distribution<int64_t> dist(lower, upper);
+		return dist(rengine_);
 	}
 
-	/// Return uniformly generator function that produces numbers between a and b (integers only)
-	template <typename T, typename std::enable_if<std::is_integral<T>::value>::type* = nullptr>
-	GenF<T> unif_gen (const T& a, const T& b) const
+	/// Implementation of iGenerator
+	double unif_dec (const double& lower, const double& upper) const override
 	{
-		std::uniform_int_distribution<T> dist(a, b);
-		return std::bind(dist, *engine_);
+		std::uniform_real_distribution<double> dist(lower, upper);
+		return dist(rengine_);
 	}
 
-	/// Return uniformly generator function that produces numbers between a and b (decimals only)
-	template <typename T, typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>
-	GenF<T> unif_gen (T a, T b) const
+	/// Implementation of iGenerator
+	double norm_dec (const double& mean, const double& stdev) const override
 	{
-		std::uniform_real_distribution<T> dist(a, b);
-		return std::bind(dist, *engine_);
+		std::normal_distribution<double> dist(mean, stdev);
+		return dist(rengine_);
 	}
 
-	/// Return normally generator function that produces numbers with mean and stdev (decimals only)
-	template <typename T, typename std::enable_if<!std::is_integral<T>::value>::type* = nullptr>
-	GenF<T> norm_gen (T mean, T stdev) const
+	/// Implementation of iGenerator
+	GenF<std::string> get_strgen (void) const override
 	{
-		std::normal_distribution<T> dist(mean, stdev);
-		return std::bind(dist, *engine_);
+		return [this]{ return boost::uuids::to_string(this->uengine_()); };
 	}
 
-	mutable RandEngineT* engine_;
+	/// Implementation of iGenerator
+	GenF<int64_t> unif_intgen (
+		const int64_t& lower, const int64_t& upper) const override
+	{
+		std::uniform_int_distribution<int64_t> dist(lower, upper);
+		return std::bind(dist, rengine_);
+	}
+
+	/// Implementation of iGenerator
+	GenF<double> unif_decgen (
+		const double& lower, const double& upper) const override
+	{
+		std::uniform_real_distribution<double> dist(lower, upper);
+		return std::bind(dist, rengine_);
+	}
+
+	/// Implementation of iGenerator
+	GenF<double> norm_decgen (
+		const double& mean, const double& stdev) const override
+	{
+		std::normal_distribution<double> dist(mean, stdev);
+		return std::bind(dist, rengine_);
+	}
+
+	/// Implementation of iRandGenerator
+	void seed (size_t s) override
+	{
+		rengine_.seed(s);
+	}
+
+	mutable std::default_random_engine rengine_;
+
+	mutable boost::uuids::random_generator uengine_;
 };
 
 }

@@ -154,7 +154,7 @@ struct Emitter final : public dbg::iPlugin
 		if (sent_graph_)
 		{
 			client_.delete_model(eval_id_);
-			eval_id_ = boost::uuids::to_string(global::get_uuidengine()());
+			eval_id_ = global::get_generator()->get_str();
 		}
 		update_it_ = 0;
 		sent_graph_ = false;
@@ -200,7 +200,7 @@ private:
 	/// GRPC Client
 	GraphEmitterClient client_;
 
-	std::string eval_id_ = boost::uuids::to_string(global::get_uuidengine()());
+	std::string eval_id_ = global::get_generator()->get_str();
 
 	size_t update_it_ = 0;
 

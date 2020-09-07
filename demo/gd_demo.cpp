@@ -21,7 +21,9 @@
 static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
 	// Specify the engine and distribution.
-	std::mt19937 mersenne_engine(global::get_randengine()());
+	std::mt19937 mersenne_engine(global::get_generator()->unif_int(
+		std::numeric_limits<int64_t>::min(),
+		std::numeric_limits<int64_t>::max()));
 	std::uniform_real_distribution<PybindT> dist(0, 1);
 
 	auto gen = std::bind(dist, mersenne_engine);
@@ -91,7 +93,7 @@ int main (int argc, const char** argv)
 	if (seed)
 	{
 		std::cout << "seeding " << seedval << '\n';
-		global::get_randengine().seed(seedval);
+		global::seed(seedval);
 	}
 
 	uint8_t n_in = 10;

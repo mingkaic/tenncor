@@ -47,7 +47,7 @@ struct DistrIOData
 		{
 			return shareds_.right.at(tensptr);
 		}
-		std::string id = boost::uuids::to_string(global::get_uuidengine()());
+		std::string id = global::get_generator()->get_str();
 		shareds_.insert({id, tensptr});
 		consul_->set_kv(node_lookup_prefix + id, consul_->id_);
 		return id;

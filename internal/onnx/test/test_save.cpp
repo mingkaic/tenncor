@@ -117,10 +117,61 @@ TEST(SAVE, SimpleGraph)
 }
 
 
+struct MockGenerator : public global::iGenerator
+{
+	std::string get_str (void) const override
+	{
+		return "predictable";
+	}
+
+	int64_t unif_int (
+		const int64_t& lower, const int64_t& upper) const override
+	{
+		return 0;
+	}
+
+	double unif_dec (
+		const double& lower, const double& upper) const override
+	{
+		return 0;
+	}
+
+	double norm_dec (
+		const double& mean, const double& stdev) const override
+	{
+		return 0;
+	}
+
+	global::GenF<std::string> get_strgen (void) const override
+	{
+		return []{ return ""; };
+	}
+
+	global::GenF<int64_t> unif_intgen (
+		const int64_t& lower, const int64_t& upper) const override
+	{
+		return []{ return 0; };
+	}
+
+	global::GenF<double> unif_decgen (
+		const double& lower, const double& upper) const override
+	{
+		return []{ return 0.; };
+	}
+
+	global::GenF<double> norm_decgen (
+		const double& mean, const double& stdev) const override
+	{
+		return []{ return 0.; };
+	}
+};
+
+
 TEST(SAVE, LayerGraph)
 {
 	std::string expect_pbfile = testdir + "/layer_onnx.onnx";
 	std::string got_pbfile = "/tmp/layer_onnx.onnx";
+	global::set_generator(std::make_shared<MockGenerator>());
 
 	{
 		onnx::ModelProto model;
@@ -157,7 +208,7 @@ TEST(SAVE, LayerGraph)
 			f1->add_attr("array", std::make_unique<marsh::NumArray<size_t>>(
 				std::vector<size_t>{4, 6, 2}));
 			f1->add_attr("num", std::make_unique<marsh::Number<double>>(4.3));
-			// ids.insert({f1.get(), "7"});
+			ids.insert({f1.get(), "7"});
 
 			teq::TensptrT dest = std::make_shared<MockFunctor>(teq::TensptrsT{
 				src2, std::make_shared<MockFunctor>(teq::TensptrsT{
@@ -238,6 +289,7 @@ TEST(SAVE, LayerGraph)
 		differ.ReportDifferencesToString(&report);
 		EXPECT_TRUE(differ.Compare(expect_model, got_model)) << report;
 	}
+	global::set_generator(nullptr);
 }
 
 

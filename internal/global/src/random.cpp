@@ -5,57 +5,36 @@
 namespace global
 {
 
-const std::string rengine_key = "rengine";
+const std::string generator_key = "generator";
 
-const std::string uengine_key = "uengine";
-
-void set_randengine (RandEngineT* reg, CfgMapptrT ctx)
+void set_generator (GenPtrT gen, CfgMapptrT ctx)
 {
-	ctx->rm_entry(rengine_key);
-	if (reg)
+	ctx->rm_entry(generator_key);
+	if (gen)
 	{
-		ctx->template add_entry<RandEngineT>(rengine_key,
-			[=](){ return reg; });
+		ctx->template add_entry<GenPtrT>(generator_key,
+			[=](){ return new GenPtrT(gen); });
 	}
 }
 
-RandEngineT& get_randengine (const CfgMapptrT& ctx)
+GenPtrT get_generator (const CfgMapptrT& ctx)
 {
-	auto reg = static_cast<RandEngineT*>(
-		ctx->get_obj(rengine_key));
-	if (nullptr == reg)
+	auto gen = static_cast<GenPtrT*>(ctx->get_obj(generator_key));
+	if (nullptr != ctx->get_obj(generator_key))
 	{
-		reg = new RandEngineT();
-		set_randengine(reg, ctx);
+		return *gen;
 	}
-	return *reg;
+	auto rgen = std::make_shared<Randomizer>();
+	set_generator(rgen, ctx);
+	return rgen;
 }
 
-void set_uuidengine (UuidEngineT* reg, CfgMapptrT ctx)
+void seed (size_t s, const CfgMapptrT& ctx)
 {
-	ctx->rm_entry(uengine_key);
-	if (reg)
+	if (auto gen = dynamic_cast<iRandGenerator*>(get_generator(ctx).get()))
 	{
-		ctx->template add_entry<UuidEngineT>(uengine_key,
-			[=](){ return reg; });
+		gen->seed(s);
 	}
-}
-
-UuidEngineT& get_uuidengine (const CfgMapptrT& ctx)
-{
-	auto reg = static_cast<UuidEngineT*>(
-		ctx->get_obj(uengine_key));
-	if (nullptr == reg)
-	{
-		reg = new UuidEngineT();
-		set_uuidengine(reg, ctx);
-	}
-	return *reg;
-}
-
-void seed (size_t s, CfgMapptrT ctx)
-{
-	get_randengine(ctx).seed(s);
 }
 
 }
