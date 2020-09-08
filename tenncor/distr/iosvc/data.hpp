@@ -5,8 +5,8 @@
 #include <boost/bimap.hpp>
 #include <boost/lexical_cast.hpp>
 
-#include "tenncor/distrib/reference.hpp"
-#include "tenncor/distrib/consul.hpp"
+#include "tenncor/distr/reference.hpp"
+#include "tenncor/distr/consul.hpp"
 
 namespace distr
 {

@@ -38,8 +38,8 @@ cc_library(
     deps = [
         ":printsvc_cc_grpc",
         "//dbg/print:print",
-        "//tenncor/distrib/iosvc:iosvc",
-        "//tenncor/distrib:distrib",
+        "//tenncor/distr/iosvc:iosvc",
+        "//tenncor/distr:distr",
     ],
     visibility = ["//visibility:public"],
 )

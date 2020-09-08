@@ -2,7 +2,7 @@
 #ifndef DISTRIB_OP_SERVICE_HPP
 #define DISTRIB_OP_SERVICE_HPP
 
-#include "tenncor/distrib/iosvc/service.hpp"
+#include "tenncor/distr/iosvc/service.hpp"
 
 #include "tenncor/eteq/eteq.hpp"
 #include "tenncor/eteq/opsvc/client.hpp"

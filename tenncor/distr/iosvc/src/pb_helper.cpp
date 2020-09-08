@@ -1,4 +1,4 @@
-#include "tenncor/distrib/iosvc/pb_helper.hpp"
+#include "tenncor/distr/iosvc/pb_helper.hpp"
 
 #ifdef DISTRIB_IO_PB_HELPER_HPP
 

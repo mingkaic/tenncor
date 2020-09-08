@@ -18,7 +18,7 @@ filegroup(
         "//tenncor/hone:srcs",
         "//tenncor/serial:srcs",
         "//tenncor/trainer:srcs",
-        "//tenncor/distrib:srcs",
+        "//tenncor/distr:srcs",
         "//tenncor/layr:srcs",
         "//tenncor/pyutils:srcs",
         "BUILD.bazel",

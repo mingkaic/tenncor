@@ -8,7 +8,7 @@
 #include "exam/exam.hpp"
 
 #include "dbg/print/printsvc/service.hpp"
-#include "tenncor/distrib/manager.hpp"
+#include "tenncor/distr/manager.hpp"
 
 #include "tenncor/eteq/make.hpp"
 

@@ -11,7 +11,7 @@
 
 #include "tenncor/eteq/eteq.hpp"
 
-#include "tenncor/distrib.hpp"
+#include "tenncor/distr.hpp"
 
 namespace tcr
 {

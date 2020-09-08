@@ -36,7 +36,7 @@ cc_library(
     deps = [
         "//internal/onnx:onnx",
         "//tenncor/layr:layr",
-        "//tenncor/distrib/iosvc:iosvc",
+        "//tenncor/distr/iosvc:iosvc",
     ],
     visibility = ["//visibility:public"],
 )

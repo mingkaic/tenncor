@@ -223,7 +223,7 @@ COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
 ETEQ_CTEST := //tenncor/eteq:ctest
 LAYR_CTEST := //tenncor/layr:ctest
-DISTRIB_CTEST := //tenncor/distrib:ctest
+DISTRIB_CTEST := //tenncor/distr:ctest
 
 .PHONY: cov_clean
 cov_clean: ${LOC_COVERAGE_FILE}
@@ -302,7 +302,7 @@ cover_util:
 cover_distrib:
 	${CCOVER} ${DISTRIB_CTEST}
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/distrib/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/distr/*' -o ${LOC_COVERAGE_FILE}
 
 .PHONY: cover_eteq
 cover_eteq:

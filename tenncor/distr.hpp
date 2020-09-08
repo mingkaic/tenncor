@@ -2,7 +2,7 @@
 #ifndef TENNCOR_DISTR_HPP
 #define TENNCOR_DISTR_HPP
 
-#include "tenncor/distrib/distrib.hpp"
+#include "tenncor/distr/distr.hpp"
 #include "tenncor/eteq/opsvc/service.hpp"
 #include "tenncor/serial/oxsvc/service.hpp"
 

@@ -4,7 +4,7 @@
 
 #include "dbg/print/print.hpp"
 
-#include "tenncor/distrib/reference.hpp"
+#include "tenncor/distr/reference.hpp"
 
 namespace distr
 {

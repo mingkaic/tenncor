@@ -38,8 +38,8 @@ cc_library(
     deps = [
         ":opsvc_cc_grpc",
         "//tenncor/eteq:eteq",
-        "//tenncor/distrib/iosvc:iosvc",
-        "//tenncor/distrib:distrib",
+        "//tenncor/distr/iosvc:iosvc",
+        "//tenncor/distr:distr",
     ],
     visibility = ["//visibility:public"],
 )
@@ -47,7 +47,7 @@ cc_library(
 proto_library(
     name = "opsvc_pb",
     srcs = [":protos"],
-    deps = ["//tenncor/distrib/iosvc:iosvc_pb"],
+    deps = ["//tenncor/distr/iosvc:iosvc_pb"],
     visibility = ["//visibility:public"],
 )
 

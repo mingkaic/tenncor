@@ -2,7 +2,7 @@
 #ifndef DISTRIB_HO_SERVICE_HPP
 #define DISTRIB_HO_SERVICE_HPP
 
-#include "tenncor/distrib/imanager.hpp"
+#include "tenncor/distr/imanager.hpp"
 
 #include "tenncor/hone/hone.hpp"
 #include "tenncor/hone/hosvc/client.hpp"

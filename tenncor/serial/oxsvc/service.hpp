@@ -3,7 +3,7 @@
 
 #include "tenncor/serial/serial.hpp"
 
-#include "tenncor/distrib/iosvc/service.hpp"
+#include "tenncor/distr/iosvc/service.hpp"
 
 #include "tenncor/serial/serial.hpp"
 #include "tenncor/serial/oxsvc/client.hpp"

@@ -37,7 +37,7 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         ":iosvc_cc_grpc",
-        "//tenncor/distrib:distrib",
+        "//tenncor/distr:distr",
     ],
     visibility = ["//visibility:public"],
 )

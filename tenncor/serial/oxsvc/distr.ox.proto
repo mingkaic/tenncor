@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "internal/onnx/onnx.proto";
 
-import "tenncor/distrib/iosvc/distr.io.proto";
+import "tenncor/distr/iosvc/distr.io.proto";
 
 package distr.ox;
 

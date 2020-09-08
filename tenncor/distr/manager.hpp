@@ -2,7 +2,7 @@
 #ifndef DISTRIB_MANAGER_HPP
 #define DISTRIB_MANAGER_HPP
 
-#include "tenncor/distrib/imanager.hpp"
+#include "tenncor/distr/imanager.hpp"
 
 namespace distr
 {

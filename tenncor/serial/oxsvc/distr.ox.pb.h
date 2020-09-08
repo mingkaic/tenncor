@@ -36,7 +36,7 @@
 #include <google/protobuf/map_field_inl.h>
 #include <google/protobuf/unknown_field_set.h>
 #include "internal/onnx/onnx.pb.h"
-#include "tenncor/distrib/iosvc/distr.io.pb.h"
+#include "tenncor/distr/iosvc/distr.io.pb.h"
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
 #define PROTOBUF_INTERNAL_EXPORT_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto

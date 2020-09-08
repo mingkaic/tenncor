@@ -1,4 +1,4 @@
-#include "tenncor/distrib/consul.hpp"
+#include "tenncor/distr/consul.hpp"
 
 #ifdef DISTRIB_CONSUL_HPP
 

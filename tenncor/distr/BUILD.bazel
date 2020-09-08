@@ -3,23 +3,23 @@ licenses(["notice"])
 filegroup(
     name = "srcs",
     srcs = [
-        ":distrib_hdrs",
-        ":distrib_srcs",
+        ":distr_hdrs",
+        ":distr_srcs",
         ":ctest_srcs",
         ":ptest_srcs",
-        "//tenncor/distrib/iosvc:srcs",
+        "//tenncor/distr/iosvc:srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],
 )
 
 filegroup(
-    name = "distrib_hdrs",
+    name = "distr_hdrs",
     srcs = glob(["*.hpp"]),
 )
 
 filegroup(
-    name = "distrib_srcs",
+    name = "distr_srcs",
     srcs = glob(["src/*.cpp"]),
 )
 
@@ -41,9 +41,9 @@ filegroup(
 ######### LIBRARY #########
 
 cc_library(
-    name = "distrib",
-    hdrs = [":distrib_hdrs"],
-    srcs = [":distrib_srcs"],
+    name = "distr",
+    hdrs = [":distr_hdrs"],
+    srcs = [":distr_srcs"],
     copts = ["-std=c++17"],
     deps = [
         "//internal/eigen:eigen",

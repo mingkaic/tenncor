@@ -2,10 +2,10 @@
 #ifndef DISTRIB_IO_SERVICE_HPP
 #define DISTRIB_IO_SERVICE_HPP
 
-#include "tenncor/distrib/imanager.hpp"
-#include "tenncor/distrib/iosvc/client.hpp"
-#include "tenncor/distrib/iosvc/data.hpp"
-#include "tenncor/distrib/iosvc/pb_helper.hpp"
+#include "tenncor/distr/imanager.hpp"
+#include "tenncor/distr/iosvc/client.hpp"
+#include "tenncor/distr/iosvc/data.hpp"
+#include "tenncor/distr/iosvc/pb_helper.hpp"
 
 namespace distr
 {

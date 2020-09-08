@@ -38,7 +38,7 @@ cc_library(
     deps = [
         ":hosvc_cc_grpc",
         "//tenncor/hone:hone",
-        "//tenncor/distrib:distrib",
+        "//tenncor/distr:distr",
     ],
     visibility = ["//visibility:public"],
 )

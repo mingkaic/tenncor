@@ -40,18 +40,18 @@ elif [[ "$MODE" == "layr" ]]; then
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //tenncor/layr:ptest;
 elif [[ "$MODE" == "distrib" ]]; then
-	bzl_coverage //tenncor/distrib:ctest;
+	bzl_coverage //tenncor/distr:ctest;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //tenncor/distrib:ptest;
+	--remote_http_cache="$REMOTE_CACHE" //tenncor/distr:ptest;
 else
-	bzl_coverage //internal/eigen:test //tenncor/eteq:ctest //tenncor/distrib:ctest \
+	bzl_coverage //internal/eigen:test //tenncor/eteq:ctest //tenncor/distr:ctest \
 	//tenncor/layr:ctest //internal/marsh:test //internal/onnx:test //internal/opt:test \
 	//internal/query:test //internal/teq:test //internal/utils/...;
 
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" \
-	//tools/gen:ptest //tenncor/eteq:ptest //tenncor/layr:ptest //tenncor/distrib:ptest;
+	//tools/gen:ptest //tenncor/eteq:ptest //tenncor/layr:ptest //tenncor/distr:ptest;
 fi
 
 lcov --remove "$COV_DIR/coverage.info" 'external/*' '**/test/*' \

@@ -4,7 +4,7 @@
 
 #include "egrpc/egrpc.hpp"
 
-#include "tenncor/distrib/iosvc/distr.io.grpc.pb.h"
+#include "tenncor/distr/iosvc/distr.io.grpc.pb.h"
 
 namespace distr
 {

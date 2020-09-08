@@ -1,5 +1,5 @@
 
-#include "tenncor/distrib.hpp"
+#include "tenncor/distr.hpp"
 
 #ifdef TENNCOR_DISTR_HPP
 

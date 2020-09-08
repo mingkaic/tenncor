@@ -5,7 +5,7 @@
 #include "error/error.hpp"
 #include "egrpc/egrpc.hpp"
 
-#include "tenncor/distrib/consul.hpp"
+#include "tenncor/distr/consul.hpp"
 
 namespace distr
 {

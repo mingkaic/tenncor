@@ -38,7 +38,7 @@ cc_library(
     deps = [
         ":oxsvc_cc_grpc",
         "//tenncor/serial:serial",
-        "//tenncor/distrib:distrib",
+        "//tenncor/distr:distr",
     ],
     visibility = ["//visibility:public"],
 )
@@ -48,7 +48,7 @@ proto_library(
     srcs = [":protos"],
     deps = [
         "//internal/onnx:onnx_pb",
-        "//tenncor/distrib/iosvc:iosvc_pb",
+        "//tenncor/distr/iosvc:iosvc_pb",
     ],
     visibility = ["//visibility:public"],
 )

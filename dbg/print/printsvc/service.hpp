@@ -4,7 +4,7 @@
 
 #include "egrpc/egrpc.hpp"
 
-#include "tenncor/distrib/iosvc/service.hpp"
+#include "tenncor/distr/iosvc/service.hpp"
 
 #include "dbg/print/printsvc/data.hpp"
 #include "dbg/print/printsvc/client.hpp"

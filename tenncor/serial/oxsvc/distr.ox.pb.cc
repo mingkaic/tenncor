@@ -14,7 +14,7 @@
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
-extern PROTOBUF_INTERNAL_EXPORT_tenncor_2fdistrib_2fiosvc_2fdistr_2eio_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_NodeMeta_tenncor_2fdistrib_2fiosvc_2fdistr_2eio_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_tenncor_2fdistr_2fiosvc_2fdistr_2eio_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_NodeMeta_tenncor_2fdistr_2fiosvc_2fdistr_2eio_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_PostLoadGraphRequest_TopographyEntry_DoNotUse_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_internal_2fonnx_2fonnx_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<4> scc_info_AttributeProto_internal_2fonnx_2fonnx_2eproto;
 namespace distr {
@@ -112,7 +112,7 @@ static void InitDefaultsscc_info_PostLoadGraphResponse_tenncor_2fserial_2foxsvc_
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_PostLoadGraphResponse_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto =
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_PostLoadGraphResponse_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto}, {
-      &scc_info_NodeMeta_tenncor_2fdistrib_2fiosvc_2fdistr_2eio_2eproto.base,}};
+      &scc_info_NodeMeta_tenncor_2fdistr_2fiosvc_2fdistr_2eio_2eproto.base,}};
 
 static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto[5];
 static constexpr ::PROTOBUF_NAMESPACE_ID::EnumDescriptor const** file_level_enum_descriptors_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto = nullptr;
@@ -172,25 +172,25 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 
 const char descriptor_table_protodef_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n#tenncor/serial/oxsvc/distr.ox.proto\022\010d"
-  "istr.ox\032\030internal/onnx/onnx.proto\032$tennc"
-  "or/distrib/iosvc/distr.io.proto\"$\n\023GetSa"
-  "veGraphRequest\022\r\n\005uuids\030\001 \003(\t\"7\n\024GetSave"
-  "GraphResponse\022\037\n\005graph\030\001 \001(\0132\020.onnx.Grap"
-  "hProto\"\256\001\n\024PostLoadGraphRequest\022\037\n\005graph"
-  "\030\001 \001(\0132\020.onnx.GraphProto\022B\n\ntopography\030\002"
-  " \003(\0132..distr.ox.PostLoadGraphRequest.Top"
-  "ographyEntry\0321\n\017TopographyEntry\022\013\n\003key\030\001"
-  " \001(\t\022\r\n\005value\030\002 \001(\t:\0028\001\";\n\025PostLoadGraph"
-  "Response\022\"\n\006values\030\001 \003(\0132\022.distr.io.Node"
-  "Meta2\265\001\n\022DistrSerialization\022M\n\014GetSaveGr"
-  "aph\022\035.distr.ox.GetSaveGraphRequest\032\036.dis"
-  "tr.ox.GetSaveGraphResponse\022P\n\rPostLoadGr"
-  "aph\022\036.distr.ox.PostLoadGraphRequest\032\037.di"
-  "str.ox.PostLoadGraphResponseb\006proto3"
+  "istr.ox\032\030internal/onnx/onnx.proto\032\"tennc"
+  "or/distr/iosvc/distr.io.proto\"$\n\023GetSave"
+  "GraphRequest\022\r\n\005uuids\030\001 \003(\t\"7\n\024GetSaveGr"
+  "aphResponse\022\037\n\005graph\030\001 \001(\0132\020.onnx.GraphP"
+  "roto\"\256\001\n\024PostLoadGraphRequest\022\037\n\005graph\030\001"
+  " \001(\0132\020.onnx.GraphProto\022B\n\ntopography\030\002 \003"
+  "(\0132..distr.ox.PostLoadGraphRequest.Topog"
+  "raphyEntry\0321\n\017TopographyEntry\022\013\n\003key\030\001 \001"
+  "(\t\022\r\n\005value\030\002 \001(\t:\0028\001\";\n\025PostLoadGraphRe"
+  "sponse\022\"\n\006values\030\001 \003(\0132\022.distr.io.NodeMe"
+  "ta2\265\001\n\022DistrSerialization\022M\n\014GetSaveGrap"
+  "h\022\035.distr.ox.GetSaveGraphRequest\032\036.distr"
+  ".ox.GetSaveGraphResponse\022P\n\rPostLoadGrap"
+  "h\022\036.distr.ox.PostLoadGraphRequest\032\037.dist"
+  "r.ox.PostLoadGraphResponseb\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_deps[2] = {
   &::descriptor_table_internal_2fonnx_2fonnx_2eproto,
-  &::descriptor_table_tenncor_2fdistrib_2fiosvc_2fdistr_2eio_2eproto,
+  &::descriptor_table_tenncor_2fdistr_2fiosvc_2fdistr_2eio_2eproto,
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_sccs[5] = {
   &scc_info_GetSaveGraphRequest_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto.base,
@@ -202,7 +202,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_ten
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_once;
 static bool descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto = {
-  &descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_initialized, descriptor_table_protodef_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto, "tenncor/serial/oxsvc/distr.ox.proto", 636,
+  &descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_initialized, descriptor_table_protodef_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto, "tenncor/serial/oxsvc/distr.ox.proto", 634,
   &descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_once, descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_sccs, descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_deps, 5, 2,
   schemas, file_default_instances, TableStruct_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto::offsets,
   file_level_metadata_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto, 5, file_level_enum_descriptors_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto, file_level_service_descriptors_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto,
