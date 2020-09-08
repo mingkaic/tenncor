@@ -7,8 +7,7 @@ filegroup(
     srcs = [
         ":eteq_hdrs",
         ":eteq_srcs",
-        ":ctest_srcs",
-        ":ptest_srcs",
+        ":test_srcs",
         "//tenncor/eteq/opsvc:srcs",
         "BUILD.bazel",
     ],
@@ -26,13 +25,8 @@ filegroup(
 )
 
 filegroup(
-    name = "ctest_srcs",
+    name = "test_srcs",
     srcs = glob(["test/*.cpp"]),
-)
-
-filegroup(
-    name = "ptest_srcs",
-    srcs = ["test/ptest.py"],
 )
 
 ######### LIBRARY #########
@@ -49,12 +43,11 @@ cc_library(
 ######### TEST #########
 
 cc_test(
-    name = "ctest",
-    srcs = [":ctest_srcs"],
+    name = "test",
+    srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//tenncor:tenncor",
-        "//internal/utils/coord:coord",
+        "//tenncor/eteq:eteq",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
@@ -63,18 +56,5 @@ cc_test(
     data = [
         "//:test_models",
         "//cfg:optimizations",
-    ],
-)
-
-py_test(
-    name = "ptest",
-    srcs = [":ptest_srcs"],
-    deps = [
-        "//tenncor:tenncor_py",
-        "//testutil:pyunit_util",
-    ],
-    data = [
-        "//:test_models",
-        "//testutil:ead_testcase_template",
     ],
 )

@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 
 #include "internal/onnx/onnx.hpp"
+#include "internal/query/query.pb.h"
 
 #include "exam/exam.hpp"
 

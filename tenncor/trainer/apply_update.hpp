@@ -2,7 +2,10 @@
 #ifndef TRAINER_SGD_HPP
 #define TRAINER_SGD_HPP
 
-#include "tenncor/trainer/trainer.hpp"
+#include "tenncor/layr/layer.hpp"
+#include "tenncor/layr/approx.hpp"
+
+#include "tenncor/tenncor.hpp"
 
 namespace trainer
 {

@@ -16,9 +16,10 @@
 #include "dbg/compare/equal.hpp"
 
 #include "tenncor/layr/layer.hpp"
-#include "tenncor/trainer/apply_update.hpp"
 
-static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
+#include "tenncor/trainer/trainer.hpp"
+
+static trainer::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
 	// Specify the engine and distribution.
 	std::mt19937 mersenne_engine(global::get_generator()->unif_int(
@@ -27,14 +28,14 @@ static teq::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
 	std::uniform_real_distribution<PybindT> dist(0, 1);
 
 	auto gen = std::bind(dist, mersenne_engine);
-	teq::ShapedArr<PybindT> out(teq::Shape({n, batchsize}));
+	trainer::ShapedArr<PybindT> out(teq::Shape({n, batchsize}));
 	std::generate(std::begin(out.data_), std::end(out.data_), gen);
 	return out;
 }
 
-static teq::ShapedArr<PybindT> avgevry2 (teq::ShapedArr<PybindT>& in)
+static trainer::ShapedArr<PybindT> avgevry2 (trainer::ShapedArr<PybindT>& in)
 {
-	teq::ShapedArr<PybindT> out(teq::Shape({
+	trainer::ShapedArr<PybindT> out(teq::Shape({
 		static_cast<teq::DimT>(in.shape_.at(0) / 2),
 		in.shape_.at(1)}));
 	for (size_t i = 0, n = in.data_.size() / 2; i < n; i++)
@@ -178,10 +179,10 @@ int main (int argc, const char** argv)
 	start = std::clock();
 	for (size_t i = 0; i < n_train; i++)
 	{
-		teq::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
-		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		train_input->assign(batch, global::context());
-		train_exout->assign(batch_out, global::context());
+		trainer::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
+		trainer::ShapedArr<PybindT> batch_out = avgevry2(batch);
+		train_input->assign(batch.data_.data(), batch.shape);
+		train_exout->assign(batch_out.data_.data(), batch_out.shape_);
 		PybindT* data = train_err.calc<PybindT>();
 		if (i % show_every_n == show_every_n - 1)
 		{
@@ -208,9 +209,9 @@ int main (int argc, const char** argv)
 		{
 			std::cout << "testing " << i + 1 << '\n';
 		}
-		teq::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
-		teq::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		testin->assign(batch, global::context());
+		trainer::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
+		trainer::ShapedArr<PybindT> batch_out = avgevry2(batch);
+		testin->assign(batch.data_.data(), batch.shape_);
 		PybindT* untrained_res = untrained_out.calc<PybindT>();
 		PybindT* trained_res = trained_out.calc<PybindT>();
 		PybindT* pretrained_res = pretrained_out.calc<PybindT>();

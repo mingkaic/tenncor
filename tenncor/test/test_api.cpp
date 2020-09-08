@@ -6,11 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "internal/teq/evaluator.hpp"
-
 #include "internal/utils/coord/coord.hpp"
-
-#include "tenncor/eteq/make.hpp"
 
 #include "tenncor/tenncor.hpp"
 

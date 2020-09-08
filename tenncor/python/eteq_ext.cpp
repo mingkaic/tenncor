@@ -73,22 +73,6 @@ void eteq_ext (py::module& m)
 		.def("as_list",
 		[](teq::Shape& shape) { return pyutils::c2pshape(shape); });
 
-	py::class_<teq::ShapedArr<PybindT>> sarr(m, "ShapedArr");
-
-	sarr
-		.def(py::init(
-			[](py::array ar)
-			{
-				teq::ShapedArr<PybindT> a;
-				pyutils::arr2shapedarr(a, ar);
-				return a;
-			}))
-		.def("as_numpy",
-			[](teq::ShapedArr<PybindT>* self) -> py::array
-			{
-				return pyutils::shapedarr2arr<PybindT>(*self);
-			});
-
 	// ==== etens ====
 	auto etens = (py::class_<eteq::ETensor>) m.attr("ETensor");
 
@@ -233,9 +217,9 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 		[](eteq::EVariable<PybindT>& self, py::array data,
 			global::CfgMapptrT ctx)
 		{
-			teq::ShapedArr<PybindT> arr;
-			pyutils::arr2shapedarr(arr, data);
-			self->assign(arr, ctx);
+			teq::Shape shape;
+			auto vec = pyutils::arr2shapedarr<PybindT>(shape, data);
+			self->assign(vec.data(), shape, ctx);
 		},
 		"Assign numpy data array to variable",
 		py::arg("data"),
@@ -254,9 +238,9 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 		.def("constant",
 		[](py::array data)
 		{
-			teq::ShapedArr<PybindT> arr;
-			pyutils::arr2shapedarr(arr, data);
-			return eteq::make_constant(arr.data_.data(), arr.shape_);
+			teq::Shape shape;
+			auto vec = pyutils::arr2shapedarr<PybindT>(shape, data);
+			return eteq::make_constant(vec.data(), shape);
 		}, "Return constant etens with data")
 
 		// ==== variable creation ====
@@ -290,11 +274,9 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 		[](py::array data,
 			const std::string& label, global::CfgMapptrT context)
 		{
-			teq::ShapedArr<PybindT> arr;
-			pyutils::arr2shapedarr(arr, data);
-			return eteq::make_variable(
-				arr.data_.data(), arr.shape_, label,
-				context);
+			teq::Shape shape;
+			auto vec = pyutils::arr2shapedarr<PybindT>(shape, data);
+			return eteq::make_variable(vec.data(), shape, label, context);
 		},
 		"Return labelled variable containing numpy data array",
 		py::arg("data"),

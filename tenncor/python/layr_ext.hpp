@@ -6,8 +6,7 @@
 
 #include "pybind11/functional.h"
 
-#include "tenncor/trainer/apply_update.hpp"
-#include "tenncor/trainer/dbn.hpp"
+#include "tenncor/trainer/trainer.hpp"
 
 #include "python/tenncor_utils.hpp"
 

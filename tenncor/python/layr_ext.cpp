@@ -43,8 +43,8 @@ void layr_ext(py::module& m)
 		[](trainer::DBNTrainer<PybindT>* self, py::array x, size_t nepochs,
 			std::function<void(size_t,size_t)> logger)
 		{
-			teq::ShapedArr<PybindT> xa;
-			pyutils::arr2shapedarr(xa, x);
+			trainer::ShapedArr<PybindT> xa;
+			xa.data_ = pyutils::arr2shapedarr<PybindT>(xa.shape_, x);
 			return self->pretrain(xa, nepochs, logger);
 		},
 		py::arg("x"),
@@ -55,11 +55,10 @@ void layr_ext(py::module& m)
 		[](trainer::DBNTrainer<PybindT>* self, py::array x, py::array y, size_t nepochs,
 			std::function<void(size_t)> logger)
 		{
-			teq::Shape shape;
-			teq::ShapedArr<PybindT> xa;
-			teq::ShapedArr<PybindT> ya;
-			pyutils::arr2shapedarr(xa, x);
-			pyutils::arr2shapedarr(ya, y);
+			trainer::ShapedArr<PybindT> xa;
+			trainer::ShapedArr<PybindT> ya;
+			xa.data_ = pyutils::arr2shapedarr<PybindT>(xa.shape_, x);
+			ya.data_ = pyutils::arr2shapedarr<PybindT>(ya.shape_, y);
 			return self->finetune(xa, ya, nepochs, logger);
 		},
 		py::arg("x"),

@@ -3,6 +3,7 @@
 #define DBN_TRAINER_HPP
 
 #include "tenncor/trainer/rbm.hpp"
+#include "tenncor/trainer/shaped_arr.hpp"
 
 namespace trainer
 {
@@ -118,11 +119,11 @@ struct DBNTrainer final
 			((T) 1 - trainy_) * api.log((T) 1 - final_out), 0));
 	}
 
-	void pretrain (teq::ShapedArr<T>& train_in, size_t nepochs = 100,
+	void pretrain (trainer::ShapedArr<T>& train_in, size_t nepochs = 100,
 		std::function<void(size_t,size_t)> logger =
 			std::function<void(size_t,size_t)>())
 	{
-		trainx_->assign(train_in, context_);
+		trainx_->assign(train_in.data_.data(), train_in.shape_, context_);
 
 		eigen::Device device;
 		auto& eval = teq::get_eval(global::context());
@@ -155,12 +156,12 @@ struct DBNTrainer final
 		}
 	}
 
-	void finetune (teq::ShapedArr<T>& train_in, teq::ShapedArr<T>& train_out,
+	void finetune (trainer::ShapedArr<T>& train_in, trainer::ShapedArr<T>& train_out,
 		size_t nepochs = 100, std::function<void(size_t)> logger =
 			std::function<void(size_t)>())
 	{
-		trainx_->assign(train_in, context_);
-		trainy_->assign(train_out, context_);
+		trainx_->assign(train_in.data_.data(), train_in.shape_, context_);
+		trainy_->assign(train_out.data_.data(), train_out.shape_, context_);
 
 		eigen::Device device;
 		// assert len(self.sample_pipes) > 1, since self.n_layers > 0

@@ -21,7 +21,7 @@ def _round_helper(x):
         return round(x)
     return tc.api.round(x)
 
-class EADTest(ArrTest):
+class TenncorTest(ArrTest):
     def _common_assign(self, case, api):
         pos_cases = _reader.get_case(case + '_pos')
         assert(len(pos_cases) > 0)

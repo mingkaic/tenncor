@@ -8,4 +8,3 @@
 
 #include "internal/teq/derive.hpp"
 #include "internal/teq/evaluator.hpp"
-#include "internal/teq/shaped_arr.hpp"

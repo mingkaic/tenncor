@@ -5,8 +5,6 @@
 
 #include "internal/global/global.hpp"
 
-#include "internal/eigen/eigen.hpp"
-
 int main (int argc, char** argv)
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;

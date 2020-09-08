@@ -1,17 +1,17 @@
 ///
 /// shaped_arr.hpp
-/// teq
+/// trainer
 ///
 /// Purpose:
 /// Define a shaped data representation
 ///
 
-#ifndef TEQ_SHAPED_ARR_HPP
-#define TEQ_SHAPED_ARR_HPP
+#ifndef TRAINER_SHAPED_ARR_HPP
+#define TRAINER_SHAPED_ARR_HPP
 
 #include "internal/teq/shape.hpp"
 
-namespace teq
+namespace trainer
 {
 
 /// Shaped array wraps around a vector and shape
@@ -20,19 +20,19 @@ struct ShapedArr final
 {
 	ShapedArr (void) = default;
 
-	ShapedArr (Shape shape, T data = 0) :
+	ShapedArr (teq::Shape shape, T data = 0) :
 		data_(shape.n_elems(), data), shape_(shape) {}
 
-	ShapedArr (Shape shape, const std::vector<T>& data) :
+	ShapedArr (teq::Shape shape, const std::vector<T>& data) :
 		data_(data), shape_(shape) {}
 
 	/// Vector of size equal to shape_.n_elems()
 	std::vector<T> data_;
 
 	/// Tensor shape of data_
-	Shape shape_;
+	teq::Shape shape_;
 };
 
 }
 
-#endif // TEQ_SHAPED_ARR_HPP
+#endif // TRAINER_SHAPED_ARR_HPP

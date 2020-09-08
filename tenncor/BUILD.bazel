@@ -13,6 +13,8 @@ filegroup(
         ":tenncor_srcs",
         ":pybind_hdrs",
         ":pybind_srcs",
+        ":ctest_srcs",
+        ":ptest_srcs",
         ":benchmark_srcs",
         "//tenncor/eteq:srcs",
         "//tenncor/hone:srcs",
@@ -42,11 +44,6 @@ filegroup(
 )
 
 filegroup(
-    name = "trainer_hdrs",
-    srcs = glob(["trainer/*.hpp"]),
-)
-
-filegroup(
     name = "pybind_hdrs",
     srcs = glob(["python/*.hpp"]),
 )
@@ -54,6 +51,16 @@ filegroup(
 filegroup(
     name = "pybind_srcs",
     srcs = glob(["python/*.cpp"]),
+)
+
+filegroup(
+    name = "ctest_srcs",
+    srcs = glob(["test/*.cpp"]),
+)
+
+filegroup(
+    name = "ptest_srcs",
+    srcs = ["test/ptest.py"],
 )
 
 ######### LIBRARY #########
@@ -142,4 +149,37 @@ cc_binary(
     ],
     copts = ["-std=c++17"],
     data = ["//cfg:optimizations"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "ctest",
+    srcs = [":ctest_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//internal/utils/coord:coord",
+        "//tenncor:tenncor",
+        "//testutil:tutil",
+        "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    linkstatic = True,
+    data = [
+        "//:test_models",
+        "//cfg:optimizations",
+    ],
+)
+
+py_test(
+    name = "ptest",
+    srcs = [":ptest_srcs"],
+    deps = [
+        "//tenncor:tenncor_py",
+        "//testutil:pyunit_util",
+    ],
+    data = [
+        "//:test_models",
+        "//testutil:ead_testcase_template",
+    ],
 )
