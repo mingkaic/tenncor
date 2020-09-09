@@ -21,7 +21,7 @@ static void parse_attr (query::Attribute& attr, const std::string& jstr)
 }
 
 
-TEST(ATTR, Unknown)
+TEST(QUERYATTRS, Unknown)
 {
 	query::Query matcher;
 	query::Attribute attr;
@@ -34,7 +34,7 @@ TEST(ATTR, Unknown)
 }
 
 
-TEST(ATTR, IntEquals)
+TEST(QUERYATTRS, IntEquals)
 {
 	query::Query matcher;
 	query::Attribute attr;
@@ -53,7 +53,7 @@ TEST(ATTR, IntEquals)
 }
 
 
-TEST(ATTR, DecEquals)
+TEST(QUERYATTRS, DecEquals)
 {
 	query::Query matcher;
 	query::Attribute attr;
@@ -72,7 +72,7 @@ TEST(ATTR, DecEquals)
 }
 
 
-TEST(ATTR, IntArrEquals)
+TEST(QUERYATTRS, IntArrEquals)
 {
 	query::Query matcher;
 	query::Attribute attr;
@@ -94,7 +94,7 @@ TEST(ATTR, IntArrEquals)
 }
 
 
-TEST(ATTR, DecArrEquals)
+TEST(QUERYATTRS, DecArrEquals)
 {
 	query::Query matcher;
 	query::Attribute attr;
@@ -116,7 +116,7 @@ TEST(ATTR, DecArrEquals)
 }
 
 
-TEST(ATTR, StrEquals)
+TEST(QUERYATTRS, StrEquals)
 {
 	query::Query matcher;
 	query::Attribute attr;
@@ -131,13 +131,13 @@ TEST(ATTR, StrEquals)
 }
 
 
-// TEST(ATTR, NodeEquals)
+// TEST(QUERYATTRS, NodeEquals)
 // {
 // 	//
 // }
 
 
-// TEST(ATTR, LayerEquals)
+// TEST(QUERYATTRS, LayerEquals)
 // {
 // 	//
 // }

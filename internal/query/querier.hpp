@@ -185,6 +185,12 @@ private:
 	{
 		sindex_[func.get_opcode().name_].push_back(&func);
 		auto deps = func.get_args();
+
+		marsh::Maps attrs;
+		marsh::get_attrs(attrs, func);
+		teq::FindTensAttr finder;
+		attrs.accept(finder);
+		deps.insert(deps.end(), finder.tens_.begin(), finder.tens_.end());
 		teq::multi_visit(*this, deps);
 	}
 

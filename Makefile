@@ -221,8 +221,10 @@ gru_model_j2o: models/fast_gru.json models/latin_gru.json
 TMP_COVFILE := /tmp/coverage.info
 COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
-ETEQ_CTEST := //tenncor/eteq:ctest
+ETEQ_CTEST := //tenncor/eteq:test
+HONE_CTEST := //tenncor/hone:ctest
 LAYR_CTEST := //tenncor/layr:ctest
+SERIAL_CTEST := //tenncor/serial:ctest
 DISTRIB_CTEST := //tenncor/distr:ctest
 
 .PHONY: cov_clean
@@ -232,7 +234,7 @@ cov_clean:
 
 .PHONY: cov_genhtml
 cov_genhtml:
-	genhtml -o html
+	genhtml -o html $(COVFILE)
 
 .PHONY: clean_test_coverage
 clean_test_coverage: ${COVERAGE_INFO_FILE}
@@ -246,21 +248,21 @@ coverage:
 
 ###### INDIVIDUAL COVERAGES ######
 
-cover_modules: cover_global cover_marsh cover_teq cover_eigen cover_onnx cover_query cover_opt cover_util cover_distr cover_eteq cover_hone cover_layr cover_serial
-	lcov
-		-a global_coverage.info
-		-a marsh_coverage.info
-		-a teq_coverage.info
-		-a eigen_coverage.info
-		-a onnx_coverage.info
-		-a query_coverage.info
-		-a opt_coverage.info
-		-a util_coverage.info
-		-a distr_coverage.info
-		-a eteq_coverage.info
-		-a hone_coverage.info
-		-a layr_coverage.info
-		-a serial_coverage.info
+cover_modules: cover_global cover_marsh cover_teq cover_eigen cover_onnx cover_query cover_opt cover_utils cover_distr cover_eteq cover_hone cover_layr cover_serial
+	lcov \
+		-a global_coverage.info \
+		-a marsh_coverage.info \
+		-a teq_coverage.info \
+		-a eigen_coverage.info \
+		-a onnx_coverage.info \
+		-a query_coverage.info \
+		-a opt_coverage.info \
+		-a utils_coverage.info \
+		-a distr_coverage.info \
+		-a eteq_coverage.info \
+		-a hone_coverage.info \
+		-a layr_coverage.info \
+		-a serial_coverage.info \
 		-o modules_coverage.info
 
 #### internal coverages ####
@@ -307,11 +309,11 @@ cover_opt:
 	@make clean_test_coverage
 	lcov --extract ${TMP_COVFILE} 'internal/opt/*' -o opt_coverage.info
 
-.PHONY: cover_util
-cover_util:
-	${CCOVER} //internal/util/...
+.PHONY: cover_utils
+cover_utils:
+	${CCOVER} //internal/utils/...
 	@make clean_test_coverage
-	lcov --extract ${TMP_COVFILE} 'internal/util/*' -o util_coverage.info
+	lcov --extract ${TMP_COVFILE} 'internal/utils/*' -o utils_coverage.info
 
 #### tenncor coverages ####
 
