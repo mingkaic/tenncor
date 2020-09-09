@@ -181,7 +181,7 @@ int main (int argc, const char** argv)
 	{
 		trainer::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
 		trainer::ShapedArr<PybindT> batch_out = avgevry2(batch);
-		train_input->assign(batch.data_.data(), batch.shape);
+		train_input->assign(batch.data_.data(), batch.shape_);
 		train_exout->assign(batch_out.data_.data(), batch_out.shape_);
 		PybindT* data = train_err.calc<PybindT>();
 		if (i % show_every_n == show_every_n - 1)
