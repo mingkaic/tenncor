@@ -218,7 +218,7 @@ gru_model_j2o: models/fast_gru.json models/latin_gru.json
 
 ######## COVERAGES ########
 
-LOC_COVERAGE_FILE := coverage.info
+TMP_COVFILE := /tmp/coverage.info
 COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
 ETEQ_CTEST := //tenncor/eteq:ctest
@@ -226,25 +226,42 @@ LAYR_CTEST := //tenncor/layr:ctest
 DISTRIB_CTEST := //tenncor/distr:ctest
 
 .PHONY: cov_clean
-cov_clean: ${LOC_COVERAGE_FILE}
-	rm ${LOC_COVERAGE_FILE}
+cov_clean:
+	rm *.info
 	rm -Rf html
 
 .PHONY: cov_genhtml
-cov_genhtml: ${LOC_COVERAGE_FILE}
-	genhtml -o html ${LOC_COVERAGE_FILE}
+cov_genhtml:
+	genhtml -o html
 
 .PHONY: clean_test_coverage
 clean_test_coverage: ${COVERAGE_INFO_FILE}
-	lcov --remove ${COVERAGE_INFO_FILE} '**/test/*' '**/mock/*' '**/*.pb.*' -o ${LOC_COVERAGE_FILE}
+	lcov --remove ${COVERAGE_INFO_FILE} '**/test/*' '**/mock/*' '**/*.pb.*' -o ${TMP_COVFILE}
 
 .PHONY: coverage
 coverage:
 	${CCOVER} //internal/... ${DISTRIB_CTEST} ${ETEQ_CTEST} ${HONE_CTEST} ${LAYR_CTEST} ${SERIAL_CTEST}
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'internal/*' 'tenncor/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'internal/*' 'tenncor/*' -o coverage.info
 
 ###### INDIVIDUAL COVERAGES ######
+
+cover_modules: cover_global cover_marsh cover_teq cover_eigen cover_onnx cover_query cover_opt cover_util cover_distr cover_eteq cover_hone cover_layr cover_serial
+	lcov
+		-a global_coverage.info
+		-a marsh_coverage.info
+		-a teq_coverage.info
+		-a eigen_coverage.info
+		-a onnx_coverage.info
+		-a query_coverage.info
+		-a opt_coverage.info
+		-a util_coverage.info
+		-a distr_coverage.info
+		-a eteq_coverage.info
+		-a hone_coverage.info
+		-a layr_coverage.info
+		-a serial_coverage.info
+		-o modules_coverage.info
 
 #### internal coverages ####
 
@@ -252,78 +269,78 @@ coverage:
 cover_global:
 	${CCOVER} //internal/global:test
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'internal/global/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'internal/global/*' -o global_coverage.info
 
 .PHONY: cover_marsh
 cover_marsh:
 	${CCOVER} //internal/marsh/...
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'internal/marsh/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'internal/marsh/*' -o marsh_coverage.info
 
 .PHONY: cover_teq
 cover_teq:
 	${CCOVER} //internal/teq/...
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'internal/teq/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'internal/teq/*' -o teq_coverage.info
 
 .PHONY: cover_eigen
 cover_eigen:
 	${CCOVER} //internal/eigen/...
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'internal/eigen/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'internal/eigen/*' -o eigen_coverage.info
 
 .PHONY: cover_onnx
 cover_onnx:
 	${CCOVER} //internal/onnx/...
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'internal/onnx/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'internal/onnx/*' -o onnx_coverage.info
 
 .PHONY: cover_query
 cover_query:
 	${CCOVER} //internal/query/...
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'internal/query/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'internal/query/*' -o query_coverage.info
 
 .PHONY: cover_opt
 cover_opt:
 	${CCOVER} //internal/opt/...
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'internal/opt/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'internal/opt/*' -o opt_coverage.info
 
 .PHONY: cover_util
 cover_util:
 	${CCOVER} //internal/util/...
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'internal/util/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'internal/util/*' -o util_coverage.info
 
 #### tenncor coverages ####
 
-.PHONY: cover_distrib
-cover_distrib:
+.PHONY: cover_distr
+cover_distr:
 	${CCOVER} ${DISTRIB_CTEST}
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/distr/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'tenncor/distr/*' -o distr_coverage.info
 
 .PHONY: cover_eteq
 cover_eteq:
 	${CCOVER} ${ETEQ_CTEST}
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/eteq/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'tenncor/eteq/*' -o eteq_coverage.info
 
 .PHONY: cover_hone
 cover_hone:
 	${CCOVER} ${HONE_CTEST}
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/hone/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'tenncor/hone/*' -o hone_coverage.info
 
 .PHONY: cover_layr
 cover_layr:
 	${CCOVER} ${LAYR_CTEST}
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/layr/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'tenncor/layr/*' -o layr_coverage.info
 
 .PHONY: cover_serial
 cover_serial:
 	${CCOVER} ${SERIAL_CTEST}
 	@make clean_test_coverage
-	lcov --extract ${LOC_COVERAGE_FILE} 'tenncor/serial/*' -o ${LOC_COVERAGE_FILE}
+	lcov --extract ${TMP_COVFILE} 'tenncor/serial/*' -o serial_coverage.info
