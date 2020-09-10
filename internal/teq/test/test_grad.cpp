@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_GRAD_TEST
+#ifndef DISABLE_TEQ_GRAD_TEST
 
 
 #include "gtest/gtest.h"
@@ -326,4 +326,4 @@ TEST(GRAD, TadPole)
 }
 
 
-#endif // DISABLE_GRAD_TEST
+#endif // DISABLE_TEQ_GRAD_TEST

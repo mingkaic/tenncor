@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_COORD_TEST
+#ifndef DISABLE_UTILS_COORD_TEST
 
 
 #include "gtest/gtest.h"
@@ -40,4 +40,4 @@ TEST(SHAPE, Coordinates)
 }
 
 
-#endif // DISABLE_COORD_TEST
+#endif // DISABLE_UTILS_COORD_TEST

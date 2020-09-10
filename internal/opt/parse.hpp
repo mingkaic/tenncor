@@ -2,6 +2,8 @@
 #ifndef OPT_PARSE_HPP
 #define OPT_PARSE_HPP
 
+#include <google/protobuf/util/json_util.h>
+
 #include "internal/opt/optimize.pb.h"
 
 #include "internal/opt/rule.hpp"
@@ -18,7 +20,7 @@ void parse_optimization (OptRulesT& rules,
 void json_parse (OptRulesT& rules,
 	std::istream& json_in, const iTargetFactory& tfactory);
 
-marsh::iObject* parse (const query::Attribute& pba, const opt::GraphInfo& graphinfo);
+marsh::iObject* parse_attr (const query::Attribute& pba, const GraphInfo& graphinfo);
 
 }
 

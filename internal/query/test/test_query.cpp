@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_QUERY_TEST
+#ifndef DISABLE_QUERY_QUERY_TEST
 
 
 #include <google/protobuf/util/json_util.h>
@@ -143,4 +143,4 @@ TEST(QUERYATTRS, StrEquals)
 // }
 
 
-#endif // DISABLE_QUERY_TEST
+#endif // DISABLE_QUERY_QUERY_TEST

@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_TEQ_OBJ_TEST
+#ifndef DISABLE_TEQ_OBJS_TEST
 
 
 #include "gtest/gtest.h"
@@ -149,4 +149,4 @@ TEST(OBJ, FindAttrs)
 }
 
 
-#endif // DISABLE_OBJ_TEST
+#endif // DISABLE_TEQ_OBJ_TEST

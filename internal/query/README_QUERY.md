@@ -59,8 +59,8 @@ message Attribute {
     oneof val {
         int inum = 1;
         double dnum = 2;
-        IntArray inums = 3;
-        DoubleArray dnums = 4;
+        IntArray iarr = 3;
+        DoubleArray darr = 4;
         string str = 5;
         Node node = 6;
         Layer layer = 7;

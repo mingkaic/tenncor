@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_OBJS_TEST
+#ifndef DISABLE_MARSH_OBJS_TEST
 
 
 #include "gtest/gtest.h"
@@ -463,4 +463,4 @@ TEST(OBJS, String)
 }
 
 
-#endif // DISABLE_OBJS_TEST
+#endif // DISABLE_MARSH_OBJS_TEST

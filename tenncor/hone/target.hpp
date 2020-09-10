@@ -109,7 +109,7 @@ struct TargetFactory final : public opt::iTargetFactory
 		for (const auto& attrpair : attrs)
 		{
 			attrmap.add_attr(attrpair.first,
-				marsh::ObjptrT(opt::parse(attrpair.second, *ginfo_)));
+				marsh::ObjptrT(opt::parse_attr(attrpair.second, *ginfo_)));
 		}
 		return std::make_shared<FunctorTarget>(opname, args, std::move(attrmap));
 	}

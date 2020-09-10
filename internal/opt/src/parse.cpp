@@ -1,5 +1,3 @@
-#include <google/protobuf/util/json_util.h>
-
 #include "internal/opt/parse.hpp"
 
 #ifdef OPT_PARSE_HPP
@@ -77,7 +75,7 @@ void json_parse (OptRulesT& rules,
 	parse_optimization(rules, optimization, tfactory);
 }
 
-marsh::iObject* parse (const query::Attribute& pba, const opt::GraphInfo& graphinfo)
+marsh::iObject* parse_attr (const query::Attribute& pba, const GraphInfo& graphinfo)
 {
 	marsh::iObject* out = nullptr;
 	switch (pba.attr_case())
@@ -108,7 +106,7 @@ marsh::iObject* parse (const query::Attribute& pba, const opt::GraphInfo& graphi
 		case query::Attribute::kNode:
 		{
 			auto results = graphinfo.find(pba.node());
-			if (results.size() > 0)
+			if (results.size() > 1)
 			{
 				global::fatal("ambiguous node attribute");
 			}
@@ -119,12 +117,12 @@ marsh::iObject* parse (const query::Attribute& pba, const opt::GraphInfo& graphi
 		{
 			const query::Layer& layer = pba.layer();
 			if (false == layer.has_input() ||
-				query::Layer::kNameNil == layer.nullable_name_case())
+				query::Layer::kName != layer.nullable_name_case())
 			{
 				global::fatal("cannot parse layer attribute unnamed or without input");
 			}
 			auto results = graphinfo.find(layer.input());
-			if (results.size() > 0)
+			if (results.size() > 1)
 			{
 				global::fatal("ambiguous layer attribute");
 			}

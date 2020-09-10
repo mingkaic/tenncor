@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_ATTRS_TEST
+#ifndef DISABLE_QUERY_ATTRS_TEST
 
 
 #include "gtest/gtest.h"
@@ -278,4 +278,4 @@ TEST(ATTRS, FindByAttrTensKeyUnderAttrSubgraph)
 }
 
 
-#endif // DISABLE_ATTRS_TEST
+#endif // DISABLE_QUERY_ATTRS_TEST

@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_SHAPE_TEST
+#ifndef DISABLE_TEQ_SHAPE_TEST
 
 
 #include "gtest/gtest.h"
@@ -204,4 +204,4 @@ TEST(SHAPE, NarrowShape)
 }
 
 
-#endif // DISABLE_SHAPE_TEST
+#endif // DISABLE_TEQ_SHAPE_TEST

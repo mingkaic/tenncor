@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_BASE_TEST
+#ifndef DISABLE_QUERY_BASE_TEST
 
 
 #include "gtest/gtest.h"
@@ -429,4 +429,4 @@ TEST(BASE, Capture)
 }
 
 
-#endif // DISABLE_BASE_TEST
+#endif // DISABLE_QUERY_BASE_TEST

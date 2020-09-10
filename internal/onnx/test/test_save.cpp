@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_SAVE_TEST
+#ifndef DISABLE_ONNX_SAVE_TEST
 
 
 #include <fstream>
@@ -337,4 +337,4 @@ TEST(SAVE, LayerGraph)
 }
 
 
-#endif // DISABLE_SAVE_TEST
+#endif // DISABLE_ONNX_SAVE_TEST

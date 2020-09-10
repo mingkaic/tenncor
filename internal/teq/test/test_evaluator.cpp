@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_EVALUATOR_TEST
+#ifndef DISABLE_TEQ_EVALUATOR_TEST
 
 
 #include "gtest/gtest.h"
@@ -308,4 +308,4 @@ TEST(EVALUATOR, TargetedUpdateIgnoreCommonDesc)
 }
 
 
-#endif // DISABLE_EVALUATOR_TEST
+#endif // DISABLE_TEQ_EVALUATOR_TEST

@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_LEAF_TEST
+#ifndef DISABLE_TEQ_LEAF_TEST
 
 
 #include "gtest/gtest.h"
@@ -32,4 +32,4 @@ TEST(LEAF, GetUsage)
 }
 
 
-#endif // DISABLE_LEAF_TEST
+#endif // DISABLE_TEQ_LEAF_TEST

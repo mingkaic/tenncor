@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_TRAVELER_TEST
+#ifndef DISABLE_TEQ_TRAVELER_TEST
 
 
 #include "gtest/gtest.h"
@@ -291,4 +291,4 @@ TEST(TRAVELER, Owners)
 }
 
 
-#endif // DISABLE_TRAVELER_TEST
+#endif // DISABLE_TEQ_TRAVELER_TEST

@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_EIGEN_TEST
+#ifndef DISABLE_EIGEN_PACKER_TEST
 
 
 #include "gtest/gtest.h"
@@ -11,7 +11,7 @@
 #include "internal/eigen/operator.hpp"
 
 
-TEST(EIGEN, PairEncodeDecode)
+TEST(PACKER, PairEncodeDecode)
 {
 	eigen::PairVecT<double> pairs = {{1.2, 2.3}, {3.4, 4.6}, {5.5, 6.7}};
 
@@ -35,7 +35,7 @@ TEST(EIGEN, PairEncodeDecode)
 }
 
 
-TEST(EIGEN, Conversions)
+TEST(PACKER, Conversions)
 {
 	std::vector<int64_t> values = {
 		1, 2, 4, 8, 16, 32, 64, 128, 256};
@@ -78,7 +78,7 @@ TEST(EIGEN, Conversions)
 }
 
 
-TEST(EIGEN, MakeEigenmap)
+TEST(PACKER, MakeEigenmap)
 {
 	std::vector<double> a = {1, 2, 3, 4, 5, 6};
 	teq::Shape shape({2, 3});
@@ -114,7 +114,7 @@ TEST(EIGEN, MakeEigenmap)
 }
 
 
-TEST(EIGEN, BadPacker)
+TEST(PACKER, BadPacker)
 {
 	eigen::Packer<std::string> badpack;
 	EXPECT_STREQ("", badpack.get_key().c_str());
@@ -135,7 +135,7 @@ TEST(EIGEN, BadPacker)
 }
 
 
-TEST(EIGEN, PackerDimPairs)
+TEST(PACKER, PackerDimPairs)
 {
 	eigen::PairVecT<teq::DimT> dims = {
 		{2, 2},
@@ -167,7 +167,7 @@ TEST(EIGEN, PackerDimPairs)
 }
 
 
-TEST(EIGEN, PackerRankPairs)
+TEST(PACKER, PackerRankPairs)
 {
 	eigen::PairVecT<teq::RankT> ranks = {
 		{2, 2},
@@ -205,7 +205,7 @@ TEST(EIGEN, PackerRankPairs)
 }
 
 
-TEST(EIGEN, PackerDims)
+TEST(PACKER, PackerDims)
 {
 	std::vector<teq::DimT> dims = {2, 2, 3, 4};
 	std::vector<teq::DimT> outdims;
@@ -231,7 +231,7 @@ TEST(EIGEN, PackerDims)
 }
 
 
-TEST(EIGEN, PackerRanks)
+TEST(PACKER, PackerRanks)
 {
 	std::vector<teq::RankT> ranks = {2, 2, 3, 4};
 	std::vector<teq::RankT> badranks = {
@@ -261,7 +261,7 @@ TEST(EIGEN, PackerRanks)
 }
 
 
-TEST(EIGEN, PackerRankSet)
+TEST(PACKER, PackerRankSet)
 {
 	std::set<teq::RankT> ranks = {2, 6, 3, 4};
 	std::set<teq::RankT> badranks = {
@@ -290,7 +290,7 @@ TEST(EIGEN, PackerRankSet)
 }
 
 
-TEST(EIGEN, PackerRank)
+TEST(PACKER, PackerRank)
 {
 	teq::RankT rank = 2;
 	teq::RankT outrank;
@@ -311,7 +311,7 @@ TEST(EIGEN, PackerRank)
 }
 
 
-TEST(EIGEN, PackerShape)
+TEST(PACKER, PackerShape)
 {
 	teq::Shape shape({2, 1, 4});
 	teq::Shape outshape;
@@ -332,7 +332,7 @@ TEST(EIGEN, PackerShape)
 }
 
 
-TEST(EIGEN, PackerTensor)
+TEST(PACKER, PackerTensor)
 {
 	teq::TensptrT tens(new MockLeaf());
 
@@ -352,7 +352,7 @@ TEST(EIGEN, PackerTensor)
 }
 
 
-TEST(EIGEN, EmptyPacking)
+TEST(PACKER, EmptyPacking)
 {
 	marsh::Maps attrs;
 	eigen::pack_attr(attrs);
@@ -360,7 +360,7 @@ TEST(EIGEN, EmptyPacking)
 }
 
 
-TEST(EIGEN, ExtendPacking)
+TEST(PACKER, ExtendPacking)
 {
 	teq::Shape inshape({1, 2, 3});
 	std::vector<teq::DimT> extends = {4, 1, 1, 2, 1, 1, 1, 1};
@@ -386,4 +386,4 @@ TEST(EIGEN, ExtendPacking)
 }
 
 
-#endif // DISABLE_EIGEN_TEST
+#endif // DISABLE_EIGEN_PACKER_TEST

@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_TEST_OPT_HPP
+#ifndef DISABLE_OPT_PARSE_TEST
 
 
 #include <sstream>
@@ -10,7 +10,7 @@
 
 #include "internal/teq/mock/functor.hpp"
 
-#include "internal/opt/parse.hpp"
+#include "internal/opt/opt.hpp"
 
 #include "internal/opt/mock/target.hpp"
 
@@ -99,4 +99,4 @@ TEST(PARSE, Parse)
 }
 
 
-#endif // DISABLE_TEST_OPT_HPP
+#endif // DISABLE_OPT_PARSE_TEST

@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_OPERATOR_TEST
+#ifndef DISABLE_EIGEN_OPERATOR_TEST
 
 
 #include "gtest/gtest.h"
@@ -1256,4 +1256,4 @@ TEST(OPERATOR, Cast)
 }
 
 
-#endif // DISABLE_OPERATOR_TEST
+#endif // DISABLE_EIGEN_OPERATOR_TEST

@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_PATH_TEST
+#ifndef DISABLE_QUERY_PATH_TEST
 
 
 #include "gtest/gtest.h"
@@ -42,4 +42,4 @@ TEST(PATH, Recall)
 }
 
 
-#endif // DISABLE_PATH_TEST
+#endif // DISABLE_QUERY_PATH_TEST

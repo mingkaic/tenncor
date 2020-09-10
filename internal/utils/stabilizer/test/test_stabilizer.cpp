@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_STABILIZER_TEST
+#ifndef DISABLE_UTILS_STABILIZER_TEST
 
 
 #include "gtest/gtest.h"
@@ -1247,4 +1247,4 @@ TEST(STABILIZER, Conv)
 }
 
 
-#endif // DISABLE_STABILIZER_TEST
+#endif // DISABLE_UTILS_STABILIZER_TEST

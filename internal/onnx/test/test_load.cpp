@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_LOAD_TEST
+#ifndef DISABLE_ONNX_LOAD_TEST
 
 
 #include <fstream>
@@ -213,4 +213,4 @@ TEST(LOAD, ReplaceLayerGraph)
 }
 
 
-#endif // DISABLE_LOAD_TEST
+#endif // DISABLE_ONNX_LOAD_TEST

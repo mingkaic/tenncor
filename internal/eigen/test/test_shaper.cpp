@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_SHAPER_TEST
+#ifndef DISABLE_EIGEN_SHAPER_TEST
 
 
 #include "gtest/gtest.h"
@@ -200,4 +200,4 @@ TEST(SHAPER, Scatter)
 // }
 
 
-#endif // DISABLE_SHAPER_TEST
+#endif // DISABLE_EIGEN_SHAPER_TEST
