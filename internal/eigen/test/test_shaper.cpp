@@ -34,7 +34,16 @@ TEST(SHAPER, Default)
 
 TEST(SHAPER, Identity)
 {
-	//
+	egen::ShapeParser<egen::IDENTITY> parser;
+	marsh::Maps empty;
+
+	EXPECT_FATAL(parser(empty, {}), eigen::no_argument_err.c_str());
+
+	teq::Shape a({3, 4, 5});
+	teq::Shape b({3, 2, 5});
+
+	auto good = parser(empty, {a, b});
+	EXPECT_ARREQ(a, good);
 }
 
 
@@ -83,13 +92,38 @@ TEST(SHAPER, ArgReduce)
 
 TEST(SHAPER, Permute)
 {
-	//
+	teq::RanksT rdims = {2, 1, 0};
+
+	egen::ShapeParser<egen::PERMUTE> parser;
+	marsh::Maps dimmed;
+	eigen::Packer<teq::RanksT>().pack(dimmed, rdims);
+
+	teq::Shape inshape({3, 4, 6, 7, 3});
+	teq::Shape expect({6, 4, 3, 7, 3});
+	teq::Shape got = parser(dimmed, {inshape});
+
+	EXPECT_ARREQ(expect, got);
 }
 
 
 TEST(SHAPER, Extend)
 {
-	//
+	egen::ShapeParser<egen::EXTEND> parser;
+	marsh::Maps good;
+	marsh::Maps bad;
+	eigen::Packer<teq::DimsT>().pack(good, {1, 2, 1});
+	eigen::Packer<teq::DimsT>().pack(bad, {1, 2, 0});
+
+	teq::Shape goodshape({3, 1, 6, 7, 3});
+	teq::Shape badshape({3, 4, 6, 7, 3});
+
+	EXPECT_FATAL(parser(bad, {goodshape}), "cannot extend using zero dimensions [1\\2\\0]");
+	EXPECT_FATAL(parser(good, {badshape}), "cannot extend non-singular dimension 1 of shape [3\\4\\6\\7\\3\\1\\1\\1]: bcast=[1\\2\\1]");
+
+	teq::Shape expect({3, 2, 6, 7, 3});
+	teq::Shape got = parser(good, {goodshape});
+
+	EXPECT_ARREQ(expect, got);
 }
 
 

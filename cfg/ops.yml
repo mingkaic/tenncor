@@ -291,7 +291,7 @@ opcode:
                       bool redundant = outshape.compatible_after(args.front()->shape(), 0);
                       if (redundant)
                       {
-                          global::debugf("outshape of reshape is the same shape as inshape "
+                          global::debugf("outshape is the same shape as inshape "
                               "%s... treating as identity", outshape.to_string().c_str());
                       }
                       return redundant;
@@ -323,18 +323,19 @@ opcode:
               //
                       eigen::PairVecT<teq::DimT> extents;
                       eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, attrs);
+                      if (std::any_of(extents.begin(), extents.end(),
+                          [](std::pair<teq::DimT,teq::DimT> ext){ return ext.second == 0; }))
+                      {
+                          global::fatalf("cannot create slice with 0 dimensions "
+                              "(second value of extents) (extents=%s)",
+                              eigen::to_string(extents).c_str());
+                      }
                       teq::Shape shape = args.front()->shape();
                       bool redundant = true;
                       for (size_t i = 0, n = std::min(extents.size(),
                           (size_t) teq::rank_cap); i < n && redundant; ++i)
                       {
                           auto& exts = extents[i];
-                          if (exts.second == 0)
-                          {
-                              global::fatalf("cannot create slice with 0 dimension at "
-                                  "index %d (extents=%s)", i,
-                                  eigen::to_string(extents).c_str());
-                          }
                           redundant = redundant && exts.first == 0 &&
                               exts.second > shape.at(i);
                       }
@@ -375,7 +376,7 @@ opcode:
               //
                       eigen::PairVecT<teq::DimT> paddings;
                       eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(paddings, attrs);
-                      bool redundant = std::all_of(paddings.begin(), paddings.end(),
+                      bool redundant = paddings.empty() || std::all_of(paddings.begin(), paddings.end(),
                       [](std::pair<teq::DimT,teq::DimT> pad)
                       {
                           return pad.first == 0 && pad.second == 0;
@@ -436,19 +437,7 @@ opcode:
                       return teq::Shape(slist);
     SCATTER:
       stmt: out = eigen::scatter<T>(outshape, *in[0], attrib);
-      FuncOpt:
-        out:
-          val: |
-              //
-                      teq::Shape outshape;
-                      eigen::Packer<teq::Shape>().unpack(outshape, attrs);
-                      bool redundant = args.front()->shape().compatible_after(outshape, 0);
-                      if (redundant)
-                      {
-                          global::debugf("scattering produces the same shape %s",
-                              outshape.to_string().c_str());
-                      }
-                      return redundant;
+      FuncOpt: RESHAPE
       ShapeParser:
         out:
           val: |
@@ -598,16 +587,7 @@ opcode:
       stmt: out = eigen::select<T>(outshape, *in[0], *in[1], *in[2]);
     CONCAT:
       stmt: out = eigen::concat<T>(outshape, in, attrib);
-      FuncOpt:
-        out:
-          val: |
-              //
-                      bool redundant = args.size() == 1;
-                      if (redundant)
-                      {
-                          global::debug("concatenating a single node... treating as identity");
-                      }
-                      return redundant;
+      FuncOpt: ADD
       ShapeParser:
         out:
           val: |
