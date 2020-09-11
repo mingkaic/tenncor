@@ -59,7 +59,7 @@ TEST(GRAD, OneZero)
 {
 	MockDeriveFunc builder;
 
-	std::vector<teq::DimT> slist = {94, 78, 70, 82, 62, 29, 38};
+	teq::DimsT slist = {94, 78, 70, 82, 62, 29, 38};
 	teq::Shape shape(slist);
 
 	/* standard v
@@ -100,7 +100,7 @@ TEST(GRAD, BuilderStandardV)
 {
 	MockDeriveFunc builder;
 
-	std::vector<teq::DimT> slist = {94, 78, 70, 82, 62, 29, 38};
+	teq::DimsT slist = {94, 78, 70, 82, 62, 29, 38};
 	teq::Shape shape(slist);
 
 	/* standard v
@@ -142,7 +142,7 @@ TEST(GRAD, BuilderDiamond)
 {
 	MockDeriveFunc builder;
 
-	std::vector<teq::DimT> slist = {94, 78, 70, 82, 62, 29, 38};
+	teq::DimsT slist = {94, 78, 70, 82, 62, 29, 38};
 	teq::Shape shape(slist);
 
 	/* diamond
@@ -199,7 +199,7 @@ TEST(GRAD, SymmetricalDiamond)
 {
 	MockDeriveFunc builder;
 
-	std::vector<teq::DimT> slist = {94, 78, 70, 82, 62, 29, 38};
+	teq::DimsT slist = {94, 78, 70, 82, 62, 29, 38};
 	teq::Shape shape(slist);
 
 	/* diamond
@@ -259,7 +259,7 @@ TEST(GRAD, TadPole)
 {
 	MockDeriveFunc builder;
 
-	std::vector<teq::DimT> slist = {94, 78, 70, 82, 62, 29, 38};
+	teq::DimsT slist = {94, 78, 70, 82, 62, 29, 38};
 	teq::Shape shape(slist);
 
 	/* diamond with a tail

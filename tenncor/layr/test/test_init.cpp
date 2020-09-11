@@ -11,7 +11,7 @@
 
 TEST(INIT, Zero)
 {
-	std::vector<teq::DimT> slist = {18, 9};
+	teq::DimsT slist = {18, 9};
 	std::string label = "abc";
 
 	auto z = tenncor().layer.zero_init<double>()(teq::Shape(slist), label);
@@ -30,7 +30,7 @@ TEST(INIT, Zero)
 
 TEST(INIT, VarianceScaling)
 {
-	std::vector<teq::DimT> slist = {18, 9, 3};
+	teq::DimsT slist = {18, 9, 3};
 	std::string label = "def";
 	double factor = 0.425;
 
@@ -77,7 +77,7 @@ TEST(INIT, VarianceScaling)
 
 TEST(INIT, UniformXavier)
 {
-	std::vector<teq::DimT> slist = {18, 9, 3};
+	teq::DimsT slist = {18, 9, 3};
 	std::string label = "ghi";
 	double factor = 0.712;
 
@@ -102,7 +102,7 @@ TEST(INIT, UniformXavier)
 
 // TEST(INIT, NormalXavier)
 // {
-// 	std::vector<teq::DimT> slist = {11, 12, 10};
+// 	teq::DimsT slist = {11, 12, 10};
 // 	std::string label = "jkl";
 // 	double factor = 0.172;
 

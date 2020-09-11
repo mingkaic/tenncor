@@ -11,7 +11,7 @@ static std::mt19937 mersenne_engine(rnd_device());
 
 teq::Shape rand_shape (int n)
 {
-	std::vector<teq::DimT> slist;
+	teq::DimsT slist;
 	teq::RankT cap = (teq::RankT) std::min(255, n);
 	for (teq::RankT i = 0; i < teq::rank_cap && cap > 1;
 		++i, cap = (teq::RankT) std::min(255, n))
@@ -205,9 +205,9 @@ BENCHMARK_TEMPLATE(BM_Matmul, int32_t)
 
 static void BM_MatmulComplex(benchmark::State& state)
 {
-	std::vector<teq::DimT> alist = {3, 2};
-	std::vector<teq::DimT> blist = {4, 3};
-	std::vector<teq::DimT> clist = {2, 4};
+	teq::DimsT alist = {3, 2};
+	teq::DimsT blist = {4, 3};
+	teq::DimsT clist = {2, 4};
 	teq::Shape ashape(alist);
 	teq::Shape bshape(blist);
 	teq::Shape cshape(clist);

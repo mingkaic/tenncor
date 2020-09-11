@@ -164,7 +164,7 @@ static void unary_generic (UnaryOpF<double> op,
 
 
 static void unar_elem (std::vector<double> data,
-	std::vector<teq::DimT> shape_list,
+	teq::DimsT shape_list,
 	UnaryOpF<double> op, UnaryDblF fwd, UnaryDblF bwd)
 {
 	teq::Evaluator eval;
@@ -215,7 +215,7 @@ static void unary_elementary (UnaryOpF<double> op,
 	UnaryDblF fwd, UnaryDblF bwd)
 {
 	// tensor operation
-	std::vector<teq::DimT> slist = {2, 3, 4};
+	teq::DimsT slist = {2, 3, 4};
 	std::vector<double> data = {
 		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
 		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
@@ -223,7 +223,7 @@ static void unary_elementary (UnaryOpF<double> op,
 	unar_elem(data, slist, op, fwd, bwd);
 
 	// matrix optimized operation
-	std::vector<teq::DimT> slist_2d = {2, 3};
+	teq::DimsT slist_2d = {2, 3};
 	std::vector<double> data_2d = {
 		59, 10, 28,
 		10, 67, 62,
@@ -233,7 +233,7 @@ static void unary_elementary (UnaryOpF<double> op,
 
 
 static void binar_elem (std::vector<double> data, std::vector<double> data2,
-	std::vector<teq::DimT> shape_list, BinaryOpF<double> op,
+	teq::DimsT shape_list, BinaryOpF<double> op,
 	LhsBinaryOpF<double> lhs_op, RhsBinaryOpF<double> rhs_op,
 	BinaryFwdF<double> fwd, BinaryBwdF<double> bwd, double cst)
 {
@@ -343,7 +343,7 @@ static void binary_elementary (BinaryOpF<double> op,
 	BinaryFwdF<double> fwd, BinaryBwdF<double> bwd)
 {
 	// tensor operation
-	std::vector<teq::DimT> slist = {3, 2, 4};
+	teq::DimsT slist = {3, 2, 4};
 	std::vector<double> data = {
 		0.0919361505, 0.5135099474, 0.3147548326, 0.0281299379, 0.3705218798, 0.6808164860,
 		0.1933972592, 0.2326945471, 0.4600163558, 0.1600801317, 0.9942654588, 0.8739832345,
@@ -362,7 +362,7 @@ static void binary_elementary (BinaryOpF<double> op,
 	binar_elem(data, data2, slist, op, lhs_op, rhs_op, fwd, bwd, cst);
 
 	// matrix optimized operation
-	std::vector<teq::DimT> slist_2d = {3, 2};
+	teq::DimsT slist_2d = {3, 2};
 	std::vector<double> data_2d = {
 		0.0919361505, 0.5135099474, 0.3147548326,
 		0.0281299379, 0.3705218798, 0.6808164860,
@@ -377,7 +377,7 @@ static void binary_elementary (BinaryOpF<double> op,
 
 
 static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data2,
-	std::vector<teq::DimT> shape_list, BinaryOpF<int32_t> op,
+	teq::DimsT shape_list, BinaryOpF<int32_t> op,
 	LhsBinaryOpF<int32_t> lhs_op, RhsBinaryOpF<int32_t> rhs_op,
 	BinaryFwdF<int32_t> fwd, BinaryBwdF<int32_t> bwd, int32_t cst)
 {
@@ -484,7 +484,7 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 	BinaryFwdF<int32_t> fwd, BinaryBwdF<int32_t> bwd)
 {
 	// tensor operation
-	std::vector<teq::DimT> slist = {4, 3, 2};
+	teq::DimsT slist = {4, 3, 2};
 	std::vector<int32_t> data = {
 		1, 2, 3, 0, 1, 2, 2, 1, 1, 3, 3, 1,
 		2, 2, 3, 0, 1, 3, 3, 1, 2, 0, 0, 2
@@ -499,7 +499,7 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 	binar_elem_int(data, data2, slist, op, lhs_op, rhs_op, fwd, bwd, cst);
 
 	// matrix optimized operation
-	std::vector<teq::DimT> slist_2d = {4, 2};
+	teq::DimsT slist_2d = {4, 2};
 	std::vector<int32_t> data_2d = {
 		1, 2, 3, 0,
 		1, 2, 2, 1,
@@ -514,7 +514,7 @@ static void binary_elementary_int (BinaryOpF<int32_t> op,
 
 
 static void nnary_elementary (std::vector<std::vector<double>> datas,
-	std::vector<teq::DimT> shape_list,
+	teq::DimsT shape_list,
 	std::function<double(size_t)> calc_expect,
 	std::function<double(size_t,size_t)> calc_grad)
 {
@@ -574,7 +574,7 @@ TEST(API, Assign)
 {
 	eigen::Device device;
 	// tensor operation
-	std::vector<teq::DimT> slist = {2, 3, 4};
+	teq::DimsT slist = {2, 3, 4};
 	std::vector<double> data = {
 		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
 		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
@@ -637,7 +637,7 @@ TEST(API, AssignHighToLowPrecision)
 {
 	eigen::Device device;
 	// tensor operation
-	std::vector<teq::DimT> slist = {2, 3, 4};
+	teq::DimsT slist = {2, 3, 4};
 	std::vector<float> data = {
 		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
 		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
@@ -756,7 +756,7 @@ TEST(API, IdentityDependency)
 {
 	eigen::Device device;
 	// tensor operation
-	std::vector<teq::DimT> slist = {2, 3, 4};
+	teq::DimsT slist = {2, 3, 4};
 	std::vector<double> data = {
 		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
 		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
@@ -811,7 +811,7 @@ TEST(API, DependsRunOnce)
 {
 	eigen::Device device;
 	// tensor operation
-	std::vector<teq::DimT> slist = {2, 3, 4};
+	teq::DimsT slist = {2, 3, 4};
 	std::vector<double> data = {
 		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
 		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
@@ -1170,7 +1170,7 @@ TEST(API, Max)
 TEST(API, Select)
 {
 	// tensor operation
-	std::vector<teq::DimT> slist = {3, 2, 4};
+	teq::DimsT slist = {3, 2, 4};
 	std::vector<double> cond = {
 		0, 0, 1, 0, 1, 1,
 		1, 0, 1, 0, 0, 0,
@@ -1191,7 +1191,7 @@ TEST(API, Select)
 	};
 
 	// matrix optimized operation
-	std::vector<teq::DimT> slist_2d = {3, 2};
+	teq::DimsT slist_2d = {3, 2};
 	std::vector<double> cond_2d = {
 		1, 1, 0,
 		0, 1, 0,
@@ -1207,7 +1207,7 @@ TEST(API, Select)
 
 	auto trinar_elem = [](std::vector<double> cond,
 		std::vector<double> data, std::vector<double> data2,
-		std::vector<teq::DimT> shape_list)
+		teq::DimsT shape_list)
 	{
 		eigen::Device device;
 		teq::Shape shape(shape_list);
@@ -1289,7 +1289,7 @@ TEST(API, Select)
 TEST(API, Slice)
 {
 	eigen::Device device;
-	std::vector<teq::DimT> slist = {3, 2, 4};
+	teq::DimsT slist = {3, 2, 4};
 	std::vector<double> data = {
 		0.0919361505, 0.5135099474, 0.3147548326, 0.0281299379, 0.3705218798, 0.6808164860,
 		0.1933972592, 0.2326945471, 0.4600163558, 0.1600801317, 0.9942654588, 0.8739832345,
@@ -1536,7 +1536,7 @@ TEST(API, Rsum)
 		[](eteq::ETensor& src) { return tenncor().reduce_sum(src, 1, 1); },
 		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
-			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
+			teq::DimsT expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
 			teq::Shape gotshape = out->shape();
 			EXPECT_ARREQ(expect_list, gotshape);
@@ -1569,7 +1569,7 @@ TEST(API, Rsum)
 TEST(API, Rprod)
 {
 	eigen::Device device;
-	std::vector<teq::DimT> slist = {2, 2, 3};
+	teq::DimsT slist = {2, 2, 3};
 	teq::Shape shape(slist);
 	std::vector<int32_t> data = {
 		2, 1,
@@ -1606,7 +1606,7 @@ TEST(API, Rprod)
 	eigen::Device(true).calc(*dtens2);
 	eigen::Device(true).calc(*dtens2); // idempotency check
 	{
-		std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
+		teq::DimsT expect_list(shape.begin(), shape.end());
 		expect_list[1] = 1;
 		teq::Shape gotshape = dest2->shape();
 		EXPECT_ARREQ(expect_list, gotshape);
@@ -1714,7 +1714,7 @@ TEST(API, Rmin)
 		[](eteq::ETensor& src) { return tenncor().reduce_min(src, 1, 1); },
 		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
-			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
+			teq::DimsT expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
 			teq::Shape gotshape = out->shape();
 			EXPECT_ARREQ(expect_list, gotshape);
@@ -1796,7 +1796,7 @@ TEST(API, Rmax)
 		[](eteq::ETensor& src) { return tenncor().reduce_max(src, 1, 1); },
 		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
-			std::vector<teq::DimT> expect_list(shape.begin(), shape.end());
+			teq::DimsT expect_list(shape.begin(), shape.end());
 			expect_list[1] = 1;
 			teq::Shape gotshape = out->shape();
 			EXPECT_ARREQ(expect_list, gotshape);
@@ -1849,8 +1849,8 @@ TEST(API, Rmax)
 TEST(API, Permute)
 {
 	eigen::Device device;
-	std::vector<teq::DimT> slist = {4, 3, 2};
-	std::vector<teq::RankT> pidx = {2, 0, 1};
+	teq::DimsT slist = {4, 3, 2};
+	teq::RanksT pidx = {2, 0, 1};
 	teq::Shape shape(slist);
 	teq::NElemT nelem = shape.n_elems();
 	std::vector<double> data = {
@@ -1905,8 +1905,8 @@ TEST(API, Permute)
 TEST(API, Extend)
 {
 	eigen::Device device;
-	std::vector<teq::DimT> slist = {2, 5};
-	std::vector<teq::DimT> ext = {1, 3};
+	teq::DimsT slist = {2, 5};
+	teq::DimsT ext = {1, 3};
 	teq::Shape shape(slist);
 	teq::NElemT nelem = shape.n_elems();
 	std::vector<double> data = {
@@ -1959,9 +1959,9 @@ TEST(API, Extend)
 TEST(API, Matmul)
 {
 	eigen::Device device;
-	std::vector<teq::DimT> alist = {3, 2};
-	std::vector<teq::DimT> blist = {4, 3};
-	std::vector<teq::DimT> sqrlist = {3, 3};
+	teq::DimsT alist = {3, 2};
+	teq::DimsT blist = {4, 3};
+	teq::DimsT sqrlist = {3, 3};
 	teq::Shape ashape(alist);
 	teq::Shape bshape(blist);
 	teq::Shape cshape(sqrlist);
@@ -2062,9 +2062,9 @@ TEST(API, Matmul)
 TEST(API, Contract)
 {
 	eigen::Device device;
-	std::vector<teq::DimT> alist = {3, 1, 2};
-	std::vector<teq::DimT> blist = {4, 1, 3};
-	std::vector<teq::DimT> sqrlist = {3, 2};
+	teq::DimsT alist = {3, 1, 2};
+	teq::DimsT blist = {4, 1, 3};
+	teq::DimsT sqrlist = {3, 2};
 	teq::Shape ashape(alist);
 	teq::Shape bshape(blist);
 	teq::Shape cshape(sqrlist);
@@ -2163,7 +2163,7 @@ TEST(API, Contract)
 }
 
 
-static void test_rand_unif (std::vector<teq::DimT> shape_list)
+static void test_rand_unif (teq::DimsT shape_list)
 {
 	eigen::Device device;
 	double hi = 3.2234;
@@ -2226,11 +2226,11 @@ static void test_rand_unif (std::vector<teq::DimT> shape_list)
 TEST(API, RandUniform)
 {
 	// tensor operation
-	std::vector<teq::DimT> slist = {31, 21, 14};
+	teq::DimsT slist = {31, 21, 14};
 	test_rand_unif(slist);
 
 	// matrix optimized operation
-	std::vector<teq::DimT> slist_2d = {31, 14};
+	teq::DimsT slist_2d = {31, 14};
 	test_rand_unif(slist_2d);
 }
 
@@ -2238,11 +2238,11 @@ TEST(API, RandUniform)
 TEST(API, Convolution)
 {
 	eigen::Device device;
-	std::vector<teq::DimT> alist = {2, 4, 3, 3};
-	std::vector<teq::DimT> blist = {1, 2, 2, 1};
+	teq::DimsT alist = {2, 4, 3, 3};
+	teq::DimsT blist = {1, 2, 2, 1};
 	teq::Shape shape(alist);
 	teq::Shape kshape(blist);
-	std::vector<teq::DimT> expectslist = {
+	teq::DimsT expectslist = {
 		2, 3, 2, 3, 1, 1, 1, 1,
 	};
 
@@ -2293,7 +2293,7 @@ TEST(API, Convolution)
 
 	eteq::ETensor img = eteq::make_constant<double>(data.data(), shape);
 	eteq::ETensor kernel = eteq::make_constant<double>(data2.data(), kshape);
-	std::vector<teq::RankT> dims(teq::rank_cap);
+	teq::RanksT dims(teq::rank_cap);
 	std::iota(dims.begin(), dims.end(), 0);
 	eteq::ETensor dest = tenncor().convolution(img, kernel, dims);
 
@@ -2349,7 +2349,7 @@ TEST(API, Convolution)
 TEST(API, GroupSum)
 {
 	// tensor operation
-	std::vector<teq::DimT> slist = {3, 2, 4};
+	teq::DimsT slist = {3, 2, 4};
 	std::vector<double> data = {
 		0.0919361505, 0.5135099474, 0.3147548326, 0.0281299379, 0.3705218798, 0.6808164860,
 		0.1933972592, 0.2326945471, 0.4600163558, 0.1600801317, 0.9942654588, 0.8739832345,

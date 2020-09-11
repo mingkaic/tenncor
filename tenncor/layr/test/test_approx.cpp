@@ -20,7 +20,7 @@
 
 TEST(APPROX, StochasticGD)
 {
-	std::vector<teq::DimT> slist = {18, 9, 3};
+	teq::DimsT slist = {18, 9, 3};
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "leaf");
@@ -47,7 +47,7 @@ TEST(APPROX, StochasticGD)
 
 TEST(APPROX, Adagrad)
 {
-	std::vector<teq::DimT> slist = {18, 9, 3};
+	teq::DimsT slist = {18, 9, 3};
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(
 		0, teq::Shape(slist), "leaf");
@@ -89,7 +89,7 @@ TEST(APPROX, Adagrad)
 TEST(APPROX, Adadelta)
 {
 	eigen::Device device;
-	std::vector<teq::DimT> slist = {18, 9, 3};
+	teq::DimsT slist = {18, 9, 3};
 	teq::Shape shape(slist);
 
 	auto leaf = eteq::make_variable_scalar<PybindT>(

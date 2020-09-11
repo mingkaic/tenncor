@@ -184,10 +184,10 @@ TEST(SHAPER, Slice)
 
 TEST(SHAPER, Stride)
 {
-	std::vector<teq::DimT> strides = {3, 2, 3};
+	teq::DimsT strides = {3, 2, 3};
 	egen::ShapeParser<egen::STRIDE> parser;
 	marsh::Maps strided;
-	eigen::Packer<std::vector<teq::DimT>>().pack(strided, strides);
+	eigen::Packer<teq::DimsT>().pack(strided, strides);
 
 	EXPECT_FATAL(parser(strided, {}), eigen::no_argument_err.c_str());
 
@@ -224,19 +224,136 @@ TEST(SHAPER, Scatter)
 
 TEST(SHAPER, Matmul)
 {
-	//
+	egen::ShapeParser<egen::MATMUL> parser;
+	eigen::Packer<eigen::PairVecT<teq::RankT>> packer;
+
+	teq::Shape c({3, 4, 6});
+	marsh::Maps same;
+	packer.pack(same, {{0, 0}, {1, 1}, {2, 2}});
+	teq::Shape wun = parser(same, {c, c});
+	teq::Shape expect;
+	EXPECT_ARREQ(expect, wun);
+
+	teq::Shape sym({2, 2, 2});
+	marsh::Maps bad;
+	packer.pack(bad, {{0, 0}, {0, 1}, {2, 0}});
+	EXPECT_FATAL(parser(bad, {sym, sym}),
+		"contraction dimensions [0:0\\0:1\\2:0] must be unique for each side");
+
+	marsh::Maps outer;
+	packer.pack(outer, {});
+	teq::Shape dup = parser(outer, {c, c});
+	teq::Shape expect1({3, 4, 6, 3, 4, 6});
+	EXPECT_ARREQ(expect1, dup);
+
+	teq::Shape a({4, 3, 6});
+	teq::Shape b({3, 5, 6});
+	teq::Shape a2d({4, 3});
+	teq::Shape b2d({3, 5});
+	marsh::Maps transposed;
+	packer.pack(transposed, {{1, 0}});
+
+	EXPECT_FATAL(parser(transposed, {c, c}),
+		"invalid shapes [3\\4\\6\\1\\1\\1\\1\\1] and [3\\4\\6\\1\\1\\1\\1\\1] "
+		"do not match common dimensions [1:0]");
+
+	teq::Shape trans3d = parser(transposed, {a, b});
+	teq::Shape expect2({5, 6, 4, 6});
+	EXPECT_ARREQ(expect2, trans3d);
+
+	teq::Shape trans2d = parser(transposed, {a2d, b2d});
+	teq::Shape expect3({5, 4});
+	EXPECT_ARREQ(expect3, trans2d);
+
+	teq::Shape a2({3, 4, 6});
+	teq::Shape b2({5, 3, 6});
+	teq::Shape a2d2({3, 4});
+	teq::Shape b2d2({5, 3});
+	marsh::Maps typical;
+	packer.pack(typical, {{0, 1}});
+
+	teq::Shape norm3d = parser(typical, {a2, b2});
+	EXPECT_ARREQ(expect2, norm3d);
+
+	teq::Shape norm2d = parser(typical, {a2d2, b2d2});
+	EXPECT_ARREQ(expect3, norm2d);
 }
 
 
 TEST(SHAPER, Conv)
 {
-	//
+	egen::ShapeParser<egen::CONV> parser;
+	eigen::Packer<teq::RanksT> packer;
+
+	teq::Shape imgshape({4, 5, 6, 7});
+	teq::Shape kernshape({3, 2, 5});
+
+	marsh::Maps badranks;
+	packer.pack(badranks, {0, 2});
+	EXPECT_FATAL(parser(badranks, {imgshape, kernshape}),
+		"cannot have ambiguous ranks not specified in kernelshape "
+		"[3\\2\\5\\1\\1\\1\\1\\1] (ranks=[0\\2])");
+
+	marsh::Maps badkern;
+	packer.pack(badkern, {2, 1, 0});
+	EXPECT_FATAL(parser(badkern, {imgshape, kernshape}),
+		"cannot convolve a kernel of shape [3\\2\\5\\1\\1\\1\\1\\1] "
+		"against smaller image of shape [4\\5\\6\\7\\1\\1\\1\\1] at "
+		"dimensions (shape:kernel=0:2)");
+
+	marsh::Maps attrs;
+	packer.pack(attrs, {2, 1, 3});
+	auto got = parser(attrs, {imgshape, kernshape});
+	teq::Shape expect({4, 4, 4, 3});
+	EXPECT_ARREQ(expect, got);
 }
 
 
-TEST(SHAPER, Concat)
+TEST(SHAPER, ConcatBinary)
 {
-	//
+	egen::ShapeParser<egen::CONCAT> parser;
+	eigen::Packer<teq::RankT> packer;
+
+	teq::Shape a({3, 4, 5, 6});
+	teq::Shape b({3, 4, 2, 6});
+
+	marsh::Maps badranks;
+	packer.pack(badranks, 1);
+	EXPECT_FATAL(parser(badranks, {a, b}),
+		"cannot group concat incompatible shapes [3\\4\\5\\6\\1\\1\\1\\1] and "
+		"[3\\4\\2\\6\\1\\1\\1\\1] along axis 1");
+
+	marsh::Maps attrs;
+	packer.pack(attrs, 2);
+	auto got = parser(attrs, {a, b});
+	teq::Shape expect({3, 4, 7, 6});
+	EXPECT_ARREQ(expect, got);
+}
+
+
+TEST(SHAPER, ConcatNnary)
+{
+	egen::ShapeParser<egen::CONCAT> parser;
+	eigen::Packer<teq::RankT> packer;
+
+	teq::Shape a({3, 4, 1, 6});
+	teq::Shape b({3, 4, 4, 6});
+
+	marsh::Maps badranks;
+	packer.pack(badranks, 1);
+	EXPECT_FATAL(parser(badranks, {a, a, b}),
+		"cannot group concat incompatible shapes [3\\4\\1\\6\\1\\1\\1\\1] and "
+		"[3\\4\\4\\6\\1\\1\\1\\1] along axis 1");
+
+	marsh::Maps attrs;
+	packer.pack(attrs, 2);
+
+	EXPECT_FATAL(parser(attrs, {a, b, a}),
+		"cannot group concat shapes with dimension that is not one");
+
+	auto got = parser(attrs, {a, a, a});
+	teq::Shape expect({3, 4, 3, 6});
+	EXPECT_ARREQ(expect, got);
 }
 
 

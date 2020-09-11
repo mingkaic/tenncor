@@ -12,7 +12,7 @@ DRefptrT node_meta_to_ref (const NodeMeta& meta)
 {
 	auto tens_id = meta.uuid();
 	auto& slist = meta.shape();
-	std::vector<teq::DimT> sdims(slist.begin(), slist.end());
+	teq::DimsT sdims(slist.begin(), slist.end());
 	return std::make_shared<DistrRef>(
 		egen::get_type(meta.dtype()),
 		teq::Shape(sdims),

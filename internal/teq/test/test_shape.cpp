@@ -13,14 +13,14 @@ TEST(SHAPE, Init)
 {
 	teq::Shape scalar;
 
-	std::vector<teq::DimT> slist = {12, 43, 56};
+	teq::DimsT slist = {12, 43, 56};
 	teq::Shape vec(slist);
 	teq::RankT n = slist.size();
 
-	std::vector<teq::DimT> longlist = {4, 23, 44, 52, 19, 92, 12, 2, 5};
+	teq::DimsT longlist = {4, 23, 44, 52, 19, 92, 12, 2, 5};
 	teq::Shape lvec(longlist);
 
-	std::vector<teq::DimT> zerolist = {43, 2, 5, 33, 0, 2, 7};
+	teq::DimsT zerolist = {43, 2, 5, 33, 0, 2, 7};
 	std::string fatalmsg = "cannot create shape with vector containing zero: " +
 		fmts::to_string(zerolist.begin(), zerolist.end());
 	EXPECT_FATAL(teq::Shape junk(zerolist), fatalmsg.c_str());
@@ -75,19 +75,19 @@ TEST(SHAPE, Iterators)
 
 TEST(SHAPE, VecAssign)
 {
-	std::vector<teq::DimT> zerolist = {3, 0, 11, 89};
-	std::vector<teq::DimT> slist = {52, 58, 35, 46, 77, 80};
-	std::vector<teq::DimT> junk = {7, 42};
+	teq::DimsT zerolist = {3, 0, 11, 89};
+	teq::DimsT slist = {52, 58, 35, 46, 77, 80};
+	teq::DimsT junk = {7, 42};
 
 	teq::Shape vecassign;
 	teq::Shape vecassign2(junk);
 
 	vecassign = slist;
-	std::vector<teq::DimT> vlist(vecassign.begin(), vecassign.end());
+	teq::DimsT vlist(vecassign.begin(), vecassign.end());
 	EXPECT_ARREQ(slist, vlist);
 
 	vecassign2 = slist;
-	std::vector<teq::DimT> vlist2(vecassign2.begin(), vecassign2.end());
+	teq::DimsT vlist2(vecassign2.begin(), vecassign2.end());
 	EXPECT_ARREQ(slist, vlist2);
 
 	std::string fatalmsg = "cannot create shape with vector containing zero: " +
@@ -98,36 +98,36 @@ TEST(SHAPE, VecAssign)
 
 TEST(SHAPE, Moves)
 {
-	std::vector<teq::DimT> junk = {8, 51, 73};
-	std::vector<teq::DimT> slist = {24, 11, 12, 16};
+	teq::DimsT junk = {8, 51, 73};
+	teq::DimsT slist = {24, 11, 12, 16};
 
 	teq::Shape mvassign;
 	teq::Shape mvassign2(junk);
 	teq::Shape orig(slist);
 
 	teq::Shape mv(std::move(orig));
-	std::vector<teq::DimT> mlist(mv.begin(), mv.end());
+	teq::DimsT mlist(mv.begin(), mv.end());
 	EXPECT_ARREQ(slist, mlist);
 
 	mvassign = std::move(mv);
-	std::vector<teq::DimT> alist(mvassign.begin(), mvassign.end());
+	teq::DimsT alist(mvassign.begin(), mvassign.end());
 	EXPECT_ARREQ(slist, alist);
 
 	mvassign2 = std::move(mvassign);
-	std::vector<teq::DimT> alist2(mvassign2.begin(), mvassign2.end());
+	teq::DimsT alist2(mvassign2.begin(), mvassign2.end());
 	EXPECT_ARREQ(slist, alist2);
 }
 
 
 TEST(SHAPE, NElems)
 {
-	std::vector<teq::DimT> slist = {11, 12, 16};
+	teq::DimsT slist = {11, 12, 16};
 	teq::Shape shape(slist);
 
 	size_t expect_nelems = 11 * 12 * 16;
 	EXPECT_EQ(expect_nelems, shape.n_elems());
 
-	std::vector<teq::DimT> biglist(8, 255);
+	teq::DimsT biglist(8, 255);
 	teq::Shape bigshape(biglist);
 
 	size_t expect_bignelems = 17878103347812890625ul;
@@ -141,7 +141,7 @@ TEST(SHAPE, NElems)
 
 TEST(SHAPE, Compatible)
 {
-	std::vector<teq::DimT> slist = {20, 48, 10, 27, 65, 74};
+	teq::DimsT slist = {20, 48, 10, 27, 65, 74};
 	teq::Shape shape(slist);
 
 	// shape is compatible with itself regardless of after idx
@@ -153,7 +153,7 @@ TEST(SHAPE, Compatible)
 	}
 
 	uint32_t insertion_pt = 3;
-	std::vector<teq::DimT> ilist = slist;
+	teq::DimsT ilist = slist;
 	ilist.insert(ilist.begin() + insertion_pt, 2);
 	teq::Shape ishape(ilist);
 	for (teq::RankT idx = 0; idx < insertion_pt; ++idx)
@@ -185,7 +185,7 @@ TEST(SHAPE, Compatible)
 
 TEST(SHAPE, ToString)
 {
-	std::vector<teq::DimT> slist = {24, 11, 12, 16, 7, 71, 1, 1};
+	teq::DimsT slist = {24, 11, 12, 16, 7, 71, 1, 1};
 	teq::Shape shape(slist);
 	std::string out = shape.to_string();
 
@@ -196,8 +196,8 @@ TEST(SHAPE, ToString)
 
 TEST(SHAPE, NarrowShape)
 {
-	std::vector<teq::DimT> slist = {1, 2, 3, 4, 1};
-	std::vector<teq::DimT> elist = {1, 2, 3, 4};
+	teq::DimsT slist = {1, 2, 3, 4, 1};
+	teq::DimsT elist = {1, 2, 3, 4};
 	teq::Shape shape(slist);
 	auto outs = teq::narrow_shape(shape);
 	EXPECT_VECEQ(elist, outs);

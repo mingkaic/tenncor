@@ -450,7 +450,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 		{
 			std::set<teq::RankT> ranks;
 			Packer<std::set<teq::RankT>>().unpack(ranks, func);
-			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
+			teq::RanksT vranks(ranks.begin(), ranks.end());
 
 			teq::TensptrT arg = func.get_args()[0];
 			teq::Shape shape = arg->shape();
@@ -468,7 +468,7 @@ estd::NumRange<T> generate_range (teq::iFunctor& func, const NumRangesT<T>& rang
 		{
 			std::set<teq::RankT> ranks;
 			Packer<std::set<teq::RankT>>().unpack(ranks, func);
-			std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
+			teq::RanksT vranks(ranks.begin(), ranks.end());
 
 			teq::TensptrT arg = func.get_args()[0];
 			teq::Shape shape = arg->shape();

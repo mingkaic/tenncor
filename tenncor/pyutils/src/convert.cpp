@@ -5,7 +5,7 @@
 namespace pyutils
 {
 
-std::vector<teq::DimT> c2pshape (const teq::Shape& cshape)
+teq::DimsT c2pshape (const teq::Shape& cshape)
 {
 	auto it = cshape.begin();
 	auto et = cshape.end();
@@ -13,13 +13,13 @@ std::vector<teq::DimT> c2pshape (const teq::Shape& cshape)
 	{
 		--et;
 	}
-	std::vector<teq::DimT> fwd(it, et);
-	return std::vector<teq::DimT>(fwd.rbegin(), fwd.rend());
+	teq::DimsT fwd(it, et);
+	return teq::DimsT(fwd.rbegin(), fwd.rend());
 }
 
 teq::Shape p2cshape (const py::list& pyshape)
 {
-	std::vector<teq::DimT> slist;
+	teq::DimsT slist;
 	size_t n = pyshape.size();
 	slist.reserve(n);
 	for (size_t i = 0; i < n; ++i)
@@ -31,7 +31,7 @@ teq::Shape p2cshape (const py::list& pyshape)
 
 teq::Shape p2cshape (const py::ssize_t* pslist, size_t ndim)
 {
-	std::vector<teq::DimT> slist(pslist, pslist + ndim);
+	teq::DimsT slist(pslist, pslist + ndim);
 	std::reverse(slist.begin(), slist.end());
 	return teq::Shape(slist);
 }

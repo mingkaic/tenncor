@@ -5,12 +5,12 @@
 namespace layr
 {
 
-teq::Shape gen_rshape (std::vector<teq::DimT> runcoms,
+teq::Shape gen_rshape (teq::DimsT runcoms,
 	teq::Shape left, eigen::PairVecT<teq::RankT> lrdims)
 {
 	// split runcoms values that avoids right dimensions in lrdims
 	std::array<bool,teq::rank_cap> unvisited;
-	std::vector<teq::DimT> slist(teq::rank_cap, 1);
+	teq::DimsT slist(teq::rank_cap, 1);
 	std::fill(unvisited.begin(), unvisited.end(), true);
 	for (auto& lr : lrdims)
 	{

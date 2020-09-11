@@ -17,7 +17,7 @@ namespace eteq
 /// Return reduction operator gradient of reduced functor node (bwd)
 static inline teq::TensptrT reduce_grad (teq::Shape shape, teq::TensptrT bwd, teq::FuncptrT fwd)
 {
-	std::vector<teq::DimT> bcast(teq::rank_cap, 1);
+	teq::DimsT bcast(teq::rank_cap, 1);
 	std::set<teq::RankT> ranks;
 	eigen::Packer<std::set<teq::RankT>>().unpack(ranks, *fwd);
 	for (teq::RankT d : ranks)
@@ -30,8 +30,8 @@ static inline teq::TensptrT reduce_grad (teq::Shape shape, teq::TensptrT bwd, te
 	return make_functor(egen::EXTEND, {bwd}, bcast);
 }
 
-static inline std::vector<teq::RankT> reorder_permute (
-	std::vector<teq::RankT> order)
+static inline teq::RanksT reorder_permute (
+	teq::RanksT order)
 {
 	std::array<bool,teq::rank_cap> visited;
 	std::fill(visited.begin(), visited.end(), false);
@@ -46,7 +46,7 @@ static inline std::vector<teq::RankT> reorder_permute (
 			order.push_back(i);
 		}
 	}
-	std::vector<teq::RankT> reorder(teq::rank_cap);
+	teq::RanksT reorder(teq::rank_cap);
 	for (size_t i = 0; i < teq::rank_cap; ++i)
 	{
 		reorder[order[i]] = i;
@@ -219,7 +219,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				break;
 			case egen::EXTEND:
 			{
-				std::vector<teq::DimT> bcast = *eigen::unpack_extend(
+				teq::DimsT bcast = *eigen::unpack_extend(
 					args.front()->shape(), *op);
 
 				std::set<teq::RankT> dims;
@@ -240,8 +240,8 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				break;
 			case egen::PERMUTE:
 			{
-				std::vector<teq::RankT> order;
-				eigen::Packer<std::vector<teq::RankT>>().unpack(order, *op);
+				teq::RanksT order;
+				eigen::Packer<teq::RanksT>().unpack(order, *op);
 
 				out = make_functor(egen::PERMUTE, {supgrad}, reorder_permute(order));
 			}
@@ -271,7 +271,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				// supcomp has <rucom_ranks, lucom_ranks>
 				// where rucom_ranks are visited right ranks
 				// and lucom_ranks are visited left ranks
-				std::vector<teq::RankT>
+				teq::RanksT
 				lucom_ranks, rucom_ranks, lcom_ranks, rcom_ranks;
 				lcom_ranks.reserve(dims.size());
 				rcom_ranks.reserve(dims.size());
@@ -303,7 +303,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 
 				// left = supgrad
 				teq::TensptrT right;
-				std::vector<teq::RankT> order;
+				teq::RanksT order;
 				eigen::PairVecT<teq::RankT> grad_dims;
 				if (arg_idx == 0)
 				{
@@ -345,10 +345,10 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::CONV:
 			{
 				// for convolution(X, Y) = C
-				std::vector<teq::RankT> order;
-				eigen::Packer<std::vector<teq::RankT>>().unpack(order, *op);
+				teq::RanksT order;
+				eigen::Packer<teq::RanksT>().unpack(order, *op);
 
-				std::vector<teq::RankT> dims;
+				teq::RanksT dims;
 				for (size_t i = 0, n = std::min((size_t) teq::rank_cap, order.size());
 					i < n && order[i] < teq::rank_cap; ++i)
 				{
@@ -365,7 +365,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						teq::DimT kpad = kernshape.at(i) - 1;
 						paddings[dims[i]] = {kpad, kpad};
 					}
-					std::vector<teq::RankT> revdims(ndims);
+					teq::RanksT revdims(ndims);
 					std::iota(revdims.begin(), revdims.end(), 0);
 					out = make_functor(egen::CONV, {
 						make_functor(egen::PAD, {supgrad}, paddings),
@@ -376,7 +376,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				else
 				{
 					// convolve(X, C_grad_sup)
-					std::vector<teq::RankT> indices(teq::rank_cap);
+					teq::RanksT indices(teq::rank_cap);
 					std::iota(indices.begin(), indices.end(), 0);
 					out = make_functor(egen::PERMUTE, {
 						make_functor(egen::CONV, {args[0], supgrad}, indices)
@@ -456,8 +456,8 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				break;
 			case egen::STRIDE:
 			{
-				std::vector<teq::DimT> incrs;
-				eigen::Packer<std::vector<teq::DimT>>().unpack(incrs, *op);
+				teq::DimsT incrs;
+				eigen::Packer<teq::DimsT>().unpack(incrs, *op);
 
 				teq::Shape origshape = args[0]->shape();
 				out = make_functor(egen::SCATTER, {supgrad}, origshape, incrs);
@@ -465,10 +465,10 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				break;
 			case egen::SCATTER:
 			{
-				std::vector<teq::DimT> c;
-				eigen::Packer<std::vector<teq::DimT>>().unpack(c, *op);
+				teq::DimsT c;
+				eigen::Packer<teq::DimsT>().unpack(c, *op);
 
-				std::vector<teq::DimT> strides;
+				teq::DimsT strides;
 				strides.reserve(teq::rank_cap);
 				std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 					std::back_inserter(strides));

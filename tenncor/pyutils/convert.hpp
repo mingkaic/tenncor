@@ -12,7 +12,7 @@ namespace pyutils
 
 namespace py = pybind11;
 
-std::vector<teq::DimT> c2pshape (const teq::Shape& cshape);
+teq::DimsT c2pshape (const teq::Shape& cshape);
 
 teq::Shape p2cshape (const py::list& pyshape);
 

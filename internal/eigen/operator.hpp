@@ -68,7 +68,7 @@ EigenptrT reduce_sum (teq::Shape outshape, const teq::iTensor& in, const marsh::
 {
 	std::set<teq::RankT> ranks;
 	Packer<std::set<teq::RankT>>().unpack(ranks, attrib);
-	std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
+	teq::RanksT vranks(ranks.begin(), ranks.end());
 
 	DimensionsT outdims = shape_convert(outshape);
 	_ARRAY_SWITCH(vranks, _EIGEN_RSUM_CASE)
@@ -89,7 +89,7 @@ EigenptrT reduce_prod (teq::Shape outshape, const teq::iTensor& in, const marsh:
 {
 	std::set<teq::RankT> ranks;
 	Packer<std::set<teq::RankT>>().unpack(ranks, attrib);
-	std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
+	teq::RanksT vranks(ranks.begin(), ranks.end());
 
 	DimensionsT outdims = shape_convert(outshape);
 	_ARRAY_SWITCH(vranks, _EIGEN_RPROD_CASE)
@@ -110,7 +110,7 @@ EigenptrT reduce_min (teq::Shape outshape, const teq::iTensor& in, const marsh::
 {
 	std::set<teq::RankT> ranks;
 	Packer<std::set<teq::RankT>>().unpack(ranks, attrib);
-	std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
+	teq::RanksT vranks(ranks.begin(), ranks.end());
 
 	DimensionsT outdims = shape_convert(outshape);
 	_ARRAY_SWITCH(vranks, _EIGEN_RMIN_CASE)
@@ -131,7 +131,7 @@ EigenptrT reduce_max (teq::Shape outshape, const teq::iTensor& in, const marsh::
 {
 	std::set<teq::RankT> ranks;
 	Packer<std::set<teq::RankT>>().unpack(ranks, attrib);
-	std::vector<teq::RankT> vranks(ranks.begin(), ranks.end());
+	teq::RanksT vranks(ranks.begin(), ranks.end());
 
 	DimensionsT outdims = shape_convert(outshape);
 	_ARRAY_SWITCH(vranks, _EIGEN_RMAX_CASE)
@@ -185,7 +185,7 @@ template <typename T>
 EigenptrT extend (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	teq::Shape inshape = in.shape();
-	std::vector<teq::DimT> bcast = *unpack_extend(inshape, attrib);
+	teq::DimsT bcast = *unpack_extend(inshape, attrib);
 
 	teq::ShapeT coord;
 	std::fill(coord.begin(), coord.end(), 1);
@@ -204,8 +204,8 @@ EigenptrT extend (teq::Shape outshape, const teq::iTensor& in, const marsh::iAtt
 template <typename T>
 EigenptrT permute (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
-	std::vector<teq::RankT> order;
-	Packer<std::vector<teq::RankT>>().unpack(order, attrib);
+	teq::RanksT order;
+	Packer<teq::RanksT>().unpack(order, attrib);
 
 	bool visited[teq::rank_cap];
 	std::fill(visited, visited + teq::rank_cap, false);
@@ -325,8 +325,8 @@ EigenptrT pad (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttrib
 template <typename T>
 EigenptrT stride (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
-	std::vector<teq::DimT> c;
-	Packer<std::vector<teq::DimT>>().unpack(c, attrib);
+	teq::DimsT c;
+	Packer<teq::DimsT>().unpack(c, attrib);
 
 	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
 	std::fill(incrs.begin(), incrs.end(), 1);
@@ -350,8 +350,8 @@ EigenptrT stride (teq::Shape outshape, const teq::iTensor& in, const marsh::iAtt
 template <typename T>
 EigenptrT scatter (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
-	std::vector<teq::DimT> dims;
-	Packer<std::vector<teq::DimT>>().unpack(dims, attrib);
+	teq::DimsT dims;
+	Packer<teq::DimsT>().unpack(dims, attrib);
 
 	Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
 	std::fill(incrs.begin(), incrs.end(), 1);
@@ -1408,8 +1408,8 @@ template <typename T>
 EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 	const teq::iTensor& kernel, const marsh::iAttributed& attrib)
 {
-	std::vector<teq::RankT> order;
-	Packer<std::vector<teq::RankT>>().unpack(order, attrib);
+	teq::RanksT order;
+	Packer<teq::RanksT>().unpack(order, attrib);
 
 	bool visited[teq::rank_cap];
 	std::fill(visited, visited + teq::rank_cap, false);

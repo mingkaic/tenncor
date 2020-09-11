@@ -19,9 +19,9 @@ using TensProcF = std::function<void(teq::TensptrsT&)>;
 static void matmul_complex (TensProcF root_proc = TensProcF())
 {
 	eigen::Device device;
-	std::vector<teq::DimT> alist = {3, 2};
-	std::vector<teq::DimT> blist = {4, 3};
-	std::vector<teq::DimT> clist = {2, 4};
+	teq::DimsT alist = {3, 2};
+	teq::DimsT blist = {4, 3};
+	teq::DimsT clist = {2, 4};
 	teq::Shape ashape(alist);
 	teq::Shape bshape(blist);
 	teq::Shape cshape(clist);

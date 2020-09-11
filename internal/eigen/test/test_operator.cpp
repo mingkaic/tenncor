@@ -83,7 +83,7 @@ TEST(OPERATOR, ArgMax)
 TEST(OPERATOR, Extend)
 {
 	marsh::Maps mvalues;
-	eigen::Packer<std::vector<teq::DimT>>().pack(mvalues, {1, 4});
+	eigen::Packer<teq::DimsT>().pack(mvalues, {1, 4});
 
 	teq::Shape outshape({3, 4, 2});
 	MockLeaf edge(std::vector<double>{2, 8, 4, 5, 6, 7}, teq::Shape({3, 1, 2}));
@@ -105,7 +105,7 @@ TEST(OPERATOR, Permute)
 {
 	{
 		marsh::Maps mvalues;
-		eigen::Packer<std::vector<teq::RankT>>().pack(mvalues,
+		eigen::Packer<teq::RanksT>().pack(mvalues,
 			{2, 0, 1, 3, 4, 5, 6, 7});
 
 		teq::Shape outshape({3, 2, 2});
@@ -124,7 +124,7 @@ TEST(OPERATOR, Permute)
 	}
 	{ // same thing as above block except exclude 6 and 7 values
 		marsh::Maps mvalues;
-		eigen::Packer<std::vector<teq::RankT>>().pack(mvalues,
+		eigen::Packer<teq::RanksT>().pack(mvalues,
 			{2, 0, 1, 3, 4, 5});
 
 		teq::Shape outshape({3, 2, 2});
@@ -143,7 +143,7 @@ TEST(OPERATOR, Permute)
 	}
 	{
 		marsh::Maps mvalues;
-		eigen::Packer<std::vector<teq::RankT>>().pack(mvalues,
+		eigen::Packer<teq::RanksT>().pack(mvalues,
 			{1, 0, 2, 3, 4, 5, 6, 7});
 
 		teq::Shape outshape({3, 2});
@@ -851,7 +851,7 @@ TEST(OPERATOR, Pad)
 TEST(OPERATOR, Stride)
 {
 	marsh::Maps mvalues;
-	eigen::Packer<std::vector<teq::DimT>>().pack(mvalues, {1, 2});
+	eigen::Packer<teq::DimsT>().pack(mvalues, {1, 2});
 
 	teq::Shape outshape({2, 2});
 	MockLeaf edge(
@@ -872,7 +872,7 @@ TEST(OPERATOR, Stride)
 TEST(OPERATOR, Scatter)
 {
 	marsh::Maps mvalues;
-	eigen::Packer<std::vector<teq::DimT>>().pack(mvalues, {2, 2});
+	eigen::Packer<teq::DimsT>().pack(mvalues, {2, 2});
 
 	teq::Shape outshape({3, 3});
 	MockLeaf edge(
@@ -1081,7 +1081,7 @@ TEST(OPERATOR, Convolution)
 {
 	{
 		marsh::Maps mvalues;
-		eigen::Packer<std::vector<teq::RankT>>().pack(mvalues, {1, 1});
+		eigen::Packer<teq::RanksT>().pack(mvalues, {1, 1});
 		teq::Shape outshape({3, 2});
 		MockLeaf image(std::vector<double>{
 			2, 8, 4,
@@ -1096,7 +1096,7 @@ TEST(OPERATOR, Convolution)
 
 	{
 		marsh::Maps mvalues;
-		eigen::Packer<std::vector<teq::RankT>>().pack(mvalues, {1});
+		eigen::Packer<teq::RanksT>().pack(mvalues, {1});
 		teq::Shape outshape({3, 2});
 		MockLeaf image(std::vector<double>{
 			2, 8, 4,
@@ -1110,7 +1110,7 @@ TEST(OPERATOR, Convolution)
 	}
 
 	marsh::Maps mvalues;
-	eigen::Packer<std::vector<teq::RankT>>().pack(mvalues, {1});
+	eigen::Packer<teq::RanksT>().pack(mvalues, {1});
 
 	teq::Shape outshape({3, 2});
 	MockLeaf image(std::vector<double>{

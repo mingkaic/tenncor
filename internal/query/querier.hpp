@@ -20,7 +20,7 @@ struct Query;
 static inline teq::Shape to_shape (
 	const google::protobuf::RepeatedField<uint32_t>& sfields)
 {
-	std::vector<teq::DimT> slist(sfields.begin(), sfields.end());
+	teq::DimsT slist(sfields.begin(), sfields.end());
 	return teq::Shape(slist);
 }
 

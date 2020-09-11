@@ -18,7 +18,7 @@ const std::string testdir = "models/test";
 TEST(OPTIMIZE, Depends)
 {
 	// tensor operation
-	std::vector<teq::DimT> slist = {2, 3, 4};
+	teq::DimsT slist = {2, 3, 4};
 	std::vector<double> data = {
 		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
 		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43
@@ -57,7 +57,7 @@ TEST(OPTIMIZE, DependsNnary)
 {
 	eigen::Device device;
 	// tensor operation
-	std::vector<teq::DimT> slist = {2, 3, 4};
+	teq::DimsT slist = {2, 3, 4};
 	std::vector<double> data = {
 		59, 10, 28, 10, 67, 62, 23, 4, 55, 77, 28, 16,
 		82, 52, 47, 16, 7, 85, 37, 2, 8, 52, 62, 43

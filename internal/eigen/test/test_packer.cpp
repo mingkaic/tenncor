@@ -207,10 +207,10 @@ TEST(PACKER, PackerRankPairs)
 
 TEST(PACKER, PackerDims)
 {
-	std::vector<teq::DimT> dims = {2, 2, 3, 4};
-	std::vector<teq::DimT> outdims;
+	teq::DimsT dims = {2, 2, 3, 4};
+	teq::DimsT outdims;
 
-	eigen::Packer<std::vector<teq::DimT>> packer;
+	eigen::Packer<teq::DimsT> packer;
 	marsh::Maps attrs;
 	EXPECT_FATAL(packer.unpack(outdims, attrs), "cannot find `dimensions` attribute");
 	packer.pack(attrs, dims);
@@ -233,12 +233,12 @@ TEST(PACKER, PackerDims)
 
 TEST(PACKER, PackerRanks)
 {
-	std::vector<teq::RankT> ranks = {2, 2, 3, 4};
-	std::vector<teq::RankT> badranks = {
+	teq::RanksT ranks = {2, 2, 3, 4};
+	teq::RanksT badranks = {
 		teq::rank_cap, 3, 4, teq::rank_cap + 2};
-	std::vector<teq::RankT> outranks;
+	teq::RanksT outranks;
 
-	eigen::Packer<std::vector<teq::RankT>> packer;
+	eigen::Packer<teq::RanksT> packer;
 	marsh::Maps attrs;
 	EXPECT_FATAL(packer.unpack(outranks, attrs), "cannot find `ranks` attribute");
 	EXPECT_FATAL(packer.pack(attrs, badranks),
@@ -363,11 +363,11 @@ TEST(PACKER, EmptyPacking)
 TEST(PACKER, ExtendPacking)
 {
 	teq::Shape inshape({1, 2, 3});
-	std::vector<teq::DimT> extends = {4, 1, 1, 2, 1, 1, 1, 1};
+	teq::DimsT extends = {4, 1, 1, 2, 1, 1, 1, 1};
 	teq::Shape outshape({4, 2, 3, 2});
 
 	{ // extend by explicit broadcast
-		eigen::Packer<std::vector<teq::DimT>> packer;
+		eigen::Packer<teq::DimsT> packer;
 		marsh::Maps attrs;
 		packer.pack(attrs, extends);
 

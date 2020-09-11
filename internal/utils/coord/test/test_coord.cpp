@@ -11,7 +11,7 @@
 
 TEST(SHAPE, Coordinates)
 {
-	std::vector<teq::DimT> slist = {9, 3, 7, 8, 5};
+	teq::DimsT slist = {9, 3, 7, 8, 5};
 	teq::Shape shape(slist);
 	teq::CoordT coord;
 	for (teq::NElemT i = 0, n = shape.n_elems(); i < n; ++i)

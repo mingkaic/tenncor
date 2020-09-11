@@ -1219,7 +1219,7 @@ TEST(STABILIZER, Conv)
 	teq::TensptrT k(new MockLeaf(kshape));
 
 	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{a, k}, teq::Opcode{"", egen::CONV});
-	eigen::pack_attr(*f, std::vector<teq::RankT>{0, 2});
+	eigen::pack_attr(*f, teq::RanksT{0, 2});
 
 	auto r1 = eigen::generate_range<double>(*f, {
 		estd::NumRange<double>(-4, 2),

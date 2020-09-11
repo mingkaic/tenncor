@@ -81,7 +81,7 @@ TEST(FUNCOPT, Permute)
 	auto a = std::make_shared<MockLeaf>(
 		std::vector<double>{2, 3, 7, 2}, outshape);
 
-	eigen::Packer<std::vector<teq::RankT>> packer;
+	eigen::Packer<teq::RanksT> packer;
 
 	// outshape completely different
 	packer.pack(attrs, {1, 2, 0});
@@ -116,7 +116,7 @@ TEST(FUNCOPT, Extend)
 	auto a = std::make_shared<MockLeaf>(
 		std::vector<double>{2, 3, 7, 2}, outshape);
 
-	eigen::Packer<std::vector<teq::DimT>> packer;
+	eigen::Packer<teq::DimsT> packer;
 
 	EXPECT_TRUE(opt.operator()<double>(attrs, {a}));
 

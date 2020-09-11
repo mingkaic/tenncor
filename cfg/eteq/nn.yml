@@ -123,7 +123,7 @@ funcs:
               teq::Shape shape = arg->shape();
               teq::DimT xextent = shape.at(dims.first) - 1;
               teq::DimT yextent = shape.at(dims.second) - 1;
-              std::vector<teq::DimT> strider(teq::rank_cap,1);
+              teq::DimsT strider(teq::rank_cap,1);
               strider[dims.first] = strider[dims.second] = 2;
               auto top_left = super->stride(arg,strider);
               auto top_right = super->stride(
@@ -153,7 +153,7 @@ funcs:
               teq::Shape shape = arg->shape();
               teq::DimT xextent = shape.at(dims.first) - 1;
               teq::DimT yextent = shape.at(dims.second) - 1;
-              std::vector<teq::DimT> strider(teq::rank_cap,1);
+              teq::DimsT strider(teq::rank_cap,1);
               strider[dims.first] = strider[dims.second] = 2;
               auto top_left = super->stride(arg,strider);
               auto top_right = super->stride(

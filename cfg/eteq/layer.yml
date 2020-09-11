@@ -69,7 +69,7 @@ funcs:
     args:
     - type: const teq::Shape&
       name: inshape
-    - type: const std::vector<teq::DimT>&
+    - type: const teq::DimsT&
       name: hidden_dims
     - type: const layr::InitF<T>&
       name: weight_init
@@ -157,7 +157,7 @@ funcs:
           //
               // input needs to specify number of sequences,
               // since graph topography can't be traced
-              std::vector<teq::DimT> inslist(teq::rank_cap,1);
+              teq::DimsT inslist(teq::rank_cap,1);
               inslist[0] = indim;
               inslist[seq_dim] = nseq;
               eteq::ETensor input(eteq::make_variable_scalar<T>(
@@ -195,20 +195,20 @@ funcs:
           //
               // input needs to specify number of sequences,
               // since graph topography can't be traced
-              std::vector<teq::DimT> inslist(inshape.begin(),inshape.end());
+              teq::DimsT inslist(inshape.begin(),inshape.end());
               inslist[seq_dim] = nseq;
               eteq::ETensor input(eteq::make_variable_scalar<T>(
                   0,teq::Shape(inslist),layr::input_label,super->ctx));
 
-              std::vector<teq::DimT> inputlist(inshape.begin(),inshape.end());
-              std::vector<teq::DimT> statelist(inshape.begin(),inshape.end());
+              teq::DimsT inputlist(inshape.begin(),inshape.end());
+              teq::DimsT statelist(inshape.begin(),inshape.end());
               inputlist[0] += hidden_dim;
               statelist[0] = hidden_dim;
               inputlist[seq_dim] = statelist[seq_dim] = 1;
 
               teq::Shape inputshape(inputlist);
               teq::Shape stateshape(statelist);
-              std::vector<teq::DimT> hid_dims = {hidden_dim};
+              teq::DimsT hid_dims = {hidden_dim};
               auto ggate = this->dense(inputshape,hid_dims,weight_init,bias_init);
               auto forgate = this->dense(inputshape,hid_dims,weight_init,bias_init);
               auto ingate = this->dense(inputshape,hid_dims,weight_init,bias_init);
@@ -242,20 +242,20 @@ funcs:
           //
               // input needs to specify number of sequences,
               // since graph topography can't be traced
-              std::vector<teq::DimT> inslist(inshape.begin(),inshape.end());
+              teq::DimsT inslist(inshape.begin(),inshape.end());
               inslist[seq_dim] = nseq;
               eteq::ETensor input(eteq::make_variable_scalar<T>(
                   0,teq::Shape(inslist),layr::input_label,super->ctx));
 
-              std::vector<teq::DimT> inputlist(inshape.begin(),inshape.end());
-              std::vector<teq::DimT> statelist(inshape.begin(),inshape.end());
+              teq::DimsT inputlist(inshape.begin(),inshape.end());
+              teq::DimsT statelist(inshape.begin(),inshape.end());
               inputlist[0] += hidden_dim;
               statelist[0] = hidden_dim;
               inputlist[seq_dim] = statelist[seq_dim] = 1;
 
               teq::Shape inputshape(inputlist);
               teq::Shape stateshape(statelist);
-              std::vector<teq::DimT> hid_dims = {hidden_dim};
+              teq::DimsT hid_dims = {hidden_dim};
               auto ugate = this->dense(inputshape,hid_dims,weight_init,bias_init);
               auto rgate = this->dense(inputshape,hid_dims,weight_init,bias_init);
               auto hgate = this->dense(inputshape,hid_dims,weight_init,bias_init);

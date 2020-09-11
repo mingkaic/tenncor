@@ -102,11 +102,11 @@ struct DBNTrainer final
 			train_lr, teq::Shape(), "learning_rate", context);
 		auto dw =
 			api.extend(tlr_placeholder, 0,
-				std::vector<teq::DimT>(wshape.begin(), wshape.end())) *
+				teq::DimsT(wshape.begin(), wshape.end())) *
 			l2_regularized;
 		auto db =
 			api.extend(tlr_placeholder, 0,
-				std::vector<teq::DimT>(bshape.begin(), bshape.end())) *
+				teq::DimsT(bshape.begin(), bshape.end())) *
 			api.reduce_mean_1d(diff, 1);
 		auto dtrain_lr = tlr_placeholder * lr_scaling;
 

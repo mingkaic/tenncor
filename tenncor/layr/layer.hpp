@@ -45,7 +45,7 @@ static inline teq::TensMapT<std::string> replace_targets (
 	return targets;
 }
 
-teq::Shape gen_rshape (std::vector<teq::DimT> runcoms,
+teq::Shape gen_rshape (teq::DimsT runcoms,
 	teq::Shape left, eigen::PairVecT<teq::RankT> lrdims);
 
 teq::TensptrT make_layer (teq::TensptrT root,

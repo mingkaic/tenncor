@@ -20,7 +20,7 @@ api:
     - layr::ShapeFactorF
     - layr::InitF<T>
     - std::set<teq::RankT>
-    - std::vector<teq::DimT>
+    - teq::DimsT
     - std::pair<eteq::DimPairsT,eteq::DimPairsT>
   pybind_includes:
   - '"python/tenncor.hpp"'
@@ -957,7 +957,7 @@ api:
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: const std::vector<teq::RankT>&
+          - type: const teq::RanksT&
             name: order
           out:
             type: eteq::ETensor
@@ -966,7 +966,7 @@ api:
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: const std::vector<teq::DimT>&
+          - type: const teq::DimsT&
             name: bcast
           out:
             type: eteq::ETensor
@@ -977,13 +977,13 @@ api:
             name: arg
           - type: teq::RankT
             name: offset
-          - type: const std::vector<teq::DimT>&
+          - type: const teq::DimsT&
             name: xlist
           out:
             type: eteq::ETensor
             val: |
                 //
-                    std::vector<teq::DimT> bcast(offset,1);
+                    teq::DimsT bcast(offset,1);
                     bcast.insert(bcast.end(),xlist.begin(),xlist.end());
                     return eteq::ETensor(eteq::make_functor(::egen::EXTEND,teq::TensptrsT{arg},bcast),ctx);
         - name: concat
@@ -1085,7 +1085,7 @@ api:
                         global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                             offset,teq::rank_cap);
                     }
-                    std::vector<teq::RankT> dims(std::min(ndims,
+                    teq::RanksT dims(std::min(ndims,
                         (teq::RankT) (teq::rank_cap - offset)));
                     std::iota(dims.begin(),dims.end(),offset);
                     return eteq::ETensor(eteq::make_functor(::egen::REDUCE_SUM,teq::TensptrsT{tens},
@@ -1110,7 +1110,7 @@ api:
                         global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                             offset,teq::rank_cap);
                     }
-                    std::vector<teq::RankT> dims(std::min(ndims,
+                    teq::RanksT dims(std::min(ndims,
                         (teq::RankT) (teq::rank_cap - offset)));
                     std::iota(dims.begin(),dims.end(),offset);
                     return eteq::ETensor(eteq::make_functor(::egen::REDUCE_PROD,teq::TensptrsT{tens},
@@ -1135,7 +1135,7 @@ api:
                         global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                             offset,teq::rank_cap);
                     }
-                    std::vector<teq::RankT> dims(std::min(ndims,
+                    teq::RanksT dims(std::min(ndims,
                         (teq::RankT) (teq::rank_cap - offset)));
                     std::iota(dims.begin(),dims.end(),offset);
                     return eteq::ETensor(eteq::make_functor(::egen::REDUCE_MIN,teq::TensptrsT{tens},
@@ -1160,7 +1160,7 @@ api:
                         global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
                             offset,teq::rank_cap);
                     }
-                    std::vector<teq::RankT> dims(std::min(ndims,
+                    teq::RanksT dims(std::min(ndims,
                         (teq::RankT) (teq::rank_cap - offset)));
                     std::iota(dims.begin(),dims.end(),offset);
                     return eteq::ETensor(eteq::make_functor(::egen::REDUCE_MAX,teq::TensptrsT{tens},
@@ -1249,7 +1249,7 @@ api:
           args:
           - type: const eteq::ETensor&
             name: arg
-          - type: const std::vector<teq::DimT>&
+          - type: const teq::DimsT&
             name: incrs
           out:
             type: eteq::ETensor
@@ -1261,7 +1261,7 @@ api:
             name: arg
           - type: const teq::Shape&
             name: outshape
-          - type: const std::vector<teq::DimT>&
+          - type: const teq::DimsT&
             name: incrs
           out:
             type: eteq::ETensor
@@ -1294,7 +1294,7 @@ api:
             name: image
           - type: const eteq::ETensor&
             name: kernel
-          - type: const std::vector<teq::RankT>&
+          - type: const teq::RanksT&
             name: dims
           out:
             type: eteq::ETensor
@@ -1311,7 +1311,7 @@ api:
                 //
                     auto red = this->reduce_sum(arg,dimension,1);
 
-                    std::vector<teq::RankT> indices(teq::rank_cap);
+                    teq::RanksT indices(teq::rank_cap);
                     auto bt = indices.begin();
                     auto it = bt + dimension;
                     std::iota(bt,it,0);
@@ -1330,7 +1330,7 @@ api:
                 //
                     auto red = this->reduce_prod(arg,dimension,1);
 
-                    std::vector<teq::RankT> indices(teq::rank_cap);
+                    teq::RanksT indices(teq::rank_cap);
                     auto bt = indices.begin();
                     auto it = bt + dimension;
                     std::iota(bt,it,0);
@@ -1349,7 +1349,7 @@ api:
                 //
                     auto red = this->reduce_min(arg,dimension,1);
 
-                    std::vector<teq::RankT> indices(teq::rank_cap);
+                    teq::RanksT indices(teq::rank_cap);
                     auto bt = indices.begin();
                     auto it = bt + dimension;
                     std::iota(bt,it,0);
@@ -1368,7 +1368,7 @@ api:
                 //
                     auto red = this->reduce_max(arg,dimension,1);
 
-                    std::vector<teq::RankT> indices(teq::rank_cap);
+                    teq::RanksT indices(teq::rank_cap);
                     auto bt = indices.begin();
                     auto it = bt + dimension;
                     std::iota(bt,it,0);
@@ -1530,7 +1530,7 @@ api:
                         this->reduce_max(arg,offset,ndims),arg);
                     auto exarg = this->exp(this->sub(arg,overflow_preventer));
                     auto it = shape.begin() + offset;
-                    std::vector<teq::DimT> xlist(it,it + ndims);
+                    teq::DimsT xlist(it,it + ndims);
                     return this->div(exarg,
                         this->extend_like(this->add(
                             this->reduce_sum(exarg,offset,ndims),

@@ -154,7 +154,7 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 teq::Shape unmarshal_shape (const TensorProto& tens)
 {
 	auto dims = tens.dims();
-	std::vector<teq::DimT> slist(dims.begin(), dims.end());
+	teq::DimsT slist(dims.begin(), dims.end());
 	return teq::Shape(slist);
 }
 

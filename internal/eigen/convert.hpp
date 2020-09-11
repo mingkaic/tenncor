@@ -114,7 +114,7 @@ template <typename T>
 teq::Shape get_shape (const TensorT<T>& tens)
 {
 	auto slist = tens.dimensions();
-	return teq::Shape(std::vector<teq::DimT>(slist.begin(), slist.end()));
+	return teq::Shape(teq::DimsT(slist.begin(), slist.end()));
 }
 
 /// Return the teq Shape representation of Eigen Tensor Map
@@ -122,7 +122,7 @@ template <typename T>
 teq::Shape get_shape (const TensMapT<T>& tens)
 {
 	auto slist = tens.dimensions();
-	return teq::Shape(std::vector<teq::DimT>(slist.begin(), slist.end()));
+	return teq::Shape(teq::DimsT(slist.begin(), slist.end()));
 }
 
 /// Return Eigen shape of teq Shape
