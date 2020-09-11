@@ -372,7 +372,9 @@ TEST(PACKER, ExtendPacking)
 		packer.pack(attrs, extends);
 
 		auto ext = eigen::unpack_extend(inshape, attrs);
-		EXPECT_VECEQ(extends, ext);
+		EXPECT_TRUE(ext);
+		teq::DimsT xlist = *ext;
+		EXPECT_VECEQ(extends, xlist);
 	}
 	{ // extend by tensor similarity
 		teq::TensptrT tens(new MockLeaf(outshape));
@@ -381,7 +383,9 @@ TEST(PACKER, ExtendPacking)
 		packer.pack(attrs, tens);
 
 		auto ext = eigen::unpack_extend(inshape, attrs);
-		EXPECT_VECEQ(extends, ext);
+		EXPECT_TRUE(ext);
+		teq::DimsT xlist = *ext;
+		EXPECT_VECEQ(extends, xlist);
 	}
 }
 

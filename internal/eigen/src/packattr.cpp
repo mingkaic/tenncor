@@ -11,9 +11,9 @@ std::string Packer<PairVecT<teq::DimT>>::key_ = "dimension_pairs";
 
 std::string Packer<PairVecT<teq::RankT>>::key_ = "rank_pairs";
 
-std::string Packer<std::vector<teq::DimT>>::key_ = "dimensions";
+std::string Packer<teq::DimsT>::key_ = "dimensions";
 
-std::string Packer<std::vector<teq::RankT>>::key_ = "ranks";
+std::string Packer<teq::RanksT>::key_ = "ranks";
 
 std::string Packer<std::set<teq::RankT>>::key_ = "rank_set";
 
@@ -25,19 +25,19 @@ std::string Packer<teq::TensptrT>::key_ = "tensor";
 
 void pack_attr (marsh::iAttributed& attrs) {}
 
-std::vector<teq::DimT> unpack_extend (
-	teq::Shape inshape, const marsh::iAttributed& attrib)
+OptDimsT unpack_extend (teq::Shape inshape, const marsh::iAttributed& attrib)
 {
-	std::vector<teq::DimT> bcast;
-	Packer<std::vector<teq::DimT>> dimpacker;
+	teq::DimsT bcast;
+	Packer<teq::DimsT> dimpacker;
+	Packer<teq::TensptrT> tenspacker;
 	if (nullptr != attrib.get_attr(dimpacker.get_key()))
 	{
 		dimpacker.unpack(bcast, attrib);
 	}
-	else
+	else if (nullptr != attrib.get_attr(tenspacker.get_key()))
 	{
 		teq::TensptrT tens;
-		Packer<teq::TensptrT>().unpack(tens, attrib);
+		tenspacker.unpack(tens, attrib);
 		auto target = tens->shape();
 		for (teq::RankT i = 0; i < teq::rank_cap; ++i)
 		{
@@ -51,6 +51,10 @@ std::vector<teq::DimT> unpack_extend (
 				bcast.push_back(1);
 			}
 		}
+	}
+	else
+	{
+		return OptDimsT();
 	}
 	return bcast;
 }

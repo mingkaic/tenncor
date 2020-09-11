@@ -219,7 +219,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				break;
 			case egen::EXTEND:
 			{
-				std::vector<teq::DimT> bcast = eigen::unpack_extend(
+				std::vector<teq::DimT> bcast = *eigen::unpack_extend(
 					args.front()->shape(), *op);
 
 				std::set<teq::RankT> dims;

@@ -32,6 +32,12 @@ TEST(SHAPER, Default)
 }
 
 
+TEST(SHAPER, Identity)
+{
+	//
+}
+
+
 TEST(SHAPER, Reduce)
 {
 	std::set<teq::RankT> rdims = {3, 2, 5};
@@ -75,18 +81,34 @@ TEST(SHAPER, ArgReduce)
 }
 
 
-TEST(SHAPER, Slice)
+TEST(SHAPER, Permute)
 {
-	eigen::PairVecT<teq::DimT> extents = {{3, 6}, {2, 3}, {0, 2}};
-	egen::ShapeParser<egen::SLICE> parser;
-	marsh::Maps exed;
-	eigen::Packer<eigen::PairVecT<teq::DimT>>().pack(exed, extents);
+	//
+}
 
-	EXPECT_FATAL(parser(exed, {}), eigen::no_argument_err.c_str());
 
-	teq::Shape inshape({5, 4, 6, 7, 3});
-	teq::Shape expect({2, 2, 2, 7, 3});
-	teq::Shape got = parser(exed, {inshape});
+TEST(SHAPER, Extend)
+{
+	//
+}
+
+
+TEST(SHAPER, Reshape)
+{
+	teq::Shape expect({3, 4, 6});
+
+	egen::ShapeParser<egen::RESHAPE> parser;
+	marsh::Maps shaped;
+	eigen::Packer<teq::Shape>().pack(shaped, expect);
+
+	EXPECT_FATAL(parser(shaped, {}), eigen::no_argument_err.c_str());
+
+	teq::Shape conflicting({3, 4, 5});
+	EXPECT_FATAL(parser(shaped, {conflicting}),
+		"cannot RESHAPE with shapes of different sizes 60 (shape [3\\4\\5\\1\\1\\1\\1\\1]) and 72 (shape [3\\4\\6\\1\\1\\1\\1\\1])");
+
+	teq::Shape inshape({8, 3, 3});
+	teq::Shape got = parser(shaped, {inshape});
 
 	EXPECT_ARREQ(expect, got);
 }
@@ -109,6 +131,23 @@ TEST(SHAPER, Pad)
 }
 
 
+TEST(SHAPER, Slice)
+{
+	eigen::PairVecT<teq::DimT> extents = {{3, 6}, {2, 3}, {0, 2}};
+	egen::ShapeParser<egen::SLICE> parser;
+	marsh::Maps exed;
+	eigen::Packer<eigen::PairVecT<teq::DimT>>().pack(exed, extents);
+
+	EXPECT_FATAL(parser(exed, {}), eigen::no_argument_err.c_str());
+
+	teq::Shape inshape({5, 4, 6, 7, 3});
+	teq::Shape expect({2, 2, 2, 7, 3});
+	teq::Shape got = parser(exed, {inshape});
+
+	EXPECT_ARREQ(expect, got);
+}
+
+
 TEST(SHAPER, Stride)
 {
 	std::vector<teq::DimT> strides = {3, 2, 3};
@@ -121,27 +160,6 @@ TEST(SHAPER, Stride)
 	teq::Shape inshape({41, 4, 6, 7, 3});
 	teq::Shape expect({14, 2, 2, 7, 3});
 	teq::Shape got = parser(strided, {inshape});
-
-	EXPECT_ARREQ(expect, got);
-}
-
-
-TEST(SHAPER, Reshape)
-{
-	teq::Shape expect({3, 4, 6});
-
-	egen::ShapeParser<egen::RESHAPE> parser;
-	marsh::Maps shaped;
-	eigen::Packer<teq::Shape>().pack(shaped, expect);
-
-	EXPECT_FATAL(parser(shaped, {}), eigen::no_argument_err.c_str());
-
-	teq::Shape conflicting({3, 4, 5});
-	EXPECT_FATAL(parser(shaped, {conflicting}),
-		"cannot RESHAPE with shapes of different sizes 60 (shape [3\\4\\5\\1\\1\\1\\1\\1]) and 72 (shape [3\\4\\6\\1\\1\\1\\1\\1])");
-
-	teq::Shape inshape({8, 3, 3});
-	teq::Shape got = parser(shaped, {inshape});
 
 	EXPECT_ARREQ(expect, got);
 }
@@ -170,34 +188,22 @@ TEST(SHAPER, Scatter)
 }
 
 
-// TEST(SHAPER, Matmul)
-// {
-// 	//
-// }
+TEST(SHAPER, Matmul)
+{
+	//
+}
 
 
-// TEST(SHAPER, Conv)
-// {
-// 	//
-// }
+TEST(SHAPER, Conv)
+{
+	//
+}
 
 
-// TEST(SHAPER, Permute)
-// {
-// 	//
-// }
-
-
-// TEST(SHAPER, Extend)
-// {
-// 	//
-// }
-
-
-// TEST(SHAPER, Concat)
-// {
-// 	//
-// }
+TEST(SHAPER, Concat)
+{
+	//
+}
 
 
 #endif // DISABLE_EIGEN_SHAPER_TEST

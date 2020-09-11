@@ -185,7 +185,7 @@ template <typename T>
 EigenptrT extend (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
 	teq::Shape inshape = in.shape();
-	std::vector<teq::DimT> bcast = unpack_extend(inshape, attrib);
+	std::vector<teq::DimT> bcast = *unpack_extend(inshape, attrib);
 
 	teq::ShapeT coord;
 	std::fill(coord.begin(), coord.end(), 1);

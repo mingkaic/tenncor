@@ -15,6 +15,8 @@ using DTypesT = std::vector<egen::_GENERATED_DTYPE>;
 template <typename T>
 using PairVecT = std::vector<std::pair<T,T>>;
 
+using OptDimsT = std::optional<teq::DimsT>;
+
 template <typename T>
 std::string to_string (const PairVecT<T>& pairs)
 {
@@ -171,7 +173,7 @@ struct Packer<PairVecT<teq::RankT>>
 };
 
 template <>
-struct Packer<std::vector<teq::DimT>>
+struct Packer<teq::DimsT>
 {
 	static std::string key_;
 
@@ -180,24 +182,24 @@ struct Packer<std::vector<teq::DimT>>
 		return key_;
 	}
 
-	void pack (marsh::iAttributed& attrib, std::vector<teq::DimT> dims) const
+	void pack (marsh::iAttributed& attrib, teq::DimsT dims) const
 	{
 		std::vector<int64_t> idims(dims.begin(), dims.end());
 		attrib.add_attr(key_,
 			std::make_unique<marsh::NumArray<int64_t>>(idims));
 	}
 
-	void unpack (std::vector<teq::DimT>& out, const marsh::iAttributed& attrib) const
+	void unpack (teq::DimsT& out, const marsh::iAttributed& attrib) const
 	{
 		auto attr = get_attr(*this, attrib);
 		auto& narr = static_cast<const marsh::NumArray<int64_t>&>(*attr);
 		auto& encoding = narr.contents_;
-		out = std::vector<teq::DimT>(encoding.begin(), encoding.end());
+		out = teq::DimsT(encoding.begin(), encoding.end());
 	}
 };
 
 template <>
-struct Packer<std::vector<teq::RankT>>
+struct Packer<teq::RanksT>
 {
 	static std::string key_;
 
@@ -206,7 +208,7 @@ struct Packer<std::vector<teq::RankT>>
 		return key_;
 	}
 
-	void pack (marsh::iAttributed& attrib, std::vector<teq::RankT> ranks) const
+	void pack (marsh::iAttributed& attrib, teq::RanksT ranks) const
 	{
 		if (std::any_of(ranks.begin(), ranks.end(),
 			[](teq::RankT rank)
@@ -223,12 +225,12 @@ struct Packer<std::vector<teq::RankT>>
 			std::make_unique<marsh::NumArray<int64_t>>(sranks));
 	}
 
-	void unpack (std::vector<teq::RankT>& out, const marsh::iAttributed& attrib) const
+	void unpack (teq::RanksT& out, const marsh::iAttributed& attrib) const
 	{
 		auto attr = get_attr(*this, attrib);
 		auto& narr = static_cast<const marsh::NumArray<int64_t>&>(*attr);
 		auto& encoding = narr.contents_;
-		out = std::vector<teq::RankT>(encoding.begin(), encoding.end());
+		out = teq::RanksT(encoding.begin(), encoding.end());
 	}
 };
 
@@ -320,7 +322,7 @@ struct Packer<teq::Shape>
 		auto attr = get_attr(*this, attrib);
 		auto& narr = static_cast<const marsh::NumArray<int64_t>&>(*attr);
 		auto& encoding = narr.contents_;
-		std::vector<teq::DimT> slist(encoding.begin(), encoding.end());
+		teq::DimsT slist(encoding.begin(), encoding.end());
 		out = teq::Shape(slist);
 	}
 };
@@ -358,8 +360,7 @@ void pack_attr (marsh::iAttributed& attrib, T attr_val, ARGS... args)
 	pack_attr(attrib, args...);
 }
 
-std::vector<teq::DimT> unpack_extend (
-	teq::Shape inshape, const marsh::iAttributed& attrib);
+OptDimsT unpack_extend (teq::Shape inshape, const marsh::iAttributed& attrib);
 
 }
 

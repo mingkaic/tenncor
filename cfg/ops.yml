@@ -241,12 +241,12 @@ opcode:
         out:
           val: |
               //
-                      std::vector<teq::DimT> bcast = eigen::unpack_extend(
-                          args.front()->shape(), attrs);
-                      bool redundant = nullptr != attrs.get_attr(
-                          eigen::Packer<std::vector<teq::DimT>>().get_key()) &&
-                          (bcast.empty() || std::all_of(bcast.begin(), bcast.end(),
-                          [](teq::DimT d) { return 1 == d; }));
+                      auto bcast = eigen::unpack_extend(args.front()->shape(), attrs);
+                      bool uses_dims = nullptr != attrs.get_attr(
+                          eigen::Packer<std::vector<teq::DimT>>().get_key());
+                      bool redundant = false == bool(bcast) || (uses_dims &&
+                          (bcast->empty() || std::all_of(bcast->begin(), bcast->end(),
+                          [](teq::DimT d) { return 1 == d; })));
                       if (redundant)
                       {
                           global::debug("extending with nothing... treating as identity");
@@ -257,7 +257,11 @@ opcode:
           val: |
               //
                       teq::Shape shape = shapes.front();
-                      std::vector<teq::DimT> bcast = eigen::unpack_extend(shape, attrs);
+                      teq::DimsT bcast;
+                      if (auto bopt = eigen::unpack_extend(shape, attrs))
+                      {
+                          bcast = *bopt;
+                      }
                       if (std::any_of(bcast.begin(), bcast.end(),
                           [](teq::DimT d) { return 0 == d; }))
                       {

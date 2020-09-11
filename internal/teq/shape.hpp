@@ -33,6 +33,10 @@ using DimT = uint32_t;
 using DimT = uint64_t;
 #endif
 
+using RanksT = std::vector<RankT>;
+
+using DimsT = std::vector<DimT>;
+
 /// Type used for flattened index
 /// DimT having 8 bits and shape comprising of 8 DimT values means a maximum
 /// flattened index of (2 ^ 8) ^ 8 = 2 ^ 64
