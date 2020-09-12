@@ -138,7 +138,7 @@ struct ETensor
 		{
 			auto tens = get();
 			eigen::Device device(max_version);
-			teq::get_eval(ctx).evaluate(device, {tens});
+			teq::get_eval(ctx).evaluate(device, {tens}, ignored);
 			return data<T>();
 		}
 		return nullptr;
