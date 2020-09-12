@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_CASTER_TEST
+#ifndef DISABLE_ETEQ_CASTER_TEST
 
 
 #include "gtest/gtest.h"
@@ -66,4 +66,4 @@ TEST(CASTER, Cast)
 }
 
 
-#endif // DISABLE_CASTER_TEST
+#endif // DISABLE_ETEQ_CASTER_TEST

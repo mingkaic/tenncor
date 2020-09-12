@@ -49,6 +49,7 @@ cc_test(
     deps = [
         "//tenncor/eteq:eteq",
         "//testutil:tutil",
+        "//internal/teq:mock_teq",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],

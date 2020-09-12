@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_ETENS_TEST
+#ifndef DISABLE_ETEQ_ETENS_TEST
 
 
 #include "gtest/gtest.h"
@@ -34,4 +34,4 @@ TEST(ETENS, EVarRegistry)
 }
 
 
-#endif // DISABLE_ETENS_TEST
+#endif // DISABLE_ETEQ_ETENS_TEST

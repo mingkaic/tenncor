@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_VARIABLE_TEST
+#ifndef DISABLE_ETEQ_VARIABLE_TEST
 
 
 #include "gtest/gtest.h"
@@ -70,4 +70,4 @@ TEST(VARIABLE, Assign)
 }
 
 
-#endif // DISABLE_VARIABLE_TEST
+#endif // DISABLE_ETEQ_VARIABLE_TEST

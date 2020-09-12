@@ -215,7 +215,10 @@ struct Functor final : public eigen::Observable
 				f->must_initialize();
 			}
 		}
-		assert(initialize());
+		if (false == initialize())
+		{
+			global::fatal("failed to initialize");
+		}
 	}
 
 	/// Implementation of Observable
