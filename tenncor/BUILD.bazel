@@ -161,6 +161,7 @@ cc_test(
         "//internal/utils/coord:coord",
         "//tenncor:tenncor",
         "//testutil:tutil",
+        "//dbg/print/printsvc:printsvc",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],

@@ -8,6 +8,7 @@ filegroup(
         ":opsvc_hdrs",
         ":opsvc_srcs",
         ":protos",
+        ":test_srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],

@@ -5,8 +5,7 @@ filegroup(
     srcs = [
         ":distr_hdrs",
         ":distr_srcs",
-        ":ctest_srcs",
-        ":ptest_srcs",
+        ":test_srcs",
         "//tenncor/distr/iosvc:srcs",
         "BUILD.bazel",
     ],
@@ -24,18 +23,8 @@ filegroup(
 )
 
 filegroup(
-    name = "ctest_srcs",
-    srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
-    ]),
-)
-
-filegroup(
-    name = "ptest_srcs",
-    srcs = glob([
-        "test/*.py",
-    ]),
+    name = "test_srcs",
+    srcs = glob(["test/*.cpp"]),
 )
 
 ######### LIBRARY #########
@@ -58,24 +47,14 @@ cc_library(
 ######### TEST #########
 
 cc_test(
-    name = "ctest",
-    srcs = [":ctest_srcs"],
+    name = "test",
+    srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        ":distr",
         "//dbg/print/printsvc:printsvc",
-        "//tenncor:tenncor",
         "//testutil:tutil",
     ],
     linkstatic = True,
     size = "large",
-)
-
-py_test(
-    name = "ptest",
-    srcs = [":ptest_srcs"],
-    deps = [
-        "//tenncor:tenncor_py",
-        "//testutil:pyunit_util",
-    ],
-    data = ["//:test_models"],
 )
