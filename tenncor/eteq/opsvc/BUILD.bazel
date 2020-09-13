@@ -28,6 +28,14 @@ filegroup(
     srcs = glob(["*.proto"]),
 )
 
+filegroup(
+    name = "test_srcs",
+    srcs = glob([
+        "test/*.hpp",
+        "test/*.cpp",
+    ]),
+)
+
 ######### LIBRARY #########
 
 cc_library(
@@ -55,4 +63,17 @@ cpp_grpc_library(
     name = "opsvc_cc_grpc",
     deps = [":opsvc_pb"],
     visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = [":test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":opsvc",
+        "//testutil:tutil",
+    ],
+    linkstatic = True,
 )

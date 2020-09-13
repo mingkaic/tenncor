@@ -3,7 +3,7 @@
 #define TENNCOR_DISTR_HPP
 
 #include "tenncor/distr/distr.hpp"
-#include "tenncor/eteq/opsvc/service.hpp"
+#include "tenncor/eteq/opsvc/opsvc.hpp"
 #include "tenncor/serial/oxsvc/service.hpp"
 
 namespace tcr
