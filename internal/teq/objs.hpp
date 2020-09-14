@@ -22,54 +22,145 @@ struct TensorRef : public marsh::iObject
 
 struct TensorObj final : public TensorRef
 {
-	TensorObj (TensptrT tens);
+	TensorObj (TensptrT tens) : tens_(tens) {}
 
-	TensorObj* clone (void) const;
+	TensorObj* clone (void) const
+	{
+		return static_cast<TensorObj*>(clone_impl());
+	}
 
-	TensorRef* copynreplace (TensptrT tens) const override;
+	TensorRef* copynreplace (TensptrT tens) const override
+	{
+		return new TensorObj(tens);
+	}
 
-	size_t class_code (void) const override;
+	size_t class_code (void) const override
+	{
+		static const std::type_info& tp = typeid(TensorObj);
+		return tp.hash_code();
+	}
 
-	std::string to_string (void) const override;
+	std::string to_string (void) const override
+	{
+		return tens_->to_string();
+	}
 
-	bool equals (const marsh::iObject& other) const override;
+	bool equals (const marsh::iObject& other) const override
+	{
+		if (other.class_code() != this->class_code())
+		{
+			return false;
+		}
+		return tens_ == static_cast<const TensorObj*>(&other)->tens_;
+	}
 
-	void accept (marsh::iMarshaler& marshaler) const override;
+	void accept (marsh::iMarshaler& marshaler) const override
+	{
+		if (auto marsh = dynamic_cast<iTeqMarshaler*>(&marshaler))
+		{
+			marsh->marshal(*this);
+		}
+		else
+		{
+			global::warn("non-teq marshaler cannot marshal "
+				"tensor-typed objects");
+		}
+	}
 
-	TensptrT& get_tensor (void) override;
+	TensptrT& get_tensor (void) override
+	{
+		return tens_;
+	}
 
-	const TensptrT& get_tensor (void) const override;
+	const TensptrT& get_tensor (void) const override
+	{
+		return tens_;
+	}
 
 private:
-	marsh::iObject* clone_impl (void) const override;
+	marsh::iObject* clone_impl (void) const override
+	{
+		return new TensorObj(*this);
+	}
 
 	TensptrT tens_;
 };
 
 struct LayerObj final : public TensorRef
 {
-	LayerObj (const std::string& opname, TensptrT input);
+	LayerObj (const std::string& opname, TensptrT input) :
+		opname_(opname), input_(input)
+	{
+		if (nullptr == input)
+		{
+			global::fatalf("cannot `%s` with null input", opname.c_str());
+		}
+	}
 
-	LayerObj* clone (void) const;
+	LayerObj* clone (void) const
+	{
+		return static_cast<LayerObj*>(clone_impl());
+	}
 
-	TensorRef* copynreplace (TensptrT tens) const override;
+	TensorRef* copynreplace (TensptrT tens) const override
+	{
+		return new LayerObj(opname_, tens);
+	}
 
-	size_t class_code (void) const override;
+	size_t class_code (void) const override
+	{
+		static const std::type_info& tp = typeid(LayerObj);
+		return tp.hash_code();
+	}
 
-	std::string to_string (void) const override;
+	std::string to_string (void) const override
+	{
+		return opname_;
+	}
 
-	bool equals (const marsh::iObject& other) const override;
+	bool equals (const marsh::iObject& other) const override
+	{
+		if (other.class_code() != this->class_code())
+		{
+			return false;
+		}
+		auto olayer = static_cast<const LayerObj*>(&other);
+		return opname_ == olayer->opname_ && input_ ==  olayer->input_;
+	}
 
-	void accept (marsh::iMarshaler& marshaler) const override;
+	void accept (marsh::iMarshaler& marshaler) const override
+	{
+		if (auto marsh = dynamic_cast<iTeqMarshaler*>(&marshaler))
+		{
+			marsh->marshal(*this);
+		}
+		else
+		{
+			global::warn("non-teq marshaler cannot marshal "
+				"layer-typed objects");
+		}
+	}
 
-	TensptrT& get_tensor (void) override;
+	TensptrT& get_tensor (void) override
+	{
+		return input_;
+	}
 
-	const TensptrT& get_tensor (void) const override;
+	const TensptrT& get_tensor (void) const override
+	{
+		return input_;
+	}
 
-	std::string get_opname (void) const;
+	std::string get_opname (void) const
+	{
+		return opname_;
+	}
 
 private:
-	marsh::iObject* clone_impl (void) const override;
+	marsh::iObject* clone_impl (void) const override
+	{
+		return new LayerObj(*this);
+	}
 
 	std::string opname_;
 
@@ -78,7 +169,7 @@ private:
 
 struct iTeqMarshaler : public marsh::iMarshaler
 {
-	virtual ~iTeqMarshaler (void);
+	virtual ~iTeqMarshaler (void) = default;
 
 	virtual void marshal (const marsh::String& str) = 0;
 
