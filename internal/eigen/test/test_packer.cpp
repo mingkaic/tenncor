@@ -6,7 +6,7 @@
 
 #include "testutil/tutil.hpp"
 
-#include "internal/teq/mock/leaf.hpp"
+#include "internal/teq/mock/mock.hpp"
 
 #include "internal/eigen/operator.hpp"
 

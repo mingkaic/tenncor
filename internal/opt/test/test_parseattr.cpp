@@ -8,12 +8,9 @@
 
 #include "testutil/tutil.hpp"
 
-#include "internal/teq/mock/leaf.hpp"
-#include "internal/teq/mock/functor.hpp"
+#include "internal/teq/mock/mock.hpp"
 
-#include "internal/opt/opt.hpp"
-
-#include "internal/opt/mock/target.hpp"
+#include "internal/opt/mock/mock.hpp"
 
 
 const std::string testdir = "models/test";

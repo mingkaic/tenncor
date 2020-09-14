@@ -47,9 +47,9 @@ cc_test(
     srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
+        "//internal/eigen:mock",
         "//tenncor/eteq:eteq",
         "//testutil:tutil",
-        "//internal/teq:mock_teq",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],

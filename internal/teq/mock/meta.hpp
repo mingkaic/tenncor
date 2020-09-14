@@ -1,8 +1,8 @@
 
-#include "internal/teq/itensor.hpp"
-
 #ifndef TEQ_MOCK_METADATA_HPP
 #define TEQ_MOCK_METADATA_HPP
+
+#include "internal/teq/teq.hpp"
 
 struct MockMeta : public teq::iMetadata
 {

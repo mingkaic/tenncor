@@ -6,8 +6,7 @@
 
 #include "dbg/print/teq.hpp"
 
-#include "internal/teq/mock/leaf.hpp"
-#include "internal/teq/mock/functor.hpp"
+#include "internal/teq/mock/mock.hpp"
 
 #include "internal/query/querier.hpp"
 #include "internal/query/parse.hpp"

@@ -47,7 +47,7 @@ cc_test(
     srcs = [":test_srcs"],
     deps = [
         ":stabilizer",
-        "//internal/teq:mock_teq",
+        "//internal/teq:mock",
         "@gtest//:gtest",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],

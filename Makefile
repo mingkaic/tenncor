@@ -221,11 +221,11 @@ gru_model_j2o: models/fast_gru.json models/latin_gru.json
 TMP_COVFILE := /tmp/coverage.info
 COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
+DISTR_TEST := //tenncor/distr/...
 ETEQ_TEST := //tenncor/eteq/...
 HONE_CTEST := //tenncor/hone:ctest
 LAYR_CTEST := //tenncor/layr:ctest
 SERIAL_CTEST := //tenncor/serial:ctest
-DISTRIB_CTEST := //tenncor/distr:ctest
 
 .PHONY: cov_clean
 cov_clean:
@@ -242,7 +242,7 @@ clean_test_coverage: ${COVERAGE_INFO_FILE}
 
 .PHONY: coverage
 coverage:
-	${CCOVER} //internal/... ${DISTRIB_CTEST} ${ETEQ_TEST} ${HONE_CTEST} ${LAYR_CTEST} ${SERIAL_CTEST}
+	${CCOVER} //internal/... ${DISTR_TEST} ${ETEQ_TEST} ${HONE_CTEST} ${LAYR_CTEST} ${SERIAL_CTEST} //tenncor:ctest
 	@make clean_test_coverage
 	lcov --extract ${TMP_COVFILE} 'internal/*' 'tenncor/*' -o coverage.info
 
@@ -319,7 +319,7 @@ cover_utils:
 
 .PHONY: cover_distr
 cover_distr:
-	${CCOVER} ${DISTRIB_CTEST}
+	${CCOVER} ${DISTR_TEST}
 	@make clean_test_coverage
 	lcov --extract ${TMP_COVFILE} 'tenncor/distr/*' -o distr_coverage.info
 

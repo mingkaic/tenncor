@@ -1,8 +1,8 @@
 
-#include "internal/marsh/imarshal.hpp"
-
 #ifndef MARSH_MOCK_MARSHALER_HPP
 #define MARSH_MOCK_MARSHALER_HPP
+
+#include "internal/marsh/marsh.hpp"
 
 struct MockMarsh : public marsh::iMarshaler
 {

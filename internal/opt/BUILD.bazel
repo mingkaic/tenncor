@@ -68,7 +68,7 @@ cpp_proto_library(
 )
 
 cc_library(
-    name = "mock_opt",
+    name = "mock",
     hdrs = [":mock_hdrs"],
     copts = ["-std=c++17"],
     deps = [":opt"],
@@ -82,9 +82,9 @@ cc_test(
     srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        ":mock_opt",
+        ":mock",
         "//dbg/print:print",
-        "//internal/teq:mock_teq",
+        "//internal/teq:mock",
         "//testutil:tutil",
     ],
     data = [

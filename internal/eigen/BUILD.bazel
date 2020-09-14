@@ -5,6 +5,7 @@ filegroup(
     srcs = [
         ":eigen_hdrs",
         ":eigen_srcs",
+        ":mock_hdrs",
         ":test_srcs",
         "BUILD.bazel",
     ],
@@ -28,10 +29,7 @@ filegroup(
 
 filegroup(
     name = "test_srcs",
-    srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
-    ]),
+    srcs = glob(["test/*.cpp"]),
 )
 
 ######### LIBRARY #########
@@ -103,12 +101,12 @@ cc_library(
 )
 
 cc_library(
-    name = "mock_eigen",
+    name = "mock",
     hdrs = [":mock_hdrs"],
     copts = ["-std=c++17"],
     deps = [
         ":eigen",
-        "//internal/teq:mock_teq",
+        "//internal/teq:mock",
     ],
     visibility = ["//visibility:public"],
 )
@@ -120,7 +118,7 @@ cc_test(
     srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        ":mock_eigen",
+        ":mock",
         "//dbg/print:print",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",

@@ -6,8 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "internal/eigen/mock/mutable_leaf.hpp"
-#include "internal/eigen/eigen.hpp"
+#include "internal/eigen/mock/mock.hpp"
 
 
 static void test_reduce (

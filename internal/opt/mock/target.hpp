@@ -1,10 +1,10 @@
 
-#include "internal/teq/mock/leaf.hpp"
-
-#include "internal/opt/target.hpp"
-
 #ifndef OPT_MOCK_TARGET_HPP
 #define OPT_MOCK_TARGET_HPP
+
+#include "internal/teq/mock/mock.hpp"
+
+#include "internal/opt/opt.hpp"
 
 const std::string tfactory_delim = ":";
 

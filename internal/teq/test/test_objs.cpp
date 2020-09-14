@@ -6,11 +6,9 @@
 
 #include "exam/exam.hpp"
 
-#include "internal/teq/mock/leaf.hpp"
-#include "internal/teq/mock/functor.hpp"
-#include "internal/teq/mock/marshal.hpp"
+#include "internal/marsh/mock/mock.hpp"
 
-#include "internal/marsh/mock/marshal.hpp"
+#include "internal/teq/mock/mock.hpp"
 
 #include "internal/teq/objs.hpp"
 #include "internal/teq/findattr.hpp"

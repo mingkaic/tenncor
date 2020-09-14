@@ -52,6 +52,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         ":distr",
+        "//internal/teq:mock",
         "//dbg/print/printsvc:printsvc",
         "//testutil:tutil",
     ],

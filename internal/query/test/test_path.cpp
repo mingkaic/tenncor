@@ -4,8 +4,7 @@
 
 #include "gtest/gtest.h"
 
-#include "internal/teq/mock/leaf.hpp"
-#include "internal/teq/mock/functor.hpp"
+#include "internal/teq/mock/mock.hpp"
 
 #include "internal/query/path.hpp"
 

@@ -1,10 +1,11 @@
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
-#include "internal/marsh/imarshal.hpp"
 
 #ifndef MARSH_JSON_MARSH_HPP
 #define MARSH_JSON_MARSH_HPP
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
+#include "internal/marsh/marsh.hpp"
 
 namespace marsh
 {

@@ -1,9 +1,8 @@
 
-#include "internal/teq/itensor.hpp"
-#include "internal/teq/ievaluator.hpp"
-
 #ifndef TEQ_MOCK_DEVICEREF_HPP
 #define TEQ_MOCK_DEVICEREF_HPP
+
+#include "internal/teq/teq.hpp"
 
 struct MockDeviceRef : public teq::iDeviceRef
 {

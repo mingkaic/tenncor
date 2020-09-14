@@ -1,12 +1,11 @@
 
-#include "internal/marsh/objs.hpp"
-
-#include "internal/teq/ifunctor.hpp"
-#include "internal/teq/mock/leaf.hpp"
-#include "internal/teq/mock/meta.hpp"
-
 #ifndef TEQ_MOCK_FUNCTOR_HPP
 #define TEQ_MOCK_FUNCTOR_HPP
+
+#include "internal/teq/teq.hpp"
+
+#include "internal/teq/mock/leaf.hpp"
+#include "internal/teq/mock/meta.hpp"
 
 struct MockFunctor : public teq::iFunctor
 {

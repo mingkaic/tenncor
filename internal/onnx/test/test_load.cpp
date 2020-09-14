@@ -8,8 +8,7 @@
 
 #include "exam/exam.hpp"
 
-#include "internal/teq/mock/leaf.hpp"
-#include "internal/teq/mock/functor.hpp"
+#include "internal/teq/mock/mock.hpp"
 
 #include "dbg/print/teq.hpp"
 

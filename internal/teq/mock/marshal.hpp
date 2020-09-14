@@ -1,8 +1,8 @@
 
-#include "internal/teq/objs.hpp"
-
 #ifndef TEQ_MOCK_MARSHALER_HPP
 #define TEQ_MOCK_MARSHALER_HPP
+
+#include "internal/teq/teq.hpp"
 
 struct MockTeqMarsh : public teq::iTeqMarshaler
 {

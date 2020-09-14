@@ -5,7 +5,7 @@ filegroup(
     srcs = [
         ":marsh_hdrs",
         ":marsh_srcs",
-        ":test_hdrs",
+        ":mock_hdrs",
         ":test_srcs",
         "BUILD.bazel",
     ],
@@ -28,11 +28,6 @@ filegroup(
 )
 
 filegroup(
-    name = "test_hdrs",
-    srcs = glob(["test/*.hpp"]),
-)
-
-filegroup(
     name = "test_srcs",
     srcs = glob(["test/*.cpp"]),
 )
@@ -49,10 +44,13 @@ cc_library(
 )
 
 cc_library(
-    name = "mock_marsh",
+    name = "mock",
     hdrs = [":mock_hdrs"],
     copts = ["-std=c++17"],
-    deps = [":marsh"],
+    deps = [
+        ":marsh",
+        "@boost//:property_tree",
+    ],
     visibility = ["//visibility:public"],
 )
 
@@ -60,16 +58,12 @@ cc_library(
 
 cc_test(
     name = "test",
-    srcs = [
-        ":test_hdrs",
-        ":test_srcs",
-    ],
+    srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        ":marsh",
+        ":mock",
         "//testutil:tutil",
         "@gtest//:gtest",
-        "@boost//:property_tree",
     ],
     linkstatic = True,
 )

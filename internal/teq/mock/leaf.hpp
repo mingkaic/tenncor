@@ -1,10 +1,11 @@
 
-#include "internal/teq/ileaf.hpp"
-#include "internal/teq/mock/device.hpp"
-#include "internal/teq/mock/meta.hpp"
-
 #ifndef TEQ_MOCK_LEAF_HPP
 #define TEQ_MOCK_LEAF_HPP
+
+#include "internal/teq/teq.hpp"
+
+#include "internal/teq/mock/device.hpp"
+#include "internal/teq/mock/meta.hpp"
 
 struct MockLeaf : public teq::iLeaf
 {

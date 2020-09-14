@@ -4,6 +4,8 @@
 
 #include "egrpc/egrpc.hpp"
 
+#include "internal/global/global.hpp"
+
 #include "tenncor/distr/iosvc/distr.io.grpc.pb.h"
 
 namespace distr

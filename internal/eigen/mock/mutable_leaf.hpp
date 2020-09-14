@@ -1,10 +1,10 @@
 
-#include "internal/teq/mock/leaf.hpp"
-
-#include "internal/eigen/eigen.hpp"
-
 #ifndef EIGEN_MOCK_MUTABLE_LEAF_HPP
 #define EIGEN_MOCK_MUTABLE_LEAF_HPP
+
+#include "internal/teq/mock/mock.hpp"
+
+#include "internal/eigen/eigen.hpp"
 
 struct MockMutableLeaf : public eigen::iMutableLeaf
 {

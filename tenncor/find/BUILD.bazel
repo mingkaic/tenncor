@@ -11,10 +11,7 @@ filegroup(
 
 filegroup(
     name = "test_srcs",
-    srcs = glob([
-        "test/*.hpp",
-        "test/*.cpp",
-    ]),
+    srcs = glob(["test/*.cpp"]),
 )
 
 ######### LIBRARY #########
@@ -28,7 +25,7 @@ cc_test(
     deps = [
         "//internal/query:query",
         "//tenncor:tenncor",
-        "//internal/teq:mock_teq",
+        "//internal/teq:mock",
         "//dbg/print:print",
         "//testutil:tutil",
     ],

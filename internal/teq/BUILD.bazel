@@ -48,7 +48,7 @@ cc_library(
 )
 
 cc_library(
-    name = "mock_teq",
+    name = "mock",
     hdrs = [":mock_hdrs"],
     copts = ["-std=c++17"],
     deps = [":teq"],
@@ -61,8 +61,8 @@ cc_test(
     name = "test",
     srcs = [":test_srcs"],
     deps = [
-        ":mock_teq",
-        "//internal/marsh:mock_marsh",
+        ":mock",
+        "//internal/marsh:mock",
         "//testutil:tutil",
     ],
     copts = ["-std=c++17"],

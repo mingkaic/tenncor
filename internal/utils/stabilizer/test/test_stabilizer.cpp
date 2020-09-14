@@ -6,8 +6,7 @@
 
 #include "exam/exam.hpp"
 
-#include "internal/teq/mock/leaf.hpp"
-#include "internal/teq/mock/functor.hpp"
+#include "internal/teq/mock/mock.hpp"
 
 #include "internal/utils/stabilizer/stabilizer.hpp"
 

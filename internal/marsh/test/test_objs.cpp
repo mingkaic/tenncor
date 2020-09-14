@@ -8,7 +8,7 @@
 
 #include "internal/marsh/objs.hpp"
 
-#include "internal/marsh/test/json_marsh.hpp"
+#include "internal/marsh/mock/mock.hpp"
 
 
 TEST(OBJS, Number)
