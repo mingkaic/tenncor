@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_CONSUL_HPP
-#define DISTRIB_CONSUL_HPP
+#ifndef DISTR_CONSUL_HPP
+#define DISTR_CONSUL_HPP
 
 #include "ppconsul/agent.h"
 #include "ppconsul/catalog.h"
@@ -112,4 +112,4 @@ ConsulService* make_consul (ConsulptrT consul, size_t port,
 
 }
 
-#endif // DISTRIB_CONSUL_HPP
+#endif // DISTR_CONSUL_HPP

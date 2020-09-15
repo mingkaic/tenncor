@@ -6,11 +6,9 @@
 namespace tcr
 {
 
-const std::string distmgr_key = "DistrManager";
-
 distr::DistrMgrptrT ctxualize_distrmgr (
 	distr::ConsulptrT consul, size_t port,
-	const std::string& alias, std::vector<RegisterSvcF> regs,
+	const std::string& alias, std::vector<distr::RegisterSvcF> regs,
 	const std::string& svc_name, global::CfgMapptrT ctx)
 {
 	auto consulsvc = distr::make_consul(consul, port, svc_name, alias);
@@ -32,15 +30,9 @@ distr::DistrMgrptrT ctxualize_distrmgr (
 
 void set_distrmgr (distr::iDistrMgrptrT mgr, global::CfgMapptrT ctx)
 {
-	if (nullptr == ctx)
-	{
-		return;
-	}
-	ctx->rm_entry(distmgr_key);
+	distr::set_distrmgr(mgr, ctx);
 	if (nullptr != mgr)
 	{
-		ctx->template add_entry<distr::iDistrMgrptrT>(
-			distmgr_key, [mgr](){ return new distr::iDistrMgrptrT(mgr); });
 		teq::set_eval(new DistrEvaluator(*mgr), ctx);
 	}
 	else
@@ -51,16 +43,7 @@ void set_distrmgr (distr::iDistrMgrptrT mgr, global::CfgMapptrT ctx)
 
 distr::iDistrManager* get_distrmgr (const global::CfgMapptrT& ctx)
 {
-	if (nullptr == ctx)
-	{
-		return nullptr;
-	}
-	if (auto ptr = static_cast<distr::iDistrMgrptrT*>(
-		ctx->get_obj(distmgr_key)))
-	{
-		return ptr->get();
-	}
-	return nullptr;
+	return distr::get_distrmgr(ctx);
 }
 
 std::string expose_node (const eteq::ETensor& etens)

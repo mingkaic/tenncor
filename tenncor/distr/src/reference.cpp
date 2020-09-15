@@ -1,7 +1,7 @@
 
 #include "tenncor/distr/reference.hpp"
 
-#ifdef DISTRIB_REFERENCE_HPP
+#ifdef DISTR_REFERENCE_HPP
 
 namespace distr
 {

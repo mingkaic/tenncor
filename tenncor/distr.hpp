@@ -25,14 +25,11 @@ struct DistrEvaluator final : public teq::iEvaluator
 	distr::op::DistrOpService& svc_;
 };
 
-using RegisterSvcF = std::function<error::ErrptrT(\
-	estd::ConfigMap<>&,const distr::PeerServiceConfig&)>;
-
 /// Make and return DistrManager and set it to context
 distr::DistrMgrptrT ctxualize_distrmgr (
 	distr::ConsulptrT consul, size_t port,
 	const std::string& alias = "",
-	std::vector<RegisterSvcF> regs = {
+	std::vector<distr::RegisterSvcF> regs = {
 		distr::register_iosvc,
 		distr::register_opsvc,
 		distr::register_oxsvc,

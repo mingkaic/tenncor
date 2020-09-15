@@ -1,6 +1,6 @@
 #include "tenncor/distr/consul.hpp"
 
-#ifdef DISTRIB_CONSUL_HPP
+#ifdef DISTR_CONSUL_HPP
 
 namespace distr
 {

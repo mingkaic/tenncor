@@ -159,6 +159,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         "//internal/utils/coord:coord",
+        "//tenncor/distr:mock",
         "//tenncor:tenncor",
         "//testutil:tutil",
         "//dbg/print/printsvc:printsvc",

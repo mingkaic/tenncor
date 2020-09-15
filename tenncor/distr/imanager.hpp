@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_IMANAGER_HPP
-#define DISTRIB_IMANAGER_HPP
+#ifndef DISTR_IMANAGER_HPP
+#define DISTR_IMANAGER_HPP
 
 #include "tenncor/distr/peer_svc.hpp"
 
@@ -20,4 +20,4 @@ using iDistrMgrptrT = std::shared_ptr<iDistrManager>;
 
 }
 
-#endif // DISTRIB_IMANAGER_HPP
+#endif // DISTR_IMANAGER_HPP

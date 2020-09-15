@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_REFERENCE_HPP
-#define DISTRIB_REFERENCE_HPP
+#ifndef DISTR_REFERENCE_HPP
+#define DISTR_REFERENCE_HPP
 
 #include "internal/eigen/eigen.hpp"
 
@@ -208,4 +208,4 @@ void separate_by_server (
 
 }
 
-#endif // DISTRIB_REFERENCE_HPP
+#endif // DISTR_REFERENCE_HPP

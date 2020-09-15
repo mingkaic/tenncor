@@ -7,35 +7,21 @@
 
 #include "exam/exam.hpp"
 
+#include "tenncor/distr/mock/mock.hpp"
+
 #include "dbg/print/printsvc/service.hpp"
+
 #include "tenncor/distr/manager.hpp"
-
 #include "tenncor/eteq/make.hpp"
-
 #include "tenncor/tenncor.hpp"
 
 
-const std::string test_service = "tenncor_distrib_ctest";
+const std::string test_service = "tenncor.ctest";
 
 
-struct DISTRIB : public ::testing::Test
+struct DISTRIB : public ::testing::Test, public DistrTestcase
 {
-	DISTRIB (void)
-	{
-		const char* consul_addr = std::getenv("TEST_CONSUL_ADDRESS");
-		if (nullptr == consul_addr || 0 == std::strlen(consul_addr))
-		{
-			consul_addr = "localhost";
-		}
-		std::string address = fmts::sprintf("http://%s:8500", consul_addr);
-		consul_ = std::make_shared<ppconsul::Consul>(address);
-		clean_up();
-	}
-
-	~DISTRIB (void)
-	{
-		clean_up();
-	}
+	DISTRIB (void) : DistrTestcase(test_service) {}
 
 protected:
 	void TearDown (void) override
@@ -43,36 +29,22 @@ protected:
 		clean_up();
 	}
 
-	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "",
-		global::CfgMapptrT ctx = global::context())
+	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
-		return tcr::ctxualize_distrmgr(consul_, port, id, {
+		return make_mgr(port, {
 			distr::register_iosvc,
 			distr::register_opsvc,
 			distr::register_oxsvc,
 			distr::register_printsvc,
-		}, test_service, ctx);
-	}
-
-	void clean_up (void)
-	{
-		ppconsul::agent::Agent agent(*consul_);
-		ppconsul::catalog::Catalog catalog(*consul_);
-		auto services = catalog.service(test_service);
-		for (auto& service : services)
-		{
-			agent.deregisterService(service.second.id);
-		}
+		}, id);
 	}
 
 	void check_clean (void)
 	{
 		ppconsul::catalog::Catalog catalog(*consul_);
-		auto services = catalog.service(test_service);
+		auto services = catalog.service(servce_name_);
 		ASSERT_EQ(services.size(), 0);
 	}
-
-	distr::ConsulptrT consul_;
 };
 
 
@@ -101,6 +73,7 @@ TEST_F(DISTRIB, SharingNodes)
 
 		// instance 1
 		auto mgr = make_mgr(5112, "mgr1");
+		tcr::set_distrmgr(mgr, global::context());
 
 		eteq::ETensor src =
 			eteq::make_constant<double>(data.data(), shape);
@@ -112,6 +85,7 @@ TEST_F(DISTRIB, SharingNodes)
 
 		// instance 2
 		auto mgr2 = make_mgr(5113, "mgr2");
+		tcr::set_distrmgr(mgr2, global::context());
 
 		eteq::ETensor src3 =
 			eteq::make_constant<double>(data3.data(), shape);
@@ -166,6 +140,7 @@ TEST_F(DISTRIB, DataPassing)
 
 		// instance 1
 		auto mgr = make_mgr(5112, "mgr1");
+		tcr::set_distrmgr(mgr, global::context());
 
 		eteq::ETensor src =
 			eteq::make_constant<double>(data.data(), shape);
@@ -177,6 +152,7 @@ TEST_F(DISTRIB, DataPassing)
 
 		// instance 2
 		auto mgr2 = make_mgr(5113, "mgr2");
+		tcr::set_distrmgr(mgr2, global::context());
 
 		eteq::ETensor src3 =
 			eteq::make_constant<double>(data3.data(), shape);
@@ -249,27 +225,33 @@ TEST_F(DISTRIB, ComplexDataPassing)
 
 		// instance A
 		auto actx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrA = make_mgr(5112, "mgrA", actx);
+		auto mgrA = make_mgr(5112, "mgrA");
+		tcr::set_distrmgr(mgrA, actx);
 
 		// instance B
 		auto bctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrB = make_mgr(5113, "mgrB", bctx);
+		auto mgrB = make_mgr(5113, "mgrB");
+		tcr::set_distrmgr(mgrB, bctx);
 
 		// instance C
 		auto cctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrC = make_mgr(5114, "mgrC", cctx);
+		auto mgrC = make_mgr(5114, "mgrC");
+		tcr::set_distrmgr(mgrC, cctx);
 
 		// instance D
 		auto dctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrD = make_mgr(5115, "mgrD", dctx);
+		auto mgrD = make_mgr(5115, "mgrD");
+		tcr::set_distrmgr(mgrD, dctx);
 
 		// instance E
 		auto ectx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrE = make_mgr(5116, "mgrE", ectx);
+		auto mgrE = make_mgr(5116, "mgrE");
+		tcr::set_distrmgr(mgrE, ectx);
 
 		// instance F
 		auto fctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrF = make_mgr(5117, "mgrF", fctx);
+		auto mgrF = make_mgr(5117, "mgrF");
+		tcr::set_distrmgr(mgrF, fctx);
 
 		auto f1 = eteq::make_variable<double>(
 			data.data(), shape, "f1", fctx);
@@ -358,22 +340,22 @@ TEST_F(DISTRIB, Reachability)
 		};
 
 		// instance A
-		distr::iDistrMgrptrT mgrA(make_mgr(5112, "mgrA", nullptr));
+		distr::iDistrMgrptrT mgrA(make_mgr(5112, "mgrA"));
 
 		// instance B
-		distr::iDistrMgrptrT mgrB(make_mgr(5113, "mgrB", nullptr));
+		distr::iDistrMgrptrT mgrB(make_mgr(5113, "mgrB"));
 
 		// instance C
-		distr::iDistrMgrptrT mgrC(make_mgr(5114, "mgrC", nullptr));
+		distr::iDistrMgrptrT mgrC(make_mgr(5114, "mgrC"));
 
 		// instance D
-		distr::iDistrMgrptrT mgrD(make_mgr(5115, "mgrD", nullptr));
+		distr::iDistrMgrptrT mgrD(make_mgr(5115, "mgrD"));
 
 		// instance E
-		distr::iDistrMgrptrT mgrE(make_mgr(5116, "mgrE", nullptr));
+		distr::iDistrMgrptrT mgrE(make_mgr(5116, "mgrE"));
 
 		// instance F
-		distr::iDistrMgrptrT mgrF(make_mgr(5117, "mgrF", nullptr));
+		distr::iDistrMgrptrT mgrF(make_mgr(5117, "mgrF"));
 
 		auto f1 = eteq::make_constant<double>(data.data(), shape);
 		auto f2 = eteq::make_constant<double>(data2.data(), shape);
@@ -556,27 +538,33 @@ TEST_F(DISTRIB, DebugPrintAscii)
 
 		// instance A
 		auto actx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrA = make_mgr(5112, "mgrA", actx);
+		auto mgrA = make_mgr(5112, "mgrA");
+		tcr::set_distrmgr(mgrA, actx);
 
 		// instance B
 		auto bctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrB = make_mgr(5113, "mgrB", bctx);
+		auto mgrB = make_mgr(5113, "mgrB");
+		tcr::set_distrmgr(mgrB, bctx);
 
 		// instance C
 		auto cctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrC = make_mgr(5114, "mgrC", cctx);
+		auto mgrC = make_mgr(5114, "mgrC");
+		tcr::set_distrmgr(mgrC, cctx);
 
 		// instance D
 		auto dctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrD = make_mgr(5115, "mgrD", dctx);
+		auto mgrD = make_mgr(5115, "mgrD");
+		tcr::set_distrmgr(mgrD, dctx);
 
 		// instance E
 		auto ectx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrE = make_mgr(5116, "mgrE", ectx);
+		auto mgrE = make_mgr(5116, "mgrE");
+		tcr::set_distrmgr(mgrE, ectx);
 
 		// instance F
 		auto fctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrF = make_mgr(5117, "mgrF", fctx);
+		auto mgrF = make_mgr(5117, "mgrF");
+		tcr::set_distrmgr(mgrF, fctx);
 
 		auto f1 = eteq::make_variable<double>(
 			data.data(), shape, "f1", fctx);
@@ -690,27 +678,33 @@ TEST_F(DISTRIB, CrossDerive)
 
 		// instance A
 		auto actx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrA = make_mgr(5112, "mgrA", actx);
+		auto mgrA = make_mgr(5112, "mgrA");
+		tcr::set_distrmgr(mgrA, actx);
 
 		// instance B
 		auto bctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrB = make_mgr(5113, "mgrB", bctx);
+		auto mgrB = make_mgr(5113, "mgrB");
+		tcr::set_distrmgr(mgrB, bctx);
 
 		// instance C
 		auto cctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrC = make_mgr(5114, "mgrC", cctx);
+		auto mgrC = make_mgr(5114, "mgrC");
+		tcr::set_distrmgr(mgrC, cctx);
 
 		// instance D
 		auto dctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrD = make_mgr(5115, "mgrD", dctx);
+		auto mgrD = make_mgr(5115, "mgrD");
+		tcr::set_distrmgr(mgrD, dctx);
 
 		// instance E
 		auto ectx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrE = make_mgr(5116, "mgrE", ectx);
+		auto mgrE = make_mgr(5116, "mgrE");
+		tcr::set_distrmgr(mgrE, ectx);
 
 		// instance F
 		auto fctx = std::make_shared<estd::ConfigMap<>>();
-		auto mgrF = make_mgr(5117, "mgrF", fctx);
+		auto mgrF = make_mgr(5117, "mgrF");
+		tcr::set_distrmgr(mgrF, fctx);
 
 		auto f1 = eteq::make_variable<double>(
 			data.data(), shape, "f1", fctx);

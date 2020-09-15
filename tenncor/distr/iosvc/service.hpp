@@ -115,11 +115,6 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		return data_.get_remotes();
  	}
 
-	void register_service (grpc::ServerBuilder& builder) override
-	{
-		builder.RegisterService(&service_);
-	}
-
 	std::string id_from_alias (const std::string& alias) const
 	{
 		return data_.id_from_alias(alias);
@@ -128,6 +123,11 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 	void set_alias (const std::string& alias, const std::string& id)
 	{
 		data_.set_alias(alias, id);
+	}
+
+	void register_service (grpc::ServerBuilder& builder) override
+	{
+		builder.RegisterService(&service_);
 	}
 
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override

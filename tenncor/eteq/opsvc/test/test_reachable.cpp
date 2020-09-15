@@ -6,11 +6,132 @@
 
 #include "exam/exam.hpp"
 
+#include "internal/teq/mock/mock.hpp"
+
+#include "tenncor/distr/mock/mock.hpp"
+
 #include "tenncor/eteq/opsvc/opsvc.hpp"
 
 
-TEST(REACHABLE, Basic)
-{}
+const std::string test_service = "tenncor.eteq.opsvc.test";
+
+
+struct REACHABLE : public ::testing::Test, public DistrTestcase
+{
+	REACHABLE (void) : DistrTestcase(test_service) {}
+
+protected:
+	void TearDown (void) override
+	{
+		clean_up();
+	}
+
+	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	{
+		return make_mgr(port, {
+			distr::register_iosvc,
+			distr::register_opsvc,
+		}, id);
+	}
+
+	void check_clean (void)
+	{
+		ppconsul::catalog::Catalog catalog(*consul_);
+		auto services = catalog.service(service_name_);
+		ASSERT_EQ(services.size(), 0);
+	}
+};
+
+
+TEST_F(REACHABLE, CyclicGraph)
+{
+	teq::Shape shape({2, 3, 4});
+	std::vector<double> data = {
+		63, 19, 11, 94, 23, 63,
+		3, 48, 60, 77, 62, 32,
+		35, 89, 33, 64, 36, 64,
+		25, 49, 41, 1, 4, 97,
+	};
+	std::vector<double> data2 = {
+		18, 30, 23, 60, 36, 60,
+		73, 36, 6, 66, 67, 84,
+		54, 43, 29, 8, 20, 71,
+		10, 53, 90, 7, 94, 87,
+	};
+	std::vector<double> data3 = {
+		37, 70, 2, 69, 84, 67,
+		66, 59, 69, 92, 96, 18,
+		55, 35, 40, 81, 40, 18,
+		60, 70, 68, 65, 30, 25,
+	};
+
+	distr::iDistrMgrptrT mgrA(make_mgr(5112, "mgrA"));
+	distr::iDistrMgrptrT mgrB(make_mgr(5113, "mgrB"));
+	distr::iDistrMgrptrT mgrC(make_mgr(5114, "mgrC"));
+	distr::iDistrMgrptrT mgrD(make_mgr(5115, "mgrD"));
+	distr::iDistrMgrptrT mgrE(make_mgr(5116, "mgrE"));
+	distr::iDistrMgrptrT mgrF(make_mgr(5117, "mgrF"));
+
+	teq::TensptrT f1 = std::make_shared<MockLeaf>(data, shape, "f1");
+	teq::TensptrT f2 = std::make_shared<MockLeaf>(data2, shape, "f2");
+	teq::TensptrT d1 = std::make_shared<MockLeaf>(data3, shape, "d1");
+
+	teq::TensptrT e2 = std::make_shared<MockLeaf>(data, shape, "e2");
+	teq::TensptrT e3 = std::make_shared<MockLeaf>(data2, shape, "e3");
+	teq::TensptrT e1 = std::make_shared<MockFunctor>(teq::TensptrsT{e2, e3},
+		teq::Opcode{"ADD", 7});
+
+	distr::get_iosvc(*mgrE).expose_node(e1);
+	distr::get_iosvc(*mgrF).expose_node(f1);
+	distr::get_iosvc(*mgrF).expose_node(f2);
+	distr::get_iosvc(*mgrD).expose_node(d1);
+
+	std::string e1_key = *distr::get_iosvc(*mgrE).lookup_id(e1.get());
+
+	error::ErrptrT err = nullptr;
+	std::string f1_key = *distr::get_iosvc(*mgrF).lookup_id(f1.get());
+	auto f1_ref = distr::get_iosvc(*mgrA).lookup_node(err, f1_key);
+	ASSERT_NOERR(err);
+	auto a2 = std::make_shared<MockFunctor>(teq::TensptrsT{f1_ref},
+		teq::Opcode{"NEG", 6});
+	distr::get_iosvc(*mgrA).expose_node(a2);
+
+	std::string d1_key = *distr::get_iosvc(*mgrD).lookup_id(d1.get());
+	auto a2_ref = distr::get_iosvc(*mgrC).lookup_node(err, *distr::get_iosvc(*mgrA).lookup_id(a2.get()));
+	ASSERT_NOERR(err);
+	auto d1_ref = distr::get_iosvc(*mgrC).lookup_node(err, d1_key);
+	ASSERT_NOERR(err);
+	auto c1 = std::make_shared<MockFunctor>(teq::TensptrsT{a2_ref, d1_ref},
+		teq::Opcode{"ADD", 7});
+	distr::get_iosvc(*mgrC).expose_node(c1);
+
+	auto c1_ref = distr::get_iosvc(*mgrB).lookup_node(err, *distr::get_iosvc(*mgrC).lookup_id(c1.get()));
+	ASSERT_NOERR(err);
+	auto f2_ref = distr::get_iosvc(*mgrB).lookup_node(err, *distr::get_iosvc(*mgrF).lookup_id(f2.get()));
+	ASSERT_NOERR(err);
+	auto b1 = std::make_shared<MockFunctor>(teq::TensptrsT{c1_ref, f2_ref},
+		teq::Opcode{"MUL", 8});
+	distr::get_iosvc(*mgrB).expose_node(b1);
+
+	auto b1_ref = distr::get_iosvc(*mgrA).lookup_node(err, *distr::get_iosvc(*mgrB).lookup_id(b1.get()));
+	ASSERT_NOERR(err);
+	auto a1 = std::make_shared<MockFunctor>(teq::TensptrsT{b1_ref},
+		teq::Opcode{"SIN", 5});
+	distr::get_iosvc(*mgrA).expose_node(a1);
+
+	// able to reach across cyclical graph
+	auto reachables = estd::map_keyset(distr::get_opsvc(*mgrA).reachable(err, {a1.get()}, {f1_key}));
+	EXPECT_EQ(1, reachables.size());
+	EXPECT_EQ(a1.get(), *reachables.begin());
+
+	// unable to reach isolated nodes
+	auto nonreachable = distr::get_opsvc(*mgrA).reachable(err, {a1.get()}, {e1_key});
+	EXPECT_TRUE(nonreachable.empty());
+
+	// unable to reach node unreachable nodes
+	auto nonreachable2 = distr::get_opsvc(*mgrA).reachable(err, {a2.get()}, {d1_key});
+	EXPECT_TRUE(nonreachable2.empty());
+}
 
 
 #endif // DISABLE_OPSVC_REACHABLE_TEST

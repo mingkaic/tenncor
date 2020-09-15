@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_MANAGER_HPP
-#define DISTRIB_MANAGER_HPP
+#ifndef DISTR_MANAGER_HPP
+#define DISTR_MANAGER_HPP
 
 #include "tenncor/distr/imanager.hpp"
 
@@ -107,6 +107,12 @@ private:
 
 using DistrMgrptrT = std::shared_ptr<DistrManager>;
 
+void set_distrmgr (iDistrMgrptrT mgr,
+	global::CfgMapptrT ctx = global::context());
+
+iDistrManager* get_distrmgr (
+	const global::CfgMapptrT& ctx = global::context());
+
 }
 
-#endif // DISTRIB_MANAGER_HPP
+#endif // DISTR_MANAGER_HPP

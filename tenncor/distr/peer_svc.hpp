@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_PEER_SVC_HPP
-#define DISTRIB_PEER_SVC_HPP
+#ifndef DISTR_PEER_SVC_HPP
+#define DISTR_PEER_SVC_HPP
 
 #include "error/error.hpp"
 #include "egrpc/egrpc.hpp"
@@ -133,6 +133,9 @@ void wait_on_future (std::future<T>& done)
 		std::future_status::timeout);
 }
 
+using RegisterSvcF = std::function<error::ErrptrT(\
+	estd::ConfigMap<>&,const PeerServiceConfig&)>;
+
 }
 
-#endif // DISTRIB_PEER_SVC_HPP
+#endif // DISTR_PEER_SVC_HPP
