@@ -11,6 +11,29 @@ namespace teq
 
 const std::string layer_attr = "layer";
 
+struct TensorObj;
+
+struct LayerObj;
+
+struct iTeqMarshaler : public marsh::iMarshaler
+{
+	virtual ~iTeqMarshaler (void) = default;
+
+	virtual void marshal (const marsh::String& str) = 0;
+
+	virtual void marshal (const marsh::iNumber& num) = 0;
+
+	virtual void marshal (const marsh::iArray& arr) = 0;
+
+	virtual void marshal (const marsh::iTuple& tup) = 0;
+
+	virtual void marshal (const marsh::Maps& mm) = 0;
+
+	virtual void marshal (const TensorObj& tens) = 0;
+
+	virtual void marshal (const LayerObj& layer) = 0;
+};
+
 struct TensorRef : public marsh::iObject
 {
 	virtual TensptrT& get_tensor (void) = 0;
@@ -165,25 +188,6 @@ private:
 	std::string opname_;
 
 	TensptrT input_;
-};
-
-struct iTeqMarshaler : public marsh::iMarshaler
-{
-	virtual ~iTeqMarshaler (void) = default;
-
-	virtual void marshal (const marsh::String& str) = 0;
-
-	virtual void marshal (const marsh::iNumber& num) = 0;
-
-	virtual void marshal (const marsh::iArray& arr) = 0;
-
-	virtual void marshal (const marsh::iTuple& tup) = 0;
-
-	virtual void marshal (const marsh::Maps& mm) = 0;
-
-	virtual void marshal (const TensorObj& tens) = 0;
-
-	virtual void marshal (const LayerObj& layer) = 0;
 };
 
 }
