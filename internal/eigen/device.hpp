@@ -104,7 +104,10 @@ struct TensAccum final : public iEigen
 {
 	TensAccum (T init_value, DimensionsT dims, ARGS args,
 		std::function<void(TensorT<T>&,const ARGS&)> assign) :
-		args_(args), assign_(assign), data_(dims), init_(init_value) {}
+		args_(args), assign_(assign), data_(dims), init_(init_value)
+	{
+		data_.setConstant(0);
+	}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override
@@ -143,7 +146,10 @@ struct TensOp final : public iEigen
 {
 	TensOp (DimensionsT dims, ARGS args,
 		std::function<SRC(ARGS&)> make_base) :
-		args_(args), tensorbase_(make_base(args_)), data_(dims) {}
+		args_(args), tensorbase_(make_base(args_)), data_(dims)
+	{
+		data_.setConstant(0);
+	}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override
@@ -180,7 +186,10 @@ struct MatOp final : public iEigen
 	MatOp (DimensionsT dims, ARGS args,
 		std::function<SRC(ARGS&)> make_base) :
 		args_(args), matrixbase_(make_base(args_)),
-		data_(dims.at(1), dims.at(0)) {}
+		data_(dims.at(1), dims.at(0))
+	{
+		data_.setConstant(0);
+	}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override
