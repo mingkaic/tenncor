@@ -6,6 +6,8 @@
 
 #include "exam/exam.hpp"
 
+#include "testutil/tutil.hpp"
+
 #include "internal/teq/mock/mock.hpp"
 
 #include "tenncor/distr/mock/mock.hpp"
@@ -28,7 +30,7 @@ protected:
 
 	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
-		return make_mgr(port, {
+		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
 			distr::register_opsvc,
 		}, id);
@@ -72,14 +74,23 @@ TEST_F(REACHABLE, CyclicGraph)
 	distr::iDistrMgrptrT mgrE(make_mgr(5116, "mgrE"));
 	distr::iDistrMgrptrT mgrF(make_mgr(5117, "mgrF"));
 
-	teq::TensptrT f1 = std::make_shared<MockLeaf>(data, shape, "f1");
-	teq::TensptrT f2 = std::make_shared<MockLeaf>(data2, shape, "f2");
-	teq::TensptrT d1 = std::make_shared<MockLeaf>(data3, shape, "d1");
+	auto f1 = std::make_shared<MockLeaf>(data, shape, "f1");
+	auto f2 = std::make_shared<MockLeaf>(data2, shape, "f2");
+	auto d1 = std::make_shared<MockLeaf>(data3, shape, "d1");
 
 	teq::TensptrT e2 = std::make_shared<MockLeaf>(data, shape, "e2");
 	teq::TensptrT e3 = std::make_shared<MockLeaf>(data2, shape, "e3");
-	teq::TensptrT e1 = std::make_shared<MockFunctor>(teq::TensptrsT{e2, e3},
+	auto e1 = std::make_shared<MockFunctor>(teq::TensptrsT{e2, e3},
 		teq::Opcode{"ADD", 7});
+
+	e1->meta_.tcode_ = egen::DOUBLE;
+	e1->meta_.tname_ = "DOUBLE";
+	f1->meta_.tcode_ = egen::DOUBLE;
+	f1->meta_.tname_ = "DOUBLE";
+	f2->meta_.tcode_ = egen::DOUBLE;
+	f2->meta_.tname_ = "DOUBLE";
+	d1->meta_.tcode_ = egen::DOUBLE;
+	d1->meta_.tname_ = "DOUBLE";
 
 	distr::get_iosvc(*mgrE).expose_node(e1);
 	distr::get_iosvc(*mgrF).expose_node(f1);
@@ -94,6 +105,10 @@ TEST_F(REACHABLE, CyclicGraph)
 	ASSERT_NOERR(err);
 	auto a2 = std::make_shared<MockFunctor>(teq::TensptrsT{f1_ref},
 		teq::Opcode{"NEG", 6});
+
+	a2->meta_.tcode_ = egen::DOUBLE;
+	a2->meta_.tname_ = "DOUBLE";
+
 	distr::get_iosvc(*mgrA).expose_node(a2);
 
 	std::string d1_key = *distr::get_iosvc(*mgrD).lookup_id(d1.get());
@@ -103,6 +118,10 @@ TEST_F(REACHABLE, CyclicGraph)
 	ASSERT_NOERR(err);
 	auto c1 = std::make_shared<MockFunctor>(teq::TensptrsT{a2_ref, d1_ref},
 		teq::Opcode{"ADD", 7});
+
+	c1->meta_.tcode_ = egen::DOUBLE;
+	c1->meta_.tname_ = "DOUBLE";
+
 	distr::get_iosvc(*mgrC).expose_node(c1);
 
 	auto c1_ref = distr::get_iosvc(*mgrB).lookup_node(err, *distr::get_iosvc(*mgrC).lookup_id(c1.get()));
@@ -111,12 +130,20 @@ TEST_F(REACHABLE, CyclicGraph)
 	ASSERT_NOERR(err);
 	auto b1 = std::make_shared<MockFunctor>(teq::TensptrsT{c1_ref, f2_ref},
 		teq::Opcode{"MUL", 8});
+
+	b1->meta_.tcode_ = egen::DOUBLE;
+	b1->meta_.tname_ = "DOUBLE";
+
 	distr::get_iosvc(*mgrB).expose_node(b1);
 
 	auto b1_ref = distr::get_iosvc(*mgrA).lookup_node(err, *distr::get_iosvc(*mgrB).lookup_id(b1.get()));
 	ASSERT_NOERR(err);
 	auto a1 = std::make_shared<MockFunctor>(teq::TensptrsT{b1_ref},
 		teq::Opcode{"SIN", 5});
+
+	a1->meta_.tcode_ = egen::DOUBLE;
+	a1->meta_.tname_ = "DOUBLE";
+
 	distr::get_iosvc(*mgrA).expose_node(a1);
 
 	// able to reach across cyclical graph

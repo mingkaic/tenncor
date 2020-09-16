@@ -24,7 +24,7 @@ distr::DistrMgrptrT ctxualize_distrmgr (
 	}
 	auto mgr = std::make_shared<distr::DistrManager>(
 		distr::ConsulSvcptrT(consulsvc), svcs);
-	set_distrmgr(mgr, ctx);
+	::tcr::set_distrmgr(mgr, ctx);
 	return mgr;
 }
 

@@ -71,6 +71,8 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         ":opsvc",
+        "//internal/teq:mock",
+        "//tenncor/distr:mock",
         "//testutil:tutil",
     ],
     linkstatic = True,

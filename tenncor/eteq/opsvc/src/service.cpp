@@ -45,7 +45,9 @@ error::ErrptrT register_opsvc (estd::ConfigMap<>& svcs,
 		return error::error("opsvc requires iosvc already registered");
 	}
 	svcs.add_entry<op::DistrOpService>(op::opsvc_key,
-		[&](){ return new op::DistrOpService(cfg, iosvc); });
+		[&](){ return new op::DistrOpService(
+			std::make_unique<eigen::Device>(std::numeric_limits<size_t>::max()),
+			std::make_unique<eteq::DerivativeFuncs>(), cfg, iosvc); });
 	return nullptr;
 }
 

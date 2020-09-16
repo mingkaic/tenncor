@@ -31,7 +31,7 @@ protected:
 
 	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
-		return make_mgr(port, {
+		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
 			distr::register_opsvc,
 			distr::register_oxsvc,
@@ -42,7 +42,7 @@ protected:
 	void check_clean (void)
 	{
 		ppconsul::catalog::Catalog catalog(*consul_);
-		auto services = catalog.service(servce_name_);
+		auto services = catalog.service(service_name_);
 		ASSERT_EQ(services.size(), 0);
 	}
 };
@@ -464,6 +464,7 @@ TEST_F(DISTRIB, RemoteDeriving)
 
 		// instance 1
 		auto mgr = make_mgr(5112, "mgr1");
+		tcr::set_distrmgr(mgr);
 
 		eteq::EVariable<double> a = eteq::make_variable<double>(data.data(), ashape, "a");
 		eteq::EVariable<double> b = eteq::make_variable<double>(data2.data(), bshape, "b");
@@ -483,6 +484,7 @@ TEST_F(DISTRIB, RemoteDeriving)
 
 		// instance 2
 		auto mgr2 = make_mgr(5113, "mgr2");
+		tcr::set_distrmgr(mgr);
 
 		error::ErrptrT err = nullptr;
 		eteq::ETensor root_ref = tcr::try_lookup_node(err, root_id);

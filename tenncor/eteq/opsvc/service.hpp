@@ -41,14 +41,17 @@ bool process_get_data (
 
 struct DistrOpService final : public PeerService<DistrOpCli>
 {
-	DistrOpService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc) :
-		PeerService<DistrOpCli>(cfg), iosvc_(iosvc) {}
+	DistrOpService (std::unique_ptr<teq::iDevice>&& evaluator,
+		std::unique_ptr<teq::iDerivativeFuncs>&& dfuncs,
+		const PeerServiceConfig& cfg, io::DistrIOService* iosvc) :
+		PeerService<DistrOpCli>(cfg), evaluator_(std::move(evaluator)),
+		deriver_(std::move(dfuncs)), iosvc_(iosvc) {}
 
 	/// Evalute target tensor set ignoring all tensors in ignored set
 	void evaluate (
 		teq::iDevice& device,
 		const teq::TensSetT& targets,
-		const teq::TensSetT& ignored)
+		const teq::TensSetT& ignored = {})
 	{
 		// find all reachable refs and make remote call
 		auto refs = reachable_refs(targets, ignored);
@@ -229,8 +232,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 	teq::OwnMapT derive (
 		teq::GradMapT& grads,
 		const teq::TensptrSetT& roots,
-		const BackpropMeta& metas,
-		const teq::iDerivativeFuncs& builder)
+		const BackpropMeta& metas)
 	{
 		if (roots.empty())
 		{
@@ -278,7 +280,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			// filter target references by target reachability
 			auto local_targets = targets;
 			local_targets.insert(reachs.begin(), reachs.end());
-			teq::partial_derive(grads, locals, local_targets, builder);
+			teq::partial_derive(grads, locals, local_targets, *deriver_);
 		}
 
 		// then make remote calls
@@ -299,12 +301,12 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 					if (estd::get(tgrads, grads, parent.get()) && tgrads.size() > 0)
 					{
 						tens = tgrads.size() == 1 ?
-							tgrads.front() : builder.add(tgrads);
+							tgrads.front() : deriver_->add(tgrads);
 						grads.erase(parent.get()); // clear local derivatives to avoid duplicates
 					}
 					else
 					{
-						tens = builder.get_const_zero(parent->shape());
+						tens = deriver_->get_const_zero(parent->shape());
 					}
 					pgrads.emplace(pid, tens);
 				}
@@ -368,11 +370,11 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			if (estd::get(tgrads, grads, target) && tgrads.size() > 0)
 			{
 				tens = tgrads.size() == 1 ?
-					tgrads.front() : builder.add(tgrads);
+					tgrads.front() : deriver_->add(tgrads);
 			}
 			else
 			{
-				tens = builder.get_const_zero(target->shape());
+				tens = deriver_->get_const_zero(target->shape());
 			}
 			out.emplace(target, tens);
 		}
@@ -471,8 +473,7 @@ private:
 				fmts::sprintf("%s:GetData", get_peer_id().c_str()).c_str());
 			ignored.emplace(tens);
 		}
-		eigen::Device device(std::numeric_limits<size_t>::max());
-		evaluate(device, targets, ignored);
+		evaluate(*evaluator_, targets, ignored);
 		return grpc::Status::OK;
 	}
 
@@ -543,8 +544,7 @@ private:
 		teq::OwnMapT tgrads;
 		if (parents.size() > 0)
 		{
-			eteq::DerivativeFuncs builder;
-			tgrads = derive(grads, parents, BackpropMeta{targets}, builder);
+			tgrads = derive(grads, parents, BackpropMeta{targets});
 		}
 		// populate response grads
 		auto resgrads = res.mutable_grads();
@@ -559,6 +559,10 @@ private:
 		}
 		return grpc::Status::OK;
 	}
+
+	std::unique_ptr<teq::iDevice> evaluator_;
+
+	std::unique_ptr<teq::iDerivativeFuncs> deriver_;
 
 	io::DistrIOService* iosvc_;
 

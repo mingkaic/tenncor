@@ -6,6 +6,8 @@
 
 #include "exam/exam.hpp"
 
+#include "testutil/tutil.hpp"
+
 #include "internal/teq/mock/mock.hpp"
 
 #include "tenncor/distr/distr.hpp"
@@ -76,7 +78,7 @@ TEST(LOOKUP, LocalLookupNode)
 	error::ErrptrT err = nullptr;
 	auto refa = service.lookup_node(err, ida);
 	ASSERT_EQ(a, refa);
-	EXPECT_EQ(nullptr, err);
+	ASSERT_NOERR(err);
 }
 
 
@@ -132,7 +134,7 @@ TEST(LOOKUP, RemoteLookupNode)
 	err = nullptr;
 	auto refa = service2.lookup_node(err, ida);
 	ASSERT_NE(nullptr, refa);
-	EXPECT_EQ(nullptr, err);
+	ASSERT_NOERR(err);
 	auto expect_refname = fmts::sprintf(
 		"service1/%s", ida.c_str());
 	EXPECT_STREQ(expect_refname.c_str(), refa->to_string().c_str());

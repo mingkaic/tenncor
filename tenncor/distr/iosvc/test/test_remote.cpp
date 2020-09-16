@@ -6,6 +6,8 @@
 
 #include "exam/exam.hpp"
 
+#include "testutil/tutil.hpp"
+
 #include "internal/teq/mock/mock.hpp"
 
 #include "tenncor/distr/distr.hpp"
@@ -97,7 +99,7 @@ TEST(REMOTE, RemoteReferenceStorage)
 	error::ErrptrT err = nullptr;
 	service2.lookup_node(err, ida);
 
-	EXPECT_EQ(nullptr, err) << (nullptr == err ? "" : err->to_string());
+	ASSERT_NOERR(err);
 	EXPECT_EQ(1, service2.get_remotes().size());
 }
 
