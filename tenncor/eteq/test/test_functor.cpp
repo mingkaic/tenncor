@@ -94,6 +94,7 @@ TEST(FUNCTOR, UpdateChild)
 	marsh::Maps attrs;
 	auto f = eteq::Functor<double>::get(
 		egen::ADD, {a, b}, std::move(attrs));
+	teq::TensptrT ftens(f);
 
 	EXPECT_FALSE(f->has_data());
 	auto children = f->get_args();
@@ -149,6 +150,7 @@ TEST(FUNCTOR, Prop)
 	marsh::Maps attrs;
 	auto f = eteq::Functor<double>::get(
 		egen::ADD, {a, b}, std::move(attrs));
+	teq::TensptrT ftens(f);
 
 	ASSERT_FALSE(f->has_data());
 	[](const eteq::Functor<double>* f)
@@ -168,6 +170,7 @@ TEST(FUNCTOR, Prop)
 
 	auto g = eteq::Functor<double>::get(
 		egen::RAND_UNIF, {a, b}, std::move(attrs));
+	teq::TensptrT gtens(g);
 	EXPECT_TRUE(g->prop_version(3));
 	EXPECT_EQ(1, g->get_meta().state_version());
 	EXPECT_TRUE(g->prop_version(3));

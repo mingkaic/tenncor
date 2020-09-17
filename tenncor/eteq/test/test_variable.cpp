@@ -24,17 +24,17 @@ TEST(VARIABLE, CopyMove)
 	EXPECT_STREQ("B", b->to_string().c_str());
 	EXPECT_STREQ("C", c->to_string().c_str());
 
-	auto acpy = a->clone();
-	auto bcpy = b->clone();
-	auto ccpy = c->clone();
+	teq::TensptrT acpy(a->clone());
+	teq::TensptrT bcpy(b->clone());
+	teq::TensptrT ccpy(c->clone());
 
 	EXPECT_STREQ("A", acpy->to_string().c_str());
 	EXPECT_STREQ("B", bcpy->to_string().c_str());
 	EXPECT_STREQ("C", ccpy->to_string().c_str());
 
-	auto amv = a->move();
-	auto bmv = b->move();
-	auto cmv = c->move();
+	teq::TensptrT amv(a->move());
+	teq::TensptrT bmv(b->move());
+	teq::TensptrT cmv(c->move());
 
 	EXPECT_STREQ("", a->to_string().c_str());
 	EXPECT_STREQ("", b->to_string().c_str());

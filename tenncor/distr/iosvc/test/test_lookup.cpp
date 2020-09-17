@@ -10,30 +10,44 @@
 
 #include "internal/teq/mock/mock.hpp"
 
-#include "tenncor/distr/distr.hpp"
+#include "tenncor/distr/mock/mock.hpp"
 
 #include "tenncor/distr/iosvc/iosvc.hpp"
 
 
-TEST(LOOKUP, LookupId)
+const std::string test_service = "tenncor.distr.iosvc.test";
+
+
+struct LOOKUP : public ::testing::Test, public DistrTestcase
 {
-	size_t test_port = 5112;
+	LOOKUP (void) : DistrTestcase(test_service) {}
 
-	const char* consul_addr = std::getenv("TEST_CONSUL_ADDRESS");
-	if (nullptr == consul_addr || 0 == std::strlen(consul_addr))
+protected:
+	void TearDown (void) override
 	{
-		consul_addr = "localhost";
+		clean_up();
 	}
-	std::string address = fmts::sprintf("http://%s:8500", consul_addr);
-	auto consul = std::make_shared<ppconsul::Consul>(address);
-	auto consulsvc = distr::make_consul(consul, test_port, "Lookup.IOService", "service1");
 
-	distr::PeerServiceConfig cfg(consulsvc, egrpc::ClientConfig(
-		std::chrono::milliseconds(5000),
-		std::chrono::milliseconds(10000),
-		5
-	));
-	distr::io::DistrIOService service(cfg);
+	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	{
+		return DistrTestcase::make_mgr(port, {
+			distr::register_iosvc,
+		}, id);
+	}
+
+	void check_clean (void)
+	{
+		ppconsul::catalog::Catalog catalog(*consul_);
+		auto services = catalog.service(service_name_);
+		ASSERT_EQ(services.size(), 0);
+	}
+};
+
+
+TEST_F(LOOKUP, LookupId)
+{
+	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr"));
+	auto& service = distr::get_iosvc(*mgr);
 
 	teq::Shape outshape({2, 2});
 	auto a = std::make_shared<MockLeaf>(
@@ -49,25 +63,10 @@ TEST(LOOKUP, LookupId)
 }
 
 
-TEST(LOOKUP, LocalLookupNode)
+TEST_F(LOOKUP, LocalLookupNode)
 {
-	size_t test_port = 5112;
-
-	const char* consul_addr = std::getenv("TEST_CONSUL_ADDRESS");
-	if (nullptr == consul_addr || 0 == std::strlen(consul_addr))
-	{
-		consul_addr = "localhost";
-	}
-	std::string address = fmts::sprintf("http://%s:8500", consul_addr);
-	auto consul = std::make_shared<ppconsul::Consul>(address);
-	auto consulsvc = distr::make_consul(consul, test_port, "Lookup.IOService", "service1");
-
-	distr::PeerServiceConfig cfg(consulsvc, egrpc::ClientConfig(
-		std::chrono::milliseconds(5000),
-		std::chrono::milliseconds(10000),
-		5
-	));
-	distr::io::DistrIOService service(cfg);
+	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr"));
+	auto& service = distr::get_iosvc(*mgr);
 
 	teq::Shape outshape({2, 2});
 	auto a = std::make_shared<MockLeaf>(
@@ -82,32 +81,10 @@ TEST(LOOKUP, LocalLookupNode)
 }
 
 
-TEST(LOOKUP, RemoteLookupNode)
+TEST_F(LOOKUP, RemoteLookupNode)
 {
-	size_t port1 = 5112;
-	size_t port2 = 5113;
-
-	const char* consul_addr = std::getenv("TEST_CONSUL_ADDRESS");
-	if (nullptr == consul_addr || 0 == std::strlen(consul_addr))
-	{
-		consul_addr = "localhost";
-	}
-	std::string address = fmts::sprintf("http://%s:8500", consul_addr);
-	auto consul = std::make_shared<ppconsul::Consul>(address);
-	auto consulsvc = distr::make_consul(consul, port1, "Lookup.IOService", "service1");
-	auto consulsvc2 = distr::make_consul(consul, port2, "Lookup.IOService", "service2");
-
-	distr::PeerServiceConfig cfg(consulsvc, egrpc::ClientConfig(
-		std::chrono::milliseconds(5000),
-		std::chrono::milliseconds(10000),
-		5
-	));
-	// use manager to serve service
-	estd::ConfigMap<> mgrsvcs;
-	distr::register_iosvc(mgrsvcs, cfg);
-	distr::DistrManager manager(distr::ConsulSvcptrT(consulsvc), mgrsvcs, 1);
-
-	distr::io::DistrIOService& service = distr::get_iosvc(manager);
+	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
+	auto& service = distr::get_iosvc(*manager);
 
 	teq::Shape outshape({2, 2});
 	auto a = std::make_shared<MockLeaf>(
@@ -117,12 +94,8 @@ TEST(LOOKUP, RemoteLookupNode)
 	service.expose_node(a);
 	auto ida = *service.lookup_id(a.get());
 
-	distr::PeerServiceConfig cfg2(consulsvc2, egrpc::ClientConfig(
-		std::chrono::milliseconds(5000),
-		std::chrono::milliseconds(10000),
-		5
-	));
-	distr::io::DistrIOService service2(cfg2);
+	distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
+	auto& service2 = distr::get_iosvc(*manager2);
 
 	error::ErrptrT err = nullptr;
 	EXPECT_EQ(nullptr, service2.lookup_node(err, ida, false));

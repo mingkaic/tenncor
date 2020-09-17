@@ -10,30 +10,44 @@
 
 #include "internal/teq/mock/mock.hpp"
 
-#include "tenncor/distr/distr.hpp"
+#include "tenncor/distr/mock/mock.hpp"
 
 #include "tenncor/distr/iosvc/iosvc.hpp"
 
 
-TEST(REMOTE, LocalReferenceStorage)
+const std::string test_service = "tenncor.distr.iosvc.test";
+
+
+struct REMOTE : public ::testing::Test, public DistrTestcase
 {
-	size_t test_port = 5112;
+	REMOTE (void) : DistrTestcase(test_service) {}
 
-	const char* consul_addr = std::getenv("TEST_CONSUL_ADDRESS");
-	if (nullptr == consul_addr || 0 == std::strlen(consul_addr))
+protected:
+	void TearDown (void) override
 	{
-		consul_addr = "localhost";
+		clean_up();
 	}
-	std::string address = fmts::sprintf("http://%s:8500", consul_addr);
-	auto consul = std::make_shared<ppconsul::Consul>(address);
-	auto consulsvc = distr::make_consul(consul, test_port, "Lookup.IOService", "service1");
 
-	distr::PeerServiceConfig cfg(consulsvc, egrpc::ClientConfig(
-		std::chrono::milliseconds(5000),
-		std::chrono::milliseconds(10000),
-		5
-	));
-	distr::io::DistrIOService service(cfg);
+	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	{
+		return DistrTestcase::make_mgr(port, {
+			distr::register_iosvc,
+		}, id);
+	}
+
+	void check_clean (void)
+	{
+		ppconsul::catalog::Catalog catalog(*consul_);
+		auto services = catalog.service(service_name_);
+		ASSERT_EQ(services.size(), 0);
+	}
+};
+
+
+TEST_F(REMOTE, LocalReferenceStorage)
+{
+	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr"));
+	auto& service = distr::get_iosvc(*mgr);
 
 	teq::Shape outshape({2, 2});
 	auto a = std::make_shared<MockLeaf>(
@@ -52,32 +66,13 @@ TEST(REMOTE, LocalReferenceStorage)
 }
 
 
-TEST(REMOTE, RemoteReferenceStorage)
+TEST_F(REMOTE, RemoteReferenceStorage)
 {
 	size_t port1 = 5112;
 	size_t port2 = 5113;
 
-	const char* consul_addr = std::getenv("TEST_CONSUL_ADDRESS");
-	if (nullptr == consul_addr || 0 == std::strlen(consul_addr))
-	{
-		consul_addr = "localhost";
-	}
-	std::string address = fmts::sprintf("http://%s:8500", consul_addr);
-	auto consul = std::make_shared<ppconsul::Consul>(address);
-	auto consulsvc = distr::make_consul(consul, port1, "Lookup.IOService", "service1");
-	auto consulsvc2 = distr::make_consul(consul, port2, "Lookup.IOService", "service2");
-
-	distr::PeerServiceConfig cfg(consulsvc, egrpc::ClientConfig(
-		std::chrono::milliseconds(5000),
-		std::chrono::milliseconds(10000),
-		5
-	));
-	// use manager to serve service
-	estd::ConfigMap<> mgrsvcs;
-	distr::register_iosvc(mgrsvcs, cfg);
-	distr::DistrManager manager(distr::ConsulSvcptrT(consulsvc), mgrsvcs, 1);
-
-	distr::io::DistrIOService& service = distr::get_iosvc(manager);
+	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr"));
+	auto& service = distr::get_iosvc(*mgr);
 
 	teq::Shape outshape({2, 2});
 	auto a = std::make_shared<MockLeaf>(
@@ -86,12 +81,8 @@ TEST(REMOTE, RemoteReferenceStorage)
 	a->meta_.tname_ = "DOUBLE";
 	service.expose_node(a);
 
-	distr::PeerServiceConfig cfg2(consulsvc2, egrpc::ClientConfig(
-		std::chrono::milliseconds(5000),
-		std::chrono::milliseconds(10000),
-		5
-	));
-	distr::io::DistrIOService service2(cfg2);
+	distr::iDistrMgrptrT mgr2(make_mgr(5113, "mgr2"));
+	auto& service2 = distr::get_iosvc(*mgr2);
 
 	EXPECT_EQ(0, service.get_remotes().size());
 
