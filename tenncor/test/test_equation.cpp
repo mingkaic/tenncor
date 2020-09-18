@@ -1,6 +1,5 @@
 
-#define DISABLE_EQUATION_TEST
-#ifndef DISABLE_EQUATION_TEST
+#ifndef DISABLE_TENNCOR_EQUATION_TEST
 
 
 #include "gtest/gtest.h"

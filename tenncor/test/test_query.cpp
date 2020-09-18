@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_QUERY_TEST
+#ifndef DISABLE_TENNCOR_QUERY_TEST
 
 
 #include "gtest/gtest.h"
@@ -1351,4 +1351,4 @@ TEST(ADV, LayerMatch)
 // match commutative with attributes
 
 
-#endif // DISABLE_QUERY_TEST
+#endif // DISABLE_TENNCOR_QUERY_TEST

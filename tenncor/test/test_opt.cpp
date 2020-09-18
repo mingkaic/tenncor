@@ -1,6 +1,5 @@
 
-#define DISABLE_OPT_TEST
-#ifndef DISABLE_OPT_TEST
+#ifndef DISABLETENNCOR__OPT_TEST
 
 
 #include "gtest/gtest.h"

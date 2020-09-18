@@ -129,8 +129,6 @@ TEST(FUNCTOR, UpdateChild)
 
 	EXPECT_FATAL(f->update_child(a, 2),
 		"cannot replace argument 2 when only there are only 2 available");
-
-	delete f;
 }
 
 

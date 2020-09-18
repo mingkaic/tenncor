@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_DISTRIB_TEST
+#ifndef DISABLE_TENNCOR_DISTRIB_TEST
 
 #include <cstdlib>
 
