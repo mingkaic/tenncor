@@ -5,6 +5,7 @@ filegroup(
     srcs = [
         ":serial_hdrs",
         ":serial_srcs",
+        ":ctest_srcs",
         "//tenncor/serial/oxsvc:srcs",
         "BUILD.bazel",
     ],

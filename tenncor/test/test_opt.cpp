@@ -1,5 +1,5 @@
 
-#ifndef DISABLETENNCOR__OPT_TEST
+#ifndef DISABLE_TENNCOR__OPT_TEST
 
 
 #include "gtest/gtest.h"
@@ -401,4 +401,4 @@ TEST(OPTIMIZE, CNNLayer)
 }
 
 
-#endif // DISABLE_OPT_TEST
+#endif // DISABLE_TENNCOR_OPT_TEST

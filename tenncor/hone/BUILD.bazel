@@ -5,6 +5,8 @@ filegroup(
     srcs = [
         ":hone_hdrs",
         ":hone_srcs",
+        ":test_srcs",
+        "//tenncor/hone/hosvc:srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],
@@ -21,7 +23,7 @@ filegroup(
 )
 
 filegroup(
-    name = "ctest_srcs",
+    name = "test_srcs",
     srcs = glob(["test/*.cpp"]),
 )
 
@@ -42,11 +44,11 @@ cc_library(
 ######### TEST #########
 
 cc_test(
-    name = "ctest",
-    srcs = [":ctest_srcs"],
+    name = "test",
+    srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//tenncor:tenncor",
+        ":hone",
         "//internal/utils/coord:coord",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",

@@ -5,6 +5,7 @@ filegroup(
     srcs = [
         ":distr_hdrs",
         ":distr_srcs",
+        ":mock_hdrs",
         ":test_srcs",
         "//tenncor/distr/iosvc:srcs",
         "BUILD.bazel",

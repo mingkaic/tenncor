@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_API_TEST
+#ifndef DISABLE_TENNCOR_API_TEST
 
 
 #include "testutil/tutil.hpp"
@@ -2387,4 +2387,4 @@ TEST(API, GroupSum)
 }
 
 
-#endif // DISABLE_API_TEST
+#endif // DISABLE_TENNCOR_API_TEST

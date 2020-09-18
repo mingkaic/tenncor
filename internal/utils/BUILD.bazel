@@ -3,8 +3,8 @@ licenses(["notice"])
 filegroup(
     name = "srcs",
     srcs = [
-        "//internal/utils/coord:coord",
-        "//internal/utils/stabilizer:stabilizer",
+        "//internal/utils/coord:srcs",
+        "//internal/utils/stabilizer:srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],

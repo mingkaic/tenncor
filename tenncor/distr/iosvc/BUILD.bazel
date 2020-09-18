@@ -8,6 +8,7 @@ filegroup(
         ":iosvc_hdrs",
         ":iosvc_srcs",
         ":protos",
+        ":test_srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],

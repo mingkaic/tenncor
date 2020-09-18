@@ -3,6 +3,24 @@
 THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )";
 COV_DIR="$THIS_DIR";
 
+CONTEXT=$(cd "$1" && pwd);
+
+if (( $# > 1 )); then
+	MODE="$2";
+else
+	MODE="all";
+fi
+
+WORKDIR="$CONTEXT/tmp/tenncor_coverage";
+CONVERSION_CSV="$CONTEXT/tmp/tenncor_conversion.csv";
+
+rm -Rf "$WORKDIR";
+mkdir -p "$WORKDIR";
+find $WORKDIR -maxdepth 1 | grep -E -v 'tmp|.git|bazel-' | tail -n +2 | xargs -i cp -r {} $WORKDIR;
+find $WORKDIR | grep -E '.cpp|.hpp' | python3 scripts/label_uniquify.py $WORKDIR > $CONTEXT;
+find $WORKDIR | grep -E '.yml' | python3 scripts/yaml_replace.py $CONTEXT;
+
+cd "$WORKDIR";
 lcov --base-directory . --directory . --zerocounters;
 set -e
 
@@ -16,48 +34,27 @@ echo "===== TESTS =====";
 
 source "$THIS_DIR/coverage.sh";
 
-if (( $# > 0 )); then
-	MODE="$1";
-else
-	MODE="all";
-fi
-
 echo "Test Mode: $MODE";
 if [[ "$MODE" == "fast" ]]; then
-	bzl_coverage //internal/eigen:test //marsh:test //internal/onnx:test \
-	//internal/opt:test //internal/query:test //internal/teq:test //internal/utils/...;
+	bzl_coverage --deleted_packages="//tenncor:ctest,//tenncor:ptest" //internal/... //tenncor/...;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //tools/gen:ptest;
-elif [[ "$MODE" == "eteq" ]]; then
-	bzl_coverage //tenncor/eteq:ctest;
+	--remote_http_cache="$REMOTE_CACHE" //tools/...;
+elif [[ "$MODE" == "integration" ]]; then
+	bzl_coverage //tenncor:ctest;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //tenncor/eteq:ptest;
-elif [[ "$MODE" == "layr" ]]; then
-	bzl_coverage //tenncor/layr:ctest;
+	--remote_http_cache="$REMOTE_CACHE" //tenncor:ptest;
+else # test all
+	bzl_coverage --deleted_packages="//tenncor:ptest" //internal/... //tenncor/...;
 
 	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //tenncor/layr:ptest;
-elif [[ "$MODE" == "distrib" ]]; then
-	bzl_coverage //tenncor/distr:ctest;
-
-	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //tenncor/distr:ptest;
-else
-	bzl_coverage //internal/eigen:test //tenncor/eteq:ctest //tenncor/distr:ctest \
-	//tenncor/layr:ctest //internal/marsh:test //internal/onnx:test //internal/opt:test \
-	//internal/query:test //internal/teq:test //internal/utils/...;
-
-	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" \
-	//tools/gen:ptest //tenncor/eteq:ptest //tenncor/layr:ptest //tenncor/distr:ptest;
+	--remote_http_cache="$REMOTE_CACHE" //tools/... //tenncor:ptest;
 fi
 
-lcov --remove "$COV_DIR/coverage.info" 'external/*' '**/test/*' \
-'testutil/*' '**/genfiles/*' 'dbg/*' 'dbg/**/*' 'utils/*' 'utils/**/*' \
-'perf/*' 'perf/**/*' '**/mock/*' '**/*.pb.h' '**/*.pb.cc' -o "$COV_DIR/coverage.info";
-send2codecov "$COV_DIR/coverage.info";
+python3 "$THIS_DIR/label_replace.py" "$COV_DIR/coverage.info" $CONVERSION_CSV > "$COV_DIR/labelled_coverage.info";
+send2codecov "$COV_DIR/labelled_coverage.info";
+cd "$CONTEXT";
 
 echo "";
 echo "============ TENNCOR TEST SUCCESSFUL ============";

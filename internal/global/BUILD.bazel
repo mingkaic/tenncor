@@ -5,6 +5,7 @@ filegroup(
     srcs = [
         ":global_hdrs",
         ":global_srcs",
+        ":test_srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],

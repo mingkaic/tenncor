@@ -8,6 +8,7 @@ filegroup(
         ":hosvc_hdrs",
         ":hosvc_srcs",
         ":protos",
+        ":test_srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],
@@ -26,6 +27,11 @@ filegroup(
 filegroup(
     name = "protos",
     srcs = glob(["*.proto"]),
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob(["test/*.cpp"]),
 )
 
 ######### LIBRARY #########
@@ -54,4 +60,19 @@ cpp_grpc_library(
     name = "hosvc_cc_grpc",
     deps = [":hosvc_pb"],
     visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = [":test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":hosvc",
+        "//internal/teq:mock",
+        "//tenncor/distr:mock",
+        "//testutil:tutil",
+    ],
+    linkstatic = True,
 )
