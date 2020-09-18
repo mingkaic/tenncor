@@ -36,7 +36,7 @@ source "$THIS_DIR/coverage.sh";
 
 echo "Test Mode: $MODE";
 if [[ "$MODE" == "fast" ]]; then
-	bzl_coverage --deleted_packages="//tenncor:ctest,//tenncor:ptest" //internal/... //tenncor/...;
+	bzl_coverage //tenncor/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest|//tenncor:ctest');
 
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //tools/...;
@@ -46,7 +46,7 @@ elif [[ "$MODE" == "integration" ]]; then
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //tenncor:ptest;
 else # test all
-	bzl_coverage --deleted_packages="//tenncor:ptest" //internal/... //tenncor/...;
+	bzl_coverage //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest');
 
 	bazel test --run_under='valgrind --leak-check=full' \
 	--remote_http_cache="$REMOTE_CACHE" //tools/... //tenncor:ptest;

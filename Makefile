@@ -223,11 +223,12 @@ COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
 DISTR_TEST := //tenncor/distr/...
 ETEQ_TEST := //tenncor/eteq/...
-HONE_CTEST := //tenncor/hone:ctest
+HONE_CTEST := //tenncor/hone/...
 LAYR_CTEST := //tenncor/layr:ctest
 SERIAL_CTEST := //tenncor/serial:ctest
 COVERAGE_CTX := tmp/tenncor_coverage
 COVERAGE_CSV := tmp/tenncor_conversions.csv
+CTENNCOR_TESTS = $(shell bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest')
 
 .PHONY: cov_clean
 cov_clean:
@@ -257,7 +258,7 @@ clean_test_coverage: ${COVERAGE_INFO_FILE}
 
 .PHONY: coverage
 coverage:
-	${CCOVER} //internal/... ${DISTR_TEST} ${ETEQ_TEST} ${HONE_CTEST} ${LAYR_CTEST} ${SERIAL_CTEST} //tenncor:ctest
+	${CCOVER} //internal/... $(CTENNCOR_TESTS)
 	@make clean_test_coverage
 	lcov --extract ${TMP_COVFILE} 'internal/*' 'tenncor/*' -o coverage.info
 

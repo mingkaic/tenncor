@@ -177,8 +177,6 @@ class PyAPIsPlugin:
                 '"pybind11/pybind11.h"',
                 '"pybind11/stl.h"',
                 '"pybind11/operators.h"',
-                '"internal/global/config.hpp"',
-                '"internal/eigen/device.hpp"',
             ] + api.get('pybind_includes', []),
             internal_refs=[_pyapi_header, api_header])
 

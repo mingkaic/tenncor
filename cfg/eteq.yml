@@ -23,7 +23,9 @@ api:
     - teq::DimsT
     - std::pair<eteq::DimPairsT,eteq::DimPairsT>
   pybind_includes:
-  - '"python/tenncor.hpp"'
+  - '"internal/global/config.hpp"'
+  - '"internal/eigen/device.hpp"'
+  - '"tenncor/python/tenncor.hpp"'
   pybind_module: tenncor
   pyglobal:
     - name: api
