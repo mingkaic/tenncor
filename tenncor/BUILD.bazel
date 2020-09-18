@@ -177,6 +177,7 @@ py_test(
     name = "ptest",
     srcs = [":ptest_srcs"],
     deps = [
+        "//dbg:print_py",
         "//tenncor:tenncor_py",
         "//testutil:pyunit_util",
     ],

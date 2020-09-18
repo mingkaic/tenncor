@@ -1,6 +1,5 @@
 
-#define DISABLE_SERIAL_SERIALIZE_TEST
-#ifndef DISABLE_SERIAL_SERIALIZE_TEST
+#ifndef DISABLE_TENNCOR_SERIALIZE_TEST
 
 
 #include <fstream>
@@ -15,6 +14,7 @@
 #include "dbg/print/teq.hpp"
 
 #include "tenncor/serial/serial.hpp"
+#include "tenncor/tenncor.hpp"
 
 
 const std::string testdir = "models/test";
@@ -208,4 +208,4 @@ TEST(SERIALIZE, LoadGraph)
 }
 
 
-#endif // DISABLE_SERIAL_SERIALIZE_TEST
+#endif // DISABLE_TENNCOR_SERIALIZE_TEST

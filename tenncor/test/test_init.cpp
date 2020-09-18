@@ -1,13 +1,12 @@
 
-#define DISABLE_LAYR_INIT_TEST
-#ifndef DISABLE_LAYR_INIT_TEST
+#ifndef DISABLE_TENNCOR_INIT_TEST
 
 
 #include "gtest/gtest.h"
 
 #include "exam/exam.hpp"
 
-#include "tenncor/layr/layer.hpp"
+#include "tenncor/tenncor.hpp"
 
 
 TEST(INIT, Zero)
@@ -148,4 +147,4 @@ TEST(INIT, UniformXavier)
 // }
 
 
-#endif // DISABLE_LAYR_INIT_TEST
+#endif // DISABLE_TENNCOR_INIT_TEST

@@ -1,5 +1,6 @@
 
-#ifndef DISABLE_LAYER_TEST
+#define DISABLE_LAYER_API_TEST
+#ifndef DISABLE_LAYER_API_TEST
 
 
 #include "gtest/gtest.h"
@@ -8,7 +9,7 @@
 
 #include "testutil/tutil.hpp"
 
-#include "tenncor/tenncor.hpp"
+#include "tenncor/layr/layer.hpp"
 
 
 TEST(API, Dense)
@@ -127,4 +128,4 @@ TEST(API, Conv)
 }
 
 
-#endif
+#endif // DISABLE_LAYER_API_TEST

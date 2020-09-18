@@ -30,9 +30,9 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 	DistrHoService (const PeerServiceConfig& cfg) :
 		PeerService<DistrHoCli>(cfg), iosvc_(iosvc) {}
 
-	void optimize (const opt::Optimization& optimize)
+	teq::TensptrsT optimize (const opt::Optimization& optimize, const teq::TensptrsT& roots)
 	{
-		//
+		return roots;
 	}
 
 	void register_service (grpc::ServerBuilder& builder) override

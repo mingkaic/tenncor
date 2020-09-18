@@ -5,8 +5,7 @@ filegroup(
     srcs = [
         ":layr_hdrs",
         ":layr_srcs",
-        ":ctest_srcs",
-        ":ptest_srcs",
+        ":test_srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],
@@ -25,13 +24,8 @@ filegroup(
 )
 
 filegroup(
-    name = "ctest_srcs",
+    name = "test_srcs",
     srcs = glob(["test/*.cpp"]),
-)
-
-filegroup(
-    name = "ptest_srcs",
-    srcs = ["test/ptest.py"],
 )
 
 ######### LIBRARY #########
@@ -48,22 +42,14 @@ cc_library(
 ######### TEST #########
 
 cc_test(
-    name = "ctest",
-    srcs = [":ctest_srcs"],
+    name = "test",
+    srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//tenncor:tenncor",
+        ":layr",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
     ],
     linkstatic = True,
-)
-
-py_test(
-    name = "ptest",
-    srcs = [":ptest_srcs"],
-    deps = [
-        "//tenncor:tenncor_py",
-        "//dbg:print_py",
-    ],
 )

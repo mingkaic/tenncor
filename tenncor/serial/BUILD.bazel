@@ -5,7 +5,7 @@ filegroup(
     srcs = [
         ":serial_hdrs",
         ":serial_srcs",
-        ":ctest_srcs",
+        ":test_srcs",
         "//tenncor/serial/oxsvc:srcs",
         "BUILD.bazel",
     ],
@@ -23,7 +23,7 @@ filegroup(
 )
 
 filegroup(
-    name = "ctest_srcs",
+    name = "test_srcs",
     srcs = glob(["test/*.cpp"]),
 )
 
@@ -45,12 +45,11 @@ cc_library(
 ######### TEST #########
 
 cc_test(
-    name = "ctest",
-    srcs = [":ctest_srcs"],
+    name = "test",
+    srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        "//tenncor:tenncor",
-        "//internal/utils/coord:coord",
+        ":serial",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",

@@ -1,6 +1,5 @@
 
-#define DISABLE_LAYR_APPROX_TEST
-#ifndef DISABLE_LAYR_APPROX_TEST
+#ifndef DISABLE_TENNCOR_APPROX_TEST
 
 
 #include "gtest/gtest.h"
@@ -14,7 +13,9 @@
 #include "internal/query/querier.hpp"
 #include "internal/query/parse.hpp"
 
-#include "tenncor/layr/layer.hpp"
+#include "tenncor/layr/approx.hpp"
+
+#include "tenncor/tenncor.hpp"
 
 
 TEST(APPROX, StochasticGD)
@@ -376,4 +377,4 @@ TEST(APPROX, RmsMomentum)
 }
 
 
-#endif // DISABLE_LAYR_APPROX_TEST
+#endif // DISABLE_TENNCOR_APPROX_TEST

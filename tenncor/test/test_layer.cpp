@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_API_TEST
+#ifndef DISABLE_TENNCOR_LAYER_TEST
 
 #include "dbg/print/teq.hpp"
 
@@ -1551,4 +1551,4 @@ TEST(CONNECT, TanhRNNTraining)
 }
 
 
-#endif // DISABLE_API_TEST
+#endif // DISABLE_TENNCOR_LAYER_TEST
