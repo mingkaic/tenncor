@@ -2,7 +2,7 @@
 #ifndef DISTRIB_HO_SERVICE_HPP
 #define DISTRIB_HO_SERVICE_HPP
 
-#include "tenncor/distr/imanager.hpp"
+#include "tenncor/distr/iosvc/service.hpp"
 
 #include "tenncor/hone/hone.hpp"
 #include "tenncor/hone/hosvc/client.hpp"
@@ -27,7 +27,7 @@ const std::string hosvc_key = "distr_hosvc";
 
 struct DistrHoService final : public PeerService<DistrHoCli>
 {
-	DistrHoService (const PeerServiceConfig& cfg) :
+	DistrHoService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc) :
 		PeerService<DistrHoCli>(cfg), iosvc_(iosvc) {}
 
 	teq::TensptrsT optimize (const opt::Optimization& optimize, const teq::TensptrsT& roots)
@@ -47,7 +47,7 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 			global::get_logger(), fmts::sprintf("[server %s:PutOptimize] ",
 				get_peer_id().c_str()));
 		new egrpc::AsyncServerCall<PutOptimizeRequest,
-			PutOptimizeResponse>(lnodes_logger,
+			PutOptimizeResponse>(popt_logger,
 			[this](grpc::ServerContext* ctx, PutOptimizeRequest* req,
 				grpc::ServerAsyncResponseWriter<PutOptimizeResponse>* writer,
 				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
@@ -63,6 +63,8 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 	}
 
 private:
+	io::DistrIOService* iosvc_;
+
 	DistrOptimization::AsyncService service_;
 };
 

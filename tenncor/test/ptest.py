@@ -3,6 +3,8 @@ import random
 import logging
 import unittest
 import numpy as np
+import tempfile
+import os.path
 
 import tenncor as tc
 

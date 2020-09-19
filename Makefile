@@ -91,7 +91,7 @@ gen-oxsvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
 ######## MODEL FILE GENERATION ########
 
 .PHONY: onnx2json
-onnx2json: onnx_test_o2j eteq_test_o2j edeps_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
+onnx2json: onnx_test_o2j eteq_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
 
 .PHONY: onnx_test_o2j
 onnx_test_o2j: models/test/bad_onnx.onnx models/test/bad_onnx2.onnx models/test/simple_onnx.onnx models/test/layer_onnx.onnx
@@ -108,11 +108,6 @@ onnx_test_o2j: models/test/bad_onnx.onnx models/test/bad_onnx2.onnx models/test/
 eteq_test_o2j: models/test/eteq.onnx
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq.onnx --write /tmp/eteq.json
 	mv /tmp/eteq.json models/test
-
-.PHONY: edeps_test_o2j
-edeps_test_o2j: models/test/edeps.onnx
-	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/edeps.onnx --write /tmp/edeps.json
-	mv /tmp/edeps.json models/test
 
 .PHONY: gd_model_o2j
 gd_model_o2j: models/gd.onnx
@@ -154,7 +149,7 @@ gru_model_o2j: models/fast_gru.onnx models/latin_gru.onnx
 	mv /tmp/latin_gru.json models
 
 .PHONY: json2onnx
-json2onnx: onnx_test_j2o eteq_test_j2o edeps_test_j2o gd_model_j2o dqn_model_j2o rbm_model_j2o dbn_model_j2o rnn_model_j2o lstm_model_j2o gru_model_j2o
+json2onnx: onnx_test_j2o eteq_test_j2o gd_model_j2o dqn_model_j2o rbm_model_j2o dbn_model_j2o rnn_model_j2o lstm_model_j2o gru_model_j2o
 
 .PHONY: onnx_test_j2o
 onnx_test_j2o: models/test/bad_onnx.json models/test/bad_onnx2.json models/test/simple_onnx.json models/test/layer_onnx.json
@@ -171,11 +166,6 @@ onnx_test_j2o: models/test/bad_onnx.json models/test/bad_onnx2.json models/test/
 eteq_test_j2o: models/test/eteq.json
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq.json --write /tmp/eteq.onnx
 	mv /tmp/eteq.onnx models/test
-
-.PHONY: edeps_test_j2o
-edeps_test_j2o: models/test/edeps.json
-	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/edeps.json --write /tmp/edeps.onnx
-	mv /tmp/edeps.onnx models/test
 
 .PHONY: gd_model_j2o
 gd_model_j2o: models/gd.json

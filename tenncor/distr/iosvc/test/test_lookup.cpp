@@ -106,8 +106,8 @@ TEST_F(LOOKUP, RemoteLookupNode)
 
 	err = nullptr;
 	auto refa = service2.lookup_node(err, ida);
-	ASSERT_NE(nullptr, refa);
 	ASSERT_NOERR(err);
+	ASSERT_NE(nullptr, refa);
 	auto expect_refname = fmts::sprintf(
 		"mgr/%s", ida.c_str());
 	EXPECT_STREQ(expect_refname.c_str(), refa->to_string().c_str());

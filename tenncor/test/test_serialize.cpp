@@ -91,54 +91,6 @@ TEST(SERIALIZE, SaveGraph)
 }
 
 
-TEST(SERIALIZE, DISABLED_SaveDependencies)
-{
-	std::string expect_pbfile = testdir + "/edeps.onnx";
-	std::string got_pbfile = "got_edeps.onnx";
-	onnx::ModelProto model;
-
-	teq::Shape shape({10, 2});
-
-	eteq::ETensor a = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems()).data(), shape, "a"));
-	eteq::ETensor b = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems()).data(), shape, "b"));
-	eteq::ETensor root = a * b;
-
-	eteq::ETensor c = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems()).data(), shape, "c"));
-	eteq::ETensor dep = a + c;
-	eteq::ETensor dep2 = a / c - b;
-
-	onnx::TensIdT ids;
-	ids.insert({root.get(), "root"});
-	tcr::save_model(model, {root}, ids);
-	{
-		std::fstream gotstr(got_pbfile,
-			std::ios::out | std::ios::trunc | std::ios::binary);
-		ASSERT_TRUE(gotstr.is_open());
-		ASSERT_TRUE(model.SerializeToOstream(&gotstr));
-	}
-
-	{
-		std::fstream expect_ifs(expect_pbfile, std::ios::in | std::ios::binary);
-		std::fstream got_ifs(got_pbfile, std::ios::in | std::ios::binary);
-		ASSERT_TRUE(expect_ifs.is_open());
-		ASSERT_TRUE(got_ifs.is_open());
-
-		onnx::ModelProto expect_model;
-		onnx::ModelProto got_model;
-		ASSERT_TRUE(expect_model.ParseFromIstream(&expect_ifs));
-		ASSERT_TRUE(got_model.ParseFromIstream(&got_ifs));
-
-		google::protobuf::util::MessageDifferencer differ;
-		std::string report;
-		differ.ReportDifferencesToString(&report);
-		EXPECT_TRUE(differ.Compare(expect_model, got_model)) << report;
-	}
-}
-
-
 TEST(SERIALIZE, LoadGraph)
 {
 	onnx::ModelProto in;

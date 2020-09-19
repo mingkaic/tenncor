@@ -6,10 +6,42 @@
 
 #include "testutil/tutil.hpp"
 
+#include "tenncor/distr/mock/mock.hpp"
+
 #include "tenncor/hone/hosvc/hosvc.hpp"
 
 
-TEST(OPTIMIZE, Cstrules)
+const std::string test_service = "tenncor.hone.hosvc.test";
+
+
+struct OPTIMIZE : public ::testing::Test, public DistrTestcase
+{
+	OPTIMIZE (void) : DistrTestcase(test_service) {}
+
+protected:
+	void TearDown (void) override
+	{
+		clean_up();
+	}
+
+	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	{
+		return DistrTestcase::make_mgr(port, {
+			distr::register_iosvc,
+			distr::register_hosvc,
+		}, id);
+	}
+
+	void check_clean (void)
+	{
+		ppconsul::catalog::Catalog catalog(*consul_);
+		auto services = catalog.service(service_name_);
+		ASSERT_EQ(services.size(), 0);
+	}
+};
+
+
+TEST_F(OPTIMIZE, DISABLED_Cstrules)
 {
 	// tensor operation
 	teq::DimsT slist = {2, 3, 4};
@@ -49,13 +81,13 @@ TEST(OPTIMIZE, Cstrules)
 	teq::TensptrT everyone(eteq::make_functor(egen::ADD, {lhs_ref, rhs}));
 
 	opt::Optimization optimization;
-	auto optres = distr::get_hosvc(*mgr2).(optimize, {everyone});
+	auto optres = distr::get_hosvc(*mgr2).optimize(optimization, {everyone});
 	ASSERT_EQ(1, optres.size());
 	everyone = optres.front();
 
 	auto refs = distr::reachable_refs(teq::TensptrsT{everyone});
 	ASSERT_EQ(1, refs.size());
-	auto lhs_repl = refs.front();
+	auto lhs_repl = *refs.begin();
 
 	EXPECT_GRAPHEQ(fmts::sprintf(
 		"(ADD<DOUBLE>[2\\3\\4\\1\\1\\1\\1\\1])\n"

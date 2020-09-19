@@ -2,13 +2,19 @@ syntax = "proto3";
 
 import "internal/opt/optimize.proto";
 
+import "tenncor/distr/iosvc/distr.io.proto";
+
 package distr.ho;
 
 message PutOptimizeRequest {
     opt.Optimization opts = 1;
+
+    repeated string roots = 2;
 }
 
-message PutOptimizeResponse {}
+message PutOptimizeResponse {
+    map<string,distr.io.NodeMeta> root_opts = 1;
+}
 
 service DistrOptimization {
     rpc PutOptimize (PutOptimizeRequest) returns (PutOptimizeResponse);

@@ -1,5 +1,4 @@
 
-#define DISABLE_SERIAL_SERIALIZE_TEST
 #ifndef DISABLE_SERIAL_SERIALIZE_TEST
 
 
@@ -22,98 +21,65 @@ const std::string testdir = "models/test";
 
 TEST(SERIALIZE, SaveGraph)
 {
-	std::string expect_pbfile = testdir + "/eteq.onnx";
-	std::string got_pbfile = "got_eteq.onnx";
-	onnx::ModelProto model;
-
-	teq::Shape in_shape({10, 3});
-	teq::Shape weight0_shape({9, 10});
-	teq::Shape bias0_shape({9});
-	teq::Shape weight1_shape({5, 9});
-	teq::Shape bias1_shape({5});
-	teq::Shape out_shape({5,3});
-
-	eteq::ETensor in = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(in_shape.n_elems()).data(), in_shape, "in"));
-	eteq::ETensor weight0 = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(weight0_shape.n_elems()).data(), weight0_shape, "weight0"));
-	eteq::ETensor bias0 = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(bias0_shape.n_elems()).data(), bias0_shape, "bias0"));
-	eteq::ETensor weight1 = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(weight1_shape.n_elems()).data(), weight1_shape, "weight1"));
-	eteq::ETensor bias1 = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(bias1_shape.n_elems()).data(), bias1_shape, "bias1"));
-	eteq::ETensor out = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(out_shape.n_elems()).data(), out_shape, "out"));
-
-	auto layer0 = tenncor().matmul(in, weight0) + tenncor().extend(bias0, 1, {3});
-	auto sig0 = 1. / ((double) 1. + tenncor().exp(-layer0));
-
-	auto layer1 = tenncor().matmul(sig0, weight1) + tenncor().extend(bias1, 1, {3});
-	auto sig1 = 1. / (1. + tenncor().exp(-layer1));
-
-	auto err = tenncor().pow(out - sig1, 2.);
-
-	auto dw0 = tcr::derive(err, {weight0})[0];
-	auto db0 = tcr::derive(err, {bias0})[0];
-	auto dw1 = tcr::derive(err, {weight1})[0];
-	auto db1 = tcr::derive(err, {bias1})[0];
-
-	onnx::TensIdT ids;
-	ids.insert({dw0.get(), "dw0"});
-	ids.insert({db0.get(), "db0"});
-	ids.insert({dw1.get(), "dw1"});
-	ids.insert({db1.get(), "db1"});
-	tcr::save_model(model, {dw0, db0, dw1, db1}, ids);
-	{
-		std::fstream gotstr(got_pbfile,
-			std::ios::out | std::ios::trunc | std::ios::binary);
-		ASSERT_TRUE(gotstr.is_open());
-		ASSERT_TRUE(model.SerializeToOstream(&gotstr));
-	}
+	std::string expect_pbfile = testdir + "/serial.onnx";
+	std::string got_pbfile = "/tmp/serial.onnx";
 
 	{
-		std::fstream expect_ifs(expect_pbfile, std::ios::in | std::ios::binary);
-		std::fstream got_ifs(got_pbfile, std::ios::in | std::ios::binary);
-		ASSERT_TRUE(expect_ifs.is_open());
-		ASSERT_TRUE(got_ifs.is_open());
+		onnx::ModelProto model;
+		std::vector<teq::TensptrT> roots;
+		onnx::TensIdT ids;
 
-		onnx::ModelProto expect_model;
-		onnx::ModelProto got_model;
-		ASSERT_TRUE(expect_model.ParseFromIstream(&expect_ifs));
-		ASSERT_TRUE(got_model.ParseFromIstream(&got_ifs));
+		// subtree one
+		teq::Shape shape({3, 7});
 
-		google::protobuf::util::MessageDifferencer differ;
-		std::string report;
-		differ.ReportDifferencesToString(&report);
-		EXPECT_TRUE(differ.Compare(expect_model, got_model)) << report;
-	}
-}
+		teq::TensptrT osrc(eteq::make_variable<double>(
+			std::vector<double>(shape.n_elems()).data(), shape, "osrc"));
+		teq::TensptrT osrc2(eteq::make_variable<double>(
+			std::vector<double>(shape.n_elems()).data(), shape, "osrc2"));
 
+		{
+			teq::TensptrT src(eteq::make_variable<double>(
+				std::vector<double>(shape.n_elems()).data(), shape, "src"));
+			teq::TensptrT src2(eteq::make_variable<double>(
+				std::vector<double>(shape.n_elems()).data(), shape, "src2"));
 
-TEST(SERIALIZE, DISABLED_SaveDependencies)
-{
-	std::string expect_pbfile = testdir + "/edeps.onnx";
-	std::string got_pbfile = "got_edeps.onnx";
-	onnx::ModelProto model;
+			teq::TensptrT dest = eteq::make_functor(egen::SUB, {
+				src2, eteq::make_functor(egen::POW, {
+					eteq::make_functor(egen::DIV, {
+						eteq::make_functor(egen::NEG, {osrc}),
+						eteq::make_functor(egen::ADD, {
+							eteq::make_functor(egen::SIN, {src}), src,
+						}),
+					}),
+					osrc2,
+				}),
+			});
+			roots.push_back(dest);
+			ids.insert({dest.get(), "root1"});
+		}
 
-	teq::Shape shape({10, 2});
+		// subtree two
+		{
+			teq::TensptrT src(eteq::make_variable<double>(
+				std::vector<double>(shape.n_elems()).data(), shape, "s2src"));
+			teq::TensptrT src2(eteq::make_variable<double>(
+				std::vector<double>(shape.n_elems()).data(), shape, "s2src2"));
+			teq::TensptrT src3(eteq::make_variable<double>(
+				std::vector<double>(shape.n_elems()).data(), shape, "s2src3"));
 
-	eteq::ETensor a = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems()).data(), shape, "a"));
-	eteq::ETensor b = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems()).data(), shape, "b"));
-	eteq::ETensor root = a * b;
+			teq::TensptrT dest = eteq::make_functor(egen::SUB, {
+				src, eteq::make_functor(egen::MUL, {
+					eteq::make_functor(egen::ABS, {src}),
+					eteq::make_functor(egen::EXP, {src2}),
+					eteq::make_functor(egen::NEG, {src3}),
+				}),
+			});
+			roots.push_back(dest);
+			ids.insert({dest.get(), "root2"});
+		}
 
-	eteq::ETensor c = eteq::ETensor(eteq::make_variable<double>(
-		std::vector<double>(shape.n_elems()).data(), shape, "c"));
-	eteq::ETensor dep = a + c;
-	eteq::ETensor dep2 = a / c - b;
+		serial::save_graph(*model.mutable_graph(), roots, ids);
 
-	onnx::TensIdT ids;
-	ids.insert({root.get(), "root"});
-	tcr::save_model(model, {root}, ids);
-	{
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
 		ASSERT_TRUE(gotstr.is_open());
@@ -143,61 +109,46 @@ TEST(SERIALIZE, LoadGraph)
 {
 	onnx::ModelProto in;
 	{
-		std::fstream inputstr(testdir + "/eteq.onnx",
+		std::fstream inputstr(testdir + "/serial.onnx",
 			std::ios::in | std::ios::binary);
 		ASSERT_TRUE(inputstr.is_open());
 		ASSERT_TRUE(in.ParseFromIstream(&inputstr));
 	}
 
 	onnx::TensptrIdT ids;
-	auto out = tcr::load_model(ids, in);
-	EXPECT_EQ(4, out.size());
-
-	ASSERT_HAS(ids.right, "dw0");
-	ASSERT_HAS(ids.right, "db0");
-	ASSERT_HAS(ids.right, "dw1");
-	ASSERT_HAS(ids.right, "db1");
-	auto dw0 = ids.right.at("dw0");
-	auto db0 = ids.right.at("db0");
-	auto dw1 = ids.right.at("dw1");
-	auto db1 = ids.right.at("db1");
-	ASSERT_NE(nullptr, dw0);
-	ASSERT_NE(nullptr, db0);
-	ASSERT_NE(nullptr, dw1);
-	ASSERT_NE(nullptr, db1);
+	auto out = serial::load_graph(ids, in.graph());
+	EXPECT_EQ(2, out.size());
 
 	std::string expect;
 	std::string got;
 	std::string line;
+	std::ifstream expectstr(testdir + "/serial.txt");
+	ASSERT_TRUE(expectstr.is_open());
+	while (std::getline(expectstr, line))
 	{
-		std::ifstream expectstr(testdir + "/eteq.txt");
-		ASSERT_TRUE(expectstr.is_open());
-		while (std::getline(expectstr, line))
+		fmts::trim(line);
+		if (line.size() > 0)
 		{
-			fmts::strip(line, {' ', '\t', '\n', default_indent});
-			if (line.size() > 0)
-			{
-				expect += line + '\n';
-			}
+			expect += line + '\n';
 		}
 	}
 
 	PrettyEquation artist;
+	artist.cfg_.showshape_ = true;
 	std::stringstream gotstr;
-	artist.print(gotstr, dw0);
-	artist.print(gotstr, db0);
-	artist.print(gotstr, dw1);
-	artist.print(gotstr, db1);
 
-	std::ofstream os("eteq.json");
-	artist.print(os, dw0);
-	artist.print(os, db0);
-	artist.print(os, dw1);
-	artist.print(os, db1);
+	ASSERT_HAS(ids.right, "root1");
+	ASSERT_HAS(ids.right, "root2");
+	auto root1 = ids.right.at("root1");
+	auto root2 = ids.right.at("root2");
+	ASSERT_NE(nullptr, root1);
+	ASSERT_NE(nullptr, root2);
+	artist.print(gotstr, root1);
+	artist.print(gotstr, root2);
 
 	while (std::getline(gotstr, line))
 	{
-		fmts::strip(line, {' ', '\t', '\n', default_indent});
+		fmts::trim(line);
 		if (line.size() > 0)
 		{
 			got += line + '\n';

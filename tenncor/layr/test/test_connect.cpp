@@ -1,4 +1,5 @@
 
+#define DISABLE_LAYR_CONNECT_TEST
 #ifndef DISABLE_LAYR_CONNECT_TEST
 
 #include "dbg/print/teq.hpp"
