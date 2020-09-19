@@ -45,10 +45,6 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 		const TS& roots, onnx::TensIdT identified = {})
 	{
 		auto refs = distr::reachable_refs(roots);
-		for (auto& ref : refs)
-		{
-			identified.insert({ref, ref->node_id()});
-		}
 		types::StrUMapT<types::StrUSetT> remotes;
 		distr::separate_by_server(remotes, refs);
 
@@ -73,6 +69,10 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 				auto& subgraph = res.graph();
 				merge_graph_proto(pb_graph, subgraph);
 			});
+		}
+		for (auto& ref : refs)
+		{
+			identified.insert({ref, ref->node_id()});
 		}
 
 		// add references to tens to avoid serialization of references

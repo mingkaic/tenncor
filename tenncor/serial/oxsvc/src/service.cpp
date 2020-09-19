@@ -15,42 +15,37 @@ void merge_graph_proto (onnx::GraphProto& outgraph,
 	const auto& innodes = ingraph.node();
 	for (const auto& innode : innodes)
 	{
-		auto outnode = outgraph.add_node();
-		outnode->set_name(innode.name());
-		outnode->set_op_type(innode.op_type());
-		outnode->set_domain(innode.domain());
-		outnode->set_doc_string(innode.doc_string());
-		outnode->mutable_input()->MergeFrom(innode.input());
-		outnode->mutable_output()->MergeFrom(innode.output());
-		outnode->mutable_attribute()->MergeFrom(innode.attribute());
+		outgraph.add_node()->MergeFrom(innode);
 	}
 
 	const auto& ininits = ingraph.initializer();
 	for (const auto& ininit : ininits)
 	{
-		auto outinit = outgraph.add_initializer();
-		outinit->MergeFrom(ininit);
+		outgraph.add_initializer()->MergeFrom(ininit);
 	}
 
 	const auto& sininits = ingraph.sparse_initializer();
-	auto soutinits = outgraph.mutable_sparse_initializer();
-	soutinits->MergeFrom(sininits);
+	for (const auto& sininit : sininits)
+	{
+		outgraph.add_node()->MergeFrom(sininit);
+	}
 
 	const auto& inins = ingraph.input();
-	auto outins = outgraph.mutable_input();
-	outins->MergeFrom(inins);
+	for (const auto& inin : inins)
+	{
+		outgraph.add_input()->MergeFrom(inin);
+	}
 
 	const auto& invis = ingraph.value_info();
-	auto outvis = outgraph.mutable_value_info();
-	outvis->MergeFrom(invis);
+	for (const auto& invi : invis)
+	{
+		outgraph.add_value_info()->MergeFrom(invi);
+	}
 
 	const auto& inqas = ingraph.quantization_annotation();
 	for (const auto& inqa : inqas)
 	{
-		auto outqa = outgraph.add_quantization_annotation();
-		outqa->set_tensor_name(inqa.tensor_name());
-		outqa->mutable_quant_parameter_tensor_names()->MergeFrom(
-			inqa.quant_parameter_tensor_names());
+		outgraph.add_quantization_annotation()->MergeFrom(inqa);
 	}
 }
 

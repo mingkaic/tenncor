@@ -54,8 +54,8 @@ TEST_F(SAVE, AllLocalGraph)
 {
 	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
 
-	std::string expect_pbfile = testdir + "/simple_oxsvc.onnx";
-	std::string got_pbfile = "got_simple_oxsvc.onnx";
+	std::string expect_pbfile = testdir + "/local_oxsvc.onnx";
+	std::string got_pbfile = "got_local_oxsvc.onnx";
 
 	{
 		onnx::ModelProto model;
@@ -138,10 +138,64 @@ TEST_F(SAVE, AllLocalGraph)
 }
 
 
-TEST_F(SAVE, DISABLED_RemoteGraph)
+struct MockGenerator : public global::iGenerator
 {
-	std::string expect_pbfile = testdir + "/simple_oxsvc.onnx";
-	std::string got_pbfile = "got_simple_oxsvc.onnx";
+	std::string get_str (void) const override
+	{
+		return "predictable_" + fmts::to_string(++counter_);
+	}
+
+	int64_t unif_int (
+		const int64_t& lower, const int64_t& upper) const override
+	{
+		return 0;
+	}
+
+	double unif_dec (
+		const double& lower, const double& upper) const override
+	{
+		return 0;
+	}
+
+	double norm_dec (
+		const double& mean, const double& stdev) const override
+	{
+		return 0;
+	}
+
+	global::GenF<std::string> get_strgen (void) const override
+	{
+		return []{ return ""; };
+	}
+
+	global::GenF<int64_t> unif_intgen (
+		const int64_t& lower, const int64_t& upper) const override
+	{
+		return []{ return 0; };
+	}
+
+	global::GenF<double> unif_decgen (
+		const double& lower, const double& upper) const override
+	{
+		return []{ return 0.; };
+	}
+
+	global::GenF<double> norm_decgen (
+		const double& mean, const double& stdev) const override
+	{
+		return []{ return 0.; };
+	}
+
+private:
+	mutable size_t counter_ = 0;
+};
+
+
+TEST_F(SAVE, RemoteGraph)
+{
+	std::string expect_pbfile = testdir + "/remote_oxsvc.onnx";
+	std::string got_pbfile = "got_remote_oxsvc.onnx";
+	global::set_generator(std::make_shared<MockGenerator>());
 
 	{
 		distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
