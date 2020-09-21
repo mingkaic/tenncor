@@ -44,8 +44,10 @@ TEST(EVALUATOR, Update)
 	// |   `-- b
 	// `-- c
 
-	ASSERT_FALSE(target->data_.ref_.updated_);
-	ASSERT_FALSE(x->data_.ref_.updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, {target.get()});
@@ -57,8 +59,10 @@ TEST(EVALUATOR, Update)
 	// |   `-- b
 	// `-- c
 
-	EXPECT_TRUE(target->data_.ref_.updated_);
-	EXPECT_TRUE(x->data_.ref_.updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
 }
 
 
@@ -83,9 +87,12 @@ TEST(EVALUATOR, UpdateIgnore)
 	// |   `-- c
 	// `-- d
 
-	ASSERT_FALSE(target->data_.ref_.updated_);
-	ASSERT_FALSE(y->data_.ref_.updated_);
-	ASSERT_FALSE(x->data_.ref_.updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		y->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, {target.get()}, {y.get()});
@@ -99,11 +106,16 @@ TEST(EVALUATOR, UpdateIgnore)
 	// |   `-- c
 	// `-- d
 
-	EXPECT_TRUE(target->data_.ref_.updated_);
-	EXPECT_FALSE(x->data_.ref_.updated_);
-	EXPECT_FALSE(y->data_.ref_.updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	EXPECT_FALSE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
+	EXPECT_FALSE(static_cast<MockDeviceRef*>(
+		y->data_.ref_.get())->updated_);
 
-	target->data_.ref_.updated_ = x->data_.ref_.updated_ = y->data_.ref_.updated_ = false;
+	static_cast<MockDeviceRef*>(target->data_.ref_.get())->updated_ =
+	static_cast<MockDeviceRef*>(x->data_.ref_.get())->updated_ =
+	static_cast<MockDeviceRef*>(y->data_.ref_.get())->updated_ = false;
 
 	eval.evaluate(mdevice, {target.get()}, {x.get()});
 
@@ -116,9 +128,12 @@ TEST(EVALUATOR, UpdateIgnore)
 	// |   `-- c
 	// `-- d
 
-	EXPECT_TRUE(target->data_.ref_.updated_);
-	EXPECT_TRUE(y->data_.ref_.updated_);
-	EXPECT_FALSE(x->data_.ref_.updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		y->data_.ref_.get())->updated_);
+	EXPECT_FALSE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
 }
 
 
@@ -145,10 +160,14 @@ TEST(EVALUATOR, UpdateIgnoreCommonDesc)
 	//     |   `-- a
 	//     `-- b
 
-	ASSERT_FALSE(target->data_.ref_.updated_);
-	ASSERT_FALSE(y->data_.ref_.updated_);
-	ASSERT_FALSE(x->data_.ref_.updated_);
-	ASSERT_FALSE(u->data_.ref_.updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		y->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		u->data_.ref_.get())->updated_);
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, {target.get()}, {y.get()});
@@ -164,10 +183,14 @@ TEST(EVALUATOR, UpdateIgnoreCommonDesc)
 	//     |   `-- a
 	//     `-- b
 
-	EXPECT_TRUE(target->data_.ref_.updated_);
-	EXPECT_FALSE(y->data_.ref_.updated_);
-	EXPECT_TRUE(x->data_.ref_.updated_);
-	EXPECT_TRUE(u->data_.ref_.updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	EXPECT_FALSE(static_cast<MockDeviceRef*>(
+		y->data_.ref_.get())->updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		u->data_.ref_.get())->updated_);
 }
 
 
@@ -188,8 +211,10 @@ TEST(EVALUATOR, TargetedUpdate)
 	// |   `-- b
 	// `-- c
 
-	ASSERT_FALSE(target->data_.ref_.updated_);
-	ASSERT_FALSE(x->data_.ref_.updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, teq::TensSetT{x.get()});
@@ -201,8 +226,10 @@ TEST(EVALUATOR, TargetedUpdate)
 	// |   `-- b
 	// `-- c
 
-	EXPECT_FALSE(target->data_.ref_.updated_);
-	EXPECT_TRUE(x->data_.ref_.updated_);
+	EXPECT_FALSE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
 
 }
 
@@ -228,9 +255,12 @@ TEST(EVALUATOR, TargetedUpdateIgnore)
 	// |   `-- c
 	// `-- d
 
-	ASSERT_FALSE(target->data_.ref_.updated_);
-	ASSERT_FALSE(y->data_.ref_.updated_);
-	ASSERT_FALSE(x->data_.ref_.updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		y->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, {y.get()}, {x.get()});
@@ -244,9 +274,12 @@ TEST(EVALUATOR, TargetedUpdateIgnore)
 	// |   `-- c
 	// `-- d
 
-	EXPECT_FALSE(target->data_.ref_.updated_);
-	EXPECT_TRUE(y->data_.ref_.updated_);
-	EXPECT_FALSE(x->data_.ref_.updated_);
+	EXPECT_FALSE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		y->data_.ref_.get())->updated_);
+	EXPECT_FALSE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
 }
 
 
@@ -277,11 +310,16 @@ TEST(EVALUATOR, TargetedUpdateIgnoreCommonDesc)
 	// |       `-- b
 	// `-- d
 
-	ASSERT_FALSE(target->data_.ref_.updated_);
-	ASSERT_FALSE(z->data_.ref_.updated_);
-	ASSERT_FALSE(y->data_.ref_.updated_);
-	ASSERT_FALSE(x->data_.ref_.updated_);
-	ASSERT_FALSE(u->data_.ref_.updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		z->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		y->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		u->data_.ref_.get())->updated_);
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, {z.get()}, {y.get()});
@@ -299,11 +337,16 @@ TEST(EVALUATOR, TargetedUpdateIgnoreCommonDesc)
 	// |       `-- b
 	// `-- d
 
-	EXPECT_FALSE(target->data_.ref_.updated_);
-	EXPECT_TRUE(z->data_.ref_.updated_);
-	EXPECT_FALSE(y->data_.ref_.updated_);
-	EXPECT_TRUE(x->data_.ref_.updated_);
-	EXPECT_TRUE(u->data_.ref_.updated_);
+	EXPECT_FALSE(static_cast<MockDeviceRef*>(
+		target->data_.ref_.get())->updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		z->data_.ref_.get())->updated_);
+	EXPECT_FALSE(static_cast<MockDeviceRef*>(
+		y->data_.ref_.get())->updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		x->data_.ref_.get())->updated_);
+	EXPECT_TRUE(static_cast<MockDeviceRef*>(
+		u->data_.ref_.get())->updated_);
 }
 
 

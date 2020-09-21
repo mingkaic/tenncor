@@ -8,19 +8,26 @@ struct MockDeviceRef : public teq::iDeviceRef
 {
 	MockDeviceRef (void) = default;
 
-	MockDeviceRef (const std::vector<double>& data) : data_(data) {}
+	MockDeviceRef (const std::string& data) : data_(data) {}
+
+	template <typename T>
+	MockDeviceRef (const std::vector<T>& data)
+	{
+		auto raw = (char*) data.data();
+		data_ = std::string(raw, raw + sizeof(T) * data.size());
+	}
 
 	void* data (void) override
 	{
-		return data_.data();
+		return &data_[0];
 	}
 
 	const void* data (void) const override
 	{
-		return data_.data();
+		return data_.c_str();
 	}
 
-	std::vector<double> data_;
+	std::string data_;
 
 	bool updated_ = false;
 };

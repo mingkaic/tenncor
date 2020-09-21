@@ -190,4 +190,45 @@ TEST(DEVICE, MatOp)
 }
 
 
+TEST(DEVICE, Calc)
+{
+	teq::Shape shape({3});
+	std::vector<double> data = {1, 2, 3};
+	auto dest = std::make_shared<MockMutableLeaf>(
+		std::vector<double>{2, 3, 7, 2}, shape);
+
+	bool assign_called = false;
+
+	eigen::Device dev;
+
+	auto lhs = std::make_shared<MockLeaf>(std::vector<double>{2, 8, 4}, shape);
+	auto rhs = std::make_shared<MockLeaf>(std::vector<double>{3, 7, 5}, shape);
+
+	auto obs = std::make_shared<MockObservable>(teq::TensptrsT{lhs, rhs},
+		std::vector<double>{1, 2, 3}, teq::Opcode{"Hello", 1337});
+	obs->func_.data_.ref_ = std::make_shared<
+	eigen::TensAssign<double,std::vector<double>>>(*dest, data,
+	[&assign_called](eigen::TensorT<double>& dst, std::vector<double>& src)
+	{
+		assign_called = true;
+	});
+	obs->succeed_prop_ = false;
+
+	dev.calc(*obs);
+	EXPECT_FALSE(assign_called);
+	EXPECT_EQ(1, obs->func_.meta_.version_);
+
+	obs->succeed_prop_ = true;
+	dev.max_version_ = 0;
+	dev.calc(*obs);
+	EXPECT_FALSE(assign_called);
+	EXPECT_EQ(1, obs->func_.meta_.version_);
+
+	dev.max_version_ = 10;
+	dev.calc(*obs);
+	EXPECT_TRUE(assign_called);
+	EXPECT_EQ(2, obs->func_.meta_.version_);
+}
+
+
 #endif // DISABLE_EIGEN_DEVICE_TEST

@@ -68,9 +68,6 @@ TEST_F(REMOTE, LocalReferenceStorage)
 
 TEST_F(REMOTE, RemoteReferenceStorage)
 {
-	size_t port1 = 5112;
-	size_t port2 = 5113;
-
 	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr"));
 	auto& service = distr::get_iosvc(*mgr);
 

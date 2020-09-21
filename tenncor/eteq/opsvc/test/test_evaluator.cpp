@@ -115,14 +115,18 @@ TEST_F(EVALUATE, SimpleGraph)
 	// |   `-- src2
 	// `-- src3
 
-	ASSERT_FALSE(dest2->data_.ref_.updated_);
-	ASSERT_FALSE(dest->data_.ref_.updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		dest2->data_.ref_.get())->updated_);
+	ASSERT_FALSE(static_cast<MockDeviceRef*>(
+		dest->data_.ref_.get())->updated_);
 
 	MockDevice mdevice;
 	distr::get_opsvc(*mgr2).evaluate(mdevice, {dest2.get()});
 
-	ASSERT_TRUE(dest2->data_.ref_.updated_);
-	ASSERT_TRUE(dest->data_.ref_.updated_);
+	ASSERT_TRUE(static_cast<MockDeviceRef*>(
+		dest2->data_.ref_.get())->updated_);
+	ASSERT_TRUE(static_cast<MockDeviceRef*>(
+		dest->data_.ref_.get())->updated_);
 }
 
 

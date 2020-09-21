@@ -17,9 +17,22 @@ struct iMutableLeaf : public teq::iLeaf
 
 struct Observable : public teq::iFunctor
 {
-	Observable (void) = default;
+	Observable (const teq::TensptrsT& args)
+	{
+		for (teq::TensptrT arg : args)
+		{
+			if (auto f = dynamic_cast<Observable*>(arg.get()))
+			{
+				f->subscribe(this);
+			}
+		}
+	}
 
-	Observable (marsh::Maps&& attrs) : attrs_(std::move(attrs)) {}
+	Observable (const teq::TensptrsT& args, marsh::Maps&& attrs) :
+		Observable(args)
+	{
+		attrs_ = std::move(attrs);
+	}
 
 	Observable (const Observable& other)
 	{
@@ -51,6 +64,11 @@ struct Observable : public teq::iFunctor
 	void unsubscribe (Observable* sub)
 	{
 		subs_.erase(sub);
+	}
+
+	std::unordered_set<Observable*> get_observables (void) const
+	{
+		return subs_;
 	}
 
 	virtual bool has_data (void) const = 0;

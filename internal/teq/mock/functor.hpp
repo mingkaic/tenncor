@@ -24,6 +24,33 @@ struct MockFunctor : public teq::iFunctor
 	MockFunctor (const MockFunctor& other) :
 		children_(other.children_), opcode_(other.opcode_), data_(other.data_) {}
 
+	MockFunctor (MockFunctor&& other) :
+		children_(std::move(other.children_)),
+		opcode_(std::move(other.opcode_)),
+		data_(std::move(other.data_)) {}
+
+	MockFunctor& operator = (const MockFunctor& other)
+	{
+		if (&other != this)
+		{
+			children_ = other.children_;
+			opcode_ = other.opcode_;
+			data_ = other.data_;
+		}
+		return *this;
+	}
+
+	MockFunctor& operator = (MockFunctor&& other)
+	{
+		if (&other != this)
+		{
+			children_ = std::move(other.children_);
+			opcode_ = std::move(other.opcode_);
+			data_ = std::move(other.data_);
+		}
+		return *this;
+	}
+
 	virtual ~MockFunctor (void) = default;
 
 	std::string to_string (void) const override
@@ -78,12 +105,12 @@ struct MockFunctor : public teq::iFunctor
 
 	teq::iDeviceRef& device (void) override
 	{
-		return data_.ref_;
+		return data_.device();
 	}
 
 	const teq::iDeviceRef& device (void) const override
 	{
-		return data_.ref_;
+		return data_.device();
 	}
 
 	const teq::iMetadata& get_meta (void) const override

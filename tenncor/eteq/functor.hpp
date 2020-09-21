@@ -57,7 +57,7 @@ struct Functor final : public eigen::Observable
 
 	~Functor (void)
 	{
-		for (teq::TensptrT child : children_)
+		for (teq::TensptrT child : args_)
 		{
 			if (auto f = dynamic_cast<eigen::Observable*>(child.get()))
 			{
@@ -99,24 +99,24 @@ struct Functor final : public eigen::Observable
 	/// Implementation of iFunctor
 	teq::TensptrsT get_args (void) const override
 	{
-		return children_;
+		return args_;
 	}
 
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		if (index >= children_.size())
+		if (index >= args_.size())
 		{
 			global::throw_errf("cannot replace argument %d when only "
-				"there are only %d available", index, children_.size());
+				"there are only %d available", index, args_.size());
 		}
 		uninitialize();
-		if (auto f = dynamic_cast<eigen::Observable*>(children_[index].get()))
+		if (auto f = dynamic_cast<eigen::Observable*>(args_[index].get()))
 		{
 			f->unsubscribe(this);
 		}
 		teq::Shape nexshape = arg->shape();
-		teq::Shape curshape = children_[index]->shape();
+		teq::Shape curshape = args_[index]->shape();
 		if (false == nexshape.compatible_after(curshape, 0))
 		{
 			global::fatalf("cannot update child %d to argument with "
@@ -125,14 +125,14 @@ struct Functor final : public eigen::Observable
 				curshape.to_string().c_str());
 		}
 		auto nextype = arg->get_meta().type_label();
-		auto curtype = children_[index]->get_meta().type_label();
+		auto curtype = args_[index]->get_meta().type_label();
 		if (curtype != nextype)
 		{
 			global::fatalf("cannot update child %d to argument with "
 				"different type %s (requires type %s)",
 				index, nextype.c_str(), curtype.c_str());
 		}
-		children_[index] = arg;
+		args_[index] = arg;
 		if (auto f = dynamic_cast<eigen::Observable*>(arg.get()))
 		{
 			f->subscribe(this);
@@ -188,7 +188,7 @@ struct Functor final : public eigen::Observable
 	/// Implementation of Observable
 	bool initialize (void) override
 	{
-		if (std::all_of(children_.begin(), children_.end(),
+		if (std::all_of(args_.begin(), args_.end(),
 			[](teq::TensptrT child)
 			{
 				if (auto f = dynamic_cast<eigen::Observable*>(child.get()))
@@ -199,7 +199,7 @@ struct Functor final : public eigen::Observable
 			}))
 		{
 			egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-				ref_, shape_, children_, *this);
+				ref_, shape_, args_, *this);
 		}
 		return has_data();
 	}
@@ -207,7 +207,7 @@ struct Functor final : public eigen::Observable
 	/// Implementation of Observable
 	void must_initialize (void) override
 	{
-		for (auto child : children_)
+		for (auto child : args_)
 		{
 			auto f = dynamic_cast<eigen::Observable*>(child.get());
 			if (nullptr != f && false == f->has_data())
@@ -225,7 +225,7 @@ struct Functor final : public eigen::Observable
 	bool prop_version (size_t max_version) override
 	{
 		size_t des_version = 0;
-		for (auto& child : children_)
+		for (auto& child : args_)
 		{
 			des_version = std::max(des_version, child->get_meta().state_version());
 		}
@@ -249,10 +249,10 @@ struct Functor final : public eigen::Observable
 
 private:
 	Functor (egen::_GENERATED_OPCODE opcode, teq::Shape shape,
-		teq::TensptrsT children, marsh::Maps&& attrs) :
-		eigen::Observable(std::move(attrs)),
+		teq::TensptrsT args, marsh::Maps&& attrs) :
+		eigen::Observable(args, std::move(attrs)),
 		opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
-		shape_(shape), children_(children)
+		shape_(shape), args_(args)
 	{
 		common_init();
 	}
@@ -261,7 +261,7 @@ private:
 		eigen::Observable(other),
 		opcode_(other.opcode_),
 		shape_(other.shape_),
-		children_(other.children_)
+		args_(other.args_)
 	{
 		common_init();
 	}
@@ -273,13 +273,6 @@ private:
 
 	void common_init (void)
 	{
-		for (teq::TensptrT child : children_)
-		{
-			if (auto f = dynamic_cast<eigen::Observable*>(child.get()))
-			{
-				f->subscribe(this);
-			}
-		}
 #ifndef SKIP_INIT
 		initialize();
 #endif // SKIP_INIT
@@ -294,7 +287,7 @@ private:
 	teq::Shape shape_;
 
 	/// Tensor arguments (and children)
-	teq::TensptrsT children_;
+	teq::TensptrsT args_;
 
 	eigen::EMetadata<T> meta_;
 };

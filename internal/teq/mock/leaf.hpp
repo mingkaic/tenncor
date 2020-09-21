@@ -9,15 +9,19 @@
 
 struct MockLeaf : public teq::iLeaf
 {
-	MockLeaf (void) : usage_(teq::IMMUTABLE) {}
+	MockLeaf (void) :
+		ref_(std::make_shared<MockDeviceRef>()), usage_(teq::IMMUTABLE) {}
 
 	MockLeaf (teq::Shape shape, std::string label = "", bool cst = true) :
+		ref_(std::make_shared<MockDeviceRef>()),
 		shape_(shape), label_(label),
 		usage_(cst ? teq::IMMUTABLE : teq::VARUSAGE) {}
 
-	MockLeaf (std::vector<double> data, teq::Shape shape,
+	template <typename T>
+	MockLeaf (const std::vector<T>& data, teq::Shape shape,
 		std::string label = "", bool cst = true) :
-		ref_(data), shape_(shape), label_(label),
+		ref_(std::make_shared<MockDeviceRef>(data)),
+		shape_(shape), label_(label),
 		usage_(cst ? teq::IMMUTABLE : teq::VARUSAGE) {}
 
 	virtual ~MockLeaf (void) = default;
@@ -34,12 +38,12 @@ struct MockLeaf : public teq::iLeaf
 
 	teq::iDeviceRef& device (void) override
 	{
-		return ref_;
+		return *ref_;
 	}
 
 	const teq::iDeviceRef& device (void) const override
 	{
-		return ref_;
+		return *ref_;
 	}
 
 	const teq::iMetadata& get_meta (void) const override
@@ -57,7 +61,7 @@ struct MockLeaf : public teq::iLeaf
 		return new MockLeaf(*this);
 	}
 
-	MockDeviceRef ref_;
+	std::shared_ptr<teq::iDeviceRef> ref_ = std::make_shared<MockDeviceRef>();
 
 	teq::Shape shape_;
 

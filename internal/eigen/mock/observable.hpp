@@ -8,15 +8,50 @@
 
 struct MockObservable : public eigen::Observable
 {
-	MockObservable (void) : func_(
-		teq::TensptrsT{std::make_shared<MockLeaf>(teq::Shape(), "A")},
-		std::vector<double>{0}, teq::Opcode{}) {}
+	MockObservable (void) :
+		MockObservable(teq::TensptrsT{
+			std::make_shared<MockLeaf>(teq::Shape(), "A")},
+			std::vector<double>(0), teq::Opcode{}) {}
 
-	MockObservable (teq::TensptrsT children,
+	MockObservable (const teq::TensptrsT& args,
 		std::vector<double> data, teq::Opcode opcode) :
-		func_(children, data, opcode) {}
+		Observable(args), func_(args, data, opcode) {}
+
+	MockObservable (marsh::Maps&& attrs) :
+		MockObservable(std::move(attrs), teq::TensptrsT{
+			std::make_shared<MockLeaf>(teq::Shape(), "A")},
+			std::vector<double>(0), teq::Opcode{}) {}
+
+	MockObservable (marsh::Maps&& attrs,
+		const teq::TensptrsT& args,
+		std::vector<double> data, teq::Opcode opcode) :
+		Observable(args, std::move(attrs)), func_(args, data, opcode) {}
 
 	virtual ~MockObservable (void) = default;
+
+	MockObservable (const MockObservable& other) = default;
+
+	MockObservable (MockObservable&& other) :
+		Observable(std::move(other)),
+		func_(std::move(other.func_)),
+		data_(std::move(other.data_)),
+		succeed_initial_(std::move(other.succeed_initial_)),
+		succeed_prop_(std::move(other.succeed_prop_)) {}
+
+	MockObservable& operator = (const MockObservable& other) = default;
+
+	MockObservable& operator = (MockObservable&& other)
+	{
+		if (&other != this)
+		{
+			Observable::operator = (std::move(other));
+			func_ = std::move(other.func_);
+			data_ = std::move(other.data_);
+			succeed_initial_ = std::move(other.succeed_initial_);
+			succeed_prop_ = std::move(other.succeed_prop_);
+		}
+		return *this;
+	}
 
 	std::string to_string (void) const override
 	{
@@ -87,7 +122,7 @@ struct MockObservable : public eigen::Observable
 
 	bool prop_version (size_t max_version) override
 	{
-		if (max_version >= func_.meta_.version_)
+		if (max_version < func_.meta_.version_)
 		{
 			return false;
 		}

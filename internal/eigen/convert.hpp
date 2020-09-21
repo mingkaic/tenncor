@@ -74,17 +74,6 @@ inline TensMapT<T> tens_to_tensmap (TensorT<T>& tens)
 	return TensMapT<T>(tens.data(), tens.dimensions());
 }
 
-/// Return Eigen Tensor filled with 0s given teq Shape
-template <typename T>
-inline TensorT<T> make_tensor (const teq::Shape& shape)
-{
-	std::array<Eigen::Index,teq::rank_cap> slist;
-	std::copy(shape.begin(), shape.end(), slist.begin());
-	TensorT<T> out(slist);
-	out.setZero();
-	return out;
-}
-
 /// Return Eigen Matrix given raw data and teq Shape
 template <typename T>
 inline MatMapT<T> make_matmap (T* data, const teq::Shape& shape)

@@ -29,6 +29,25 @@ static void test_reduce (
 }
 
 
+TEST(OPERATOR, Ref)
+{
+	std::vector<double> expect_raw = {2, 8, 4, 5, 6, 7};
+	teq::Shape outshape({2, 3});
+	auto origin = std::make_shared<MockLeaf>(expect_raw, outshape);
+	auto r = eigen::ref<double>(outshape, *origin);
+
+	auto odata = (double*) origin->device().data();
+	auto raw = (double*) r->data();
+	EXPECT_EQ(odata, raw);
+	std::vector<double> got_raw(raw, raw + outshape.n_elems());
+	EXPECT_VECEQ(expect_raw, got_raw);
+	r->assign();
+
+	got_raw = std::vector<double>(raw, raw + outshape.n_elems());
+	EXPECT_VECEQ(expect_raw, got_raw);
+}
+
+
 TEST(OPERATOR, ReduceSum)
 {
 	test_reduce(eigen::reduce_sum<double>, [](double a, double b) { return a + b; });
@@ -679,46 +698,69 @@ TEST(OPERATOR, Max)
 }
 
 
-TEST(OPERATOR, RandUniform)
+template <typename T>
+void rand_uniform_test (
+	const std::array<T,8>& adata,
+	const std::array<T,8>& bdata)
 {
 	{
-		teq::Shape outshape({2, 3});
-		std::vector<double> a{1, 0.5, 3.5, 5, 6, 7};
-		std::vector<double> b{2, 8, 4, 9, 6, 11};
-		auto edgea = std::make_shared<MockLeaf>(a, outshape);
-		auto edgeb = std::make_shared<MockLeaf>(b, outshape);
+		teq::Shape outshape({2, 4});
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<T>(adata.begin(), adata.end()), outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<T>(bdata.begin(), bdata.end()), outshape);
 
-		auto r = eigen::rand_uniform<double>(outshape, *edgea, *edgeb);
-		double* raw = (double*) r->data();
+		auto r = eigen::rand_uniform<T>(outshape, *edgea, *edgeb);
+		T* raw = (T*) r->data();
 		r->assign();
 
-		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		std::vector<T> got_raw(raw, raw + outshape.n_elems());
 		for (size_t i = 0, n = got_raw.size(); i < n; ++i)
 		{
-			double e = got_raw[i];
-			EXPECT_LE(a[i], e);
-			EXPECT_GE(b[i], e);
+			T e = got_raw[i];
+			EXPECT_LE(adata[i], e);
+			EXPECT_GE(bdata[i], e);
 		}
 	}
 	{
 		teq::Shape outshape({2, 2, 2});
-		std::vector<double> a{1, 0.5, 3.5, 5, 6, 7, 3, 8};
-		std::vector<double> b{2, 0.5, 4, 9, 6, 11, 4, 13};
-		auto edgea = std::make_shared<MockLeaf>(a, outshape);
-		auto edgeb = std::make_shared<MockLeaf>(b, outshape);
+		auto edgea = std::make_shared<MockLeaf>(
+			std::vector<T>(adata.begin(), adata.end()), outshape);
+		auto edgeb = std::make_shared<MockLeaf>(
+			std::vector<T>(bdata.begin(), bdata.end()), outshape);
 
-		auto r = eigen::rand_uniform<double>(outshape, *edgea, *edgeb);
-		double* raw = (double*) r->data();
+		auto r = eigen::rand_uniform<T>(outshape, *edgea, *edgeb);
+		T* raw = (T*) r->data();
 		r->assign();
 
-		std::vector<double> got_raw(raw, raw + outshape.n_elems());
+		std::vector<T> got_raw(raw, raw + outshape.n_elems());
 		for (size_t i = 0, n = got_raw.size(); i < n; ++i)
 		{
-			double e = got_raw[i];
-			EXPECT_LE(a[i], e);
-			EXPECT_GE(b[i], e);
+			T e = got_raw[i];
+			EXPECT_LE(adata[i], e);
+			EXPECT_GE(bdata[i], e);
 		}
 	}
+}
+
+
+TEST(OPERATOR, RandUniformInt)
+{
+	rand_uniform_test<size_t>({
+		1, 2, 3, 5, 6, 7, 3, 8
+	}, {
+		2, 5, 4, 9, 9, 11, 4, 13
+	});
+}
+
+
+TEST(OPERATOR, RandUniformDouble)
+{
+	rand_uniform_test<double>({
+		1, 0.5, 3.5, 5, 6, 7, 3, 8
+	}, {
+		2, 0.75, 4, 9, 6.7, 11, 4, 13
+	});
 }
 
 
