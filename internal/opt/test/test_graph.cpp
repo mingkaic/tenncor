@@ -12,7 +12,7 @@
 #include "internal/opt/mock/mock.hpp"
 
 
-TEST(GRAPH, GetInfo)
+TEST(GRAPH, DISABLED_GetInfo)
 {
 	opt::GraphInfo graph({});
 	graph.get_roots();
@@ -21,13 +21,13 @@ TEST(GRAPH, GetInfo)
 }
 
 
-TEST(Graph, Find)
+TEST(Graph, DISABLED_Find)
 {
 	opt::GraphInfo graph({});
 }
 
 
-TEST(Graph, Replace)
+TEST(Graph, DISABLED_Replace)
 {
 	opt::GraphInfo graph({});
 }

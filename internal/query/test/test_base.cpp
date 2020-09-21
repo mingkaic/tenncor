@@ -27,18 +27,20 @@ TEST(BASE, ErasedNode)
 	auto c1 = std::make_shared<MockLeaf>(teq::Shape(), "3.2");
 	auto c2 = std::make_shared<MockLeaf>(teq::Shape(), "3.5");
 	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{c2,
-		std::make_shared<MockFunctor>(teq::TensptrsT{c1,x}, teq::Opcode{"SUB", 0})
-	}, teq::Opcode{"SUB", 0});
+	auto interm = std::make_shared<MockFunctor>(teq::TensptrsT{c1,x}, teq::Opcode{"SUB", 0});
+	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{c2, interm}, teq::Opcode{"SUB", 0});
 	query::Query matcher;
 	root->accept(matcher);
 
-	matcher.erase(c2);
+	matcher.erase(interm.get());
 	std::stringstream condjson;
 	condjson <<
 		"{\"op\":{"
 			"\"opname\":\"SUB\","
-			"\"args\":[{\"cst\":3.5},{\"symb\":\"A\"}]"
+			"\"args\":[{\"op\":{"
+				"\"opname\":\"SUB\","
+				"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
+			"}},{\"symb\":\"C\"}]"
 		"}}";
 	query::Node cond;
 	json_parse(cond, condjson);
@@ -49,14 +51,14 @@ TEST(BASE, ErasedNode)
 	condjson2 <<
 		"{\"op\":{"
 			"\"opname\":\"SUB\","
-			"\"args\":[{\"symb\":\"A\"}]"
+			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
 		"}}";
 	query::Node cond2;
 	json_parse(cond2, condjson2);
 	auto detections2 = matcher.match(cond2);
-	EXPECT_EQ(1, detections2.size());
-	teq::TensptrT found = detections.front();
-	EXPECT_EQ(root.get(), found.get());
+	ASSERT_EQ(1, detections2.size());
+	teq::iTensor* res = detections2.front();
+	EXPECT_EQ(root.get(), found);
 }
 
 

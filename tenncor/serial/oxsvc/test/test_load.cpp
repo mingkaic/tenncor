@@ -17,34 +17,41 @@
 
 const std::string testdir = "models/test";
 
-struct MockUnmarshFuncs final : public onnx::iUnmarshFuncs
+
+const std::string test_service = "tenncor.serial.oxsvc.test";
+
+
+struct LOAD : public ::testing::Test, public DistrTestcase
 {
-	teq::TensptrT unmarsh_leaf (const onnx::TensorProto& tens,
-		teq::Usage usage, std::string name) const override
+	LOAD (void) : DistrTestcase(test_service) {}
+
+protected:
+	void TearDown (void) override
 	{
-		return std::make_shared<MockLeaf>(
-			std::vector<double>{}, onnx::unmarshal_shape(tens), name);
+		clean_up();
 	}
 
-
-	teq::TensptrT unmarsh_func (std::string opname,
-		const teq::TensptrsT& edges, marsh::Maps&& attrs) const override
+	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
-		return std::make_shared<MockFunctor>(edges, teq::Opcode{opname, 0});
+		return DistrTestcase::make_mgr(port, {
+			distr::register_iosvc,
+			distr::register_oxsvc,
+		}, id);
 	}
 
-	teq::TensptrT unmarsh_layr (std::string opname,
-		const teq::TensptrT& root, const teq::TensptrT& child,
-		marsh::Maps&& attrs) const override
+	void check_clean (void)
 	{
-		// todo: implement mock layer
-		return std::make_shared<MockFunctor>(teq::TensptrsT{child}, teq::Opcode{opname, 0});
+		ppconsul::catalog::Catalog catalog(*consul_);
+		auto services = catalog.service(service_name_);
+		ASSERT_EQ(services.size(), 0);
 	}
 };
 
 
-TEST(LOAD, AllLocalGraph)
+TEST(LOAD, DISABLED_AllLocalGraph)
 {
+	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
+
 	onnx::ModelProto model;
 	{
 		std::fstream inputstr(testdir + "/local_oxsvc.onnx",
@@ -53,9 +60,8 @@ TEST(LOAD, AllLocalGraph)
 		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
 	}
 
-	MockUnmarshFuncs unmarsh;
 	onnx::TensptrIdT ids;
-	teq::TensptrsT graph_roots = onnx::load_graph(ids, model.graph(), unmarsh);
+	teq::TensptrsT graph_roots = manager.load_graph(ids, model.graph());
 	EXPECT_EQ(2, graph_roots.size());
 
 	std::string expect;
@@ -98,8 +104,10 @@ TEST(LOAD, AllLocalGraph)
 }
 
 
-TEST(LOAD, RemoteGraph)
+TEST(LOAD, DISABLED_RemoteGraph)
 {
+	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
+
 	onnx::ModelProto model;
 	{
 		std::fstream inputstr(testdir + "/remote_oxsvc.onnx",
@@ -108,9 +116,8 @@ TEST(LOAD, RemoteGraph)
 		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
 	}
 
-	MockUnmarshFuncs unmarsh;
 	onnx::TensptrIdT ids;
-	teq::TensptrsT graph_roots = onnx::load_graph(ids, model.graph(), unmarsh);
+	teq::TensptrsT graph_roots = manager.load_graph(ids, model.graph());
 	EXPECT_EQ(2, graph_roots.size());
 
 	std::string expect;

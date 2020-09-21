@@ -12,7 +12,7 @@
 #include "internal/opt/mock/mock.hpp"
 
 
-TEST(APPLY, Optimize)
+TEST(APPLY, DISABLED_Optimize)
 {
 	opt::GraphInfo graph({});
 	opt::optimize(graph, {});
