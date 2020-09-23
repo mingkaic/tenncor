@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_OP_CLIENT_HPP
-#define DISTRIB_OP_CLIENT_HPP
+#ifndef DISTR_OP_CLIENT_HPP
+#define DISTR_OP_CLIENT_HPP
 
 #include "egrpc/egrpc.hpp"
 
@@ -99,4 +99,4 @@ using DistrOpCliPtrT = std::unique_ptr<DistrOpCli>;
 
 }
 
-#endif // DISTRIB_OP_CLIENT_HPP
+#endif // DISTR_OP_CLIENT_HPP

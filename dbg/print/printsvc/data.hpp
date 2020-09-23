@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_PRINT_DATA_HPP
-#define DISTRIB_PRINT_DATA_HPP
+#ifndef DISTR_PRINT_DATA_HPP
+#define DISTR_PRINT_DATA_HPP
 
 #include "dbg/print/print.hpp"
 
@@ -54,4 +54,4 @@ struct DistrPrintData
 
 }
 
-#endif // DISTRIB_PRINT_DATA_HPP
+#endif // DISTR_PRINT_DATA_HPP

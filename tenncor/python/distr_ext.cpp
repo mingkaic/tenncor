@@ -1,10 +1,10 @@
 
 #include "dbg/print/printsvc/service.hpp"
-#include "python/distrib_ext.hpp"
+#include "python/distr_ext.hpp"
 
-#ifdef PYTHON_DISTRIB_EXT_HPP
+#ifdef PYTHON_DISTR_EXT_HPP
 
-void distrib_ext (py::module& m)
+void distr_ext (py::module& m)
 {
 	auto context = (py::class_<estd::ConfigMap<>>) m.attr("Context");
 	auto ieval = (py::class_<teq::iEvaluator>) m.attr("iEvaluator");

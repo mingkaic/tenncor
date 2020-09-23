@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_IO_CLIENT_HPP
-#define DISTRIB_IO_CLIENT_HPP
+#ifndef DISTR_IO_CLIENT_HPP
+#define DISTR_IO_CLIENT_HPP
 
 #include "egrpc/egrpc.hpp"
 
@@ -55,4 +55,4 @@ private:
 
 }
 
-#endif // DISTRIB_IO_CLIENT_HPP
+#endif // DISTR_IO_CLIENT_HPP

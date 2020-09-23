@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_IO_SERVICE_HPP
-#define DISTRIB_IO_SERVICE_HPP
+#ifndef DISTR_IO_SERVICE_HPP
+#define DISTR_IO_SERVICE_HPP
 
 #include "tenncor/distr/imanager.hpp"
 #include "tenncor/distr/iosvc/client.hpp"
@@ -178,4 +178,4 @@ io::DistrIOService& get_iosvc (iDistrManager& manager);
 
 }
 
-#endif // DISTRIB_IO_SERVICE_HPP
+#endif // DISTR_IO_SERVICE_HPP

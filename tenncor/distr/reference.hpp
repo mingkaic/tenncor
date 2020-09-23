@@ -7,7 +7,7 @@
 namespace distr
 {
 
-const std::string refname = "DISTRIB_REFERENCE";
+const std::string refname = "DISTR_REFERENCE";
 
 struct iDistrRef : public teq::iLeaf
 {

@@ -12,7 +12,9 @@
 
 #include "internal/teq/mock/mock.hpp"
 
-#include "internal/onnx/load.hpp"
+#include "tenncor/distr/mock/mock.hpp"
+
+#include "tenncor/serial/oxsvc/oxsvc.hpp"
 
 
 const std::string testdir = "models/test";
@@ -48,7 +50,7 @@ protected:
 };
 
 
-TEST(LOAD, DISABLED_AllLocalGraph)
+TEST_F(LOAD, AllLocalGraph)
 {
 	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
 
@@ -61,7 +63,7 @@ TEST(LOAD, DISABLED_AllLocalGraph)
 	}
 
 	onnx::TensptrIdT ids;
-	teq::TensptrsT graph_roots = manager.load_graph(ids, model.graph());
+	teq::TensptrsT graph_roots = distr::get_oxsvc(*manager).load_graph(ids, model.graph());
 	EXPECT_EQ(2, graph_roots.size());
 
 	std::string expect;
@@ -104,9 +106,10 @@ TEST(LOAD, DISABLED_AllLocalGraph)
 }
 
 
-TEST(LOAD, DISABLED_RemoteGraph)
+TEST_F(LOAD, RemoteGraph)
 {
 	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
+	distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
 
 	onnx::ModelProto model;
 	{
@@ -116,8 +119,17 @@ TEST(LOAD, DISABLED_RemoteGraph)
 		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
 	}
 
+	distr::ox::TopographyT topography = {
+		{"root1", "mgr"},
+		{"root2", "mgr"},
+		{"predictable_0", "mgr2"},
+		{"predictable_1", "mgr2"},
+		{"predictable_2", "mgr2"},
+		{"predictable_3", "mgr2"},
+	};
 	onnx::TensptrIdT ids;
-	teq::TensptrsT graph_roots = manager.load_graph(ids, model.graph());
+	teq::TensptrsT graph_roots = distr::get_oxsvc(*manager).load_graph(
+		ids, model.graph(), topography);
 	EXPECT_EQ(2, graph_roots.size());
 
 	std::string expect;

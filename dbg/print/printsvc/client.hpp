@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_PRINT_CLIENT_HPP
-#define DISTRIB_PRINT_CLIENT_HPP
+#ifndef DISTR_PRINT_CLIENT_HPP
+#define DISTR_PRINT_CLIENT_HPP
 
 #include "egrpc/egrpc.hpp"
 
@@ -50,4 +50,4 @@ private:
 
 }
 
-#endif // DISTRIB_PRINT_CLIENT_HPP
+#endif // DISTR_PRINT_CLIENT_HPP

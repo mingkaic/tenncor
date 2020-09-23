@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_TENNCOR_DISTRIB_TEST
+#ifndef DISABLE_TENNCOR_DISTR_TEST
 
 #include <cstdlib>
 
@@ -839,4 +839,4 @@ TEST_F(DISTRIB, CrossDerive)
 }
 
 
-#endif // DISABLE_TENNCOR_DISTRIB_TEST
+#endif // DISABLE_TENNCOR_DISTR_TEST

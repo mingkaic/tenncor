@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_OX_CLIENT_HPP
-#define DISTRIB_OX_CLIENT_HPP
+#ifndef DISTR_OX_CLIENT_HPP
+#define DISTR_OX_CLIENT_HPP
 
 #include "egrpc/egrpc.hpp"
 
@@ -45,14 +45,13 @@ struct DistrSerializeCli final : public egrpc::GrpcClient
 
 	egrpc::ErrPromiseptrT post_load_graph (
 		grpc::CompletionQueue& cq,
-		const PostLoadGraphRequest& req,
-		std::function<void(PostLoadGraphResponse&)> cb)
+		const PostLoadGraphRequest& req)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
 		using PostLoadGraphHandlerT = egrpc::AsyncClientHandler<PostLoadGraphResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:PostLoadGraph] ", alias_.c_str()));
-		new PostLoadGraphHandlerT(done, logger, cb,
+		new PostLoadGraphHandlerT(done, logger, [](PostLoadGraphResponse&){},
 			[this, &req, &cq](PostLoadGraphHandlerT* handler)
 			{
 				build_ctx(handler->ctx_, false);
@@ -75,4 +74,4 @@ private:
 
 }
 
-#endif // DISTRIB_OX_CLIENT_HPP
+#endif // DISTR_OX_CLIENT_HPP

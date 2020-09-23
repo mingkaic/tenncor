@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_IO_PB_HELPER_HPP
-#define DISTRIB_IO_PB_HELPER_HPP
+#ifndef DISTR_IO_PB_HELPER_HPP
+#define DISTR_IO_PB_HELPER_HPP
 
 #include "tenncor/distr/reference.hpp"
 #include "tenncor/distr/iosvc/distr.io.grpc.pb.h"
@@ -20,4 +20,4 @@ void tens_to_node_meta (NodeMeta& out, const std::string cid,
 
 }
 
-#endif // DISTRIB_IO_PB_HELPER_HPP
+#endif // DISTR_IO_PB_HELPER_HPP

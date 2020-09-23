@@ -12,17 +12,17 @@ message GetSaveGraphRequest {
 
 message GetSaveGraphResponse {
     onnx.GraphProto graph = 1;
+
+    map<string,string> topography = 2;
 }
 
 message PostLoadGraphRequest {
     onnx.GraphProto graph = 1;
 
-    map<string,string> topography = 2;
+    repeated string refs = 2;
 }
 
-message PostLoadGraphResponse {
-    repeated distr.io.NodeMeta values = 1;
-}
+message PostLoadGraphResponse {}
 
 service DistrSerialization {
     rpc GetSaveGraph (GetSaveGraphRequest) returns (GetSaveGraphResponse);

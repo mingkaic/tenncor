@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_HO_CLIENT_HPP
-#define DISTRIB_HO_CLIENT_HPP
+#ifndef DISTR_HO_CLIENT_HPP
+#define DISTR_HO_CLIENT_HPP
 
 #include "egrpc/egrpc.hpp"
 
@@ -57,4 +57,4 @@ using DistrHoCliPtrT = std::unique_ptr<DistrHoCli>;
 
 }
 
-#endif // DISTRIB_HO_CLIENT_HPP
+#endif // DISTR_HO_CLIENT_HPP

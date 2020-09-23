@@ -46,6 +46,7 @@ cc_library(
         "//tenncor/serial:serial",
         "//tenncor/distr:distr",
     ],
+    defines = ["ORDERED_SAVE"],
     visibility = ["//visibility:public"],
 )
 

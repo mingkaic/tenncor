@@ -1,4 +1,7 @@
 
+#ifndef DISTR_OX_SERVICE_HPP
+#define DISTR_OX_SERVICE_HPP
+
 #include "egrpc/egrpc.hpp"
 
 #include "tenncor/serial/serial.hpp"
@@ -7,9 +10,7 @@
 
 #include "tenncor/serial/serial.hpp"
 #include "tenncor/serial/oxsvc/client.hpp"
-
-#ifndef DISTRIB_OX_SERVICE_HPP
-#define DISTRIB_OX_SERVICE_HPP
+#include "tenncor/serial/oxsvc/topography.hpp"
 
 namespace distr
 {
@@ -25,29 +26,26 @@ if (nullptr != ERR)\
 	return grpc::Status(STATUS, ERR->to_string());\
 }
 
-// copy everything from ingraph inserting into outgraph
-// except for output
-void merge_graph_proto (onnx::GraphProto& outgraph,
-	const onnx::GraphProto& ingraph);
-
 const std::string oxsvc_key = "distr_serializesvc";
-
-// Topographic map of node id to peer id where node should be deploy to
-using TopographyT = types::StrUMapT<std::string>;
 
 struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 {
 	DistrSerializeService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc) :
 		PeerService<DistrSerializeCli>(cfg), iosvc_(iosvc) {}
 
-	template <typename TS> // todo: use concept tensptr_range
-	void save_graph (onnx::GraphProto& pb_graph,
-		const TS& roots, onnx::TensIdT identified = {})
+	TopographyT save_graph (onnx::GraphProto& pb_graph,
+		const teq::TensptrsT& roots, onnx::TensIdT identified = {})
 	{
+		TopographyT topo;
 		auto refs = distr::reachable_refs(roots);
 		types::StrUMapT<types::StrUSetT> remotes;
 		distr::separate_by_server(remotes, refs);
+		for (auto& ref : refs)
+		{
+			identified.insert({ref, ref->node_id()});
+		}
 
+		std::list<egrpc::ErrPromiseptrT> completions;
 		for (auto& remote : remotes)
 		{
 			auto peer_id = remote.first;
@@ -60,77 +58,132 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 			}
 			google::protobuf::RepeatedPtrField<std::string>
 			node_ids(nodes.begin(), nodes.end());
+#ifdef ORDERED_SAVE
+			// sort to make more predictable
+			std::sort(node_ids.begin(), node_ids.end());
+#endif
 
 			GetSaveGraphRequest req;
 			req.mutable_uuids()->Swap(&node_ids);
-			client->get_save_graph(cq_, req,
-			[&pb_graph](GetSaveGraphResponse& res)
+			completions.push_back(client->get_save_graph(cq_, req,
+			[&pb_graph, &topo](GetSaveGraphResponse& res)
 			{
 				auto& subgraph = res.graph();
+				auto& subtopo = res.topography();
 				merge_graph_proto(pb_graph, subgraph);
-			});
+				merge_topograph(topo, subtopo);
+			}));
+			for (const auto& node : nodes)
+			{
+				topo.emplace(node, peer_id);
+			}
 		}
-		for (auto& ref : refs)
-		{
-			identified.insert({ref, ref->node_id()});
-		}
-
 		// add references to tens to avoid serialization of references
 		serial::save_graph(pb_graph, roots, identified);
+
+		while (false == completions.empty())
+		{
+			auto done = completions.front()->get_future();
+			wait_on_future(done);
+			if (done.valid())
+			{
+				if (auto err = done.get())
+				{
+					global::fatal(err->to_string());
+				}
+			}
+			completions.pop_front();
+		}
+
+		const auto& outputs = pb_graph.output();
+		for (const auto& output : outputs)
+		{
+			topo.emplace(output.name(), get_peer_id()); // map each subgraph root set to peer id
+		}
+		return topo;
 	}
 
-	teq::TensptrsT load_graph (onnx::TensptrIdT& identified_tens,
+	teq::TensptrsT load_graph (
+		onnx::TensptrIdT& identified_tens,
 		const onnx::GraphProto& pb_graph,
-		const TopographyT& topography = TopographyT{})
+		TopographyT topography = TopographyT{})
 	{
-		auto& pb_nodes = pb_graph.node();
-		std::string peer_id;
-		types::StrUMapT<types::StrUSetT> remotes;
-		for (auto& pb_node : pb_nodes)
+		std::string local_id = get_peer_id();
+
+		// map unidentified roots to local peer id
+		const auto& outputs = pb_graph.output();
+		for (const auto& output : outputs)
 		{
-			auto id = pb_node.name();
-			// lookup to see if node needs to be deployed remotely
-			if (estd::get(peer_id, topography, id))
+			topography.emplace(output.name(), local_id);
+		}
+
+		auto segments = split_topograph(pb_graph, topography);
+		SegmentsT segs;
+		while (false == segments.empty())
+		{
+			auto seg = segments.front();
+			segments.pop_front();
+			segs.push_back(seg);
+			for (auto& subgraph : seg->subgraphs_)
 			{
-				remotes[peer_id].emplace(id);
+				segments.push_back(subgraph.second);
 			}
 		}
-		for (auto& remote : remotes)
+
+		for (auto identified : identified_tens)
 		{
-			auto peer_id = remote.first;
-			auto nodes = remote.second;
+			iosvc_->expose_node(identified.left);
+		}
+
+		teq::TensptrsT roots;
+		for (auto& seg : segs)
+		{
 			error::ErrptrT err = nullptr;
-			auto client = get_client(err, peer_id);
-			if (nullptr != err)
+			auto peer_id = seg->color_;
+			auto& subgraph = seg->graph_;
+			const auto& subs = seg->subgraphs_;
+			types::StrUSetT refs;
+			for (const auto& sub : subs)
 			{
-				global::fatal(err->to_string());
-			}
-
-			google::protobuf::Map<std::string,std::string> pb_topo(
-				topography.begin(), topography.end());
-
-			PostLoadGraphRequest req;
-			auto reqgraph = req.mutable_graph();
-			req.mutable_topography()->swap(pb_topo);
-			merge_graph_proto(*reqgraph, pb_graph);
-			for (auto node : nodes)
-			{
-				onnx::ValueInfoProto* pb_output = reqgraph->add_output();
-				pb_output->set_name(node);
-			}
-			client->post_load_graph(cq_, req,
-			[&identified_tens](PostLoadGraphResponse& res)
-			{
-				auto& refmetas = res.values();
-				for (auto& refmeta : refmetas)
+				const auto& outputs = sub.second->graph_.output();
+				for (const auto& output : outputs)
 				{
-					auto ref = ::distr::io::node_meta_to_ref(refmeta);
-					identified_tens.insert({ref, refmeta.uuid()});
+					refs.emplace(output.name());
 				}
-			});
-		}
+			}
+			if (local_id == peer_id)
+			{
+				roots = local_load_graph(err, identified_tens, subgraph, refs);
+				if (nullptr != err)
+				{
+					global::fatal(err->to_string());
+				}
+			}
+			else
+			{
+				auto client = get_client(err, peer_id);
+				if (nullptr != err)
+				{
+					global::fatal(err->to_string());
+				}
 
-		return serial::load_graph(identified_tens, pb_graph);
+				google::protobuf::RepeatedPtrField<std::string> pb_refs(
+					refs.begin(), refs.end());
+				PostLoadGraphRequest req;
+				req.mutable_graph()->Swap(&subgraph);
+				req.mutable_refs()->Swap(&pb_refs);
+				auto done = client->post_load_graph(cq_, req)->get_future();
+				wait_on_future(done);
+				if (done.valid())
+				{
+					if (auto err = done.get())
+					{
+						global::fatal(err->to_string());
+					}
+				}
+			}
+		}
+		return roots;
 	}
 
 	void register_service (grpc::ServerBuilder& builder) override
@@ -169,7 +222,12 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 					roots.push_back(tens);
 					identified.insert({tens.get(), uuid});
 				}
-				this->save_graph(*res.mutable_graph(), roots, identified);
+				auto topo = this->save_graph(*res.mutable_graph(), roots, identified);
+				auto outopo = res.mutable_topography();
+				for (auto& entry : topo)
+				{
+					outopo->insert({entry.first, entry.second});
+				}
 				return grpc::Status::OK;
 			}, &cq);
 
@@ -193,24 +251,43 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 			{
 				onnx::TensptrIdT identified;
 				auto& reqgraph = req.graph();
-				auto& topo = req.topography();
-				auto roots = this->load_graph(identified, reqgraph,
-					TopographyT(topo.begin(), topo.end()));
-				// expose roots
-				for (auto root : roots)
-				{
-					auto id = iosvc_->expose_node(root);
-					auto alias = identified.left.at(root);
-					iosvc_->set_alias(alias, id);
-					auto meta = res.add_values();
-					::distr::io::tens_to_node_meta(
-						*meta, get_peer_id(), alias, root);
-				}
+				auto& refs = req.refs();
+				error::ErrptrT err = nullptr;
+				this->local_load_graph(err, identified, reqgraph,
+					types::StrUSetT(refs.begin(), refs.end()));
+				_ERR_CHECK(err, grpc::NOT_FOUND, get_peer_id().c_str());
 				return grpc::Status::OK;
 			}, &cq);
 	}
 
 private:
+	teq::TensptrsT local_load_graph (error::ErrptrT err,
+		onnx::TensptrIdT& identified_tens,
+		const onnx::GraphProto& subgraph, const types::StrUSetT& refs)
+	{
+		std::string local_id = get_peer_id();
+		onnx::TensptrIdT identified = identified_tens;
+		for (auto ref : refs)
+		{
+			auto node = iosvc_->lookup_node(err, ref);
+			if (nullptr != err)
+			{
+				return {};
+			}
+			identified.insert({node, local_id});
+		}
+		auto root = serial::load_graph(identified, subgraph);
+		const auto& suboutputs = subgraph.output();
+		for (const auto& suboutput : suboutputs)
+		{
+			std::string id = suboutput.name();
+			iosvc_->set_alias(id, iosvc_->expose_node(
+				identified.right.at(id)));
+		}
+		identified_tens.insert(identified.begin(), identified.end());
+		return root;
+	}
+
 	io::DistrIOService* iosvc_;
 
 	DistrSerialization::AsyncService service_;
@@ -227,4 +304,4 @@ ox::DistrSerializeService& get_oxsvc (iDistrManager& manager);
 
 }
 
-#endif // DISTRIB_OX_SERVICE_HPP
+#endif // DISTR_OX_SERVICE_HPP

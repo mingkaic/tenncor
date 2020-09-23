@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_HO_SERVICE_HPP
-#define DISTRIB_HO_SERVICE_HPP
+#ifndef DISTR_HO_SERVICE_HPP
+#define DISTR_HO_SERVICE_HPP
 
 #include "tenncor/distr/iosvc/service.hpp"
 
@@ -79,4 +79,4 @@ ho::DistrHoService& get_hosvc (iDistrManager& manager);
 
 }
 
-#endif // DISTRIB_HO_SERVICE_HPP
+#endif // DISTR_HO_SERVICE_HPP

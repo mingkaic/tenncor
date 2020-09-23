@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_IO_DATA_HPP
-#define DISTRIB_IO_DATA_HPP
+#ifndef DISTR_IO_DATA_HPP
+#define DISTR_IO_DATA_HPP
 
 #include <boost/bimap.hpp>
 #include <boost/lexical_cast.hpp>
@@ -114,4 +114,4 @@ private:
 
 }
 
-#endif // DISTRIB_IO_DATA_HPP
+#endif // DISTR_IO_DATA_HPP

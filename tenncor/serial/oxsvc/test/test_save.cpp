@@ -55,11 +55,11 @@ TEST_F(SAVE, AllLocalGraph)
 	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
 
 	std::string expect_pbfile = testdir + "/local_oxsvc.onnx";
-	std::string got_pbfile = "got_local_oxsvc.onnx";
+	std::string got_pbfile = "/tmp/local_oxsvc.onnx";
 
 	{
 		onnx::ModelProto model;
-		std::vector<teq::TensptrT> roots;
+		teq::TensptrsT roots;
 		onnx::TensIdT ids;
 
 		// subtree one
@@ -111,7 +111,16 @@ TEST_F(SAVE, AllLocalGraph)
 			ids.insert({dest.get(), "root2"});
 		}
 
-		distr::get_oxsvc(*manager).save_graph(*model.mutable_graph(), roots, ids);
+		auto topography = distr::get_oxsvc(*manager).save_graph(
+			*model.mutable_graph(), roots, ids);
+		EXPECT_EQ(2, topography.size());
+
+		ASSERT_HAS(topography, "root1");
+		ASSERT_HAS(topography, "root2");
+
+		auto id = manager->get_id();
+		EXPECT_STREQ(id.c_str(), topography.at("root1").c_str());
+		EXPECT_STREQ(id.c_str(), topography.at("root2").c_str());
 
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);
@@ -194,7 +203,7 @@ private:
 TEST_F(SAVE, RemoteGraph)
 {
 	std::string expect_pbfile = testdir + "/remote_oxsvc.onnx";
-	std::string got_pbfile = "got_remote_oxsvc.onnx";
+	std::string got_pbfile = "/tmp/remote_oxsvc.onnx";
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	{
@@ -217,6 +226,7 @@ TEST_F(SAVE, RemoteGraph)
 		teq::TensptrT osrc2(eteq::make_variable<double>(
 			std::vector<double>(shape.n_elems()).data(), shape, "osrc2"));
 
+		types::StringsT exposed_ids;
 		{
 			teq::TensptrT src(eteq::make_variable<double>(
 				std::vector<double>(shape.n_elems()).data(), shape, "src"));
@@ -240,6 +250,7 @@ TEST_F(SAVE, RemoteGraph)
 			});
 			roots.push_back(dest);
 			ids.insert({dest.get(), "root1"});
+			exposed_ids.push_back(fid);
 		}
 
 		// subtree two
@@ -276,9 +287,29 @@ TEST_F(SAVE, RemoteGraph)
 			});
 			roots.push_back(dest);
 			ids.insert({dest.get(), "root2"});
+			exposed_ids.push_back(fid);
+			exposed_ids.push_back(sid);
+			exposed_ids.push_back(s3id);
 		}
 
-		distr::get_oxsvc(*manager2).save_graph(*model.mutable_graph(), roots, ids);
+		auto topography = distr::get_oxsvc(*manager2).save_graph(*model.mutable_graph(), roots, ids);
+		EXPECT_EQ(2 + exposed_ids.size(), topography.size());
+
+		ASSERT_HAS(topography, "root1");
+		ASSERT_HAS(topography, "root2");
+		for (auto id : exposed_ids)
+		{
+			ASSERT_HAS(topography, id);
+		}
+
+		auto manager_id = manager->get_id();
+		auto manager2_id = manager2->get_id();
+		EXPECT_STREQ(manager2_id.c_str(), topography.at("root1").c_str());
+		EXPECT_STREQ(manager2_id.c_str(), topography.at("root2").c_str());
+		for (auto id : exposed_ids)
+		{
+			EXPECT_STREQ(manager_id.c_str(), topography.at(id).c_str());
+		}
 
 		std::fstream gotstr(got_pbfile,
 			std::ios::out | std::ios::trunc | std::ios::binary);

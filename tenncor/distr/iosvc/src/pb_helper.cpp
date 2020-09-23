@@ -1,6 +1,6 @@
 #include "tenncor/distr/iosvc/pb_helper.hpp"
 
-#ifdef DISTRIB_IO_PB_HELPER_HPP
+#ifdef DISTR_IO_PB_HELPER_HPP
 
 namespace distr
 {

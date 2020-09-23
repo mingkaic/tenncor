@@ -1,7 +1,7 @@
 
 #include "tenncor/distr/iosvc/service.hpp"
 
-#ifdef DISTRIB_IO_SERVICE_HPP
+#ifdef DISTR_IO_SERVICE_HPP
 
 namespace distr
 {

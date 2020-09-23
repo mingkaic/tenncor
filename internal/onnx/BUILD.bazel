@@ -41,6 +41,7 @@ cc_library(
         "@boost//:uuid",
         "@boost//:bimap",
     ],
+    defines = ["ORDERED_SAVE"],
     visibility = ["//visibility:public"],
 )
 

@@ -58,7 +58,7 @@ TEST(BASE, ErasedNode)
 	auto detections2 = matcher.match(cond2);
 	ASSERT_EQ(1, detections2.size());
 	teq::iTensor* res = detections2.front();
-	EXPECT_EQ(root.get(), found);
+	EXPECT_EQ(root.get(), res);
 }
 
 

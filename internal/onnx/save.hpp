@@ -226,11 +226,13 @@ void save_graph (GraphProto& pb_graph, const TS& roots,
 
 	std::vector<const teq::iTensor*> rtens(
 		marshal.roots_.begin(), marshal.roots_.end());
+#ifdef ORDERED_SAVE
 	std::sort(rtens.begin(), rtens.end(),
 		[&marshal](const teq::iTensor* a, const teq::iTensor* b)
 		{
 			return marshal.tens_.at(a) < marshal.tens_.at(b);
 		});
+#endif
 	for (const teq::iTensor* root : rtens)
 	{
 		ValueInfoProto* pb_output = pb_graph.add_output();

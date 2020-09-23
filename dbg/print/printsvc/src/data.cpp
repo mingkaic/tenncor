@@ -1,7 +1,7 @@
 
 #include "dbg/print/printsvc/data.hpp"
 
-#ifdef DISTRIB_PRINT_DATA_HPP
+#ifdef DISTR_PRINT_DATA_HPP
 
 namespace distr
 {

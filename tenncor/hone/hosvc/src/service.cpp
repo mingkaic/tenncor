@@ -1,6 +1,6 @@
 #include "tenncor/hone/hosvc/service.hpp"
 
-#ifdef DISTRIB_HO_SERVICE_HPP
+#ifdef DISTR_HO_SERVICE_HPP
 
 namespace distr
 {

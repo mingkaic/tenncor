@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_PRINT_SERVICE_HPP
-#define DISTRIB_PRINT_SERVICE_HPP
+#ifndef DISTR_PRINT_SERVICE_HPP
+#define DISTR_PRINT_SERVICE_HPP
 
 #include "egrpc/egrpc.hpp"
 
@@ -103,4 +103,4 @@ print::DistrPrintService& get_printsvc (iDistrManager& manager);
 
 }
 
-#endif // DISTRIB_PRINT_SERVICE_HPP
+#endif // DISTR_PRINT_SERVICE_HPP

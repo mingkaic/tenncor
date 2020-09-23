@@ -1,6 +1,6 @@
 
-#ifndef DISTRIB_OP_SERVICE_HPP
-#define DISTRIB_OP_SERVICE_HPP
+#ifndef DISTR_OP_SERVICE_HPP
+#define DISTR_OP_SERVICE_HPP
 
 #include "tenncor/distr/iosvc/service.hpp"
 
@@ -583,4 +583,4 @@ op::DistrOpService& get_opsvc (iDistrManager& manager);
 
 }
 
-#endif // DISTRIB_OP_SERVICE_HPP
+#endif // DISTR_OP_SERVICE_HPP

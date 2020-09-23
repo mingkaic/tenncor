@@ -1,7 +1,7 @@
 
 #include "tenncor/eteq/opsvc/service.hpp"
 
-#ifdef DISTRIB_OP_SERVICE_HPP
+#ifdef DISTR_OP_SERVICE_HPP
 
 namespace distr
 {

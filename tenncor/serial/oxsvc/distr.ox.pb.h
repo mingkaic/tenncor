@@ -67,12 +67,12 @@ extern GetSaveGraphRequestDefaultTypeInternal _GetSaveGraphRequest_default_insta
 class GetSaveGraphResponse;
 class GetSaveGraphResponseDefaultTypeInternal;
 extern GetSaveGraphResponseDefaultTypeInternal _GetSaveGraphResponse_default_instance_;
+class GetSaveGraphResponse_TopographyEntry_DoNotUse;
+class GetSaveGraphResponse_TopographyEntry_DoNotUseDefaultTypeInternal;
+extern GetSaveGraphResponse_TopographyEntry_DoNotUseDefaultTypeInternal _GetSaveGraphResponse_TopographyEntry_DoNotUse_default_instance_;
 class PostLoadGraphRequest;
 class PostLoadGraphRequestDefaultTypeInternal;
 extern PostLoadGraphRequestDefaultTypeInternal _PostLoadGraphRequest_default_instance_;
-class PostLoadGraphRequest_TopographyEntry_DoNotUse;
-class PostLoadGraphRequest_TopographyEntry_DoNotUseDefaultTypeInternal;
-extern PostLoadGraphRequest_TopographyEntry_DoNotUseDefaultTypeInternal _PostLoadGraphRequest_TopographyEntry_DoNotUse_default_instance_;
 class PostLoadGraphResponse;
 class PostLoadGraphResponseDefaultTypeInternal;
 extern PostLoadGraphResponseDefaultTypeInternal _PostLoadGraphResponse_default_instance_;
@@ -81,8 +81,8 @@ extern PostLoadGraphResponseDefaultTypeInternal _PostLoadGraphResponse_default_i
 PROTOBUF_NAMESPACE_OPEN
 template<> ::distr::ox::GetSaveGraphRequest* Arena::CreateMaybeMessage<::distr::ox::GetSaveGraphRequest>(Arena*);
 template<> ::distr::ox::GetSaveGraphResponse* Arena::CreateMaybeMessage<::distr::ox::GetSaveGraphResponse>(Arena*);
+template<> ::distr::ox::GetSaveGraphResponse_TopographyEntry_DoNotUse* Arena::CreateMaybeMessage<::distr::ox::GetSaveGraphResponse_TopographyEntry_DoNotUse>(Arena*);
 template<> ::distr::ox::PostLoadGraphRequest* Arena::CreateMaybeMessage<::distr::ox::PostLoadGraphRequest>(Arena*);
-template<> ::distr::ox::PostLoadGraphRequest_TopographyEntry_DoNotUse* Arena::CreateMaybeMessage<::distr::ox::PostLoadGraphRequest_TopographyEntry_DoNotUse>(Arena*);
 template<> ::distr::ox::PostLoadGraphResponse* Arena::CreateMaybeMessage<::distr::ox::PostLoadGraphResponse>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace distr {
@@ -233,6 +233,40 @@ class GetSaveGraphRequest :
 };
 // -------------------------------------------------------------------
 
+class GetSaveGraphResponse_TopographyEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<GetSaveGraphResponse_TopographyEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    0 > {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<GetSaveGraphResponse_TopographyEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    0 > SuperType;
+  GetSaveGraphResponse_TopographyEntry_DoNotUse();
+  GetSaveGraphResponse_TopographyEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const GetSaveGraphResponse_TopographyEntry_DoNotUse& other);
+  static const GetSaveGraphResponse_TopographyEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const GetSaveGraphResponse_TopographyEntry_DoNotUse*>(&_GetSaveGraphResponse_TopographyEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "distr.ox.GetSaveGraphResponse.TopographyEntry.key");
+ }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "distr.ox.GetSaveGraphResponse.TopographyEntry.value");
+ }
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& other) final;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto);
+    return ::descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto.file_level_metadata[1];
+  }
+
+  public:
+};
+
+// -------------------------------------------------------------------
+
 class GetSaveGraphResponse :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:distr.ox.GetSaveGraphResponse) */ {
  public:
@@ -275,7 +309,7 @@ class GetSaveGraphResponse :
                &_GetSaveGraphResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    2;
 
   friend void swap(GetSaveGraphResponse& a, GetSaveGraphResponse& b) {
     a.Swap(&b);
@@ -336,11 +370,30 @@ class GetSaveGraphResponse :
 
   // nested types ----------------------------------------------------
 
+
   // accessors -------------------------------------------------------
 
   enum : int {
+    kTopographyFieldNumber = 2,
     kGraphFieldNumber = 1,
   };
+  // map<string, string> topography = 2;
+  int topography_size() const;
+  private:
+  int _internal_topography_size() const;
+  public:
+  void clear_topography();
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      _internal_topography() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      _internal_mutable_topography();
+  public:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      topography() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      mutable_topography();
+
   // .onnx.GraphProto graph = 1;
   bool has_graph() const;
   private:
@@ -361,44 +414,16 @@ class GetSaveGraphResponse :
   class _Internal;
 
   ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
+  ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+      GetSaveGraphResponse_TopographyEntry_DoNotUse,
+      std::string, std::string,
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+      0 > topography_;
   ::onnx::GraphProto* graph_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto;
 };
-// -------------------------------------------------------------------
-
-class PostLoadGraphRequest_TopographyEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<PostLoadGraphRequest_TopographyEntry_DoNotUse, 
-    std::string, std::string,
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-    0 > {
-public:
-  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<PostLoadGraphRequest_TopographyEntry_DoNotUse, 
-    std::string, std::string,
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-    0 > SuperType;
-  PostLoadGraphRequest_TopographyEntry_DoNotUse();
-  PostLoadGraphRequest_TopographyEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
-  void MergeFrom(const PostLoadGraphRequest_TopographyEntry_DoNotUse& other);
-  static const PostLoadGraphRequest_TopographyEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const PostLoadGraphRequest_TopographyEntry_DoNotUse*>(&_PostLoadGraphRequest_TopographyEntry_DoNotUse_default_instance_); }
-  static bool ValidateKey(std::string* s) {
-    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "distr.ox.PostLoadGraphRequest.TopographyEntry.key");
- }
-  static bool ValidateValue(std::string* s) {
-    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "distr.ox.PostLoadGraphRequest.TopographyEntry.value");
- }
-  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& other) final;
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-  private:
-  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
-    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto);
-    return ::descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto.file_level_metadata[2];
-  }
-
-  public:
-};
-
 // -------------------------------------------------------------------
 
 class PostLoadGraphRequest :
@@ -504,29 +529,35 @@ class PostLoadGraphRequest :
 
   // nested types ----------------------------------------------------
 
-
   // accessors -------------------------------------------------------
 
   enum : int {
-    kTopographyFieldNumber = 2,
+    kRefsFieldNumber = 2,
     kGraphFieldNumber = 1,
   };
-  // map<string, string> topography = 2;
-  int topography_size() const;
+  // repeated string refs = 2;
+  int refs_size() const;
   private:
-  int _internal_topography_size() const;
+  int _internal_refs_size() const;
   public:
-  void clear_topography();
+  void clear_refs();
+  const std::string& refs(int index) const;
+  std::string* mutable_refs(int index);
+  void set_refs(int index, const std::string& value);
+  void set_refs(int index, std::string&& value);
+  void set_refs(int index, const char* value);
+  void set_refs(int index, const char* value, size_t size);
+  std::string* add_refs();
+  void add_refs(const std::string& value);
+  void add_refs(std::string&& value);
+  void add_refs(const char* value);
+  void add_refs(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& refs() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_refs();
   private:
-  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
-      _internal_topography() const;
-  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
-      _internal_mutable_topography();
+  const std::string& _internal_refs(int index) const;
+  std::string* _internal_add_refs();
   public:
-  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
-      topography() const;
-  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
-      mutable_topography();
 
   // .onnx.GraphProto graph = 1;
   bool has_graph() const;
@@ -548,12 +579,7 @@ class PostLoadGraphRequest :
   class _Internal;
 
   ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
-  ::PROTOBUF_NAMESPACE_ID::internal::MapField<
-      PostLoadGraphRequest_TopographyEntry_DoNotUse,
-      std::string, std::string,
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-      0 > topography_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> refs_;
   ::onnx::GraphProto* graph_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto;
@@ -665,33 +691,11 @@ class PostLoadGraphResponse :
 
   // accessors -------------------------------------------------------
 
-  enum : int {
-    kValuesFieldNumber = 1,
-  };
-  // repeated .distr.io.NodeMeta values = 1;
-  int values_size() const;
-  private:
-  int _internal_values_size() const;
-  public:
-  void clear_values();
-  ::distr::io::NodeMeta* mutable_values(int index);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::distr::io::NodeMeta >*
-      mutable_values();
-  private:
-  const ::distr::io::NodeMeta& _internal_values(int index) const;
-  ::distr::io::NodeMeta* _internal_add_values();
-  public:
-  const ::distr::io::NodeMeta& values(int index) const;
-  ::distr::io::NodeMeta* add_values();
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::distr::io::NodeMeta >&
-      values() const;
-
   // @@protoc_insertion_point(class_scope:distr.ox.PostLoadGraphResponse)
  private:
   class _Internal;
 
   ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::distr::io::NodeMeta > values_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto;
 };
@@ -782,6 +786,8 @@ GetSaveGraphRequest::mutable_uuids() {
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
 // GetSaveGraphResponse
 
 // .onnx.GraphProto graph = 1;
@@ -838,7 +844,34 @@ inline void GetSaveGraphResponse::set_allocated_graph(::onnx::GraphProto* graph)
   // @@protoc_insertion_point(field_set_allocated:distr.ox.GetSaveGraphResponse.graph)
 }
 
-// -------------------------------------------------------------------
+// map<string, string> topography = 2;
+inline int GetSaveGraphResponse::_internal_topography_size() const {
+  return topography_.size();
+}
+inline int GetSaveGraphResponse::topography_size() const {
+  return _internal_topography_size();
+}
+inline void GetSaveGraphResponse::clear_topography() {
+  topography_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+GetSaveGraphResponse::_internal_topography() const {
+  return topography_.GetMap();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+GetSaveGraphResponse::topography() const {
+  // @@protoc_insertion_point(field_map:distr.ox.GetSaveGraphResponse.topography)
+  return _internal_topography();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+GetSaveGraphResponse::_internal_mutable_topography() {
+  return topography_.MutableMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+GetSaveGraphResponse::mutable_topography() {
+  // @@protoc_insertion_point(field_mutable_map:distr.ox.GetSaveGraphResponse.topography)
+  return _internal_mutable_topography();
+}
 
 // -------------------------------------------------------------------
 
@@ -898,74 +931,83 @@ inline void PostLoadGraphRequest::set_allocated_graph(::onnx::GraphProto* graph)
   // @@protoc_insertion_point(field_set_allocated:distr.ox.PostLoadGraphRequest.graph)
 }
 
-// map<string, string> topography = 2;
-inline int PostLoadGraphRequest::_internal_topography_size() const {
-  return topography_.size();
+// repeated string refs = 2;
+inline int PostLoadGraphRequest::_internal_refs_size() const {
+  return refs_.size();
 }
-inline int PostLoadGraphRequest::topography_size() const {
-  return _internal_topography_size();
+inline int PostLoadGraphRequest::refs_size() const {
+  return _internal_refs_size();
 }
-inline void PostLoadGraphRequest::clear_topography() {
-  topography_.Clear();
+inline void PostLoadGraphRequest::clear_refs() {
+  refs_.Clear();
 }
-inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
-PostLoadGraphRequest::_internal_topography() const {
-  return topography_.GetMap();
+inline std::string* PostLoadGraphRequest::add_refs() {
+  // @@protoc_insertion_point(field_add_mutable:distr.ox.PostLoadGraphRequest.refs)
+  return _internal_add_refs();
 }
-inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
-PostLoadGraphRequest::topography() const {
-  // @@protoc_insertion_point(field_map:distr.ox.PostLoadGraphRequest.topography)
-  return _internal_topography();
+inline const std::string& PostLoadGraphRequest::_internal_refs(int index) const {
+  return refs_.Get(index);
 }
-inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
-PostLoadGraphRequest::_internal_mutable_topography() {
-  return topography_.MutableMap();
+inline const std::string& PostLoadGraphRequest::refs(int index) const {
+  // @@protoc_insertion_point(field_get:distr.ox.PostLoadGraphRequest.refs)
+  return _internal_refs(index);
 }
-inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
-PostLoadGraphRequest::mutable_topography() {
-  // @@protoc_insertion_point(field_mutable_map:distr.ox.PostLoadGraphRequest.topography)
-  return _internal_mutable_topography();
+inline std::string* PostLoadGraphRequest::mutable_refs(int index) {
+  // @@protoc_insertion_point(field_mutable:distr.ox.PostLoadGraphRequest.refs)
+  return refs_.Mutable(index);
+}
+inline void PostLoadGraphRequest::set_refs(int index, const std::string& value) {
+  // @@protoc_insertion_point(field_set:distr.ox.PostLoadGraphRequest.refs)
+  refs_.Mutable(index)->assign(value);
+}
+inline void PostLoadGraphRequest::set_refs(int index, std::string&& value) {
+  // @@protoc_insertion_point(field_set:distr.ox.PostLoadGraphRequest.refs)
+  refs_.Mutable(index)->assign(std::move(value));
+}
+inline void PostLoadGraphRequest::set_refs(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  refs_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:distr.ox.PostLoadGraphRequest.refs)
+}
+inline void PostLoadGraphRequest::set_refs(int index, const char* value, size_t size) {
+  refs_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:distr.ox.PostLoadGraphRequest.refs)
+}
+inline std::string* PostLoadGraphRequest::_internal_add_refs() {
+  return refs_.Add();
+}
+inline void PostLoadGraphRequest::add_refs(const std::string& value) {
+  refs_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:distr.ox.PostLoadGraphRequest.refs)
+}
+inline void PostLoadGraphRequest::add_refs(std::string&& value) {
+  refs_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:distr.ox.PostLoadGraphRequest.refs)
+}
+inline void PostLoadGraphRequest::add_refs(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  refs_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:distr.ox.PostLoadGraphRequest.refs)
+}
+inline void PostLoadGraphRequest::add_refs(const char* value, size_t size) {
+  refs_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:distr.ox.PostLoadGraphRequest.refs)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+PostLoadGraphRequest::refs() const {
+  // @@protoc_insertion_point(field_list:distr.ox.PostLoadGraphRequest.refs)
+  return refs_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+PostLoadGraphRequest::mutable_refs() {
+  // @@protoc_insertion_point(field_mutable_list:distr.ox.PostLoadGraphRequest.refs)
+  return &refs_;
 }
 
 // -------------------------------------------------------------------
 
 // PostLoadGraphResponse
-
-// repeated .distr.io.NodeMeta values = 1;
-inline int PostLoadGraphResponse::_internal_values_size() const {
-  return values_.size();
-}
-inline int PostLoadGraphResponse::values_size() const {
-  return _internal_values_size();
-}
-inline ::distr::io::NodeMeta* PostLoadGraphResponse::mutable_values(int index) {
-  // @@protoc_insertion_point(field_mutable:distr.ox.PostLoadGraphResponse.values)
-  return values_.Mutable(index);
-}
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::distr::io::NodeMeta >*
-PostLoadGraphResponse::mutable_values() {
-  // @@protoc_insertion_point(field_mutable_list:distr.ox.PostLoadGraphResponse.values)
-  return &values_;
-}
-inline const ::distr::io::NodeMeta& PostLoadGraphResponse::_internal_values(int index) const {
-  return values_.Get(index);
-}
-inline const ::distr::io::NodeMeta& PostLoadGraphResponse::values(int index) const {
-  // @@protoc_insertion_point(field_get:distr.ox.PostLoadGraphResponse.values)
-  return _internal_values(index);
-}
-inline ::distr::io::NodeMeta* PostLoadGraphResponse::_internal_add_values() {
-  return values_.Add();
-}
-inline ::distr::io::NodeMeta* PostLoadGraphResponse::add_values() {
-  // @@protoc_insertion_point(field_add:distr.ox.PostLoadGraphResponse.values)
-  return _internal_add_values();
-}
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::distr::io::NodeMeta >&
-PostLoadGraphResponse::values() const {
-  // @@protoc_insertion_point(field_list:distr.ox.PostLoadGraphResponse.values)
-  return values_;
-}
 
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
