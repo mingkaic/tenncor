@@ -20,7 +20,23 @@ SegmentsT split_topograph (
 	}
 
 	types::StrUMapT<NodeT> nodes;
+	const auto& pb_inputs = graph.input();
+	const auto& pb_inits = graph.initializer();
 	const auto& pb_nodes = graph.node();
+	for (const auto& pb_input : pb_inputs)
+	{
+		auto id = pb_input.name();
+		auto color = estd::try_get(topography, id, "");
+		nodes.emplace(id,
+			std::make_shared<TopographicInput>(&pb_input, color));
+	}
+	for (const auto& pb_init : pb_inits)
+	{
+		auto id = pb_init.name();
+		auto color = estd::try_get(topography, id, "");
+		nodes.emplace(id,
+			std::make_shared<TopographicInit>(&pb_init, color));
+	}
 	for (const auto& pb_node : pb_nodes)
 	{
 		auto id = pb_node.name();

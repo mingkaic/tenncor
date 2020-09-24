@@ -94,6 +94,7 @@ cc_test(
     srcs = [":test_srcs"],
     deps = [
         ":onnx",
+        "//internal/global:mock",
         "//internal/teq:mock",
         "//dbg/print:print",
         "//testutil:tutil",

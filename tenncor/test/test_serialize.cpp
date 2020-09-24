@@ -13,6 +13,8 @@
 
 #include "dbg/print/teq.hpp"
 
+#include "internal/global/mock/mock.hpp"
+
 #include "tenncor/serial/serial.hpp"
 #include "tenncor/tenncor.hpp"
 
@@ -23,7 +25,9 @@ const std::string testdir = "models/test";
 TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/eteq.onnx";
-	std::string got_pbfile = "got_eteq.onnx";
+	std::string got_pbfile = "/tmp/eteq.onnx";
+	global::set_generator(std::make_shared<MockGenerator>());
+
 	onnx::ModelProto model;
 
 	teq::Shape in_shape({10, 3});

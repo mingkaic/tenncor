@@ -10,11 +10,11 @@ namespace distr
 namespace ox
 {
 
-struct TopographicNode;
+struct iTopographicNode;
 
 struct TopographicSeg;
 
-using NodeT = std::shared_ptr<TopographicNode>;
+using NodeT = std::shared_ptr<iTopographicNode>;
 
 using NodesT = std::vector<NodeT>;
 
@@ -22,11 +22,27 @@ using SegmentT = std::shared_ptr<TopographicSeg>;
 
 using SegmentsT = std::list<SegmentT>;
 
-struct TopographicNode
+struct iTopographicNode
+{
+	iTopographicNode (const std::string& color) :
+		color_(color) {}
+
+	virtual ~iTopographicNode (void) = default;
+
+	virtual std::string get_name (void) const = 0;
+
+	virtual void contribute (onnx::GraphProto& graph) const = 0;
+
+	std::string color_;
+
+	std::unordered_set<NodeT> edges_;
+};
+
+struct TopographicNode final : public iTopographicNode
 {
 	TopographicNode (const onnx::NodeProto* source,
 		const types::StrUMapT<NodeT>& existing_nodes,
-		const std::string& color) : source_(source), color_(color)
+		const std::string& color) : iTopographicNode(color), source_(source)
 	{
 		const auto& inputs = source->input();
 		const auto& attrs = source->attribute();
@@ -62,11 +78,53 @@ struct TopographicNode
 		}
 	}
 
+	std::string get_name (void) const override
+	{
+		return source_->name();
+	}
+
+	void contribute (onnx::GraphProto& graph) const override
+	{
+		graph.add_node()->MergeFrom(*source_);
+	}
+
 	const onnx::NodeProto* source_;
+};
 
-	std::string color_;
+struct TopographicInit final : public iTopographicNode
+{
+	TopographicInit (const onnx::TensorProto* init, const std::string& color) :
+		iTopographicNode(color), source_(init) {}
 
-	std::unordered_set<NodeT> edges_;
+	std::string get_name (void) const override
+	{
+		return source_->name();
+	}
+
+	void contribute (onnx::GraphProto& graph) const override
+	{
+		graph.add_initializer()->MergeFrom(*source_);
+	}
+
+	const onnx::TensorProto* source_;
+};
+
+struct TopographicInput final : public iTopographicNode
+{
+	TopographicInput (const onnx::ValueInfoProto* input, const std::string& color) :
+		iTopographicNode(color), source_(input) {}
+
+	std::string get_name (void) const override
+	{
+		return source_->name();
+	}
+
+	void contribute (onnx::GraphProto& graph) const override
+	{
+		graph.add_input()->MergeFrom(*source_);
+	}
+
+	const onnx::ValueInfoProto* source_;
 };
 
 struct TopographicSeg final
@@ -74,11 +132,11 @@ struct TopographicSeg final
 	TopographicSeg (const onnx::GraphProto& graph, const NodesT& nodes) :
 		color_(nodes.front()->color_)
 	{
-		merge_graph_proto(graph_, graph, {NODE});
+		merge_graph_proto(graph_, graph, {NODE, INIT, INPUT});
 
 		types::StrUMapT<NodesT> refs;
 		std::list<NodeT> q(nodes.begin(), nodes.end());
-		std::list<const onnx::NodeProto*> sources;
+		std::list<NodeT> botup;
 		while (false == q.empty())
 		{
 			auto node = q.front();
@@ -89,14 +147,14 @@ struct TopographicSeg final
 			}
 			else
 			{
-				sources.push_front(node->source_);
+				botup.push_front(node);
 			}
 			q.insert(q.end(), node->edges_.begin(), node->edges_.end());
 		}
 		// add graph nodes in bottom-top order
-		for (auto source : sources)
+		for (auto node : botup)
 		{
-			graph_.add_node()->MergeFrom(*source);
+			node->contribute(graph_);
 		}
 
 		for (const auto& ref : refs)
@@ -107,7 +165,7 @@ struct TopographicSeg final
 
 		for (const auto& node : nodes)
 		{
-			auto id = node->source_->name();
+			auto id = node->get_name();
 			graph_.add_output()->set_name(id);
 		}
 	}

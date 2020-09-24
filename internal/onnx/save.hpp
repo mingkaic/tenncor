@@ -33,13 +33,17 @@ struct OnnxMarshaler final : public teq::iTraveler
 
 	void visit (teq::iLeaf& leaf) override
 	{
-		if (estd::has(stops_, &leaf) ||
-			estd::has(tens_, &leaf))
+		if (estd::has(tens_, &leaf))
 		{
 			return;
 		}
 		std::string id = get_id(leaf);
 		tens_.emplace(&leaf, id);
+		if (estd::has(stops_, &leaf))
+		{
+			return;
+		}
+
 		auto usage = leaf.get_usage();
 
 		TensorAnnotation* pb_annotation =
@@ -76,9 +80,15 @@ struct OnnxMarshaler final : public teq::iTraveler
 
 	void visit (teq::iFunctor& func) override
 	{
-		if (estd::has(stops_, &func) ||
-			estd::has(tens_, &func))
+		if (estd::has(tens_, &func))
 		{
+			return;
+		}
+
+		if (estd::has(stops_, &func))
+		{
+			std::string id = get_id(func);
+			tens_.emplace(&func, id);
 			return;
 		}
 
@@ -175,8 +185,9 @@ private:
 		}
 		roots_.erase(input.get());
 
-		OnnxMarshaler submarsh(*subgraph, identified_,
-			marshaler_, teq::TensSetT{input.get()});
+		auto substops = stops_;
+		substops.emplace(input.get());
+		OnnxMarshaler submarsh(*subgraph, identified_, marshaler_, substops);
 		submarsh.roots_ = roots_;
 		submarsh.tens_ = tens_;
 		submarsh.marshal_func(func);
@@ -200,12 +211,7 @@ private:
 		{
 			return identified_.left.at(&tens);
 		}
-		std::string proposed_id = fmts::to_string(tens_.size());
-		while (estd::has(identified_.right, proposed_id)) // almost never going to loop
-		{
-			proposed_id = global::get_generator()->get_str();
-		}
-		return proposed_id;
+		return global::get_generator()->get_str();
 	}
 
 	GraphProto& pb_graph_;
@@ -219,9 +225,10 @@ private:
 
 template <typename TS> // todo: use concept tensptr_range
 void save_graph (GraphProto& pb_graph, const TS& roots,
-	const iMarshFuncs& marshaler, const TensIdT& identified = {})
+	const iMarshFuncs& marshaler, const TensIdT& identified = {},
+	const teq::TensSetT& stops = {})
 {
-	OnnxMarshaler marshal(pb_graph, identified, marshaler);
+	OnnxMarshaler marshal(pb_graph, identified, marshaler, stops);
 	teq::multi_visit(marshal, roots);
 
 	std::vector<const teq::iTensor*> rtens(

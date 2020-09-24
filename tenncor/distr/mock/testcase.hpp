@@ -53,6 +53,7 @@ protected:
 		{
 			agent.deregisterService(service.second.id);
 		}
+		ppconsul::kv::Kv(*consul_).clear();
 	}
 
 	distr::ConsulptrT consul_;

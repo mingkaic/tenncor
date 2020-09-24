@@ -13,6 +13,8 @@
 
 #include "dbg/print/teq.hpp"
 
+#include "internal/global/mock/mock.hpp"
+
 #include "tenncor/serial/serial.hpp"
 
 
@@ -23,6 +25,7 @@ TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/serial.onnx";
 	std::string got_pbfile = "/tmp/serial.onnx";
+	global::set_generator(std::make_shared<MockGenerator>());
 
 	{
 		onnx::ModelProto model;

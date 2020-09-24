@@ -195,9 +195,9 @@ TEST(LOAD, ReplaceLayerGraph)
 	teq::TensptrT badm = std::make_shared<MockLeaf>(
 		std::vector<double>{}, teq::Shape(), "bad_replaced");
 	onnx::TensptrIdT badids;
-	badids.insert({badm, "2"});
+	badids.insert({badm, "5"});
 	EXPECT_FATAL(onnx::load_graph(badids, model.graph(), unmarsh),
-		"duplicate id 2");
+		"duplicate id 5");
 
 	teq::TensptrT m = std::make_shared<MockLeaf>(
 		std::vector<double>{}, teq::Shape(), "replaced");
@@ -208,7 +208,6 @@ TEST(LOAD, ReplaceLayerGraph)
 
 	ASSERT_HAS(ids.right, "root1");
 	ASSERT_HAS(ids.right, "root2");
-	ASSERT_HAS(ids.right, "predictable");
 }
 
 

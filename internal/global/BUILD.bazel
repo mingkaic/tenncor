@@ -5,6 +5,7 @@ filegroup(
     srcs = [
         ":global_hdrs",
         ":global_srcs",
+        ":mock_hdrs",
         ":test_srcs",
         "BUILD.bazel",
     ],
@@ -19,6 +20,11 @@ filegroup(
 filegroup(
     name = "global_srcs",
     srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
 )
 
 filegroup(
@@ -39,6 +45,13 @@ cc_library(
         "@com_github_mingkaic_cppkg//logs:logs",
         "@com_github_kjellkod_g3log//:g3log",
     ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "mock",
+    hdrs = [":mock_hdrs"],
+    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )
 

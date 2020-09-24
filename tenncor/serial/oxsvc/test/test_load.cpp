@@ -4,9 +4,11 @@
 
 #include <fstream>
 
-#include "gtest/gtest.h"
-
 #include "exam/exam.hpp"
+
+#include "testutil/tutil.hpp"
+
+#include "internal/global/mock/mock.hpp"
 
 #include "dbg/print/teq.hpp"
 
@@ -66,20 +68,6 @@ TEST_F(LOAD, AllLocalGraph)
 	teq::TensptrsT graph_roots = distr::get_oxsvc(*manager).load_graph(ids, model.graph());
 	EXPECT_EQ(2, graph_roots.size());
 
-	std::string expect;
-	std::string got;
-	std::string line;
-	std::ifstream expectstr(testdir + "/local_oxsvc.txt");
-	ASSERT_TRUE(expectstr.is_open());
-	while (std::getline(expectstr, line))
-	{
-		fmts::trim(line);
-		if (line.size() > 0)
-		{
-			expect += line + '\n';
-		}
-	}
-
 	PrettyEquation artist;
 	artist.cfg_.showshape_ = true;
 	std::stringstream gotstr;
@@ -90,26 +78,38 @@ TEST_F(LOAD, AllLocalGraph)
 	auto root2 = ids.right.at("root2");
 	ASSERT_NE(nullptr, root1);
 	ASSERT_NE(nullptr, root2);
-	artist.print(gotstr, root1);
-	artist.print(gotstr, root2);
 
-	while (std::getline(gotstr, line))
-	{
-		fmts::trim(line);
-		if (line.size() > 0)
-		{
-			got += line + '\n';
-		}
-	}
-
-	EXPECT_STREQ(expect.c_str(), got.c_str());
+	EXPECT_GRAPHEQ(
+		"(SUB<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:src2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(POW<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(DIV<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(NEG<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___|___`--(variable:osrc<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(ADD<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|_______`--(SIN<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|_______|___`--(variable:src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|_______`--(variable:src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(variable:osrc2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", root1);
+	EXPECT_GRAPHEQ(
+		"(SUB<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:s2src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(MUL<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(ABS<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(variable:s2src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(EXP<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(variable:s2src2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(NEG<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_________`--(variable:s2src3<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", root2);
 }
 
 
-TEST_F(LOAD, RemoteGraph)
+TEST_F(LOAD, SimpleRemoteGraph)
 {
 	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
 	distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
+	global::set_generator(std::make_shared<MockGenerator>());
+	auto& svc2 = distr::get_iosvc(*manager2);
 
 	onnx::ModelProto model;
 	{
@@ -122,33 +122,15 @@ TEST_F(LOAD, RemoteGraph)
 	distr::ox::TopographyT topography = {
 		{"root1", "mgr"},
 		{"root2", "mgr"},
-		{"predictable_0", "mgr2"},
-		{"predictable_1", "mgr2"},
-		{"predictable_2", "mgr2"},
-		{"predictable_3", "mgr2"},
+		{"1", "mgr2"},
+		{"2", "mgr2"},
+		{"3", "mgr2"},
+		{"4", "mgr2"},
 	};
 	onnx::TensptrIdT ids;
 	teq::TensptrsT graph_roots = distr::get_oxsvc(*manager).load_graph(
 		ids, model.graph(), topography);
 	EXPECT_EQ(2, graph_roots.size());
-
-	std::string expect;
-	std::string got;
-	std::string line;
-	std::ifstream expectstr(testdir + "/remote_oxsvc.txt");
-	ASSERT_TRUE(expectstr.is_open());
-	while (std::getline(expectstr, line))
-	{
-		fmts::trim(line);
-		if (line.size() > 0)
-		{
-			expect += line + '\n';
-		}
-	}
-
-	PrettyEquation artist;
-	artist.cfg_.showshape_ = true;
-	std::stringstream gotstr;
 
 	ASSERT_HAS(ids.right, "root1");
 	ASSERT_HAS(ids.right, "root2");
@@ -156,19 +138,79 @@ TEST_F(LOAD, RemoteGraph)
 	auto root2 = ids.right.at("root2");
 	ASSERT_NE(nullptr, root1);
 	ASSERT_NE(nullptr, root2);
-	artist.print(gotstr, root1);
-	artist.print(gotstr, root2);
 
-	while (std::getline(gotstr, line))
+	EXPECT_GRAPHEQ(
+		"(SUB<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:src2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(POW<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(placeholder:mgr2/2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(variable:osrc2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", root1);
+	EXPECT_GRAPHEQ(
+		"(SUB<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(placeholder:mgr2/1<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(MUL<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(placeholder:mgr2/3<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(EXP<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(variable:s2src2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(NEG<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_________`--(placeholder:mgr2/4<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", root2);
+
+	auto refs = distr::reachable_refs(teq::TensptrsT{root1});
+	auto refs2 = distr::reachable_refs(teq::TensptrsT{root2});
+
+	ASSERT_EQ(1, refs.size());
+	ASSERT_EQ(3, refs2.size());
+
+	types::StrUSetT refids = {"1", "3", "4"};
+	distr::iDistrRef* p1_ref;
+	distr::iDistrRef* p3_ref;
+	distr::iDistrRef* p4_ref;
+	for (auto ref : refs2)
 	{
-		fmts::trim(line);
-		if (line.size() > 0)
+		auto id = ref->node_id();
+		ASSERT_HAS(refids, id);
+		if (id == "1")
 		{
-			got += line + '\n';
+			p1_ref = ref;
+		}
+		else if (id == "3")
+		{
+			p3_ref = ref;
+		}
+		else if (id == "4")
+		{
+			p4_ref = ref;
 		}
 	}
 
-	EXPECT_STREQ(expect.c_str(), got.c_str());
+	error::ErrptrT err = nullptr;
+	auto p2 = svc2.lookup_node(err, (*refs.begin())->node_id());
+	ASSERT_NOERR(err);
+	auto p1 = svc2.lookup_node(err, p1_ref->node_id());
+	ASSERT_NOERR(err);
+	auto p3 = svc2.lookup_node(err, p3_ref->node_id());
+	ASSERT_NOERR(err);
+	auto p4 = svc2.lookup_node(err, p4_ref->node_id());
+	ASSERT_NOERR(err);
+
+	EXPECT_GRAPHEQ(
+		"(ABS<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:s2src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", p2);
+
+	EXPECT_GRAPHEQ(
+		"(DIV<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(NEG<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_|___`--(variable:osrc<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(ADD<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(SIN<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(variable:src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(variable:src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", p1);
+
+	EXPECT_GRAPHEQ(
+		"(variable:s2src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", p3);
+
+	EXPECT_GRAPHEQ(
+		"(variable:s2src3<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", p4);
 }
 
 

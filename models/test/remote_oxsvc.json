@@ -10,6 +10,73 @@
   "node": [
    {
     "input": [
+     "0"
+    ],
+    "output": [
+     "1"
+    ],
+    "name": "1",
+    "opType": "NEG",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "2"
+    ],
+    "output": [
+     "3"
+    ],
+    "name": "3",
+    "opType": "SIN",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "3",
+     "2"
+    ],
+    "output": [
+     "4"
+    ],
+    "name": "4",
+    "opType": "ADD",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "1",
+     "4"
+    ],
+    "output": [
+     "predictable_1"
+    ],
+    "name": "predictable_1",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "predictable_3"
+    ],
+    "output": [
+     "predictable_2"
+    ],
+    "name": "predictable_2",
+    "opType": "ABS",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
      "predictable_1",
      "2"
     ],
@@ -90,77 +157,194 @@
     "domain": "",
     "attribute": [],
     "docString": ""
-   },
-   {
-    "input": [
-     "0"
-    ],
-    "output": [
-     "1"
-    ],
-    "name": "1",
-    "opType": "NEG",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "2"
-    ],
-    "output": [
-     "3"
-    ],
-    "name": "3",
-    "opType": "SIN",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "3",
-     "2"
-    ],
-    "output": [
-     "4"
-    ],
-    "name": "4",
-    "opType": "ADD",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "1",
-     "4"
-    ],
-    "output": [
-     "predictable_1"
-    ],
-    "name": "predictable_1",
-    "opType": "DIV",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "predictable_3"
-    ],
-    "output": [
-     "predictable_2"
-    ],
-    "name": "predictable_2",
-    "opType": "ABS",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
    }
   ],
   "name": "",
   "initializer": [
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "0",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "2",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "predictable_3",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "predictable_4",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
+   },
    {
     "dims": [
      "3",
@@ -298,380 +482,11 @@
      0
     ],
     "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "0",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "2",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "predictable_3",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "predictable_4",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
    }
   ],
   "sparseInitializer": [],
   "docString": "",
-  "input": [
-   {
-    "name": "predictable_1",
-    "type": {
-     "tensorType": {
-      "elemType": 11,
-      "shape": {
-       "dim": [
-        {
-         "denotation": "",
-         "dimValue": "3"
-        },
-        {
-         "denotation": "",
-         "dimValue": "7"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        }
-       ]
-      }
-     },
-     "denotation": ""
-    },
-    "docString": ""
-   },
-   {
-    "name": "predictable_3",
-    "type": {
-     "tensorType": {
-      "elemType": 11,
-      "shape": {
-       "dim": [
-        {
-         "denotation": "",
-         "dimValue": "3"
-        },
-        {
-         "denotation": "",
-         "dimValue": "7"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        }
-       ]
-      }
-     },
-     "denotation": ""
-    },
-    "docString": ""
-   },
-   {
-    "name": "predictable_2",
-    "type": {
-     "tensorType": {
-      "elemType": 11,
-      "shape": {
-       "dim": [
-        {
-         "denotation": "",
-         "dimValue": "3"
-        },
-        {
-         "denotation": "",
-         "dimValue": "7"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        }
-       ]
-      }
-     },
-     "denotation": ""
-    },
-    "docString": ""
-   },
-   {
-    "name": "predictable_4",
-    "type": {
-     "tensorType": {
-      "elemType": 11,
-      "shape": {
-       "dim": [
-        {
-         "denotation": "",
-         "dimValue": "3"
-        },
-        {
-         "denotation": "",
-         "dimValue": "7"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        },
-        {
-         "denotation": "",
-         "dimValue": "1"
-        }
-       ]
-      }
-     },
-     "denotation": ""
-    },
-    "docString": ""
-   }
-  ],
+  "input": [],
   "output": [
    {
     "name": "root1",
@@ -773,97 +588,6 @@
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
-      "value": "src2"
-     },
-     {
-      "key": "LEAF_USAGE",
-      "value": "variable"
-     }
-    ]
-   },
-   {
-    "tensorName": "predictable_1",
-    "quantParameterTensorNames": [
-     {
-      "key": "TENSOR_NAME",
-      "value": "mgr/predictable_1"
-     },
-     {
-      "key": "LEAF_USAGE",
-      "value": "placeholder"
-     }
-    ]
-   },
-   {
-    "tensorName": "2",
-    "quantParameterTensorNames": [
-     {
-      "key": "TENSOR_NAME",
-      "value": "osrc2"
-     },
-     {
-      "key": "LEAF_USAGE",
-      "value": "variable"
-     }
-    ]
-   },
-   {
-    "tensorName": "predictable_3",
-    "quantParameterTensorNames": [
-     {
-      "key": "TENSOR_NAME",
-      "value": "mgr/predictable_3"
-     },
-     {
-      "key": "LEAF_USAGE",
-      "value": "placeholder"
-     }
-    ]
-   },
-   {
-    "tensorName": "predictable_2",
-    "quantParameterTensorNames": [
-     {
-      "key": "TENSOR_NAME",
-      "value": "mgr/predictable_2"
-     },
-     {
-      "key": "LEAF_USAGE",
-      "value": "placeholder"
-     }
-    ]
-   },
-   {
-    "tensorName": "7",
-    "quantParameterTensorNames": [
-     {
-      "key": "TENSOR_NAME",
-      "value": "s2src2"
-     },
-     {
-      "key": "LEAF_USAGE",
-      "value": "variable"
-     }
-    ]
-   },
-   {
-    "tensorName": "predictable_4",
-    "quantParameterTensorNames": [
-     {
-      "key": "TENSOR_NAME",
-      "value": "mgr/predictable_4"
-     },
-     {
-      "key": "LEAF_USAGE",
-      "value": "placeholder"
-     }
-    ]
-   },
-   {
-    "tensorName": "0",
-    "quantParameterTensorNames": [
-     {
-      "key": "TENSOR_NAME",
       "value": "osrc"
      },
      {
@@ -904,6 +628,45 @@
      {
       "key": "TENSOR_NAME",
       "value": "s2src3"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "variable"
+     }
+    ]
+   },
+   {
+    "tensorName": "0",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "src2"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "variable"
+     }
+    ]
+   },
+   {
+    "tensorName": "2",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "osrc2"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "variable"
+     }
+    ]
+   },
+   {
+    "tensorName": "7",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "s2src2"
      },
      {
       "key": "LEAF_USAGE",

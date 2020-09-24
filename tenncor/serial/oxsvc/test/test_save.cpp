@@ -10,6 +10,8 @@
 
 #include "testutil/tutil.hpp"
 
+#include "internal/global/mock/mock.hpp"
+
 #include "internal/teq/mock/mock.hpp"
 
 #include "tenncor/distr/mock/mock.hpp"
@@ -46,6 +48,7 @@ protected:
 		ppconsul::catalog::Catalog catalog(*consul_);
 		auto services = catalog.service(service_name_);
 		ASSERT_EQ(services.size(), 0);
+		global::set_generator(nullptr);
 	}
 };
 
@@ -53,6 +56,7 @@ protected:
 TEST_F(SAVE, AllLocalGraph)
 {
 	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
+	global::set_generator(std::make_shared<MockGenerator>());
 
 	std::string expect_pbfile = testdir + "/local_oxsvc.onnx";
 	std::string got_pbfile = "/tmp/local_oxsvc.onnx";
@@ -145,59 +149,6 @@ TEST_F(SAVE, AllLocalGraph)
 		EXPECT_TRUE(differ.Compare(expect_model, got_model)) << report;
 	}
 }
-
-
-struct MockGenerator : public global::iGenerator
-{
-	std::string get_str (void) const override
-	{
-		return "predictable_" + fmts::to_string(++counter_);
-	}
-
-	int64_t unif_int (
-		const int64_t& lower, const int64_t& upper) const override
-	{
-		return 0;
-	}
-
-	double unif_dec (
-		const double& lower, const double& upper) const override
-	{
-		return 0;
-	}
-
-	double norm_dec (
-		const double& mean, const double& stdev) const override
-	{
-		return 0;
-	}
-
-	global::GenF<std::string> get_strgen (void) const override
-	{
-		return []{ return ""; };
-	}
-
-	global::GenF<int64_t> unif_intgen (
-		const int64_t& lower, const int64_t& upper) const override
-	{
-		return []{ return 0; };
-	}
-
-	global::GenF<double> unif_decgen (
-		const double& lower, const double& upper) const override
-	{
-		return []{ return 0.; };
-	}
-
-	global::GenF<double> norm_decgen (
-		const double& mean, const double& stdev) const override
-	{
-		return []{ return 0.; };
-	}
-
-private:
-	mutable size_t counter_ = 0;
-};
 
 
 TEST_F(SAVE, RemoteGraph)

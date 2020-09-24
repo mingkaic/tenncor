@@ -110,10 +110,11 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 
 template <typename TS> // todo: use tensor_range concept
 void save_graph (onnx::GraphProto& pb_graph,
-	const TS& roots, const onnx::TensIdT& identified = {})
+	const TS& roots, const onnx::TensIdT& identified = {},
+	const teq::TensSetT& stops = {})
 {
 	MarshFuncs funcs;
-	onnx::save_graph(pb_graph, roots, funcs, identified);
+	onnx::save_graph(pb_graph, roots, funcs, identified, stops);
 }
 
 teq::TensptrsT load_graph (onnx::TensptrIdT& identified_tens,

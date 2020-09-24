@@ -40,9 +40,11 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 		auto refs = distr::reachable_refs(roots);
 		types::StrUMapT<types::StrUSetT> remotes;
 		distr::separate_by_server(remotes, refs);
+		teq::TensSetT stops;
 		for (auto& ref : refs)
 		{
 			identified.insert({ref, ref->node_id()});
+			stops.emplace(ref);
 		}
 
 		std::list<egrpc::ErrPromiseptrT> completions;
@@ -78,8 +80,6 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 				topo.emplace(node, peer_id);
 			}
 		}
-		// add references to tens to avoid serialization of references
-		serial::save_graph(pb_graph, roots, identified);
 
 		while (false == completions.empty())
 		{
@@ -94,6 +94,9 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 			}
 			completions.pop_front();
 		}
+
+		// add references to tens to avoid serialization of references
+		serial::save_graph(pb_graph, roots, identified, stops);
 
 		const auto& outputs = pb_graph.output();
 		for (const auto& output : outputs)
@@ -123,7 +126,7 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 		{
 			auto seg = segments.front();
 			segments.pop_front();
-			segs.push_back(seg);
+			segs.push_front(seg);
 			for (auto& subgraph : seg->subgraphs_)
 			{
 				segments.push_back(subgraph.second);
@@ -170,7 +173,7 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 				google::protobuf::RepeatedPtrField<std::string> pb_refs(
 					refs.begin(), refs.end());
 				PostLoadGraphRequest req;
-				req.mutable_graph()->Swap(&subgraph);
+				req.mutable_graph()->MergeFrom(subgraph);
 				req.mutable_refs()->Swap(&pb_refs);
 				auto done = client->post_load_graph(cq_, req)->get_future();
 				wait_on_future(done);
@@ -261,7 +264,7 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 	}
 
 private:
-	teq::TensptrsT local_load_graph (error::ErrptrT err,
+	teq::TensptrsT local_load_graph (error::ErrptrT& err,
 		onnx::TensptrIdT& identified_tens,
 		const onnx::GraphProto& subgraph, const types::StrUSetT& refs)
 	{
@@ -274,9 +277,9 @@ private:
 			{
 				return {};
 			}
-			identified.insert({node, local_id});
+			identified.insert({node, ref});
 		}
-		auto root = serial::load_graph(identified, subgraph);
+		auto roots = serial::load_graph(identified, subgraph);
 		const auto& suboutputs = subgraph.output();
 		for (const auto& suboutput : suboutputs)
 		{
@@ -285,7 +288,7 @@ private:
 				identified.right.at(id)));
 		}
 		identified_tens.insert(identified.begin(), identified.end());
-		return root;
+		return roots;
 	}
 
 	io::DistrIOService* iosvc_;

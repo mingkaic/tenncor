@@ -50,6 +50,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         ":serial",
+        "//internal/global:mock",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
