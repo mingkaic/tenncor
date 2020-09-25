@@ -47,7 +47,7 @@ SegmentsT split_topograph (
 
 	NodeT node;
 	auto& roots = graph.output();
-	types::StrUMapT<NodesT> seginputs;
+	types::StrUMapT<NodesT> segroots;
 	for (auto& root : roots)
 	{
 		std::string rid = root.name();
@@ -58,15 +58,15 @@ SegmentsT split_topograph (
 				global::fatalf("root %s is not marked in "
 					"topographic map", rid.c_str());
 			}
-			seginputs[node->color_].push_back(node);
+			segroots[node->color_].push_back(node);
 		}
 	}
 
 	SegmentsT out;
-	for (auto& seginput : seginputs)
+	for (auto& segroot : segroots)
 	{
 		out.push_back(std::make_shared<TopographicSeg>(
-			graph, seginput.second));
+			graph, segroot.second));
 	}
 	return out;
 }

@@ -92,6 +92,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         ":oxsvc",
+        "//dbg/print/printsvc:printsvc",
         "//internal/global:mock",
         "//internal/teq:mock",
         "//tenncor/distr:mock",

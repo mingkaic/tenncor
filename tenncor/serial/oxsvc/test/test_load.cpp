@@ -11,6 +11,7 @@
 #include "internal/global/mock/mock.hpp"
 
 #include "dbg/print/teq.hpp"
+#include "dbg/print/printsvc/printsvc.hpp"
 
 #include "internal/teq/mock/mock.hpp"
 
@@ -40,6 +41,7 @@ protected:
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
 			distr::register_oxsvc,
+			distr::register_printsvc,
 		}, id);
 	}
 
@@ -139,78 +141,184 @@ TEST_F(LOAD, SimpleRemoteGraph)
 	ASSERT_NE(nullptr, root1);
 	ASSERT_NE(nullptr, root2);
 
-	EXPECT_GRAPHEQ(
-		"(SUB<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(variable:src2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(POW<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(placeholder:mgr2/2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(variable:osrc2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", root1);
-	EXPECT_GRAPHEQ(
-		"(SUB<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(placeholder:mgr2/1<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(MUL<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(placeholder:mgr2/3<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(EXP<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_____|___`--(variable:s2src2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(NEG<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_________`--(placeholder:mgr2/4<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", root2);
+	std::stringstream ss;
+	distr::get_printsvc(*manager).print_ascii(ss, root1.get());
+	std::string expect =
+		"(SUB)\n"
+		"_`--(variable:src2)\n"
+		"_`--(POW)\n"
+		"_____`--[mgr2]:(DIV)\n"
+		"_____|___`--(NEG)\n"
+		"_____|___|___`--(variable:osrc)\n"
+		"_____|___`--(ADD)\n"
+		"_____|_______`--(SIN)\n"
+		"_____|_______|___`--(variable:src)\n"
+		"_____|_______`--(variable:src)\n"
+		"_____`--(variable:osrc2)\n";
+	EXPECT_STREQ(expect.c_str(), ss.str().c_str());
 
-	auto refs = distr::reachable_refs(teq::TensptrsT{root1});
-	auto refs2 = distr::reachable_refs(teq::TensptrsT{root2});
+	std::stringstream ss2;
+	distr::get_printsvc(*manager).print_ascii(ss2, root2.get());
+	std::string expect2 =
+		"(SUB)\n"
+		"_`--[mgr2]:(variable:s2src)\n"
+		"_`--(MUL)\n"
+		"_____`--[mgr2]:(ABS)\n"
+		"_____|___`--(variable:s2src)\n"
+		"_____`--(EXP)\n"
+		"_____|___`--(variable:s2src2)\n"
+		"_____`--(NEG)\n"
+		"_________`--[mgr2]:(variable:s2src3)\n";
+	EXPECT_STREQ(expect2.c_str(), ss2.str().c_str());
+}
 
-	ASSERT_EQ(1, refs.size());
-	ASSERT_EQ(3, refs2.size());
 
-	types::StrUSetT refids = {"1", "3", "4"};
-	distr::iDistrRef* p1_ref;
-	distr::iDistrRef* p3_ref;
-	distr::iDistrRef* p4_ref;
-	for (auto ref : refs2)
+TEST_F(LOAD, FlattenRemoteGraph)
+{
+	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
+	distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
+	global::set_generator(std::make_shared<MockGenerator>());
+	auto& svc2 = distr::get_iosvc(*manager2);
+
+	onnx::ModelProto model;
 	{
+		std::fstream inputstr(testdir + "/remote_oxsvc.onnx",
+			std::ios::in | std::ios::binary);
+		ASSERT_TRUE(inputstr.is_open());
+		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
+	}
+
+	// load nodes into a flat remote peer
+	distr::ox::TopographyT topography = {
+		{"root1", "mgr2"},
+		{"root2", "mgr2"},
+	};
+	onnx::TensptrIdT ids;
+	teq::TensptrsT graph_roots = distr::get_oxsvc(*manager).load_graph(
+		ids, model.graph(), topography);
+	EXPECT_EQ(2, graph_roots.size());
+
+	distr::iDistrRef* root1_ref;
+	distr::iDistrRef* root2_ref;
+	for (auto root : graph_roots)
+	{
+		auto ref = dynamic_cast<distr::iDistrRef*>(root.get());
+		ASSERT_NE(nullptr, ref);
 		auto id = ref->node_id();
-		ASSERT_HAS(refids, id);
-		if (id == "1")
+		if (id == "root1")
 		{
-			p1_ref = ref;
+			root1_ref = ref;
 		}
-		else if (id == "3")
+		else if (id == "root2")
 		{
-			p3_ref = ref;
+			root2_ref = ref;
 		}
-		else if (id == "4")
+		else
 		{
-			p4_ref = ref;
+			FAIL() << "unexpected reference " << id;
 		}
 	}
 
 	error::ErrptrT err = nullptr;
-	auto p2 = svc2.lookup_node(err, (*refs.begin())->node_id());
+	auto root1 = svc2.lookup_node(err, root1_ref->node_id());
 	ASSERT_NOERR(err);
-	auto p1 = svc2.lookup_node(err, p1_ref->node_id());
-	ASSERT_NOERR(err);
-	auto p3 = svc2.lookup_node(err, p3_ref->node_id());
-	ASSERT_NOERR(err);
-	auto p4 = svc2.lookup_node(err, p4_ref->node_id());
+	auto root2 = svc2.lookup_node(err, root2_ref->node_id());
 	ASSERT_NOERR(err);
 
 	EXPECT_GRAPHEQ(
-		"(ABS<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(variable:s2src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", p2);
-
+		"(SUB<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:src2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(POW<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(DIV<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(NEG<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___|___`--(variable:osrc<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(ADD<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|_______`--(SIN<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|_______|___`--(variable:src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|_______`--(variable:src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(variable:osrc2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", root1);
 	EXPECT_GRAPHEQ(
-		"(DIV<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(NEG<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_|___`--(variable:osrc<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(ADD<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(SIN<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_____|___`--(variable:src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(variable:src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", p1);
+		"(SUB<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:s2src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(MUL<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(ABS<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(variable:s2src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(EXP<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(variable:s2src2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(NEG<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_________`--(variable:s2src3<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", root2);
+}
 
-	EXPECT_GRAPHEQ(
-		"(variable:s2src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", p3);
 
-	EXPECT_GRAPHEQ(
-		"(variable:s2src3<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", p4);
+TEST_F(LOAD, CyclicRemoteGraph)
+{
+	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
+	distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
+	global::set_generator(std::make_shared<MockGenerator>());
+
+	onnx::ModelProto model;
+	{
+		std::fstream inputstr(testdir + "/remote_oxsvc.onnx",
+			std::ios::in | std::ios::binary);
+		ASSERT_TRUE(inputstr.is_open());
+		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
+	}
+
+	// load nodes into a flat remote peer
+	distr::ox::TopographyT topography = {
+		{"root1", "mgr2"},
+		{"12", "mgr"},
+		{"1", "mgr2"},
+		{"6", "mgr"},
+		{"root2", "mgr"},
+		{"16", "mgr2"},
+		{"2", "mgr"},
+	};
+	onnx::TensptrIdT ids;
+	teq::TensptrsT graph_roots = distr::get_oxsvc(*manager).load_graph(
+		ids, model.graph(), topography);
+	EXPECT_EQ(2, graph_roots.size());
+
+	error::ErrptrT err = nullptr;
+	auto root1ref = distr::get_iosvc(*manager).lookup_node(err, "root1");
+	ASSERT_NOERR(err);
+	auto root1 = distr::get_iosvc(*manager2).lookup_node(err, "root1");
+	ASSERT_NOERR(err);
+	auto root2 = distr::get_iosvc(*manager).lookup_node(err, "root2");
+	ASSERT_NOERR(err);
+
+	EXPECT_ARRHAS(graph_roots, root1ref);
+	EXPECT_ARRHAS(graph_roots, root2);
+
+	std::stringstream ss;
+	distr::get_printsvc(*manager2).print_ascii(ss, root1.get());
+	std::string expect =
+		"(SUB)\n"
+		"_`--(variable:src2)\n"
+		"_`--[mgr]:(POW)\n"
+		"_____`--[mgr2]:(DIV)\n"
+		"_____|___`--[mgr]:(NEG)\n"
+		"_____|___|___`--(variable:osrc)\n"
+		"_____|___`--(ADD)\n"
+		"_____|_______`--(SIN)\n"
+		"_____|_______|___`--(variable:src)\n"
+		"_____|_______`--(variable:src)\n"
+		"_____`--(variable:osrc2)\n";
+	EXPECT_STREQ(expect.c_str(), ss.str().c_str());
+
+	std::stringstream ss2;
+	distr::get_printsvc(*manager).print_ascii(ss2, root2.get());
+	std::string expect2 =
+		"(SUB)\n"
+		"_`--(variable:s2src)\n"
+		"_`--[mgr2]:(MUL)\n"
+		"_____`--[mgr]:(ABS)\n"
+		"_____|___`--(variable:s2src)\n"
+		"_____`--(EXP)\n"
+		"_____|___`--(variable:s2src2)\n"
+		"_____`--(NEG)\n"
+		"_________`--(variable:s2src3)\n";
+	EXPECT_STREQ(expect2.c_str(), ss2.str().c_str());
 }
 
 

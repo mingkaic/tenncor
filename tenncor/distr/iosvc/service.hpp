@@ -28,20 +28,20 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 	DistrIOService (const PeerServiceConfig& cfg) :
 		PeerService<DistrIOCli>(cfg), data_(cfg.consul_) {}
 
-	std::string expose_node (teq::TensptrT tens)
+	std::string expose_node (teq::TensptrT tens,
+		const OptIDT& suggest_id = OptIDT())
 	{
-		return data_.cache_tens(tens);
+		return data_.cache_tens(tens, suggest_id);
 	}
 
-	std::optional<std::string> lookup_id (teq::iTensor* tens) const
+	OptIDT lookup_id (teq::iTensor* tens) const
 	{
 		return data_.get_id(tens);
 	}
 
 	teq::TensptrT lookup_node (error::ErrptrT& err,
-		const std::string& alias, bool recursive = true)
+		const std::string& id, bool recursive = true)
 	{
-		auto id = data_.id_from_alias(alias);
 		if (auto out = data_.get_tens(id))
 		{
 			return out;
@@ -114,16 +114,6 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 	{
 		return data_.get_remotes();
  	}
-
-	std::string id_from_alias (const std::string& alias) const
-	{
-		return data_.id_from_alias(alias);
-	}
-
-	void set_alias (const std::string& alias, const std::string& id)
-	{
-		data_.set_alias(alias, id);
-	}
 
 	void register_service (grpc::ServerBuilder& builder) override
 	{

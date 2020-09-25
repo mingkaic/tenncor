@@ -16,14 +16,15 @@ namespace io
 
 const std::string node_lookup_prefix = "tenncor.node.";
 
-const std::string alias_publish_key = "published_alias_";
+using OptIDT = std::optional<std::string>;
 
 struct DistrIOData
 {
 	DistrIOData (ConsulService* consul) :
 		consul_(consul) {}
 
-	std::string cache_tens (teq::TensptrT tens)
+	std::string cache_tens (teq::TensptrT tens,
+		const OptIDT& suggested_id = OptIDT())
 	{
 		if (auto ref = std::dynamic_pointer_cast<iDistrRef>(tens))
 		{
@@ -47,15 +48,29 @@ struct DistrIOData
 		{
 			return shareds_.right.at(tensptr);
 		}
-		std::string id = global::get_generator()->get_str();
+		std::string id;
+		if (suggested_id && consul_->get_kv(
+			node_lookup_prefix + *suggested_id, "").empty())
+		{
+			id = *suggested_id;
+		}
+		else
+		{
+			if (suggested_id)
+			{
+				global::warnf("suggested id %s already exists, will "
+					"use auto-generating id", suggested_id->c_str());
+			}
+			id = global::get_generator()->get_str();
+		}
 		shareds_.insert({id, tensptr});
 		consul_->set_kv(node_lookup_prefix + id, consul_->id_);
 		return id;
 	}
 
-	std::optional<std::string> get_id (teq::iTensor* tens) const
+	OptIDT get_id (teq::iTensor* tens) const
 	{
-		std::optional<std::string> out;
+		OptIDT out;
 		if (estd::has(shareds_.right, tens))
 		{
 			out = shareds_.right.at(tens);
@@ -74,25 +89,15 @@ struct DistrIOData
 		return out;
 	}
 
-	std::optional<std::string> get_peer (const std::string& id) const
+	OptIDT get_peer (const std::string& id) const
 	{
-		std::optional<std::string> out;
+		OptIDT out;
 		std::string peer_id = consul_->get_kv(node_lookup_prefix + id, "");
 		if (peer_id.size() > 0)
 		{
 			out = peer_id;
 		}
 		return out;
-	}
-
-	std::string id_from_alias (const std::string& alias) const
-	{
-		return consul_->get_kv(alias_publish_key + alias, alias);
-	}
-
-	void set_alias (const std::string& alias, const std::string& id)
-	{
-		consul_->set_kv(alias_publish_key + alias, id);
 	}
 
 	DRefptrSetT get_remotes (void) const

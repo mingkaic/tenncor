@@ -10,95 +10,13 @@
   "node": [
    {
     "input": [
-     "0"
+     "5"
     ],
     "output": [
-     "1"
+     "6"
     ],
-    "name": "1",
+    "name": "6",
     "opType": "NEG",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "2"
-    ],
-    "output": [
-     "3"
-    ],
-    "name": "3",
-    "opType": "SIN",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "3",
-     "2"
-    ],
-    "output": [
-     "4"
-    ],
-    "name": "4",
-    "opType": "ADD",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "1",
-     "4"
-    ],
-    "output": [
-     "predictable_1"
-    ],
-    "name": "predictable_1",
-    "opType": "DIV",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "predictable_3"
-    ],
-    "output": [
-     "predictable_2"
-    ],
-    "name": "predictable_2",
-    "opType": "ABS",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "predictable_1",
-     "2"
-    ],
-    "output": [
-     "3"
-    ],
-    "name": "3",
-    "opType": "POW",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "0",
-     "3"
-    ],
-    "output": [
-     "root1"
-    ],
-    "name": "root1",
-    "opType": "SUB",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -111,6 +29,88 @@
      "8"
     ],
     "name": "8",
+    "opType": "SIN",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "8",
+     "7"
+    ],
+    "output": [
+     "9"
+    ],
+    "name": "9",
+    "opType": "ADD",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "6",
+     "9"
+    ],
+    "output": [
+     "1"
+    ],
+    "name": "1",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "3"
+    ],
+    "output": [
+     "2"
+    ],
+    "name": "2",
+    "opType": "ABS",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "1",
+     "11"
+    ],
+    "output": [
+     "12"
+    ],
+    "name": "12",
+    "opType": "POW",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "10",
+     "12"
+    ],
+    "output": [
+     "root1"
+    ],
+    "name": "root1",
+    "opType": "SUB",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "13"
+    ],
+    "output": [
+     "14"
+    ],
+    "name": "14",
     "opType": "EXP",
     "domain": "",
     "attribute": [],
@@ -118,12 +118,12 @@
    },
    {
     "input": [
-     "predictable_4"
+     "4"
     ],
     "output": [
-     "10"
+     "15"
     ],
-    "name": "10",
+    "name": "15",
     "opType": "NEG",
     "domain": "",
     "attribute": [],
@@ -131,14 +131,14 @@
    },
    {
     "input": [
-     "predictable_2",
-     "8",
-     "10"
+     "2",
+     "14",
+     "15"
     ],
     "output": [
-     "11"
+     "16"
     ],
-    "name": "11",
+    "name": "16",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -146,8 +146,8 @@
    },
    {
     "input": [
-     "predictable_3",
-     "11"
+     "3",
+     "16"
     ],
     "output": [
      "root2"
@@ -177,237 +177,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "0",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "2",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "predictable_3",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "predictable_4",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "0",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "2",
+    "name": "5",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -454,6 +224,236 @@
     "stringData": [],
     "int64Data": [],
     "name": "7",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "3",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "4",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "10",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "11",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "13",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -584,7 +584,7 @@
   "valueInfo": [],
   "quantizationAnnotation": [
    {
-    "tensorName": "0",
+    "tensorName": "5",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -597,7 +597,7 @@
     ]
    },
    {
-    "tensorName": "2",
+    "tensorName": "7",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -610,7 +610,7 @@
     ]
    },
    {
-    "tensorName": "predictable_3",
+    "tensorName": "3",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -623,7 +623,7 @@
     ]
    },
    {
-    "tensorName": "predictable_4",
+    "tensorName": "4",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -636,7 +636,7 @@
     ]
    },
    {
-    "tensorName": "0",
+    "tensorName": "10",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -649,7 +649,7 @@
     ]
    },
    {
-    "tensorName": "2",
+    "tensorName": "11",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -662,7 +662,7 @@
     ]
    },
    {
-    "tensorName": "7",
+    "tensorName": "13",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",

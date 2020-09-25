@@ -68,17 +68,6 @@ void distr_ext (py::module& m)
 		},
 		py::arg("id"),
 		py::arg("recursive") = true)
-		.def("alias_node",
-		[](distr::iDistrManager& self,
-			const std::string& alias, const std::string& id)
-		{
-			distr::get_iosvc(self).set_alias(alias, id);
-		})
-		.def("dealias_node",
-		[](distr::iDistrManager& self, const std::string& alias)
-		{
-			distr::get_iosvc(self).id_from_alias(alias);
-		})
 		.def("derive",
 		[](distr::iDistrManager& self,
 			eteq::ETensor root,

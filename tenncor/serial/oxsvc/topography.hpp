@@ -134,13 +134,25 @@ struct TopographicSeg final
 	{
 		merge_graph_proto(graph_, graph, {NODE, INIT, INPUT});
 
+		for (const auto& node : nodes)
+		{
+			auto id = node->get_name();
+			graph_.add_output()->set_name(id);
+		}
+
 		types::StrUMapT<NodesT> refs;
 		std::list<NodeT> q(nodes.begin(), nodes.end());
 		std::list<NodeT> botup;
+		std::unordered_set<iTopographicNode*> visited;
 		while (false == q.empty())
 		{
 			auto node = q.front();
 			q.pop_front();
+			if (estd::has(visited, node.get()))
+			{
+				continue;
+			}
+			visited.emplace(node.get());
 			if (node->color_.size() > 0 && node->color_ != color_)
 			{
 				refs[node->color_].push_back(node);
@@ -148,8 +160,8 @@ struct TopographicSeg final
 			else
 			{
 				botup.push_front(node);
+				q.insert(q.end(), node->edges_.begin(), node->edges_.end());
 			}
-			q.insert(q.end(), node->edges_.begin(), node->edges_.end());
 		}
 		// add graph nodes in bottom-top order
 		for (auto node : botup)
@@ -161,12 +173,6 @@ struct TopographicSeg final
 		{
 			subgraphs_.emplace(ref.first,
 				std::make_shared<TopographicSeg>(graph, ref.second));
-		}
-
-		for (const auto& node : nodes)
-		{
-			auto id = node->get_name();
-			graph_.add_output()->set_name(id);
 		}
 	}
 

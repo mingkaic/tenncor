@@ -120,7 +120,13 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 			topography.emplace(output.name(), local_id);
 		}
 
-		auto segments = split_topograph(pb_graph, topography);
+		SegmentsT segments = split_topograph(pb_graph, topography);
+
+		std::unordered_set<TopographicSeg*> rootsegs;
+		std::transform(segments.begin(), segments.end(),
+			std::inserter(rootsegs, rootsegs.end()),
+			[](SegmentT seg){ return seg.get(); });
+
 		SegmentsT segs;
 		while (false == segments.empty())
 		{
@@ -154,9 +160,11 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 					refs.emplace(output.name());
 				}
 			}
+			teq::TensptrsT local_roots;
 			if (local_id == peer_id)
 			{
-				roots = local_load_graph(err, identified_tens, subgraph, refs);
+				local_roots = local_load_graph(
+					err, identified_tens, subgraph, refs);
 				if (nullptr != err)
 				{
 					global::fatal(err->to_string());
@@ -184,6 +192,19 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 						global::fatal(err->to_string());
 					}
 				}
+
+				const auto& suboutputs = subgraph.output();
+				for (const auto& suboutput : suboutputs)
+				{
+					std::string id = suboutput.name();
+					auto root = iosvc_->lookup_node(err, id);
+					local_roots.push_back(root);
+				}
+			}
+			if (estd::has(rootsegs, seg.get()))
+			{
+				roots.insert(roots.end(),
+					local_roots.begin(), local_roots.end());
 			}
 		}
 		return roots;
@@ -284,8 +305,8 @@ private:
 		for (const auto& suboutput : suboutputs)
 		{
 			std::string id = suboutput.name();
-			iosvc_->set_alias(id, iosvc_->expose_node(
-				identified.right.at(id)));
+			assert(id == iosvc_->expose_node(
+				identified.right.at(id), id));
 		}
 		identified_tens.insert(identified.begin(), identified.end());
 		return roots;
