@@ -8,7 +8,7 @@ namespace hone
 void generate_cstrules (opt::OptRulesT& rules,
 	const opt::GraphInfo& graph, global::CfgMapptrT context)
 {
-	std::unordered_map<std::string,std::unordered_set<size_t>> branches;
+	types::StrUMapT<std::unordered_set<size_t>> branches;
 	for (const auto& owner : graph.get_owners())
 	{
 		if (auto f = dynamic_cast<const teq::iFunctor*>(owner.first))

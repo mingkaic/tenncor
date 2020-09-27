@@ -111,7 +111,6 @@ TEST_F(LOAD, SimpleRemoteGraph)
 	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
 	distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
 	global::set_generator(std::make_shared<MockGenerator>());
-	auto& svc2 = distr::get_iosvc(*manager2);
 
 	onnx::ModelProto model;
 	{

@@ -158,10 +158,10 @@ teq::Shape unmarshal_shape (const TensorProto& tens)
 	return teq::Shape(slist);
 }
 
-std::unordered_map<std::string,AnnotationsT> unmarshal_annotation (
+types::StrUMapT<AnnotationsT> unmarshal_annotation (
 	const google::protobuf::RepeatedPtrField<TensorAnnotation>& as)
 {
-	std::unordered_map<std::string,AnnotationsT> out;
+	types::StrUMapT<AnnotationsT> out;
 	for (const TensorAnnotation& annotation : as)
 	{
 		std::string id = annotation.tensor_name();

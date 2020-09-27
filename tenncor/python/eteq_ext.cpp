@@ -3,7 +3,7 @@
 
 #ifdef PYTHON_ETEQ_EXT_HPP
 
-using ETensKeysT = std::unordered_map<std::string,eteq::ETensor>;
+using ETensKeysT = types::StrUMapT<eteq::ETensor>;
 
 void eteq_ext (py::module& m)
 {
@@ -350,7 +350,7 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 		// ==== serialization ====
 		.def("load_from_file",
 		[](const std::string& filename,
-			const std::unordered_map<std::string,size_t>& key_prec)
+			const types::StrUMapT<size_t>& key_prec)
 		{
 			std::ifstream input(filename);
 			if (false == input.is_open())
@@ -400,7 +400,7 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 			return out;
 		},
 		py::arg("filename"),
-		py::arg("key_prec") = std::unordered_map<std::string,size_t>{})
+		py::arg("key_prec") = types::StrUMapT<size_t>{})
 		.def("save_to_file",
 		[](const std::string& filename,
 			const eteq::ETensorsT& models,

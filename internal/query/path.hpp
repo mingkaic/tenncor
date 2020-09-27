@@ -11,7 +11,7 @@ namespace query
 
 using MemoryT = std::unordered_set<size_t>;
 
-using SymbMapT = std::unordered_map<std::string,teq::iTensor*>;
+using SymbMapT = types::StrUMapT<teq::iTensor*>;
 
 template <typename T>
 using EnumsT = std::vector<std::pair<size_t,T>>;

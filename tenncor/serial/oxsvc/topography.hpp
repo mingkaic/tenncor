@@ -22,11 +22,10 @@ using SegmentT = std::shared_ptr<TopographicSeg>;
 
 using SegmentsT = std::list<SegmentT>;
 
+using GraphT = types::StrUMapT<NodeT>;
+
 struct iTopographicNode
 {
-	iTopographicNode (const std::string& color) :
-		color_(color) {}
-
 	virtual ~iTopographicNode (void) = default;
 
 	virtual std::string get_name (void) const = 0;
@@ -38,11 +37,10 @@ struct iTopographicNode
 	std::unordered_set<NodeT> edges_;
 };
 
-struct TopographicNode final : public iTopographicNode
+struct TopographicOp final : public iTopographicNode
 {
-	TopographicNode (const onnx::NodeProto* source,
-		const types::StrUMapT<NodeT>& existing_nodes,
-		const std::string& color) : iTopographicNode(color), source_(source)
+	TopographicOp (const onnx::NodeProto* source,
+		const GraphT& existing_nodes) : source_(source)
 	{
 		const auto& inputs = source->input();
 		const auto& attrs = source->attribute();
@@ -93,8 +91,7 @@ struct TopographicNode final : public iTopographicNode
 
 struct TopographicInit final : public iTopographicNode
 {
-	TopographicInit (const onnx::TensorProto* init, const std::string& color) :
-		iTopographicNode(color), source_(init) {}
+	TopographicInit (const onnx::TensorProto* init) : source_(init) {}
 
 	std::string get_name (void) const override
 	{
@@ -111,8 +108,7 @@ struct TopographicInit final : public iTopographicNode
 
 struct TopographicInput final : public iTopographicNode
 {
-	TopographicInput (const onnx::ValueInfoProto* input, const std::string& color) :
-		iTopographicNode(color), source_(input) {}
+	TopographicInput (const onnx::ValueInfoProto* input) : source_(input) {}
 
 	std::string get_name (void) const override
 	{
@@ -182,6 +178,9 @@ struct TopographicSeg final
 
 	types::StrUMapT<SegmentT> subgraphs_;
 };
+
+void extract_nodes (
+	GraphT& out, const onnx::GraphProto& graph);
 
 SegmentsT split_topograph (
 	const onnx::GraphProto& graph,

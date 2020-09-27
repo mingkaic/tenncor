@@ -10,6 +10,31 @@ namespace distr
 namespace ox
 {
 
+void extract_nodes (GraphT& out, const onnx::GraphProto& graph)
+{
+	const auto& pb_inputs = graph.input();
+	const auto& pb_inits = graph.initializer();
+	const auto& pb_nodes = graph.node();
+	for (const auto& pb_input : pb_inputs)
+	{
+		auto id = pb_input.name();
+		out.emplace(id,
+			std::make_shared<TopographicInput>(&pb_input));
+	}
+	for (const auto& pb_init : pb_inits)
+	{
+		auto id = pb_init.name();
+		out.emplace(id,
+			std::make_shared<TopographicInit>(&pb_init));
+	}
+	for (const auto& pb_node : pb_nodes)
+	{
+		auto id = pb_node.name();
+		out.emplace(id,
+			std::make_shared<TopographicOp>(&pb_node, out));
+	}
+}
+
 SegmentsT split_topograph (
 	const onnx::GraphProto& graph,
 	const TopographyT& topography)
@@ -19,30 +44,12 @@ SegmentsT split_topograph (
 		global::fatal("topographic map cannot be empty");
 	}
 
-	types::StrUMapT<NodeT> nodes;
-	const auto& pb_inputs = graph.input();
-	const auto& pb_inits = graph.initializer();
-	const auto& pb_nodes = graph.node();
-	for (const auto& pb_input : pb_inputs)
+	GraphT nodes;
+	extract_nodes(nodes, graph);
+	for (auto node : nodes)
 	{
-		auto id = pb_input.name();
-		auto color = estd::try_get(topography, id, "");
-		nodes.emplace(id,
-			std::make_shared<TopographicInput>(&pb_input, color));
-	}
-	for (const auto& pb_init : pb_inits)
-	{
-		auto id = pb_init.name();
-		auto color = estd::try_get(topography, id, "");
-		nodes.emplace(id,
-			std::make_shared<TopographicInit>(&pb_init, color));
-	}
-	for (const auto& pb_node : pb_nodes)
-	{
-		auto id = pb_node.name();
-		auto color = estd::try_get(topography, id, "");
-		nodes.emplace(id,
-			std::make_shared<TopographicNode>(&pb_node, nodes, color));
+		auto id = node.second->get_name();
+		node.second->color_ = estd::try_get(topography, id, "");
 	}
 
 	NodeT node;

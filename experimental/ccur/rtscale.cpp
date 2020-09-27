@@ -40,7 +40,7 @@ int main (int argc, const char** argv)
 
 	global::set_log_level("info");
 
-	std::unordered_map<std::string,size_t> stats;
+	types::StrUMapT<size_t> stats;
 	size_t mean_stat = 0;//,
 		// max_stat = 0,
 		// min_stat = std::numeric_limits<size_t>::max();

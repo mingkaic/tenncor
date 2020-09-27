@@ -46,9 +46,9 @@ struct ConsulService final
 		agent_.deregisterService(id_);
 	}
 
-	std::unordered_map<std::string,std::string> get_peers (void)
+	types::StrUMapT<std::string> get_peers (void)
 	{
-		std::unordered_map<std::string,std::string> peers;
+		types::StrUMapT<std::string> peers;
 		std::vector<ppconsul::catalog::NodeService> services;
 		for (size_t i = 0; i < consul_nretries; ++i)
 		{

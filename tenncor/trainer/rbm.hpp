@@ -111,7 +111,7 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 
 	eteq::VarptrsT<T> fcontent = layr::get_storage<T>(model.fwd_);
 	eteq::VarptrsT<T> bcontent = layr::get_storage<T>(model.bwd_);
-	std::unordered_map<std::string,eteq::VarptrT<T>> vars;
+	types::StrUMapT<eteq::VarptrT<T>> vars;
 	for (eteq::VarptrT<T> var : fcontent)
 	{
 		vars.emplace(var->to_string(), var);

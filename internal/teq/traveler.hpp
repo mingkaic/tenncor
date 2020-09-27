@@ -187,7 +187,7 @@ struct PathDirection
 	std::vector<std::string> attrs_;
 };
 
-using PathNodeT = std::unordered_map<std::string,PathDirection>;
+using PathNodeT = types::StrUMapT<PathDirection>;
 
 using TensPathsT = TensMapT<PathNodeT>;
 

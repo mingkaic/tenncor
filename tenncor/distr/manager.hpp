@@ -74,6 +74,11 @@ struct DistrManager final : public iDistrManager
 		return static_cast<iPeerService*>(svc);
 	}
 
+	ConsulService* get_consul (void)
+	{
+		return consul_.get();
+	}
+
 private:
 	// This can be run in multiple threads if needed.
 	void handle_rpcs (void)

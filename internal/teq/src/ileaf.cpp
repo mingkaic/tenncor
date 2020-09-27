@@ -9,7 +9,7 @@
 namespace teq
 {
 
-static const std::unordered_map<std::string,Usage> named_usages = {
+static const types::StrUMapT<Usage> named_usages = {
 	{"constant", IMMUTABLE},
 	{"variable", VARUSAGE},
 	{"placeholder", PLACEHOLDER},

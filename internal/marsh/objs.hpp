@@ -532,7 +532,7 @@ private:
 		return cpy;
 	}
 
-	std::unordered_map<std::string,ObjptrT> contents_;
+	types::StrUMapT<ObjptrT> contents_;
 };
 
 void get_attrs (Maps& mvalues, const iAttributed& attributed);

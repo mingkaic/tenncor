@@ -58,7 +58,7 @@ private:
 		{
 			std::sort(hshs.begin(), hshs.end());
 		}
-		std::unordered_map<std::string,std::string> attrs;
+		types::StrUMapT<std::string> attrs;
 		auto keys = func.ls_attrs();
 		for (auto key : keys)
 		{
@@ -93,7 +93,7 @@ private:
 		hashes_.emplace(tens, uuid);
 	}
 
-	std::unordered_map<std::string,std::string> uuids_;
+	types::StrUMapT<std::string> uuids_;
 };
 
 /// Delete and update equivalent functor and leaves

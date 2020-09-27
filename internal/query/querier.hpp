@@ -13,7 +13,7 @@ namespace query
 
 using TensListT = estd::HashList<teq::iTensor*>;
 
-using SindexT = std::unordered_map<std::string,TensListT>;
+using SindexT = types::StrUMapT<TensListT>;
 
 struct Query;
 

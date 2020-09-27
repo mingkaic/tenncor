@@ -19,7 +19,7 @@ using PbAttrsT = ::google::protobuf::RepeatedPtrField<AttributeProto>;
 
 using TensorT = std::pair<int32_t,teq::Shape>;
 
-using AnnotationsT = std::unordered_map<std::string,std::string>;
+using AnnotationsT = types::StrUMapT<std::string>;
 
 const std::string leafname_key = "TENSOR_NAME";
 
@@ -167,7 +167,7 @@ const GraphProto* unmarshal_attrs (marsh::Maps& out,
 
 teq::Shape unmarshal_shape (const TensorProto& tens);
 
-std::unordered_map<std::string,AnnotationsT> unmarshal_annotation (
+types::StrUMapT<AnnotationsT> unmarshal_annotation (
 	const google::protobuf::RepeatedPtrField<TensorAnnotation>& as);
 
 }

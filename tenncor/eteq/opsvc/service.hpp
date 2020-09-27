@@ -23,7 +23,7 @@ if (nullptr != ERR)\
 
 using OpServiceT = DistrOperation::AsyncService;
 
-using DataStatesT = std::unordered_map<std::string,teq::iTensor*>;
+using DataStatesT = types::StrUMapT<teq::iTensor*>;
 
 const std::string opsvc_key = "distr_opsvc";
 
