@@ -74,6 +74,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         ":hosvc",
+        "//dbg/print/printsvc:printsvc",
         "//internal/teq:mock",
         "//tenncor/distr:mock",
         "//testutil:tutil",

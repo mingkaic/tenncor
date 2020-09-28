@@ -30,9 +30,65 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 	DistrHoService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc) :
 		PeerService<DistrHoCli>(cfg), iosvc_(iosvc) {}
 
-	teq::TensptrsT optimize (const opt::Optimization& optimize, const teq::TensptrsT& roots)
+	teq::TensptrsT optimize (const teq::TensptrsT& roots,
+		const opt::Optimization& optimize)
 	{
-		return roots;
+		auto refs = distr::reachable_refs(roots);
+		types::StrUMapT<types::StrUSetT> remotes;
+		distr::separate_by_server(remotes, refs);
+
+		types::StrUMapT<distr::iDistrRef*> refmap;
+		for (auto ref : refs)
+		{
+			refmap.emplace(ref->node_id(), ref);
+		}
+
+		std::list<egrpc::ErrPromiseptrT> completions;
+		for (auto& remote : remotes)
+		{
+			auto peer_id = remote.first;
+			auto nodes = remote.second;
+			error::ErrptrT err = nullptr;
+			auto client = get_client(err, peer_id);
+			if (nullptr != err)
+			{
+				global::fatal(err->to_string());
+			}
+			google::protobuf::RepeatedPtrField<std::string>
+			node_ids(nodes.begin(), nodes.end());
+			// sort to make more predictable
+			std::sort(node_ids.begin(), node_ids.end());
+
+			PutOptimizeRequest req;
+			req.mutable_uuids()->Swap(&node_ids);
+			req.mutable_opts()->MergeFrom(optimize);
+			completions.push_back(client->put_optimize(cq_, req,
+			[&](PutOptimizeResponse& res)
+			{
+				auto opts = res.root_opts();
+				for (auto& refpair : opts)
+				{
+					auto remote_ref = distr::io::node_meta_to_ref(refpair.second);
+					static_cast<distr::DistrRef&>(*refmap.at(refpair.first)) =
+						static_cast<distr::DistrRef&>(*remote_ref);
+				}
+			}));
+		}
+
+		while (false == completions.empty())
+		{
+			auto done = completions.front()->get_future();
+			wait_on_future(done);
+			if (done.valid())
+			{
+				if (auto err = done.get())
+				{
+					global::fatal(err->to_string());
+				}
+			}
+			completions.pop_front();
+		}
+		return hone::optimize(roots, optimize);
 	}
 
 	void register_service (grpc::ServerBuilder& builder) override
@@ -57,7 +113,35 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 			},
 			[this](const PutOptimizeRequest& req, PutOptimizeResponse& res)
 			{
-				auto alias = fmts::sprintf("%s:PutOptimize", get_peer_id().c_str());
+				auto& uuids = req.uuids();
+				auto& opts = req.opts();
+				teq::TensptrsT roots;
+				roots.reserve(uuids.size());
+				for (const std::string& uuid : uuids)
+				{
+					error::ErrptrT err = nullptr;
+					auto tens = this->iosvc_->lookup_node(err, uuid, false);
+					_ERR_CHECK(err, grpc::NOT_FOUND, get_peer_id().c_str());
+					roots.push_back(tens);
+				}
+				auto refresh = this->optimize(roots, opts);
+				if (refresh.size() != roots.size())
+				{
+					std::string msg = fmts::sprintf(
+						"[server %s] optimization lost nodes "
+						"(input %d nodes, output %d nodes)",
+						get_peer_id().c_str(), roots.size(), refresh.size());
+					global::error(msg);
+					return grpc::Status(grpc::INTERNAL, msg);
+				}
+				auto res_roots = res.mutable_root_opts();
+				for (size_t i = 0, n = uuids.size(); i < n; ++i)
+				{
+					auto id = iosvc_->expose_node(refresh[i]);
+					distr::io::NodeMeta meta;
+					distr::io::tens_to_node_meta(meta, get_peer_id(), id, refresh[i]);
+					res_roots->insert({uuids[i], meta});
+				}
 				return grpc::Status::OK;
 			}, &cq);
 	}

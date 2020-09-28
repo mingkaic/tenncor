@@ -9,7 +9,7 @@ package distr.ho;
 message PutOptimizeRequest {
     opt.Optimization opts = 1;
 
-    repeated string roots = 2;
+    repeated string uuids = 2;
 }
 
 message PutOptimizeResponse {
