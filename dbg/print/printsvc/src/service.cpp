@@ -114,19 +114,11 @@ AsciiRemotesT DistrPrintService::print_ascii_remotes (const AsciiRemotesT& remot
 					AsciiTemplate(res.format(), remotes));
 			}));
 	}
-	while (false == completions.empty())
+	egrpc::wait_for(completions,
+	[](error::ErrptrT err)
 	{
-		auto done = completions.front()->get_future();
-		wait_on_future(done);
-		if (done.valid())
-		{
-			if (auto err = done.get())
-			{
-				global::fatal(err->to_string());
-			}
-		}
-		completions.pop_front();
-	}
+		global::fatal(err->to_string());
+	});
 	return nexts;
 }
 

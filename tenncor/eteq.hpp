@@ -9,8 +9,6 @@
 #ifndef TENNCOR_ETEQ_HPP
 #define TENNCOR_ETEQ_HPP
 
-#include "tenncor/eteq/eteq.hpp"
-
 #include "tenncor/distr.hpp"
 
 namespace tcr

@@ -2,9 +2,6 @@
 #ifndef TRAINER_RBM_HPP
 #define TRAINER_RBM_HPP
 
-#include "tenncor/layr/layer.hpp"
-#include "tenncor/layr/approx.hpp"
-
 #include "tenncor/tenncor.hpp"
 
 namespace trainer

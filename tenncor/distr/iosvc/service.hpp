@@ -69,7 +69,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		ListNodesRequest req;
 		DRefptrT ref = nullptr;
 		req.add_uuids(id);
-		auto promise = client->list_nodes(cq_, req,
+		auto done = client->list_nodes(cq_, req,
 			[&, this](ListNodesResponse& res)
 			{
 				if (res.values().empty())
@@ -82,8 +82,11 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 				ref = node_meta_to_ref(node);
 				this->data_.cache_tens(ref);
 			});
-		auto done = promise->get_future();
-		wait_on_future(done);
+		egrpc::wait_for(*done,
+		[&err](error::ErrptrT inerr)
+		{
+			err = inerr;
+		});
 		return ref;
 	}
 

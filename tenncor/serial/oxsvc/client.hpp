@@ -27,19 +27,20 @@ struct DistrSerializeCli final : public egrpc::GrpcClient
 		std::function<void(GetSaveGraphResponse&)> cb)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
-		using GetSaveGraphHandlerT = egrpc::AsyncClientHandler<GetSaveGraphResponse>;
+		using GetSaveGraphHandlerT = egrpc::AsyncClientHandler<GetSaveGraphRequest,GetSaveGraphResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:GetSaveGraph] ", alias_.c_str()));
 		new GetSaveGraphHandlerT(done, logger, cb,
-			[this, &req, &cq](GetSaveGraphHandlerT* handler)
-			{
-				build_ctx(handler->ctx_, false);
-				// prepare to avoid passing to cq before reader_ assignment
-				handler->reader_ = stub_->PrepareAsyncGetSaveGraph(&handler->ctx_, req, &cq);
-				// make request after reader_ assignment
-				handler->reader_->StartCall();
-				handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
-			}, cfg_.request_retry_);
+		[this, &req, &cq](GetSaveGraphRequest& inreq, GetSaveGraphHandlerT* handler)
+		{
+			inreq.MergeFrom(req);
+			build_ctx(handler->ctx_, false);
+			// prepare to avoid passing to cq before reader_ assignment
+			handler->reader_ = stub_->PrepareAsyncGetSaveGraph(&handler->ctx_, req, &cq);
+			// make request after reader_ assignment
+			handler->reader_->StartCall();
+			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
+		}, cfg_.request_retry_);
 		return done;
 	}
 
@@ -48,19 +49,20 @@ struct DistrSerializeCli final : public egrpc::GrpcClient
 		const PostLoadGraphRequest& req)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
-		using PostLoadGraphHandlerT = egrpc::AsyncClientHandler<PostLoadGraphResponse>;
+		using PostLoadGraphHandlerT = egrpc::AsyncClientHandler<PostLoadGraphRequest,PostLoadGraphResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:PostLoadGraph] ", alias_.c_str()));
 		new PostLoadGraphHandlerT(done, logger, [](PostLoadGraphResponse&){},
-			[this, &req, &cq](PostLoadGraphHandlerT* handler)
-			{
-				build_ctx(handler->ctx_, false);
-				// prepare to avoid passing to cq before reader_ assignment
-				handler->reader_ = stub_->PrepareAsyncPostLoadGraph(&handler->ctx_, req, &cq);
-				// make request after reader_ assignment
-				handler->reader_->StartCall();
-				handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
-			}, cfg_.request_retry_);
+		[this, &req, &cq](PostLoadGraphRequest& inreq, PostLoadGraphHandlerT* handler)
+		{
+			inreq.MergeFrom(req);
+			build_ctx(handler->ctx_, false);
+			// prepare to avoid passing to cq before reader_ assignment
+			handler->reader_ = stub_->PrepareAsyncPostLoadGraph(&handler->ctx_, req, &cq);
+			// make request after reader_ assignment
+			handler->reader_->StartCall();
+			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
+		}, cfg_.request_retry_);
 		return done;
 	}
 

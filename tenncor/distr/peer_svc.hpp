@@ -125,14 +125,6 @@ private:
 	std::vector<std::thread> cli_jobs_;
 };
 
-template <typename T>
-void wait_on_future (std::future<T>& done)
-{
-	while (done.valid() && done.wait_for(
-		std::chrono::milliseconds(1)) ==
-		std::future_status::timeout);
-}
-
 using RegisterSvcF = std::function<error::ErrptrT(\
 	estd::ConfigMap<>&,const PeerServiceConfig&)>;
 

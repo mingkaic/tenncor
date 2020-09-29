@@ -49,19 +49,20 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		std::function<void(ListReachableResponse&)> cb)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
-		using ListReachableHandlerT = egrpc::AsyncClientHandler<ListReachableResponse>;
+		using ListReachableHandlerT = egrpc::AsyncClientHandler<ListReachableRequest,ListReachableResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:ListReachable] ", alias_.c_str()));
 		new ListReachableHandlerT(done, logger, cb,
-			[this, &req, &cq](ListReachableHandlerT* handler)
-			{
-				build_ctx(handler->ctx_, false);
-				// prepare to avoid passing to cq before reader_ assignment
-				handler->reader_ = stub_->PrepareAsyncListReachable(&handler->ctx_, req, &cq);
-				// make request after reader_ assignment
-				handler->reader_->StartCall();
-				handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
-			}, cfg_.request_retry_);
+		[this, &req, &cq](ListReachableRequest& inreq, ListReachableHandlerT* handler)
+		{
+			inreq.MergeFrom(req);
+			build_ctx(handler->ctx_, false);
+			// prepare to avoid passing to cq before reader_ assignment
+			handler->reader_ = stub_->PrepareAsyncListReachable(&handler->ctx_, req, &cq);
+			// make request after reader_ assignment
+			handler->reader_->StartCall();
+			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
+		}, cfg_.request_retry_);
 		return done;
 	}
 
@@ -71,19 +72,20 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		std::function<void(CreateDeriveResponse&)> cb)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
-		using CreateDeriveHandlerT = egrpc::AsyncClientHandler<CreateDeriveResponse>;
+		using CreateDeriveHandlerT = egrpc::AsyncClientHandler<CreateDeriveRequest,CreateDeriveResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:Derive] ", alias_.c_str()));
 		new CreateDeriveHandlerT(done, logger, cb,
-			[this, &req, &cq](CreateDeriveHandlerT* handler)
-			{
-				build_ctx(handler->ctx_, false);
-				// prepare to avoid passing to cq before reader_ assignment
-				handler->reader_ = stub_->PrepareAsyncCreateDerive(&handler->ctx_, req, &cq);
-				// make request after reader_ assignment
-				handler->reader_->StartCall();
-				handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
-			}, cfg_.request_retry_);
+		[this, &req, &cq](CreateDeriveRequest& inreq, CreateDeriveHandlerT* handler)
+		{
+			inreq.MergeFrom(req);
+			build_ctx(handler->ctx_, false);
+			// prepare to avoid passing to cq before reader_ assignment
+			handler->reader_ = stub_->PrepareAsyncCreateDerive(&handler->ctx_, req, &cq);
+			// make request after reader_ assignment
+			handler->reader_->StartCall();
+			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
+		}, cfg_.request_retry_);
 		return done;
 	}
 

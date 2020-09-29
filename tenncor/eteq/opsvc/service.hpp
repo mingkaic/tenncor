@@ -92,19 +92,11 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 				}));
 		}
 		// wait for completion before evaluating in local
-		while (false == completions.empty())
+		egrpc::wait_for(completions,
+		[](error::ErrptrT err)
 		{
-			auto done = completions.front()->get_future();
-			wait_on_future(done);
-			if (done.valid())
-			{
-				if (auto err = done.get())
-				{
-					global::fatal(err->to_string());
-				}
-			}
-			completions.pop_front();
-		}
+			global::fatal(err->to_string());
+		});
 		// locally evaluate
 		teq::TravEvaluator eval(device, ignored);
 		teq::multi_visit(eval, targets);
@@ -219,12 +211,11 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 						}
 					}));
 			}
-			while (false == completions.empty())
+			egrpc::wait_for(completions,
+			[](error::ErrptrT err)
 			{
-				auto done = completions.front()->get_future();
-				wait_on_future(done);
-				completions.pop_front();
-			}
+				global::fatal(err->to_string());
+			});
 		}
 		return reached;
 	}
@@ -353,12 +344,11 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 							}
 						}));
 				}
-				while (false == completions.empty())
+				egrpc::wait_for(completions,
+				[](error::ErrptrT err)
 				{
-					auto done = completions.front()->get_future();
-					wait_on_future(done);
-					completions.pop_front();
-				}
+					global::fatal(err->to_string());
+				});
 			}
 		}
 

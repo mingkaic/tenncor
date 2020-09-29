@@ -5,7 +5,6 @@
 #include "tenncor/distr/consul.hpp"
 
 #include "tenncor/serial/oxsvc/topography.hpp"
-#include "tenncor/serial/oxsvc/distr.ox.grpc.pb.h"
 
 namespace segment
 {

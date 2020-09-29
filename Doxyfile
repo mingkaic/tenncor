@@ -817,7 +817,6 @@ INPUT_ENCODING         = UTF-8
 # *.f, *.for, *.tcl, *.vhd, *.vhdl, *.ucf and *.qsf.
 
 FILE_PATTERNS          = *.c \
-                         *.cc \
                          *.cxx \
                          *.cpp \
                          *.c++ \
@@ -830,7 +829,6 @@ FILE_PATTERNS          = *.c \
                          *.idl \
                          *.ddl \
                          *.odl \
-                         *.h \
                          *.hh \
                          *.hxx \
                          *.hpp \

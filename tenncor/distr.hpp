@@ -4,7 +4,8 @@
 
 #include "tenncor/distr/distr.hpp"
 #include "tenncor/eteq/opsvc/opsvc.hpp"
-#include "tenncor/serial/oxsvc/service.hpp"
+#include "tenncor/hone/hosvc/hosvc.hpp"
+#include "tenncor/serial/oxsvc/oxsvc.hpp"
 
 namespace tcr
 {

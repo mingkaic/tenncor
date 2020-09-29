@@ -29,21 +29,24 @@ struct DistrHoCli final : public egrpc::GrpcClient
 		std::function<void(PutOptimizeResponse&)> cb)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
-		using PutOptimizeHandlerT = egrpc::AsyncClientHandler<PutOptimizeResponse>;
+		using PutOptimizeHandlerT = egrpc::AsyncClientHandler<PutOptimizeRequest,PutOptimizeResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:PutOptimize] ", alias_.c_str()));
 		new PutOptimizeHandlerT(done, logger, cb,
-			[this, &req, &cq](PutOptimizeHandlerT* handler)
-			{
-				build_ctx(handler->ctx_, false);
-				// prepare to avoid passing to cq before reader_ assignment
-				handler->reader_ = stub_->PrepareAsyncPutOptimize(&handler->ctx_, req, &cq);
-				// make request after reader_ assignment
-				handler->reader_->StartCall();
-				handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
-			}, cfg_.request_retry_);
+		[this, &req, &cq](PutOptimizeRequest& inreq, PutOptimizeHandlerT* handler)
+		{
+			inreq.MergeFrom(req);
+			build_ctx(handler->ctx_, false);
+			// prepare to avoid passing to cq before reader_ assignment
+			handler->reader_ = stub_->PrepareAsyncPutOptimize(&handler->ctx_, req, &cq);
+			// make request after reader_ assignment
+			handler->reader_->StartCall();
+			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
+		}, cfg_.request_retry_);
 		return done;
 	}
+
+	// egrpc::ErrPromiseptrT put_replace ()
 
 private:
 	std::unique_ptr<DistrOptimization::Stub> stub_;

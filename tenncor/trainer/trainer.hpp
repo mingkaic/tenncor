@@ -4,6 +4,5 @@
 
 #include "tenncor/trainer/apply_update.hpp"
 #include "tenncor/trainer/dbn.hpp"
-#include "tenncor/trainer/rbm.hpp"
 
 #endif // TRAINER_HPP

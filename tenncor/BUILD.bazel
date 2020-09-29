@@ -112,8 +112,8 @@ cc_library(
     include_prefix = "tenncor",
     includes = ["."],
     deps = [
-        "//tenncor/hone:hone",
         "//tenncor/eteq/opsvc:opsvc",
+        "//tenncor/hone/hosvc:hosvc",
         "//tenncor/serial/oxsvc:oxsvc",
         "//tenncor/trainer:trainer",
     ],

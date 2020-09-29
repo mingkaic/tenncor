@@ -9,8 +9,6 @@
 #ifndef TENNCOR_SERIAL_HPP
 #define TENNCOR_SERIAL_HPP
 
-#include "tenncor/serial/serial.hpp"
-
 #include "tenncor/distr.hpp"
 
 namespace tcr

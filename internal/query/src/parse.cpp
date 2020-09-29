@@ -1,5 +1,7 @@
 #include <google/protobuf/util/json_util.h>
 
+#include "internal/global/global.hpp"
+
 #include "internal/query/parse.hpp"
 
 #ifdef QUERY_PARSE_HPP

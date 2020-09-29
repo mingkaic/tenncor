@@ -2,8 +2,6 @@
 #ifndef DISTR_OX_SERVICE_HPP
 #define DISTR_OX_SERVICE_HPP
 
-#include "egrpc/egrpc.hpp"
-
 #include "tenncor/serial/serial.hpp"
 
 #include "tenncor/distr/iosvc/service.hpp"
@@ -81,19 +79,11 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 			}
 		}
 
-		while (false == completions.empty())
+		egrpc::wait_for(completions,
+		[](error::ErrptrT err)
 		{
-			auto done = completions.front()->get_future();
-			wait_on_future(done);
-			if (done.valid())
-			{
-				if (auto err = done.get())
-				{
-					global::fatal(err->to_string());
-				}
-			}
-			completions.pop_front();
-		}
+			global::fatal(err->to_string());
+		});
 
 		// add references to tens to avoid serialization of references
 		serial::save_graph(pb_graph, roots, identified, stops);
@@ -183,15 +173,12 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 				PostLoadGraphRequest req;
 				req.mutable_graph()->MergeFrom(subgraph);
 				req.mutable_refs()->Swap(&pb_refs);
-				auto done = client->post_load_graph(cq_, req)->get_future();
-				wait_on_future(done);
-				if (done.valid())
+				auto done = client->post_load_graph(cq_, req);
+				egrpc::wait_for(*done,
+				[](error::ErrptrT err)
 				{
-					if (auto err = done.get())
-					{
-						global::fatal(err->to_string());
-					}
-				}
+					global::fatal(err->to_string());
+				});
 
 				const auto& suboutputs = subgraph.output();
 				for (const auto& suboutput : suboutputs)

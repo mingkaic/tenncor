@@ -241,11 +241,6 @@ gru_model_j2o: models/fast_gru.json models/latin_gru.json
 TMP_COVFILE := /tmp/coverage.info
 COVERAGE_INFO_FILE := bazel-out/_coverage/_coverage_report.dat
 CCOVER := bazel coverage --config asan --action_env="ASAN_OPTIONS=detect_leaks=0" --config gtest --config cc_coverage
-DISTR_TEST := //tenncor/distr/...
-ETEQ_TEST := //tenncor/eteq/...
-HONE_CTEST := //tenncor/hone/...
-LAYR_CTEST := //tenncor/layr/...
-SERIAL_CTEST := //tenncor/serial/...
 COVERAGE_CTX := tmp/tenncor_coverage
 COVERAGE_CSV := tmp/tenncor_conversions.csv
 CTENNCOR_TESTS = $(shell bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest')
@@ -355,30 +350,38 @@ cover_utils:
 
 .PHONY: cover_distr
 cover_distr:
-	${CCOVER} --instrumentation_filter 'tenncor/distr/*' ${DISTR_TEST}
+	${CCOVER} --instrumentation_filter 'tenncor/distr/*' //tenncor/distr/...
 	@make clean_test_coverage
 	lcov -a ${TMP_COVFILE} -o distr_coverage.info
 
 .PHONY: cover_eteq
 cover_eteq:
-	${CCOVER} --instrumentation_filter 'tenncor/eteq/*' ${ETEQ_TEST}
+	${CCOVER} --instrumentation_filter 'tenncor/eteq/*' //tenncor/eteq/...
 	@make clean_test_coverage
 	lcov -a ${TMP_COVFILE} -o eteq_coverage.info
 
 .PHONY: cover_hone
 cover_hone:
-	${CCOVER} --instrumentation_filter 'tenncor/hone/*' ${HONE_CTEST}
+	${CCOVER} --instrumentation_filter 'tenncor/hone/*' //tenncor/hone/...
 	@make clean_test_coverage
 	lcov -a ${TMP_COVFILE} -o hone_coverage.info
 
 .PHONY: cover_layr
 cover_layr:
-	${CCOVER} --instrumentation_filter 'tenncor/layr/*' ${LAYR_CTEST}
+	${CCOVER} --instrumentation_filter 'tenncor/layr/*' //tenncor/layr/...
 	@make clean_test_coverage
 	lcov -a ${TMP_COVFILE} -o layr_coverage.info
 
 .PHONY: cover_serial
 cover_serial:
-	${CCOVER} --instrumentation_filter 'tenncor/serial/*' ${SERIAL_CTEST}
+	${CCOVER} --instrumentation_filter 'tenncor/serial/*' //tenncor/serial/...
 	@make clean_test_coverage
 	lcov -a ${TMP_COVFILE} -o serial_coverage.info
+
+#### integration coverages ####
+
+.PHONY: cover_integration
+cover_integration:
+	${CCOVER} --instrumentation_filter 'internal/*' 'tenncor/*' //tenncor:ctest
+	@make clean_test_coverage
+	lcov -a ${TMP_COVFILE} -o integ_coverage.info

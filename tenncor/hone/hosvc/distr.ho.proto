@@ -16,6 +16,14 @@ message PutOptimizeResponse {
     map<string,distr.io.NodeMeta> root_opts = 1;
 }
 
+message PutReplaceRequest {
+    map<string,distr.io.NodeMeta> replaces = 1;
+}
+
+message PutReplaceResponse {}
+
 service DistrOptimization {
     rpc PutOptimize (PutOptimizeRequest) returns (PutOptimizeResponse);
+
+    rpc PutReplace (PutReplaceRequest) returns (PutReplaceResponse);
 }
