@@ -11,16 +11,16 @@ else
 	MODE="all";
 fi
 
-WORKDIR="$CONTEXT/tmp/tenncor_coverage";
+COVERAGE_CTX="$CONTEXT/tmp/tenncor_coverage";
 CONVERSION_CSV="$CONTEXT/tmp/tenncor_conversion.csv";
 
-rm -Rf "$WORKDIR";
-mkdir -p "$WORKDIR";
-find $WORKDIR -maxdepth 1 | grep -E -v 'tmp|.git|bazel-' | tail -n +2 | xargs -i cp -r {} $WORKDIR;
-find $WORKDIR | grep -E '.cpp|.hpp' | python3 scripts/label_uniquify.py $WORKDIR > $CONTEXT;
-find $WORKDIR | grep -E '.yml' | python3 scripts/yaml_replace.py $CONTEXT;
+rm -Rf "$COVERAGE_CTX";
+mkdir -p "$COVERAGE_CTX";
+find $CONTEXT -maxdepth 1 | grep -E -v 'tmp|\.git|bazel-' | tail -n +2 | xargs -i cp -r {} $COVERAGE_CTX;
+find $COVERAGE_CTX | grep -E '\.cpp|\.hpp' | python3 "$THIS_DIR/label_uniquify.py" $COVERAGE_CTX > $CONVERSION_CSV;
+find $COVERAGE_CTX | grep -E '\.yml' | python3 "$THIS_DIR/yaml_replace.py" $CONVERSION_CSV;
 
-cd "$WORKDIR";
+cd "$COVERAGE_CTX";
 lcov --base-directory . --directory . --zerocounters;
 set -e
 
