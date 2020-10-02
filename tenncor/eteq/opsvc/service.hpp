@@ -379,63 +379,63 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
 	{
 		// GetData
+		using GetDataCallT = egrpc::AsyncServerStreamCall<GetDataRequest,NodeData,DataStatesT>;
 		auto gdata_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:GetData] ",
 				get_peer_id().c_str()));
-		new egrpc::AsyncServerStreamCall<GetDataRequest,
-			NodeData,DataStatesT>(gdata_logger,
-			[this](grpc::ServerContext* ctx, GetDataRequest* req,
-				grpc::ServerAsyncWriter<NodeData>* writer,
-				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-				void* tag)
-			{
-				this->service_.RequestGetData(ctx, req, writer, cq, ccq, tag);
-			},
-			[this](DataStatesT& states, const GetDataRequest& req)
-			{
-				return this->startup_get_data(states, req);
-			},
-			process_get_data, &cq);
+		new GetDataCallT(gdata_logger,
+		[this](grpc::ServerContext* ctx, GetDataRequest* req,
+			grpc::ServerAsyncWriter<NodeData>* writer,
+			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
+			void* tag)
+		{
+			this->service_.RequestGetData(ctx, req, writer, cq, ccq, tag);
+		},
+		[this](DataStatesT& states, const GetDataRequest& req)
+		{
+			return this->startup_get_data(states, req);
+		},
+		process_get_data, &cq);
 
 		// ListReachable
+		using ListReachableCallT = egrpc::AsyncServerCall<ListReachableRequest,ListReachableResponse>;
 		auto lreachable_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:ListReachable] ",
 				get_peer_id().c_str()));
-		new egrpc::AsyncServerCall<ListReachableRequest,
-			ListReachableResponse>(lreachable_logger,
-			[this](grpc::ServerContext* ctx, ListReachableRequest* req,
-				grpc::ServerAsyncResponseWriter<ListReachableResponse>* writer,
-				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-				void* tag)
-			{
-				this->service_.RequestListReachable(ctx, req, writer, cq, ccq, tag);
-			},
-			[this](
-				const ListReachableRequest& req,
-				ListReachableResponse& res)
-			{
-				return this->list_reachable(req, res);
-			}, &cq);
+		new ListReachableCallT(lreachable_logger,
+		[this](grpc::ServerContext* ctx, ListReachableRequest* req,
+			grpc::ServerAsyncResponseWriter<ListReachableResponse>* writer,
+			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
+			void* tag)
+		{
+			this->service_.RequestListReachable(ctx, req, writer, cq, ccq, tag);
+		},
+		[this](
+			const ListReachableRequest& req,
+			ListReachableResponse& res)
+		{
+			return this->list_reachable(req, res);
+		}, &cq);
 
-		// Derive
+		// CreateDerive
+		using CreateDeriveCallT = egrpc::AsyncServerCall<CreateDeriveRequest,CreateDeriveResponse>;
 		auto cderive_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:CreateDerive] ",
 				get_peer_id().c_str()));
-		new egrpc::AsyncServerCall<CreateDeriveRequest,
-			CreateDeriveResponse>(cderive_logger,
-			[this](grpc::ServerContext* ctx, CreateDeriveRequest* req,
-				grpc::ServerAsyncResponseWriter<CreateDeriveResponse>* writer,
-				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-				void* tag)
-			{
-				this->service_.RequestCreateDerive(ctx, req, writer, cq, ccq, tag);
-			},
-			[this](
-				const CreateDeriveRequest& req,
-				CreateDeriveResponse& res)
-			{
-				return this->create_derive(req, res);
-			}, &cq);
+		new CreateDeriveCallT(cderive_logger,
+		[this](grpc::ServerContext* ctx, CreateDeriveRequest* req,
+			grpc::ServerAsyncResponseWriter<CreateDeriveResponse>* writer,
+			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
+			void* tag)
+		{
+			this->service_.RequestCreateDerive(ctx, req, writer, cq, ccq, tag);
+		},
+		[this](
+			const CreateDeriveRequest& req,
+			CreateDeriveResponse& res)
+		{
+			return this->create_derive(req, res);
+		}, &cq);
 	}
 
 private:

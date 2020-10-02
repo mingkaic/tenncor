@@ -126,32 +126,33 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
 	{
 		// ListNodes
-		auto lnodes_logger = std::make_shared<global::FormatLogger>(global::get_logger(),
-			fmts::sprintf("[server %s:ListNodes] ", get_peer_id().c_str()));
-		new egrpc::AsyncServerCall<ListNodesRequest,
-			ListNodesResponse>(lnodes_logger,
-			[this](grpc::ServerContext* ctx, ListNodesRequest* req,
-				grpc::ServerAsyncResponseWriter<ListNodesResponse>* writer,
-				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-				void* tag)
+		using ListNodesCallT = egrpc::AsyncServerCall<ListNodesRequest,ListNodesResponse>;
+		auto lnodes_logger = std::make_shared<global::FormatLogger>(
+			global::get_logger(), fmts::sprintf("[server %s:ListNodes] ",
+			get_peer_id().c_str()));
+		new ListNodesCallT(lnodes_logger,
+		[this](grpc::ServerContext* ctx, ListNodesRequest* req,
+			grpc::ServerAsyncResponseWriter<ListNodesResponse>* writer,
+			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
+			void* tag)
+		{
+			this->service_.RequestListNodes(ctx, req, writer, cq, ccq, tag);
+		},
+		[this](const ListNodesRequest& req, ListNodesResponse& res)
+		{
+			auto alias = fmts::sprintf("%s:ListNodes", get_peer_id().c_str());
+			auto& uuids = req.uuids();
+			for (const std::string& uuid : uuids)
 			{
-				this->service_.RequestListNodes(ctx, req, writer, cq, ccq, tag);
-			},
-			[this](const ListNodesRequest& req, ListNodesResponse& res)
-			{
-				auto alias = fmts::sprintf("%s:ListNodes", get_peer_id().c_str());
-				auto& uuids = req.uuids();
-				for (const std::string& uuid : uuids)
-				{
-					error::ErrptrT err = nullptr;
-					auto tens = lookup_node(err, uuid, false);
-					_ERR_CHECK(err, grpc::NOT_FOUND, alias.c_str());
+				error::ErrptrT err = nullptr;
+				auto tens = lookup_node(err, uuid, false);
+				_ERR_CHECK(err, grpc::NOT_FOUND, alias.c_str());
 
-					NodeMeta* out = res.add_values();
-					tens_to_node_meta(*out, get_peer_id(), uuid, tens);
-				}
-				return grpc::Status::OK;
-			}, &cq);
+				NodeMeta* out = res.add_values();
+				tens_to_node_meta(*out, get_peer_id(), uuid, tens);
+			}
+			return grpc::Status::OK;
+		}, &cq);
 	}
 
 private:

@@ -91,51 +91,51 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
 	{
 		// PutOptimize
+		using PutOptimizeCallT = egrpc::AsyncServerCall<PutOptimizeRequest,PutOptimizeResponse>;
 		auto popt_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:PutOptimize] ",
 				get_peer_id().c_str()));
-		new egrpc::AsyncServerCall<PutOptimizeRequest,
-			PutOptimizeResponse>(popt_logger,
-			[this](grpc::ServerContext* ctx, PutOptimizeRequest* req,
-				grpc::ServerAsyncResponseWriter<PutOptimizeResponse>* writer,
-				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-				void* tag)
+		new PutOptimizeCallT(popt_logger,
+		[this](grpc::ServerContext* ctx, PutOptimizeRequest* req,
+			grpc::ServerAsyncResponseWriter<PutOptimizeResponse>* writer,
+			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
+			void* tag)
+		{
+			this->service_.RequestPutOptimize(ctx, req, writer, cq, ccq, tag);
+		},
+		[this](const PutOptimizeRequest& req, PutOptimizeResponse& res)
+		{
+			auto& uuids = req.uuids();
+			auto& opts = req.opts();
+			teq::TensptrsT roots;
+			roots.reserve(uuids.size());
+			for (const std::string& uuid : uuids)
 			{
-				this->service_.RequestPutOptimize(ctx, req, writer, cq, ccq, tag);
-			},
-			[this](const PutOptimizeRequest& req, PutOptimizeResponse& res)
+				error::ErrptrT err = nullptr;
+				auto tens = this->iosvc_->lookup_node(err, uuid, false);
+				_ERR_CHECK(err, grpc::NOT_FOUND, get_peer_id().c_str());
+				roots.push_back(tens);
+			}
+			auto refresh = this->optimize(roots, opts);
+			if (refresh.size() != roots.size())
 			{
-				auto& uuids = req.uuids();
-				auto& opts = req.opts();
-				teq::TensptrsT roots;
-				roots.reserve(uuids.size());
-				for (const std::string& uuid : uuids)
-				{
-					error::ErrptrT err = nullptr;
-					auto tens = this->iosvc_->lookup_node(err, uuid, false);
-					_ERR_CHECK(err, grpc::NOT_FOUND, get_peer_id().c_str());
-					roots.push_back(tens);
-				}
-				auto refresh = this->optimize(roots, opts);
-				if (refresh.size() != roots.size())
-				{
-					std::string msg = fmts::sprintf(
-						"[server %s] optimization lost nodes "
-						"(input %d nodes, output %d nodes)",
-						get_peer_id().c_str(), roots.size(), refresh.size());
-					global::error(msg);
-					return grpc::Status(grpc::INTERNAL, msg);
-				}
-				auto res_roots = res.mutable_root_opts();
-				for (size_t i = 0, n = uuids.size(); i < n; ++i)
-				{
-					auto id = iosvc_->expose_node(refresh[i]);
-					distr::io::NodeMeta meta;
-					distr::io::tens_to_node_meta(meta, get_peer_id(), id, refresh[i]);
-					res_roots->insert({uuids[i], meta});
-				}
-				return grpc::Status::OK;
-			}, &cq);
+				std::string msg = fmts::sprintf(
+					"[server %s] optimization lost nodes "
+					"(input %d nodes, output %d nodes)",
+					get_peer_id().c_str(), roots.size(), refresh.size());
+				global::error(msg);
+				return grpc::Status(grpc::INTERNAL, msg);
+			}
+			auto res_roots = res.mutable_root_opts();
+			for (size_t i = 0, n = uuids.size(); i < n; ++i)
+			{
+				auto id = iosvc_->expose_node(refresh[i]);
+				distr::io::NodeMeta meta;
+				distr::io::tens_to_node_meta(meta, get_peer_id(), id, refresh[i]);
+				res_roots->insert({uuids[i], meta});
+			}
+			return grpc::Status::OK;
+		}, &cq);
 	}
 
 private:

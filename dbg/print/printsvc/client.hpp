@@ -27,9 +27,10 @@ struct DistrPrintCli final : public egrpc::GrpcClient
 		std::function<void(AsciiEntry&)> cb)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
+		using ListAsciiHandlerT = egrpc::AsyncClientStreamHandler<AsciiEntry>;
 		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:ListAscii] ", alias_.c_str()));
-		auto handler = new egrpc::AsyncClientStreamHandler<AsciiEntry>(done, logger, cb);
+		auto handler = new ListAsciiHandlerT(done, logger, cb);
 
 		build_ctx(handler->ctx_, false);
 		// prepare to avoid passing to cq before reader_ assignment

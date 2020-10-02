@@ -29,10 +29,10 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		std::function<void(NodeData&)> cb)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
+		using GetDataHandlerT = egrpc::AsyncClientStreamHandler<NodeData>;
 		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:GetData] ", alias_.c_str()));
-		auto handler = new egrpc::AsyncClientStreamHandler<
-			NodeData>(done, logger, cb);
+		auto handler = new GetDataHandlerT(done, logger, cb);
 
 		build_ctx(handler->ctx_, false);
 		// prepare to avoid passing to cq before reader_ assignment

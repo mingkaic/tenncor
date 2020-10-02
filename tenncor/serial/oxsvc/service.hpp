@@ -205,70 +205,70 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
 	{
 		// GetSaveGraph
+		using GetSaveGraphCallT = egrpc::AsyncServerCall<GetSaveGraphRequest,GetSaveGraphResponse>;
 		auto gsave_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:GetSaveGraph] ",
 				get_peer_id().c_str()));
-		new egrpc::AsyncServerCall<GetSaveGraphRequest,
-			GetSaveGraphResponse>(gsave_logger,
-			[this](grpc::ServerContext* ctx, GetSaveGraphRequest* req,
-				grpc::ServerAsyncResponseWriter<GetSaveGraphResponse>* writer,
-				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-				void* tag)
+		new GetSaveGraphCallT(gsave_logger,
+		[this](grpc::ServerContext* ctx, GetSaveGraphRequest* req,
+			grpc::ServerAsyncResponseWriter<GetSaveGraphResponse>* writer,
+			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
+			void* tag)
+		{
+			this->service_.RequestGetSaveGraph(ctx, req, writer, cq, ccq, tag);
+		},
+		[this](
+			const GetSaveGraphRequest& req,
+			GetSaveGraphResponse& res)
+		{
+			auto& uuids = req.uuids();
+			teq::TensptrsT roots;
+			roots.reserve(uuids.size());
+			onnx::TensIdT identified;
+			for (const std::string& uuid : uuids)
 			{
-				this->service_.RequestGetSaveGraph(ctx, req, writer, cq, ccq, tag);
-			},
-			[this](
-				const GetSaveGraphRequest& req,
-				GetSaveGraphResponse& res)
+				error::ErrptrT err = nullptr;
+				auto tens = this->iosvc_->lookup_node(err, uuid, false);
+				_ERR_CHECK(err, grpc::NOT_FOUND, get_peer_id().c_str());
+				roots.push_back(tens);
+				identified.insert({tens.get(), uuid});
+			}
+			auto topo = this->save_graph(*res.mutable_graph(), roots, identified);
+			auto outopo = res.mutable_topography();
+			for (auto& entry : topo)
 			{
-				auto& uuids = req.uuids();
-				teq::TensptrsT roots;
-				roots.reserve(uuids.size());
-				onnx::TensIdT identified;
-				for (const std::string& uuid : uuids)
-				{
-					error::ErrptrT err = nullptr;
-					auto tens = this->iosvc_->lookup_node(err, uuid, false);
-					_ERR_CHECK(err, grpc::NOT_FOUND, get_peer_id().c_str());
-					roots.push_back(tens);
-					identified.insert({tens.get(), uuid});
-				}
-				auto topo = this->save_graph(*res.mutable_graph(), roots, identified);
-				auto outopo = res.mutable_topography();
-				for (auto& entry : topo)
-				{
-					outopo->insert({entry.first, entry.second});
-				}
-				return grpc::Status::OK;
-			}, &cq);
+				outopo->insert({entry.first, entry.second});
+			}
+			return grpc::Status::OK;
+		}, &cq);
 
 		// PostLoadGraph
+		using PostLoadGraphCallT = egrpc::AsyncServerCall<PostLoadGraphRequest,PostLoadGraphResponse>;
 		auto pload_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:PostLoadGraph] ",
 				get_peer_id().c_str()));
-		new egrpc::AsyncServerCall<PostLoadGraphRequest,
-			PostLoadGraphResponse>(pload_logger,
-			[this](grpc::ServerContext* ctx, PostLoadGraphRequest* req,
-				grpc::ServerAsyncResponseWriter<PostLoadGraphResponse>* writer,
-				grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-				void* tag)
-			{
-				this->service_.RequestPostLoadGraph(
-					ctx, req, writer, cq, ccq, tag);
-			},
-			[this](
-				const PostLoadGraphRequest& req,
-				PostLoadGraphResponse& res)
-			{
-				onnx::TensptrIdT identified;
-				auto& reqgraph = req.graph();
-				auto& refs = req.refs();
-				error::ErrptrT err = nullptr;
-				this->local_load_graph(err, identified, reqgraph,
-					types::StrUSetT(refs.begin(), refs.end()));
-				_ERR_CHECK(err, grpc::NOT_FOUND, get_peer_id().c_str());
-				return grpc::Status::OK;
-			}, &cq);
+		new PostLoadGraphCallT(pload_logger,
+		[this](grpc::ServerContext* ctx, PostLoadGraphRequest* req,
+			grpc::ServerAsyncResponseWriter<PostLoadGraphResponse>* writer,
+			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
+			void* tag)
+		{
+			this->service_.RequestPostLoadGraph(
+				ctx, req, writer, cq, ccq, tag);
+		},
+		[this](
+			const PostLoadGraphRequest& req,
+			PostLoadGraphResponse& res)
+		{
+			onnx::TensptrIdT identified;
+			auto& reqgraph = req.graph();
+			auto& refs = req.refs();
+			error::ErrptrT err = nullptr;
+			this->local_load_graph(err, identified, reqgraph,
+				types::StrUSetT(refs.begin(), refs.end()));
+			_ERR_CHECK(err, grpc::NOT_FOUND, get_peer_id().c_str());
+			return grpc::Status::OK;
+		}, &cq);
 	}
 
 private:
