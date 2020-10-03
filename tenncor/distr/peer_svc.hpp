@@ -5,7 +5,7 @@
 #include "error/error.hpp"
 #include "egrpc/egrpc.hpp"
 
-#include "tenncor/distr/consul.hpp"
+#include "tenncor/distr/p2p.hpp"
 
 namespace distr
 {
@@ -21,14 +21,14 @@ struct iPeerService
 
 struct PeerServiceConfig
 {
-	PeerServiceConfig (ConsulService* consul,
+	PeerServiceConfig (iP2PService* consul,
 		const egrpc::ClientConfig& cli,
 		size_t nthreads = 3) :
 		nthreads_(nthreads), consul_(consul), cli_(cli) {}
 
 	size_t nthreads_;
 
-	ConsulService* consul_;
+	iP2PService* consul_;
 
 	egrpc::ClientConfig cli_;
 };
@@ -63,6 +63,7 @@ protected:
 		error::ErrptrT& err,
 		const std::string& peer_id)
 	{
+		err = nullptr;
 		if (get_peer_id() == peer_id)
 		{
 			err = error::errorf("cannot get client for local server %s",
@@ -99,12 +100,12 @@ protected:
 
 	std::string get_peer_id (void) const
 	{
-		return consul_->id_;
+		return consul_->get_local_peer();
 	}
 
 	egrpc::ClientConfig cli_;
 
-	ConsulService* consul_;
+	iP2PService* consul_;
 
 	grpc::CompletionQueue cq_;
 

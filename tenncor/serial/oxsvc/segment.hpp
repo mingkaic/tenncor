@@ -2,7 +2,7 @@
 #ifndef DISTR_OX_SEGMENT_HPP
 #define DISTR_OX_SEGMENT_HPP
 
-#include "tenncor/distr/consul.hpp"
+#include "tenncor/distr/p2p.hpp"
 
 #include "tenncor/serial/oxsvc/topography.hpp"
 

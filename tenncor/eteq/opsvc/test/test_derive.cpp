@@ -79,14 +79,7 @@ std::shared_ptr<MockLeaf> MockDeriveFunc::other_leaf =
 
 struct DERIVE : public ::testing::Test, public DistrTestcase
 {
-	DERIVE (void) : DistrTestcase(test_service) {}
-
 protected:
-	void TearDown (void) override
-	{
-		clean_up();
-	}
-
 	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
 		return DistrTestcase::make_mgr(port, {
@@ -105,13 +98,6 @@ protected:
 				return nullptr;
 			},
 		}, id);
-	}
-
-	void check_clean (void)
-	{
-		ppconsul::catalog::Catalog catalog(*consul_);
-		auto services = catalog.service(service_name_);
-		ASSERT_EQ(services.size(), 0);
 	}
 };
 

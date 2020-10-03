@@ -7,15 +7,13 @@
 namespace distr
 {
 
-using ConsulSvcptrT = std::unique_ptr<ConsulService>;
-
 struct DistrManager final : public iDistrManager
 {
-	DistrManager (ConsulSvcptrT&& consul,
+	DistrManager (P2PSvcptrT&& consul,
 		const estd::ConfigMap<>& svcs, size_t nthreads = 3) :
 		svcs_(svcs), consul_(std::move(consul))
 	{
-		std::string address = fmts::sprintf("0.0.0.0:%d", consul_->port_);
+		std::string address = consul_->get_local_addr();
 		grpc::ServerBuilder builder;
 		builder.AddListeningPort(address,
 			grpc::InsecureServerCredentials());
@@ -30,7 +28,7 @@ struct DistrManager final : public iDistrManager
 
 		server_ = builder.BuildAndStart();
 		global::infof("[server %s] listening on %s",
-			consul_->id_.c_str(), address.c_str());
+			consul_->get_local_peer().c_str(), address.c_str());
 
 		for (auto& skey : svc_keys)
 		{
@@ -65,7 +63,7 @@ struct DistrManager final : public iDistrManager
 
 	std::string get_id (void) const override
 	{
-		return consul_->id_;
+		return consul_->get_local_peer();
 	}
 
 	iPeerService* get_service (const std::string& svc_key) override
@@ -74,7 +72,7 @@ struct DistrManager final : public iDistrManager
 		return static_cast<iPeerService*>(svc);
 	}
 
-	ConsulService* get_consul (void)
+	iP2PService* get_consul (void)
 	{
 		return consul_.get();
 	}
@@ -101,7 +99,7 @@ private:
 
 	estd::ConfigMap<> svcs_;
 
-	ConsulSvcptrT consul_;
+	P2PSvcptrT consul_;
 
 	std::unique_ptr<grpc::ServerCompletionQueue> cq_;
 

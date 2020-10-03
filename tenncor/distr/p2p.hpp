@@ -11,13 +11,32 @@
 namespace distr
 {
 
+struct iP2PService
+{
+	virtual ~iP2PService (void) = default;
+
+	virtual types::StrUMapT<std::string> get_peers (void) = 0;
+
+	virtual void set_kv (
+		const std::string& key, const std::string& value) = 0;
+
+	virtual std::string get_kv (
+		const std::string& key, const std::string& default_val) = 0;
+
+	virtual std::string get_local_peer (void) const = 0;
+
+	virtual std::string get_local_addr (void) const = 0;
+};
+
+using P2PSvcptrT = std::unique_ptr<iP2PService>;
+
 static const size_t consul_nretries = 5;
 
 const std::string default_service = "tenncor";
 
 using ConsulptrT = std::shared_ptr<ppconsul::Consul>;
 
-struct ConsulService final
+struct ConsulService final : public iP2PService
 {
 	ConsulService (ConsulptrT consul, size_t port,
 		const std::string& id, const std::string& name) :
@@ -46,7 +65,7 @@ struct ConsulService final
 		agent_.deregisterService(id_);
 	}
 
-	types::StrUMapT<std::string> get_peers (void)
+	types::StrUMapT<std::string> get_peers (void) override
 	{
 		types::StrUMapT<std::string> peers;
 		std::vector<ppconsul::catalog::NodeService> services;
@@ -79,16 +98,26 @@ struct ConsulService final
 		return peers;
 	}
 
-	void set_kv (const std::string& key, const std::string& value)
+	void set_kv (const std::string& key, const std::string& value) override
 	{
 		kv_.set(key, value);
 	}
 
 	std::string get_kv (const std::string& key,
-		const std::string& default_val)
+		const std::string& default_val) override
 	{
 		return kv_.get(key, default_val, ppconsul::kv::kw::consistency =
 			ppconsul::Consistency::Consistent);
+	}
+
+	std::string get_local_peer (void) const override
+	{
+		return id_;
+	}
+
+	std::string get_local_addr (void) const override
+	{
+		return fmts::sprintf("0.0.0.0:%d", port_);
 	}
 
 	ConsulptrT consul_;

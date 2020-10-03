@@ -28,14 +28,7 @@ const std::string test_service = "tenncor.serial.oxsvc.test";
 
 struct SEGMENT : public ::testing::Test, public DistrTestcase
 {
-	SEGMENT (void) : DistrTestcase(test_service) {}
-
 protected:
-	void TearDown (void) override
-	{
-		clean_up();
-	}
-
 	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
 		return DistrTestcase::make_mgr(port, {
@@ -43,13 +36,6 @@ protected:
 			distr::register_oxsvc,
 			distr::register_printsvc,
 		}, id);
-	}
-
-	void check_clean (void)
-	{
-		ppconsul::catalog::Catalog catalog(*consul_);
-		auto services = catalog.service(service_name_);
-		ASSERT_EQ(services.size(), 0);
 	}
 };
 

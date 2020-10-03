@@ -10,7 +10,7 @@
 
 
 void register_mocksvc (estd::ConfigMap<>& svcs,
-	distr::ConsulService* consulsvc)
+	distr::iP2PService* consulsvc)
 {
 	distr::PeerServiceConfig cfg(consulsvc, egrpc::ClientConfig(
 		std::chrono::milliseconds(5000),
@@ -24,20 +24,16 @@ void register_mocksvc (estd::ConfigMap<>& svcs,
 
 TEST(MANAGER, NoServices)
 {
-	size_t test_port = 5112;
-	std::string test_svc = "Empty";
-
-	const char* consul_addr = std::getenv("TEST_CONSUL_ADDRESS");
-	if (nullptr == consul_addr || 0 == std::strlen(consul_addr))
-	{
-		consul_addr = "localhost";
-	}
-	std::string address = fmts::sprintf("http://%s:8500", consul_addr);
-	auto consul = std::make_shared<ppconsul::Consul>(address);
-	auto consulsvc = distr::make_consul(consul, test_port, test_svc, "NoServices");
+	std::string test_svc = "NoServices";
+	std::mutex kv_mtx;
+	types::StrUMapT<std::string> kv;
+	types::StrUMapT<std::string> peers = {
+		{test_svc, "0.0.0.0:5112"},
+	};
 
 	estd::ConfigMap<> svcs;
-	distr::DistrManager manager(distr::ConsulSvcptrT(consulsvc), svcs);
+	distr::DistrManager manager(
+		std::make_unique<MockP2P>(kv_mtx, test_svc, peers, kv), svcs);
 	EXPECT_STREQ("NoServices", manager.get_id().c_str());
 	EXPECT_EQ(nullptr, manager.get_service("test_mock_service"));
 }
@@ -45,21 +41,17 @@ TEST(MANAGER, NoServices)
 
 TEST(MANAGER, Basic)
 {
-	size_t test_port = 5112;
 	std::string test_svc = "Basic";
-
-	const char* consul_addr = std::getenv("TEST_CONSUL_ADDRESS");
-	if (nullptr == consul_addr || 0 == std::strlen(consul_addr))
-	{
-		consul_addr = "localhost";
-	}
-	std::string address = fmts::sprintf("http://%s:8500", consul_addr);
-	auto consul = std::make_shared<ppconsul::Consul>(address);
-	auto consulsvc = distr::make_consul(consul, test_port, test_svc, "Basic");
+	std::mutex kv_mtx;
+	types::StrUMapT<std::string> kv;
+	types::StrUMapT<std::string> peers = {
+		{test_svc, "0.0.0.0:5112"},
+	};
+	auto consul_svc = new MockP2P(kv_mtx, test_svc, peers, kv);
 
 	estd::ConfigMap<> svcs;
-	register_mocksvc(svcs, consulsvc);
-	distr::DistrManager manager(distr::ConsulSvcptrT(consulsvc), svcs);
+	register_mocksvc(svcs, consul_svc);
+	distr::DistrManager manager(distr::P2PSvcptrT(consul_svc), svcs);
 	EXPECT_STREQ("Basic", manager.get_id().c_str());
 
 	auto svc = dynamic_cast<MockService*>(manager.get_service("test_mock_service"));

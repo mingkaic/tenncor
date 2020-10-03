@@ -1,4 +1,4 @@
-#include "tenncor/distr/consul.hpp"
+#include "tenncor/distr/p2p.hpp"
 
 #ifdef DISTR_CONSUL_HPP
 

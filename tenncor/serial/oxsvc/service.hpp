@@ -276,6 +276,7 @@ private:
 		onnx::TensptrIdT& identified_tens,
 		const onnx::GraphProto& subgraph, const types::StrUSetT& refs)
 	{
+		err = nullptr;
 		std::string local_id = get_peer_id();
 		onnx::TensptrIdT identified = identified_tens;
 		for (auto ref : refs)

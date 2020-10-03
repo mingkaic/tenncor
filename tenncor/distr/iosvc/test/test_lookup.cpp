@@ -20,26 +20,12 @@ const std::string test_service = "tenncor.distr.iosvc.test";
 
 struct LOOKUP : public ::testing::Test, public DistrTestcase
 {
-	LOOKUP (void) : DistrTestcase(test_service) {}
-
 protected:
-	void TearDown (void) override
-	{
-		clean_up();
-	}
-
 	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
 		}, id);
-	}
-
-	void check_clean (void)
-	{
-		ppconsul::catalog::Catalog catalog(*consul_);
-		auto services = catalog.service(service_name_);
-		ASSERT_EQ(services.size(), 0);
 	}
 };
 
@@ -101,7 +87,7 @@ TEST_F(LOOKUP, RemoteLookupNode)
 	EXPECT_EQ(nullptr, service2.lookup_node(err, ida, false));
 	ASSERT_NE(nullptr, err);
 	auto expect_msg = fmts::sprintf(
-		"no id %s found: will not recurse", ida.c_str());
+		"no id %s found locally: will not recurse", ida.c_str());
 	EXPECT_STREQ(expect_msg.c_str(), err->to_string().c_str());
 
 	err = nullptr;

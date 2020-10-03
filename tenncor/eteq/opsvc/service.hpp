@@ -108,6 +108,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		const teq::TensSetT& srcs,
 		const types::StrUSetT& dests)
 	{
+		err = nullptr;
 		teq::TensMapT<std::string> local_targets;
 		for (auto dest : dests)
 		{

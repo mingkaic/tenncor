@@ -42,6 +42,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 	teq::TensptrT lookup_node (error::ErrptrT& err,
 		const std::string& id, bool recursive = true)
 	{
+		err = nullptr;
 		if (auto out = data_.get_tens(id))
 		{
 			return out;
@@ -49,7 +50,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		if (false == recursive)
 		{
 			err = error::errorf(
-				"no id %s found: will not recurse", id.c_str());
+				"no id %s found locally: will not recurse", id.c_str());
 			return nullptr;
 		}
 

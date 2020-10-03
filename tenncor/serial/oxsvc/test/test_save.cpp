@@ -27,28 +27,13 @@ const std::string test_service = "tenncor.serial.oxsvc.test";
 
 struct SAVE : public ::testing::Test, public DistrTestcase
 {
-	SAVE (void) : DistrTestcase(test_service) {}
-
 protected:
-	void TearDown (void) override
-	{
-		clean_up();
-	}
-
 	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
 			distr::register_oxsvc,
 		}, id);
-	}
-
-	void check_clean (void)
-	{
-		ppconsul::catalog::Catalog catalog(*consul_);
-		auto services = catalog.service(service_name_);
-		ASSERT_EQ(services.size(), 0);
-		global::set_generator(nullptr);
 	}
 };
 

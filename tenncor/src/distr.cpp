@@ -23,7 +23,7 @@ distr::DistrMgrptrT ctxualize_distrmgr (
 		assert(nullptr == reg(svcs, cfg));
 	}
 	auto mgr = std::make_shared<distr::DistrManager>(
-		distr::ConsulSvcptrT(consulsvc), svcs);
+		distr::P2PSvcptrT(consulsvc), svcs);
 	::tcr::set_distrmgr(mgr, ctx);
 	return mgr;
 }
@@ -54,6 +54,7 @@ std::string expose_node (const eteq::ETensor& etens)
 
 std::string try_lookup_id (error::ErrptrT& err, eteq::ETensor etens)
 {
+	err = nullptr;
 	auto mgr = get_distrmgr(etens.get_context());
 	if (nullptr == mgr)
 	{
@@ -86,6 +87,7 @@ eteq::ETensor try_lookup_node (
 	error::ErrptrT& err, const std::string& id,
 	const global::CfgMapptrT& ctx)
 {
+	err = nullptr;
 	auto mgr = get_distrmgr(ctx);
 	if (nullptr == mgr)
 	{

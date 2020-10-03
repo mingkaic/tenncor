@@ -21,14 +21,7 @@ const std::string test_service = "tenncor.ctest";
 
 struct DISTRIB : public ::testing::Test, public DistrTestcase
 {
-	DISTRIB (void) : DistrTestcase(test_service) {}
-
 protected:
-	void TearDown (void) override
-	{
-		clean_up();
-	}
-
 	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
 	{
 		return DistrTestcase::make_mgr(port, {
@@ -37,13 +30,6 @@ protected:
 			distr::register_oxsvc,
 			distr::register_printsvc,
 		}, id);
-	}
-
-	void check_clean (void)
-	{
-		ppconsul::catalog::Catalog catalog(*consul_);
-		auto services = catalog.service(service_name_);
-		ASSERT_EQ(services.size(), 0);
 	}
 };
 
@@ -101,7 +87,6 @@ TEST_F(DISTRIB, SharingNodes)
 		tcr::try_lookup_id(err, src4);
 		EXPECT_ERR(err, "can only find reference ids using DistrManager");
 	}
-	check_clean();
 	auto global = global::context();
 	EXPECT_EQ(nullptr, tcr::get_distrmgr(global));
 	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(&teq::get_eval(global)));
@@ -176,7 +161,6 @@ TEST_F(DISTRIB, DataPassing)
 
 		tcr::set_distrmgr(nullptr);
 	}
-	check_clean();
 	auto global = global::context();
 	EXPECT_EQ(nullptr, tcr::get_distrmgr(global));
 	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(&teq::get_eval(global)));
@@ -308,7 +292,6 @@ TEST_F(DISTRIB, ComplexDataPassing)
 			EXPECT_DOUBLE_EQ(exdata[i], goptr[i]);
 		}
 	}
-	check_clean();
 	auto global = global::context();
 	EXPECT_EQ(nullptr, tcr::get_distrmgr(global));
 	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(&teq::get_eval(global)));
@@ -412,7 +395,6 @@ TEST_F(DISTRIB, Reachability)
 		auto nonreachable2 = distr::get_opsvc(*mgrA).reachable(err, {a2.get()}, {d1_key});
 		EXPECT_TRUE(nonreachable2.empty());
 	}
-	check_clean();
 }
 
 
@@ -507,7 +489,6 @@ TEST_F(DISTRIB, RemoteDeriving)
 
 		tcr::set_distrmgr(nullptr);
 	}
-	check_clean();
 	auto global = global::context();
 	EXPECT_EQ(nullptr, tcr::get_distrmgr(global));
 	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(&teq::get_eval(global)));
@@ -629,7 +610,6 @@ TEST_F(DISTRIB, DebugPrintAscii)
 			"_____`--[mgrF]:(variable:f2)\n";
 		EXPECT_STREQ(expect.c_str(), ss.str().c_str());
 	}
-	check_clean();
 }
 
 
@@ -835,7 +815,6 @@ TEST_F(DISTRIB, CrossDerive)
 			}
 		}
 	}
-	check_clean();
 }
 
 

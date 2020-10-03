@@ -6,7 +6,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "tenncor/distr/reference.hpp"
-#include "tenncor/distr/consul.hpp"
+#include "tenncor/distr/p2p.hpp"
 
 namespace distr
 {
@@ -16,11 +16,13 @@ namespace io
 
 const std::string node_lookup_prefix = "tenncor.node.";
 
+const size_t nretry_getkv = 3;
+
 using OptIDT = std::optional<std::string>;
 
 struct DistrIOData
 {
-	DistrIOData (ConsulService* consul) :
+	DistrIOData (iP2PService* consul) :
 		consul_(consul) {}
 
 	std::string cache_tens (teq::TensptrT tens,
@@ -49,8 +51,7 @@ struct DistrIOData
 			return shareds_.right.at(tensptr);
 		}
 		std::string id;
-		if (suggested_id && consul_->get_kv(
-			node_lookup_prefix + *suggested_id, "").empty())
+		if (suggested_id && false == bool(get_peer(*suggested_id)))
 		{
 			id = *suggested_id;
 		}
@@ -64,7 +65,7 @@ struct DistrIOData
 			id = global::get_generator()->get_str();
 		}
 		shareds_.insert({id, tensptr});
-		consul_->set_kv(node_lookup_prefix + id, consul_->id_);
+		consul_->set_kv(node_lookup_prefix + id, consul_->get_local_peer());
 		return id;
 	}
 
@@ -92,7 +93,12 @@ struct DistrIOData
 	OptIDT get_peer (const std::string& id) const
 	{
 		OptIDT out;
-		std::string peer_id = consul_->get_kv(node_lookup_prefix + id, "");
+		std::string key = node_lookup_prefix + id;
+		std::string peer_id = "";
+		for (size_t i = 0; i < nretry_getkv && peer_id.empty(); ++i)
+		{
+			peer_id = consul_->get_kv(key, "");
+		}
 		if (peer_id.size() > 0)
 		{
 			out = peer_id;
@@ -106,7 +112,7 @@ struct DistrIOData
  	}
 
 private:
-	ConsulService* consul_;
+	iP2PService* consul_;
 
 	DRefptrSetT remotes_;
 
