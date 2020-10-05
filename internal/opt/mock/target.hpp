@@ -24,6 +24,21 @@ struct MockTarget final : public opt::iTarget
 	opt::TargptrsT targs_;
 };
 
+using TargetCondF = std::function<teq::TensptrT(const query::SymbMapT&)>;
+
+struct ConditionalMockTarget final : public opt::iTarget
+{
+	ConditionalMockTarget (TargetCondF cond) : cond_(cond) {}
+
+	teq::TensptrT convert (
+		const query::SymbMapT& candidates) const override
+	{
+		return cond_(candidates);
+	}
+
+	TargetCondF cond_;
+};
+
 struct MockTargetFactory final : public opt::iTargetFactory
 {
 	MockTargetFactory (void) : index_(0) {}

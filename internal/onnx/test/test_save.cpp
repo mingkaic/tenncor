@@ -73,7 +73,7 @@ TEST(SAVE, BadMarshal)
 TEST(SAVE, SimpleGraph)
 {
 	std::string expect_pbfile = testdir + "/simple_onnx.onnx";
-	std::string got_pbfile = "/tmp/simple_onnx.onnx";
+	std::string got_pbfile = "got_simple_onnx.onnx";
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	{
@@ -166,7 +166,7 @@ TEST(SAVE, SimpleGraph)
 TEST(SAVE, LayerGraph)
 {
 	std::string expect_pbfile = testdir + "/layer_onnx.onnx";
-	std::string got_pbfile = "/tmp/layer_onnx.onnx";
+	std::string got_pbfile = "got_layer_onnx.onnx";
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	{
@@ -285,6 +285,113 @@ TEST(SAVE, LayerGraph)
 		EXPECT_TRUE(differ.Compare(expect_model, got_model)) << report;
 	}
 	global::set_generator(nullptr);
+}
+
+
+TEST(SAVE, SimpleGraphEarlyStop)
+{
+	std::string expect_pbfile = testdir + "/simple_stop.onnx";
+	std::string got_pbfile = "/tmp/simple_stop.onnx";
+	global::set_generator(std::make_shared<MockGenerator>());
+
+	{
+		onnx::ModelProto model;
+		std::vector<teq::TensptrT> roots;
+		onnx::TensIdT ids;
+		teq::TensSetT stops;
+
+		// subtree one
+		teq::Shape shape({3, 7});
+		teq::Shape shape2({7, 3});
+		teq::TensptrT osrc = std::make_shared<MockLeaf>(
+			std::vector<double>{}, shape, "osrc");
+		teq::TensptrT osrc2 = std::make_shared<MockLeaf>(
+			std::vector<double>{}, shape2, "osrc2");
+
+		{
+			teq::Shape shape3({3, 1, 7});
+			teq::TensptrT src = std::make_shared<MockLeaf>(
+				std::vector<double>{}, shape, "src");
+			teq::TensptrT src2 = std::make_shared<MockLeaf>(
+				std::vector<double>{}, shape3, "src2");
+
+			auto f = std::make_shared<MockFunctor>(teq::TensptrsT{
+				std::make_shared<MockFunctor>(teq::TensptrsT{src}, teq::Opcode{"sin", 5}),
+				src,
+			}, teq::Opcode{"+", 4});
+			auto dest = std::make_shared<MockFunctor>(teq::TensptrsT{
+				src2,
+				std::make_shared<MockFunctor>(teq::TensptrsT{
+					std::make_shared<MockFunctor>(teq::TensptrsT{
+						std::make_shared<MockFunctor>(teq::TensptrsT{osrc}, teq::Opcode{"neg", 3}),
+						f,
+					}, teq::Opcode{"/", 2}),
+					osrc2,
+				}, teq::Opcode{"@", 1}),
+			}, teq::Opcode{"-", 0});
+
+			stops.emplace(src2.get());
+			stops.emplace(f.get());
+			roots.push_back(dest);
+			ids.insert({dest.get(), "root1"});
+		}
+
+		// subtree two
+		{
+			teq::Shape mshape({3, 3});
+			teq::TensptrT src = std::make_shared<MockLeaf>(
+				std::vector<double>{}, mshape, "s2src");
+			teq::TensptrT src2 = std::make_shared<MockLeaf>(
+				std::vector<double>{}, mshape, "s2src2");
+			teq::TensptrT src3 = std::make_shared<MockLeaf>(
+				std::vector<double>{}, mshape, "s2src3");
+
+			auto f = std::make_shared<MockFunctor>(
+				teq::TensptrsT{src}, teq::Opcode{"abs", 7});
+			auto f2 = std::make_shared<MockFunctor>(
+				teq::TensptrsT{src3}, teq::Opcode{"neg", 3});
+			auto dest = std::make_shared<MockFunctor>(teq::TensptrsT{
+				src,
+				std::make_shared<MockFunctor>(teq::TensptrsT{
+					f,
+					std::make_shared<MockFunctor>(
+						teq::TensptrsT{src2}, teq::Opcode{"exp", 8}),
+					f2,
+				}, teq::Opcode{"*", 6}),
+			}, teq::Opcode{"-", 0});
+
+			stops.emplace(f.get());
+			stops.emplace(f2.get());
+			roots.push_back(dest);
+			ids.insert({dest.get(), "root2"});
+		}
+
+		MockMarshFuncs marsh;
+		onnx::save_graph(*model.mutable_graph(),
+			roots, marsh, ids, stops);
+
+		std::fstream gotstr(got_pbfile,
+			std::ios::out | std::ios::trunc | std::ios::binary);
+		ASSERT_TRUE(gotstr.is_open());
+		ASSERT_TRUE(model.SerializeToOstream(&gotstr));
+	}
+
+	{
+		std::fstream expect_ifs(expect_pbfile, std::ios::in | std::ios::binary);
+		std::fstream got_ifs(got_pbfile, std::ios::in | std::ios::binary);
+		ASSERT_TRUE(expect_ifs.is_open());
+		ASSERT_TRUE(got_ifs.is_open());
+
+		onnx::ModelProto expect_model;
+		onnx::ModelProto got_model;
+		ASSERT_TRUE(expect_model.ParseFromIstream(&expect_ifs));
+		ASSERT_TRUE(got_model.ParseFromIstream(&got_ifs));
+
+		google::protobuf::util::MessageDifferencer differ;
+		std::string report;
+		differ.ReportDifferencesToString(&report);
+		EXPECT_TRUE(differ.Compare(expect_model, got_model)) << report;
+	}
 }
 
 

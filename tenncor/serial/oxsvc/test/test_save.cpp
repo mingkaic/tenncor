@@ -44,7 +44,7 @@ TEST_F(SAVE, AllLocalGraph)
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	std::string expect_pbfile = testdir + "/local_oxsvc.onnx";
-	std::string got_pbfile = "/tmp/local_oxsvc.onnx";
+	std::string got_pbfile = "got_local_oxsvc.onnx";
 
 	{
 		onnx::ModelProto model;
@@ -139,7 +139,7 @@ TEST_F(SAVE, AllLocalGraph)
 TEST_F(SAVE, RemoteGraph)
 {
 	std::string expect_pbfile = testdir + "/remote_oxsvc.onnx";
-	std::string got_pbfile = "/tmp/remote_oxsvc.onnx";
+	std::string got_pbfile = "got_remote_oxsvc.onnx";
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	{

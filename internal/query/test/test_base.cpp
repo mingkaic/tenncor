@@ -18,7 +18,7 @@ TEST(BASE, BadParse)
 {
 	std::stringstream badjson;
 	query::Node cond;
-	EXPECT_FATAL(json_parse(cond, badjson), "failed to parse json condition");
+	EXPECT_FATAL(query::json_parse(cond, badjson), "failed to parse json condition");
 }
 
 
@@ -43,7 +43,7 @@ TEST(BASE, ErasedNode)
 			"}},{\"symb\":\"C\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	auto detections = matcher.match(cond);
 	EXPECT_EQ(0, detections.size());
 
@@ -54,7 +54,7 @@ TEST(BASE, ErasedNode)
 			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
 		"}}";
 	query::Node cond2;
-	json_parse(cond2, condjson2);
+	query::json_parse(cond2, condjson2);
 	auto detections2 = matcher.match(cond2);
 	ASSERT_EQ(1, detections2.size());
 	teq::iTensor* res = detections2.front();
@@ -77,7 +77,7 @@ TEST(BASE, BadNode)
 	badjson << "{}";
 	{
 		query::Node cond;
-		json_parse(cond, badjson);
+		query::json_parse(cond, badjson);
 		EXPECT_FATAL(matcher.match(cond), "cannot look for unknown node");
 	}
 
@@ -89,7 +89,7 @@ TEST(BASE, BadNode)
 		"}}";
 	{
 		query::Node cond;
-		json_parse(cond, badjson2);
+		query::json_parse(cond, badjson2);
 		EXPECT_FATAL(matcher.match(cond), "cannot look for unknown node");
 	}
 }
@@ -107,7 +107,7 @@ TEST(BASE, DirectConstants)
 	std::stringstream condjson;
 	condjson << "{\"cst\":3.5}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -134,7 +134,7 @@ TEST(BASE, Constants)
 			"\"args\":[{\"cst\":3.5},{\"symb\":\"A\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -172,7 +172,7 @@ TEST(BASE, DirectLeafs)
 		"\"dtype\":\"specops\""
 	"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -205,7 +205,7 @@ TEST(BASE, Leafs)
 			"},{\"symb\":\"A\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -239,7 +239,7 @@ TEST(BASE, NoComNoSymbs)
 			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -290,7 +290,7 @@ TEST(BASE, NoComBadStruct)
 			"}},{\"symb\":\"C\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -313,7 +313,7 @@ TEST(BASE, NoComSymbOnly)
 			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"A\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -349,7 +349,7 @@ TEST(BASE, CommNoSymbs)
 			"}},{\"symb\":\"C\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -388,7 +388,7 @@ TEST(BASE, CommBadStruct)
 			"}},{\"symb\":\"C\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -411,7 +411,7 @@ TEST(BASE, CommSymbOnly)
 			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"A\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -449,7 +449,7 @@ TEST(BASE, Capture)
 				"}}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);

@@ -42,7 +42,7 @@ TEST(ATTRS, FindByAttrTensKeyDirectSubgraph)
 			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -94,7 +94,7 @@ TEST(ATTRS, FindByAttrTensKeyLayer)
 			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -146,7 +146,7 @@ TEST(ATTRS, FindByAttrLayerKeyName)
 			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -207,7 +207,7 @@ TEST(ATTRS, FindByAttrValDirectSubgraph)
 			"}"
 		"}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);
@@ -258,7 +258,7 @@ TEST(ATTRS, FindByAttrTensKeyUnderAttrSubgraph)
 			"\"args\":[{\"symb\":\"A\"},{\"symb\":\"B\"}]"
 		"}}";
 	query::Node cond;
-	json_parse(cond, condjson);
+	query::json_parse(cond, condjson);
 	query::Query matcher;
 	root->accept(matcher);
 	auto detections = matcher.match(cond);

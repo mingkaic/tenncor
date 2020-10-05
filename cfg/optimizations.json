@@ -412,6 +412,32 @@
                 }
             }]
         }
+    },{
+        "op":{
+            "opname":"DIV",
+            "args":[{
+                "op":{
+                    "opname":"EXP",
+                    "args":[{
+                        "symb":"X"
+                    }]
+                }
+            },{
+                "op":{
+                    "opname":"ADD",
+                    "args":[{
+                        "cst":1
+                    },{
+                        "op":{
+                            "opname":"EXP",
+                            "args":[{
+                                "symb":"X"
+                            }]
+                        }
+                    }]
+                }
+            }]
+        }
     }],
     "dest":{
         "op":{

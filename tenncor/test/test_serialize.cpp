@@ -25,7 +25,7 @@ const std::string testdir = "models/test";
 TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/eteq.onnx";
-	std::string got_pbfile = "/tmp/eteq.onnx";
+	std::string got_pbfile = "got_eteq.onnx";
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	onnx::ModelProto model;

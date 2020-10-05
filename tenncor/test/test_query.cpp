@@ -150,7 +150,7 @@ TEST(ADV, Unknowns)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
@@ -253,7 +253,7 @@ TEST(ADV, MisLabelledVariable)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
@@ -281,7 +281,7 @@ TEST(ADV, LabelledVariable)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
@@ -317,7 +317,7 @@ TEST(ADV, Scalar)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	teq::multi_visit(matcher, rnn_roots);
 	query::QResultsT results = matcher.match(cond);
@@ -436,7 +436,7 @@ TEST(ADV, Attribute)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	for (auto root : rnn_roots)
 	{
@@ -479,7 +479,7 @@ TEST(ADV, AmbiguousArguments)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	for (auto root : rnn_roots)
 	{
@@ -562,7 +562,7 @@ TEST(ADV, AmbiguousArgumentsCapture)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	for (auto root : rnn_roots)
 	{
@@ -692,7 +692,7 @@ TEST(ADV, OperatorCapture)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	for (auto root : rnn_roots)
 	{
@@ -813,7 +813,7 @@ TEST(ADV, ConflictingSymbs)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	for (auto root : rnn_roots)
 	{
@@ -844,7 +844,7 @@ TEST(ADV, LeafUsage)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	for (auto root : rnn_roots)
 	{
@@ -930,7 +930,7 @@ TEST(ADV, Commutative)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	for (auto root : rnn_roots)
 	{
@@ -1204,7 +1204,7 @@ TEST(ADV, CommutativeMismatcher)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	for (auto root : rnn_roots)
 	{
@@ -1225,7 +1225,7 @@ TEST(ADV, LeafMatch)
 	inss << "{\"leaf\":{\"label\":\"input\"}}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	for (auto root : rnn_roots)
 	{
@@ -1263,7 +1263,7 @@ TEST(ADV, LayerMatch)
 		"}";
 
 	query::Node cond;
-	json_parse(cond, inss);
+	query::json_parse(cond, inss);
 	query::Query matcher;
 	for (auto root : rnn_roots)
 	{
