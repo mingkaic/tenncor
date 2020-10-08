@@ -21,13 +21,17 @@ filegroup(
     srcs = [
         "tutil.hpp",
         "graph_comp.hpp",
+        "port_check.hpp",
         "nosupport_log.hpp",
     ],
 )
 
 filegroup(
     name = "tutil_srcs",
-    srcs = ["src/graph_comp.cpp"],
+    srcs = [
+        "src/graph_comp.cpp",
+        "src/port_check.cpp",
+    ],
 )
 
 filegroup(
@@ -61,6 +65,7 @@ cc_library(
     deps = [
         "//dbg/print:print",
         "@gtest//:gtest",
+        "@boost//:asio",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],

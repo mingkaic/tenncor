@@ -13,6 +13,8 @@ fi
 
 COVERAGE_CTX="$CONTEXT/tmp/tenncor_coverage";
 CONVERSION_CSV="$CONTEXT/tmp/tenncor_conversion.csv";
+TMP_COVFILE="$COV_DIR/coverage.info";
+OUT_COVFILE="$COV_DIR/labelled_coverage.info";
 
 rm -Rf "$COVERAGE_CTX";
 mkdir -p "$COVERAGE_CTX";
@@ -52,7 +54,7 @@ else # test all
 	--remote_http_cache="$REMOTE_CACHE" //tools/... //tenncor:ptest;
 fi
 
-python3 "$THIS_DIR/label_replace.py" "$COV_DIR/coverage.info" $CONVERSION_CSV > "$COV_DIR/labelled_coverage.info";
+python3 "$THIS_DIR/label_replace.py" $TMP_COVFILE $CONVERSION_CSV > $OUT_COVFILE;
 send2codecov "$COV_DIR/labelled_coverage.info";
 cd "$CONTEXT";
 

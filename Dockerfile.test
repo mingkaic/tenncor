@@ -1,4 +1,4 @@
-FROM mkaichen/bazel_cpp:081e0e24563758804fbb7d8b421db12a4674cb60
+FROM mkaichen/bazel_cpp:05e1709c130d5dcc053f441b9f3641a9169f4af8
 
 ENV APP_DIR /usr/src/tenncor
 

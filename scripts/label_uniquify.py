@@ -53,7 +53,7 @@ include_conversions = dict([(strip_prefix(realpath, remove_prefix), strip_prefix
 # look for includes in each path file, then rename matching includes to mapped include_conversion values
 for path in paths:
     nxtxt = None
-    with open(path, 'r') as f:
+    with open(path, 'r', encoding='utf-8') as f:
         txt = f.read()
         includes = find_includes(txt)
         subs = []
@@ -63,7 +63,7 @@ for path in paths:
         if len(subs) > 0:
             nxtxt = replace_includes(txt, subs)
     if nxtxt:
-        with open(path, 'w') as f:
+        with open(path, 'w', encoding='utf-8') as f:
             f.write(nxtxt)
 
 for src, dest in conversions:
