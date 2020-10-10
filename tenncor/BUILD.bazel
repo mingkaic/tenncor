@@ -172,6 +172,7 @@ cc_test(
         "//:test_models",
         "//cfg:optimizations",
     ],
+    size = "enormous",
 )
 
 py_test(

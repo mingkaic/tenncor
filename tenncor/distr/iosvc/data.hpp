@@ -25,7 +25,7 @@ using OptIDT = std::optional<std::string>;
 struct DistrIOData
 {
 	DistrIOData (iP2PService* consul) :
-		consul_(consul) {}
+		p2p_(consul) {}
 
 	std::string cache_tens (teq::TensptrT tens,
 		const OptIDT& suggested_id = OptIDT())
@@ -69,7 +69,7 @@ struct DistrIOData
 			}
 			id = global::get_generator()->get_str();
 		}
-		consul_->set_kv(node_lookup_prefix + id, consul_->get_local_peer());
+		p2p_->set_kv(node_lookup_prefix + id, p2p_->get_local_peer());
 		std::lock_guard<std::shared_mutex> write_guard(smtx_);
 		shareds_.insert({id, tensptr});
 		return id;
@@ -105,7 +105,7 @@ struct DistrIOData
 		std::string peer_id = "";
 		for (size_t i = 0; i < nretry_getkv && peer_id.empty(); ++i)
 		{
-			peer_id = consul_->get_kv(key, "");
+			peer_id = p2p_->get_kv(key, "");
 		}
 		if (peer_id.size() > 0)
 		{
@@ -122,7 +122,7 @@ struct DistrIOData
 private:
 	mutable std::shared_mutex smtx_;
 
-	iP2PService* consul_;
+	iP2PService* p2p_;
 
 	DRefptrSetT remotes_;
 

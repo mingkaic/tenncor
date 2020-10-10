@@ -21,7 +21,12 @@ const std::string test_service = "tenncor.distr.iosvc.test";
 struct LOOKUP : public ::testing::Test, public DistrTestcase
 {
 protected:
-	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::iDistrMgrptrT make_mgr (const std::string& id)
+	{
+		return make_mgr(id, reserve_port());
+	}
+
+	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
@@ -32,7 +37,7 @@ protected:
 
 TEST_F(LOOKUP, LookupId)
 {
-	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr"));
+	distr::iDistrMgrptrT mgr(make_mgr("mgr"));
 	auto& service = distr::get_iosvc(*mgr);
 
 	teq::Shape outshape({2, 2});
@@ -51,7 +56,7 @@ TEST_F(LOOKUP, LookupId)
 
 TEST_F(LOOKUP, LocalLookupNode)
 {
-	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr"));
+	distr::iDistrMgrptrT mgr(make_mgr("mgr"));
 	auto& service = distr::get_iosvc(*mgr);
 
 	teq::Shape outshape({2, 2});
@@ -69,7 +74,7 @@ TEST_F(LOOKUP, LocalLookupNode)
 
 TEST_F(LOOKUP, RemoteLookupNode)
 {
-	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
+	distr::iDistrMgrptrT manager(make_mgr("mgr"));
 	auto& service = distr::get_iosvc(*manager);
 
 	teq::Shape outshape({2, 2});
@@ -80,7 +85,7 @@ TEST_F(LOOKUP, RemoteLookupNode)
 	service.expose_node(a);
 	auto ida = *service.lookup_id(a.get());
 
-	distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
+	distr::iDistrMgrptrT manager2(make_mgr("mgr2"));
 	auto& service2 = distr::get_iosvc(*manager2);
 
 	error::ErrptrT err = nullptr;

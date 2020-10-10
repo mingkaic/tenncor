@@ -26,7 +26,7 @@ const std::string iosvc_key = "distr_iosvc";
 struct DistrIOService final : public PeerService<DistrIOCli>
 {
 	DistrIOService (const PeerServiceConfig& cfg) :
-		PeerService<DistrIOCli>(cfg), data_(cfg.consul_) {}
+		PeerService<DistrIOCli>(cfg), data_(cfg.p2p_) {}
 
 	std::string expose_node (teq::TensptrT tens,
 		const OptIDT& suggest_id = OptIDT())

@@ -29,7 +29,12 @@ const std::string test_service = "tenncor.serial.oxsvc.test";
 struct SEGMENT : public ::testing::Test, public DistrTestcase
 {
 protected:
-	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::iDistrMgrptrT make_mgr (const std::string& id)
+	{
+		return make_mgr(id, reserve_port());
+	}
+
+	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
@@ -176,8 +181,8 @@ TEST_F(SEGMENT, Disjoint)
 
 TEST_F(SEGMENT, TwoMeans)
 {
-	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
-	distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
+	distr::iDistrMgrptrT manager(make_mgr("mgr"));
+	distr::iDistrMgrptrT manager2(make_mgr("mgr2"));
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	onnx::ModelProto model;

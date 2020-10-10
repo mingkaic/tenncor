@@ -21,7 +21,12 @@ const std::string test_service = "tenncor.eteq.opsvc.test";
 struct EVALUATE : public ::testing::Test, public DistrTestcase
 {
 protected:
-	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::iDistrMgrptrT make_mgr (const std::string& id)
+	{
+		return make_mgr(id, reserve_port());
+	}
+
+	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
@@ -72,7 +77,7 @@ TEST_F(EVALUATE, SimpleGraph)
 	};
 
 	// instance 1
-	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr1"));
+	distr::iDistrMgrptrT mgr(make_mgr("mgr1"));
 
 	teq::TensptrT src = std::make_shared<MockLeaf>(data, shape, "src");
 	teq::TensptrT src2 = std::make_shared<MockLeaf>(data2, shape, "src2");
@@ -84,7 +89,7 @@ TEST_F(EVALUATE, SimpleGraph)
 	std::string id = svc.expose_node(dest);
 
 	// instance 2
-	distr::iDistrMgrptrT mgr2(make_mgr(5113, "mgr2"));
+	distr::iDistrMgrptrT mgr2(make_mgr("mgr2"));
 
 	teq::TensptrT src3 = std::make_shared<MockLeaf>(data3, shape, "src3");
 	auto& svc2 = distr::get_iosvc(*mgr2);

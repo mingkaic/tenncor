@@ -21,7 +21,12 @@ const std::string test_service = "tenncor.eteq.opsvc.test";
 struct REACHABLE : public ::testing::Test, public DistrTestcase
 {
 protected:
-	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::iDistrMgrptrT make_mgr (const std::string& id)
+	{
+		return make_mgr(id, reserve_port());
+	}
+
+	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
@@ -53,12 +58,12 @@ TEST_F(REACHABLE, CyclicGraph)
 		60, 70, 68, 65, 30, 25,
 	};
 
-	distr::iDistrMgrptrT mgrA(make_mgr(5112, "mgrA"));
-	distr::iDistrMgrptrT mgrB(make_mgr(5113, "mgrB"));
-	distr::iDistrMgrptrT mgrC(make_mgr(5114, "mgrC"));
-	distr::iDistrMgrptrT mgrD(make_mgr(5115, "mgrD"));
-	distr::iDistrMgrptrT mgrE(make_mgr(5116, "mgrE"));
-	distr::iDistrMgrptrT mgrF(make_mgr(5117, "mgrF"));
+	distr::iDistrMgrptrT mgrA(make_mgr("mgrA"));
+	distr::iDistrMgrptrT mgrB(make_mgr("mgrB"));
+	distr::iDistrMgrptrT mgrC(make_mgr("mgrC"));
+	distr::iDistrMgrptrT mgrD(make_mgr("mgrD"));
+	distr::iDistrMgrptrT mgrE(make_mgr("mgrE"));
+	distr::iDistrMgrptrT mgrF(make_mgr("mgrF"));
 
 	auto f1 = std::make_shared<MockLeaf>(data, shape, "f1");
 	auto f2 = std::make_shared<MockLeaf>(data2, shape, "f2");

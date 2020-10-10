@@ -100,4 +100,5 @@ cc_test(
     ],
     linkstatic = True,
     data = ["//:test_models"],
+    size = "enormous",
 )

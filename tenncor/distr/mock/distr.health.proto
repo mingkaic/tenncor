@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package distr.health;
+
+// ======== REQUEST + RESPONSE MESSAGES ========
+
+message CheckHealthRequest {
+}
+
+message CheckHealthResponse {
+    string uuid = 1;
+}
+
+service DistrHealth {
+    // Check health that returns unique id of server
+    rpc CheckHealth (CheckHealthRequest) returns (CheckHealthResponse);
+}

@@ -9,16 +9,17 @@ namespace distr
 
 struct DistrManager final : public iDistrManager
 {
-	DistrManager (P2PSvcptrT&& consul,
+	DistrManager (P2PSvcptrT&& p2p,
 		const estd::ConfigMap<>& svcs, size_t nthreads = 3) :
-		svcs_(svcs), consul_(std::move(consul))
+		svcs_(svcs), p2p_(std::move(p2p))
 	{
-		std::string address = consul_->get_local_addr();
+		std::string address = p2p_->get_local_addr();
 		grpc::ServerBuilder builder;
 		builder.AddListeningPort(address,
 			grpc::InsecureServerCredentials());
 		cq_ = builder.AddCompletionQueue();
 
+		p2p_->register_service(builder);
 		auto svc_keys = svcs_.get_keys();
 		for (auto& skey : svc_keys)
 		{
@@ -28,8 +29,9 @@ struct DistrManager final : public iDistrManager
 
 		server_ = builder.BuildAndStart();
 		global::infof("[server %s] listening on %s",
-			consul_->get_local_peer().c_str(), address.c_str());
+			p2p_->get_local_peer().c_str(), address.c_str());
 
+		p2p_->initialize_server_call(*cq_);
 		for (auto& skey : svc_keys)
 		{
 			static_cast<iPeerService*>(svcs_.get_obj(skey))->
@@ -56,14 +58,14 @@ struct DistrManager final : public iDistrManager
 
 	DistrManager (DistrManager&& other) :
 		svcs_(std::move(other.svcs_)),
-		consul_(std::move(other.consul_)),
+		p2p_(std::move(other.p2p_)),
 		cq_(std::move(other.cq_)),
 		server_(std::move(other.server_)),
 		rpc_jobs_(std::move(other.rpc_jobs_)) {}
 
 	std::string get_id (void) const override
 	{
-		return consul_->get_local_peer();
+		return p2p_->get_local_peer();
 	}
 
 	iPeerService* get_service (const std::string& svc_key) override
@@ -72,9 +74,9 @@ struct DistrManager final : public iDistrManager
 		return static_cast<iPeerService*>(svc);
 	}
 
-	iP2PService* get_consul (void)
+	iP2PService* get_p2psvc (void)
 	{
-		return consul_.get();
+		return p2p_.get();
 	}
 
 private:
@@ -99,7 +101,7 @@ private:
 
 	estd::ConfigMap<> svcs_;
 
-	P2PSvcptrT consul_;
+	P2PSvcptrT p2p_;
 
 	std::unique_ptr<grpc::ServerCompletionQueue> cq_;
 

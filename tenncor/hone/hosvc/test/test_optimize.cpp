@@ -19,7 +19,12 @@ const std::string test_service = "tenncor.hone.hosvc.test";
 struct OPTIMIZE : public ::testing::Test, public DistrTestcase
 {
 protected:
-	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::iDistrMgrptrT make_mgr (const std::string& id)
+	{
+		return make_mgr(id, reserve_port());
+	}
+
+	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
@@ -52,7 +57,7 @@ TEST_F(OPTIMIZE, LocalCstrules)
 	teq::TensptrT c = eteq::make_constant_scalar<double>(4, shape);
 
 	// instance 1
-	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr1"));
+	distr::iDistrMgrptrT mgr(make_mgr("mgr1"));
 
 	teq::TensptrT rhs(eteq::make_functor(egen::ADD, {a, b}));
 
@@ -60,7 +65,7 @@ TEST_F(OPTIMIZE, LocalCstrules)
 	std::string id = svc.expose_node(rhs);
 
 	// instance 2
-	distr::iDistrMgrptrT mgr2 = make_mgr(5113, "mgr2");
+	distr::iDistrMgrptrT mgr2 = make_mgr("mgr2");
 	auto& svc2 = distr::get_iosvc(*mgr2);
 
 	error::ErrptrT err = nullptr;
@@ -120,7 +125,7 @@ TEST_F(OPTIMIZE, RemoteCstrules)
 	teq::TensptrT c = eteq::make_constant_scalar<double>(4, shape);
 
 	// instance 1
-	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr1"));
+	distr::iDistrMgrptrT mgr(make_mgr("mgr1"));
 
 	teq::TensptrT lhs(eteq::make_functor(egen::ADD, {b, c}));
 
@@ -128,7 +133,7 @@ TEST_F(OPTIMIZE, RemoteCstrules)
 	std::string id = svc.expose_node(lhs);
 
 	// instance 2
-	distr::iDistrMgrptrT mgr2 = make_mgr(5113, "mgr2");
+	distr::iDistrMgrptrT mgr2 = make_mgr("mgr2");
 	auto& svc2 = distr::get_iosvc(*mgr2);
 
 	error::ErrptrT err = nullptr;

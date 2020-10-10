@@ -21,7 +21,12 @@ const std::string test_service = "tenncor.distr.iosvc.test";
 struct REMOTE : public ::testing::Test, public DistrTestcase
 {
 protected:
-	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::iDistrMgrptrT make_mgr (const std::string& id)
+	{
+		return make_mgr(id, reserve_port());
+	}
+
+	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
@@ -32,7 +37,7 @@ protected:
 
 TEST_F(REMOTE, LocalReferenceStorage)
 {
-	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr"));
+	distr::iDistrMgrptrT mgr(make_mgr("mgr"));
 	auto& service = distr::get_iosvc(*mgr);
 
 	teq::Shape outshape({2, 2});
@@ -54,7 +59,7 @@ TEST_F(REMOTE, LocalReferenceStorage)
 
 TEST_F(REMOTE, RemoteReferenceStorage)
 {
-	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr"));
+	distr::iDistrMgrptrT mgr(make_mgr("mgr"));
 	auto& service = distr::get_iosvc(*mgr);
 
 	teq::Shape outshape({2, 2});
@@ -64,7 +69,7 @@ TEST_F(REMOTE, RemoteReferenceStorage)
 	a->meta_.tname_ = "DOUBLE";
 	service.expose_node(a);
 
-	distr::iDistrMgrptrT mgr2(make_mgr(5113, "mgr2"));
+	distr::iDistrMgrptrT mgr2(make_mgr("mgr2"));
 	auto& service2 = distr::get_iosvc(*mgr2);
 
 	EXPECT_EQ(0, service.get_remotes().size());

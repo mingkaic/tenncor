@@ -80,7 +80,12 @@ std::shared_ptr<MockLeaf> MockDeriveFunc::other_leaf =
 struct DERIVE : public ::testing::Test, public DistrTestcase
 {
 protected:
-	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::iDistrMgrptrT make_mgr (const std::string& id)
+	{
+		return make_mgr(id, reserve_port());
+	}
+
+	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
@@ -110,7 +115,7 @@ TEST_F(DERIVE, RemoteDerivation)
 	std::vector<double> data = {1, 2, 3, 4};
 
 	// instance 1
-	distr::iDistrMgrptrT mgr(make_mgr(5112, "mgr1"));
+	distr::iDistrMgrptrT mgr(make_mgr("mgr1"));
 
 	auto a = std::make_shared<MockLeaf>(data, shape, "a");
 	auto b = std::make_shared<MockLeaf>(data, shape, "b");
@@ -147,7 +152,7 @@ TEST_F(DERIVE, RemoteDerivation)
 	std::string base_id = svc.expose_node(a);
 
 	// instance 2
-	distr::iDistrMgrptrT mgr2 = make_mgr(5113, "mgr2");
+	distr::iDistrMgrptrT mgr2 = make_mgr("mgr2");
 	auto& svc2 = distr::get_iosvc(*mgr2);
 
 	error::ErrptrT err = nullptr;

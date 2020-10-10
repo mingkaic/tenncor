@@ -29,7 +29,12 @@ const std::string test_service = "tenncor.serial.oxsvc.test";
 struct LOAD : public ::testing::Test, public DistrTestcase
 {
 protected:
-	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::iDistrMgrptrT make_mgr (const std::string& id)
+	{
+		return make_mgr(id, reserve_port());
+	}
+
+	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
@@ -42,7 +47,7 @@ protected:
 
 TEST_F(LOAD, AllLocalGraph)
 {
-	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
+	distr::iDistrMgrptrT manager(make_mgr("mgr"));
 
 	onnx::ModelProto model;
 	{
@@ -94,8 +99,8 @@ TEST_F(LOAD, AllLocalGraph)
 
 TEST_F(LOAD, SimpleRemoteGraph)
 {
-	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
-	distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
+	distr::iDistrMgrptrT manager(make_mgr("mgr"));
+	distr::iDistrMgrptrT manager2(make_mgr("mgr2"));
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	onnx::ModelProto model;
@@ -160,8 +165,8 @@ TEST_F(LOAD, SimpleRemoteGraph)
 
 TEST_F(LOAD, FlattenRemoteGraph)
 {
-	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
-	distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
+	distr::iDistrMgrptrT manager(make_mgr("mgr"));
+	distr::iDistrMgrptrT manager2(make_mgr("mgr2"));
 	global::set_generator(std::make_shared<MockGenerator>());
 	auto& svc2 = distr::get_iosvc(*manager2);
 
@@ -237,8 +242,8 @@ TEST_F(LOAD, FlattenRemoteGraph)
 
 TEST_F(LOAD, CyclicRemoteGraph)
 {
-	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
-	distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
+	distr::iDistrMgrptrT manager(make_mgr("mgr"));
+	distr::iDistrMgrptrT manager2(make_mgr("mgr2"));
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	onnx::ModelProto model;

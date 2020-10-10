@@ -28,7 +28,12 @@ const std::string test_service = "tenncor.serial.oxsvc.test";
 struct SAVE : public ::testing::Test, public DistrTestcase
 {
 protected:
-	distr::iDistrMgrptrT make_mgr (size_t port, const std::string& id = "")
+	distr::iDistrMgrptrT make_mgr (const std::string& id)
+	{
+		return make_mgr(id, reserve_port());
+	}
+
+	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
 		return DistrTestcase::make_mgr(port, {
 			distr::register_iosvc,
@@ -40,7 +45,7 @@ protected:
 
 TEST_F(SAVE, AllLocalGraph)
 {
-	distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
+	distr::iDistrMgrptrT manager(make_mgr("mgr"));
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	std::string expect_pbfile = testdir + "/local_oxsvc.onnx";
@@ -143,10 +148,10 @@ TEST_F(SAVE, RemoteGraph)
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	{
-		distr::iDistrMgrptrT manager(make_mgr(5112, "mgr"));
+		distr::iDistrMgrptrT manager(make_mgr("mgr"));
 		auto& svc = distr::get_iosvc(*manager);
 
-		distr::iDistrMgrptrT manager2(make_mgr(5113, "mgr2"));
+		distr::iDistrMgrptrT manager2(make_mgr("mgr2"));
 		auto& svc2 = distr::get_iosvc(*manager2);
 
 		onnx::ModelProto model;

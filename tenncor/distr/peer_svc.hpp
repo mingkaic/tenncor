@@ -3,32 +3,22 @@
 #define DISTR_PEER_SVC_HPP
 
 #include "error/error.hpp"
-#include "egrpc/egrpc.hpp"
 
 #include "tenncor/distr/p2p.hpp"
 
 namespace distr
 {
 
-struct iPeerService
-{
-	virtual ~iPeerService (void) = default;
-
-	virtual void register_service (grpc::ServerBuilder& builder) = 0;
-
-	virtual void initialize_server_call (grpc::ServerCompletionQueue& cq) = 0;
-};
-
 struct PeerServiceConfig
 {
-	PeerServiceConfig (iP2PService* consul,
+	PeerServiceConfig (iP2PService* p2p,
 		const egrpc::ClientConfig& cli,
 		size_t nthreads = 3) :
-		nthreads_(nthreads), consul_(consul), cli_(cli) {}
+		nthreads_(nthreads), p2p_(p2p), cli_(cli) {}
 
 	size_t nthreads_;
 
-	iP2PService* consul_;
+	iP2PService* p2p_;
 
 	egrpc::ClientConfig cli_;
 };
@@ -37,7 +27,7 @@ template <typename CLI> // CLI has base egrpc::GrpcClient
 struct PeerService : public iPeerService
 {
 	PeerService (const PeerServiceConfig& cfg) :
-		cli_(cfg.cli_), consul_(cfg.consul_)
+		cli_(cfg.cli_), p2p_(cfg.p2p_)
 	{
 		update_clients();
 		// if nthread_ == 0, use 1 thread anyways
@@ -85,7 +75,7 @@ protected:
 
 	void update_clients (void)
 	{
-		auto peers = consul_->get_peers();
+		auto peers = p2p_->get_peers();
 		for (auto peer : peers)
 		{
 			if (false == estd::has(clients_, peer.first))
@@ -100,12 +90,12 @@ protected:
 
 	std::string get_peer_id (void) const
 	{
-		return consul_->get_local_peer();
+		return p2p_->get_local_peer();
 	}
 
 	egrpc::ClientConfig cli_;
 
-	iP2PService* consul_;
+	iP2PService* p2p_;
 
 	grpc::CompletionQueue cq_;
 
