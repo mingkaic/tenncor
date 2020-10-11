@@ -83,7 +83,7 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 				out = unpack<int64_t>(usage, shape, label,
 					pb_tens.int64_data());
 				break;
-#endif
+#endif // EGEN_FULLTYPE
 			default:
 				global::fatalf("unknown onnx type %d", onnx_type);
 		}

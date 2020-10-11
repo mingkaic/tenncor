@@ -1,6 +1,6 @@
 #include "tenncor/distr/p2p.hpp"
 
-#ifdef DISTR_CONSUL_HPP
+#ifdef DISTR_P2P_HPP
 
 namespace distr
 {

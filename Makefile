@@ -94,14 +94,16 @@ gen-oxsvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
 onnx2json: onnx_test_o2j eteq_test_o2j serial_test_o2j local_oxsvc_test_o2j remote_oxsvc_test_o2j gd_model_o2j rbm_model_o2j dqn_model_o2j dbn_model_o2j rnn_model_o2j lstm_model_o2j gru_model_o2j
 
 .PHONY: onnx_test_o2j
-onnx_test_o2j: models/test/bad_onnx.onnx models/test/bad_onnx2.onnx models/test/simple_onnx.onnx models/test/layer_onnx.onnx
+onnx_test_o2j: models/test/bad_onnx.onnx models/test/bad_onnx2.onnx models/test/simple_onnx.onnx models/test/simple_stop.onnx models/test/layer_onnx.onnx
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/bad_onnx.onnx --write /tmp/bad_onnx.json
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/bad_onnx2.onnx --write /tmp/bad_onnx2.json
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/simple_onnx.onnx --write /tmp/simple_onnx.json
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/simple_stop.onnx --write /tmp/simple_stop.json
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/layer_onnx.onnx --write /tmp/layer_onnx.json
 	mv /tmp/bad_onnx.json models/test
 	mv /tmp/bad_onnx2.json models/test
 	mv /tmp/simple_onnx.json models/test
+	mv /tmp/simple_stop.json models/test
 	mv /tmp/layer_onnx.json models/test
 
 .PHONY: eteq_test_o2j
@@ -167,14 +169,16 @@ gru_model_o2j: models/fast_gru.onnx models/latin_gru.onnx
 json2onnx: onnx_test_j2o eteq_test_j2o gd_model_j2o dqn_model_j2o rbm_model_j2o dbn_model_j2o rnn_model_j2o lstm_model_j2o gru_model_j2o
 
 .PHONY: onnx_test_j2o
-onnx_test_j2o: models/test/bad_onnx.json models/test/bad_onnx2.json models/test/simple_onnx.json models/test/layer_onnx.json
+onnx_test_j2o: models/test/bad_onnx.json models/test/bad_onnx2.json models/test/simple_onnx.json models/test/simple_stop.json models/test/layer_onnx.json
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/bad_onnx.json --write /tmp/bad_onnx.onnx
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/bad_onnx2.json --write /tmp/bad_onnx2.onnx
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/simple_onnx.json --write /tmp/simple_onnx.onnx
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/simple_stop.json --write /tmp/simple_stop.onnx
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/layer_onnx.json --write /tmp/layer_onnx.onnx
 	mv /tmp/bad_onnx.onnx models/test
 	mv /tmp/bad_onnx2.onnx models/test
 	mv /tmp/simple_onnx.onnx models/test
+	mv /tmp/simple_stop.onnx models/test
 	mv /tmp/layer_onnx.onnx models/test
 
 .PHONY: eteq_test_j2o
@@ -183,17 +187,17 @@ eteq_test_j2o: models/test/eteq.json
 	mv /tmp/eteq.onnx models/test
 
 .PHONY: serial_test_j2o
-serial_test_j2o: models/test/serial.onnx
+serial_test_j2o: models/test/serial.json
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/serial.json --write /tmp/serial.onnx
 	mv /tmp/serial.onnx models/test
 
 .PHONY: local_oxsvc_test_j2o
-local_oxsvc_test_j2o: models/test/local_oxsvc.onnx
+local_oxsvc_test_j2o: models/test/local_oxsvc.json
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/local_oxsvc.json --write /tmp/local_oxsvc.onnx
 	mv /tmp/local_oxsvc.onnx models/test
 
 .PHONY: remote_oxsvc_test_j2o
-remote_oxsvc_test_j2o: models/test/remote_oxsvc.onnx
+remote_oxsvc_test_j2o: models/test/remote_oxsvc.json
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/remote_oxsvc.json --write /tmp/remote_oxsvc.onnx
 	mv /tmp/remote_oxsvc.onnx models/test
 

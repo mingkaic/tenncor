@@ -8,9 +8,7 @@
 
 struct HealthyP2PService : public distr::iP2PService
 {
-	HealthyP2PService (void)
-	{
-	}
+	HealthyP2PService (void) {}
 
 	virtual ~HealthyP2PService (void) = default;
 

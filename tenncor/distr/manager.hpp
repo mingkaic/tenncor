@@ -56,12 +56,9 @@ struct DistrManager final : public iDistrManager
 		}
 	}
 
-	DistrManager (DistrManager&& other) :
-		svcs_(std::move(other.svcs_)),
-		p2p_(std::move(other.p2p_)),
-		cq_(std::move(other.cq_)),
-		server_(std::move(other.server_)),
-		rpc_jobs_(std::move(other.rpc_jobs_)) {}
+	DistrManager (DistrManager&& other) = delete;
+
+	DistrManager& operator = (DistrManager&& other) = delete;
 
 	std::string get_id (void) const override
 	{

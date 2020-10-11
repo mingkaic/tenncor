@@ -68,6 +68,8 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 		{
 			case egen::IDENTITY:
 			case egen::CAST:
+			case egen::ROUND:
+			case egen::ADD:
 				out = supgrad;
 				break;
 			case egen::NEG:
@@ -177,10 +179,6 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				}
 				out = make_functor(egen::MUL, {local_der, supgrad});
 			}
-				break;
-			case egen::ROUND:
-			case egen::ADD:
-				out = supgrad;
 				break;
 			case egen::SUB:
 				out = arg_idx == 0 ? supgrad : make_functor(egen::NEG, {supgrad});

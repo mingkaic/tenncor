@@ -26,6 +26,11 @@ struct MockService : public distr::PeerService<MockClient>
 		++initial_count_;
 	}
 
+	MockClient* public_client (error::ErrptrT& err, const std::string& peer_id)
+	{
+		return get_client(err, peer_id);
+	}
+
 	size_t registry_count_ = 0;
 
 	size_t initial_count_ = 0;

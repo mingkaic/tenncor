@@ -69,6 +69,11 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 				pack<float>(data, nelems, out,
 					&onnx::TensorProto::add_float_data);
 				break;
+			case onnx::TensorProto::INT32:
+				pack<int32_t>(data, nelems, out,
+					&onnx::TensorProto::add_int32_data);
+				break;
+#ifdef EGEN_FULLTYPE
 			case onnx::TensorProto::UINT8:
 				pack<uint8_t>(data, nelems, out,
 					&onnx::TensorProto::add_int32_data);
@@ -89,10 +94,6 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 				pack<uint32_t>(data, nelems, out,
 					&onnx::TensorProto::add_uint64_data);
 				break;
-			case onnx::TensorProto::INT32:
-				pack<int32_t>(data, nelems, out,
-					&onnx::TensorProto::add_int32_data);
-				break;
 			case onnx::TensorProto::UINT64:
 				pack<uint64_t>(data, nelems, out,
 					&onnx::TensorProto::add_uint64_data);
@@ -101,6 +102,7 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 				pack<int64_t>(data, nelems, out,
 					&onnx::TensorProto::add_int64_data);
 				break;
+#endif // EGEN_FULLTYPE
 			default:
 				global::fatalf("unknown onnx type %d (aka %s)",
 					onnx_type, code_name.c_str());

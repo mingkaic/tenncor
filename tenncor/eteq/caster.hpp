@@ -13,9 +13,7 @@ struct TypeCaster final
 	template <typename T>
 	teq::TensptrsT operator() (const teq::TensptrsT& children) const
 	{
-		marsh::Maps attrs;
 		auto type = egen::get_type<T>();
-		eigen::pack_attr(attrs, type);
 		teq::TensptrsT outs;
 		outs.reserve(children.size());
 		std::transform(children.begin(), children.end(),
@@ -24,6 +22,8 @@ struct TypeCaster final
 		{
 			if (child->get_meta().type_code() != type)
 			{
+				marsh::Maps attrs;
+				eigen::pack_attr(attrs, type);
 				return teq::TensptrT(Functor<T>::get(
 					egen::CAST, {child}, std::move(attrs)));
 			}

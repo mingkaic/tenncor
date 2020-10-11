@@ -26,7 +26,6 @@ struct MockUnmarshFuncs final : public onnx::iUnmarshFuncs
 			std::vector<double>{}, onnx::unmarshal_shape(tens), name);
 	}
 
-
 	teq::TensptrT unmarsh_func (std::string opname,
 		const teq::TensptrsT& edges, marsh::Maps&& attrs) const override
 	{

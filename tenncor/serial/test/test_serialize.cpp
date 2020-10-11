@@ -24,7 +24,7 @@ const std::string testdir = "models/test";
 TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/serial.onnx";
-	std::string got_pbfile = "got_serial.onnx";
+	std::string got_pbfile = "/tmp/serial.onnx";
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	{
@@ -35,16 +35,15 @@ TEST(SERIALIZE, SaveGraph)
 		// subtree one
 		teq::Shape shape({3, 7});
 
-		teq::TensptrT osrc(eteq::make_variable<double>(
-			std::vector<double>(shape.n_elems()).data(), shape, "osrc"));
+		teq::TensptrT osrc(eteq::make_variable<float>(
+			std::vector<float>(shape.n_elems()).data(), shape, "osrc"));
 		teq::TensptrT osrc2(eteq::make_variable<double>(
 			std::vector<double>(shape.n_elems()).data(), shape, "osrc2"));
 
 		{
-			teq::TensptrT src(eteq::make_variable<double>(
-				std::vector<double>(shape.n_elems()).data(), shape, "src"));
-			teq::TensptrT src2(eteq::make_variable<double>(
-				std::vector<double>(shape.n_elems()).data(), shape, "src2"));
+			teq::TensptrT src(eteq::make_variable<int32_t>(
+				std::vector<int32_t>(shape.n_elems()).data(), shape, "src"));
+			teq::TensptrT src2(eteq::make_constant_scalar<double>(23, shape));
 
 			teq::TensptrT dest = eteq::make_functor(egen::SUB, {
 				src2, eteq::make_functor(egen::POW, {
@@ -63,10 +62,11 @@ TEST(SERIALIZE, SaveGraph)
 
 		// subtree two
 		{
-			teq::TensptrT src(eteq::make_variable<double>(
-				std::vector<double>(shape.n_elems()).data(), shape, "s2src"));
-			teq::TensptrT src2(eteq::make_variable<double>(
-				std::vector<double>(shape.n_elems()).data(), shape, "s2src2"));
+			teq::TensptrT src(eteq::Variable<float>::get(
+				std::vector<float>(shape.n_elems()).data(), shape,
+					"s2src", teq::PLACEHOLDER));
+			teq::TensptrT src2(eteq::make_variable<int32_t>(
+				std::vector<int32_t>(shape.n_elems()).data(), shape, "s2src2"));
 			teq::TensptrT src3(eteq::make_variable<double>(
 				std::vector<double>(shape.n_elems()).data(), shape, "s2src3"));
 
@@ -138,6 +138,7 @@ TEST(SERIALIZE, LoadGraph)
 
 	PrettyEquation artist;
 	artist.cfg_.showshape_ = true;
+	artist.cfg_.showtype_ = true;
 	std::stringstream gotstr;
 
 	ASSERT_HAS(ids.right, "root1");

@@ -1,6 +1,6 @@
 
-#ifndef DISTR_CONSUL_HPP
-#define DISTR_CONSUL_HPP
+#ifndef DISTR_P2P_HPP
+#define DISTR_P2P_HPP
 
 #include "ppconsul/agent.h"
 #include "ppconsul/catalog.h"
@@ -91,7 +91,7 @@ struct ConsulService final : public iP2PService
 				std::string address = service.second.address;
 				if (address.empty())
 				{
-					address = "localhost";
+					address = "0.0.0.0";
 				}
 				peers.emplace(id, fmts::sprintf("%s:%d",
 					address.c_str(), service.second.port));
@@ -147,4 +147,4 @@ ConsulService* make_consul (ConsulptrT consul, size_t port,
 
 }
 
-#endif // DISTR_CONSUL_HPP
+#endif // DISTR_P2P_HPP
