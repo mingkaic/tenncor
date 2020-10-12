@@ -1,4 +1,4 @@
-#include "teq/itensor.hpp"
+#include "internal/teq/itensor.hpp"
 
 #ifndef DBG_DETAIL_HPP
 #define DBG_DETAIL_HPP

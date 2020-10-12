@@ -1,12 +1,8 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
-#include "global/global.hpp"
-
 #include "dbg/peval/emit/emitter.hpp"
 #include "dbg/peval/stats/inspect.hpp"
-
-#include "tenncor/tenncor.hpp"
 
 namespace py = pybind11;
 
@@ -69,7 +65,7 @@ PYBIND11_MODULE(peval, m)
 	inspector
 		.def(py::init())
 		.def("add",
-		[](stats::Inspector& self, eteq::ETensor<PybindT> inspect, std::string label)
+		[](stats::Inspector& self, eteq::ETensor inspect, std::string label)
 		{
 			if (auto f = dynamic_cast<teq::iFunctor*>(inspect.get()))
 			{

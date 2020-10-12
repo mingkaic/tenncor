@@ -1,0 +1,80 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":opsvc_hdrs",
+        ":opsvc_srcs",
+        ":protos",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "opsvc_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "opsvc_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = glob(["*.proto"]),
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob(["test/*.cpp"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "opsvc",
+    hdrs = [":opsvc_hdrs"],
+    srcs = [":opsvc_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":opsvc_cc_grpc",
+        "//tenncor/eteq:eteq",
+        "//tenncor/distr/iosvc:iosvc",
+        "//tenncor/distr:distr",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "opsvc_pb",
+    srcs = [":protos"],
+    deps = ["//tenncor/distr/iosvc:iosvc_pb"],
+    visibility = ["//visibility:public"],
+)
+
+cpp_grpc_library(
+    name = "opsvc_cc_grpc",
+    deps = [":opsvc_pb"],
+    visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = [":test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":opsvc",
+        "//internal/teq:mock",
+        "//tenncor/distr:mock",
+        "//testutil:tutil",
+    ],
+    linkstatic = True,
+    size = "enormous",
+)

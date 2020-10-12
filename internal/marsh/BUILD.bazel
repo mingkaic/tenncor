@@ -1,0 +1,69 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":marsh_hdrs",
+        ":marsh_srcs",
+        ":mock_hdrs",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "marsh_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "marsh_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob(["test/*.cpp"]),
+)
+
+######### LIBRARIES #########
+
+cc_library(
+    name = "marsh",
+    hdrs = [":marsh_hdrs"],
+    srcs = [":marsh_srcs"],
+    copts = ["-std=c++17"],
+    deps = ["@com_github_mingkaic_cppkg//estd:estd"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "mock",
+    hdrs = [":mock_hdrs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":marsh",
+        "@boost//:property_tree",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = [":test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":mock",
+        "//testutil:tutil",
+        "@gtest//:gtest",
+    ],
+    linkstatic = True,
+)

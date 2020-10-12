@@ -6,12 +6,12 @@
 /// Draw a generic tree/graph structure as an ascii tree
 ///
 
+#ifndef DBG_TREE_HPP
+#define DBG_TREE_HPP
+
 #include <functional>
 #include <iostream>
 #include <string>
-
-#ifndef DBG_TREE_HPP
-#define DBG_TREE_HPP
 
 const char vert_branch = '-';
 

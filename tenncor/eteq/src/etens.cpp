@@ -1,5 +1,5 @@
 
-#include "eteq/etens.hpp"
+#include "tenncor/eteq/etens.hpp"
 
 #ifdef ETEQ_ETENS_HPP
 
@@ -7,6 +7,19 @@ namespace eteq
 {
 
 const std::string reg_key = "tens_registry";
+
+teq::TensptrsT to_tensors (const ETensorsT& etensors)
+{
+	teq::TensptrsT tensors;
+	tensors.reserve(etensors.size());
+	std::transform(etensors.begin(), etensors.end(),
+		std::back_inserter(tensors),
+		[](ETensor etens)
+		{
+			return (teq::TensptrT) etens;
+		});
+	return tensors;
+}
 
 void set_reg (TensRegistryT* reg, global::CfgMapptrT ctx)
 {

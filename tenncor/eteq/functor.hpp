@@ -6,19 +6,16 @@
 /// Eigen functor implementation of operable func
 ///
 
-#include "eteq/etens.hpp"
-#include "eteq/shaper.hpp"
-
 #ifndef ETEQ_FUNCTOR_HPP
 #define ETEQ_FUNCTOR_HPP
+
+#include "tenncor/eteq/etens.hpp"
 
 namespace eteq
 {
 
-const std::string dependency_key = "dependencies";
-
 #define _CHOOSE_PARSER(OPCODE)\
-outshape = ShapeParser<OPCODE>().shape(attrs, shapes);
+outshape = egen::ShapeParser<OPCODE>()(attrs, shapes);
 
 /// Functor implementation of operable functor of Eigen operators
 template <typename T>
@@ -37,17 +34,19 @@ struct Functor final : public eigen::Observable
 
 		teq::ShapesT shapes;
 		shapes.reserve(children.size());
-		egen::_GENERATED_DTYPE tcode = egen::get_type<T>();
-		for (teq::TensptrT child : children)
+		std::transform(children.begin(), children.end(),
+			std::back_inserter(shapes),
+			[](teq::TensptrT tens) { return tens->shape(); });
+
+		auto ctype = children.front()->get_meta().type_code();
+		for (auto it = children.begin(), et = children.end();
+			it != et; ++it)
 		{
-			if (tcode != child->get_meta().type_code())
+			auto child = *it;
+			if (ctype != child->get_meta().type_code())
 			{
-				global::fatalf("incompatible tensor types %s and %s: "
-					"cross-type functors not supported yet",
-					egen::name_type(tcode).c_str(),
-					child->get_meta().type_label().c_str());
+				global::fatal("children types are not all the same");
 			}
-			shapes.push_back(child->shape());
 		}
 
 		teq::Shape outshape;
@@ -58,7 +57,7 @@ struct Functor final : public eigen::Observable
 
 	~Functor (void)
 	{
-		for (teq::TensptrT child : children_)
+		for (teq::TensptrT child : args_)
 		{
 			if (auto f = dynamic_cast<eigen::Observable*>(child.get()))
 			{
@@ -100,77 +99,43 @@ struct Functor final : public eigen::Observable
 	/// Implementation of iFunctor
 	teq::TensptrsT get_args (void) const override
 	{
-		return children_;
-	}
-
-	/// Implementation of iFunctor
-	teq::TensptrsT get_dependencies (void) const override
-	{
-		auto deps = children_;
-		if (auto deps_attr = dynamic_cast<const marsh::iArray*>(
-			this->get_attr(dependency_key)))
-		{
-			deps_attr->foreach(
-				[&](size_t, const marsh::iObject* obj)
-				{
-					if (auto dep = dynamic_cast<const teq::TensorObj*>(obj))
-					{
-						deps.push_back(dep->get_tensor());
-					}
-				});
-		}
-		return deps;
+		return args_;
 	}
 
 	/// Implementation of iFunctor
 	void update_child (teq::TensptrT arg, size_t index) override
 	{
-		auto deps_attr = dynamic_cast<teq::TensArrayT*>(
-			this->get_attr(dependency_key));
-		size_t ndeps = children_.size();
-		if (nullptr != deps_attr)
+		if (index >= args_.size())
 		{
-			ndeps += deps_attr->contents_.size();
+			global::throw_errf("cannot replace argument %d when only "
+				"there are only %d available", index, args_.size());
 		}
-		if (index >= ndeps)
+		uninitialize();
+		if (auto f = dynamic_cast<eigen::Observable*>(args_[index].get()))
 		{
-			global::fatalf("cannot modify dependency %d "
-				"when there are only %d dependencies",
-				index, ndeps);
+			f->unsubscribe(this);
 		}
-		if (index < children_.size())
+		teq::Shape nexshape = arg->shape();
+		teq::Shape curshape = args_[index]->shape();
+		if (false == nexshape.compatible_after(curshape, 0))
 		{
-			if (arg != children_[index])
-			{
-				uninitialize();
-				if (auto f = dynamic_cast<eigen::Observable*>(children_[index].get()))
-				{
-					f->unsubscribe(this);
-				}
-				teq::Shape nexshape = arg->shape();
-				teq::Shape curshape = children_[index]->shape();
-				if (false == nexshape.compatible_after(curshape, 0))
-				{
-					global::fatalf("cannot update child %d to argument with "
-						"incompatible shape %s (requires shape %s)",
-						index, nexshape.to_string().c_str(),
-						curshape.to_string().c_str());
-				}
-				children_[index] = arg;
-				if (auto f = dynamic_cast<eigen::Observable*>(arg.get()))
-				{
-					f->subscribe(this);
-				}
-			}
+			global::fatalf("cannot update child %d to argument with "
+				"incompatible shape %s (requires shape %s)",
+				index, nexshape.to_string().c_str(),
+				curshape.to_string().c_str());
 		}
-		else
+		auto nextype = arg->get_meta().type_label();
+		auto curtype = args_[index]->get_meta().type_label();
+		if (curtype != nextype)
 		{
-			size_t idep = index - children_.size();
-			if (arg != deps_attr->contents_[idep]->get_tensor())
-			{
-				deps_attr->contents_[idep] =
-					std::make_unique<teq::TensorObj>(arg);
-			}
+			global::fatalf("cannot update child %d to argument with "
+				"different type %s (requires type %s)",
+				index, nextype.c_str(), curtype.c_str());
+		}
+		args_[index] = arg;
+		if (auto f = dynamic_cast<eigen::Observable*>(arg.get()))
+		{
+			f->subscribe(this);
 		}
 	}
 
@@ -223,7 +188,7 @@ struct Functor final : public eigen::Observable
 	/// Implementation of Observable
 	bool initialize (void) override
 	{
-		if (std::all_of(children_.begin(), children_.end(),
+		if (std::all_of(args_.begin(), args_.end(),
 			[](teq::TensptrT child)
 			{
 				if (auto f = dynamic_cast<eigen::Observable*>(child.get()))
@@ -234,7 +199,7 @@ struct Functor final : public eigen::Observable
 			}))
 		{
 			egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
-				ref_, shape_, children_, *this);
+				ref_, shape_, args_, *this);
 		}
 		return has_data();
 	}
@@ -242,7 +207,7 @@ struct Functor final : public eigen::Observable
 	/// Implementation of Observable
 	void must_initialize (void) override
 	{
-		for (auto child : children_)
+		for (auto child : args_)
 		{
 			auto f = dynamic_cast<eigen::Observable*>(child.get());
 			if (nullptr != f && false == f->has_data())
@@ -250,14 +215,17 @@ struct Functor final : public eigen::Observable
 				f->must_initialize();
 			}
 		}
-		assert(initialize());
+		if (false == initialize())
+		{
+			global::fatal("failed to initialize");
+		}
 	}
 
 	/// Implementation of Observable
 	bool prop_version (size_t max_version) override
 	{
 		size_t des_version = 0;
-		for (auto& child : children_)
+		for (auto& child : args_)
 		{
 			des_version = std::max(des_version, child->get_meta().state_version());
 		}
@@ -281,10 +249,10 @@ struct Functor final : public eigen::Observable
 
 private:
 	Functor (egen::_GENERATED_OPCODE opcode, teq::Shape shape,
-		teq::TensptrsT children, marsh::Maps&& attrs) :
-		eigen::Observable(std::move(attrs)),
+		teq::TensptrsT args, marsh::Maps&& attrs) :
+		eigen::Observable(args, std::move(attrs)),
 		opcode_(teq::Opcode{egen::name_op(opcode), opcode}),
-		shape_(shape), children_(children)
+		shape_(shape), args_(args)
 	{
 		common_init();
 	}
@@ -293,7 +261,7 @@ private:
 		eigen::Observable(other),
 		opcode_(other.opcode_),
 		shape_(other.shape_),
-		children_(other.children_)
+		args_(other.args_)
 	{
 		common_init();
 	}
@@ -305,13 +273,6 @@ private:
 
 	void common_init (void)
 	{
-		for (teq::TensptrT child : children_)
-		{
-			if (auto f = dynamic_cast<eigen::Observable*>(child.get()))
-			{
-				f->subscribe(this);
-			}
-		}
 #ifndef SKIP_INIT
 		initialize();
 #endif // SKIP_INIT
@@ -326,7 +287,7 @@ private:
 	teq::Shape shape_;
 
 	/// Tensor arguments (and children)
-	teq::TensptrsT children_;
+	teq::TensptrsT args_;
 
 	eigen::EMetadata<T> meta_;
 };
@@ -335,16 +296,6 @@ private:
 
 template <typename T>
 using FuncptrT = std::shared_ptr<Functor<T>>;
-
-/// Return functor node given opcode and node arguments
-template <typename T, typename ...ARGS>
-teq::TensptrT make_functor (egen::_GENERATED_OPCODE opcode,
-	const teq::TensptrsT& children,  ARGS... vargs);
-
-template <typename T, typename ...ARGS>
-ETensor<T> make_functor (const global::CfgMapptrT& ctx,
-	egen::_GENERATED_OPCODE opcode,
-	const teq::TensptrsT& children,ARGS... vargs);
 
 }
 

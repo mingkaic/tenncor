@@ -8,9 +8,9 @@ P5 = "get to it eventually"
 >>>>>>> inprogress >>>>>>>
    - modify distributed evaluation to solve issue of running out of server completion queue threads in a circular dependency topography
    - check for running out of server resources due to circular server dependencies
-   - deprecate frequent use of fatals in favor of error approach especially for netcode
-   - improve grpc async helper objects to take advantage of asynchonicity
-   - support type-anonymous etensors/functors to allow for non-typed derivefuncs
+   - deprecate frequent use of fatal/throws in favor of error approach especially for netcode
+   - replace assertions with fatals
+   - implement copy and moving distributed graphs
    - upgrade layr to allow restructuring recurrent structure sequence length
    - fix gru demo to run optimally
    - improve grader/optimization rule according to rnn, lstm, gru
@@ -22,6 +22,17 @@ P5 = "get to it eventually"
    - implement sparse embedding using eigen sparse matrix
    - select and integrate some other CUDA-supported LinAlgebra libraries
    - make global context configurable through python
+
+- generate random graphs for query, opt, and serial tests
+- maximize per-module test coverage for:
+   - query
+   - opt
+   - eteq
+   - serial
+   - hone
+   - distrib
+   - layr
+   - trainer
 
 === transparency/code readability ===
    - restructure so that core/utility modules, and generator are clear

@@ -1,16 +1,16 @@
-#include "layr/layer.hpp"
+#include "tenncor/layr/layer.hpp"
 
 #ifdef LAYR_LAYER_HPP
 
 namespace layr
 {
 
-teq::Shape gen_rshape (std::vector<teq::DimT> runcoms,
+teq::Shape gen_rshape (teq::DimsT runcoms,
 	teq::Shape left, eigen::PairVecT<teq::RankT> lrdims)
 {
 	// split runcoms values that avoids right dimensions in lrdims
 	std::array<bool,teq::rank_cap> unvisited;
-	std::vector<teq::DimT> slist(teq::rank_cap, 1);
+	teq::DimsT slist(teq::rank_cap, 1);
 	std::fill(unvisited.begin(), unvisited.end(), true);
 	for (auto& lr : lrdims)
 	{
@@ -27,6 +27,52 @@ teq::Shape gen_rshape (std::vector<teq::DimT> runcoms,
 		}
 	}
 	return teq::Shape(slist);
+}
+
+teq::TensptrT make_layer (teq::TensptrT root,
+	const std::string& layername, teq::TensptrT input)
+{
+	auto f = estd::must_cast<teq::iFunctor>(root.get());
+	if (nullptr != f->get_attr(teq::layer_attr))
+	{
+		global::fatalf("attempting to attach layer attribute to node %s "
+			"with an existing layer attribute", root->to_string().c_str());
+	}
+	f->add_attr(teq::layer_attr,
+		std::make_unique<teq::LayerObj>(layername, input));
+	return root;
+}
+
+eteq::ETensor get_input (const eteq::ETensor& root)
+{
+	if (nullptr == root)
+	{
+		global::fatal("cannot get layer attr with null root");
+	}
+	auto froot = estd::must_ptr_cast<teq::iFunctor>((teq::TensptrT) root);
+	auto layerattr = estd::must_cast<teq::LayerObj>(froot->get_attr(teq::layer_attr));
+	return eteq::ETensor(layerattr->get_tensor(), root.get_context());
+}
+
+eteq::ETensor trail (const eteq::ETensor& root, const teq::OwnMapT& inputs)
+{
+	Trailer trailer(inputs);
+	root->accept(trailer);
+	return eteq::ETensor(estd::try_get(trailer.trailed_, root.get(), nullptr),
+		root.get_context());
+}
+
+eteq::ETensor connect (const eteq::ETensor& root, const eteq::ETensor& input)
+{
+	return trail(root, teq::OwnMapT{
+		{get_input(root).get(), (teq::TensptrT) input}});
+}
+
+eteq::ETensor deep_clone (const eteq::ETensor& root)
+{
+	teq::Copier kamino({get_input(root).get()});
+	root->accept(kamino);
+	return eteq::ETensor(kamino.clones_.at(root.get()), root.get_context());
 }
 
 }

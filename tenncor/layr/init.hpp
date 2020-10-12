@@ -6,10 +6,10 @@
 /// Define variable initialization algorithms
 ///
 
-#include "eteq/eteq.hpp"
-
 #ifndef LAYR_INIT_HPP
 #define LAYR_INIT_HPP
+
+#include "tenncor/eteq/eteq.hpp"
 
 namespace layr
 {
@@ -45,7 +45,7 @@ void truncated_normal (std::vector<T>& out, teq::Shape shape, T mean, T stdev,
 {
 	size_t n = shape.n_elems();
 	out = std::vector<T>(n);
-	auto gen = global::Randomizer().norm_gen<T>(mean, stdev);
+	auto gen = global::get_generator()->norm_decgen(mean, stdev);
 	std::generate(out.begin(), out.end(), gen);
 	// if T is not decimal, program would fail to compile therefore T is signed
 	T upperbound = mean + 2 * stdev;

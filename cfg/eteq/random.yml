@@ -1,34 +1,32 @@
-template: typename T
-requires: TenncorAPI
 name: RandomAPI
 members:
   - name: super
-    type: TenncorAPI<T>*
+    type: TenncorAPI*
 init:
   args:
     - name: super
-      type: TenncorAPI<T>*
+      type: TenncorAPI*
   initlist:
     super: super
 funcs:
   - name: rand_unif
     args:
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: a
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: b
     out:
-      type: eteq::ETensor<T>
-      val: return eteq::make_functor<T>(super->ctx,::egen::RAND_UNIF,teq::TensptrsT{a,b});
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::RAND_UNIF,teq::TensptrsT{a,b}),super->ctx);
   - name: rand_binom_one
     args:
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: arg
     out:
-      type: eteq::ETensor<T>
+      type: eteq::ETensor
       val: |
           //
               auto trial = this->rand_unif(
-                  eteq::make_variable_like<T>((T) 0,arg,"0",super->ctx),
-                  eteq::make_variable_like<T>((T) 1,arg,"1",super->ctx));
+                  eteq::make_variable_like<float>(0,arg,"0",super->ctx),
+                  eteq::make_variable_like<float>(1,arg,"1",super->ctx));
               return super->lt(trial,arg);

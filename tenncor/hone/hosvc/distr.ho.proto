@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+import "internal/opt/optimize.proto";
+
+import "tenncor/distr/iosvc/distr.io.proto";
+
+package distr.ho;
+
+message PutOptimizeRequest {
+    opt.Optimization opts = 1;
+
+    repeated string uuids = 2;
+}
+
+message PutOptimizeResponse {
+    map<string,distr.io.NodeMeta> root_opts = 1;
+}
+
+message PutReplaceRequest {
+    map<string,distr.io.NodeMeta> replaces = 1;
+}
+
+message PutReplaceResponse {}
+
+service DistrOptimization {
+    rpc PutOptimize (PutOptimizeRequest) returns (PutOptimizeResponse);
+
+    rpc PutReplace (PutReplaceRequest) returns (PutReplaceResponse);
+}

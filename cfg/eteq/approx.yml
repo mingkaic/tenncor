@@ -1,17 +1,16 @@
-template: typename T
-requires: TenncorAPI
 name: ApproxAPI
 members:
   - name: super
-    type: TenncorAPI<T>*
+    type: TenncorAPI*
 init:
   args:
     - name: super
-      type: TenncorAPI<T>*
+      type: TenncorAPI*
   initlist:
     super: super
 funcs:
-  - name: sgd
+  - template: typename T
+    name: sgd
     description: |
                 Return all batches of variables to their corresponding assignment operator
                 applied using stochastic gradient descent approximation
@@ -24,23 +23,23 @@ funcs:
 
                 x_next = x - learning_rate * f'(x)
     args:
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: error
     - type: const eteq::EVariablesT<T>&
       name: variables
     - type: T
       name: learning_rate
       default: 0.5
-    - type: layr::UnaryF<T>
+    - type: layr::UnaryF
       name: apply
-      default: layr::UnaryF<T>()
+      default: layr::UnaryF()
     out:
       type: layr::VarErrsT<T>
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = tcr::derive<T>(error,
-                  eteq::ETensorsT<T>(variables.begin(),variables.end()));
+              auto ders = tcr::derive(error,
+                  eteq::ETensorsT(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
                   auto& x = variables[i];
@@ -53,9 +52,10 @@ funcs:
                   out.push_back({x,super->assign_sub(x,super->mul(der,learning_rate))});
               }
               return out;
-  - name: adagrad
+  - template: typename T
+    name: adagrad
     args:
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: error
     - type: const eteq::EVariablesT<T>&
       name: variables
@@ -65,16 +65,16 @@ funcs:
     - type: T
       name: epsilon
       default: std::numeric_limits<T>::epsilon()
-    - type: layr::UnaryF<T>
+    - type: layr::UnaryF
       name: apply
-      default: layr::UnaryF<T>()
+      default: layr::UnaryF()
     out:
       type: layr::VarErrsT<T>
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = tcr::derive<T>(error,
-                  eteq::ETensorsT<T>(variables.begin(),variables.end()));
+              auto ders = tcr::derive(error,
+                  eteq::ETensorsT(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
                   auto& x = variables[i];
@@ -93,7 +93,8 @@ funcs:
                       super->add(super->sqrt(update),epsilon)))});
               }
               return out;
-  - name: adadelta
+  - template: typename T
+    name: adadelta
     description: |
                 Return all batches of variables to their corresponding assignment operator
                 applied using adadelta error optimization
@@ -112,7 +113,7 @@ funcs:
                 E(dx_next^2) = decay * E(dx^2) + (1 - decay) * dx ^ 2
                 x_next = x - dx
     args:
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: error
     - type: const eteq::EVariablesT<T>&
       name: variables
@@ -125,16 +126,16 @@ funcs:
     - type: T
       name: offset
       default: 0.0001
-    - type: layr::UnaryF<T>
+    - type: layr::UnaryF
       name: apply
-      default: layr::UnaryF<T>()
+      default: layr::UnaryF()
     out:
       type: layr::VarErrsT<T>
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = tcr::derive<T>(error,
-                  eteq::ETensorsT<T>(variables.begin(),variables.end()));
+              auto ders = tcr::derive(error,
+                  eteq::ETensorsT(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
                   auto& x = variables[i];
@@ -166,11 +167,13 @@ funcs:
                           super->mul(nodecay,super->square(delta))
                       )
                   );
-                  out.push_back({x,super->depends(
-                      super->assign_sub(x,delta),{msd_next})});
+                  out.push_back({x,
+                      super->assign_sub(x,super->identity(delta, {msd_next}))
+                  });
               }
               return out;
-  - name: rms_momentum
+  - template: typename T
+    name: rms_momentum
     description: |
                 Return all batches of variable assignments of
                 momentum-based rms error approximation applied to
@@ -185,7 +188,7 @@ funcs:
                 momentum_next = discount_factor * m + (1 - discount_factor) * f'(x) ^ 2
                 x_next = x - (learning * f'(x)) / (sqrt(epsilon + momentum_next))
     args:
-    - type: const eteq::ETensor<T>&
+    - type: const eteq::ETensor&
       name: error
     - type: const eteq::EVariablesT<T>&
       name: variables
@@ -198,16 +201,16 @@ funcs:
     - type: T
       name: epsilon
       default: std::numeric_limits<T>::epsilon()
-    - type: layr::UnaryF<T>
+    - type: layr::UnaryF
       name: apply
-      default: layr::UnaryF<T>()
+      default: layr::UnaryF()
     out:
       type: layr::VarErrsT<T>
       val: |
           //
               layr::VarErrsT<T> out;
-              auto ders = tcr::derive<T>(error,
-                  eteq::ETensorsT<T>(variables.begin(),variables.end()));
+              auto ders = tcr::derive(error,
+                  eteq::ETensorsT(variables.begin(),variables.end()));
               for (size_t i = 0,n = variables.size(); i < n; ++i)
               {
                   auto& x = variables[i];

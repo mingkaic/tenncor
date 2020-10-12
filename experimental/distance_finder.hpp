@@ -1,4 +1,4 @@
-#include "teq/teq.hpp"
+#include "internal/teq/teq.hpp"
 
 namespace experimental
 {

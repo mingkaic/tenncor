@@ -8,7 +8,7 @@
 /// parents of every node is found under the same group
 ///
 
-#include "teq/traveler.hpp"
+#include "internal/teq/traveler.hpp"
 
 #ifndef CCUR_PARTITION_HPP
 #define CCUR_PARTITION_HPP

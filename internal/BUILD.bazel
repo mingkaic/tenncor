@@ -1,0 +1,17 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        "//internal/eigen:srcs",
+        "//internal/global:srcs",
+        "//internal/marsh:srcs",
+        "//internal/onnx:srcs",
+        "//internal/opt:srcs",
+        "//internal/query:srcs",
+        "//internal/teq:srcs",
+        "//internal/utils:srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)

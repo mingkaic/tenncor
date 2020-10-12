@@ -21,10 +21,7 @@
 
 # filegroup(
 #     name = "test_srcs",
-#     srcs = glob([
-#         "test/*.hpp",
-#         "test/*.cpp",
-#     ]),
+#     srcs = glob(["test/*.cpp"]),
 #     visibility = ["//visibility:private"],
 # )
 
@@ -46,7 +43,7 @@
 #     srcs = glob(["src/*.cpp"]),
 #     copts = ["-std=c++17"],
 #     deps = [
-#         "//teq:teq",
+#         "//internal/teq:teq",
 #         "@boost//:asio",
 #     ],
 # )
@@ -92,7 +89,7 @@
 #     srcs = ["//ccur:test_srcs"],
 #     copts = ["-std=c++17"],
 #     deps = [
-#         "//dbg:print",
+#         "//dbg/print:print",
 #         "//ccur:ccur",
 #         "//tenncor:eteq",
 #         "@gtest//:gtest",

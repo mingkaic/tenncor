@@ -3,7 +3,7 @@
  "opsetImport": [],
  "producerName": "tenncor",
  "producerVersion": "1.0.0",
- "domain": "com.tenncor.eteq",
+ "domain": "com.mingkaic.tenncor",
  "modelVersion": "6",
  "docString": "",
  "graph": {

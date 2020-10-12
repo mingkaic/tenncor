@@ -1,0 +1,103 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":distr_hdrs",
+        ":distr_srcs",
+        ":mock_hdrs",
+        ":mock_srcs",
+        ":mock_protos",
+        ":test_srcs",
+        "//tenncor/distr/iosvc:srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "distr_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "distr_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
+    name = "mock_srcs",
+    srcs = glob(["mock/*.cpp"]),
+)
+
+filegroup(
+    name = "mock_protos",
+    srcs = glob(["mock/*.proto"]),
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob(["test/*.cpp"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "distr",
+    hdrs = [":distr_hdrs"],
+    srcs = [":distr_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//internal/eigen:eigen",
+        "@boost//:bimap",
+        "@com_github_oliora_ppconsul//:consul",
+        "@com_github_mingkaic_cppkg//egrpc:egrpc",
+        "@com_github_mingkaic_cppkg//error:error",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "mock",
+    hdrs = [":mock_hdrs"],
+    srcs = [":mock_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":distr",
+        ":healthsvc_cc_grpc",
+        "//testutil:tutil",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "healthsvc_pb",
+    srcs = [":mock_protos"],
+)
+
+cpp_grpc_library(
+    name = "healthsvc_cc_grpc",
+    deps = [":healthsvc_pb"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = [":test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":mock",
+        "//internal/teq:mock",
+        "//dbg/print/printsvc:printsvc",
+    ],
+    linkstatic = True,
+    size = "large",
+)

@@ -58,6 +58,8 @@ build/
 cmake-build-*/
 shareds/
 bazel-*
+docs/
+tmp/
 
 **/*.csv
 **/*.onnx

@@ -5,9 +5,9 @@
 
 #include "flag/flag.hpp"
 
-#include "eigen/eigen.hpp"
+#include "internal/eigen/eigen.hpp"
 
-#include "eteq/make.hpp"
+#include "tenncor/eteq/make.hpp"
 
 #include "ccur/weights.pb.h"
 
@@ -40,7 +40,7 @@ int main (int argc, const char** argv)
 
 	global::set_log_level("info");
 
-	std::unordered_map<std::string,size_t> stats;
+	types::StrUMapT<size_t> stats;
 	size_t mean_stat = 0;//,
 		// max_stat = 0,
 		// min_stat = std::numeric_limits<size_t>::max();
@@ -70,7 +70,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(opcode, {var});
+				auto f = eteq::make_functor(opcode, {var});
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
@@ -92,7 +92,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(opcode, {var, var});
+				auto f = eteq::make_functor(opcode, {var, var});
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
@@ -106,7 +106,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = eteq::make_functor<float>(opcode, {var}, 1, 1);
+				auto f = eteq::make_functor(opcode, {var}, 1, 1);
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
@@ -117,7 +117,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = tenncor<float>().permute(var, {2, 0, 1});
+				auto f = tenncor().permute(var, {2, 0, 1});
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
@@ -127,7 +127,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 58}));
-				auto f = tenncor<float>().extend(var, 2, {57});
+				auto f = tenncor().extend(var, 2, {57});
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
@@ -137,7 +137,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = tenncor<float>().slice(var, {{0, 1234}, {0, 1234}, {2, 2}});
+				auto f = tenncor().slice(var, {{0, 1234}, {0, 1234}, {2, 2}});
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
@@ -149,7 +149,7 @@ int main (int argc, const char** argv)
 					0.3, teq::Shape({253, 255}));
 				auto b = eteq::make_constant_scalar<float>(
 					0.6, teq::Shape({254, 253}));
-				auto f = tenncor<float>().matmul(a, b);
+				auto f = tenncor().matmul(a, b);
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
@@ -161,7 +161,7 @@ int main (int argc, const char** argv)
 					0.3, teq::Shape({254, 255}));
 				auto kern = eteq::make_constant_scalar<float>(
 					0.6, teq::Shape({5, 7}));
-				auto f = tenncor<float>().convolution(img, kern, {0, 1});
+				auto f = tenncor().convolution(img, kern, {0, 1});
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
@@ -171,7 +171,7 @@ int main (int argc, const char** argv)
 			{
 				auto var = eteq::make_constant_scalar<float>(
 					0.5, teq::Shape({56, 57, 58}));
-				auto f = tenncor<float>().pad(var, {{0, 0}, {0, 0}, {3, 4}});
+				auto f = tenncor().pad(var, {{0, 0}, {0, 0}, {3, 4}});
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}
@@ -190,7 +190,7 @@ int main (int argc, const char** argv)
 				auto cond = eteq::make_constant<float>(data.data(), shape);
 				auto a = eteq::make_constant_scalar<float>(0.3, shape);
 				auto b = eteq::make_constant_scalar<float>(0.6, shape);
-				auto f = tenncor<float>().if_then_else(cond, a, b);
+				auto f = tenncor().if_then_else(cond, a, b);
 				auto ftens = static_cast<eteq::Functor<float>*>(f.get());
 				TIME(ftens->calc())
 			}

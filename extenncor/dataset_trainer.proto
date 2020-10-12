@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package dataset;
+
+message OnxDSEnv {
+    string name = 1;
+    int32 dataset_idx = 2;
+    string oxfile = 3;
+}

@@ -1,75 +1,75 @@
-template: typename T
 requires:
-  - TenncorAPI
   - NnAPI
 name: LayerAPI
 members:
   - name: super
-    type: TenncorAPI<T>*
+    type: TenncorAPI*
 init:
   args:
     - name: super
-      type: TenncorAPI<T>*
+      type: TenncorAPI*
   initlist:
     super: super
 funcs:
-  - name: bind
+  - template: typename T
+    name: bind
     args:
-    - type: layr::UnaryF<T>
+    - type: layr::UnaryF
       name: unary
     - type: const teq::Shape&
       name: inshape
       default: teq::Shape()
     out:
-      type: eteq::ETensor<T>
+      type: eteq::ETensor
       val: |
           //
-              eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
+              eteq::ETensor input(eteq::make_variable_scalar<T>(
                   0,inshape,layr::input_label,super->ctx));
               auto output = unary(input);
               auto layer_root = super->identity(output);
-              return eteq::ETensor<T>(eteq::make_layer(layer_root,layr::bind_name,input),super->ctx);
+              return eteq::ETensor(layr::make_layer(layer_root,layr::bind_name,input),super->ctx);
   - name: link
     args:
-    - type: eteq::ETensorsT<T>
+    - type: eteq::ETensorsT
       name: layers
-    - type: eteq::ETensor<T>
+    - type: eteq::ETensor
       name: input
       check_null: false
-      default: eteq::ETensor<T>()
+      default: eteq::ETensor()
     out:
-      type: eteq::ETensor<T>
+      type: eteq::ETensor
       val: |
           //
               if (layers.empty())
               {
                   global::fatal("cannot link without layers");
               }
-              eteq::ETensor<T> output = input;
+              eteq::ETensor output = input;
               if (nullptr == input)
               {
                   output = layers.front();
-                  input = eteq::get_input(output);
-                  layers = eteq::ETensorsT<T>(layers.begin()+1,layers.end());
+                  input = layr::get_input(output);
+                  layers = eteq::ETensorsT(layers.begin()+1,layers.end());
               }
               for (auto layer : layers)
               {
-                  if (eteq::get_input(layer).get() == output.get())
+                  if (layr::get_input(layer).get() == output.get())
                   {
                       output = layer;
                   }
                   else
                   {
-                      output = eteq::connect(layer,output);
+                      output = layr::connect(layer,output);
                   }
               }
               auto layer_root = super->identity(output);
-              return eteq::ETensor<T>(eteq::make_layer(layer_root,layr::link_name,input),super->ctx);
-  - name: dense
+              return eteq::ETensor(layr::make_layer(layer_root,layr::link_name,input),super->ctx);
+  - template: typename T
+    name: dense
     args:
     - type: const teq::Shape&
       name: inshape
-    - type: const std::vector<teq::DimT>&
+    - type: const teq::DimsT&
       name: hidden_dims
     - type: const layr::InitF<T>&
       name: weight_init
@@ -80,11 +80,14 @@ funcs:
       name: dims
       default: "eigen::PairVecT<teq::RankT>{{0,1}}"
     out:
-      type: eteq::ETensor<T>
+      type: eteq::ETensor
       val: |
           //
-              assert(weight_init);
-              eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0,inshape,layr::input_label,super->ctx));
+              if (!weight_init)
+              {
+                  global::fatal("weight_init must be defined when creating dense layer");
+              }
+              eteq::ETensor input(eteq::make_variable_scalar<T>(0,inshape,layr::input_label,super->ctx));
               eteq::EVariable<T> weight = weight_init(layr::gen_rshape(
                   hidden_dims,inshape,dims),layr::weight_label);
               eteq::EVariable<T> bias;
@@ -93,7 +96,8 @@ funcs:
                   bias = bias_init(teq::Shape(hidden_dims),layr::bias_label);
               }
               return super->nn.dense(input,weight,bias,dims);
-  - name: conv
+  - template: typename T
+    name: conv
     args:
     - type: const eteq::DimPairsT&
       name: filter_hw
@@ -110,12 +114,15 @@ funcs:
       name: zero_padding
       default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
     out:
-      type: eteq::ETensor<T>
+      type: eteq::ETensor
       val: |
           //
-              assert(weight_init);
+              if (!weight_init)
+              {
+                  global::fatal("weight_init must be defined when creating conv layer");
+              }
               // image must be in form [in,iwidth,iheight,batch]
-              eteq::ETensor<T> input(eteq::make_variable_scalar<T>(0,teq::Shape({
+              eteq::ETensor input(eteq::make_variable_scalar<T>(0,teq::Shape({
                   in_ncol,filter_hw.second,filter_hw.first,1}),layr::input_label,super->ctx));
               eteq::EVariable<T> weight = weight_init(teq::Shape({out_ncol,
                   in_ncol,filter_hw.second,filter_hw.first}),layr::weight_label);
@@ -125,13 +132,14 @@ funcs:
                   bias = bias_init(teq::Shape({out_ncol}),layr::bias_label);
               }
               return super->nn.conv(input,weight,bias,zero_padding);
-  - name: rnn
+  - template: typename T
+    name: rnn
     args:
     - type: teq::DimT
       name: indim
     - type: teq::DimT
       name: hidden_dim
-    - type: const layr::UnaryF<T>&
+    - type: const layr::UnaryF&
       name: activation
     - type: teq::DimT
       name: nseq
@@ -144,15 +152,15 @@ funcs:
       name: seq_dim
       default: "1"
     out:
-      type: eteq::ETensor<T>
+      type: eteq::ETensor
       val: |
           //
               // input needs to specify number of sequences,
               // since graph topography can't be traced
-              std::vector<teq::DimT> inslist(teq::rank_cap,1);
+              teq::DimsT inslist(teq::rank_cap,1);
               inslist[0] = indim;
               inslist[seq_dim] = nseq;
-              eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
+              eteq::ETensor input(eteq::make_variable_scalar<T>(
                   0,teq::Shape(inslist),layr::input_label,super->ctx));
 
               auto cell = this->dense(teq::Shape({(teq::DimT) (hidden_dim + indim)}),
@@ -160,11 +168,12 @@ funcs:
 
               auto init_state = eteq::make_variable<T>(
                   teq::Shape({hidden_dim}),"init_state",super->ctx);
-              eteq::ETensor<T> state = super->extend_like(init_state,
+              eteq::ETensor state = super->extend_like(init_state,
                   super->slice(input,0,1,seq_dim));
 
               return super->nn.rnn(input,state,cell,activation,seq_dim);
-  - name: lstm
+  - template: typename T
+    name: lstm
     args:
     - type: const teq::Shape&
       name: inshape
@@ -181,25 +190,25 @@ funcs:
       name: seq_dim
       default: "1"
     out:
-      type: eteq::ETensor<T>
+      type: eteq::ETensor
       val: |
           //
               // input needs to specify number of sequences,
               // since graph topography can't be traced
-              std::vector<teq::DimT> inslist(inshape.begin(),inshape.end());
+              teq::DimsT inslist(inshape.begin(),inshape.end());
               inslist[seq_dim] = nseq;
-              eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
+              eteq::ETensor input(eteq::make_variable_scalar<T>(
                   0,teq::Shape(inslist),layr::input_label,super->ctx));
 
-              std::vector<teq::DimT> inputlist(inshape.begin(),inshape.end());
-              std::vector<teq::DimT> statelist(inshape.begin(),inshape.end());
+              teq::DimsT inputlist(inshape.begin(),inshape.end());
+              teq::DimsT statelist(inshape.begin(),inshape.end());
               inputlist[0] += hidden_dim;
               statelist[0] = hidden_dim;
               inputlist[seq_dim] = statelist[seq_dim] = 1;
 
               teq::Shape inputshape(inputlist);
               teq::Shape stateshape(statelist);
-              std::vector<teq::DimT> hid_dims = {hidden_dim};
+              teq::DimsT hid_dims = {hidden_dim};
               auto ggate = this->dense(inputshape,hid_dims,weight_init,bias_init);
               auto forgate = this->dense(inputshape,hid_dims,weight_init,bias_init);
               auto ingate = this->dense(inputshape,hid_dims,weight_init,bias_init);
@@ -210,7 +219,8 @@ funcs:
 
               return super->nn.lstm(input,state,hidden,
                   ggate,forgate,ingate,outgate,seq_dim);
-  - name: gru
+  - template: typename T
+    name: gru
     args:
     - type: const teq::Shape&
       name: inshape
@@ -227,25 +237,25 @@ funcs:
       name: seq_dim
       default: "1"
     out:
-      type: eteq::ETensor<T>
+      type: eteq::ETensor
       val: |
           //
               // input needs to specify number of sequences,
               // since graph topography can't be traced
-              std::vector<teq::DimT> inslist(inshape.begin(),inshape.end());
+              teq::DimsT inslist(inshape.begin(),inshape.end());
               inslist[seq_dim] = nseq;
-              eteq::ETensor<T> input(eteq::make_variable_scalar<T>(
+              eteq::ETensor input(eteq::make_variable_scalar<T>(
                   0,teq::Shape(inslist),layr::input_label,super->ctx));
 
-              std::vector<teq::DimT> inputlist(inshape.begin(),inshape.end());
-              std::vector<teq::DimT> statelist(inshape.begin(),inshape.end());
+              teq::DimsT inputlist(inshape.begin(),inshape.end());
+              teq::DimsT statelist(inshape.begin(),inshape.end());
               inputlist[0] += hidden_dim;
               statelist[0] = hidden_dim;
               inputlist[seq_dim] = statelist[seq_dim] = 1;
 
               teq::Shape inputshape(inputlist);
               teq::Shape stateshape(statelist);
-              std::vector<teq::DimT> hid_dims = {hidden_dim};
+              teq::DimsT hid_dims = {hidden_dim};
               auto ugate = this->dense(inputshape,hid_dims,weight_init,bias_init);
               auto rgate = this->dense(inputshape,hid_dims,weight_init,bias_init);
               auto hgate = this->dense(inputshape,hid_dims,weight_init,bias_init);
@@ -254,7 +264,8 @@ funcs:
 
               return super->nn.gru(input,state,
                   ugate,rgate,hgate,seq_dim);
-  - name: rbm
+  - template: typename T
+    name: rbm
     args:
     - type: teq::DimT
       name: nvisible
@@ -270,9 +281,9 @@ funcs:
       val: |
           //
               /// Returns forward builder,and assigns backward builder
-              eteq::ETensor<T> fwdinput(eteq::make_variable_scalar<T>(
+              eteq::ETensor fwdinput(eteq::make_variable_scalar<T>(
                   0,teq::Shape({nvisible}),layr::input_label,super->ctx));
-              eteq::ETensor<T> bwdinput(eteq::make_variable_scalar<T>(
+              eteq::ETensor bwdinput(eteq::make_variable_scalar<T>(
                   0,teq::Shape({nhidden}),layr::input_label,super->ctx));
               eteq::EVariable<T> weight = weight_init(
                   teq::Shape({nhidden,nvisible}),layr::weight_label);
@@ -288,7 +299,8 @@ funcs:
                   super->nn.dense(bwdinput,
                       super->transpose(weight),vbias,{{0,1}})
               };
-  - name: zero_init
+  - template: typename T
+    name: zero_init
     description: Return initialization function that makes zero variables
     out:
       type: layr::InitF<T>
@@ -300,7 +312,8 @@ funcs:
               {
                   return eteq::make_variable_scalar<T>(0, shape, label, ctx);
               };
-  - name: variance_scaling_init
+  - template: typename T
+    name: variance_scaling_init
     description: |
                 Return initialization function that makes variance scaling variables
                 (see https://www.tensorflow.org/versions/r1.14/api_docs/python/tf/contrib/layers/variance_scaling_initializer)
@@ -323,7 +336,8 @@ funcs:
                   layr::truncated_normal<T>(vec, shape, 0, stdev);
                   return eteq::make_variable(vec.data(), shape, label, ctx);
               };
-  - name: unif_xavier_init
+  - template: typename T
+    name: unif_xavier_init
     description: |
                 Return initialization function that makes xavier initialized variables (that uses uniform distribution)
                 (see https://andyljones.tumblr.com/post/110998971763/an-explanation-of-xavier-initialization)
@@ -341,10 +355,12 @@ funcs:
               {
                   std::vector<T> vec(shape.n_elems());
                   T bound = factor * std::sqrt(6. / layr::fanio<T>(shape));
-                  std::generate(vec.begin(), vec.end(), global::Randomizer().unif_gen<T>(-bound, bound));
+                  std::generate(vec.begin(), vec.end(),
+                      global::get_generator()->unif_decgen(-bound, bound));
                   return eteq::make_variable(vec.data(), shape, label, ctx);
               };
-  - name: norm_xavier_init
+  - template: typename T
+    name: norm_xavier_init
     description: |
                 Return initialization function that makes xavier initialized variables (that uses gaussian distribution)
                 (see https://andyljones.tumblr.com/post/110998971763/an-explanation-of-xavier-initialization)
@@ -362,6 +378,6 @@ funcs:
               {
                   std::vector<T> vec(shape.n_elems());
                   T stdev = factor * std::sqrt(2. / layr::fanio<T>(shape));
-                  std::generate(vec.begin(), vec.end(), global::Randomizer().norm_gen<T>(0., stdev));
+                  std::generate(vec.begin(), vec.end(), global::get_generator()->norm_decgen(0., stdev));
                   return eteq::make_variable(vec.data(), shape, label, ctx);
               };

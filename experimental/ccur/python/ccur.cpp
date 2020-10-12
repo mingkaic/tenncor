@@ -2,7 +2,7 @@
 #include "pybind11/numpy.h"
 #include "pybind11/stl.h"
 
-#include "global/global.hpp"
+#include "internal/global/global.hpp"
 
 #include "ccur/session.hpp"
 

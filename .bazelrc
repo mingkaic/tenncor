@@ -37,7 +37,7 @@ coverage --test_output=all --verbose_failures --instrumentation_filter=
 
 # === C++ COVERAGE ===
 
-coverage:cc_coverage --instrument_test_targets --experimental_cc_coverage --combined_report=lcov --coverage_report_generator=@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main
+coverage:cc_coverage --collect_code_coverage --experimental_use_llvm_covmap --experimental_cc_coverage --combined_report=lcov --experimental_fetch_all_coverage_outputs --coverage_report_generator=@bazel_tools//tools/test/CoverageOutputGenerator/java/com/google/devtools/coverageoutputgenerator:Main
 
 # === MEMORY ANALYSIS ===
 
