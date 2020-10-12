@@ -51,7 +51,7 @@ protected:
 	{
 		peers_.emplace(peer_id, address);
 		health_ids_.emplace(peer_id, health_id);
-		if (auto err = check_health(address, health_id, 10))
+		if (auto err = check_health(address, health_id, 50))
 		{
 			global::fatal(err->to_string());
 		}
