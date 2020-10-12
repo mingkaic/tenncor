@@ -13,7 +13,7 @@ function bzl_coverage() {
 	--action_env="ASAN_OPTIONS=detect_leaks=0" \
 	--config asan \
 	--config cc_coverage \
-	--remote_http_cache="$REMOTE_CACHE" $@ | grep -v '+' | grep -v 'Processing';
+	--remote_http_cache="$REMOTE_CACHE" $@ | grep -v -E '+|Processing|Lines|Creating';
 	# extract coverage from bazel cache
 	COV_FILE="coverage.info";
 	if ! [ -z "$COV_DIR" ];
