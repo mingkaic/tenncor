@@ -23,6 +23,12 @@ struct DistrHoCli final : public egrpc::GrpcClient
 		stub_(DistrOptimization::NewStub(channel)),
 		alias_(alias) {}
 
+	DistrHoCli (DistrOptimization::StubInterface* stub,
+		const egrpc::ClientConfig& cfg,
+		const std::string& alias) :
+		GrpcClient(cfg),
+		stub_(stub), alias_(alias) {}
+
 	egrpc::ErrPromiseptrT put_optimize (
 		grpc::CompletionQueue& cq,
 		const PutOptimizeRequest& req,
@@ -49,7 +55,7 @@ struct DistrHoCli final : public egrpc::GrpcClient
 	// egrpc::ErrPromiseptrT put_replace ()
 
 private:
-	std::unique_ptr<DistrOptimization::Stub> stub_;
+	std::unique_ptr<DistrOptimization::StubInterface> stub_;
 
 	std::string alias_;
 };

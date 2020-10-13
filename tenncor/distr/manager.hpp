@@ -7,6 +7,7 @@
 namespace distr
 {
 
+template <typename SBUILDER = ServerBuilder>
 struct DistrManager final : public iDistrManager
 {
 	DistrManager (P2PSvcptrT&& p2p,
@@ -14,12 +15,11 @@ struct DistrManager final : public iDistrManager
 		svcs_(svcs), p2p_(std::move(p2p))
 	{
 		std::string address = p2p_->get_local_addr();
-		grpc::ServerBuilder builder;
-		builder.AddListeningPort(address,
+		SBUILDER builder;
+		builder.add_listening_port(address,
 			grpc::InsecureServerCredentials());
-		cq_ = builder.AddCompletionQueue();
+		cq_ = builder.add_completion_queue();
 
-		p2p_->register_service(builder);
 		auto svc_keys = svcs_.get_keys();
 		for (auto& skey : svc_keys)
 		{
@@ -27,11 +27,10 @@ struct DistrManager final : public iDistrManager
 				register_service(builder);
 		}
 
-		server_ = builder.BuildAndStart();
+		server_ = builder.build_and_start();
 		global::infof("[server %s] listening on %s",
 			p2p_->get_local_peer().c_str(), address.c_str());
 
-		p2p_->initialize_server_call(*cq_);
 		for (auto& skey : svc_keys)
 		{
 			static_cast<iPeerService*>(svcs_.get_obj(skey))->
@@ -56,9 +55,9 @@ struct DistrManager final : public iDistrManager
 		}
 	}
 
-	DistrManager (DistrManager&& other) = delete;
+	DistrManager (DistrManager<SBUILDER>&& other) = delete;
 
-	DistrManager& operator = (DistrManager&& other) = delete;
+	DistrManager<SBUILDER>& operator = (DistrManager<SBUILDER>&& other) = delete;
 
 	std::string get_id (void) const override
 	{
@@ -106,8 +105,6 @@ private:
 
 	std::vector<std::thread> rpc_jobs_;
 };
-
-using DistrMgrptrT = std::shared_ptr<DistrManager>;
 
 void set_distrmgr (iDistrMgrptrT mgr,
 	global::CfgMapptrT ctx = global::context());

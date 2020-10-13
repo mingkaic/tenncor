@@ -27,8 +27,10 @@ const std::string hosvc_key = "distr_hosvc";
 
 struct DistrHoService final : public PeerService<DistrHoCli>
 {
-	DistrHoService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc) :
-		PeerService<DistrHoCli>(cfg), iosvc_(iosvc) {}
+	DistrHoService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc,
+		PeerService<DistrHoCli>::BuildCliF builder =
+			PeerService<DistrHoCli>::default_builder) :
+		PeerService<DistrHoCli>(cfg, builder), iosvc_(iosvc) {}
 
 	teq::TensptrsT optimize (const teq::TensptrsT& roots,
 		const opt::Optimization& optimize)
@@ -83,9 +85,9 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 		return hone::optimize(roots, optimize);
 	}
 
-	void register_service (grpc::ServerBuilder& builder) override
+	void register_service (iServerBuilder& builder) override
 	{
-		builder.RegisterService(&service_);
+		builder.register_service(&service_);
 	}
 
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override

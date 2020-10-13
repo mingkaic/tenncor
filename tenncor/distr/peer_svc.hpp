@@ -5,9 +5,41 @@
 #include "error/error.hpp"
 
 #include "tenncor/distr/p2p.hpp"
+#include "tenncor/distr/ipeer_svc.hpp"
 
 namespace distr
 {
+
+struct ServerBuilder final : public iServerBuilder
+{
+	iServerBuilder& register_service (grpc::Service* service) override
+	{
+		builder_.RegisterService(service);
+		return *this;
+	}
+
+	iServerBuilder& add_listening_port (
+		const std::string& address,
+		std::shared_ptr<grpc::ServerCredentials> creds,
+		int* selected_port = nullptr) override
+	{
+		builder_.AddListeningPort(address, creds, selected_port);
+		return *this;
+	}
+
+	std::unique_ptr<grpc::ServerCompletionQueue>
+	add_completion_queue (bool is_frequently_polled = true) override
+	{
+		return builder_.AddCompletionQueue(is_frequently_polled);
+	}
+
+	std::unique_ptr<grpc::Server> build_and_start (void) override
+	{
+		return builder_.BuildAndStart();
+	}
+
+	grpc::ServerBuilder builder_;
+};
 
 struct PeerServiceConfig
 {
@@ -26,8 +58,19 @@ struct PeerServiceConfig
 template <typename CLI> // CLI has base egrpc::GrpcClient
 struct PeerService : public iPeerService
 {
-	PeerService (const PeerServiceConfig& cfg) :
-		cli_(cfg.cli_), p2p_(cfg.p2p_)
+	using BuildCliF = std::function<CLI*(
+		const std::string&,const egrpc::ClientConfig&,const std::string&)>;
+
+	static CLI* default_builder (const std::string& addr,
+		const egrpc::ClientConfig& config, const std::string& alias)
+	{
+		return new CLI(
+			grpc::CreateChannel(addr, grpc::InsecureChannelCredentials()),
+			config, alias);
+	}
+
+	PeerService (const PeerServiceConfig& cfg, BuildCliF build_cli = default_builder) :
+		cli_(cfg.cli_), p2p_(cfg.p2p_), build_cli_(build_cli)
 	{
 		update_clients();
 		// if nthread_ == 0, use 1 thread anyways
@@ -80,10 +123,9 @@ protected:
 		{
 			if (false == estd::has(clients_, peer.first))
 			{
-				clients_.insert({peer.first, std::make_unique<CLI>(
-					grpc::CreateChannel(peer.second,
-						grpc::InsecureChannelCredentials()), cli_,
-					get_peer_id() + "->" + peer.first)});
+				clients_.insert({peer.first,
+					std::unique_ptr<CLI>(build_cli_(peer.second, cli_,
+						get_peer_id() + "->" + peer.first))});
 			}
 		}
 	}
@@ -96,6 +138,8 @@ protected:
 	egrpc::ClientConfig cli_;
 
 	iP2PService* p2p_;
+
+	BuildCliF build_cli_;
 
 	grpc::CompletionQueue cq_;
 

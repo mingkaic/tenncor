@@ -16,7 +16,7 @@ struct MockService : public distr::PeerService<MockClient>
 	MockService (const distr::PeerServiceConfig& cfg) :
 		PeerService<MockClient>(cfg) {}
 
-	void register_service (grpc::ServerBuilder& builder) override
+	void register_service (distr::iServerBuilder& builder) override
 	{
 		++registry_count_;
 	}

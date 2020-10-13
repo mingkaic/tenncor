@@ -43,8 +43,10 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 {
 	DistrOpService (std::unique_ptr<teq::iDevice>&& evaluator,
 		std::unique_ptr<teq::iDerivativeFuncs>&& dfuncs,
-		const PeerServiceConfig& cfg, io::DistrIOService* iosvc) :
-		PeerService<DistrOpCli>(cfg), evaluator_(std::move(evaluator)),
+		const PeerServiceConfig& cfg, io::DistrIOService* iosvc,
+		PeerService<DistrOpCli>::BuildCliF builder =
+			PeerService<DistrOpCli>::default_builder) :
+		PeerService<DistrOpCli>(cfg, builder), evaluator_(std::move(evaluator)),
 		deriver_(std::move(dfuncs)), iosvc_(iosvc) {}
 
 	/// Evalute target tensor set ignoring all tensors in ignored set
@@ -372,9 +374,9 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		return out;
 	}
 
-	void register_service (grpc::ServerBuilder& builder) override
+	void register_service (iServerBuilder& builder) override
 	{
-		builder.RegisterService(&service_);
+		builder.register_service(&service_);
 	}
 
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override

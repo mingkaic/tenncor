@@ -8,12 +8,10 @@
 
 #include "internal/global/global.hpp"
 
-#include "tenncor/distr/ipeer_svc.hpp"
-
 namespace distr
 {
 
-struct iP2PService : public iPeerService
+struct iP2PService
 {
 	virtual ~iP2PService (void) = default;
 
@@ -121,10 +119,6 @@ struct ConsulService final : public iP2PService
 	{
 		return fmts::sprintf("0.0.0.0:%d", port_);
 	}
-
-	void register_service (grpc::ServerBuilder& builder) override {}
-
-	void initialize_server_call (grpc::ServerCompletionQueue& cq) override {}
 
 	ConsulptrT consul_;
 

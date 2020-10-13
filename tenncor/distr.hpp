@@ -27,7 +27,7 @@ struct DistrEvaluator final : public teq::iEvaluator
 };
 
 /// Make and return DistrManager and set it to context
-distr::DistrMgrptrT ctxualize_distrmgr (
+distr::iDistrMgrptrT ctxualize_distrmgr (
 	distr::ConsulptrT consul, size_t port,
 	const std::string& alias = "",
 	std::vector<distr::RegisterSvcF> regs = {

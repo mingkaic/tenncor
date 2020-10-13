@@ -28,8 +28,10 @@ const std::string oxsvc_key = "distr_serializesvc";
 
 struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 {
-	DistrSerializeService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc) :
-		PeerService<DistrSerializeCli>(cfg), iosvc_(iosvc) {}
+	DistrSerializeService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc,
+		PeerService<DistrSerializeCli>::BuildCliF builder =
+			PeerService<DistrSerializeCli>::default_builder) :
+		PeerService<DistrSerializeCli>(cfg, builder), iosvc_(iosvc) {}
 
 	TopographyT save_graph (onnx::GraphProto& pb_graph,
 		const teq::TensptrsT& roots, onnx::TensIdT identified = {})
@@ -197,9 +199,9 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 		return roots;
 	}
 
-	void register_service (grpc::ServerBuilder& builder) override
+	void register_service (iServerBuilder& builder) override
 	{
-		builder.RegisterService(&service_);
+		builder.register_service(&service_);
 	}
 
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override

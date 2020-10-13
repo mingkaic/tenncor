@@ -21,6 +21,12 @@ struct DistrSerializeCli final : public egrpc::GrpcClient
 		stub_(DistrSerialization::NewStub(channel)),
 		alias_(alias) {}
 
+	DistrSerializeCli (DistrSerialization::StubInterface* stub,
+		const egrpc::ClientConfig& cfg,
+		const std::string& alias) :
+		GrpcClient(cfg),
+		stub_(stub), alias_(alias) {}
+
 	egrpc::ErrPromiseptrT get_save_graph (
 		grpc::CompletionQueue& cq,
 		const GetSaveGraphRequest& req,
@@ -67,7 +73,7 @@ struct DistrSerializeCli final : public egrpc::GrpcClient
 	}
 
 private:
-	std::unique_ptr<DistrSerialization::Stub> stub_;
+	std::unique_ptr<DistrSerialization::StubInterface> stub_;
 
 	std::string alias_;
 };

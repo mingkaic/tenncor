@@ -34,10 +34,26 @@ void distr_ext (py::module& m)
 		py::arg("address") = "0.0.0.0:8500");
 
 	// ==== distrib manager ====
-	py::class_<distr::iDistrManager,distr::iDistrMgrptrT> imgr(m, "iDistrManager");
-	py::class_<distr::DistrManager,distr::DistrMgrptrT> mgr(m, "DistrManager", imgr);
+	py::class_<distr::iDistrManager,distr::iDistrMgrptrT> imgr(m, "DistrManager");
 
 	imgr
+		.def(py::init(
+		[](distr::ConsulptrT consul, size_t port,
+			const std::string& alias, const std::string& svc_name,
+			global::CfgMapptrT ctx)
+		{
+			return tcr::ctxualize_distrmgr(consul, port, alias, {
+				distr::register_iosvc,
+				distr::register_opsvc,
+				distr::register_oxsvc,
+				distr::register_printsvc,
+			}, svc_name, ctx);
+		}),
+		py::arg("consul"),
+		py::arg("port"),
+		py::arg("alias") = "",
+		py::arg("service_name") = distr::default_service,
+		py::arg("ctx") = global::context())
 		.def("expose_node",
 		[](distr::iDistrManager& self, eteq::ETensor node)
 		{
@@ -85,25 +101,6 @@ void distr_ext (py::module& m)
 		{
 			distr::get_printsvc(self).print_ascii(std::cout, root.get());
 		});
-
-	mgr
-		.def(py::init(
-		[](distr::ConsulptrT consul, size_t port,
-			const std::string& alias, const std::string& svc_name,
-			global::CfgMapptrT ctx)
-		{
-			return tcr::ctxualize_distrmgr(consul, port, alias, {
-				distr::register_iosvc,
-				distr::register_opsvc,
-				distr::register_oxsvc,
-				distr::register_printsvc,
-			}, svc_name, ctx);
-		}),
-		py::arg("consul"),
-		py::arg("port"),
-		py::arg("alias") = "",
-		py::arg("service_name") = distr::default_service,
-		py::arg("ctx") = global::context());
 
 	// ==== evaluator ====
 	py::class_<tcr::DistrEvaluator> eval(m, "DistrEvaluator", ieval);

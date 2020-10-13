@@ -6,7 +6,7 @@
 namespace tcr
 {
 
-distr::DistrMgrptrT ctxualize_distrmgr (
+distr::iDistrMgrptrT ctxualize_distrmgr (
 	distr::ConsulptrT consul, size_t port,
 	const std::string& alias, std::vector<distr::RegisterSvcF> regs,
 	const std::string& svc_name, global::CfgMapptrT ctx)
@@ -22,7 +22,7 @@ distr::DistrMgrptrT ctxualize_distrmgr (
 	{
 		assert(nullptr == reg(svcs, cfg));
 	}
-	auto mgr = std::make_shared<distr::DistrManager>(
+	auto mgr = std::make_shared<distr::DistrManager<>>(
 		distr::P2PSvcptrT(consulsvc), svcs);
 	::tcr::set_distrmgr(mgr, ctx);
 	return mgr;

@@ -21,6 +21,12 @@ struct DistrPrintCli final : public egrpc::GrpcClient
 		stub_(DistrPrint::NewStub(channel)),
 		alias_(alias) {}
 
+	DistrPrintCli (DistrPrint::StubInterface* stub,
+		const egrpc::ClientConfig& cfg,
+		const std::string& alias) :
+		GrpcClient(cfg),
+		stub_(stub), alias_(alias) {}
+
 	egrpc::ErrPromiseptrT list_ascii (
 		grpc::CompletionQueue& cq,
 		const ListAsciiRequest& req,
@@ -42,7 +48,7 @@ struct DistrPrintCli final : public egrpc::GrpcClient
 	}
 
 private:
-	std::unique_ptr<DistrPrint::Stub> stub_;
+	std::unique_ptr<DistrPrint::StubInterface> stub_;
 
 	std::string alias_;
 };

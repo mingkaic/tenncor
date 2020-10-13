@@ -23,6 +23,11 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		stub_(DistrOperation::NewStub(channel)),
 		alias_(alias) {}
 
+	DistrOpCli (DistrOperation::StubInterface* stub,
+		const egrpc::ClientConfig& cfg,
+		const std::string& alias) :
+		GrpcClient(cfg), stub_(stub), alias_(alias) {}
+
 	egrpc::ErrPromiseptrT get_data (
 		grpc::CompletionQueue& cq,
 		const GetDataRequest& req,
@@ -90,7 +95,7 @@ struct DistrOpCli final : public egrpc::GrpcClient
 	}
 
 private:
-	std::unique_ptr<DistrOperation::Stub> stub_;
+	std::unique_ptr<DistrOperation::StubInterface> stub_;
 
 	std::string alias_;
 };

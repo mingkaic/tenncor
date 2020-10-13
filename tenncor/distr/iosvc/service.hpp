@@ -25,8 +25,10 @@ const std::string iosvc_key = "distr_iosvc";
 
 struct DistrIOService final : public PeerService<DistrIOCli>
 {
-	DistrIOService (const PeerServiceConfig& cfg) :
-		PeerService<DistrIOCli>(cfg), data_(cfg.p2p_) {}
+	DistrIOService (const PeerServiceConfig& cfg,
+		PeerService<DistrIOCli>::BuildCliF builder =
+			PeerService<DistrIOCli>::default_builder) :
+		PeerService<DistrIOCli>(cfg, builder), data_(cfg.p2p_) {}
 
 	std::string expose_node (teq::TensptrT tens,
 		const OptIDT& suggest_id = OptIDT())
@@ -119,9 +121,9 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		return data_.get_remotes();
  	}
 
-	void register_service (grpc::ServerBuilder& builder) override
+	void register_service (iServerBuilder& builder) override
 	{
-		builder.RegisterService(&service_);
+		builder.register_service(&service_);
 	}
 
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override

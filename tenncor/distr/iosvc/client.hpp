@@ -23,6 +23,12 @@ struct DistrIOCli final : public egrpc::GrpcClient
 		stub_(DistrInOut::NewStub(channel)),
 		alias_(alias) {}
 
+	DistrIOCli (DistrInOut::StubInterface* stub,
+		const egrpc::ClientConfig& cfg,
+		const std::string& alias) :
+		GrpcClient(cfg),
+		stub_(stub), alias_(alias) {}
+
 	egrpc::ErrPromiseptrT list_nodes (
 		grpc::CompletionQueue& cq,
 		const ListNodesRequest& req,
@@ -47,7 +53,7 @@ struct DistrIOCli final : public egrpc::GrpcClient
 	}
 
 private:
-	std::unique_ptr<DistrInOut::Stub> stub_;
+	std::unique_ptr<DistrInOut::StubInterface> stub_;
 
 	std::string alias_;
 };

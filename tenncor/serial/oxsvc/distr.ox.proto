@@ -2,8 +2,6 @@ syntax = "proto3";
 
 import "internal/onnx/onnx.proto";
 
-import "tenncor/distr/iosvc/distr.io.proto";
-
 package distr.ox;
 
 message GetSaveGraphRequest {

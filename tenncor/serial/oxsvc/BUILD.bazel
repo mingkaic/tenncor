@@ -53,10 +53,7 @@ cc_library(
 proto_library(
     name = "oxsvc_pb",
     srcs = [":protos"],
-    deps = [
-        "//internal/onnx:onnx_pb",
-        "//tenncor/distr/iosvc:iosvc_pb",
-    ],
+    deps = ["//internal/onnx:onnx_pb"],
     visibility = ["//visibility:public"],
 )
 

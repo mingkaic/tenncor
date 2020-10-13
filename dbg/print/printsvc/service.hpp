@@ -29,15 +29,17 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 {
 	DistrPrintService (const PeerServiceConfig& cfg,
 		io::DistrIOService* iosvc,
-		const PrintEqConfig& printopts = PrintEqConfig()) :
-		PeerService<DistrPrintCli>(cfg),
+		const PrintEqConfig& printopts = PrintEqConfig(),
+		PeerService<DistrPrintCli>::BuildCliF builder =
+			PeerService<DistrPrintCli>::default_builder) :
+		PeerService<DistrPrintCli>(cfg, builder),
 		iosvc_(iosvc), printopts_(printopts) {}
 
 	void print_ascii (std::ostream& os, teq::iTensor* tens);
 
-	void register_service (grpc::ServerBuilder& builder) override
+	void register_service (iServerBuilder& builder) override
 	{
-		builder.RegisterService(&service_);
+		builder.register_service(&service_);
 	}
 
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override

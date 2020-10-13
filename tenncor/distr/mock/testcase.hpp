@@ -24,11 +24,8 @@ protected:
 	{
 		std::string svc_id = alias.empty() ? global::get_generator()->get_str() : alias;
 		assert(false == estd::has(peers_, svc_id));
-		assert(false == estd::has(health_ids_, svc_id));
 		auto address = fmts::sprintf("0.0.0.0:%d", port);
-		auto consul_svc = new MockP2P(kv_mtx_, svc_id, address, peers_, kv_, health_ids_);
-		auto health_id = consul_svc->get_health_id();
-		health_ids_.emplace(svc_id, consul_svc->get_health_id());
+		auto consul_svc = new MockP2P(kv_mtx_, svc_id, address, peers_, kv_);
 		distr::PeerServiceConfig cfg(consul_svc, egrpc::ClientConfig(
 			std::chrono::milliseconds(5000),
 			std::chrono::milliseconds(10000),
@@ -39,22 +36,10 @@ protected:
 		{
 			assert(nullptr == reg(svcs, cfg));
 		}
-		auto out = std::make_shared<distr::DistrManager>(
+		auto out = std::make_shared<distr::DistrManager<>>(
 			distr::P2PSvcptrT(consul_svc), svcs);
-		add_peer(svc_id, address, health_id);
+		peers_.emplace(svc_id, address);
 		return out;
-	}
-
-	void add_peer (const std::string& peer_id,
-		const std::string& address,
-		const std::string& health_id)
-	{
-		peers_.emplace(peer_id, address);
-		health_ids_.emplace(peer_id, health_id);
-		if (auto err = check_health(address, health_id, 50))
-		{
-			global::fatal(err->to_string());
-		}
 	}
 
 	[[nodiscard]]
@@ -74,7 +59,6 @@ protected:
 		std::lock_guard<std::mutex> guard(kv_mtx_);
 		peers_.clear();
 		kv_.clear();
-		health_ids_.clear();
 	}
 
 	void wait_for_ports (void)
@@ -106,8 +90,6 @@ protected:
 	types::StrUMapT<std::string> peers_;
 
 	types::StrUMapT<std::string> kv_;
-
-	types::StrUMapT<std::string> health_ids_;
 
 	std::unordered_set<unsigned short> reserved_ports_;
 };
