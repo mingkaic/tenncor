@@ -21,16 +21,39 @@ if (nullptr != ERR)\
 	return grpc::Status(STATUS, ERR->to_string());\
 }
 
-using HoServiceT = DistrOptimization::AsyncService;
-
 const std::string hosvc_key = "distr_hosvc";
+
+struct iHoService : public iService
+{
+	virtual ~iHoService (void) = default;
+
+	SVC_RES_DECL(RequestPutOptimize, PutOptimizeRequest, PutOptimizeResponse)
+};
+
+struct HoService final : public iHoService
+{
+	grpc::Service* get_service (void) override
+	{
+		return &svc_;
+	}
+
+	SVC_RES_DEFN(RequestPutOptimize, PutOptimizeRequest, PutOptimizeResponse)
+
+	DistrOptimization::AsyncService svc_;
+};
 
 struct DistrHoService final : public PeerService<DistrHoCli>
 {
 	DistrHoService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc,
 		PeerService<DistrHoCli>::BuildCliF builder =
-			PeerService<DistrHoCli>::default_builder) :
-		PeerService<DistrHoCli>(cfg, builder), iosvc_(iosvc) {}
+			PeerService<DistrHoCli>::default_builder,
+		std::shared_ptr<iHoService> svc =
+			std::make_shared<HoService>()) :
+		PeerService<DistrHoCli>(cfg, builder),
+		iosvc_(iosvc), service_(svc)
+	{
+		assert(nullptr != service_);
+	}
 
 	teq::TensptrsT optimize (const teq::TensptrsT& roots,
 		const opt::Optimization& optimize)
@@ -87,7 +110,7 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 
 	void register_service (iServerBuilder& builder) override
 	{
-		builder.register_service(&service_);
+		builder.register_service(*service_);
 	}
 
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
@@ -103,7 +126,7 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 			void* tag)
 		{
-			this->service_.RequestPutOptimize(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestPutOptimize(ctx, req, writer, cq, ccq, tag);
 		},
 		[this](const PutOptimizeRequest& req, PutOptimizeResponse& res)
 		{
@@ -143,7 +166,7 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 private:
 	io::DistrIOService* iosvc_;
 
-	DistrOptimization::AsyncService service_;
+	std::shared_ptr<iHoService> service_;
 };
 
 #undef _ERR_CHECK

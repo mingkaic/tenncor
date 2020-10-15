@@ -7,7 +7,7 @@
 
 int main (int argc, char** argv)
 {
-	// global::set_logger(new exam::TestLogger());
+	global::set_logger(new exam::TestLogger());
 
 	::testing::InitGoogleTest(&argc, argv);
 	int ret = RUN_ALL_TESTS();

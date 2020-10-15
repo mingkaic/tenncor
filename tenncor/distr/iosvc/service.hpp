@@ -23,12 +23,37 @@ if (nullptr != ERR)\
 
 const std::string iosvc_key = "distr_iosvc";
 
+struct iIOService : public iService
+{
+	virtual ~iIOService (void) = default;
+
+	SVC_RES_DECL(RequestListNodes, ListNodesRequest, ListNodesResponse)
+};
+
+struct IOService final : public iIOService
+{
+	grpc::Service* get_service (void) override
+	{
+		return &svc_;
+	}
+
+	SVC_RES_DEFN(RequestListNodes, ListNodesRequest, ListNodesResponse)
+
+	DistrInOut::AsyncService svc_;
+};
+
 struct DistrIOService final : public PeerService<DistrIOCli>
 {
 	DistrIOService (const PeerServiceConfig& cfg,
 		PeerService<DistrIOCli>::BuildCliF builder =
-			PeerService<DistrIOCli>::default_builder) :
-		PeerService<DistrIOCli>(cfg, builder), data_(cfg.p2p_) {}
+			PeerService<DistrIOCli>::default_builder,
+		std::shared_ptr<iIOService> svc =
+			std::make_shared<IOService>()) :
+		PeerService<DistrIOCli>(cfg, builder),
+		data_(cfg.p2p_), service_(svc)
+	{
+		assert(nullptr != service_);
+	}
 
 	std::string expose_node (teq::TensptrT tens,
 		const OptIDT& suggest_id = OptIDT())
@@ -123,7 +148,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 
 	void register_service (iServerBuilder& builder) override
 	{
-		builder.register_service(&service_);
+		builder.register_service(*service_);
 	}
 
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
@@ -139,7 +164,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 			void* tag)
 		{
-			this->service_.RequestListNodes(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestListNodes(ctx, req, writer, cq, ccq, tag);
 		},
 		[this](const ListNodesRequest& req, ListNodesResponse& res)
 		{
@@ -159,7 +184,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 	}
 
 private:
-	DistrInOut::AsyncService service_;
+	std::shared_ptr<iIOService> service_;
 
 	DistrIOData data_;
 };

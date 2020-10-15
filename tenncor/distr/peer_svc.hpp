@@ -10,11 +10,24 @@
 namespace distr
 {
 
+struct GrpcServer final : public iServer
+{
+	GrpcServer (std::unique_ptr<grpc::Server>&& server) :
+		server_(std::move(server)) {}
+
+	void shutdown (void) override
+	{
+		server_->Shutdown();
+	}
+
+	std::unique_ptr<grpc::Server> server_;
+};
+
 struct ServerBuilder final : public iServerBuilder
 {
-	iServerBuilder& register_service (grpc::Service* service) override
+	iServerBuilder& register_service (iService& service) override
 	{
-		builder_.RegisterService(service);
+		builder_.RegisterService(service.get_service());
 		return *this;
 	}
 
@@ -33,9 +46,9 @@ struct ServerBuilder final : public iServerBuilder
 		return builder_.AddCompletionQueue(is_frequently_polled);
 	}
 
-	std::unique_ptr<grpc::Server> build_and_start (void) override
+	std::unique_ptr<iServer> build_and_start (void) override
 	{
-		return builder_.BuildAndStart();
+		return std::make_unique<GrpcServer>(builder_.BuildAndStart());
 	}
 
 	grpc::ServerBuilder builder_;

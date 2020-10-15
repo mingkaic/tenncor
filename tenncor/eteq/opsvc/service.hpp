@@ -39,15 +39,47 @@ bool process_get_data (
 	DataStatesT::iterator& it,
 	NodeData& reply);
 
+struct iOpService : public iService
+{
+	virtual ~iOpService (void) = default;
+
+	SVC_STREAM_DECL(RequestGetData, GetDataRequest, NodeData)
+
+	SVC_RES_DECL(RequestListReachable, ListReachableRequest, ListReachableResponse)
+
+	SVC_RES_DECL(RequestCreateDerive, CreateDeriveRequest, CreateDeriveResponse)
+};
+
+struct OpService final : public iOpService
+{
+	grpc::Service* get_service (void) override
+	{
+		return &svc_;
+	}
+
+	SVC_STREAM_DEFN(RequestGetData, GetDataRequest, NodeData)
+
+	SVC_RES_DEFN(RequestListReachable, ListReachableRequest, ListReachableResponse)
+
+	SVC_RES_DEFN(RequestCreateDerive, CreateDeriveRequest, CreateDeriveResponse)
+
+	DistrOperation::AsyncService svc_;
+};
+
 struct DistrOpService final : public PeerService<DistrOpCli>
 {
 	DistrOpService (std::unique_ptr<teq::iDevice>&& evaluator,
 		std::unique_ptr<teq::iDerivativeFuncs>&& dfuncs,
 		const PeerServiceConfig& cfg, io::DistrIOService* iosvc,
 		PeerService<DistrOpCli>::BuildCliF builder =
-			PeerService<DistrOpCli>::default_builder) :
+			PeerService<DistrOpCli>::default_builder,
+		std::shared_ptr<iOpService> svc =
+			std::make_shared<OpService>()) :
 		PeerService<DistrOpCli>(cfg, builder), evaluator_(std::move(evaluator)),
-		deriver_(std::move(dfuncs)), iosvc_(iosvc) {}
+		deriver_(std::move(dfuncs)), iosvc_(iosvc), service_(svc)
+	{
+		assert(nullptr != service_);
+	}
 
 	/// Evalute target tensor set ignoring all tensors in ignored set
 	void evaluate (
@@ -376,7 +408,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 
 	void register_service (iServerBuilder& builder) override
 	{
-		builder.register_service(&service_);
+		builder.register_service(*service_);
 	}
 
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
@@ -392,7 +424,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 			void* tag)
 		{
-			this->service_.RequestGetData(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestGetData(ctx, req, writer, cq, ccq, tag);
 		},
 		[this](DataStatesT& states, const GetDataRequest& req)
 		{
@@ -411,7 +443,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 			void* tag)
 		{
-			this->service_.RequestListReachable(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestListReachable(ctx, req, writer, cq, ccq, tag);
 		},
 		[this](
 			const ListReachableRequest& req,
@@ -431,7 +463,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 			void* tag)
 		{
-			this->service_.RequestCreateDerive(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestCreateDerive(ctx, req, writer, cq, ccq, tag);
 		},
 		[this](
 			const CreateDeriveRequest& req,
@@ -559,7 +591,7 @@ private:
 
 	io::DistrIOService* iosvc_;
 
-	DistrOperation::AsyncService service_;
+	std::shared_ptr<iOpService> service_;
 
 	// todo: move to data obj
 	teq::TensMapT<types::StrUSetT> reach_cache_;

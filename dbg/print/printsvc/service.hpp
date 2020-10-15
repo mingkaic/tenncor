@@ -25,21 +25,45 @@ if (nullptr != ERR)\
 
 const std::string printsvc_key = "dbg_printsvc";
 
+struct iPrintService : public iService
+{
+	virtual ~iPrintService (void) = default;
+
+	SVC_STREAM_DECL(RequestListAscii, ListAsciiRequest, AsciiEntry)
+};
+
+struct PrintService final : public iPrintService
+{
+	grpc::Service* get_service (void) override
+	{
+		return &svc_;
+	}
+
+	SVC_STREAM_DEFN(RequestListAscii, ListAsciiRequest, AsciiEntry)
+
+	DistrPrint::AsyncService svc_;
+};
+
 struct DistrPrintService final : public PeerService<DistrPrintCli>
 {
 	DistrPrintService (const PeerServiceConfig& cfg,
 		io::DistrIOService* iosvc,
 		const PrintEqConfig& printopts = PrintEqConfig(),
 		PeerService<DistrPrintCli>::BuildCliF builder =
-			PeerService<DistrPrintCli>::default_builder) :
+			PeerService<DistrPrintCli>::default_builder,
+		std::shared_ptr<iPrintService> svc =
+			std::make_shared<PrintService>()) :
 		PeerService<DistrPrintCli>(cfg, builder),
-		iosvc_(iosvc), printopts_(printopts) {}
+		iosvc_(iosvc), printopts_(printopts), service_(svc)
+	{
+		assert(nullptr != service_);
+	}
 
 	void print_ascii (std::ostream& os, teq::iTensor* tens);
 
 	void register_service (iServerBuilder& builder) override
 	{
-		builder.register_service(&service_);
+		builder.register_service(*service_);
 	}
 
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
@@ -55,7 +79,7 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 			void* tag)
 		{
-			this->service_.RequestListAscii(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestListAscii(ctx, req, writer, cq, ccq, tag);
 		},
 		[this](types::StringsT& states, const ListAsciiRequest& req)
 		{
@@ -91,7 +115,7 @@ private:
 
 	size_t depthlimit_ = 10;
 
-	DistrPrint::AsyncService service_;
+	std::shared_ptr<iPrintService> service_;
 };
 
 #undef _ERR_CHECK

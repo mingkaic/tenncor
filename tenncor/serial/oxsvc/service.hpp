@@ -26,12 +26,41 @@ if (nullptr != ERR)\
 
 const std::string oxsvc_key = "distr_serializesvc";
 
+struct iSerializeService : public iService
+{
+	virtual ~iSerializeService (void) = default;
+
+	SVC_RES_DECL(RequestGetSaveGraph, GetSaveGraphRequest, GetSaveGraphResponse)
+
+	SVC_RES_DECL(RequestPostLoadGraph, PostLoadGraphRequest, PostLoadGraphResponse)
+};
+
+struct SerializeService final : public iSerializeService
+{
+	grpc::Service* get_service (void) override
+	{
+		return &svc_;
+	}
+
+	SVC_RES_DEFN(RequestGetSaveGraph, GetSaveGraphRequest, GetSaveGraphResponse)
+
+	SVC_RES_DEFN(RequestPostLoadGraph, PostLoadGraphRequest, PostLoadGraphResponse)
+
+	DistrSerialization::AsyncService svc_;
+};
+
 struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 {
 	DistrSerializeService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc,
 		PeerService<DistrSerializeCli>::BuildCliF builder =
-			PeerService<DistrSerializeCli>::default_builder) :
-		PeerService<DistrSerializeCli>(cfg, builder), iosvc_(iosvc) {}
+			PeerService<DistrSerializeCli>::default_builder,
+		std::shared_ptr<iSerializeService> svc =
+			std::make_shared<SerializeService>()) :
+		PeerService<DistrSerializeCli>(cfg, builder),
+		iosvc_(iosvc), service_(svc)
+	{
+		assert(nullptr != service_);
+	}
 
 	TopographyT save_graph (onnx::GraphProto& pb_graph,
 		const teq::TensptrsT& roots, onnx::TensIdT identified = {})
@@ -201,7 +230,7 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 
 	void register_service (iServerBuilder& builder) override
 	{
-		builder.register_service(&service_);
+		builder.register_service(*service_);
 	}
 
 	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
@@ -217,7 +246,7 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 			void* tag)
 		{
-			this->service_.RequestGetSaveGraph(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestGetSaveGraph(ctx, req, writer, cq, ccq, tag);
 		},
 		[this](
 			const GetSaveGraphRequest& req,
@@ -255,7 +284,7 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
 			void* tag)
 		{
-			this->service_.RequestPostLoadGraph(
+			this->service_->RequestPostLoadGraph(
 				ctx, req, writer, cq, ccq, tag);
 		},
 		[this](
@@ -304,7 +333,7 @@ private:
 
 	io::DistrIOService* iosvc_;
 
-	DistrSerialization::AsyncService service_;
+	std::shared_ptr<iSerializeService> service_;
 };
 
 #undef _ERR_CHECK

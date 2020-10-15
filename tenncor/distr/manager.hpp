@@ -47,7 +47,7 @@ struct DistrManager final : public iDistrManager
 
 	~DistrManager (void)
 	{
-		server_->Shutdown();
+		server_->shutdown();
 		cq_->Shutdown();
 		for (auto& rpc_job : rpc_jobs_)
 		{
@@ -101,7 +101,7 @@ private:
 
 	std::unique_ptr<grpc::ServerCompletionQueue> cq_;
 
-	std::unique_ptr<grpc::Server> server_;
+	std::unique_ptr<iServer> server_;
 
 	std::vector<std::thread> rpc_jobs_;
 };
