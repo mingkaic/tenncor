@@ -4,11 +4,11 @@
 
 #include "tenncor/distr/distr.hpp"
 
-struct MockClient
+struct MockClient : public egrpc::GrpcClient
 {
 	MockClient (std::shared_ptr<grpc::Channel> channel,
 		const egrpc::ClientConfig& cfg,
-		const std::string& alias) {}
+		const std::string& alias) : GrpcClient(cfg) {}
 };
 
 struct MockService : public distr::PeerService<MockClient>
@@ -21,7 +21,7 @@ struct MockService : public distr::PeerService<MockClient>
 		++registry_count_;
 	}
 
-	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
+	void initialize_server_call (egrpc::iCQueue& cq) override
 	{
 		++initial_count_;
 	}

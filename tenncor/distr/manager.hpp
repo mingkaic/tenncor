@@ -7,27 +7,26 @@
 namespace distr
 {
 
-template <typename SBUILDER = ServerBuilder>
 struct DistrManager final : public iDistrManager
 {
 	DistrManager (P2PSvcptrT&& p2p,
-		const estd::ConfigMap<>& svcs, size_t nthreads = 3) :
-		svcs_(svcs), p2p_(std::move(p2p))
+		const estd::ConfigMap<>& svcs, size_t nthreads = 3,
+		std::shared_ptr<iServerBuilder> builder =
+			std::make_shared<ServerBuilder>()) :
+		svcs_(svcs), p2p_(std::move(p2p)), cq_(builder->add_completion_queue())
 	{
 		std::string address = p2p_->get_local_addr();
-		SBUILDER builder;
-		builder.add_listening_port(address,
+		builder->add_listening_port(address,
 			grpc::InsecureServerCredentials());
-		cq_ = builder.add_completion_queue();
 
 		auto svc_keys = svcs_.get_keys();
 		for (auto& skey : svc_keys)
 		{
 			static_cast<iPeerService*>(svcs_.get_obj(skey))->
-				register_service(builder);
+				register_service(*builder);
 		}
 
-		server_ = builder.build_and_start();
+		server_ = builder->build_and_start();
 		global::infof("[server %s] listening on %s",
 			p2p_->get_local_peer().c_str(), address.c_str());
 
@@ -48,16 +47,16 @@ struct DistrManager final : public iDistrManager
 	~DistrManager (void)
 	{
 		server_->shutdown();
-		cq_->Shutdown();
+		cq_->shutdown();
 		for (auto& rpc_job : rpc_jobs_)
 		{
 			rpc_job.join();
 		}
 	}
 
-	DistrManager (DistrManager<SBUILDER>&& other) = delete;
+	DistrManager (DistrManager&& other) = delete;
 
-	DistrManager<SBUILDER>& operator = (DistrManager<SBUILDER>&& other) = delete;
+	DistrManager& operator = (DistrManager&& other) = delete;
 
 	std::string get_id (void) const override
 	{
@@ -81,7 +80,7 @@ private:
 	{
 		void* tag;
 		bool ok = true;
-		while (cq_->Next(&tag, &ok))
+		while (cq_->next(&tag, &ok))
 		{
 			auto call = static_cast<egrpc::iServerCall*>(tag);
 			if (ok)
@@ -99,7 +98,7 @@ private:
 
 	P2PSvcptrT p2p_;
 
-	std::unique_ptr<grpc::ServerCompletionQueue> cq_;
+	CQueueptrT cq_;
 
 	std::unique_ptr<iServer> server_;
 

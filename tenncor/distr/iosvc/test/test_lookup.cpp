@@ -9,8 +9,8 @@
 #include "testutil/tutil.hpp"
 
 #include "internal/teq/mock/mock.hpp"
-
 #include "tenncor/distr/mock/mock.hpp"
+#include "tenncor/distr/iosvc/mock/mock.hpp"
 
 #include "tenncor/distr/iosvc/iosvc.hpp"
 
@@ -21,6 +21,11 @@ const std::string test_service = "tenncor.distr.iosvc.test";
 struct LOOKUP : public ::testing::Test, public DistrTestcase
 {
 protected:
+	void TearDown (void) override
+	{
+		MockServerBuilder::clear_service();
+	}
+
 	distr::iDistrMgrptrT make_mgr (const std::string& id)
 	{
 		return make_mgr(id, reserve_port());
@@ -28,8 +33,8 @@ protected:
 
 	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
-		return DistrTestcase::make_mgr(port, {
-			distr::register_iosvc,
+		return DistrTestcase::make_local_mgr(port, {
+			register_mock_iosvc,
 		}, id);
 	}
 };
@@ -99,8 +104,7 @@ TEST_F(LOOKUP, RemoteLookupNode)
 	auto refa = service2.lookup_node(err, ida);
 	ASSERT_NOERR(err);
 	ASSERT_NE(nullptr, refa);
-	auto expect_refname = fmts::sprintf(
-		"mgr/%s", ida.c_str());
+	auto expect_refname = fmts::sprintf("mgr/%s", ida.c_str());
 	EXPECT_STREQ(expect_refname.c_str(), refa->to_string().c_str());
 }
 

@@ -29,8 +29,7 @@ struct DistrIOCli final : public egrpc::GrpcClient
 		GrpcClient(cfg),
 		stub_(stub), alias_(alias) {}
 
-	egrpc::ErrPromiseptrT list_nodes (
-		grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT list_nodes (egrpc::iCQueue& cq,
 		const ListNodesRequest& req,
 		std::function<void(ListNodesResponse&)> cb)
 	{
@@ -44,7 +43,8 @@ struct DistrIOCli final : public egrpc::GrpcClient
 			inreq.MergeFrom(req);
 			build_ctx(handler->ctx_, false);
 			// prepare to avoid passing to cq before reader_ assignment
-			handler->reader_ = stub_->PrepareAsyncListNodes(&handler->ctx_, inreq, &cq);
+			handler->reader_ = stub_->PrepareAsyncListNodes(
+				&handler->ctx_, inreq, cq.get_cq());
 			// make request after reader_ assignment
 			handler->reader_->StartCall();
 			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);

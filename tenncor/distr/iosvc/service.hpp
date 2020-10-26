@@ -27,6 +27,9 @@ struct iIOService : public iService
 {
 	virtual ~iIOService (void) = default;
 
+	virtual egrpc::RespondptrT<ListNodesResponse>
+	make_list_nodes_responder (grpc::ServerContext& ctx) const = 0;
+
 	SVC_RES_DECL(RequestListNodes, ListNodesRequest, ListNodesResponse)
 };
 
@@ -37,6 +40,12 @@ struct IOService final : public iIOService
 		return &svc_;
 	}
 
+	egrpc::RespondptrT<ListNodesResponse>
+	make_list_nodes_responder (grpc::ServerContext& ctx) const override
+	{
+		return std::make_unique<egrpc::GrpcResponder<ListNodesResponse>>(ctx);
+	}
+
 	SVC_RES_DEFN(RequestListNodes, ListNodesRequest, ListNodesResponse)
 
 	DistrInOut::AsyncService svc_;
@@ -45,12 +54,12 @@ struct IOService final : public iIOService
 struct DistrIOService final : public PeerService<DistrIOCli>
 {
 	DistrIOService (const PeerServiceConfig& cfg,
-		PeerService<DistrIOCli>::BuildCliF builder =
-			PeerService<DistrIOCli>::default_builder,
+		CliBuildptrT builder =
+			std::make_shared<ClientBuilder<DistrIOCli>>(),
 		std::shared_ptr<iIOService> svc =
 			std::make_shared<IOService>()) :
 		PeerService<DistrIOCli>(cfg, builder),
-		data_(cfg.p2p_), service_(svc)
+		service_(svc), data_(cfg.p2p_)
 	{
 		assert(nullptr != service_);
 	}
@@ -97,7 +106,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		ListNodesRequest req;
 		DRefptrT ref = nullptr;
 		req.add_uuids(id);
-		auto done = client->list_nodes(cq_, req,
+		auto done = client->list_nodes(*cq_, req,
 			[&, this](ListNodesResponse& res)
 			{
 				if (res.values().empty())
@@ -151,20 +160,22 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		builder.register_service(*service_);
 	}
 
-	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
+	void initialize_server_call (egrpc::iCQueue& cq) override
 	{
 		// ListNodes
-		using ListNodesCallT = egrpc::AsyncServerCall<ListNodesRequest,ListNodesResponse>;
+		using ListNodesCallT = egrpc::AsyncServerCall<
+			ListNodesRequest,ListNodesResponse>;
 		auto lnodes_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:ListNodes] ",
 			get_peer_id().c_str()));
 		new ListNodesCallT(lnodes_logger,
-		[this](grpc::ServerContext* ctx, ListNodesRequest* req,
-			grpc::ServerAsyncResponseWriter<ListNodesResponse>* writer,
-			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-			void* tag)
+		[this](grpc::ServerContext* ctx,
+			ListNodesRequest* req,
+			egrpc::iResponder<ListNodesResponse>& writer,
+			egrpc::iCQueue& cq, void* tag)
 		{
-			this->service_->RequestListNodes(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestListNodes(
+				ctx, req, writer, cq, tag);
 		},
 		[this](const ListNodesRequest& req, ListNodesResponse& res)
 		{
@@ -180,7 +191,11 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 				tens_to_node_meta(*out, get_peer_id(), uuid, tens);
 			}
 			return grpc::Status::OK;
-		}, &cq);
+		}, cq,
+		[this](grpc::ServerContext& ctx)
+		{
+			return this->service_->make_list_nodes_responder(ctx);
+		});
 	}
 
 private:

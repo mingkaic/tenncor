@@ -8,6 +8,7 @@ filegroup(
         ":distr_hdrs",
         ":distr_srcs",
         ":mock_hdrs",
+        ":mock_srcs",
         ":test_srcs",
         "//tenncor/distr/iosvc:srcs",
         "BUILD.bazel",
@@ -28,6 +29,11 @@ filegroup(
 filegroup(
     name = "mock_hdrs",
     srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
+    name = "mock_srcs",
+    srcs = glob(["mock/*.cpp"]),
 )
 
 filegroup(
@@ -55,6 +61,7 @@ cc_library(
 cc_library(
     name = "mock",
     hdrs = [":mock_hdrs"],
+    srcs = [":mock_srcs"],
     copts = ["-std=c++17"],
     deps = [
         ":distr",
@@ -72,7 +79,6 @@ cc_test(
     deps = [
         ":mock",
         "//internal/teq:mock",
-        "//dbg/print/printsvc:printsvc",
     ],
     linkstatic = True,
     size = "large",

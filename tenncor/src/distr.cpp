@@ -22,7 +22,7 @@ distr::iDistrMgrptrT ctxualize_distrmgr (
 	{
 		assert(nullptr == reg(svcs, cfg));
 	}
-	auto mgr = std::make_shared<distr::DistrManager<>>(
+	auto mgr = std::make_shared<distr::DistrManager>(
 		distr::P2PSvcptrT(consulsvc), svcs);
 	::tcr::set_distrmgr(mgr, ctx);
 	return mgr;

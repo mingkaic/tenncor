@@ -27,6 +27,9 @@ struct iHoService : public iService
 {
 	virtual ~iHoService (void) = default;
 
+	virtual egrpc::RespondptrT<PutOptimizeResponse>
+	make_put_optimize_responder (grpc::ServerContext& ctx) const = 0;
+
 	SVC_RES_DECL(RequestPutOptimize, PutOptimizeRequest, PutOptimizeResponse)
 };
 
@@ -37,6 +40,12 @@ struct HoService final : public iHoService
 		return &svc_;
 	}
 
+	egrpc::RespondptrT<PutOptimizeResponse>
+	make_put_optimize_responder (grpc::ServerContext& ctx) const override
+	{
+		return std::make_unique<egrpc::GrpcResponder<PutOptimizeResponse>>(ctx);
+	}
+
 	SVC_RES_DEFN(RequestPutOptimize, PutOptimizeRequest, PutOptimizeResponse)
 
 	DistrOptimization::AsyncService svc_;
@@ -45,8 +54,8 @@ struct HoService final : public iHoService
 struct DistrHoService final : public PeerService<DistrHoCli>
 {
 	DistrHoService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc,
-		PeerService<DistrHoCli>::BuildCliF builder =
-			PeerService<DistrHoCli>::default_builder,
+		CliBuildptrT builder =
+			std::make_shared<ClientBuilder<DistrHoCli>>(),
 		std::shared_ptr<iHoService> svc =
 			std::make_shared<HoService>()) :
 		PeerService<DistrHoCli>(cfg, builder),
@@ -87,7 +96,7 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 			PutOptimizeRequest req;
 			req.mutable_uuids()->Swap(&node_ids);
 			req.mutable_opts()->MergeFrom(optimize);
-			completions.push_back(client->put_optimize(cq_, req,
+			completions.push_back(client->put_optimize(*cq_, req,
 			[&](PutOptimizeResponse& res)
 			{
 				auto opts = res.root_opts();
@@ -113,20 +122,22 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 		builder.register_service(*service_);
 	}
 
-	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
+	void initialize_server_call (egrpc::iCQueue& cq) override
 	{
 		// PutOptimize
-		using PutOptimizeCallT = egrpc::AsyncServerCall<PutOptimizeRequest,PutOptimizeResponse>;
+		using PutOptimizeCallT = egrpc::AsyncServerCall<
+			PutOptimizeRequest,PutOptimizeResponse>;
 		auto popt_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:PutOptimize] ",
 				get_peer_id().c_str()));
 		new PutOptimizeCallT(popt_logger,
-		[this](grpc::ServerContext* ctx, PutOptimizeRequest* req,
-			grpc::ServerAsyncResponseWriter<PutOptimizeResponse>* writer,
-			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-			void* tag)
+		[this](grpc::ServerContext* ctx,
+			PutOptimizeRequest* req,
+			egrpc::iResponder<PutOptimizeResponse>& writer,
+			egrpc::iCQueue& cq, void* tag)
 		{
-			this->service_->RequestPutOptimize(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestPutOptimize(
+				ctx, req, writer, cq, tag);
 		},
 		[this](const PutOptimizeRequest& req, PutOptimizeResponse& res)
 		{
@@ -160,7 +171,11 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 				res_roots->insert({uuids[i], meta});
 			}
 			return grpc::Status::OK;
-		}, &cq);
+		}, cq,
+		[this](grpc::ServerContext& ctx)
+		{
+			return this->service_->make_put_optimize_responder(ctx);
+		});
 	}
 
 private:

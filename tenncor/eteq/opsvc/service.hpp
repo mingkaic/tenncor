@@ -43,6 +43,15 @@ struct iOpService : public iService
 {
 	virtual ~iOpService (void) = default;
 
+	virtual egrpc::WriterptrT<NodeData>
+	make_get_data_writer (grpc::ServerContext& ctx) const = 0;
+
+	virtual egrpc::RespondptrT<ListReachableResponse>
+	make_list_reachable_responder (grpc::ServerContext& ctx) const = 0;
+
+	virtual egrpc::RespondptrT<CreateDeriveResponse>
+	make_create_derive_responder (grpc::ServerContext& ctx) const = 0;
+
 	SVC_STREAM_DECL(RequestGetData, GetDataRequest, NodeData)
 
 	SVC_RES_DECL(RequestListReachable, ListReachableRequest, ListReachableResponse)
@@ -55,6 +64,24 @@ struct OpService final : public iOpService
 	grpc::Service* get_service (void) override
 	{
 		return &svc_;
+	}
+
+	egrpc::WriterptrT<NodeData>
+	make_get_data_writer (grpc::ServerContext& ctx) const override
+	{
+		return std::make_unique<egrpc::GrpcWriter<NodeData>>(ctx);
+	}
+
+	egrpc::RespondptrT<ListReachableResponse>
+	make_list_reachable_responder (grpc::ServerContext& ctx) const override
+	{
+		return std::make_unique<egrpc::GrpcResponder<ListReachableResponse>>(ctx);
+	}
+
+	egrpc::RespondptrT<CreateDeriveResponse>
+	make_create_derive_responder (grpc::ServerContext& ctx) const override
+	{
+		return std::make_unique<egrpc::GrpcResponder<CreateDeriveResponse>>(ctx);
 	}
 
 	SVC_STREAM_DEFN(RequestGetData, GetDataRequest, NodeData)
@@ -71,8 +98,8 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 	DistrOpService (std::unique_ptr<teq::iDevice>&& evaluator,
 		std::unique_ptr<teq::iDerivativeFuncs>&& dfuncs,
 		const PeerServiceConfig& cfg, io::DistrIOService* iosvc,
-		PeerService<DistrOpCli>::BuildCliF builder =
-			PeerService<DistrOpCli>::default_builder,
+		CliBuildptrT builder =
+			std::make_shared<ClientBuilder<DistrOpCli>>(),
 		std::shared_ptr<iOpService> svc =
 			std::make_shared<OpService>()) :
 		PeerService<DistrOpCli>(cfg, builder), evaluator_(std::move(evaluator)),
@@ -116,7 +143,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 				}
 			}
 
-			completions.push_back(client->get_data(cq_, req,
+			completions.push_back(client->get_data(*cq_, req,
 				[this, peer_id](NodeData& res)
 				{
 					auto uuid = res.uuid();
@@ -223,7 +250,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 				req.mutable_srcs()->Swap(&src_uuids);
 				req.mutable_dests()->Swap(&dest_uuids);
 				completions.push_back(
-					client->list_reachable(cq_, req,
+					client->list_reachable(*cq_, req,
 					[&](ListReachableResponse& res)
 					{
 						types::StrUMapT<types::StrUSetT> reachables;
@@ -363,7 +390,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 						tens_to_node_meta(pbmeta, get_peer_id(), uuid, tens);
 					}
 					completions.push_back(
-						client->create_derive(cq_, req,
+						client->create_derive(*cq_, req,
 						[&](CreateDeriveResponse& res)
 						{
 							auto& target_grads = res.grads();
@@ -411,7 +438,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		builder.register_service(*service_);
 	}
 
-	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
+	void initialize_server_call (egrpc::iCQueue& cq) override
 	{
 		// GetData
 		using GetDataCallT = egrpc::AsyncServerStreamCall<GetDataRequest,NodeData,DataStatesT>;
@@ -420,57 +447,68 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 				get_peer_id().c_str()));
 		new GetDataCallT(gdata_logger,
 		[this](grpc::ServerContext* ctx, GetDataRequest* req,
-			grpc::ServerAsyncWriter<NodeData>* writer,
-			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-			void* tag)
+			egrpc::iWriter<NodeData>& writer,
+			egrpc::iCQueue& cq, void* tag)
 		{
-			this->service_->RequestGetData(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestGetData(
+				ctx, req, writer, cq, tag);
 		},
 		[this](DataStatesT& states, const GetDataRequest& req)
 		{
 			return this->startup_get_data(states, req);
 		},
-		process_get_data, &cq);
+		process_get_data, cq,
+		[this](grpc::ServerContext& ctx)
+		{
+			return this->service_->make_get_data_writer(ctx);
+		});
 
 		// ListReachable
-		using ListReachableCallT = egrpc::AsyncServerCall<ListReachableRequest,ListReachableResponse>;
+		using ListReachableCallT = egrpc::AsyncServerCall<
+			ListReachableRequest,ListReachableResponse>;
 		auto lreachable_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:ListReachable] ",
 				get_peer_id().c_str()));
 		new ListReachableCallT(lreachable_logger,
 		[this](grpc::ServerContext* ctx, ListReachableRequest* req,
-			grpc::ServerAsyncResponseWriter<ListReachableResponse>* writer,
-			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-			void* tag)
+			egrpc::iResponder<ListReachableResponse>& writer,
+			egrpc::iCQueue& cq, void* tag)
 		{
-			this->service_->RequestListReachable(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestListReachable(
+				ctx, req, writer, cq, tag);
 		},
-		[this](
-			const ListReachableRequest& req,
-			ListReachableResponse& res)
+		[this](const ListReachableRequest& req, ListReachableResponse& res)
 		{
 			return this->list_reachable(req, res);
-		}, &cq);
+		}, cq,
+		[this](grpc::ServerContext& ctx)
+		{
+			return this->service_->make_list_reachable_responder(ctx);
+		});
 
 		// CreateDerive
-		using CreateDeriveCallT = egrpc::AsyncServerCall<CreateDeriveRequest,CreateDeriveResponse>;
+		using CreateDeriveCallT = egrpc::AsyncServerCall<
+			CreateDeriveRequest,CreateDeriveResponse>;
 		auto cderive_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:CreateDerive] ",
 				get_peer_id().c_str()));
 		new CreateDeriveCallT(cderive_logger,
 		[this](grpc::ServerContext* ctx, CreateDeriveRequest* req,
-			grpc::ServerAsyncResponseWriter<CreateDeriveResponse>* writer,
-			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-			void* tag)
+			egrpc::iResponder<CreateDeriveResponse>& writer,
+			egrpc::iCQueue& cq, void* tag)
 		{
-			this->service_->RequestCreateDerive(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestCreateDerive(
+				ctx, req, writer, cq, tag);
 		},
 		[this](
-			const CreateDeriveRequest& req,
-			CreateDeriveResponse& res)
+			const CreateDeriveRequest& req, CreateDeriveResponse& res)
 		{
 			return this->create_derive(req, res);
-		}, &cq);
+		}, cq,
+		[this](grpc::ServerContext& ctx)
+		{
+			return this->service_->make_create_derive_responder(ctx);
+		});
 	}
 
 private:

@@ -94,7 +94,7 @@ AsciiRemotesT DistrPrintService::print_ascii_remotes (const AsciiRemotesT& remot
 
 		ListAsciiRequest req;
 		req.mutable_uuids()->Swap(&node_ids);
-		completions.push_back(client->list_ascii(cq_, req,
+		completions.push_back(client->list_ascii(*cq_, req,
 			[&](AsciiEntry& res)
 			{
 				auto uuid = res.uuid();

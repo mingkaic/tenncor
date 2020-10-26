@@ -30,6 +30,12 @@ struct iSerializeService : public iService
 {
 	virtual ~iSerializeService (void) = default;
 
+	virtual egrpc::RespondptrT<GetSaveGraphResponse>
+	make_get_save_graph_responder (grpc::ServerContext& ctx) const = 0;
+
+	virtual egrpc::RespondptrT<PostLoadGraphResponse>
+	make_post_load_graph_responder (grpc::ServerContext& ctx) const = 0;
+
 	SVC_RES_DECL(RequestGetSaveGraph, GetSaveGraphRequest, GetSaveGraphResponse)
 
 	SVC_RES_DECL(RequestPostLoadGraph, PostLoadGraphRequest, PostLoadGraphResponse)
@@ -42,6 +48,18 @@ struct SerializeService final : public iSerializeService
 		return &svc_;
 	}
 
+	egrpc::RespondptrT<GetSaveGraphResponse>
+	make_get_save_graph_responder (grpc::ServerContext& ctx) const override
+	{
+		return std::make_unique<egrpc::GrpcResponder<GetSaveGraphResponse>>(ctx);
+	}
+
+	egrpc::RespondptrT<PostLoadGraphResponse>
+	make_post_load_graph_responder (grpc::ServerContext& ctx) const override
+	{
+		return std::make_unique<egrpc::GrpcResponder<PostLoadGraphResponse>>(ctx);
+	}
+
 	SVC_RES_DEFN(RequestGetSaveGraph, GetSaveGraphRequest, GetSaveGraphResponse)
 
 	SVC_RES_DEFN(RequestPostLoadGraph, PostLoadGraphRequest, PostLoadGraphResponse)
@@ -52,8 +70,8 @@ struct SerializeService final : public iSerializeService
 struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 {
 	DistrSerializeService (const PeerServiceConfig& cfg, io::DistrIOService* iosvc,
-		PeerService<DistrSerializeCli>::BuildCliF builder =
-			PeerService<DistrSerializeCli>::default_builder,
+		CliBuildptrT builder =
+			std::make_shared<ClientBuilder<DistrSerializeCli>>(),
 		std::shared_ptr<iSerializeService> svc =
 			std::make_shared<SerializeService>()) :
 		PeerService<DistrSerializeCli>(cfg, builder),
@@ -96,7 +114,7 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 
 			GetSaveGraphRequest req;
 			req.mutable_uuids()->Swap(&node_ids);
-			completions.push_back(client->get_save_graph(cq_, req,
+			completions.push_back(client->get_save_graph(*cq_, req,
 			[&pb_graph, &topo](GetSaveGraphResponse& res)
 			{
 				auto& subgraph = res.graph();
@@ -204,7 +222,7 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 				PostLoadGraphRequest req;
 				req.mutable_graph()->MergeFrom(subgraph);
 				req.mutable_refs()->Swap(&pb_refs);
-				auto done = client->post_load_graph(cq_, req);
+				auto done = client->post_load_graph(*cq_, req);
 				egrpc::wait_for(*done,
 				[](error::ErrptrT err)
 				{
@@ -233,24 +251,24 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 		builder.register_service(*service_);
 	}
 
-	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
+	void initialize_server_call (egrpc::iCQueue& cq) override
 	{
 		// GetSaveGraph
-		using GetSaveGraphCallT = egrpc::AsyncServerCall<GetSaveGraphRequest,GetSaveGraphResponse>;
+		using GetSaveGraphCallT = egrpc::AsyncServerCall<
+			GetSaveGraphRequest,GetSaveGraphResponse>;
 		auto gsave_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:GetSaveGraph] ",
 				get_peer_id().c_str()));
 		new GetSaveGraphCallT(gsave_logger,
-		[this](grpc::ServerContext* ctx, GetSaveGraphRequest* req,
-			grpc::ServerAsyncResponseWriter<GetSaveGraphResponse>* writer,
-			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-			void* tag)
+		[this](grpc::ServerContext* ctx,
+			GetSaveGraphRequest* req,
+			egrpc::iResponder<GetSaveGraphResponse>& writer,
+			egrpc::iCQueue& cq, void* tag)
 		{
-			this->service_->RequestGetSaveGraph(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestGetSaveGraph(
+				ctx, req, writer, cq, tag);
 		},
-		[this](
-			const GetSaveGraphRequest& req,
-			GetSaveGraphResponse& res)
+		[this](const GetSaveGraphRequest& req, GetSaveGraphResponse& res)
 		{
 			auto& uuids = req.uuids();
 			teq::TensptrsT roots;
@@ -271,25 +289,28 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 				outopo->insert({entry.first, entry.second});
 			}
 			return grpc::Status::OK;
-		}, &cq);
+		}, cq,
+		[this](grpc::ServerContext& ctx)
+		{
+			return this->service_->make_get_save_graph_responder(ctx);
+		});
 
 		// PostLoadGraph
-		using PostLoadGraphCallT = egrpc::AsyncServerCall<PostLoadGraphRequest,PostLoadGraphResponse>;
+		using PostLoadGraphCallT = egrpc::AsyncServerCall<
+			PostLoadGraphRequest,PostLoadGraphResponse>;
 		auto pload_logger = std::make_shared<global::FormatLogger>(
 			global::get_logger(), fmts::sprintf("[server %s:PostLoadGraph] ",
 				get_peer_id().c_str()));
 		new PostLoadGraphCallT(pload_logger,
-		[this](grpc::ServerContext* ctx, PostLoadGraphRequest* req,
-			grpc::ServerAsyncResponseWriter<PostLoadGraphResponse>* writer,
-			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-			void* tag)
+		[this](grpc::ServerContext* ctx,
+			PostLoadGraphRequest* req,
+			egrpc::iResponder<PostLoadGraphResponse>& writer,
+			egrpc::iCQueue& cq, void* tag)
 		{
 			this->service_->RequestPostLoadGraph(
-				ctx, req, writer, cq, ccq, tag);
+				ctx, req, writer, cq, tag);
 		},
-		[this](
-			const PostLoadGraphRequest& req,
-			PostLoadGraphResponse& res)
+		[this](const PostLoadGraphRequest& req, PostLoadGraphResponse& res)
 		{
 			onnx::TensptrIdT identified;
 			auto& reqgraph = req.graph();
@@ -299,7 +320,11 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 				types::StrUSetT(refs.begin(), refs.end()));
 			_ERR_CHECK(err, grpc::NOT_FOUND, get_peer_id().c_str());
 			return grpc::Status::OK;
-		}, &cq);
+		}, cq,
+		[this](grpc::ServerContext& ctx)
+		{
+			return this->service_->make_post_load_graph_responder(ctx);
+		});
 	}
 
 private:

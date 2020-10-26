@@ -25,5 +25,5 @@ message PutReplaceResponse {}
 service DistrOptimization {
     rpc PutOptimize (PutOptimizeRequest) returns (PutOptimizeResponse);
 
-    rpc PutReplace (PutReplaceRequest) returns (PutReplaceResponse);
+    // rpc PutReplace (PutReplaceRequest) returns (PutReplaceResponse);
 }

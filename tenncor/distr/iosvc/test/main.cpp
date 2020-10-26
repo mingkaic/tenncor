@@ -1,4 +1,6 @@
 
+#include "tenncor/distr/iosvc/distr.io.grpc.pb.h"
+
 #include "gtest/gtest.h"
 
 #include "exam/exam.hpp"
@@ -11,5 +13,6 @@ int main (int argc, char** argv)
 
 	::testing::InitGoogleTest(&argc, argv);
 	int ret = RUN_ALL_TESTS();
+	google::protobuf::ShutdownProtobufLibrary();
 	return ret;
 }

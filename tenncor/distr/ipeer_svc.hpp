@@ -9,27 +9,27 @@ namespace distr
 
 #define SVC_RES_DECL(FNAME, REQ, RES)\
 virtual void FNAME (grpc::ServerContext* ctx, REQ* req,\
-	grpc::ServerAsyncResponseWriter<RES>* writer,\
-	grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,\
-	void* tag) = 0;
+	egrpc::iResponder<RES>& writer,\
+	egrpc::iCQueue& cq, void* tag) = 0;
 
 #define SVC_STREAM_DECL(FNAME, REQ, RES)\
 virtual void FNAME (grpc::ServerContext* ctx, REQ* req,\
-	grpc::ServerAsyncWriter<RES>* writer,\
-	grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,\
-	void* tag) = 0;
+	egrpc::iWriter<RES>& writer,\
+	egrpc::iCQueue& cq, void* tag) = 0;
 
 #define SVC_RES_DEFN(FNAME, REQ, RES)\
 void FNAME (grpc::ServerContext* ctx, REQ* req,\
-	grpc::ServerAsyncResponseWriter<RES>* writer,\
-	grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,\
-	void* tag) override { svc_.FNAME(ctx, req, writer, cq, ccq, tag); }
+	egrpc::iResponder<RES>& writer,\
+	egrpc::iCQueue& cq, void* tag) override { auto scq = estd::must_cast<\
+	grpc::ServerCompletionQueue>(cq.get_cq()); svc_.FNAME(ctx, req, \
+	&static_cast<egrpc::GrpcResponder<RES>&>(writer).responder_, scq, scq, tag); }
 
 #define SVC_STREAM_DEFN(FNAME, REQ, RES)\
 void FNAME (grpc::ServerContext* ctx, REQ* req,\
-	grpc::ServerAsyncWriter<RES>* writer,\
-	grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,\
-	void* tag) override { svc_.FNAME(ctx, req, writer, cq, ccq, tag); }
+	egrpc::iWriter<RES>& writer,\
+	egrpc::iCQueue& cq, void* tag) override { auto scq = estd::must_cast<\
+	grpc::ServerCompletionQueue>(cq.get_cq()); svc_.FNAME(ctx, req, \
+	&static_cast<egrpc::GrpcWriter<RES>&>(writer).writer_, scq, scq, tag); }
 
 struct iService
 {
@@ -45,6 +45,8 @@ struct iServer
 	virtual void shutdown (void) = 0;
 };
 
+using CQueueptrT = std::unique_ptr<egrpc::iCQueue>;
+
 struct iServerBuilder
 {
 	virtual ~iServerBuilder (void) = default;
@@ -56,8 +58,8 @@ struct iServerBuilder
 		std::shared_ptr<grpc::ServerCredentials> creds,
 		int* selected_port = nullptr) = 0;
 
-	virtual std::unique_ptr<grpc::ServerCompletionQueue>
-	add_completion_queue (bool is_frequently_polled = true) = 0;
+	virtual CQueueptrT add_completion_queue (
+		bool is_frequently_polled = true) = 0;
 
 	virtual std::unique_ptr<iServer> build_and_start (void) = 0;
 };
@@ -68,7 +70,7 @@ struct iPeerService
 
 	virtual void register_service (iServerBuilder& builder) = 0;
 
-	virtual void initialize_server_call (grpc::ServerCompletionQueue& cq) = 0;
+	virtual void initialize_server_call (egrpc::iCQueue& cq) = 0;
 };
 
 }

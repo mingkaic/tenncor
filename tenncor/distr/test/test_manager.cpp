@@ -48,7 +48,7 @@ TEST_F(MANAGER, NoServices)
 	EXPECT_STREQ(test_svc.c_str(), manager->get_id().c_str());
 	EXPECT_EQ(nullptr, manager->get_service("test_mock_service"));
 
-	auto dmanager = dynamic_cast<distr::DistrManager<>*>(manager.get());
+	auto dmanager = dynamic_cast<distr::DistrManager*>(manager.get());
 	ASSERT_NE(nullptr, dmanager);
 	auto p2p = dynamic_cast<MockP2P*>(dmanager->get_p2psvc());
 	ASSERT_NE(nullptr, p2p);
@@ -80,7 +80,7 @@ TEST_F(MANAGER, Basic)
 	EXPECT_EQ(1, svc->registry_count_);
 	EXPECT_EQ(1, svc->initial_count_);
 
-	auto dmanager = dynamic_cast<distr::DistrManager<>*>(manager.get());
+	auto dmanager = dynamic_cast<distr::DistrManager*>(manager.get());
 	ASSERT_NE(nullptr, dmanager);
 	auto p2p = dynamic_cast<MockP2P*>(dmanager->get_p2psvc());
 	ASSERT_NE(nullptr, p2p);

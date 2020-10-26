@@ -7,6 +7,8 @@ filegroup(
     srcs = [
         ":printsvc_hdrs",
         ":printsvc_srcs",
+        ":mock_hdrs",
+        ":mock_srcs",
         ":protos",
         "BUILD.bazel",
     ],
@@ -21,6 +23,16 @@ filegroup(
 filegroup(
     name = "printsvc_srcs",
     srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
+    name = "mock_srcs",
+    srcs = glob(["mock/*.cpp"]),
 )
 
 filegroup(
@@ -53,5 +65,17 @@ proto_library(
 cpp_grpc_library(
     name = "printsvc_cc_grpc",
     deps = [":printsvc_pb"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "mock",
+    hdrs = [":mock_hdrs"],
+    srcs = [":mock_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":printsvc",
+        "//tenncor/distr:mock",
+    ],
     visibility = ["//visibility:public"],
 )

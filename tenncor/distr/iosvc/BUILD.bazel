@@ -7,6 +7,8 @@ filegroup(
     srcs = [
         ":iosvc_hdrs",
         ":iosvc_srcs",
+        ":mock_hdrs",
+        ":mock_srcs",
         ":protos",
         ":test_srcs",
         "BUILD.bazel",
@@ -22,6 +24,16 @@ filegroup(
 filegroup(
     name = "iosvc_srcs",
     srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
+    name = "mock_srcs",
+    srcs = glob(["mock/*.cpp"]),
 )
 
 filegroup(
@@ -60,6 +72,18 @@ cpp_grpc_library(
     visibility = ["//visibility:public"],
 )
 
+cc_library(
+    name = "mock",
+    hdrs = [":mock_hdrs"],
+    srcs = [":mock_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":iosvc",
+        "//tenncor/distr:mock",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 ######### TEST #########
 
 cc_test(
@@ -67,9 +91,8 @@ cc_test(
     srcs = [":test_srcs"],
     copts = ["-std=c++17"],
     deps = [
-        ":iosvc",
+        ":mock",
         "//internal/teq:mock",
-        "//tenncor/distr:mock",
         "//testutil:tutil",
     ],
     linkstatic = True,

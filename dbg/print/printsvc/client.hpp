@@ -27,8 +27,7 @@ struct DistrPrintCli final : public egrpc::GrpcClient
 		GrpcClient(cfg),
 		stub_(stub), alias_(alias) {}
 
-	egrpc::ErrPromiseptrT list_ascii (
-		grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT list_ascii (egrpc::iCQueue& cq,
 		const ListAsciiRequest& req,
 		std::function<void(AsciiEntry&)> cb)
 	{
@@ -41,7 +40,7 @@ struct DistrPrintCli final : public egrpc::GrpcClient
 		build_ctx(handler->ctx_, false);
 		// prepare to avoid passing to cq before reader_ assignment
 		handler->reader_ = stub_->PrepareAsyncListAscii(
-			&handler->ctx_, req, &cq);
+			&handler->ctx_, req, cq.get_cq());
 		// make request after reader_ assignment
 		handler->reader_->StartCall((void*) handler);
 		return done;

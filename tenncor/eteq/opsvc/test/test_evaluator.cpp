@@ -11,8 +11,8 @@
 #include "internal/teq/mock/mock.hpp"
 
 #include "tenncor/distr/mock/mock.hpp"
-
-#include "tenncor/eteq/opsvc/opsvc.hpp"
+#include "tenncor/distr/iosvc/mock/mock.hpp"
+#include "tenncor/eteq/opsvc/mock/mock.hpp"
 
 
 const std::string test_service = "tenncor.eteq.opsvc.test";
@@ -28,8 +28,8 @@ protected:
 
 	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
-		return DistrTestcase::make_mgr(port, {
-			distr::register_iosvc,
+		return DistrTestcase::make_local_mgr(port, {
+			register_mock_iosvc,
 			[](estd::ConfigMap<>& svcs, const distr::PeerServiceConfig& cfg) -> error::ErrptrT
 			{
 				auto iosvc = static_cast<distr::io::DistrIOService*>(svcs.get_obj(distr::io::iosvc_key));
@@ -38,9 +38,14 @@ protected:
 					return error::error("opsvc requires iosvc already registered");
 				}
 				svcs.add_entry<distr::op::DistrOpService>(distr::op::opsvc_key,
-					[&](){ return new distr::op::DistrOpService(
+				[&]()
+				{
+					return new distr::op::DistrOpService(
 						std::make_unique<MockDevice>(),
-						std::make_unique<eteq::DerivativeFuncs>(), cfg, iosvc); });
+						std::make_unique<eteq::DerivativeFuncs>(), cfg, iosvc,
+						std::make_shared<MockDistrOpCliBuilder>(),
+						std::make_shared<MockOpService>());
+				});
 				return nullptr;
 			},
 		}, id);

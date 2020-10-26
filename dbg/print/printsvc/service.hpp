@@ -29,6 +29,9 @@ struct iPrintService : public iService
 {
 	virtual ~iPrintService (void) = default;
 
+	virtual egrpc::WriterptrT<AsciiEntry>
+	make_list_ascii_writer (grpc::ServerContext& ctx) const = 0;
+
 	SVC_STREAM_DECL(RequestListAscii, ListAsciiRequest, AsciiEntry)
 };
 
@@ -37,6 +40,12 @@ struct PrintService final : public iPrintService
 	grpc::Service* get_service (void) override
 	{
 		return &svc_;
+	}
+
+	egrpc::WriterptrT<AsciiEntry>
+	make_list_ascii_writer (grpc::ServerContext& ctx) const override
+	{
+		return std::make_unique<egrpc::GrpcWriter<AsciiEntry>>(ctx);
 	}
 
 	SVC_STREAM_DEFN(RequestListAscii, ListAsciiRequest, AsciiEntry)
@@ -49,8 +58,8 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 	DistrPrintService (const PeerServiceConfig& cfg,
 		io::DistrIOService* iosvc,
 		const PrintEqConfig& printopts = PrintEqConfig(),
-		PeerService<DistrPrintCli>::BuildCliF builder =
-			PeerService<DistrPrintCli>::default_builder,
+		CliBuildptrT builder =
+			std::make_shared<ClientBuilder<DistrPrintCli>>(),
 		std::shared_ptr<iPrintService> svc =
 			std::make_shared<PrintService>()) :
 		PeerService<DistrPrintCli>(cfg, builder),
@@ -66,7 +75,7 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 		builder.register_service(*service_);
 	}
 
-	void initialize_server_call (grpc::ServerCompletionQueue& cq) override
+	void initialize_server_call (egrpc::iCQueue& cq) override
 	{
 		// ListAscii
 		using ListAsciiCallT = egrpc::AsyncServerStreamCall<ListAsciiRequest,AsciiEntry,types::StringsT>;
@@ -75,11 +84,11 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 				get_peer_id().c_str()));
 		new ListAsciiCallT(lascii_logger,
 		[this](grpc::ServerContext* ctx, ListAsciiRequest* req,
-			grpc::ServerAsyncWriter<AsciiEntry>* writer,
-			grpc::CompletionQueue* cq, grpc::ServerCompletionQueue* ccq,
-			void* tag)
+			egrpc::iWriter<AsciiEntry>& writer,
+			egrpc::iCQueue& cq, void* tag)
 		{
-			this->service_->RequestListAscii(ctx, req, writer, cq, ccq, tag);
+			this->service_->RequestListAscii(
+				ctx, req, writer, cq, tag);
 		},
 		[this](types::StringsT& states, const ListAsciiRequest& req)
 		{
@@ -89,7 +98,11 @@ struct DistrPrintService final : public PeerService<DistrPrintCli>
 			types::StringsT::iterator& it, AsciiEntry& reply)
 		{
 			return this->process_list_ascii(req, it, reply);
-		}, &cq);
+		}, cq,
+		[this](grpc::ServerContext& ctx)
+		{
+			return this->service_->make_list_ascii_writer(ctx);
+		});
 	}
 
 private:

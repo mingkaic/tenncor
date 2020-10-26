@@ -5,6 +5,7 @@
 #include "tenncor/distr/distr.hpp"
 
 #include "tenncor/distr/mock/p2p.hpp"
+#include "tenncor/distr/mock/serverio.hpp"
 
 #include "testutil/tutil.hpp"
 
@@ -36,8 +37,33 @@ protected:
 		{
 			assert(nullptr == reg(svcs, cfg));
 		}
-		auto out = std::make_shared<distr::DistrManager<>>(
+		auto out = std::make_shared<distr::DistrManager>(
 			distr::P2PSvcptrT(consul_svc), svcs);
+		peers_.emplace(svc_id, address);
+		return out;
+	}
+
+	distr::iDistrMgrptrT make_local_mgr (size_t port,
+		const std::vector<distr::RegisterSvcF>& services,
+		const std::string& alias = "")
+	{
+		std::string svc_id = alias.empty() ? global::get_generator()->get_str() : alias;
+		assert(false == estd::has(peers_, svc_id));
+		auto address = fmts::sprintf("0.0.0.0:%d", port);
+		auto consul_svc = new MockP2P(kv_mtx_, svc_id, address, peers_, kv_);
+		distr::PeerServiceConfig cfg(consul_svc, egrpc::ClientConfig(
+			std::chrono::milliseconds(5000),
+			std::chrono::milliseconds(10000),
+			5
+		));
+		estd::ConfigMap<> svcs;
+		for (auto& reg : services)
+		{
+			assert(nullptr == reg(svcs, cfg));
+		}
+		auto out = std::make_shared<distr::DistrManager>(
+			distr::P2PSvcptrT(consul_svc), svcs, 3,
+			std::make_shared<MockServerBuilder>());
 		peers_.emplace(svc_id, address);
 		return out;
 	}

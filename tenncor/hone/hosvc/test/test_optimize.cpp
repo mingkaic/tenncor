@@ -6,11 +6,11 @@
 
 #include "testutil/tutil.hpp"
 
-#include "dbg/print/printsvc/printsvc.hpp"
+#include "dbg/print/printsvc/mock/mock.hpp"
 
 #include "tenncor/distr/mock/mock.hpp"
-
-#include "tenncor/hone/hosvc/hosvc.hpp"
+#include "tenncor/distr/iosvc/mock/mock.hpp"
+#include "tenncor/hone/hosvc/mock/mock.hpp"
 
 
 const std::string test_service = "tenncor.hone.hosvc.test";
@@ -26,10 +26,10 @@ protected:
 
 	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
-		return DistrTestcase::make_mgr(port, {
-			distr::register_iosvc,
-			distr::register_hosvc,
-			distr::register_printsvc,
+		return DistrTestcase::make_local_mgr(port, {
+			register_mock_iosvc,
+			register_mock_hosvc,
+			register_mock_printsvc,
 		}, id);
 	}
 };

@@ -15,8 +15,8 @@
 #include "internal/teq/mock/mock.hpp"
 
 #include "tenncor/distr/mock/mock.hpp"
-
-#include "tenncor/serial/oxsvc/oxsvc.hpp"
+#include "tenncor/distr/iosvc/mock/mock.hpp"
+#include "tenncor/serial/oxsvc/mock/mock.hpp"
 
 
 const std::string testdir = "models/test";
@@ -35,9 +35,9 @@ protected:
 
 	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
 	{
-		return DistrTestcase::make_mgr(port, {
-			distr::register_iosvc,
-			distr::register_oxsvc,
+		return DistrTestcase::make_local_mgr(port, {
+			register_mock_iosvc,
+			register_mock_oxsvc,
 		}, id);
 	}
 };

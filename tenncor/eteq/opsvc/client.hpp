@@ -28,8 +28,7 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		const std::string& alias) :
 		GrpcClient(cfg), stub_(stub), alias_(alias) {}
 
-	egrpc::ErrPromiseptrT get_data (
-		grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT get_data (egrpc::iCQueue& cq,
 		const GetDataRequest& req,
 		std::function<void(NodeData&)> cb)
 	{
@@ -42,14 +41,13 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		build_ctx(handler->ctx_, false);
 		// prepare to avoid passing to cq before reader_ assignment
 		handler->reader_ = stub_->PrepareAsyncGetData(
-			&handler->ctx_, req, &cq);
+			&handler->ctx_, req, cq.get_cq());
 		// make request after reader_ assignment
 		handler->reader_->StartCall((void*) handler);
 		return done;
 	}
 
-	egrpc::ErrPromiseptrT list_reachable (
-		grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT list_reachable (egrpc::iCQueue& cq,
 		const ListReachableRequest& req,
 		std::function<void(ListReachableResponse&)> cb)
 	{
@@ -63,7 +61,8 @@ struct DistrOpCli final : public egrpc::GrpcClient
 			inreq.MergeFrom(req);
 			build_ctx(handler->ctx_, false);
 			// prepare to avoid passing to cq before reader_ assignment
-			handler->reader_ = stub_->PrepareAsyncListReachable(&handler->ctx_, req, &cq);
+			handler->reader_ = stub_->PrepareAsyncListReachable(
+				&handler->ctx_, inreq, cq.get_cq());
 			// make request after reader_ assignment
 			handler->reader_->StartCall();
 			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
@@ -71,8 +70,7 @@ struct DistrOpCli final : public egrpc::GrpcClient
 		return done;
 	}
 
-	egrpc::ErrPromiseptrT create_derive (
-		grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT create_derive (egrpc::iCQueue& cq,
 		const CreateDeriveRequest& req,
 		std::function<void(CreateDeriveResponse&)> cb)
 	{
@@ -86,7 +84,8 @@ struct DistrOpCli final : public egrpc::GrpcClient
 			inreq.MergeFrom(req);
 			build_ctx(handler->ctx_, false);
 			// prepare to avoid passing to cq before reader_ assignment
-			handler->reader_ = stub_->PrepareAsyncCreateDerive(&handler->ctx_, req, &cq);
+			handler->reader_ = stub_->PrepareAsyncCreateDerive(
+				&handler->ctx_, inreq, cq.get_cq());
 			// make request after reader_ assignment
 			handler->reader_->StartCall();
 			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);

@@ -40,10 +40,10 @@ struct ServerBuilder final : public iServerBuilder
 		return *this;
 	}
 
-	std::unique_ptr<grpc::ServerCompletionQueue>
-	add_completion_queue (bool is_frequently_polled = true) override
+	CQueueptrT add_completion_queue (bool is_frequently_polled = true) override
 	{
-		return builder_.AddCompletionQueue(is_frequently_polled);
+		return std::make_unique<egrpc::GrpcServerCQueue>(
+			builder_.AddCompletionQueue(is_frequently_polled));
 	}
 
 	std::unique_ptr<iServer> build_and_start (void) override
@@ -68,22 +68,42 @@ struct PeerServiceConfig
 	egrpc::ClientConfig cli_;
 };
 
-template <typename CLI> // CLI has base egrpc::GrpcClient
-struct PeerService : public iPeerService
+struct iClientBuilder
 {
-	using BuildCliF = std::function<CLI*(
-		const std::string&,const egrpc::ClientConfig&,const std::string&)>;
+	virtual ~iClientBuilder (void) = default;
 
-	static CLI* default_builder (const std::string& addr,
-		const egrpc::ClientConfig& config, const std::string& alias)
+	virtual egrpc::GrpcClient* build_client (const std::string& addr,
+		const egrpc::ClientConfig& config, const std::string& alias) const = 0;
+
+	virtual CQueueptrT build_cqueue (void) const = 0;
+};
+
+using CliBuildptrT = std::shared_ptr<iClientBuilder>;
+
+template <typename CLI>
+struct ClientBuilder final : public iClientBuilder
+{
+	egrpc::GrpcClient* build_client (const std::string& addr,
+		const egrpc::ClientConfig& config, const std::string& alias) const override
 	{
-		return new CLI(
-			grpc::CreateChannel(addr, grpc::InsecureChannelCredentials()),
+		return new CLI(grpc::CreateChannel(addr,
+			grpc::InsecureChannelCredentials()),
 			config, alias);
 	}
 
-	PeerService (const PeerServiceConfig& cfg, BuildCliF build_cli = default_builder) :
-		cli_(cfg.cli_), p2p_(cfg.p2p_), build_cli_(build_cli)
+	CQueueptrT build_cqueue (void) const override
+	{
+		return std::make_unique<egrpc::GrpcCQueue>();
+	}
+};
+
+template <typename CLI> // CLI has base egrpc::GrpcClient
+struct PeerService : public iPeerService
+{
+	PeerService (const PeerServiceConfig& cfg,
+		CliBuildptrT builder = std::make_shared<ClientBuilder<CLI>>()) :
+		cli_(cfg.cli_), p2p_(cfg.p2p_),
+		builder_(builder), cq_(builder->build_cqueue())
 	{
 		update_clients();
 		// if nthread_ == 0, use 1 thread anyways
@@ -97,7 +117,7 @@ struct PeerService : public iPeerService
 
 	virtual ~PeerService (void)
 	{
-		cq_.Shutdown();
+		cq_->shutdown();
 		for (auto& cli_job : cli_jobs_)
 		{
 			cli_job.join();
@@ -136,9 +156,11 @@ protected:
 		{
 			if (false == estd::has(clients_, peer.first))
 			{
-				clients_.insert({peer.first,
-					std::unique_ptr<CLI>(build_cli_(peer.second, cli_,
-						get_peer_id() + "->" + peer.first))});
+				clients_.insert({
+					peer.first, std::unique_ptr<CLI>(
+						static_cast<CLI*>(builder_->build_client(peer.second,
+							cli_, get_peer_id() + "->" + peer.first)))
+				});
 			}
 		}
 	}
@@ -152,21 +174,25 @@ protected:
 
 	iP2PService* p2p_;
 
-	BuildCliF build_cli_;
+	CliBuildptrT builder_;
 
-	grpc::CompletionQueue cq_;
+	CQueueptrT cq_;
 
 	types::StrUMapT<std::unique_ptr<CLI>> clients_; // todo: add cleanup job for clients
 
 private:
 	void handle_clients (void)
 	{
-		void* got_tag;
+		void* got_tag = nullptr;
 		bool ok = true;
-		while (cq_.Next(&got_tag, &ok))
+		while (cq_->next(&got_tag, &ok))
 		{
-			auto handler = static_cast<egrpc::iClientHandler*>(got_tag);
-			handler->handle(ok);
+			if (nullptr != got_tag)
+			{
+				auto handler = static_cast<egrpc::iClientHandler*>(got_tag);
+				handler->handle(ok);
+				got_tag = nullptr;
+			}
 		}
 	}
 

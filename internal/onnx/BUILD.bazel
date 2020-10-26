@@ -90,7 +90,6 @@ cc_binary(
 
 cc_test(
     name = "test",
-    size = "small",
     srcs = [":test_srcs"],
     deps = [
         ":onnx",

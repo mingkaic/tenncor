@@ -27,8 +27,7 @@ struct DistrSerializeCli final : public egrpc::GrpcClient
 		GrpcClient(cfg),
 		stub_(stub), alias_(alias) {}
 
-	egrpc::ErrPromiseptrT get_save_graph (
-		grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT get_save_graph (egrpc::iCQueue& cq,
 		const GetSaveGraphRequest& req,
 		std::function<void(GetSaveGraphResponse&)> cb)
 	{
@@ -42,7 +41,8 @@ struct DistrSerializeCli final : public egrpc::GrpcClient
 			inreq.MergeFrom(req);
 			build_ctx(handler->ctx_, false);
 			// prepare to avoid passing to cq before reader_ assignment
-			handler->reader_ = stub_->PrepareAsyncGetSaveGraph(&handler->ctx_, req, &cq);
+			handler->reader_ = stub_->PrepareAsyncGetSaveGraph(
+				&handler->ctx_, inreq, cq.get_cq());
 			// make request after reader_ assignment
 			handler->reader_->StartCall();
 			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
@@ -50,8 +50,7 @@ struct DistrSerializeCli final : public egrpc::GrpcClient
 		return done;
 	}
 
-	egrpc::ErrPromiseptrT post_load_graph (
-		grpc::CompletionQueue& cq,
+	egrpc::ErrPromiseptrT post_load_graph (egrpc::iCQueue& cq,
 		const PostLoadGraphRequest& req)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
@@ -64,7 +63,8 @@ struct DistrSerializeCli final : public egrpc::GrpcClient
 			inreq.MergeFrom(req);
 			build_ctx(handler->ctx_, false);
 			// prepare to avoid passing to cq before reader_ assignment
-			handler->reader_ = stub_->PrepareAsyncPostLoadGraph(&handler->ctx_, req, &cq);
+			handler->reader_ = stub_->PrepareAsyncPostLoadGraph(
+				&handler->ctx_, inreq, cq.get_cq());
 			// make request after reader_ assignment
 			handler->reader_->StartCall();
 			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);

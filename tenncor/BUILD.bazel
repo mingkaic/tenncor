@@ -187,4 +187,5 @@ py_test(
         "//:test_models",
         "//testutil:ead_testcase_template",
     ],
+    size = "enormous",
 )
