@@ -31,7 +31,7 @@ struct MockGenerator : public global::iGenerator
 
 	global::GenF<std::string> get_strgen (void) const override
 	{
-		return [this](){ return get_str(); };
+		return [this]{ return get_str(); };
 	}
 
 	global::GenF<int64_t> unif_intgen (

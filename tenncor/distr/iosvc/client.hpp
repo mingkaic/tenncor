@@ -43,8 +43,8 @@ struct DistrIOCli final : public egrpc::GrpcClient
 			inreq.MergeFrom(req);
 			build_ctx(handler->ctx_, false);
 			// prepare to avoid passing to cq before reader_ assignment
-			handler->reader_ = stub_->PrepareAsyncListNodes(
-				&handler->ctx_, inreq, cq.get_cq());
+			handler->reader_ = ListNodesHandlerT::ReadptrT(stub_->PrepareAsyncListNodes(
+				&handler->ctx_, inreq, cq.get_cq()).release());
 			// make request after reader_ assignment
 			handler->reader_->StartCall();
 			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);

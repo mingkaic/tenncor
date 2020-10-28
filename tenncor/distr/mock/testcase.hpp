@@ -93,7 +93,7 @@ protected:
 		for (auto port : reserved_ports_)
 		{
 			waits.push_back(std::thread(
-			[port]()
+			[port]
 			{
 				for (size_t i = 0; i < nretries && tutil::port_in_use(port); ++i)
 				{

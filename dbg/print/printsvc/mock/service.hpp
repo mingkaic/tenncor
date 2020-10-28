@@ -8,6 +8,14 @@
 
 struct MockPrintService final : public distr::print::iPrintService
 {
+	~MockPrintService (void)
+	{
+		for (auto call : calls_)
+		{
+			delete call;
+		}
+	}
+
 	grpc::Service* get_service (void) override
 	{
 		return nullptr;
@@ -18,15 +26,17 @@ struct MockPrintService final : public distr::print::iPrintService
 		egrpc::iWriter<distr::print::AsciiEntry>& writer,
 		egrpc::iCQueue& cq, void* tag) override
 	{
+		auto call = static_cast<egrpc::iServerCall*>(tag);
 		auto mock_res = dynamic_cast<MockWriter<
 			distr::print::AsciiEntry>*>(&writer);
 		assert(nullptr != mock_res);
+		mock_res->set_cq(static_cast<MockSrvCQT&>(cq));
 		packets_.push_back(ServicePacket<
 			distr::print::ListAsciiRequest,
 			MockWriter<distr::print::AsciiEntry>>{
-			req, mock_res,
-			static_cast<egrpc::iServerCall*>(tag)
+			req, mock_res, call
 		});
+		calls_.emplace(call);
 	}
 
 	egrpc::WriterptrT<distr::print::AsciiEntry>
@@ -34,6 +44,19 @@ struct MockPrintService final : public distr::print::iPrintService
 	{
 		return std::make_unique<MockWriter<distr::print::AsciiEntry>>();
 	}
+
+	ServicePacket<distr::print::ListAsciiRequest,
+		MockWriter<distr::print::AsciiEntry>>
+	depacket (void)
+	{
+		auto out = packets_.front();
+		packets_.pop_front();
+		calls_.erase(out.call_);
+		return out;
+	}
+
+private:
+	std::unordered_set<egrpc::iServerCall*> calls_;
 
 	std::list<ServicePacket<distr::print::ListAsciiRequest,
 		MockWriter<distr::print::AsciiEntry>>> packets_;
@@ -66,19 +89,17 @@ private:
 		const distr::print::ListAsciiRequest& request,
 		grpc::CompletionQueue* cq) override
 	{
-		auto mcq = estd::must_getf(MockCQueue::real2mock_, cq,
+		auto mcq = estd::must_getf(MockCliCQT::real_to_mock(), cq,
 			"cannot find grpc completion queue %p", cq);
 		auto svc = MockServerBuilder::get_service<MockPrintService>(address_);
 		if (nullptr == svc)
 		{
 			global::fatalf("no mock print service found in %s", address_.c_str());
 		}
-		auto packet = svc->packets_.front();
-		svc->packets_.pop_front();
+		auto packet = svc->depacket();
 		packet.req_->MergeFrom(request);
-		return new MockClientAsyncReader<
-			distr::print::ListAsciiRequest,
-			distr::print::AsciiEntry>(packet, *mcq);
+		return new MockClientAsyncReader<distr::print::AsciiEntry>(
+			packet.res_, packet.call_, *mcq);
 	}
 
 	std::string address_;

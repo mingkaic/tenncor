@@ -13,7 +13,7 @@ struct MockDistrIOCliBuilder final : public distr::iClientBuilder
 
 	distr::CQueueptrT build_cqueue (void) const override
 	{
-		return std::make_unique<MockCQueue>();
+		return std::make_unique<MockCliCQT>();
 	}
 };
 
@@ -21,7 +21,7 @@ error::ErrptrT register_mock_iosvc (estd::ConfigMap<>& svcs,
 	const distr::PeerServiceConfig& cfg)
 {
 	svcs.add_entry<distr::io::DistrIOService>(distr::io::iosvc_key,
-	[&]()
+	[&]
 	{
 		return new distr::io::DistrIOService(cfg,
 			std::make_shared<MockDistrIOCliBuilder>(),

@@ -10,7 +10,7 @@ error::ErrptrT register_iosvc (estd::ConfigMap<>& svcs,
 	const PeerServiceConfig& cfg)
 {
 	svcs.add_entry<io::DistrIOService>(io::iosvc_key,
-		[&](){ return new io::DistrIOService(cfg); });
+		[&]{ return new io::DistrIOService(cfg); });
 	return nullptr;
 }
 

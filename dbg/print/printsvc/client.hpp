@@ -39,8 +39,8 @@ struct DistrPrintCli final : public egrpc::GrpcClient
 
 		build_ctx(handler->ctx_, false);
 		// prepare to avoid passing to cq before reader_ assignment
-		handler->reader_ = stub_->PrepareAsyncListAscii(
-			&handler->ctx_, req, cq.get_cq());
+		handler->reader_ = ListAsciiHandlerT::ReadptrT(stub_->PrepareAsyncListAscii(
+			&handler->ctx_, req, cq.get_cq()).release());
 		// make request after reader_ assignment
 		handler->reader_->StartCall((void*) handler);
 		return done;

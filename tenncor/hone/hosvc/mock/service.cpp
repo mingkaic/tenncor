@@ -13,7 +13,7 @@ struct MockDistrHoCliBuilder final : public distr::iClientBuilder
 
 	distr::CQueueptrT build_cqueue (void) const override
 	{
-		return std::make_unique<MockCQueue>();
+		return std::make_unique<MockCliCQT>();
 	}
 };
 
@@ -27,7 +27,7 @@ error::ErrptrT register_mock_hosvc (estd::ConfigMap<>& svcs,
 		return error::error("hosvc requires iosvc already registered");
 	}
 	svcs.add_entry<distr::ho::DistrHoService>(distr::ho::hosvc_key,
-	[&]()
+	[&]
 	{
 		return new distr::ho::DistrHoService(cfg, iosvc,
 			std::make_shared<MockDistrHoCliBuilder>(),

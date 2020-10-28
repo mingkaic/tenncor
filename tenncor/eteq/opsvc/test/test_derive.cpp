@@ -97,7 +97,7 @@ protected:
 					return error::error("opsvc requires iosvc already registered");
 				}
 				svcs.add_entry<distr::op::DistrOpService>(distr::op::opsvc_key,
-				[&]()
+				[&]
 				{
 					return new distr::op::DistrOpService(
 						std::make_unique<eigen::Device>(std::numeric_limits<size_t>::max()),

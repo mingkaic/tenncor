@@ -37,7 +37,8 @@ TEST_F(CONSUL, GetPeer)
 	std::string svc_id = "svc1";
 	std::string svc2_id = "svc2";
 
-	auto svc = distr::make_consul(consul, port, test_svc, "svc1");
+	std::shared_ptr<distr::ConsulService> svc(distr::make_consul(
+		consul, port, test_svc, "svc1"));
 	distr::ConsulService svc2(consul, port2, "svc2", test_svc);
 
 	auto peers = svc->get_peers();

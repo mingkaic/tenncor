@@ -27,7 +27,7 @@ void set_reg (TensRegistryT* reg, global::CfgMapptrT ctx)
 	if (reg)
 	{
 		ctx->template add_entry<TensRegistryT>(reg_key,
-			[=](){ return reg; });
+			[=]{ return reg; });
 	}
 }
 

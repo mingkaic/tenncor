@@ -14,7 +14,7 @@ void set_logger (logs::iLogger* logger, CfgMapptrT ctx)
 	if (logger)
 	{
 		ctx->template add_entry<logs::iLogger>(logger_key,
-			[=](){ return logger; });
+			[=]{ return logger; });
 	}
 }
 

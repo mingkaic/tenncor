@@ -8,6 +8,14 @@
 
 struct MockOpService final : public distr::op::iOpService
 {
+	~MockOpService (void)
+	{
+		for (auto call : calls_)
+		{
+			delete call;
+		}
+	}
+
 	grpc::Service* get_service (void) override
 	{
 		return nullptr;
@@ -18,15 +26,17 @@ struct MockOpService final : public distr::op::iOpService
 		egrpc::iWriter<distr::op::NodeData>& writer,
 		egrpc::iCQueue& cq, void* tag) override
 	{
+		auto call = static_cast<egrpc::iServerCall*>(tag);
 		auto mock_res = dynamic_cast<MockWriter<
 			distr::op::NodeData>*>(&writer);
 		assert(nullptr != mock_res);
+		mock_res->set_cq(static_cast<MockSrvCQT&>(cq));
 		data_packets_.push_back(ServicePacket<
 			distr::op::GetDataRequest,
 			MockWriter<distr::op::NodeData>>{
-			req, mock_res,
-			static_cast<egrpc::iServerCall*>(tag)
+			req, mock_res, call
 		});
+		calls_.emplace(call);
 	}
 
 	void RequestListReachable (grpc::ServerContext* ctx,
@@ -34,15 +44,17 @@ struct MockOpService final : public distr::op::iOpService
 		egrpc::iResponder<distr::op::ListReachableResponse>& writer,
 		egrpc::iCQueue& cq, void* tag) override
 	{
+		auto call = static_cast<egrpc::iServerCall*>(tag);
 		auto mock_res = dynamic_cast<MockResponder<
 			distr::op::ListReachableResponse>*>(&writer);
 		assert(nullptr != mock_res);
+		mock_res->set_cq(static_cast<MockSrvCQT&>(cq));
 		reachable_packets_.push_back(ServicePacket<
 			distr::op::ListReachableRequest,
 			MockResponder<distr::op::ListReachableResponse>>{
-			req, mock_res,
-			static_cast<egrpc::iServerCall*>(tag)
+			req, mock_res, call
 		});
+		calls_.emplace(call);
 	}
 
 	void RequestCreateDerive (grpc::ServerContext* ctx,
@@ -50,15 +62,17 @@ struct MockOpService final : public distr::op::iOpService
 		egrpc::iResponder<distr::op::CreateDeriveResponse>& writer,
 		egrpc::iCQueue& cq, void* tag) override
 	{
+		auto call = static_cast<egrpc::iServerCall*>(tag);
 		auto mock_res = dynamic_cast<MockResponder<
 			distr::op::CreateDeriveResponse>*>(&writer);
 		assert(nullptr != mock_res);
+		mock_res->set_cq(static_cast<MockSrvCQT&>(cq));
 		derive_packets_.push_back(ServicePacket<
 			distr::op::CreateDeriveRequest,
 			MockResponder<distr::op::CreateDeriveResponse>>{
-			req, mock_res,
-			static_cast<egrpc::iServerCall*>(tag)
+			req, mock_res, call
 		});
+		calls_.emplace(call);
 	}
 
 	egrpc::WriterptrT<distr::op::NodeData>
@@ -79,6 +93,39 @@ struct MockOpService final : public distr::op::iOpService
 		return std::make_unique<MockResponder<distr::op::CreateDeriveResponse>>();
 	}
 
+	ServicePacket<distr::op::GetDataRequest,
+		MockWriter<distr::op::NodeData>>
+	data_depacket (void)
+	{
+		auto out = data_packets_.front();
+		data_packets_.pop_front();
+		calls_.erase(out.call_);
+		return out;
+	}
+
+	ServicePacket<distr::op::ListReachableRequest,
+		MockResponder<distr::op::ListReachableResponse>>
+	reachable_depacket (void)
+	{
+		auto out = reachable_packets_.front();
+		reachable_packets_.pop_front();
+		calls_.erase(out.call_);
+		return out;
+	}
+
+	ServicePacket<distr::op::CreateDeriveRequest,
+		MockResponder<distr::op::CreateDeriveResponse>>
+	derive_depacket (void)
+	{
+		auto out = derive_packets_.front();
+		derive_packets_.pop_front();
+		calls_.erase(out.call_);
+		return out;
+	}
+
+private:
+	std::unordered_set<egrpc::iServerCall*> calls_;
+
 	std::list<ServicePacket<distr::op::GetDataRequest,
 		MockWriter<distr::op::NodeData>>> data_packets_;
 
@@ -97,21 +144,6 @@ struct MockOpStub final : public distr::op::DistrOperation::StubInterface
 		const distr::op::ListReachableRequest& request,
 		distr::op::ListReachableResponse* response) override
 	{
-		auto svc = MockServerBuilder::get_service<MockOpService>(address_);
-		if (nullptr == svc)
-		{
-			global::fatalf("no mock op service found in %s", address_.c_str());
-		}
-		auto packet = svc->reachable_packets_.front();
-		svc->reachable_packets_.pop_front();
-		packet.req_->MergeFrom(request);
-		packet.call_->serve();
-		auto responder = packet.res_;
-		if (!responder->status_.ok())
-		{
-			return responder->status_;
-		}
-		response->MergeFrom(responder->reply_);
 		return grpc::Status::OK;
 	}
 
@@ -119,21 +151,6 @@ struct MockOpStub final : public distr::op::DistrOperation::StubInterface
 		const distr::op::CreateDeriveRequest& request,
 		distr::op::CreateDeriveResponse* response) override
 	{
-		auto svc = MockServerBuilder::get_service<MockOpService>(address_);
-		if (nullptr == svc)
-		{
-			global::fatalf("no mock op service found in %s", address_.c_str());
-		}
-		auto packet = svc->derive_packets_.front();
-		svc->derive_packets_.pop_front();
-		packet.req_->MergeFrom(request);
-		packet.call_->serve();
-		auto responder = packet.res_;
-		if (!responder->status_.ok())
-		{
-			return responder->status_;
-		}
-		response->MergeFrom(responder->reply_);
 		return grpc::Status::OK;
 	}
 
@@ -160,19 +177,17 @@ private:
 		const distr::op::GetDataRequest& request,
 		grpc::CompletionQueue* cq) override
 	{
-		auto mcq = estd::must_getf(MockCQueue::real2mock_, cq,
+		auto mcq = estd::must_getf(MockCliCQT::real_to_mock(), cq,
 			"cannot find grpc completion queue %p", cq);
 		auto svc = MockServerBuilder::get_service<MockOpService>(address_);
 		if (nullptr == svc)
 		{
 			global::fatalf("no mock op service found in %s", address_.c_str());
 		}
-		auto packet = svc->data_packets_.front();
-		svc->data_packets_.pop_front();
+		auto packet = svc->data_depacket();
 		packet.req_->MergeFrom(request);
-		return new MockClientAsyncReader<
-			distr::op::GetDataRequest,
-			distr::op::NodeData>(packet, *mcq);
+		return new MockClientAsyncReader<distr::op::NodeData>(
+			packet.res_, packet.call_, *mcq);
 	}
 
 	grpc::ClientAsyncResponseReaderInterface<distr::op::ListReachableResponse>*
@@ -187,16 +202,20 @@ private:
 
 	grpc::ClientAsyncResponseReaderInterface<distr::op::ListReachableResponse>*
 	PrepareAsyncListReachableRaw (grpc::ClientContext* context,
-		const ::distr::op::ListReachableRequest& request,
+		const distr::op::ListReachableRequest& request,
 		grpc::CompletionQueue* cq) override
 	{
-		auto mcq = estd::must_getf(MockCQueue::real2mock_, cq,
+		auto mcq = estd::must_getf(MockCliCQT::real_to_mock(), cq,
 			"cannot find grpc completion queue %p", cq);
-		return new MockClientAsyncResponseReader<distr::op::ListReachableResponse>(
-		[this, context, &request](distr::op::ListReachableResponse* response)
+		auto svc = MockServerBuilder::get_service<MockOpService>(address_);
+		if (nullptr == svc)
 		{
-			return this->ListReachable(context, request, response);
-		}, *mcq);
+			global::fatalf("no mock op service found in %s", address_.c_str());
+		}
+		auto packet = svc->reachable_depacket();
+		packet.req_->MergeFrom(request);
+		return new MockClientAsyncResponseReader<distr::op::ListReachableResponse>(
+			packet.res_, packet.call_, *mcq);
 	}
 
 	grpc::ClientAsyncResponseReaderInterface<distr::op::CreateDeriveResponse>*
@@ -211,16 +230,20 @@ private:
 
 	grpc::ClientAsyncResponseReaderInterface<distr::op::CreateDeriveResponse>*
 	PrepareAsyncCreateDeriveRaw (grpc::ClientContext* context,
-		const ::distr::op::CreateDeriveRequest& request,
+		const distr::op::CreateDeriveRequest& request,
 		grpc::CompletionQueue* cq) override
 	{
-		auto mcq = estd::must_getf(MockCQueue::real2mock_, cq,
+		auto mcq = estd::must_getf(MockCliCQT::real_to_mock(), cq,
 			"cannot find grpc completion queue %p", cq);
-		return new MockClientAsyncResponseReader<distr::op::CreateDeriveResponse>(
-		[this, context, &request](distr::op::CreateDeriveResponse* response)
+		auto svc = MockServerBuilder::get_service<MockOpService>(address_);
+		if (nullptr == svc)
 		{
-			return this->CreateDerive(context, request, response);
-		}, *mcq);
+			global::fatalf("no mock op service found in %s", address_.c_str());
+		}
+		auto packet = svc->derive_depacket();
+		packet.req_->MergeFrom(request);
+		return new MockClientAsyncResponseReader<distr::op::CreateDeriveResponse>(
+			packet.res_, packet.call_, *mcq);
 	}
 
 	std::string address_;
@@ -237,7 +260,7 @@ struct MockDistrOpCliBuilder final : public distr::iClientBuilder
 
 	distr::CQueueptrT build_cqueue (void) const override
 	{
-		return std::make_unique<MockCQueue>();
+		return std::make_unique<MockCliCQT>();
 	}
 };
 

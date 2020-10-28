@@ -8,6 +8,14 @@
 
 struct MockIOService final : public distr::io::iIOService
 {
+	~MockIOService (void)
+	{
+		for (auto call : calls_)
+		{
+			delete call;
+		}
+	}
+
 	grpc::Service* get_service (void) override
 	{
 		return nullptr;
@@ -17,15 +25,17 @@ struct MockIOService final : public distr::io::iIOService
 		egrpc::iResponder<distr::io::ListNodesResponse>& writer,
 		egrpc::iCQueue& cq, void* tag) override
 	{
+		auto call = static_cast<egrpc::iServerCall*>(tag);
 		auto mock_res = dynamic_cast<MockResponder<
 			distr::io::ListNodesResponse>*>(&writer);
 		assert(nullptr != mock_res);
+		mock_res->set_cq(static_cast<MockSrvCQT&>(cq));
 		packets_.push_back(ServicePacket<
 			distr::io::ListNodesRequest,
 			MockResponder<distr::io::ListNodesResponse>>{
-			req, mock_res,
-			static_cast<egrpc::iServerCall*>(tag)
+			req, mock_res, call
 		});
+		calls_.emplace(call);
 	}
 
 	egrpc::RespondptrT<distr::io::ListNodesResponse>
@@ -33,6 +43,19 @@ struct MockIOService final : public distr::io::iIOService
 	{
 		return std::make_unique<MockResponder<distr::io::ListNodesResponse>>();
 	}
+
+	ServicePacket<distr::io::ListNodesRequest,
+		MockResponder<distr::io::ListNodesResponse>>
+	depacket (void)
+	{
+		auto out = packets_.front();
+		packets_.pop_front();
+		calls_.erase(out.call_);
+		return out;
+	}
+
+private:
+	std::unordered_set<egrpc::iServerCall*> calls_;
 
 	std::list<ServicePacket<distr::io::ListNodesRequest,
 		MockResponder<distr::io::ListNodesResponse>>> packets_;
@@ -46,21 +69,6 @@ struct MockIOStub final : public distr::io::DistrInOut::StubInterface
 		const distr::io::ListNodesRequest& request,
 		distr::io::ListNodesResponse* response) override
 	{
-		auto svc = MockServerBuilder::get_service<MockIOService>(address_);
-		if (nullptr == svc)
-		{
-			global::fatalf("no mock io service found in %s", address_.c_str());
-		}
-		auto packet = svc->packets_.front();
-		svc->packets_.pop_front();
-		packet.req_->MergeFrom(request);
-		packet.call_->serve();
-		auto responder = packet.res_;
-		if (!responder->status_.ok())
-		{
-			return responder->status_;
-		}
-		response->MergeFrom(responder->reply_);
 		return grpc::Status::OK;
 	}
 
@@ -77,16 +85,20 @@ private:
 
 	grpc::ClientAsyncResponseReaderInterface<distr::io::ListNodesResponse>*
 	PrepareAsyncListNodesRaw (grpc::ClientContext* context,
-		const ::distr::io::ListNodesRequest& request,
+		const distr::io::ListNodesRequest& request,
 		grpc::CompletionQueue* cq) override
 	{
-		auto mcq = estd::must_getf(MockCQueue::real2mock_, cq,
+		auto mcq = estd::must_getf(MockCliCQT::real_to_mock(), cq,
 			"cannot find grpc completion queue %p", cq);
-		return new MockClientAsyncResponseReader<distr::io::ListNodesResponse>(
-		[this, context, &request](distr::io::ListNodesResponse* response)
+		auto svc = MockServerBuilder::get_service<MockIOService>(address_);
+		if (nullptr == svc)
 		{
-			return this->ListNodes(context, request, response);
-		}, *mcq);
+			global::fatalf("no mock io service found in %s", address_.c_str());
+		}
+		auto packet = svc->depacket();
+		packet.req_->MergeFrom(request);
+		return new MockClientAsyncResponseReader<distr::io::ListNodesResponse>(
+			packet.res_, packet.call_, *mcq);
 	}
 
 	std::string address_;

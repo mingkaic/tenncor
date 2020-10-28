@@ -14,7 +14,7 @@ error::ErrptrT register_hosvc (estd::ConfigMap<>& svcs,
 		return error::error("hosvc requires iosvc already registered");
 	}
 	svcs.add_entry<ho::DistrHoService>(ho::hosvc_key,
-		[&](){ return new ho::DistrHoService(cfg, iosvc); });
+		[&]{ return new ho::DistrHoService(cfg, iosvc); });
 	return nullptr;
 }
 

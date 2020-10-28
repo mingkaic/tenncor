@@ -8,6 +8,14 @@
 
 struct MockOxService final : public distr::ox::iSerializeService
 {
+	~MockOxService (void)
+	{
+		for (auto call : calls_)
+		{
+			delete call;
+		}
+	}
+
 	grpc::Service* get_service (void) override
 	{
 		return nullptr;
@@ -18,15 +26,17 @@ struct MockOxService final : public distr::ox::iSerializeService
 		egrpc::iResponder<distr::ox::GetSaveGraphResponse>& writer,
 		egrpc::iCQueue& cq, void* tag) override
 	{
+		auto call = static_cast<egrpc::iServerCall*>(tag);
 		auto mock_res = dynamic_cast<MockResponder<
 			distr::ox::GetSaveGraphResponse>*>(&writer);
 		assert(nullptr != mock_res);
+		mock_res->set_cq(static_cast<MockSrvCQT&>(cq));
 		save_packets_.push_back(ServicePacket<
 			distr::ox::GetSaveGraphRequest,
 			MockResponder<distr::ox::GetSaveGraphResponse>>{
-			req, mock_res,
-			static_cast<egrpc::iServerCall*>(tag)
+			req, mock_res, call
 		});
+		calls_.emplace(call);
 	}
 
 	void RequestPostLoadGraph (grpc::ServerContext* ctx,
@@ -34,15 +44,17 @@ struct MockOxService final : public distr::ox::iSerializeService
 		egrpc::iResponder<distr::ox::PostLoadGraphResponse>& writer,
 		egrpc::iCQueue& cq, void* tag) override
 	{
+		auto call = static_cast<egrpc::iServerCall*>(tag);
 		auto mock_res = dynamic_cast<MockResponder<
 			distr::ox::PostLoadGraphResponse>*>(&writer);
 		assert(nullptr != mock_res);
+		mock_res->set_cq(static_cast<MockSrvCQT&>(cq));
 		load_packets_.push_back(ServicePacket<
 			distr::ox::PostLoadGraphRequest,
 			MockResponder<distr::ox::PostLoadGraphResponse>>{
-			req, mock_res,
-			static_cast<egrpc::iServerCall*>(tag)
+			req, mock_res, call
 		});
+		calls_.emplace(call);
 	}
 
 	egrpc::RespondptrT<distr::ox::GetSaveGraphResponse>
@@ -56,6 +68,29 @@ struct MockOxService final : public distr::ox::iSerializeService
 	{
 		return std::make_unique<MockResponder<distr::ox::PostLoadGraphResponse>>();
 	}
+
+	ServicePacket<distr::ox::GetSaveGraphRequest,
+		MockResponder<distr::ox::GetSaveGraphResponse>>
+	save_depacket (void)
+	{
+		auto out = save_packets_.front();
+		save_packets_.pop_front();
+		calls_.erase(out.call_);
+		return out;
+	}
+
+	ServicePacket<distr::ox::PostLoadGraphRequest,
+		MockResponder<distr::ox::PostLoadGraphResponse>>
+	load_depacket (void)
+	{
+		auto out = load_packets_.front();
+		load_packets_.pop_front();
+		calls_.erase(out.call_);
+		return out;
+	}
+
+private:
+	std::unordered_set<egrpc::iServerCall*> calls_;
 
 	std::list<ServicePacket<distr::ox::GetSaveGraphRequest,
 		MockResponder<distr::ox::GetSaveGraphResponse>>> save_packets_;
@@ -72,21 +107,6 @@ struct MockOxStub final : public distr::ox::DistrSerialization::StubInterface
 		const distr::ox::GetSaveGraphRequest& request,
 		distr::ox::GetSaveGraphResponse* response) override
 	{
-		auto svc = MockServerBuilder::get_service<MockOxService>(address_);
-		if (nullptr == svc)
-		{
-			global::fatalf("no mock ox service found in %s", address_.c_str());
-		}
-		auto packet = svc->save_packets_.front();
-		svc->save_packets_.pop_front();
-		packet.req_->MergeFrom(request);
-		packet.call_->serve();
-		auto responder = packet.res_;
-		if (!responder->status_.ok())
-		{
-			return responder->status_;
-		}
-		response->MergeFrom(responder->reply_);
 		return grpc::Status::OK;
 	}
 
@@ -94,21 +114,6 @@ struct MockOxStub final : public distr::ox::DistrSerialization::StubInterface
 		const distr::ox::PostLoadGraphRequest& request,
 		distr::ox::PostLoadGraphResponse* response) override
 	{
-		auto svc = MockServerBuilder::get_service<MockOxService>(address_);
-		if (nullptr == svc)
-		{
-			global::fatalf("no mock ox service found in %s", address_.c_str());
-		}
-		auto packet = svc->load_packets_.front();
-		svc->load_packets_.pop_front();
-		packet.req_->MergeFrom(request);
-		packet.call_->serve();
-		auto responder = packet.res_;
-		if (!responder->status_.ok())
-		{
-			return responder->status_;
-		}
-		response->MergeFrom(responder->reply_);
 		return grpc::Status::OK;
 	}
 
@@ -128,13 +133,17 @@ private:
 		const ::distr::ox::GetSaveGraphRequest& request,
 		grpc::CompletionQueue* cq) override
 	{
-		auto mcq = estd::must_getf(MockCQueue::real2mock_, cq,
+		auto mcq = estd::must_getf(MockCliCQT::real_to_mock(), cq,
 			"cannot find grpc completion queue %p", cq);
-		return new MockClientAsyncResponseReader<distr::ox::GetSaveGraphResponse>(
-		[this, context, &request](distr::ox::GetSaveGraphResponse* response)
+		auto svc = MockServerBuilder::get_service<MockOxService>(address_);
+		if (nullptr == svc)
 		{
-			return this->GetSaveGraph(context, request, response);
-		}, *mcq);
+			global::fatalf("no mock ox service found in %s", address_.c_str());
+		}
+		auto packet = svc->save_depacket();
+		packet.req_->MergeFrom(request);
+		return new MockClientAsyncResponseReader<distr::ox::GetSaveGraphResponse>(
+			packet.res_, packet.call_, *mcq);
 	}
 
 	grpc::ClientAsyncResponseReaderInterface<distr::ox::PostLoadGraphResponse>*
@@ -152,13 +161,17 @@ private:
 		const ::distr::ox::PostLoadGraphRequest& request,
 		grpc::CompletionQueue* cq) override
 	{
-		auto mcq = estd::must_getf(MockCQueue::real2mock_, cq,
+		auto mcq = estd::must_getf(MockCliCQT::real_to_mock(), cq,
 			"cannot find grpc completion queue %p", cq);
-		return new MockClientAsyncResponseReader<distr::ox::PostLoadGraphResponse>(
-		[this, context, &request](distr::ox::PostLoadGraphResponse* response)
+		auto svc = MockServerBuilder::get_service<MockOxService>(address_);
+		if (nullptr == svc)
 		{
-			return this->PostLoadGraph(context, request, response);
-		}, *mcq);
+			global::fatalf("no mock ox service found in %s", address_.c_str());
+		}
+		auto packet = svc->load_depacket();
+		packet.req_->MergeFrom(request);
+		return new MockClientAsyncResponseReader<distr::ox::PostLoadGraphResponse>(
+			packet.res_, packet.call_, *mcq);
 	}
 
 	std::string address_;

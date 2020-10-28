@@ -13,7 +13,7 @@ struct MockDistrPrintCliBuilder final : public distr::iClientBuilder
 
 	distr::CQueueptrT build_cqueue (void) const override
 	{
-		return std::make_unique<MockCQueue>();
+		return std::make_unique<MockCliCQT>();
 	}
 };
 
@@ -27,7 +27,7 @@ error::ErrptrT register_mock_printsvc (estd::ConfigMap<>& svcs,
 		return error::error("printsvc requires iosvc already registered");
 	}
 	svcs.add_entry<distr::print::DistrPrintService>(distr::print::printsvc_key,
-	[&]()
+	[&]
 	{
 		return new distr::print::DistrPrintService(cfg, iosvc, PrintEqConfig(),
 			std::make_shared<MockDistrPrintCliBuilder>(),

@@ -10,6 +10,14 @@
 
 struct MockHoService final : public distr::ho::iHoService
 {
+	~MockHoService (void)
+	{
+		for (auto call : calls_)
+		{
+			delete call;
+		}
+	}
+
 	grpc::Service* get_service (void) override
 	{
 		return nullptr;
@@ -20,15 +28,17 @@ struct MockHoService final : public distr::ho::iHoService
 		egrpc::iResponder<distr::ho::PutOptimizeResponse>& writer,
 		egrpc::iCQueue& cq, void* tag) override
 	{
+		auto call = static_cast<egrpc::iServerCall*>(tag);
 		auto mock_res = dynamic_cast<MockResponder<
 			distr::ho::PutOptimizeResponse>*>(&writer);
 		assert(nullptr != mock_res);
+		mock_res->set_cq(static_cast<MockSrvCQT&>(cq));
 		packets_.push_back(ServicePacket<
 			distr::ho::PutOptimizeRequest,
 			MockResponder<distr::ho::PutOptimizeResponse>>{
-			req, mock_res,
-			static_cast<egrpc::iServerCall*>(tag)
+			req, mock_res, call
 		});
+		calls_.emplace(call);
 	}
 
 	egrpc::RespondptrT<distr::ho::PutOptimizeResponse>
@@ -36,6 +46,19 @@ struct MockHoService final : public distr::ho::iHoService
 	{
 		return std::make_unique<MockResponder<distr::ho::PutOptimizeResponse>>();
 	}
+
+	ServicePacket<distr::ho::PutOptimizeRequest,
+		MockResponder<distr::ho::PutOptimizeResponse>>
+	depacket (void)
+	{
+		auto out = packets_.front();
+		packets_.pop_front();
+		calls_.erase(out.call_);
+		return out;
+	}
+
+private:
+	std::unordered_set<egrpc::iServerCall*> calls_;
 
 	std::list<ServicePacket<distr::ho::PutOptimizeRequest,
 		MockResponder<distr::ho::PutOptimizeResponse>>> packets_;
@@ -49,21 +72,6 @@ struct MockHoStub final : public distr::ho::DistrOptimization::StubInterface
 		const distr::ho::PutOptimizeRequest& request,
 		distr::ho::PutOptimizeResponse* response) override
 	{
-		auto svc = MockServerBuilder::get_service<MockHoService>(address_);
-		if (nullptr == svc)
-		{
-			global::fatalf("no mock ho service found in %s", address_.c_str());
-		}
-		auto packet = svc->packets_.front();
-		svc->packets_.pop_front();
-		packet.req_->MergeFrom(request);
-		packet.call_->serve();
-		auto responder = packet.res_;
-		if (!responder->status_.ok())
-		{
-			return responder->status_;
-		}
-		response->MergeFrom(responder->reply_);
 		return grpc::Status::OK;
 	}
 
@@ -80,16 +88,20 @@ private:
 
 	grpc::ClientAsyncResponseReaderInterface<distr::ho::PutOptimizeResponse>*
 	PrepareAsyncPutOptimizeRaw (grpc::ClientContext* context,
-		const ::distr::ho::PutOptimizeRequest& request,
+		const distr::ho::PutOptimizeRequest& request,
 		grpc::CompletionQueue* cq) override
 	{
-		auto mcq = estd::must_getf(MockCQueue::real2mock_, cq,
+		auto mcq = estd::must_getf(MockCliCQT::real_to_mock(), cq,
 			"cannot find grpc completion queue %p", cq);
-		return new MockClientAsyncResponseReader<distr::ho::PutOptimizeResponse>(
-		[this, context, &request](distr::ho::PutOptimizeResponse* response)
+		auto svc = MockServerBuilder::get_service<MockHoService>(address_);
+		if (nullptr == svc)
 		{
-			return this->PutOptimize(context, request, response);
-		}, *mcq);
+			global::fatalf("no mock ho service found in %s", address_.c_str());
+		}
+		auto packet = svc->depacket();
+		packet.req_->MergeFrom(request);
+		return new MockClientAsyncResponseReader<distr::ho::PutOptimizeResponse>(
+			packet.res_, packet.call_, *mcq);
 	}
 
 	std::string address_;

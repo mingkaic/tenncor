@@ -20,7 +20,7 @@ TEST_F(PEERSVC, ManageClient)
 		[](estd::ConfigMap<>& svcs, const distr::PeerServiceConfig& cfg) -> error::ErrptrT
 		{
 			svcs.add_entry<MockService>("test_mock_service",
-				[&](){ return new MockService(cfg); });
+				[&]{ return new MockService(cfg); });
 			return nullptr;
 		},
 	}, test_svc);

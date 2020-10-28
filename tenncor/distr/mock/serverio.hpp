@@ -6,39 +6,51 @@
 
 #include <google/protobuf/util/json_util.h>
 
+template <typename COMMON>
 struct MockCQueue final : public egrpc::iCQueue
 {
-	static std::unordered_map<grpc::CompletionQueue*,MockCQueue*> real2mock_;
+	static std::unordered_map<grpc::CompletionQueue*,MockCQueue<COMMON>*>&
+	real_to_mock (void)
+	{
+		static std::unordered_map<grpc::CompletionQueue*,
+			MockCQueue<COMMON>*> r2m_mapping;
+		return r2m_mapping;
+	};
 
 	MockCQueue (void) :
 		cq_aggregation_(
-		[this]()
+		[this]
 		{
 			void* tag;
 			bool ok = true;
 			while (cq_.Next(&tag, &ok))
 			{
-				this->write(tag);
+				this->write((COMMON*) tag);
 			}
 			shutdown_ = true;
 			cond_.notify_all();
 		})
 	{
-		real2mock_.emplace(&cq_, this);
+		real_to_mock().emplace(&cq_, this);
 	}
 
 	~MockCQueue (void)
 	{
 		shutdown();
 		cq_aggregation_.join();
-		real2mock_.erase(&cq_);
+		real_to_mock().erase(&cq_);
+
+		for (auto& p : q_)
+		{
+			delete p.first;
+		}
 	}
 
 	bool next (void** ptr, bool* ok) override
 	{
 		std::unique_lock<std::mutex> lk(mtx_);
 		cond_.wait(lk,
-		[this]()
+		[this]
 		{
 			return q_.size() > 0 || shutdown_;
 		});
@@ -68,7 +80,7 @@ struct MockCQueue final : public egrpc::iCQueue
 		return &cq_;
 	}
 
-	void write (void* ptr, bool success = true)
+	void write (COMMON* ptr, bool success = true)
 	{
 		{
 			std::lock_guard<std::mutex> lk(mtx_);
@@ -83,12 +95,16 @@ struct MockCQueue final : public egrpc::iCQueue
 
 	std::mutex mtx_;
 
-	std::list<std::pair<void*,bool>> q_;
+	std::list<std::pair<COMMON*,bool>> q_;
 
 	std::atomic<bool> shutdown_ = false;
 
 	std::thread cq_aggregation_;
 };
+
+using MockCliCQT = MockCQueue<egrpc::iClientHandler>;
+
+using MockSrvCQT = MockCQueue<egrpc::iServerCall>;
 
 struct MockServer final : public distr::iServer
 {
@@ -158,7 +174,7 @@ struct MockServerBuilder final : public distr::iServerBuilder
 	distr::CQueueptrT add_completion_queue (
 		bool is_frequently_polled = true) override
 	{
-		return std::make_unique<MockCQueue>();
+		return std::make_unique<MockSrvCQT>();
 	}
 
 	std::unique_ptr<distr::iServer> build_and_start (void) override
@@ -191,111 +207,194 @@ struct ServicePacket
 template <typename R>
 struct MockResponder final : public egrpc::iResponder<R>
 {
+	void set_targets (R& reply, grpc::Status& status)
+	{
+		reply_ = &reply;
+		status_ = &status;
+	}
+
+	void set_cq (MockSrvCQT& cq)
+	{
+		cq_ = &cq;
+	}
+
 	void finish (const R& res, grpc::Status status, void* tag) override
 	{
-		reply_.MergeFrom(res);
-		status_ = status_;
+		reply_->MergeFrom(res);
+		*status_ = status;
 		tag_ = tag;
+		if (nullptr != cq_)
+		{
+			cq_->write((egrpc::iServerCall*) tag);
+		}
 	}
 
 	void finish_with_error (grpc::Status status, void* tag) override
 	{
-		status_ = status_;
+		*status_ = status;
 		tag_ = tag;
+		if (nullptr != cq_)
+		{
+			cq_->write((egrpc::iServerCall*) tag);
+		}
+	}
+
+	R* reply_;
+
+	grpc::Status* status_;
+
+	void* tag_;
+
+	MockSrvCQT* cq_ = nullptr;
+};
+
+template <typename R>
+struct MockWriter final : public egrpc::iWriter<R>
+{
+	void set_targets (std::list<R>& replies, grpc::Status& status)
+	{
+		replies_ = &replies;
+		status_ = &status;
+	}
+
+	void set_cq (MockSrvCQT& cq)
+	{
+		cq_ = &cq;
+	}
+
+	void write (const R& res, void* tag) override
+	{
+		replies_->push_back(R());
+		replies_->back().MergeFrom(res);
+		if (nullptr != cq_)
+		{
+			cq_->write((egrpc::iServerCall*) tag);
+		}
+	}
+
+	void finish (grpc::Status status, void* tag) override
+	{
+		*status_ = status;
+		tag_ = tag;
+		if (nullptr != cq_)
+		{
+			cq_->write((egrpc::iServerCall*) tag);
+		}
+	}
+
+	std::list<R>* replies_;
+
+	grpc::Status* status_;
+
+	void* tag_;
+
+	MockSrvCQT* cq_ = nullptr;
+};
+
+template <typename R>
+struct MockClientAsyncResponseReader final : public grpc::ClientAsyncResponseReaderInterface<R>
+{
+	MockClientAsyncResponseReader (MockResponder<R>* responder,
+		egrpc::iServerCall* call, egrpc::iCQueue& cq) :
+		call_(call), cq_(dynamic_cast<MockCliCQT*>(&cq))
+	{
+		assert(nullptr != cq_);
+		responder->set_targets(reply_, status_);
+	}
+
+	~MockClientAsyncResponseReader (void)
+	{
+		if (nullptr != call_)
+		{
+			delete call_;
+		}
+	}
+
+	void StartCall (void) override
+	{
+		call_->serve();
+		call_ = nullptr;
+	}
+
+	void ReadInitialMetadata (void* tag) override {}
+
+	void Finish (R* msg, grpc::Status* status, void* tag) override
+	{
+		if (!status_.ok())
+		{
+			*status = status_;
+		}
+		else
+		{
+			msg->MergeFrom(reply_);
+			*status = grpc::Status::OK;
+		}
+		cq_->write((egrpc::iClientHandler*) tag);
 	}
 
 	R reply_;
 
 	grpc::Status status_;
 
-	void* tag_;
+	egrpc::iServerCall* call_ = nullptr;
+
+	MockCliCQT* cq_;
 };
 
 template <typename R>
-struct MockWriter final : public egrpc::iWriter<R>
+struct MockClientAsyncReader final : public grpc::ClientAsyncReaderInterface<R>
 {
-	void write (const R& res, void* tag) override
+	MockClientAsyncReader (MockWriter<R>* writer,
+		egrpc::iServerCall* call, egrpc::iCQueue& cq) :
+		call_(call), cq_(dynamic_cast<MockCliCQT*>(&cq))
 	{
-		replies_.push_back(res);
+		assert(nullptr != cq_);
+		writer->set_targets(replies_, status_);
 	}
 
-	void finish (grpc::Status status, void* tag) override
+	~MockClientAsyncReader (void)
 	{
-		status_ = status_;
-		tag_ = tag;
+		if (nullptr != call_)
+		{
+			delete call_;
+		}
+	}
+
+	void StartCall (void* tag) override
+	{
+		call_->serve();
+		call_ = nullptr;
+		cq_->write((egrpc::iClientHandler*) tag);
+	}
+
+	void ReadInitialMetadata (void* tag) override {}
+
+	void Read (R* msg, void* tag) override
+	{
+		if (replies_.empty())
+		{
+			cq_->write((egrpc::iClientHandler*) tag, false);
+			return;
+		}
+		auto& res = replies_.front();
+		msg->MergeFrom(res);
+		replies_.pop_front();
+		cq_->write((egrpc::iClientHandler*) tag);
+	}
+
+	void Finish (grpc::Status* status, void* tag) override
+	{
+		*status = status_;
+		cq_->write((egrpc::iClientHandler*) tag);
 	}
 
 	std::list<R> replies_;
 
 	grpc::Status status_;
 
-	void* tag_;
-};
+	egrpc::iServerCall* call_ = nullptr;
 
-template <typename R>
-struct MockClientAsyncResponseReader final : public grpc::ClientAsyncResponseReaderInterface<R>
-{
-	using CallerF = std::function<grpc::Status(R*)>;
-
-	MockClientAsyncResponseReader (CallerF caller, egrpc::iCQueue& cq) :
-		caller_(caller), cq_(&static_cast<MockCQueue&>(cq)) {}
-
-	void StartCall (void) override {}
-
-	void ReadInitialMetadata (void* tag) override {}
-
-	void Finish (R* msg, grpc::Status* status, void* tag) override
-	{
-		std::thread([=, this]
-		{
-			*status = caller_(msg);
-			cq_->write(tag);
-		}).detach();
-	}
-
-	CallerF caller_;
-
-	MockCQueue* cq_;
-};
-
-template <typename REQ, typename RES>
-struct MockClientAsyncReader final : public grpc::ClientAsyncReaderInterface<RES>
-{
-	MockClientAsyncReader (ServicePacket<REQ,MockWriter<RES>>& packet,
-		egrpc::iCQueue& cq) : packet_(packet),
-		cq_(&static_cast<MockCQueue&>(cq)) {}
-
-	void StartCall (void* tag) override
-	{
-		cq_->write(tag);
-	}
-
-	void ReadInitialMetadata (void* tag) override {}
-
-	void Read (RES* msg, void* tag) override
-	{
-		packet_.call_->serve();
-		if (packet_.res_->replies_.empty())
-		{
-			cq_->write(tag, false);
-			return;
-		}
-		auto& res = packet_.res_->replies_.front();
-		msg->MergeFrom(res);
-		packet_.res_->replies_.pop_front();
-		cq_->write(tag);
-	}
-
-	void Finish (grpc::Status* status, void* tag) override
-	{
-		packet_.call_->serve();
-		*status = packet_.res_->status_;
-		cq_->write(tag);
-	}
-
-	ServicePacket<REQ,MockWriter<RES>> packet_;
-
-	MockCQueue* cq_;
+	MockCliCQT* cq_;
 };
 
 #endif // DISTR_MOCK_SERVERIO_HPP

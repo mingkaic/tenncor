@@ -18,7 +18,7 @@ void eteq_ext (py::module& m)
 	py::class_<estd::ConfigMap<>,global::CfgMapptrT> context(m, "Context");
 
 	context
-		.def(py::init<>([]() { return std::make_shared<estd::ConfigMap<>>(); }))
+		.def(py::init<>([] { return std::make_shared<estd::ConfigMap<>>(); }))
 		.def("get_actives",
 		[](global::CfgMapptrT& self)
 		{

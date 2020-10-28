@@ -80,6 +80,8 @@ void DistrPrintData::stitch_ascii (std::ostream& os, AsciiTemplate& ascii,
 				}
 				else
 				{
+					global::warnf("printsvc failed to receive segment from %s",
+						remote.refid_.c_str());
 					line = "(?)";
 				}
 			}

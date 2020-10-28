@@ -13,7 +13,7 @@ void set_generator (GenPtrT gen, CfgMapptrT ctx)
 	if (gen)
 	{
 		ctx->template add_entry<GenPtrT>(generator_key,
-			[=](){ return new GenPtrT(gen); });
+			[=]{ return new GenPtrT(gen); });
 	}
 }
 

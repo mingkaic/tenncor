@@ -15,7 +15,7 @@ error::ErrptrT register_oxsvc (estd::ConfigMap<>& svcs,
 		return error::error("opsvc requires iosvc already registered");
 	}
 	svcs.add_entry<ox::DistrSerializeService>(ox::oxsvc_key,
-		[&](){ return new ox::DistrSerializeService(cfg, iosvc); });
+		[&]{ return new ox::DistrSerializeService(cfg, iosvc); });
 	return nullptr;
 }
 

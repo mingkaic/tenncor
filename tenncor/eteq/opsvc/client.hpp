@@ -40,8 +40,8 @@ struct DistrOpCli final : public egrpc::GrpcClient
 
 		build_ctx(handler->ctx_, false);
 		// prepare to avoid passing to cq before reader_ assignment
-		handler->reader_ = stub_->PrepareAsyncGetData(
-			&handler->ctx_, req, cq.get_cq());
+		handler->reader_ = GetDataHandlerT::ReadptrT(stub_->PrepareAsyncGetData(
+			&handler->ctx_, req, cq.get_cq()).release());
 		// make request after reader_ assignment
 		handler->reader_->StartCall((void*) handler);
 		return done;
@@ -61,8 +61,8 @@ struct DistrOpCli final : public egrpc::GrpcClient
 			inreq.MergeFrom(req);
 			build_ctx(handler->ctx_, false);
 			// prepare to avoid passing to cq before reader_ assignment
-			handler->reader_ = stub_->PrepareAsyncListReachable(
-				&handler->ctx_, inreq, cq.get_cq());
+			handler->reader_ = ListReachableHandlerT::ReadptrT(stub_->PrepareAsyncListReachable(
+				&handler->ctx_, inreq, cq.get_cq()).release());
 			// make request after reader_ assignment
 			handler->reader_->StartCall();
 			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);
@@ -84,8 +84,8 @@ struct DistrOpCli final : public egrpc::GrpcClient
 			inreq.MergeFrom(req);
 			build_ctx(handler->ctx_, false);
 			// prepare to avoid passing to cq before reader_ assignment
-			handler->reader_ = stub_->PrepareAsyncCreateDerive(
-				&handler->ctx_, inreq, cq.get_cq());
+			handler->reader_ = CreateDeriveHandlerT::ReadptrT(stub_->PrepareAsyncCreateDerive(
+				&handler->ctx_, inreq, cq.get_cq()).release());
 			// make request after reader_ assignment
 			handler->reader_->StartCall();
 			handler->reader_->Finish(&handler->reply_, &handler->status_, (void*)handler);

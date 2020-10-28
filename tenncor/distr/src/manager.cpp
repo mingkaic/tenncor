@@ -17,7 +17,7 @@ void set_distrmgr (iDistrMgrptrT mgr, global::CfgMapptrT ctx)
 	if (nullptr != mgr)
 	{
 		ctx->template add_entry<iDistrMgrptrT>(
-			distmgr_key, [mgr](){ return new iDistrMgrptrT(mgr); });
+			distmgr_key, [mgr]{ return new iDistrMgrptrT(mgr); });
 	}
 }
 

@@ -133,7 +133,7 @@ error::ErrptrT register_printsvc (estd::ConfigMap<>& svcs,
 		return error::error("printsvc requires iosvc already registered");
 	}
 	svcs.add_entry<print::DistrPrintService>(print::printsvc_key,
-		[&](){ return new print::DistrPrintService(cfg, iosvc); });
+		[&]{ return new print::DistrPrintService(cfg, iosvc); });
 	return nullptr;
 }
 

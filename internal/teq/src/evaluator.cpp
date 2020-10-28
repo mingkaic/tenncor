@@ -14,7 +14,7 @@ void set_eval (iEvaluator* eval, global::CfgMapptrT ctx)
 	if (eval)
 	{
 		ctx->template add_entry<iEvaluator>(eval_key,
-			[=](){ return eval; });
+			[=]{ return eval; });
 	}
 }
 
