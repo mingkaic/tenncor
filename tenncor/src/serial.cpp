@@ -9,7 +9,8 @@ const std::string app_name = "tenncor";
 const std::string app_version = "1.0.0";
 const std::string tenncor_dom = "com.mingkaic.tenncor";
 
-void save_model (onnx::ModelProto& pb_model,
+distr::ox::TopographyT save_model (
+	onnx::ModelProto& pb_model,
 	const eteq::ETensorsT& roots,
 	const onnx::TensIdT& identified)
 {
@@ -23,30 +24,30 @@ void save_model (onnx::ModelProto& pb_model,
 	// opset->set_version(onnx::IR_VERSION);
 	if (roots.empty())
 	{
-		return;
+		return distr::ox::TopographyT{};
 	}
 	const global::CfgMapptrT& ctx = roots.front().get_context();
 	teq::TensptrsT rootens(roots.begin(), roots.end());
 	if (auto mgr = get_distrmgr(ctx))
 	{
-		distr::get_oxsvc(*mgr).save_graph(
+		return distr::get_oxsvc(*mgr).save_graph(
 			*pb_model.mutable_graph(), rootens, identified);
 	}
-	else
-	{
-		serial::save_graph(*pb_model.mutable_graph(), rootens, identified);
-	}
+	serial::save_graph(*pb_model.mutable_graph(), rootens, identified);
+	return distr::ox::TopographyT{};
 }
 
-eteq::ETensorsT load_model (onnx::TensptrIdT& identified_tens,
+eteq::ETensorsT load_model (
+	onnx::TensptrIdT& identified_tens,
 	const onnx::ModelProto& pb_model,
-	const global::CfgMapptrT& ctx)
+	const global::CfgMapptrT& ctx,
+	const distr::ox::TopographyT& topography)
 {
 	teq::TensptrsT tens;
 	if (auto mgr = get_distrmgr(ctx))
 	{
 		tens = distr::get_oxsvc(*mgr).load_graph(
-			identified_tens, pb_model.graph());
+			identified_tens, pb_model.graph(), topography);
 	}
 	else
 	{

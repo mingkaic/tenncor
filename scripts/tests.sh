@@ -43,36 +43,37 @@ echo "===== TESTS =====";
 source "$THIS_DIR/coverage.sh";
 
 echo "Test Mode: $MODE";
+echo "Coverage Mode: $COVMODE";
 if [[ "$MODE" == "fast" ]]; then
-	if [[ "$COVMODE" == "testonly" ]] || [[ "$COVMODE" == "all" ]]; then
+	if [[ "$COVMODE" == "testonly" || "$COVMODE" == "all" ]]; then
 		bzl_fulltest //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest|//tenncor:ctest');
 		bazel test --run_under='valgrind --leak-check=full' --remote_http_cache="$REMOTE_CACHE" //tools/...;
 	fi
 
-	if [[ "$COVMODE" == "coverage" ]] || [[ "$COVMODE" == "all" ]]; then
+	if [[ "$COVMODE" == "coverage" || "$COVMODE" == "all" ]]; then
 		bzl_coverage //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest|//tenncor:ctest');
 	fi
 elif [[ "$MODE" == "integration" ]]; then
-	if [[ "$COVMODE" == "testonly" ]] || [[ "$COVMODE" == "all" ]]; then
+	if [[ "$COVMODE" == "testonly" || "$COVMODE" == "all" ]]; then
 		bzl_fulltest //tenncor:ctest;
 		bazel test --run_under='valgrind --leak-check=full' --remote_http_cache="$REMOTE_CACHE" //tenncor:ptest;
 	fi
 
-	if [[ "$COVMODE" == "coverage" ]] || [[ "$COVMODE" == "all" ]]; then
+	if [[ "$COVMODE" == "coverage" || "$COVMODE" == "all" ]]; then
 		bzl_coverage //tenncor:ctest;
 	fi
 else # test all
-	if [[ "$LANG" == "testonly" ]] || [[ "$LANG" == "all" ]]; then
+	if [[ "$LANG" == "testonly" || "$LANG" == "all" ]]; then
 		bzl_fulltest //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest');
 		bazel test --run_under='valgrind --leak-check=full' --remote_http_cache="$REMOTE_CACHE" //tools/... //tenncor:ptest;
 	fi
 
-	if [[ "$LANG" == "coverage" ]] || [[ "$LANG" == "all" ]]; then
+	if [[ "$LANG" == "coverage" || "$LANG" == "all" ]]; then
 		bzl_coverage //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest');
 	fi
 fi
 
-if [[ "$LANG" == "coverage" ]] || [[ "$LANG" == "all" ]]; then
+if [[ "$LANG" == "coverage" || "$LANG" == "all" ]]; then
 	python3 "$THIS_DIR/label_replace.py" $TMP_COVFILE $CONVERSION_CSV > $OUT_COVFILE;
 	send2codecov "$COV_DIR/labelled_coverage.info";
 fi
