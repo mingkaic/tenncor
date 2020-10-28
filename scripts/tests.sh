@@ -11,6 +11,12 @@ else
 	MODE="all";
 fi
 
+if (( $# > 2 )); then
+	LANG="$3";
+else
+	LANG="all";
+fi
+
 COVERAGE_CTX="$CONTEXT/tmp/tenncor_coverage";
 CONVERSION_CSV="$CONTEXT/tmp/tenncor_conversion.csv";
 TMP_COVFILE="$COV_DIR/coverage.info";
@@ -38,20 +44,32 @@ source "$THIS_DIR/coverage.sh";
 
 echo "Test Mode: $MODE";
 if [[ "$MODE" == "fast" ]]; then
-	bzl_coverage //tenncor/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest|//tenncor:ctest');
+	if [[ "$LANG" == "cpp" ]] || [[ "$LANG" == "all" ]]; then
+		bzl_coverage //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest|//tenncor:ctest');
+	fi
 
-	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //tools/...;
+	if [[ "$LANG" == "py" ]] || [[ "$LANG" == "all" ]]; then
+		bazel test --run_under='valgrind --leak-check=full' \
+		--remote_http_cache="$REMOTE_CACHE" //tools/...;
+	fi
 elif [[ "$MODE" == "integration" ]]; then
-	bzl_coverage //tenncor:ctest;
+	if [[ "$LANG" == "cpp" ]] || [[ "$LANG" == "all" ]]; then
+		bzl_coverage //tenncor:ctest;
+	fi
 
-	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //tenncor:ptest;
+	if [[ "$LANG" == "py" ]] || [[ "$LANG" == "all" ]]; then
+		bazel test --run_under='valgrind --leak-check=full' \
+		--remote_http_cache="$REMOTE_CACHE" //tenncor:ptest;
+	fi
 else # test all
-	bzl_coverage //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest');
+	if [[ "$LANG" == "cpp" ]] || [[ "$LANG" == "all" ]]; then
+		bzl_coverage //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest');
+	fi
 
-	bazel test --run_under='valgrind --leak-check=full' \
-	--remote_http_cache="$REMOTE_CACHE" //tools/... //tenncor:ptest;
+	if [[ "$LANG" == "py" ]] || [[ "$LANG" == "all" ]]; then
+		bazel test --run_under='valgrind --leak-check=full' \
+		--remote_http_cache="$REMOTE_CACHE" //tools/... //tenncor:ptest;
+	fi
 fi
 
 python3 "$THIS_DIR/label_replace.py" $TMP_COVFILE $CONVERSION_CSV > $OUT_COVFILE;
