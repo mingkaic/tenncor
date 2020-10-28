@@ -147,19 +147,52 @@ TEST_F(LOAD, SimpleRemoteGraph)
 		"_____`--(variable:osrc2)\n";
 	EXPECT_STREQ(expect.c_str(), ss.str().c_str());
 
-	std::stringstream ss2;
-	distr::get_printsvc(*manager).print_ascii(ss2, root2.get());
-	std::string expect2 =
-		"(SUB)\n"
-		"_`--[mgr2]:(variable:s2src)\n"
-		"_`--(MUL)\n"
-		"_____`--[mgr2]:(ABS)\n"
-		"_____|___`--(variable:s2src)\n"
-		"_____`--(EXP)\n"
-		"_____|___`--(variable:s2src2)\n"
-		"_____`--(NEG)\n"
-		"_________`--[mgr2]:(variable:s2src3)\n";
-	EXPECT_STREQ(expect2.c_str(), ss2.str().c_str());
+	EXPECT_GRAPHEQ(
+		"(SUB<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(placeholder:mgr2/3<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(MUL<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(placeholder:mgr2/2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(EXP<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(variable:s2src2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(NEG<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_________`--(placeholder:mgr2/4<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", root2);
+	auto refs2 = distr::reachable_refs(teq::TensptrsT{root2});
+	types::StrSetT valid_ids = {"2", "3", "4"};
+	for (auto ref2 : refs2)
+	{
+		EXPECT_STREQ("mgr2", ref2->cluster_id().c_str());
+		EXPECT_HAS(valid_ids, ref2->node_id());
+	}
+
+	auto& iosvc = distr::get_iosvc(*manager2);
+	error::ErrptrT err = nullptr;
+
+	auto tooo = iosvc.lookup_node(err, "2");
+	ASSERT_NOERR(err);
+	auto tree = iosvc.lookup_node(err, "3");
+	ASSERT_NOERR(err);
+	auto foor = iosvc.lookup_node(err, "4");
+	ASSERT_NOERR(err);
+
+	EXPECT_GRAPHEQ(
+		"(ABS<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:s2src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", tooo);
+	EXPECT_GRAPHEQ("(variable:s2src<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])", tree);
+	EXPECT_GRAPHEQ("(variable:s2src3<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])", foor);
+
+	// std::stringstream ss2;
+	// distr::get_printsvc(*manager).print_ascii(ss2, root2.get());
+	// std::string expect2 =
+	// 	"(SUB)\n"
+	// 	"_`--[mgr2]:(variable:s2src)\n"
+	// 	"_`--(MUL)\n"
+	// 	"_____`--[mgr2]:(ABS)\n"
+	// 	"_____|___`--(variable:s2src)\n"
+	// 	"_____`--(EXP)\n"
+	// 	"_____|___`--(variable:s2src2)\n"
+	// 	"_____`--(NEG)\n"
+	// 	"_________`--[mgr2]:(variable:s2src3)\n";
+	// EXPECT_STREQ(expect2.c_str(), ss2.str().c_str());
 }
 
 
