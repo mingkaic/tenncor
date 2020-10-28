@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 
-# accepts tests as arguments
-function bzl_coverage() {
+function bzl_fulltest() {
 	# run test before to detect errors
 	bazel test \
 	--action_env="ASAN_OPTIONS=detect_leaks=0" \
 	--config asan \
 	--config gtest \
 	--remote_http_cache="$REMOTE_CACHE" $@
+}
+
+# accepts tests as arguments
+function bzl_coverage() {
 	# filter out Processing and '+' lines to avoid extreme verbosity
 	bazel coverage \
 	--action_env="ASAN_OPTIONS=detect_leaks=0" \

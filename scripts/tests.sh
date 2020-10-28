@@ -12,9 +12,9 @@ else
 fi
 
 if (( $# > 2 )); then
-	LANG="$3";
+	COVMODE="$3";
 else
-	LANG="all";
+	COVMODE="all";
 fi
 
 COVERAGE_CTX="$CONTEXT/tmp/tenncor_coverage";
@@ -44,36 +44,38 @@ source "$THIS_DIR/coverage.sh";
 
 echo "Test Mode: $MODE";
 if [[ "$MODE" == "fast" ]]; then
-	if [[ "$LANG" == "cpp" ]] || [[ "$LANG" == "all" ]]; then
+	if [[ "$COVMODE" == "testonly" ]] || [[ "$COVMODE" == "all" ]]; then
+		bzl_fulltest //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest|//tenncor:ctest');
+		bazel test --run_under='valgrind --leak-check=full' --remote_http_cache="$REMOTE_CACHE" //tools/...;
+	fi
+
+	if [[ "$COVMODE" == "coverage" ]] || [[ "$COVMODE" == "all" ]]; then
 		bzl_coverage //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest|//tenncor:ctest');
 	fi
-
-	if [[ "$LANG" == "py" ]] || [[ "$LANG" == "all" ]]; then
-		bazel test --run_under='valgrind --leak-check=full' \
-		--remote_http_cache="$REMOTE_CACHE" //tools/...;
-	fi
 elif [[ "$MODE" == "integration" ]]; then
-	if [[ "$LANG" == "cpp" ]] || [[ "$LANG" == "all" ]]; then
+	if [[ "$COVMODE" == "testonly" ]] || [[ "$COVMODE" == "all" ]]; then
+		bzl_fulltest //tenncor:ctest;
+		bazel test --run_under='valgrind --leak-check=full' --remote_http_cache="$REMOTE_CACHE" //tenncor:ptest;
+	fi
+
+	if [[ "$COVMODE" == "coverage" ]] || [[ "$COVMODE" == "all" ]]; then
 		bzl_coverage //tenncor:ctest;
 	fi
-
-	if [[ "$LANG" == "py" ]] || [[ "$LANG" == "all" ]]; then
-		bazel test --run_under='valgrind --leak-check=full' \
-		--remote_http_cache="$REMOTE_CACHE" //tenncor:ptest;
-	fi
 else # test all
-	if [[ "$LANG" == "cpp" ]] || [[ "$LANG" == "all" ]]; then
-		bzl_coverage //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest');
+	if [[ "$LANG" == "testonly" ]] || [[ "$LANG" == "all" ]]; then
+		bzl_fulltest //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest');
+		bazel test --run_under='valgrind --leak-check=full' --remote_http_cache="$REMOTE_CACHE" //tools/... //tenncor:ptest;
 	fi
 
-	if [[ "$LANG" == "py" ]] || [[ "$LANG" == "all" ]]; then
-		bazel test --run_under='valgrind --leak-check=full' \
-		--remote_http_cache="$REMOTE_CACHE" //tools/... //tenncor:ptest;
+	if [[ "$LANG" == "coverage" ]] || [[ "$LANG" == "all" ]]; then
+		bzl_coverage //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest');
 	fi
 fi
 
-python3 "$THIS_DIR/label_replace.py" $TMP_COVFILE $CONVERSION_CSV > $OUT_COVFILE;
-send2codecov "$COV_DIR/labelled_coverage.info";
+if [[ "$LANG" == "coverage" ]] || [[ "$LANG" == "all" ]]; then
+	python3 "$THIS_DIR/label_replace.py" $TMP_COVFILE $CONVERSION_CSV > $OUT_COVFILE;
+	send2codecov "$COV_DIR/labelled_coverage.info";
+fi
 cd "$CONTEXT";
 
 echo "";
