@@ -316,7 +316,7 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 		.def("optimize",
 		[](const std::string& filename, global::CfgMapptrT context)
 		{
-			hone::optimize(filename, context);
+			tcr::optimize(filename, context);
 		},
 		py::arg("filename") = "cfg/optimizations.json",
 		py::arg("ctx") = global::context(),

@@ -7,7 +7,8 @@
 namespace tcr
 {
 
-
+void optimize (std::string filename,
+    const global::CfgMapptrT& ctx = global::context());
 
 }
 
