@@ -110,13 +110,6 @@ eteq::ETensor lookup_node (const std::string& id,
 	return out;
 }
 
-eteq::ETensor localize (const eteq::ETensor& root,
-	const eteq::ETensorsT& stop,
-	global::CfgMapptrT ctx)
-{
-	return root;
-}
-
 }
 
 #endif

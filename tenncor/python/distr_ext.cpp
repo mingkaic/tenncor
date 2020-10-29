@@ -114,11 +114,6 @@ void distr_ext (py::module& m)
 		py::arg("mgr"));
 
 	m
-		.def("localize", tcr::localize,
-		py::arg("root"), py::arg("stop") = eteq::ETensorsT{},
-		py::arg("ctx") = global::context(),
-		"Move all remote references under root subgraph to "
-		"specified context ignoring all subgraphs in stop")
 		.def("set_distrmgr", tcr::set_distrmgr,
 		py::arg("mgr"),
 		py::arg("ctx") = global::context())

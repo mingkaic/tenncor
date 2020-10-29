@@ -57,10 +57,6 @@ eteq::ETensor try_lookup_node (
 eteq::ETensor lookup_node (const std::string& id,
 	const global::CfgMapptrT& ctx = global::context());
 
-eteq::ETensor localize (const eteq::ETensor& root,
-	const eteq::ETensorsT& stop = {},
-	global::CfgMapptrT ctx = global::context());
-
 }
 
 #endif // TENNCOR_DISTR_HPP

@@ -10,6 +10,7 @@
 #define TENNCOR_SERIAL_HPP
 
 #include "tenncor/distr.hpp"
+#include "tenncor/serial/oxsvc/oxsvc.hpp"
 
 namespace tcr
 {
