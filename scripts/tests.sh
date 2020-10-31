@@ -44,7 +44,7 @@ source "$THIS_DIR/coverage.sh";
 
 echo "Test Mode: $MODE";
 echo "Coverage Mode: $COVMODE";
-if [[ "$MODE" == "fast" ]]; then
+if [[ "$MODE" == "unit" ]]; then
 	if [[ "$COVMODE" == "testonly" || "$COVMODE" == "all" ]]; then
 		bzl_fulltest //internal/... $(bazel query //tenncor/... | grep test | grep -v -E 'srcs|//tenncor:ptest|//tenncor:ctest');
 		bazel test --run_under='valgrind --leak-check=full' --remote_http_cache="$REMOTE_CACHE" //tools/...;
