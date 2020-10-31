@@ -29,7 +29,21 @@ struct OnnxMarshaler final : public teq::iTraveler
 	OnnxMarshaler (GraphProto& graph, const TensIdT& identified,
 		const iMarshFuncs& marshaler, teq::TensSetT stops = {}) :
 		pb_graph_(graph), identified_(identified),
-		marshaler_(marshaler), stops_(stops) {}
+		marshaler_(marshaler), stops_(stops)
+	{
+		for (auto& node : graph.node())
+		{
+			preexisting_ids_.emplace(node.name());
+		}
+		for (auto& init : graph.initializer())
+		{
+			preexisting_ids_.emplace(init.name());
+		}
+		for (auto& input : graph.input())
+		{
+			preexisting_ids_.emplace(input.name());
+		}
+	}
 
 	void visit (teq::iLeaf& leaf) override
 	{
@@ -39,8 +53,23 @@ struct OnnxMarshaler final : public teq::iTraveler
 		}
 		std::string id = get_id(leaf);
 		tens_.emplace(&leaf, id);
+		teq::Shape shape = leaf.shape();
 		if (estd::has(stops_, &leaf))
 		{
+			if (false == estd::has(preexisting_ids_, id))
+			{
+				ValueInfoProto* pb_place = pb_graph_.add_input();
+				pb_place->set_name(id);
+
+				TypeProto* pb_type = pb_place->mutable_type();
+				TypeProto::Tensor* tens_type = pb_type->mutable_tensor_type();
+				tens_type->set_elem_type(marshaler_.get_typecode(leaf));
+				auto dims = tens_type->mutable_shape()->mutable_dim();
+				for (teq::DimT d : shape)
+				{
+					dims->Add()->set_dim_value(d);
+				}
+			}
 			return;
 		}
 
@@ -50,7 +79,6 @@ struct OnnxMarshaler final : public teq::iTraveler
 			pb_graph_.add_quantization_annotation();
 		pb_annotation->set_tensor_name(id);
 		marshal_annotation(*pb_annotation, leaf);
-		teq::Shape shape = leaf.shape();
 
 		if (teq::PLACEHOLDER == usage)
 		{
@@ -88,6 +116,23 @@ struct OnnxMarshaler final : public teq::iTraveler
 		if (estd::has(stops_, &func))
 		{
 			std::string id = get_id(func);
+
+			if (false == estd::has(preexisting_ids_, id))
+			{
+				ValueInfoProto* pb_place = pb_graph_.add_input();
+				pb_place->set_name(id);
+
+				TypeProto* pb_type = pb_place->mutable_type();
+				TypeProto::Tensor* tens_type = pb_type->mutable_tensor_type();
+				tens_type->set_elem_type(marshaler_.get_typecode(func));
+				auto dims = tens_type->mutable_shape()->mutable_dim();
+				auto shape = func.shape();
+				for (teq::DimT d : shape)
+				{
+					dims->Add()->set_dim_value(d);
+				}
+			}
+
 			tens_.emplace(&func, id);
 			return;
 		}
@@ -211,7 +256,13 @@ private:
 		{
 			return identified_.left.at(&tens);
 		}
-		return global::get_generator()->get_str();
+		auto gen = global::get_generator();
+		auto out = gen->get_str();
+		while (estd::has(preexisting_ids_, out))
+		{
+			out = gen->get_str();
+		}
+		return out;
 	}
 
 	GraphProto& pb_graph_;
@@ -221,6 +272,8 @@ private:
 	const iMarshFuncs& marshaler_;
 
 	teq::TensSetT stops_;
+
+	types::StrUSetT preexisting_ids_;
 };
 
 template <typename TS> // todo: use concept tensptr_range

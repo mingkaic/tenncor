@@ -1,0 +1,107 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":lusvc_hdrs",
+        ":lusvc_srcs",
+        ":mock_hdrs",
+        ":mock_srcs",
+        ":protos",
+        ":test_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "lusvc_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "lusvc_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
+    name = "mock_srcs",
+    srcs = glob(["mock/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = glob(["*.proto"]),
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob(["test/*.cpp"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "lusvc",
+    hdrs = [":lusvc_hdrs"],
+    srcs = [":lusvc_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":lusvc_cc_grpc",
+        "//internal/query:query",
+        "//tenncor/distr/iosvc:iosvc",
+        "//tenncor/distr:distr",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "lusvc_pb",
+    srcs = [":protos"],
+    deps = [
+        "//internal/query:query_pb",
+        "//tenncor/distr/iosvc:iosvc_pb",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cpp_grpc_library(
+    name = "lusvc_cc_grpc",
+    deps = [":lusvc_pb"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "mock",
+    hdrs = [":mock_hdrs"],
+    srcs = [":mock_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":lusvc",
+        "//tenncor/distr:mock",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = [":test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":mock",
+        "//dbg/print/printsvc:mock",
+        "//tenncor/distr/iosvc:mock",
+        "//internal/teq:mock",
+        "//testutil:tutil",
+    ],
+    linkstatic = True,
+)

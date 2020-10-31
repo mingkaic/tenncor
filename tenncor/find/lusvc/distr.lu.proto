@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+import "internal/query/query.proto";
+
+import "tenncor/distr/iosvc/distr.io.proto";
+
+package distr.lu;
+
+message QueryResult {
+    io.NodeMeta root = 1;
+
+    map<string,io.NodeMeta> symbs = 2;
+}
+
+message ListNodesRequest {
+    repeated string uuids = 1;
+
+    query.Node pattern = 2;
+}
+
+message ListNodesResponse {
+    repeated QueryResult matches = 1;
+}
+
+service DistrLookup {
+    rpc ListNodes (ListNodesRequest) returns (ListNodesResponse);
+}

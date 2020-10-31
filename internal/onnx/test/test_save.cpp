@@ -291,7 +291,7 @@ TEST(SAVE, LayerGraph)
 TEST(SAVE, SimpleGraphEarlyStop)
 {
 	std::string expect_pbfile = testdir + "/simple_stop.onnx";
-	std::string got_pbfile = "got_simple_stop.onnx";
+	std::string got_pbfile = "/tmp/simple_stop.onnx";
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	{
