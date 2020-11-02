@@ -113,6 +113,7 @@ cc_library(
     includes = ["."],
     deps = [
         "//tenncor/eteq/opsvc:opsvc",
+        "//tenncor/find/lusvc:lusvc",
         "//tenncor/hone/hosvc:hosvc",
         "//tenncor/serial/oxsvc:oxsvc",
         "//tenncor/trainer:trainer",

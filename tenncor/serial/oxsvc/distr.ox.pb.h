@@ -36,7 +36,6 @@
 #include <google/protobuf/map_field_inl.h>
 #include <google/protobuf/unknown_field_set.h>
 #include "internal/onnx/onnx.pb.h"
-#include "tenncor/distr/iosvc/distr.io.pb.h"
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
 #define PROTOBUF_INTERNAL_EXPORT_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto
@@ -52,7 +51,7 @@ struct TableStruct_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxillaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[5]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[6]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -64,6 +63,9 @@ namespace ox {
 class GetSaveGraphRequest;
 class GetSaveGraphRequestDefaultTypeInternal;
 extern GetSaveGraphRequestDefaultTypeInternal _GetSaveGraphRequest_default_instance_;
+class GetSaveGraphRequest_IdentifiedEntry_DoNotUse;
+class GetSaveGraphRequest_IdentifiedEntry_DoNotUseDefaultTypeInternal;
+extern GetSaveGraphRequest_IdentifiedEntry_DoNotUseDefaultTypeInternal _GetSaveGraphRequest_IdentifiedEntry_DoNotUse_default_instance_;
 class GetSaveGraphResponse;
 class GetSaveGraphResponseDefaultTypeInternal;
 extern GetSaveGraphResponseDefaultTypeInternal _GetSaveGraphResponse_default_instance_;
@@ -80,6 +82,7 @@ extern PostLoadGraphResponseDefaultTypeInternal _PostLoadGraphResponse_default_i
 }  // namespace distr
 PROTOBUF_NAMESPACE_OPEN
 template<> ::distr::ox::GetSaveGraphRequest* Arena::CreateMaybeMessage<::distr::ox::GetSaveGraphRequest>(Arena*);
+template<> ::distr::ox::GetSaveGraphRequest_IdentifiedEntry_DoNotUse* Arena::CreateMaybeMessage<::distr::ox::GetSaveGraphRequest_IdentifiedEntry_DoNotUse>(Arena*);
 template<> ::distr::ox::GetSaveGraphResponse* Arena::CreateMaybeMessage<::distr::ox::GetSaveGraphResponse>(Arena*);
 template<> ::distr::ox::GetSaveGraphResponse_TopographyEntry_DoNotUse* Arena::CreateMaybeMessage<::distr::ox::GetSaveGraphResponse_TopographyEntry_DoNotUse>(Arena*);
 template<> ::distr::ox::PostLoadGraphRequest* Arena::CreateMaybeMessage<::distr::ox::PostLoadGraphRequest>(Arena*);
@@ -89,6 +92,40 @@ namespace distr {
 namespace ox {
 
 // ===================================================================
+
+class GetSaveGraphRequest_IdentifiedEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<GetSaveGraphRequest_IdentifiedEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    0 > {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<GetSaveGraphRequest_IdentifiedEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    0 > SuperType;
+  GetSaveGraphRequest_IdentifiedEntry_DoNotUse();
+  GetSaveGraphRequest_IdentifiedEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const GetSaveGraphRequest_IdentifiedEntry_DoNotUse& other);
+  static const GetSaveGraphRequest_IdentifiedEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const GetSaveGraphRequest_IdentifiedEntry_DoNotUse*>(&_GetSaveGraphRequest_IdentifiedEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "distr.ox.GetSaveGraphRequest.IdentifiedEntry.key");
+ }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "distr.ox.GetSaveGraphRequest.IdentifiedEntry.value");
+ }
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& other) final;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto);
+    return ::descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto.file_level_metadata[0];
+  }
+
+  public:
+};
+
+// -------------------------------------------------------------------
 
 class GetSaveGraphRequest :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:distr.ox.GetSaveGraphRequest) */ {
@@ -132,7 +169,7 @@ class GetSaveGraphRequest :
                &_GetSaveGraphRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    0;
+    1;
 
   friend void swap(GetSaveGraphRequest& a, GetSaveGraphRequest& b) {
     a.Swap(&b);
@@ -193,10 +230,13 @@ class GetSaveGraphRequest :
 
   // nested types ----------------------------------------------------
 
+
   // accessors -------------------------------------------------------
 
   enum : int {
     kUuidsFieldNumber = 1,
+    kIdentifiedFieldNumber = 2,
+    kStopUuidsFieldNumber = 3,
   };
   // repeated string uuids = 1;
   int uuids_size() const;
@@ -222,12 +262,60 @@ class GetSaveGraphRequest :
   std::string* _internal_add_uuids();
   public:
 
+  // map<string, string> identified = 2;
+  int identified_size() const;
+  private:
+  int _internal_identified_size() const;
+  public:
+  void clear_identified();
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      _internal_identified() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      _internal_mutable_identified();
+  public:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      identified() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      mutable_identified();
+
+  // repeated string stop_uuids = 3;
+  int stop_uuids_size() const;
+  private:
+  int _internal_stop_uuids_size() const;
+  public:
+  void clear_stop_uuids();
+  const std::string& stop_uuids(int index) const;
+  std::string* mutable_stop_uuids(int index);
+  void set_stop_uuids(int index, const std::string& value);
+  void set_stop_uuids(int index, std::string&& value);
+  void set_stop_uuids(int index, const char* value);
+  void set_stop_uuids(int index, const char* value, size_t size);
+  std::string* add_stop_uuids();
+  void add_stop_uuids(const std::string& value);
+  void add_stop_uuids(std::string&& value);
+  void add_stop_uuids(const char* value);
+  void add_stop_uuids(const char* value, size_t size);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>& stop_uuids() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>* mutable_stop_uuids();
+  private:
+  const std::string& _internal_stop_uuids(int index) const;
+  std::string* _internal_add_stop_uuids();
+  public:
+
   // @@protoc_insertion_point(class_scope:distr.ox.GetSaveGraphRequest)
  private:
   class _Internal;
 
   ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> uuids_;
+  ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+      GetSaveGraphRequest_IdentifiedEntry_DoNotUse,
+      std::string, std::string,
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+      0 > identified_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> stop_uuids_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto;
 };
@@ -259,7 +347,7 @@ public:
   private:
   static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
     ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto);
-    return ::descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto.file_level_metadata[1];
+    return ::descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto.file_level_metadata[2];
   }
 
   public:
@@ -309,7 +397,7 @@ class GetSaveGraphResponse :
                &_GetSaveGraphResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    3;
 
   friend void swap(GetSaveGraphResponse& a, GetSaveGraphResponse& b) {
     a.Swap(&b);
@@ -468,7 +556,7 @@ class PostLoadGraphRequest :
                &_PostLoadGraphRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    4;
 
   friend void swap(PostLoadGraphRequest& a, PostLoadGraphRequest& b) {
     a.Swap(&b);
@@ -628,7 +716,7 @@ class PostLoadGraphResponse :
                &_PostLoadGraphResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    5;
 
   friend void swap(PostLoadGraphResponse& a, PostLoadGraphResponse& b) {
     a.Swap(&b);
@@ -708,6 +796,8 @@ class PostLoadGraphResponse :
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // GetSaveGraphRequest
 
 // repeated string uuids = 1;
@@ -782,6 +872,109 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
 GetSaveGraphRequest::mutable_uuids() {
   // @@protoc_insertion_point(field_mutable_list:distr.ox.GetSaveGraphRequest.uuids)
   return &uuids_;
+}
+
+// map<string, string> identified = 2;
+inline int GetSaveGraphRequest::_internal_identified_size() const {
+  return identified_.size();
+}
+inline int GetSaveGraphRequest::identified_size() const {
+  return _internal_identified_size();
+}
+inline void GetSaveGraphRequest::clear_identified() {
+  identified_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+GetSaveGraphRequest::_internal_identified() const {
+  return identified_.GetMap();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+GetSaveGraphRequest::identified() const {
+  // @@protoc_insertion_point(field_map:distr.ox.GetSaveGraphRequest.identified)
+  return _internal_identified();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+GetSaveGraphRequest::_internal_mutable_identified() {
+  return identified_.MutableMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+GetSaveGraphRequest::mutable_identified() {
+  // @@protoc_insertion_point(field_mutable_map:distr.ox.GetSaveGraphRequest.identified)
+  return _internal_mutable_identified();
+}
+
+// repeated string stop_uuids = 3;
+inline int GetSaveGraphRequest::_internal_stop_uuids_size() const {
+  return stop_uuids_.size();
+}
+inline int GetSaveGraphRequest::stop_uuids_size() const {
+  return _internal_stop_uuids_size();
+}
+inline void GetSaveGraphRequest::clear_stop_uuids() {
+  stop_uuids_.Clear();
+}
+inline std::string* GetSaveGraphRequest::add_stop_uuids() {
+  // @@protoc_insertion_point(field_add_mutable:distr.ox.GetSaveGraphRequest.stop_uuids)
+  return _internal_add_stop_uuids();
+}
+inline const std::string& GetSaveGraphRequest::_internal_stop_uuids(int index) const {
+  return stop_uuids_.Get(index);
+}
+inline const std::string& GetSaveGraphRequest::stop_uuids(int index) const {
+  // @@protoc_insertion_point(field_get:distr.ox.GetSaveGraphRequest.stop_uuids)
+  return _internal_stop_uuids(index);
+}
+inline std::string* GetSaveGraphRequest::mutable_stop_uuids(int index) {
+  // @@protoc_insertion_point(field_mutable:distr.ox.GetSaveGraphRequest.stop_uuids)
+  return stop_uuids_.Mutable(index);
+}
+inline void GetSaveGraphRequest::set_stop_uuids(int index, const std::string& value) {
+  // @@protoc_insertion_point(field_set:distr.ox.GetSaveGraphRequest.stop_uuids)
+  stop_uuids_.Mutable(index)->assign(value);
+}
+inline void GetSaveGraphRequest::set_stop_uuids(int index, std::string&& value) {
+  // @@protoc_insertion_point(field_set:distr.ox.GetSaveGraphRequest.stop_uuids)
+  stop_uuids_.Mutable(index)->assign(std::move(value));
+}
+inline void GetSaveGraphRequest::set_stop_uuids(int index, const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  stop_uuids_.Mutable(index)->assign(value);
+  // @@protoc_insertion_point(field_set_char:distr.ox.GetSaveGraphRequest.stop_uuids)
+}
+inline void GetSaveGraphRequest::set_stop_uuids(int index, const char* value, size_t size) {
+  stop_uuids_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_set_pointer:distr.ox.GetSaveGraphRequest.stop_uuids)
+}
+inline std::string* GetSaveGraphRequest::_internal_add_stop_uuids() {
+  return stop_uuids_.Add();
+}
+inline void GetSaveGraphRequest::add_stop_uuids(const std::string& value) {
+  stop_uuids_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add:distr.ox.GetSaveGraphRequest.stop_uuids)
+}
+inline void GetSaveGraphRequest::add_stop_uuids(std::string&& value) {
+  stop_uuids_.Add(std::move(value));
+  // @@protoc_insertion_point(field_add:distr.ox.GetSaveGraphRequest.stop_uuids)
+}
+inline void GetSaveGraphRequest::add_stop_uuids(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  stop_uuids_.Add()->assign(value);
+  // @@protoc_insertion_point(field_add_char:distr.ox.GetSaveGraphRequest.stop_uuids)
+}
+inline void GetSaveGraphRequest::add_stop_uuids(const char* value, size_t size) {
+  stop_uuids_.Add()->assign(reinterpret_cast<const char*>(value), size);
+  // @@protoc_insertion_point(field_add_pointer:distr.ox.GetSaveGraphRequest.stop_uuids)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>&
+GetSaveGraphRequest::stop_uuids() const {
+  // @@protoc_insertion_point(field_list:distr.ox.GetSaveGraphRequest.stop_uuids)
+  return stop_uuids_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
+GetSaveGraphRequest::mutable_stop_uuids() {
+  // @@protoc_insertion_point(field_mutable_list:distr.ox.GetSaveGraphRequest.stop_uuids)
+  return &stop_uuids_;
 }
 
 // -------------------------------------------------------------------
@@ -1012,6 +1205,8 @@ PostLoadGraphRequest::mutable_refs() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

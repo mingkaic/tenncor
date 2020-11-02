@@ -6,6 +6,10 @@ package distr.ox;
 
 message GetSaveGraphRequest {
     repeated string uuids = 1;
+
+    map<string,string> identified = 2; // uuid to id
+
+    repeated string stop_uuids = 3;
 }
 
 message GetSaveGraphResponse {

@@ -18,7 +18,7 @@ namespace tcr
 distr::ox::TopographyT save_model (
 	onnx::ModelProto& pb_model,
 	const eteq::ETensorsT& roots,
-	const onnx::TensIdT& identified = {});
+	const onnx::TensptrIdT& identified = {});
 
 eteq::ETensorsT load_model (
 	onnx::TensptrIdT& identified_tens,

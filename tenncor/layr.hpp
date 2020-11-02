@@ -4,6 +4,7 @@
 
 #include "tenncor/distr.hpp"
 #include "tenncor/layr/layr.hpp"
+#include "tenncor/find/lusvc/lusvc.hpp"
 #include "tenncor/serial/oxsvc/oxsvc.hpp"
 
 namespace tcr

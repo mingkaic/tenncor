@@ -109,4 +109,30 @@ TEST_F(LOOKUP, RemoteLookupNode)
 }
 
 
+TEST_F(LOOKUP, ExposingReferences)
+{
+	distr::iDistrMgrptrT mgr(make_mgr("mgr"));
+	auto& service = distr::get_iosvc(*mgr);
+
+	distr::iDistrMgrptrT manager2(make_mgr("mgr2"));
+	auto& service2 = distr::get_iosvc(*manager2);
+
+	teq::Shape outshape({2, 2});
+	auto a = std::make_shared<MockLeaf>(
+		std::vector<double>{2, 3, 7, 2}, outshape);
+	a->meta_.tcode_ = egen::DOUBLE;
+	a->meta_.tname_ = "DOUBLE";
+
+	auto aid = service.expose_node(a);
+
+	error::ErrptrT err = nullptr;
+	auto ref = service2.lookup_node(err, aid);
+	ASSERT_NOERR(err);
+
+	auto refid = service.expose_node(ref);
+
+	EXPECT_STREQ(aid.c_str(), refid.c_str());
+}
+
+
 #endif // DISABLE_IOSVC_LOOKUP_TEST

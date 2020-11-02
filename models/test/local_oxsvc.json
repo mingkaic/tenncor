@@ -10,12 +10,12 @@
   "node": [
    {
     "input": [
-     "2"
+     "4"
     ],
     "output": [
-     "3"
+     "5"
     ],
-    "name": "3",
+    "name": "5",
     "opType": "NEG",
     "domain": "",
     "attribute": [],
@@ -23,12 +23,12 @@
    },
    {
     "input": [
-     "4"
+     "6"
     ],
     "output": [
-     "5"
+     "7"
     ],
-    "name": "5",
+    "name": "7",
     "opType": "SIN",
     "domain": "",
     "attribute": [],
@@ -36,13 +36,13 @@
    },
    {
     "input": [
-     "5",
-     "4"
-    ],
-    "output": [
+     "7",
      "6"
     ],
-    "name": "6",
+    "output": [
+     "8"
+    ],
+    "name": "8",
     "opType": "ADD",
     "domain": "",
     "attribute": [],
@@ -50,13 +50,13 @@
    },
    {
     "input": [
-     "3",
-     "6"
+     "5",
+     "8"
     ],
     "output": [
-     "7"
+     "9"
     ],
-    "name": "7",
+    "name": "9",
     "opType": "DIV",
     "domain": "",
     "attribute": [],
@@ -64,13 +64,13 @@
    },
    {
     "input": [
-     "7",
-     "8"
+     "9",
+     "10"
     ],
     "output": [
-     "9"
+     "11"
     ],
-    "name": "9",
+    "name": "11",
     "opType": "POW",
     "domain": "",
     "attribute": [],
@@ -78,8 +78,8 @@
    },
    {
     "input": [
-     "1",
-     "9"
+     "3",
+     "11"
     ],
     "output": [
      "root1"
@@ -92,26 +92,13 @@
    },
    {
     "input": [
-     "10"
-    ],
-    "output": [
-     "11"
-    ],
-    "name": "11",
-    "opType": "ABS",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
      "12"
     ],
     "output": [
      "13"
     ],
     "name": "13",
-    "opType": "EXP",
+    "opType": "ABS",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -124,6 +111,19 @@
      "15"
     ],
     "name": "15",
+    "opType": "EXP",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "16"
+    ],
+    "output": [
+     "17"
+    ],
+    "name": "17",
     "opType": "NEG",
     "domain": "",
     "attribute": [],
@@ -131,14 +131,14 @@
    },
    {
     "input": [
-     "11",
      "13",
-     "15"
+     "15",
+     "17"
     ],
     "output": [
-     "16"
+     "18"
     ],
-    "name": "16",
+    "name": "18",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -146,8 +146,8 @@
    },
    {
     "input": [
-     "10",
-     "16"
+     "12",
+     "18"
     ],
     "output": [
      "root2"
@@ -177,53 +177,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "1",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "2",
+    "name": "3",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -315,7 +269,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "8",
+    "name": "6",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -482,6 +436,52 @@
      0
     ],
     "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "16",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
    }
   ],
   "sparseInitializer": [],
@@ -584,7 +584,7 @@
   "valueInfo": [],
   "quantizationAnnotation": [
    {
-    "tensorName": "1",
+    "tensorName": "3",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -597,7 +597,7 @@
     ]
    },
    {
-    "tensorName": "2",
+    "tensorName": "4",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -610,7 +610,7 @@
     ]
    },
    {
-    "tensorName": "4",
+    "tensorName": "6",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -623,7 +623,7 @@
     ]
    },
    {
-    "tensorName": "8",
+    "tensorName": "10",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -636,7 +636,7 @@
     ]
    },
    {
-    "tensorName": "10",
+    "tensorName": "12",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -649,7 +649,7 @@
     ]
    },
    {
-    "tensorName": "12",
+    "tensorName": "14",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -662,7 +662,7 @@
     ]
    },
    {
-    "tensorName": "14",
+    "tensorName": "16",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",

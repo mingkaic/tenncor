@@ -418,10 +418,10 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 				global::throw_errf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
-			onnx::TensIdT identified;
+			onnx::TensptrIdT identified;
 			for (auto keyit : keys)
 			{
-				identified.insert({keyit.second.get(), keyit.first});
+				identified.insert({keyit.second, keyit.first});
 			}
 			tcr::save_model(pb_model, models, identified);
 			return pb_model.SerializeToOstream(&output);
@@ -474,8 +474,7 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 				global::throw_errf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
-			onnx::TensIdT ids;
-			tcr::save_model(pb_model, etens, ids);
+			tcr::save_model(pb_model, etens);
 			return pb_model.SerializeToOstream(&output);
 		});
 }
