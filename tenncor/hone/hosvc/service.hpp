@@ -102,7 +102,7 @@ struct DistrHoService final : public PeerService<DistrHoCli>
 				auto opts = res.root_opts();
 				for (auto& refpair : opts)
 				{
-					auto remote_ref = distr::io::node_meta_to_ref(refpair.second);
+					auto remote_ref = iosvc_->lookup_or_expose_ref(refpair.second);
 					static_cast<distr::DistrRef&>(*refmap.at(refpair.first)) =
 						static_cast<distr::DistrRef&>(*remote_ref);
 				}

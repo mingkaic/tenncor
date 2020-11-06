@@ -28,9 +28,9 @@ TEST(QUERYATTRS, Unknown)
 	marsh::Number<double> numba_wun(1.11);
 
 	query::QResultsT attr_res;
-	EXPECT_FATAL(query::equals(
-		attr_res, &numba_wun, attr, matcher),
-		"cannot compare unknown attribute");
+	EXPECT_TRUE(query::equals(
+		attr_res, &numba_wun, attr, matcher));
+	EXPECT_EQ(0, attr_res.size());
 }
 
 

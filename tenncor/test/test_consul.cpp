@@ -1,5 +1,5 @@
 
-#ifndef DISABLE_DISTR_CONSUL_TEST
+#ifndef DISABLE_TENNCOR_CONSUL_TEST
 
 
 #include "gtest/gtest.h"
@@ -89,4 +89,4 @@ TEST_F(CONSUL, SetGetKv)
 }
 
 
-#endif // DISABLE_DISTR_CONSUL_TEST
+#endif // DISABLE_TENNCOR_CONSUL_TEST

@@ -10,13 +10,12 @@ namespace io
 
 DRefptrT node_meta_to_ref (const NodeMeta& meta)
 {
-	auto tens_id = meta.uuid();
+	auto ref_uuid = meta.uuid();
+	auto remote_str = meta.remote_str();
 	auto& slist = meta.shape();
 	teq::DimsT sdims(slist.begin(), slist.end());
-	return std::make_shared<DistrRef>(
-		egen::get_type(meta.dtype()),
-		teq::Shape(sdims),
-		meta.instance(), tens_id);
+	return std::make_shared<DistrRef>(egen::get_type(meta.dtype()),
+		teq::Shape(sdims), meta.instance(), ref_uuid, remote_str);
 }
 
 void tens_to_node_meta (NodeMeta& out, const std::string cid,
@@ -33,10 +32,12 @@ void tens_to_node_meta (NodeMeta& out, const std::string cid,
 	if (auto ref = dynamic_cast<iDistrRef*>(tens.get()))
 	{
 		out.set_instance(ref->cluster_id());
+		out.set_remote_str(ref->remote_string());
 	}
 	else
 	{
 		out.set_instance(cid);
+		out.set_remote_str(tens->to_string());
 	}
 }
 

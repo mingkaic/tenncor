@@ -14,10 +14,11 @@
 TEST(REFERENCE, Meta)
 {
 	std::string cluster_id = "test_local";
+	std::string remote_str = "abcdef";
 	teq::Shape shape({3, 2});
 
 	auto a = std::make_shared<distr::DistrRef>(
-		egen::DOUBLE, shape, cluster_id, "a");
+		egen::DOUBLE, shape, cluster_id, "a", remote_str);
 	auto acpy = a->clone();
 
 	auto& ameta = a->get_meta();
@@ -33,6 +34,9 @@ TEST(REFERENCE, Meta)
 	EXPECT_STREQ("test_local/a", a->to_string().c_str());
 	EXPECT_STREQ("test_local/a", acpy->to_string().c_str());
 
+	EXPECT_STREQ(remote_str.c_str(), a->remote_string().c_str());
+	EXPECT_STREQ(remote_str.c_str(), acpy->remote_string().c_str());
+
 	delete acpy;
 }
 
@@ -43,7 +47,7 @@ TEST(REFERENCE, Data)
 	teq::Shape shape({3, 2});
 
 	auto a = std::make_shared<distr::DistrRef>(
-		egen::DOUBLE, shape, cluster_id, "a");
+		egen::DOUBLE, shape, cluster_id, "a", "abcdef");
 
 	[](const distr::DistrRef& ref)
 	{
@@ -80,11 +84,11 @@ TEST(REFERENCE, Reachability)
 	teq::Shape shape({3, 2});
 
 	auto a = std::make_shared<distr::DistrRef>(
-		egen::DOUBLE, shape, cluster_id, "a");
+		egen::DOUBLE, shape, cluster_id, "a", "abcdef");
 	auto b = std::make_shared<distr::DistrRef>(
-		egen::DOUBLE, shape, cluster_id, "b");
+		egen::DOUBLE, shape, cluster_id, "b", "bcdefg");
 	auto c = std::make_shared<distr::DistrRef>(
-		egen::DOUBLE, shape, cluster_id, "c");
+		egen::DOUBLE, shape, cluster_id, "c", "cdefgh");
 
 	teq::TensptrT d(new MockFunctor(teq::TensptrsT{c}, teq::Opcode{"MOCK2", 0}));
 	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
@@ -116,17 +120,17 @@ TEST(REFERENCE, Seperate)
 	teq::Shape shape({3, 2});
 
 	auto a = std::make_shared<distr::DistrRef>(
-		egen::DOUBLE, shape, cluster_id3, "a");
+		egen::DOUBLE, shape, cluster_id3, "a", "abcdef");
 	auto b = std::make_shared<distr::DistrRef>(
-		egen::DOUBLE, shape, cluster_id, "b");
+		egen::DOUBLE, shape, cluster_id, "b", "bcdefg");
 	auto c = std::make_shared<distr::DistrRef>(
-		egen::DOUBLE, shape, cluster_id2, "c");
+		egen::DOUBLE, shape, cluster_id2, "c", "cdefgh");
 	auto d = std::make_shared<distr::DistrRef>(
-		egen::DOUBLE, shape, cluster_id4, "d");
+		egen::DOUBLE, shape, cluster_id4, "d", "defghi");
 	auto e = std::make_shared<distr::DistrRef>(
-		egen::DOUBLE, shape, cluster_id2, "e");
+		egen::DOUBLE, shape, cluster_id2, "e", "efghij");
 	auto f = std::make_shared<distr::DistrRef>(
-		egen::DOUBLE, shape, cluster_id3, "f");
+		egen::DOUBLE, shape, cluster_id3, "f", "fghijk");
 
 	types::StrUMapT<types::StrUSetT> servers;
 	distr::separate_by_server(servers, distr::DRefSetT{

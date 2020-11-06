@@ -54,9 +54,9 @@
      "11"
     ],
     "output": [
-     "1"
+     "12"
     ],
-    "name": "1",
+    "name": "12",
     "opType": "DIV",
     "domain": "",
     "attribute": [],
@@ -64,20 +64,7 @@
    },
    {
     "input": [
-     "3"
-    ],
-    "output": [
-     "2"
-    ],
-    "name": "2",
-    "opType": "ABS",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "1",
+     "12",
      "13"
     ],
     "output": [
@@ -91,7 +78,7 @@
    },
    {
     "input": [
-     "12",
+     "6",
      "14"
     ],
     "output": [
@@ -99,6 +86,19 @@
     ],
     "name": "root1",
     "opType": "SUB",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "3"
+    ],
+    "output": [
+     "2"
+    ],
+    "name": "2",
+    "opType": "ABS",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -161,6 +161,52 @@
   ],
   "name": "",
   "initializer": [
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "6",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
+   },
    {
     "dims": [
      "3",
@@ -269,6 +315,52 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
+    "name": "13",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
     "name": "3",
     "docString": "",
     "rawData": "",
@@ -316,98 +408,6 @@
     "stringData": [],
     "int64Data": [],
     "name": "4",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "12",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0,
-     0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "3",
-     "7",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "13",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -584,6 +584,19 @@
   "valueInfo": [],
   "quantizationAnnotation": [
    {
+    "tensorName": "6",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "src2"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "variable"
+     }
+    ]
+   },
+   {
     "tensorName": "7",
     "quantParameterTensorNames": [
      {
@@ -610,6 +623,19 @@
     ]
    },
    {
+    "tensorName": "13",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "osrc2"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "variable"
+     }
+    ]
+   },
+   {
     "tensorName": "3",
     "quantParameterTensorNames": [
      {
@@ -628,32 +654,6 @@
      {
       "key": "TENSOR_NAME",
       "value": "s2src3"
-     },
-     {
-      "key": "LEAF_USAGE",
-      "value": "variable"
-     }
-    ]
-   },
-   {
-    "tensorName": "12",
-    "quantParameterTensorNames": [
-     {
-      "key": "TENSOR_NAME",
-      "value": "src2"
-     },
-     {
-      "key": "LEAF_USAGE",
-      "value": "variable"
-     }
-    ]
-   },
-   {
-    "tensorName": "13",
-    "quantParameterTensorNames": [
-     {
-      "key": "TENSOR_NAME",
-      "value": "osrc2"
      },
      {
       "key": "LEAF_USAGE",

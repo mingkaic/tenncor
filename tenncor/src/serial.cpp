@@ -12,7 +12,7 @@ const std::string tenncor_dom = "com.mingkaic.tenncor";
 distr::ox::TopographyT save_model (
 	onnx::ModelProto& pb_model,
 	const eteq::ETensorsT& roots,
-	const onnx::TensIdT& identified)
+	const onnx::TensptrIdT& identified)
 {
 	pb_model.set_ir_version(onnx::IR_VERSION);
 	pb_model.set_producer_name(app_name);
@@ -33,7 +33,12 @@ distr::ox::TopographyT save_model (
 		return distr::get_oxsvc(*mgr).save_graph(
 			*pb_model.mutable_graph(), rootens, identified);
 	}
-	serial::save_graph(*pb_model.mutable_graph(), rootens, identified);
+	onnx::TensIdT identified_raw;
+	for (auto& id : identified)
+	{
+		identified_raw.insert({id.left.get(), id.right});
+	}
+	serial::save_graph(*pb_model.mutable_graph(), rootens, identified_raw);
 	return distr::ox::TopographyT{};
 }
 

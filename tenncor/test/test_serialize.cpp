@@ -63,11 +63,11 @@ TEST(SERIALIZE, SaveGraph)
 	auto dw1 = tcr::derive(err, {weight1})[0];
 	auto db1 = tcr::derive(err, {bias1})[0];
 
-	onnx::TensIdT ids;
-	ids.insert({dw0.get(), "dw0"});
-	ids.insert({db0.get(), "db0"});
-	ids.insert({dw1.get(), "dw1"});
-	ids.insert({db1.get(), "db1"});
+	onnx::TensptrIdT ids;
+	ids.insert({dw0, "dw0"});
+	ids.insert({db0, "db0"});
+	ids.insert({dw1, "dw1"});
+	ids.insert({db1, "db1"});
 	tcr::save_model(model, {dw0, db0, dw1, db1}, ids);
 	{
 		std::fstream gotstr(got_pbfile,

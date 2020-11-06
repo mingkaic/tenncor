@@ -51,13 +51,14 @@ struct DistrSerializeCli final : public egrpc::GrpcClient
 	}
 
 	egrpc::ErrPromiseptrT post_load_graph (egrpc::iCQueue& cq,
-		const PostLoadGraphRequest& req)
+		const PostLoadGraphRequest& req,
+		std::function<void(PostLoadGraphResponse&)> cb)
 	{
 		auto done = std::make_shared<egrpc::ErrPromiseT>();
 		using PostLoadGraphHandlerT = egrpc::AsyncClientHandler<PostLoadGraphRequest,PostLoadGraphResponse>;
 		auto logger = std::make_shared<global::FormatLogger>(global::get_logger(),
 			fmts::sprintf("[client %s:PostLoadGraph] ", alias_.c_str()));
-		new PostLoadGraphHandlerT(done, logger, [](PostLoadGraphResponse&){},
+		new PostLoadGraphHandlerT(done, logger, cb,
 		[this, &req, &cq](PostLoadGraphRequest& inreq, PostLoadGraphHandlerT* handler)
 		{
 			inreq.MergeFrom(req);

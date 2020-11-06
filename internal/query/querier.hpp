@@ -86,6 +86,8 @@ using QReSetT = std::unordered_set<QueryResult,QResHasher>;
 
 using QAttrMapT = google::protobuf::Map<std::string,Attribute>;
 
+/// equals compares attribute object. return true if pb attribute is unknown or matches
+/// candidates are populated or compared against when attribute are tensors or tensor containers
 bool equals (
 	QResultsT& candidates, const marsh::iObject* attr,
 	const Attribute& pba, const Query& matcher);

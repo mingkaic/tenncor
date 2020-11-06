@@ -61,10 +61,6 @@ TEST_F(LOAD, AllLocalGraph)
 	teq::TensptrsT graph_roots = distr::get_oxsvc(*manager).load_graph(ids, model.graph());
 	EXPECT_EQ(2, graph_roots.size());
 
-	PrettyEquation artist;
-	artist.cfg_.showshape_ = true;
-	std::stringstream gotstr;
-
 	ASSERT_HAS(ids.right, "root1");
 	ASSERT_HAS(ids.right, "root2");
 	auto root1 = ids.right.at("root1");
@@ -94,6 +90,66 @@ TEST_F(LOAD, AllLocalGraph)
 		"_____|___`--(variable:s2src2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(NEG<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
 		"_________`--(variable:s2src3<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", root2);
+}
+
+
+TEST_F(LOAD, RemoteEqualRootExpose)
+{
+	PrettyEquation artist;
+	artist.cfg_.showshape_ = true;
+
+	std::stringstream ss;
+	{
+		distr::iDistrMgrptrT manager(make_mgr("mgr"));
+
+		onnx::ModelProto model;
+		std::fstream inputstr(testdir + "/remote_oxsvc.onnx",
+			std::ios::in | std::ios::binary);
+		ASSERT_TRUE(inputstr.is_open());
+		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
+
+		onnx::TensptrIdT ids;
+		teq::TensptrsT graph_roots = distr::get_oxsvc(*manager).load_graph(ids, model.graph());
+		EXPECT_EQ(2, graph_roots.size());
+
+		ASSERT_HAS(ids.right, "root1");
+		ASSERT_HAS(ids.right, "root2");
+		auto root1 = ids.right.at("root1");
+		auto root2 = ids.right.at("root2");
+		ASSERT_NE(nullptr, root1);
+		ASSERT_NE(nullptr, root2);
+
+		artist.print(ss, root1);
+		artist.print(ss, root2);
+	}
+	clean_up();
+
+	std::stringstream ss2;
+	{
+		distr::iDistrMgrptrT manager(make_mgr("mgr"));
+
+		onnx::ModelProto model;
+		std::fstream inputstr(testdir + "/rootexpose_oxsvc.onnx",
+			std::ios::in | std::ios::binary);
+		ASSERT_TRUE(inputstr.is_open());
+		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
+
+		onnx::TensptrIdT ids;
+		teq::TensptrsT graph_roots = distr::get_oxsvc(*manager).load_graph(ids, model.graph());
+		EXPECT_EQ(2, graph_roots.size());
+
+		ASSERT_HAS(ids.right, "root1");
+		ASSERT_HAS(ids.right, "root2");
+		auto root1 = ids.right.at("root1");
+		auto root2 = ids.right.at("root2");
+		ASSERT_NE(nullptr, root1);
+		ASSERT_NE(nullptr, root2);
+
+		artist.print(ss2, root1);
+		artist.print(ss2, root2);
+	}
+
+	EXPECT_STREQ(ss.str().c_str(), ss2.str().c_str());
 }
 
 
@@ -290,11 +346,11 @@ TEST_F(LOAD, CyclicRemoteGraph)
 	// load nodes into a flat remote peer
 	distr::ox::TopographyT topography = {
 		{"root1", "mgr2"},
-		{"12", "mgr"},
+		{"14", "mgr"},
 		{"1", "mgr2"},
-		{"6", "mgr"},
+		{"8", "mgr"},
 		{"root2", "mgr"},
-		{"16", "mgr2"},
+		{"18", "mgr2"},
 		{"2", "mgr"},
 	};
 	onnx::TensptrIdT ids;

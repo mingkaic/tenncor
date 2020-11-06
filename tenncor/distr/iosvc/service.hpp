@@ -5,7 +5,6 @@
 #include "tenncor/distr/imanager.hpp"
 #include "tenncor/distr/iosvc/client.hpp"
 #include "tenncor/distr/iosvc/data.hpp"
-#include "tenncor/distr/iosvc/pb_helper.hpp"
 
 namespace distr
 {
@@ -104,7 +103,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 		}
 
 		ListNodesRequest req;
-		DRefptrT ref = nullptr;
+		teq::TensptrT ref = nullptr;
 		req.add_uuids(id);
 		auto done = client->list_nodes(*cq_, req,
 			[&, this](ListNodesResponse& res)
@@ -116,8 +115,7 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 					return;
 				}
 				auto node = res.values().at(0);
-				ref = node_meta_to_ref(node);
-				this->data_.cache_tens(ref);
+				ref = this->lookup_or_expose_ref(node);
 			});
 		egrpc::wait_for(*done,
 		[&err](error::ErrptrT inerr)
@@ -148,6 +146,19 @@ struct DistrIOService final : public PeerService<DistrIOCli>
 			global::fatalf("failed to find '%s'[%p]", tens->to_string().c_str(), tens);
 		}
 		return *id;
+	}
+
+	teq::TensptrT lookup_or_expose_ref (
+		const NodeMeta& ref)
+	{
+		auto lookup_ref = ref.uuid();
+		if (auto tens = data_.get_tens(lookup_ref))
+		{
+			return tens;
+		}
+		auto tens = node_meta_to_ref(ref);
+		expose_node(tens);
+		return tens;
 	}
 
 	DRefptrSetT get_remotes (void) const

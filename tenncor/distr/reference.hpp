@@ -13,6 +13,11 @@ struct iDistrRef : public teq::iLeaf
 {
 	virtual ~iDistrRef (void) = default;
 
+	iDistrRef* clone (void) const
+	{
+		return static_cast<iDistrRef*>(this->clone_impl());
+	}
+
 	/// Implementation of iTensor
 	void accept (teq::iTraveler& visiter) override
 	{
@@ -31,6 +36,8 @@ struct iDistrRef : public teq::iLeaf
 	virtual const std::string& cluster_id (void) const = 0;
 
 	virtual const std::string& node_id (void) const = 0;
+
+	virtual const std::string& remote_string (void) const = 0;
 };
 
 using DRefptrT = std::shared_ptr<iDistrRef>;
@@ -46,9 +53,11 @@ std::memcpy(cache_.data(), &tmp[0], sizeof(cache_type) * nelems); }
 struct DistrRef final : public iDistrRef
 {
 	DistrRef (egen::_GENERATED_DTYPE dtype, teq::Shape shape,
-		const std::string& cluster_id, const std::string& self_id) :
-		cache_(shape.n_elems() * egen::type_size(dtype)), shape_(shape),
-		cluster_id_(cluster_id), self_(self_id), meta_(dtype, 0) {}
+		const std::string& cluster_id, const std::string& ref_id,
+		const std::string& remote_str) :
+		cache_(shape.n_elems() * egen::type_size(dtype)),
+		shape_(shape), cluster_id_(cluster_id),
+		ref_id_(ref_id), remote_str_(remote_str), meta_(dtype, 0) {}
 
 	/// Implementation of iTensor
 	teq::iDeviceRef& device (void) override
@@ -77,7 +86,7 @@ struct DistrRef final : public iDistrRef
 	/// Implementation of iTensor
 	std::string to_string (void) const override
 	{
-		return cluster_id_ + "/" + self_;
+		return cluster_id_ + "/" + ref_id_;
 	}
 
 	void update_data (const double* data, size_t version) override
@@ -96,9 +105,16 @@ struct DistrRef final : public iDistrRef
 		return cluster_id_;
 	}
 
+	/// Implementation of iDistrRef
 	const std::string& node_id (void) const override
 	{
-		return self_;
+		return ref_id_;
+	}
+
+	/// Implementation of iDistrRef
+	const std::string& remote_string (void) const override
+	{
+		return remote_str_;
 	}
 
 private:
@@ -158,7 +174,7 @@ private:
 	teq::iTensor* clone_impl (void) const override
 	{
 		return new DistrRef(egen::_GENERATED_DTYPE(meta_.dtype_),
-			shape_, cluster_id_, self_);
+			shape_, cluster_id_, ref_id_, remote_str_);
 	}
 
 	DataCache cache_;
@@ -167,7 +183,9 @@ private:
 
 	std::string cluster_id_;
 
-	std::string self_;
+	std::string ref_id_;
+
+	std::string remote_str_;
 
 	/// Variable metadata
 	ExplicitMetadata meta_;

@@ -7,6 +7,8 @@
 
 #include "testutil/tutil.hpp"
 
+#include "tenncor/distr/mock/mock.hpp"
+
 #include "tenncor/layr/layer.hpp"
 
 #include "tenncor/tenncor.hpp"
@@ -1548,6 +1550,84 @@ TEST(CONNECT, TanhRNNTraining)
 			}
 		}
 	}
+}
+
+
+struct LAYER_DISTRIB : public ::testing::Test, public DistrTestcase
+{
+protected:
+	distr::iDistrMgrptrT make_mgr (const std::string& id)
+	{
+		return make_mgr(id, reserve_port());
+	}
+
+	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
+	{
+		return DistrTestcase::make_mgr(port, {
+			distr::register_iosvc,
+			distr::register_opsvc,
+			distr::register_oxsvc,
+			distr::register_lusvc,
+		}, id);
+	}
+};
+
+
+TEST_F(LAYER_DISTRIB, DenseConnection)
+{
+	{
+		eigen::Device device;
+		teq::Shape inshape({6, 2});
+		teq::Shape shape({6});
+
+		std::vector<float> indata = {
+			0.1200616784, 0.5723670830,
+			0.8192259944, 0.1023420685,
+			0.5632137581, 0.8015717466,
+			0.2305965887, 0.9739671083,
+			0.8422470494, 0.0925282844,
+			0.4411574011, 0.4009061897
+		};
+
+		// instance A
+		auto actx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrA = make_mgr("mgrA");
+		tcr::set_distrmgr(mgrA, actx);
+
+		auto dense = TenncorAPI(actx).layer.dense<float>(shape, {5},
+			TenncorAPI(actx).layer.unif_xavier_init<float>(2),
+			TenncorAPI(actx).layer.unif_xavier_init<float>(4));
+
+		auto xa = eteq::make_variable<float>(indata.data(), inshape, "xa", actx);
+		auto ya = tcr::connect(dense, eteq::ETensor(xa));
+
+		auto dense_id = tcr::expose_node(dense);
+
+		// instance B
+		auto bctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrB = make_mgr("mgrB");
+		tcr::set_distrmgr(mgrB, bctx);
+
+		auto dense_ref = tcr::lookup_node(dense_id, bctx);
+		auto xb = eteq::make_variable<float>(indata.data(), inshape, "xb", bctx);
+		auto yb = tcr::connect(dense_ref, xb);
+
+		// compare connected data
+		float* dataa = ya.calc<float>();
+		float* datab = yb.calc<float>();
+		auto shapea = ya->shape();
+		auto shapeb = yb->shape();
+
+		ASSERT_ARREQ(shapea, shapeb);
+		for (size_t i = 0, n = shapea.n_elems(); i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(dataa[i], datab[i]);
+		}
+	}
+
+	auto global = global::context();
+	EXPECT_EQ(nullptr, tcr::get_distrmgr(global));
+	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(&teq::get_eval(global)));
 }
 
 

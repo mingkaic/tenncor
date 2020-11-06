@@ -65,41 +65,41 @@ TEST_F(SEGMENT, MinDist)
 	auto dist = segment::sqr_curry(distance, nodes.size());
 
 	// (root1)
-	// _`--(10)
 	// _`--(12)
+	// _`--(14)
 	// _____`--(1)
-	// _____|___`--(6)
-	// _____|___|___`--(5)
-	// _____|___`--(9)
-	// _____|_______`--(8)
-	// _____|_______|___`--(7)
-	// _____|_______`--(7)
-	// _____`--(11)
+	// _____|___`--(8)
+	// _____|___|___`--(7)
+	// _____|___`--(11)
+	// _____|_______`--(10)
+	// _____|_______|___`--(9)
+	// _____|_______`--(9)
+	// _____`--(13)
 
 	// (root2)
 	// _`--(3)
-	// _`--(16)
+	// _`--(18)
 	// _____`--(2)
 	// _____|___`--(3)
-	// _____`--(14)
-	// _____|___`--(13)
-	// _____`--(15)
+	// _____`--(16)
+	// _____|___`--(15)
+	// _____`--(17)
 	// _________`--(4)
 
 	size_t root1v = vertices.at("root1");
 	size_t root2v = vertices.at("root2");
-	size_t v10 = vertices.at("10");
 	size_t v12 = vertices.at("12");
+	size_t v14 = vertices.at("14");
+	size_t v11 = vertices.at("11");
+	size_t v10 = vertices.at("10");
 	size_t v9 = vertices.at("9");
-	size_t v8 = vertices.at("8");
-	size_t v7 = vertices.at("7");
 
 	EXPECT_LE(18, dist(root1v, root2v)); // # of nodes denotes infinity
-	EXPECT_EQ(2, dist(v10, v12));
-	EXPECT_EQ(4, dist(v10, v9));
-	EXPECT_EQ(2, dist(v9, v12));
-	EXPECT_EQ(1, dist(v7, v9));
-	EXPECT_EQ(1, dist(v7, v8));
+	EXPECT_EQ(2, dist(v12, v14));
+	EXPECT_EQ(4, dist(v12, v11));
+	EXPECT_EQ(2, dist(v11, v14));
+	EXPECT_EQ(1, dist(v9, v11));
+	EXPECT_EQ(1, dist(v9, v10));
 }
 
 
@@ -137,43 +137,43 @@ TEST_F(SEGMENT, Disjoint)
 	}
 
 	// (root1)
-	// _`--(10)
 	// _`--(12)
+	// _`--(14)
 	// _____`--(1)
-	// _____|___`--(6)
-	// _____|___|___`--(5)
-	// _____|___`--(9)
-	// _____|_______`--(8)
-	// _____|_______|___`--(7)
-	// _____|_______`--(7)
-	// _____`--(11)
+	// _____|___`--(8)
+	// _____|___|___`--(7)
+	// _____|___`--(11)
+	// _____|_______`--(10)
+	// _____|_______|___`--(9)
+	// _____|_______`--(9)
+	// _____`--(13)
 	ASSERT_EQ(10, graph1.size());
-	EXPECT_HAS(graph1, "10");
 	EXPECT_HAS(graph1, "12");
+	EXPECT_HAS(graph1, "14");
 	EXPECT_HAS(graph1, "1");
-	EXPECT_HAS(graph1, "6");
-	EXPECT_HAS(graph1, "5");
-	EXPECT_HAS(graph1, "9");
 	EXPECT_HAS(graph1, "8");
 	EXPECT_HAS(graph1, "7");
-	EXPECT_HAS(graph1, "1");
+	EXPECT_HAS(graph1, "11");
+	EXPECT_HAS(graph1, "10");
+	EXPECT_HAS(graph1, "9");
+	EXPECT_HAS(graph1, "13");
 
 	// (root2)
 	// _`--(3)
-	// _`--(16)
+	// _`--(18)
 	// _____`--(2)
 	// _____|___`--(3)
-	// _____`--(14)
-	// _____|___`--(13)
-	// _____`--(15)
+	// _____`--(16)
+	// _____|___`--(15)
+	// _____`--(17)
 	// _________`--(4)
 	ASSERT_EQ(8, graph2.size());
 	EXPECT_HAS(graph2, "3");
-	EXPECT_HAS(graph2, "16");
+	EXPECT_HAS(graph2, "18");
 	EXPECT_HAS(graph2, "2");
-	EXPECT_HAS(graph2, "14");
-	EXPECT_HAS(graph2, "13");
+	EXPECT_HAS(graph2, "16");
 	EXPECT_HAS(graph2, "15");
+	EXPECT_HAS(graph2, "17");
 	EXPECT_HAS(graph2, "4");
 
 }
@@ -200,16 +200,16 @@ TEST_F(SEGMENT, TwoMeans)
 	ASSERT_EQ(2, graphs.size());
 
 	// (root1)
-	// _`--(10)
 	// _`--(12)
+	// _`--(14)
 	// _____`--(1)
-	// _____|___`--(6)
-	// _____|___|___`--(5)
-	// _____|___`--(9)
-	// _____|_______`--(8)
-	// _____|_______|___`--(7)
-	// _____|_______`--(7)
-	// _____`--(11)
+	// _____|___`--(8)
+	// _____|___|___`--(7)
+	// _____|___`--(11)
+	// _____|_______`--(10)
+	// _____|_______|___`--(9)
+	// _____|_______`--(9)
+	// _____`--(13)
 	distr::ox::GraphT graph1, graph2;
 	for (auto& graph : graphs)
 	{
@@ -236,16 +236,16 @@ TEST_F(SEGMENT, TwoMeans)
 			kselected = k;
 			return std::vector<size_t>{
 				vertices.at("1"),
-				vertices.at("6"),
+				vertices.at("8"),
 			};
 		});
 	ASSERT_EQ(2, kselected);
 
 	ASSERT_EQ(2, topography.size());
-	EXPECT_HAS(topography, "root1");
-	EXPECT_HAS(topography, "6");
+	ASSERT_HAS(topography, "root1");
+	ASSERT_HAS(topography, "8");
 	EXPECT_STREQ("mgr", topography.at("root1").c_str());
-	EXPECT_STREQ("mgr2", topography.at("6").c_str());
+	EXPECT_STREQ("mgr2", topography.at("8").c_str());
 
 	onnx::TensptrIdT ids;
 	teq::TensptrsT graph_roots = distr::get_oxsvc(*manager).load_graph(

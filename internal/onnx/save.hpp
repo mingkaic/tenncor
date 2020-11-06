@@ -52,6 +52,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 			return;
 		}
 		std::string id = get_id(leaf);
+		roots_.emplace(&leaf);
 		tens_.emplace(&leaf, id);
 		teq::Shape shape = leaf.shape();
 		if (estd::has(stops_, &leaf))
@@ -103,7 +104,6 @@ struct OnnxMarshaler final : public teq::iTraveler
 			pb_tens->mutable_dims()->Swap(&slist);
 			marshaler_.marsh_leaf(*pb_tens, leaf);
 		}
-		roots_.emplace(&leaf);
 	}
 
 	void visit (teq::iFunctor& func) override
@@ -116,6 +116,8 @@ struct OnnxMarshaler final : public teq::iTraveler
 		if (estd::has(stops_, &func))
 		{
 			std::string id = get_id(func);
+			roots_.emplace(&func);
+			tens_.emplace(&func, id);
 
 			if (false == estd::has(preexisting_ids_, id))
 			{
@@ -133,7 +135,6 @@ struct OnnxMarshaler final : public teq::iTraveler
 				}
 			}
 
-			tens_.emplace(&func, id);
 			return;
 		}
 
@@ -155,6 +156,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 private:
 	void marshal_func (teq::iFunctor& func)
 	{
+		roots_.emplace(&func);
 		auto deps = func.get_args();
 		if (func.size() > 0)
 		{
@@ -193,7 +195,6 @@ private:
 		auto pb_attrs = pb_node->mutable_attribute();
 		marshal_attrs(*pb_attrs, func, tens_);
 
-		roots_.emplace(&func);
 		tens_.emplace(&func, id);
 	}
 
