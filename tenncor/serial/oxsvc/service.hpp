@@ -230,6 +230,7 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 		}
 
 		teq::TensptrsT roots;
+		types::StrUMapT<std::string> idrefs;
 		for (auto& seg : segs)
 		{
 			error::ErrptrT err = nullptr;
@@ -242,13 +243,15 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 				const auto& outputs = sub.second->graph_.output();
 				for (const auto& output : outputs)
 				{
-					refs.emplace(output.name());
+					auto outname = output.name();
+					refs.emplace(estd::must_getf(idrefs, outname,
+						"cannot find reference for %s", outname));
 				}
 			}
-			teq::TensptrsT local_roots;
+			types::StrUMapT<std::string> local_refs;
 			if (local_id == peer_id)
 			{
-				local_roots = local_load_graph(
+				local_refs = local_load_graph(
 					err, identified_tens, subgraph, refs);
 				if (nullptr != err)
 				{
@@ -262,31 +265,39 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 				{
 					global::fatal(err->to_string());
 				}
-
 				google::protobuf::RepeatedPtrField<std::string> pb_refs(
 					refs.begin(), refs.end());
 				PostLoadGraphRequest req;
 				req.mutable_graph()->MergeFrom(subgraph);
 				req.mutable_refs()->Swap(&pb_refs);
-				auto done = client->post_load_graph(*cq_, req);
+				auto done = client->post_load_graph(*cq_, req,
+				[&](PostLoadGraphResponse& res)
+				{
+					auto& pb_roots = res.roots();
+					for (auto& rootpair : pb_roots)
+					{
+						local_refs.emplace(rootpair);
+					}
+				});
 				egrpc::wait_for(*done,
 				[](error::ErrptrT err)
 				{
 					global::fatal(err->to_string());
 				});
-
-				const auto& suboutputs = subgraph.output();
-				for (const auto& suboutput : suboutputs)
-				{
-					std::string id = suboutput.name();
-					auto root = iosvc_->lookup_node(err, id);
-					local_roots.push_back(root);
-				}
 			}
+			idrefs.insert(local_refs.begin(), local_refs.end());
 			if (estd::has(rootsegs, seg.get()))
 			{
-				roots.insert(roots.end(),
-					local_roots.begin(), local_roots.end());
+				for (auto local_ref : local_refs)
+				{
+					auto root = iosvc_->lookup_node(err, local_ref.second);
+					if (err != nullptr)
+					{
+						global::fatal(err->to_string());
+					}
+					roots.push_back(root);
+					identified_tens.insert({root, local_ref.first});
+				}
 			}
 		}
 		return roots;
@@ -385,9 +396,14 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 			auto& reqgraph = req.graph();
 			auto& refs = req.refs();
 			error::ErrptrT err = nullptr;
-			this->local_load_graph(err, identified, reqgraph,
+			auto local_refs = this->local_load_graph(err, identified, reqgraph,
 				types::StrUSetT(refs.begin(), refs.end()));
 			_ERR_CHECK(err, grpc::NOT_FOUND, get_peer_id().c_str());
+			auto res_roots = res.mutable_roots();
+			for (auto local_ref : local_refs)
+			{
+				res_roots->insert({local_ref.first, local_ref.second});
+			}
 			return grpc::Status::OK;
 		}, cq,
 		[this](grpc::ServerContext& ctx)
@@ -397,9 +413,9 @@ struct DistrSerializeService final : public PeerService<DistrSerializeCli>
 	}
 
 private:
-	teq::TensptrsT local_load_graph (error::ErrptrT& err,
-		onnx::TensptrIdT& identified_tens,
-		const onnx::GraphProto& subgraph, const types::StrUSetT& refs)
+	types::StrUMapT<std::string> local_load_graph (error::ErrptrT& err,
+		onnx::TensptrIdT& identified_tens, const onnx::GraphProto& subgraph,
+		const types::StrUSetT& refs)
 	{
 		err = nullptr;
 		std::string local_id = get_peer_id();
@@ -414,14 +430,15 @@ private:
 			identified.insert({node, ref});
 		}
 		auto roots = serial::load_graph(identified, subgraph);
-		const auto& suboutputs = subgraph.output();
-		for (const auto& suboutput : suboutputs)
+		types::StrUMapT<std::string> idrefs;
+		for (auto root : roots)
 		{
-			std::string id = suboutput.name();
-			assert(id == iosvc_->expose_node(identified.right.at(id), id));
+			auto root_id = estd::must_getf(identified.left, root,
+				"couldn't find id for root %p", root.get());
+			auto root_refid = iosvc_->expose_node(root, root_id);
+			idrefs.emplace(root_id, root_refid);
 		}
-		identified_tens.insert(identified.begin(), identified.end());
-		return roots;
+		return idrefs;
 	}
 
 	io::DistrIOService* iosvc_;

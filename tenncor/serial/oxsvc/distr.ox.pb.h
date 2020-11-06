@@ -51,7 +51,7 @@ struct TableStruct_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxillaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[6]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[7]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -78,6 +78,9 @@ extern PostLoadGraphRequestDefaultTypeInternal _PostLoadGraphRequest_default_ins
 class PostLoadGraphResponse;
 class PostLoadGraphResponseDefaultTypeInternal;
 extern PostLoadGraphResponseDefaultTypeInternal _PostLoadGraphResponse_default_instance_;
+class PostLoadGraphResponse_RootsEntry_DoNotUse;
+class PostLoadGraphResponse_RootsEntry_DoNotUseDefaultTypeInternal;
+extern PostLoadGraphResponse_RootsEntry_DoNotUseDefaultTypeInternal _PostLoadGraphResponse_RootsEntry_DoNotUse_default_instance_;
 }  // namespace ox
 }  // namespace distr
 PROTOBUF_NAMESPACE_OPEN
@@ -87,6 +90,7 @@ template<> ::distr::ox::GetSaveGraphResponse* Arena::CreateMaybeMessage<::distr:
 template<> ::distr::ox::GetSaveGraphResponse_TopographyEntry_DoNotUse* Arena::CreateMaybeMessage<::distr::ox::GetSaveGraphResponse_TopographyEntry_DoNotUse>(Arena*);
 template<> ::distr::ox::PostLoadGraphRequest* Arena::CreateMaybeMessage<::distr::ox::PostLoadGraphRequest>(Arena*);
 template<> ::distr::ox::PostLoadGraphResponse* Arena::CreateMaybeMessage<::distr::ox::PostLoadGraphResponse>(Arena*);
+template<> ::distr::ox::PostLoadGraphResponse_RootsEntry_DoNotUse* Arena::CreateMaybeMessage<::distr::ox::PostLoadGraphResponse_RootsEntry_DoNotUse>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace distr {
 namespace ox {
@@ -674,6 +678,40 @@ class PostLoadGraphRequest :
 };
 // -------------------------------------------------------------------
 
+class PostLoadGraphResponse_RootsEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<PostLoadGraphResponse_RootsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    0 > {
+public:
+  typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<PostLoadGraphResponse_RootsEntry_DoNotUse, 
+    std::string, std::string,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+    0 > SuperType;
+  PostLoadGraphResponse_RootsEntry_DoNotUse();
+  PostLoadGraphResponse_RootsEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  void MergeFrom(const PostLoadGraphResponse_RootsEntry_DoNotUse& other);
+  static const PostLoadGraphResponse_RootsEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const PostLoadGraphResponse_RootsEntry_DoNotUse*>(&_PostLoadGraphResponse_RootsEntry_DoNotUse_default_instance_); }
+  static bool ValidateKey(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "distr.ox.PostLoadGraphResponse.RootsEntry.key");
+ }
+  static bool ValidateValue(std::string* s) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(s->data(), static_cast<int>(s->size()), ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::PARSE, "distr.ox.PostLoadGraphResponse.RootsEntry.value");
+ }
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& other) final;
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto);
+    return ::descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto.file_level_metadata[5];
+  }
+
+  public:
+};
+
+// -------------------------------------------------------------------
+
 class PostLoadGraphResponse :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:distr.ox.PostLoadGraphResponse) */ {
  public:
@@ -716,7 +754,7 @@ class PostLoadGraphResponse :
                &_PostLoadGraphResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    6;
 
   friend void swap(PostLoadGraphResponse& a, PostLoadGraphResponse& b) {
     a.Swap(&b);
@@ -777,13 +815,40 @@ class PostLoadGraphResponse :
 
   // nested types ----------------------------------------------------
 
+
   // accessors -------------------------------------------------------
+
+  enum : int {
+    kRootsFieldNumber = 1,
+  };
+  // map<string, string> roots = 1;
+  int roots_size() const;
+  private:
+  int _internal_roots_size() const;
+  public:
+  void clear_roots();
+  private:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      _internal_roots() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      _internal_mutable_roots();
+  public:
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+      roots() const;
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+      mutable_roots();
 
   // @@protoc_insertion_point(class_scope:distr.ox.PostLoadGraphResponse)
  private:
   class _Internal;
 
   ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
+  ::PROTOBUF_NAMESPACE_ID::internal::MapField<
+      PostLoadGraphResponse_RootsEntry_DoNotUse,
+      std::string, std::string,
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
+      0 > roots_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto;
 };
@@ -1200,11 +1265,44 @@ PostLoadGraphRequest::mutable_refs() {
 
 // -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
+
 // PostLoadGraphResponse
+
+// map<string, string> roots = 1;
+inline int PostLoadGraphResponse::_internal_roots_size() const {
+  return roots_.size();
+}
+inline int PostLoadGraphResponse::roots_size() const {
+  return _internal_roots_size();
+}
+inline void PostLoadGraphResponse::clear_roots() {
+  roots_.Clear();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+PostLoadGraphResponse::_internal_roots() const {
+  return roots_.GetMap();
+}
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+PostLoadGraphResponse::roots() const {
+  // @@protoc_insertion_point(field_map:distr.ox.PostLoadGraphResponse.roots)
+  return _internal_roots();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+PostLoadGraphResponse::_internal_mutable_roots() {
+  return roots_.MutableMap();
+}
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+PostLoadGraphResponse::mutable_roots() {
+  // @@protoc_insertion_point(field_mutable_map:distr.ox.PostLoadGraphResponse.roots)
+  return _internal_mutable_roots();
+}
 
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

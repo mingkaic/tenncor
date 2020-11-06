@@ -24,7 +24,9 @@ message PostLoadGraphRequest {
     repeated string refs = 2;
 }
 
-message PostLoadGraphResponse {}
+message PostLoadGraphResponse {
+    map<string,string> roots = 1;
+}
 
 service DistrSerialization {
     rpc GetSaveGraph (GetSaveGraphRequest) returns (GetSaveGraphResponse);

@@ -86,7 +86,8 @@ bool equals (
 			if (auto lay = dynamic_cast<const teq::LayerObj*>(attr))
 			{
 				const Layer& layer = pba.layer();
-				match = Layer::kNameNil == layer.nullable_name_case() || layer.name() == lay->get_opname();
+				match = query::Layer::kName != layer.nullable_name_case() ||
+					layer.name() == lay->get_opname();
 				if (match && layer.has_input())
 				{
 					candidates = matcher.match(layer.input());
@@ -100,7 +101,7 @@ bool equals (
 			}
 			break;
 		default:
-			global::fatal("cannot compare unknown attribute");
+			match = true; // return true if attribute is unknown
 	}
 	return match;
 }

@@ -145,12 +145,12 @@ struct DistrLuService final : public PeerService<DistrLuCli>
 				for (auto& match : matches)
 				{
 					auto& pb_symbs = match.symbs();
-					auto root_ref = distr::io::node_meta_to_ref(match.root());
+					auto root_ref = iosvc_->lookup_or_expose_ref(match.root());
 					OwnedSymbMapT symbs;
 					for (auto& symbpair : pb_symbs)
 					{
 						symbs.insert({symbpair.first,
-							distr::io::node_meta_to_ref(symbpair.second)});
+							iosvc_->lookup_or_expose_ref(symbpair.second)});
 					}
 					out.push_back(OwnedQueryResult{
 						root_ref,

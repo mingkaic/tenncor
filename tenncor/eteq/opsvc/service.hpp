@@ -591,8 +591,7 @@ private:
 			auto gradmeta = reqpairs.second;
 			auto local = iosvc_->lookup_node(err, local_id, false);
 			_ERR_CHECK(err, grpc::NOT_FOUND, alias.c_str());
-			auto grad = node_meta_to_ref(gradmeta);
-			iosvc_->expose_node(grad);
+			auto grad = iosvc_->lookup_or_expose_ref(gradmeta);
 			grads[local.get()].push_back(grad);
 			parents.emplace(local);
 		}

@@ -12,6 +12,8 @@ message NodeMeta {
     string dtype = 3;
 
     repeated int64 shape = 4;
+
+    string remote_str = 5;
 }
 
 // ======== REQUEST + RESPONSE MESSAGES ========

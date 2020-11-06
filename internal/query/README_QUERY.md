@@ -76,8 +76,11 @@ message DoubleArray {
 }
 
 message Layer {
-    string name = 1;
-    Node input = 2;
+    oneof nullable_name {
+        bool name_nil = 1;
+        string name = 2;
+    }
+    Node input = 3;
 }
 ```
 

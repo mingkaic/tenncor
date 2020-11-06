@@ -14,13 +14,25 @@ static teq::TensptrT lookup_input (teq::TensptrT root, distr::iDistrManager& mgr
 {
 	auto& lusvc = distr::get_lusvc(mgr);
 
+	std::string root_str;
+	if (auto root_ref = dynamic_cast<distr::iDistrRef*>(root.get()))
+	{
+		root_str = root_ref->remote_string();
+	}
+	else
+	{
+		root_str = root->to_string();
+	}
 	std::stringstream condjson;
 	condjson << "{"
 		"\"op\":{"
+			"\"opname\":\"" << root_str << "\","
 			"\"attrs\":{"
 				"\"" << teq::layer_attr << "\":{"
-					"\"node\":{"
-						"\"symb\":\"input\""
+					"\"layer\":{"
+						"\"input\":{"
+							"\"symb\":\"input\""
+						"}"
 					"}"
 				"}"
 			"}"
@@ -61,7 +73,7 @@ eteq::ETensor connect (const eteq::ETensor& root, const eteq::ETensor& input)
 		auto rinput = lookup_input(root, *mgr);
 		if (nullptr == rinput)
 		{
-			global::info("failed to find layer input");
+			global::fatal("failed to find layer input");
 		}
 		auto leaf_refs = lookup_leaves(root, *mgr);
 
@@ -90,7 +102,7 @@ eteq::ETensor connect (const eteq::ETensor& root, const eteq::ETensor& input)
 		{
 			global::fatal("failed to deserialize during layer connection");
 		}
-		return outs.front();
+		return eteq::ETensor(outs.front(), ctx);
 	}
 	return layr::connect(root, input);
 }

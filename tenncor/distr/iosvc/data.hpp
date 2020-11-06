@@ -10,6 +10,8 @@
 #include "tenncor/distr/reference.hpp"
 #include "tenncor/distr/p2p.hpp"
 
+#include "tenncor/distr/iosvc/pb_helper.hpp"
+
 namespace distr
 {
 
@@ -26,6 +28,18 @@ struct DistrIOData
 {
 	DistrIOData (iP2PService* consul) :
 		p2p_(consul) {}
+
+	teq::TensptrT find_or_cache_node (const NodeMeta& node)
+	{
+		auto lookup_ref = node.uuid();
+		if (auto tens = get_tens(lookup_ref))
+		{
+			return tens;
+		}
+		auto ref = node_meta_to_ref(node);
+		cache_tens(ref);
+		return ref;
+	}
 
 	std::string cache_tens (teq::TensptrT tens,
 		const OptIDT& suggested_id = OptIDT())

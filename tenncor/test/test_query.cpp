@@ -8,6 +8,8 @@
 
 #include "testutil/tutil.hpp"
 
+#include "tenncor/distr/mock/mock.hpp"
+
 #include "internal/query/querier.hpp"
 #include "internal/query/parse.hpp"
 
@@ -1349,6 +1351,114 @@ TEST(ADV, LayerMatch)
 
 
 // match commutative with attributes
+
+
+struct QUERY_DISTRIB : public ::testing::Test, public DistrTestcase
+{
+protected:
+	distr::iDistrMgrptrT make_mgr (const std::string& id)
+	{
+		return make_mgr(id, reserve_port());
+	}
+
+	distr::iDistrMgrptrT make_mgr (const std::string& id, size_t port)
+	{
+		return DistrTestcase::make_mgr(port, {
+			distr::register_iosvc,
+			distr::register_opsvc,
+			distr::register_lusvc,
+		}, id);
+	}
+};
+
+
+TEST_F(QUERY_DISTRIB, Dense)
+{
+	{
+		eigen::Device device;
+		teq::Shape inshape({6, 2});
+		teq::Shape shape({6});
+
+		// instance A
+		auto actx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrA = make_mgr("mgrA");
+		tcr::set_distrmgr(mgrA, actx);
+
+		auto dense = TenncorAPI(actx).layer.dense<float>(shape, {5},
+			TenncorAPI(actx).layer.unif_xavier_init<float>(2),
+			TenncorAPI(actx).layer.unif_xavier_init<float>(4));
+
+		auto dense_input = layr::get_input(dense);
+
+		auto dense_id = tcr::expose_node(dense);
+
+		// instance B
+		auto bctx = std::make_shared<estd::ConfigMap<>>();
+		auto mgrB = make_mgr("mgrB");
+		tcr::set_distrmgr(mgrB, bctx);
+
+		auto dense_ref = tcr::lookup_node(dense_id, bctx);
+
+		auto& lusvc = distr::get_lusvc(*mgrB);
+
+		// lookup input
+		std::string ref_str = static_cast<distr::iDistrRef*>(dense_ref.get())->remote_string();
+		std::stringstream inputjson;
+		inputjson << "{"
+			"\"op\":{"
+				"\"opname\":\"" << ref_str << "\","
+				"\"attrs\":{"
+					"\"" << teq::layer_attr << "\":{"
+						"\"layer\":{"
+							"\"input\":{"
+								"\"symb\":\"input\""
+							"}"
+						"}"
+					"}"
+				"}"
+			"}"
+		"}";
+		query::Node input_cond;
+		query::json_parse(input_cond, inputjson);
+
+		auto roots = lusvc.query({dense_ref}, input_cond);
+		ASSERT_EQ(1, roots.size());
+		auto root = roots.front();
+		EXPECT_EQ(dense_ref.get(), root.root_.get());
+
+		ASSERT_HAS(root.symbs_, "input");
+		auto input_ref = dynamic_cast<distr::iDistrRef*>(root.symbs_.at("input").get());
+		ASSERT_NE(nullptr, input_ref);
+
+		auto input_id = input_ref->node_id();
+		error::ErrptrT err = nullptr;
+		auto input = distr::get_iosvc(*mgrA).lookup_node(
+			err, input_id);
+		ASSERT_NOERR(err);
+		EXPECT_EQ(dense_input.get(), input.get());
+
+		// lookup all leafs
+		std::stringstream leafjson;
+		leafjson << "{\"leaf\":{}}";
+		query::Node leaf_cond;
+		query::json_parse(leaf_cond, leafjson);
+
+		auto leaves = lusvc.query({dense_ref}, leaf_cond);
+
+		ASSERT_EQ(4, leaves.size()); // reference is included
+		types::StrUSetT leafnames = {"IDENTITY", "weight", "bias", "input"};
+		for (auto leaf : leaves)
+		{
+			auto leafref = dynamic_cast<distr::iDistrRef*>(leaf.root_.get());
+			ASSERT_NE(nullptr, leafref);
+			EXPECT_HAS(leafnames, leafref->remote_string());
+		}
+	}
+
+	auto global = global::context();
+	EXPECT_EQ(nullptr, tcr::get_distrmgr(global));
+	EXPECT_NE(nullptr, dynamic_cast<teq::Evaluator*>(&teq::get_eval(global)));
+}
 
 
 #endif // DISABLE_TENNCOR_QUERY_TEST
