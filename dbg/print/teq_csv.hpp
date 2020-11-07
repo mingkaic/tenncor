@@ -6,12 +6,12 @@
 /// Draw an equation graph edges in CSV format
 ///
 
+#ifndef DBG_TEQ_CSV_HPP
+#define DBG_TEQ_CSV_HPP
+
 #include <utility>
 
 #include "dbg/print/teq.hpp"
-
-#ifndef DBG_TEQ_CSV_HPP
-#define DBG_TEQ_CSV_HPP
 
 /// CSV delimiter
 const char label_delim = ':';

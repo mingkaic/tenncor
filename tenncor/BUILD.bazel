@@ -9,15 +9,20 @@ package(
 filegroup(
     name = "srcs",
     srcs = [
-        ":benchmark_srcs",
         ":tenncor_hdrs",
         ":tenncor_srcs",
         ":pybind_hdrs",
         ":pybind_srcs",
-        ":trainer_hdrs",
+        ":ctest_srcs",
+        ":ptest_srcs",
+        ":benchmark_srcs",
         "//tenncor/eteq:srcs",
-        "//tenncor/distrib:srcs",
+        "//tenncor/hone:srcs",
+        "//tenncor/serial:srcs",
+        "//tenncor/trainer:srcs",
+        "//tenncor/distr:srcs",
         "//tenncor/layr:srcs",
+        "//tenncor/pyutils:srcs",
         "BUILD.bazel",
     ],
     visibility = ["//visibility:public"],
@@ -39,11 +44,6 @@ filegroup(
 )
 
 filegroup(
-    name = "trainer_hdrs",
-    srcs = glob(["trainer/*.hpp"]),
-)
-
-filegroup(
     name = "pybind_hdrs",
     srcs = glob(["python/*.hpp"]),
 )
@@ -53,9 +53,19 @@ filegroup(
     srcs = glob(["python/*.cpp"]),
 )
 
+filegroup(
+    name = "ctest_srcs",
+    srcs = glob(["test/*.cpp"]),
+)
+
+filegroup(
+    name = "ptest_srcs",
+    srcs = ["test/ptest.py"],
+)
+
 ######### LIBRARY #########
 
-GEN_CMD_FMT = """$(location //egen:egen) --plugins \
+GEN_CMD_FMT = """$(location //tools/egen:egen) --plugins \
 plugins.apis:APIsPlugin \
 plugins.pyapis:PyAPIsPlugin \
 --out $(@D)/generated \
@@ -72,18 +82,18 @@ genrule(
     name = "generated_tenncor",
     srcs = select({
         "//conditions:default": ["//cfg:eteq_min"],
-        "//eigen:fast_build": ["//cfg:eteq_min"],
-        "//eigen:full_build": ["//cfg:eteq"],
+        "//internal/eigen:fast_build": ["//cfg:eteq_min"],
+        "//internal/eigen:full_build": ["//cfg:eteq"],
     }) + ["//cfg:eteq_classes"],
     outs = GEN_HDRS + [
         "generated/api.cpp",
         "generated/pyapi_tenncor.cpp",
     ],
-    tools = ["//egen:egen"],
+    tools = ["//tools/egen:egen"],
     cmd = select({
         "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
-        "//eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
-        "//eigen:full_build": GEN_CMD_FMT.format("eteq"),
+        "//internal/eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
+        "//internal/eigen:full_build": GEN_CMD_FMT.format("eteq"),
     })
 )
 
@@ -91,7 +101,6 @@ cc_library(
     name = "tenncor",
     hdrs = [
         ":tenncor_hdrs",
-        ":trainer_hdrs",
     ] + [
         ":"+hdr for hdr in GEN_HDRS
     ],
@@ -103,47 +112,12 @@ cc_library(
     include_prefix = "tenncor",
     includes = ["."],
     deps = [
-        ":distrib",
-        ":layr",
+        "//tenncor/eteq/opsvc:opsvc",
+        "//tenncor/find/lusvc:lusvc",
+        "//tenncor/hone/hosvc:hosvc",
+        "//tenncor/serial/oxsvc:oxsvc",
+        "//tenncor/trainer:trainer",
     ],
-)
-
-cc_library(
-    name = "eteq",
-    hdrs = ["//tenncor/eteq:eteq_hdrs"],
-    srcs = ["//tenncor/eteq:eteq_srcs"],
-    copts = ["-std=c++17"],
-    deps = [
-        "//opt:opt",
-        "//onnx:onnx",
-    ],
-    includes = ["."],
-)
-
-cc_library(
-    name = "distrib",
-    hdrs = ["//tenncor/distrib:distrib_hdrs"],
-    srcs = ["//tenncor/distrib:distrib_srcs"],
-    copts = ["-std=c++17"],
-    deps = [
-        ":eteq",
-        "//tenncor/distrib:distr_cc_grpc",
-        "@boost//:bimap",
-        "@com_github_oliora_ppconsul//:consul",
-        "@com_github_mingkaic_cppkg//egrpc:egrpc",
-        "@com_github_mingkaic_cppkg//error:error",
-    ],
-    includes = ["."],
-    visibility = ["//visibility:public"],
-)
-
-cc_library(
-    name = "layr",
-    hdrs = ["//tenncor/layr:layr_hdrs"],
-    srcs = ["//tenncor/layr:layr_srcs"],
-    copts = ["-std=c++17"],
-    deps = [":eteq"],
-    includes = ["."],
 )
 
 pybind_py_library(
@@ -155,8 +129,8 @@ pybind_py_library(
     ],
     cc_deps = [
         ":tenncor",
-        "//dbg:distrib",
-        "//pyutils:pyutils",
+        "//dbg/print/printsvc:printsvc",
+        "//tenncor/pyutils:pyutils",
     ],
     copts = [
         "-std=c++17",
@@ -176,4 +150,43 @@ cc_binary(
     ],
     copts = ["-std=c++17"],
     data = ["//cfg:optimizations"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "ctest",
+    srcs = [":ctest_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//internal/utils/coord:coord",
+        "//internal/global:mock",
+        "//tenncor/distr:mock",
+        "//tenncor:tenncor",
+        "//testutil:tutil",
+        "//dbg/print/printsvc:printsvc",
+        "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    linkstatic = True,
+    data = [
+        "//:test_models",
+        "//cfg:optimizations",
+    ],
+    size = "enormous",
+)
+
+py_test(
+    name = "ptest",
+    srcs = [":ptest_srcs"],
+    deps = [
+        "//dbg:print_py",
+        "//tenncor:tenncor_py",
+        "//testutil:pyunit_util",
+    ],
+    data = [
+        "//:test_models",
+        "//testutil:ead_testcase_template",
+    ],
+    size = "enormous",
 )

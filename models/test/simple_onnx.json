@@ -1,0 +1,526 @@
+{
+ "irVersion": "0",
+ "opsetImport": [],
+ "producerName": "",
+ "producerVersion": "",
+ "domain": "",
+ "modelVersion": "0",
+ "docString": "",
+ "graph": {
+  "node": [
+   {
+    "input": [
+     "2"
+    ],
+    "output": [
+     "3"
+    ],
+    "name": "3",
+    "opType": "neg",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "4"
+    ],
+    "output": [
+     "5"
+    ],
+    "name": "5",
+    "opType": "sin",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "5",
+     "4"
+    ],
+    "output": [
+     "6"
+    ],
+    "name": "6",
+    "opType": "+",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "3",
+     "6"
+    ],
+    "output": [
+     "7"
+    ],
+    "name": "7",
+    "opType": "/",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "7",
+     "8"
+    ],
+    "output": [
+     "9"
+    ],
+    "name": "9",
+    "opType": "@",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "1",
+     "9"
+    ],
+    "output": [
+     "root1"
+    ],
+    "name": "root1",
+    "opType": "-",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "10"
+    ],
+    "output": [
+     "11"
+    ],
+    "name": "11",
+    "opType": "abs",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "12"
+    ],
+    "output": [
+     "13"
+    ],
+    "name": "13",
+    "opType": "exp",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "14"
+    ],
+    "output": [
+     "15"
+    ],
+    "name": "15",
+    "opType": "neg",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "11",
+     "13",
+     "15"
+    ],
+    "output": [
+     "16"
+    ],
+    "name": "16",
+    "opType": "*",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "10",
+     "16"
+    ],
+    "output": [
+     "root2"
+    ],
+    "name": "root2",
+    "opType": "-",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   }
+  ],
+  "name": "",
+  "initializer": [
+   {
+    "dims": [
+     "3",
+     "1",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 0,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "1",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 0,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "2",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "7",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 0,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "4",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "7",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 0,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "8",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 0,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "10",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 0,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "12",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "3",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 0,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "14",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
+    "uint64Data": []
+   }
+  ],
+  "sparseInitializer": [],
+  "docString": "",
+  "input": [],
+  "output": [
+   {
+    "name": "root1",
+    "type": {
+     "tensorType": {
+      "elemType": 0,
+      "shape": {
+       "dim": [
+        {
+         "denotation": "",
+         "dimValue": "3"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "7"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        }
+       ]
+      }
+     },
+     "denotation": ""
+    },
+    "docString": ""
+   },
+   {
+    "name": "root2",
+    "type": {
+     "tensorType": {
+      "elemType": 0,
+      "shape": {
+       "dim": [
+        {
+         "denotation": "",
+         "dimValue": "3"
+        },
+        {
+         "denotation": "",
+         "dimValue": "3"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        },
+        {
+         "denotation": "",
+         "dimValue": "1"
+        }
+       ]
+      }
+     },
+     "denotation": ""
+    },
+    "docString": ""
+   }
+  ],
+  "valueInfo": [],
+  "quantizationAnnotation": [
+   {
+    "tensorName": "1",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "src2"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "constant"
+     }
+    ]
+   },
+   {
+    "tensorName": "2",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "osrc"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "constant"
+     }
+    ]
+   },
+   {
+    "tensorName": "4",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "src"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "constant"
+     }
+    ]
+   },
+   {
+    "tensorName": "8",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "osrc2"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "constant"
+     }
+    ]
+   },
+   {
+    "tensorName": "10",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "s2src"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "constant"
+     }
+    ]
+   },
+   {
+    "tensorName": "12",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "s2src2"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "constant"
+     }
+    ]
+   },
+   {
+    "tensorName": "14",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "s2src3"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "constant"
+     }
+    ]
+   }
+  ]
+ },
+ "metadataProps": []
+}

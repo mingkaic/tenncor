@@ -1,13 +1,13 @@
 
-#include "jobs/scope_guard.hpp"
+#ifndef DBG_EMIT_HPP
+#define DBG_EMIT_HPP
 
-#include "eteq/eteq.hpp"
+#include "jobs/jobs.hpp"
+
+#include "tenncor/tenncor.hpp"
 
 #include "dbg/peval/plugin_eval.hpp"
 #include "dbg/peval/emit/client.hpp"
-
-#ifndef DBG_EMIT_HPP
-#define DBG_EMIT_HPP
 
 namespace emit
 {
@@ -39,19 +39,24 @@ struct Emitter final : public dbg::iPlugin
 			return;
 		}
 
-		update_model(targets);
-		update_nodes(visited);
+		if (false == update_structure(targets))
+		{
+			update_data(visited);
+		}
 	}
 
 	/// Send create graph request
-	void update_model (const teq::TensSetT& targets)
+	bool update_structure (const teq::TensSetT& targets)
 	{
+		bool changed = false;
 		onnx::TensIdT existing;
 		teq::LambdaVisit vis(
 			[&](teq::iLeaf& leaf)
 			{
 				teq::iTensor* tens = &leaf;
-				if (estd::has(ids_.left, tens))
+				bool incache = estd::has(ids_.left, tens);
+				changed = changed || !incache;
+				if (incache)
 				{
 					std::string id = ids_.left.at(tens);
 					existing.insert({tens, id});
@@ -60,31 +65,39 @@ struct Emitter final : public dbg::iPlugin
 			[&](teq::iTraveler& trav, teq::iFunctor& func)
 			{
 				teq::iTensor* tens = &func;
-				if (estd::has(ids_.left, tens))
+				bool incache = estd::has(ids_.left, tens);
+				changed = changed || !incache;
+				if (incache)
 				{
 					std::string id = ids_.left.at(tens);
 					existing.insert({tens, id});
 				}
-				auto deps = func.get_dependencies();
+				auto deps = func.get_args();
 				teq::multi_visit(trav, deps);
 			});
 		teq::multi_visit(vis, targets);
 
-		gemitter::CreateModelRequest request;
-		auto payload = request.mutable_payload();
-		payload->set_model_id(eval_id_);
-		eteq::save_model(*payload->mutable_model(),
-			teq::TensT(targets.begin(), targets.end()), existing);
-		onnx::TensptrIdT fullids;
-		eteq::load_model(fullids, payload->model());
-		for (auto fullid : fullids)
+		if (changed)
 		{
-			ids_.insert({fullid.left.get(), fullid.right});
+			gemitter::CreateModelRequest request;
+			auto payload = request.mutable_payload();
+			payload->set_model_id(eval_id_);
+			serial::save_graph(*(payload->mutable_model()->mutable_graph()),
+				teq::TensT(targets.begin(), targets.end()), existing);
+			client_.create_model(request);
+
+			// update ids
+			onnx::TensptrIdT fullids;
+			serial::load_graph(fullids, payload->model().graph());
+			for (auto fullid : fullids)
+			{
+				ids_.insert({fullid.left.get(), fullid.right});
+			}
 		}
-		client_.create_model(request);
+		return changed;
 	}
 
-	void update_nodes (const teq::TensSetT& visited)
+	void update_data (const teq::TensSetT& visited)
 	{
 		std::vector<gemitter::UpdateNodeDataRequest> requests;
 		requests.reserve(stat_.graphsize_.size());
@@ -141,7 +154,7 @@ struct Emitter final : public dbg::iPlugin
 		if (sent_graph_)
 		{
 			client_.delete_model(eval_id_);
-			eval_id_ = boost::uuids::to_string(global::get_uuidengine()());
+			eval_id_ = global::get_generator()->get_str();
 		}
 		update_it_ = 0;
 		sent_graph_ = false;
@@ -187,7 +200,7 @@ private:
 	/// GRPC Client
 	GraphEmitterClient client_;
 
-	std::string eval_id_ = boost::uuids::to_string(global::get_uuidengine()());
+	std::string eval_id_ = global::get_generator()->get_str();
 
 	size_t update_it_ = 0;
 

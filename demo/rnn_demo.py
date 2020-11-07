@@ -69,6 +69,8 @@ def make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps):
     grad_deps = [tc.trail(grad, tincr_mapping)for grad in gs]
 
     # update moving average, dependent on target incr
+    print([e.shape() for e in mvavg_sqrs])
+    print([e.shape() for e in grad_deps])
     umvavg_sqrs = [tc.api.assign(mvavg_sqr,
         lmbd * mvavg_sqr + (1-lmbd) * tc.api.pow(grad_dep, 2))
         for mvavg_sqr, grad_dep in zip(mvavg_sqrs, grad_deps)]

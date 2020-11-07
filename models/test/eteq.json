@@ -3,20 +3,20 @@
  "opsetImport": [],
  "producerName": "tenncor",
  "producerVersion": "1.0.0",
- "domain": "com.tenncor.eteq",
+ "domain": "com.mingkaic.tenncor",
  "modelVersion": "6",
  "docString": "",
  "graph": {
   "node": [
    {
     "input": [
-     "0",
-     "1"
-    ],
-    "output": [
+     "1",
      "2"
     ],
-    "name": "2",
+    "output": [
+     "3"
+    ],
+    "name": "3",
     "opType": "MATMUL",
     "domain": "",
     "attribute": [
@@ -43,12 +43,12 @@
    },
    {
     "input": [
-     "3"
-    ],
-    "output": [
      "4"
     ],
-    "name": "4",
+    "output": [
+     "5"
+    ],
+    "name": "5",
     "opType": "EXTEND",
     "domain": "",
     "attribute": [
@@ -75,27 +75,14 @@
    },
    {
     "input": [
-     "2",
-     "4"
-    ],
-    "output": [
-     "5"
-    ],
-    "name": "5",
-    "opType": "ADD",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
+     "3",
      "5"
     ],
     "output": [
      "6"
     ],
     "name": "6",
-    "opType": "NEG",
+    "opType": "ADD",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -108,7 +95,78 @@
      "7"
     ],
     "name": "7",
+    "opType": "NEG",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "7"
+    ],
+    "output": [
+     "8"
+    ],
+    "name": "8",
     "opType": "EXP",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "10"
+    ],
+    "output": [
+     "11"
+    ],
+    "name": "11",
+    "opType": "EXTEND",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "tensor",
+      "refAttrName": "",
+      "docString": "",
+      "type": "TENSOR",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "t": {
+       "dims": [],
+       "dataType": 0,
+       "floatData": [],
+       "int32Data": [],
+       "stringData": [],
+       "int64Data": [],
+       "name": "8",
+       "docString": "",
+       "rawData": "",
+       "externalData": [],
+       "dataLocation": "DEFAULT",
+       "doubleData": [],
+       "uint64Data": []
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "11",
+     "8"
+    ],
+    "output": [
+     "12"
+    ],
+    "name": "12",
+    "opType": "ADD",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -118,112 +176,54 @@
      "9"
     ],
     "output": [
-     "10"
-    ],
-    "name": "10",
-    "opType": "EXTEND",
-    "domain": "",
-    "attribute": [
-     {
-      "name": "tensor",
-      "refAttrName": "",
-      "docString": "",
-      "type": "TENSOR",
-      "f": 0,
-      "i": "0",
-      "s": "",
-      "t": {
-       "dims": [],
-       "dataType": 0,
-       "floatData": [],
-       "int32Data": [],
-       "stringData": [],
-       "int64Data": [],
-       "name": "7",
-       "docString": "",
-       "rawData": "",
-       "externalData": [],
-       "dataLocation": "DEFAULT",
-       "doubleData": [],
-       "uint64Data": []
-      },
-      "floats": [],
-      "ints": [],
-      "strings": [],
-      "tensors": [],
-      "graphs": [],
-      "sparseTensors": []
-     }
-    ],
-    "docString": ""
-   },
-   {
-    "input": [
-     "10",
-     "7"
-    ],
-    "output": [
-     "11"
-    ],
-    "name": "11",
-    "opType": "ADD",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "8"
-    ],
-    "output": [
-     "12"
-    ],
-    "name": "12",
-    "opType": "EXTEND",
-    "domain": "",
-    "attribute": [
-     {
-      "name": "tensor",
-      "refAttrName": "",
-      "docString": "",
-      "type": "TENSOR",
-      "f": 0,
-      "i": "0",
-      "s": "",
-      "t": {
-       "dims": [],
-       "dataType": 0,
-       "floatData": [],
-       "int32Data": [],
-       "stringData": [],
-       "int64Data": [],
-       "name": "11",
-       "docString": "",
-       "rawData": "",
-       "externalData": [],
-       "dataLocation": "DEFAULT",
-       "doubleData": [],
-       "uint64Data": []
-      },
-      "floats": [],
-      "ints": [],
-      "strings": [],
-      "tensors": [],
-      "graphs": [],
-      "sparseTensors": []
-     }
-    ],
-    "docString": ""
-   },
-   {
-    "input": [
-     "12",
-     "11"
-    ],
-    "output": [
      "13"
     ],
     "name": "13",
+    "opType": "EXTEND",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "tensor",
+      "refAttrName": "",
+      "docString": "",
+      "type": "TENSOR",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "t": {
+       "dims": [],
+       "dataType": 0,
+       "floatData": [],
+       "int32Data": [],
+       "stringData": [],
+       "int64Data": [],
+       "name": "12",
+       "docString": "",
+       "rawData": "",
+       "externalData": [],
+       "dataLocation": "DEFAULT",
+       "doubleData": [],
+       "uint64Data": []
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "13",
+     "12"
+    ],
+    "output": [
+     "14"
+    ],
+    "name": "14",
     "opType": "DIV",
     "domain": "",
     "attribute": [],
@@ -231,13 +231,13 @@
    },
    {
     "input": [
-     "13",
-     "14"
-    ],
-    "output": [
+     "14",
      "15"
     ],
-    "name": "15",
+    "output": [
+     "16"
+    ],
+    "name": "16",
     "opType": "MATMUL",
     "domain": "",
     "attribute": [
@@ -264,12 +264,12 @@
    },
    {
     "input": [
-     "16"
-    ],
-    "output": [
      "17"
     ],
-    "name": "17",
+    "output": [
+     "18"
+    ],
+    "name": "18",
     "opType": "EXTEND",
     "domain": "",
     "attribute": [
@@ -296,27 +296,14 @@
    },
    {
     "input": [
-     "15",
-     "17"
-    ],
-    "output": [
-     "18"
-    ],
-    "name": "18",
-    "opType": "ADD",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
+     "16",
      "18"
     ],
     "output": [
      "19"
     ],
     "name": "19",
-    "opType": "NEG",
+    "opType": "ADD",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -329,7 +316,78 @@
      "20"
     ],
     "name": "20",
+    "opType": "NEG",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "20"
+    ],
+    "output": [
+     "21"
+    ],
+    "name": "21",
     "opType": "EXP",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "25"
+    ],
+    "output": [
+     "26"
+    ],
+    "name": "26",
+    "opType": "EXTEND",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "tensor",
+      "refAttrName": "",
+      "docString": "",
+      "type": "TENSOR",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "t": {
+       "dims": [],
+       "dataType": 0,
+       "floatData": [],
+       "int32Data": [],
+       "stringData": [],
+       "int64Data": [],
+       "name": "21",
+       "docString": "",
+       "rawData": "",
+       "externalData": [],
+       "dataLocation": "DEFAULT",
+       "doubleData": [],
+       "uint64Data": []
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "26",
+     "21"
+    ],
+    "output": [
+     "27"
+    ],
+    "name": "27",
+    "opType": "ADD",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -339,112 +397,54 @@
      "24"
     ],
     "output": [
-     "25"
-    ],
-    "name": "25",
-    "opType": "EXTEND",
-    "domain": "",
-    "attribute": [
-     {
-      "name": "tensor",
-      "refAttrName": "",
-      "docString": "",
-      "type": "TENSOR",
-      "f": 0,
-      "i": "0",
-      "s": "",
-      "t": {
-       "dims": [],
-       "dataType": 0,
-       "floatData": [],
-       "int32Data": [],
-       "stringData": [],
-       "int64Data": [],
-       "name": "20",
-       "docString": "",
-       "rawData": "",
-       "externalData": [],
-       "dataLocation": "DEFAULT",
-       "doubleData": [],
-       "uint64Data": []
-      },
-      "floats": [],
-      "ints": [],
-      "strings": [],
-      "tensors": [],
-      "graphs": [],
-      "sparseTensors": []
-     }
-    ],
-    "docString": ""
-   },
-   {
-    "input": [
-     "25",
-     "20"
-    ],
-    "output": [
-     "26"
-    ],
-    "name": "26",
-    "opType": "ADD",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "23"
-    ],
-    "output": [
-     "27"
-    ],
-    "name": "27",
-    "opType": "EXTEND",
-    "domain": "",
-    "attribute": [
-     {
-      "name": "tensor",
-      "refAttrName": "",
-      "docString": "",
-      "type": "TENSOR",
-      "f": 0,
-      "i": "0",
-      "s": "",
-      "t": {
-       "dims": [],
-       "dataType": 0,
-       "floatData": [],
-       "int32Data": [],
-       "stringData": [],
-       "int64Data": [],
-       "name": "26",
-       "docString": "",
-       "rawData": "",
-       "externalData": [],
-       "dataLocation": "DEFAULT",
-       "doubleData": [],
-       "uint64Data": []
-      },
-      "floats": [],
-      "ints": [],
-      "strings": [],
-      "tensors": [],
-      "graphs": [],
-      "sparseTensors": []
-     }
-    ],
-    "docString": ""
-   },
-   {
-    "input": [
-     "27",
-     "26"
-    ],
-    "output": [
      "28"
     ],
     "name": "28",
+    "opType": "EXTEND",
+    "domain": "",
+    "attribute": [
+     {
+      "name": "tensor",
+      "refAttrName": "",
+      "docString": "",
+      "type": "TENSOR",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "t": {
+       "dims": [],
+       "dataType": 0,
+       "floatData": [],
+       "int32Data": [],
+       "stringData": [],
+       "int64Data": [],
+       "name": "27",
+       "docString": "",
+       "rawData": "",
+       "externalData": [],
+       "dataLocation": "DEFAULT",
+       "doubleData": [],
+       "uint64Data": []
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
+    "docString": ""
+   },
+   {
+    "input": [
+     "28",
+     "27"
+    ],
+    "output": [
+     "29"
+    ],
+    "name": "29",
     "opType": "DIV",
     "domain": "",
     "attribute": [],
@@ -452,13 +452,13 @@
    },
    {
     "input": [
-     "22",
-     "28"
-    ],
-    "output": [
+     "23",
      "29"
     ],
-    "name": "29",
+    "output": [
+     "30"
+    ],
+    "name": "30",
     "opType": "SUB",
     "domain": "",
     "attribute": [],
@@ -466,56 +466,12 @@
    },
    {
     "input": [
-     "21"
+     "22"
     ],
     "output": [
-     "30"
-    ],
-    "name": "30",
-    "opType": "EXTEND",
-    "domain": "",
-    "attribute": [
-     {
-      "name": "tensor",
-      "refAttrName": "",
-      "docString": "",
-      "type": "TENSOR",
-      "f": 0,
-      "i": "0",
-      "s": "",
-      "t": {
-       "dims": [],
-       "dataType": 0,
-       "floatData": [],
-       "int32Data": [],
-       "stringData": [],
-       "int64Data": [],
-       "name": "29",
-       "docString": "",
-       "rawData": "",
-       "externalData": [],
-       "dataLocation": "DEFAULT",
-       "doubleData": [],
-       "uint64Data": []
-      },
-      "floats": [],
-      "ints": [],
-      "strings": [],
-      "tensors": [],
-      "graphs": [],
-      "sparseTensors": []
-     }
-    ],
-    "docString": ""
-   },
-   {
-    "input": [
      "31"
     ],
-    "output": [
-     "32"
-    ],
-    "name": "32",
+    "name": "31",
     "opType": "EXTEND",
     "domain": "",
     "attribute": [
@@ -554,28 +510,58 @@
    },
    {
     "input": [
-     "30",
      "32"
     ],
     "output": [
      "33"
     ],
     "name": "33",
-    "opType": "SUB",
+    "opType": "EXTEND",
     "domain": "",
-    "attribute": [],
+    "attribute": [
+     {
+      "name": "tensor",
+      "refAttrName": "",
+      "docString": "",
+      "type": "TENSOR",
+      "f": 0,
+      "i": "0",
+      "s": "",
+      "t": {
+       "dims": [],
+       "dataType": 0,
+       "floatData": [],
+       "int32Data": [],
+       "stringData": [],
+       "int64Data": [],
+       "name": "31",
+       "docString": "",
+       "rawData": "",
+       "externalData": [],
+       "dataLocation": "DEFAULT",
+       "doubleData": [],
+       "uint64Data": []
+      },
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
     "docString": ""
    },
    {
     "input": [
-     "29",
+     "31",
      "33"
     ],
     "output": [
      "34"
     ],
     "name": "34",
-    "opType": "POW",
+    "opType": "SUB",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -589,20 +575,20 @@
      "35"
     ],
     "name": "35",
-    "opType": "MUL",
+    "opType": "POW",
     "domain": "",
     "attribute": [],
     "docString": ""
    },
    {
     "input": [
-     "35",
-     "36"
+     "31",
+     "35"
     ],
     "output": [
-     "37"
+     "36"
     ],
-    "name": "37",
+    "name": "36",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -616,33 +602,36 @@
      "38"
     ],
     "name": "38",
-    "opType": "NEG",
+    "opType": "CAST",
     "domain": "",
-    "attribute": [],
+    "attribute": [
+     {
+      "name": "dtype",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "RE9VQkxF",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
     "docString": ""
    },
    {
     "input": [
+     "36",
      "38"
     ],
     "output": [
      "39"
     ],
     "name": "39",
-    "opType": "NEG",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "39",
-     "27"
-    ],
-    "output": [
-     "40"
-    ],
-    "name": "40",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -650,14 +639,26 @@
    },
    {
     "input": [
-     "40",
-     "26"
+     "39"
+    ],
+    "output": [
+     "40"
+    ],
+    "name": "40",
+    "opType": "NEG",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "40"
     ],
     "output": [
      "41"
     ],
     "name": "41",
-    "opType": "DIV",
+    "opType": "NEG",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -665,26 +666,12 @@
    {
     "input": [
      "41",
-     "26"
+     "28"
     ],
     "output": [
      "42"
     ],
     "name": "42",
-    "opType": "DIV",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "20",
-     "42"
-    ],
-    "output": [
-     "43"
-    ],
-    "name": "43",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -692,12 +679,54 @@
    },
    {
     "input": [
+     "42",
+     "27"
+    ],
+    "output": [
      "43"
+    ],
+    "name": "43",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "43",
+     "27"
     ],
     "output": [
      "44"
     ],
     "name": "44",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "21",
+     "44"
+    ],
+    "output": [
+     "45"
+    ],
+    "name": "45",
+    "opType": "MUL",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "45"
+    ],
+    "output": [
+     "46"
+    ],
+    "name": "46",
     "opType": "NEG",
     "domain": "",
     "attribute": [],
@@ -705,13 +734,13 @@
    },
    {
     "input": [
-     "44",
-     "14"
+     "46",
+     "15"
     ],
     "output": [
-     "45"
+     "47"
     ],
-    "name": "45",
+    "name": "47",
     "opType": "MATMUL",
     "domain": "",
     "attribute": [
@@ -738,41 +767,13 @@
    },
    {
     "input": [
-     "45"
-    ],
-    "output": [
-     "46"
-    ],
-    "name": "46",
-    "opType": "NEG",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "46",
-     "12"
-    ],
-    "output": [
      "47"
-    ],
-    "name": "47",
-    "opType": "MUL",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "47",
-     "11"
     ],
     "output": [
      "48"
     ],
     "name": "48",
-    "opType": "DIV",
+    "opType": "NEG",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -780,26 +781,12 @@
    {
     "input": [
      "48",
-     "11"
+     "13"
     ],
     "output": [
      "49"
     ],
     "name": "49",
-    "opType": "DIV",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "7",
-     "49"
-    ],
-    "output": [
-     "50"
-    ],
-    "name": "50",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -807,12 +794,54 @@
    },
    {
     "input": [
+     "49",
+     "12"
+    ],
+    "output": [
      "50"
+    ],
+    "name": "50",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "50",
+     "12"
     ],
     "output": [
      "51"
     ],
     "name": "51",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "8",
+     "51"
+    ],
+    "output": [
+     "52"
+    ],
+    "name": "52",
+    "opType": "MUL",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "52"
+    ],
+    "output": [
+     "53"
+    ],
+    "name": "53",
     "opType": "NEG",
     "domain": "",
     "attribute": [],
@@ -820,13 +849,13 @@
    },
    {
     "input": [
-     "51",
-     "0"
+     "53",
+     "1"
     ],
     "output": [
-     "52"
+     "54"
     ],
-    "name": "52",
+    "name": "54",
     "opType": "MATMUL",
     "domain": "",
     "attribute": [
@@ -853,7 +882,7 @@
    },
    {
     "input": [
-     "52"
+     "54"
     ],
     "output": [
      "dw0"
@@ -891,12 +920,12 @@
    },
    {
     "input": [
-     "54"
-    ],
-    "output": [
      "55"
     ],
-    "name": "55",
+    "output": [
+     "56"
+    ],
+    "name": "56",
     "opType": "EXTEND",
     "domain": "",
     "attribute": [
@@ -915,7 +944,7 @@
        "int32Data": [],
        "stringData": [],
        "int64Data": [],
-       "name": "30",
+       "name": "31",
        "docString": "",
        "rawData": "",
        "externalData": [],
@@ -935,28 +964,14 @@
    },
    {
     "input": [
-     "30",
-     "55"
-    ],
-    "output": [
-     "56"
-    ],
-    "name": "56",
-    "opType": "SUB",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "29",
+     "31",
      "56"
     ],
     "output": [
      "57"
     ],
     "name": "57",
-    "opType": "POW",
+    "opType": "SUB",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -970,20 +985,20 @@
      "58"
     ],
     "name": "58",
-    "opType": "MUL",
+    "opType": "POW",
     "domain": "",
     "attribute": [],
     "docString": ""
    },
    {
     "input": [
-     "58",
-     "59"
+     "31",
+     "58"
     ],
     "output": [
-     "60"
+     "59"
     ],
-    "name": "60",
+    "name": "59",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -997,33 +1012,36 @@
      "61"
     ],
     "name": "61",
-    "opType": "NEG",
+    "opType": "CAST",
     "domain": "",
-    "attribute": [],
+    "attribute": [
+     {
+      "name": "dtype",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "RE9VQkxF",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
     "docString": ""
    },
    {
     "input": [
+     "59",
      "61"
     ],
     "output": [
      "62"
     ],
     "name": "62",
-    "opType": "NEG",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "62",
-     "27"
-    ],
-    "output": [
-     "63"
-    ],
-    "name": "63",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -1031,14 +1049,26 @@
    },
    {
     "input": [
-     "63",
-     "26"
+     "62"
+    ],
+    "output": [
+     "63"
+    ],
+    "name": "63",
+    "opType": "NEG",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "63"
     ],
     "output": [
      "64"
     ],
     "name": "64",
-    "opType": "DIV",
+    "opType": "NEG",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -1046,26 +1076,12 @@
    {
     "input": [
      "64",
-     "26"
+     "28"
     ],
     "output": [
      "65"
     ],
     "name": "65",
-    "opType": "DIV",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "20",
-     "65"
-    ],
-    "output": [
-     "66"
-    ],
-    "name": "66",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -1073,12 +1089,54 @@
    },
    {
     "input": [
+     "65",
+     "27"
+    ],
+    "output": [
      "66"
+    ],
+    "name": "66",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "66",
+     "27"
     ],
     "output": [
      "67"
     ],
     "name": "67",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "21",
+     "67"
+    ],
+    "output": [
+     "68"
+    ],
+    "name": "68",
+    "opType": "MUL",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "68"
+    ],
+    "output": [
+     "69"
+    ],
+    "name": "69",
     "opType": "NEG",
     "domain": "",
     "attribute": [],
@@ -1086,13 +1144,13 @@
    },
    {
     "input": [
-     "67",
-     "14"
+     "69",
+     "15"
     ],
     "output": [
-     "68"
+     "70"
     ],
-    "name": "68",
+    "name": "70",
     "opType": "MATMUL",
     "domain": "",
     "attribute": [
@@ -1119,41 +1177,13 @@
    },
    {
     "input": [
-     "68"
-    ],
-    "output": [
-     "69"
-    ],
-    "name": "69",
-    "opType": "NEG",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "69",
-     "12"
-    ],
-    "output": [
      "70"
-    ],
-    "name": "70",
-    "opType": "MUL",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "70",
-     "11"
     ],
     "output": [
      "71"
     ],
     "name": "71",
-    "opType": "DIV",
+    "opType": "NEG",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -1161,26 +1191,12 @@
    {
     "input": [
      "71",
-     "11"
+     "13"
     ],
     "output": [
      "72"
     ],
     "name": "72",
-    "opType": "DIV",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "7",
-     "72"
-    ],
-    "output": [
-     "73"
-    ],
-    "name": "73",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -1188,12 +1204,54 @@
    },
    {
     "input": [
+     "72",
+     "12"
+    ],
+    "output": [
      "73"
+    ],
+    "name": "73",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "73",
+     "12"
     ],
     "output": [
      "74"
     ],
     "name": "74",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "8",
+     "74"
+    ],
+    "output": [
+     "75"
+    ],
+    "name": "75",
+    "opType": "MUL",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "75"
+    ],
+    "output": [
+     "76"
+    ],
+    "name": "76",
     "opType": "NEG",
     "domain": "",
     "attribute": [],
@@ -1201,7 +1259,7 @@
    },
    {
     "input": [
-     "74"
+     "76"
     ],
     "output": [
      "db0"
@@ -1232,12 +1290,12 @@
    },
    {
     "input": [
-     "76"
-    ],
-    "output": [
      "77"
     ],
-    "name": "77",
+    "output": [
+     "78"
+    ],
+    "name": "78",
     "opType": "EXTEND",
     "domain": "",
     "attribute": [
@@ -1256,7 +1314,7 @@
        "int32Data": [],
        "stringData": [],
        "int64Data": [],
-       "name": "30",
+       "name": "31",
        "docString": "",
        "rawData": "",
        "externalData": [],
@@ -1276,28 +1334,14 @@
    },
    {
     "input": [
-     "30",
-     "77"
-    ],
-    "output": [
-     "78"
-    ],
-    "name": "78",
-    "opType": "SUB",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "29",
+     "31",
      "78"
     ],
     "output": [
      "79"
     ],
     "name": "79",
-    "opType": "POW",
+    "opType": "SUB",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -1311,20 +1355,20 @@
      "80"
     ],
     "name": "80",
-    "opType": "MUL",
+    "opType": "POW",
     "domain": "",
     "attribute": [],
     "docString": ""
    },
    {
     "input": [
-     "80",
-     "81"
+     "31",
+     "80"
     ],
     "output": [
-     "82"
+     "81"
     ],
-    "name": "82",
+    "name": "81",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -1338,33 +1382,36 @@
      "83"
     ],
     "name": "83",
-    "opType": "NEG",
+    "opType": "CAST",
     "domain": "",
-    "attribute": [],
+    "attribute": [
+     {
+      "name": "dtype",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "RE9VQkxF",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
     "docString": ""
    },
    {
     "input": [
+     "81",
      "83"
     ],
     "output": [
      "84"
     ],
     "name": "84",
-    "opType": "NEG",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "84",
-     "27"
-    ],
-    "output": [
-     "85"
-    ],
-    "name": "85",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -1372,14 +1419,26 @@
    },
    {
     "input": [
-     "85",
-     "26"
+     "84"
+    ],
+    "output": [
+     "85"
+    ],
+    "name": "85",
+    "opType": "NEG",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "85"
     ],
     "output": [
      "86"
     ],
     "name": "86",
-    "opType": "DIV",
+    "opType": "NEG",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -1387,26 +1446,12 @@
    {
     "input": [
      "86",
-     "26"
+     "28"
     ],
     "output": [
      "87"
     ],
     "name": "87",
-    "opType": "DIV",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "20",
-     "87"
-    ],
-    "output": [
-     "88"
-    ],
-    "name": "88",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -1414,12 +1459,54 @@
    },
    {
     "input": [
+     "87",
+     "27"
+    ],
+    "output": [
      "88"
+    ],
+    "name": "88",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "88",
+     "27"
     ],
     "output": [
      "89"
     ],
     "name": "89",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "21",
+     "89"
+    ],
+    "output": [
+     "90"
+    ],
+    "name": "90",
+    "opType": "MUL",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "90"
+    ],
+    "output": [
+     "91"
+    ],
+    "name": "91",
     "opType": "NEG",
     "domain": "",
     "attribute": [],
@@ -1427,13 +1514,13 @@
    },
    {
     "input": [
-     "89",
-     "13"
+     "91",
+     "14"
     ],
     "output": [
-     "90"
+     "92"
     ],
-    "name": "90",
+    "name": "92",
     "opType": "MATMUL",
     "domain": "",
     "attribute": [
@@ -1460,7 +1547,7 @@
    },
    {
     "input": [
-     "90"
+     "92"
     ],
     "output": [
      "dw1"
@@ -1498,12 +1585,12 @@
    },
    {
     "input": [
-     "92"
-    ],
-    "output": [
      "93"
     ],
-    "name": "93",
+    "output": [
+     "94"
+    ],
+    "name": "94",
     "opType": "EXTEND",
     "domain": "",
     "attribute": [
@@ -1522,7 +1609,7 @@
        "int32Data": [],
        "stringData": [],
        "int64Data": [],
-       "name": "30",
+       "name": "31",
        "docString": "",
        "rawData": "",
        "externalData": [],
@@ -1542,28 +1629,14 @@
    },
    {
     "input": [
-     "30",
-     "93"
-    ],
-    "output": [
-     "94"
-    ],
-    "name": "94",
-    "opType": "SUB",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "29",
+     "31",
      "94"
     ],
     "output": [
      "95"
     ],
     "name": "95",
-    "opType": "POW",
+    "opType": "SUB",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -1577,20 +1650,20 @@
      "96"
     ],
     "name": "96",
-    "opType": "MUL",
+    "opType": "POW",
     "domain": "",
     "attribute": [],
     "docString": ""
    },
    {
     "input": [
-     "96",
-     "97"
+     "31",
+     "96"
     ],
     "output": [
-     "98"
+     "97"
     ],
-    "name": "98",
+    "name": "97",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -1604,33 +1677,36 @@
      "99"
     ],
     "name": "99",
-    "opType": "NEG",
+    "opType": "CAST",
     "domain": "",
-    "attribute": [],
+    "attribute": [
+     {
+      "name": "dtype",
+      "refAttrName": "",
+      "docString": "",
+      "type": "STRING",
+      "f": 0,
+      "i": "0",
+      "s": "RE9VQkxF",
+      "floats": [],
+      "ints": [],
+      "strings": [],
+      "tensors": [],
+      "graphs": [],
+      "sparseTensors": []
+     }
+    ],
     "docString": ""
    },
    {
     "input": [
+     "97",
      "99"
     ],
     "output": [
      "100"
     ],
     "name": "100",
-    "opType": "NEG",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "100",
-     "27"
-    ],
-    "output": [
-     "101"
-    ],
-    "name": "101",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -1638,14 +1714,26 @@
    },
    {
     "input": [
-     "101",
-     "26"
+     "100"
+    ],
+    "output": [
+     "101"
+    ],
+    "name": "101",
+    "opType": "NEG",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "101"
     ],
     "output": [
      "102"
     ],
     "name": "102",
-    "opType": "DIV",
+    "opType": "NEG",
     "domain": "",
     "attribute": [],
     "docString": ""
@@ -1653,26 +1741,12 @@
    {
     "input": [
      "102",
-     "26"
+     "28"
     ],
     "output": [
      "103"
     ],
     "name": "103",
-    "opType": "DIV",
-    "domain": "",
-    "attribute": [],
-    "docString": ""
-   },
-   {
-    "input": [
-     "20",
-     "103"
-    ],
-    "output": [
-     "104"
-    ],
-    "name": "104",
     "opType": "MUL",
     "domain": "",
     "attribute": [],
@@ -1680,12 +1754,54 @@
    },
    {
     "input": [
+     "103",
+     "27"
+    ],
+    "output": [
      "104"
+    ],
+    "name": "104",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "104",
+     "27"
     ],
     "output": [
      "105"
     ],
     "name": "105",
+    "opType": "DIV",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "21",
+     "105"
+    ],
+    "output": [
+     "106"
+    ],
+    "name": "106",
+    "opType": "MUL",
+    "domain": "",
+    "attribute": [],
+    "docString": ""
+   },
+   {
+    "input": [
+     "106"
+    ],
+    "output": [
+     "107"
+    ],
+    "name": "107",
     "opType": "NEG",
     "domain": "",
     "attribute": [],
@@ -1693,7 +1809,7 @@
    },
    {
     "input": [
-     "105"
+     "107"
     ],
     "output": [
      "db1"
@@ -1741,7 +1857,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "0",
+    "name": "1",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -1796,7 +1912,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "1",
+    "name": "2",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -1911,7 +2027,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "3",
+    "name": "4",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -1926,32 +2042,6 @@
      0,
      0,
      0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "8",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     1
     ],
     "uint64Data": []
    },
@@ -1983,6 +2073,32 @@
    },
    {
     "dims": [
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "10",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     1
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
      "5",
      "9",
      "1",
@@ -1997,7 +2113,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "14",
+    "name": "15",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -2067,7 +2183,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "16",
+    "name": "17",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -2097,7 +2213,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "21",
+    "name": "22",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -2123,7 +2239,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "22",
+    "name": "23",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -2144,32 +2260,6 @@
      0,
      0,
      0
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "23",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     1
     ],
     "uint64Data": []
    },
@@ -2215,7 +2305,33 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "31",
+    "name": "25",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     1
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "32",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -2236,17 +2352,8 @@
      "1",
      "1"
     ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "36",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
+    "dataType": 1,
+    "floatData": [
      1,
      1,
      1,
@@ -2263,6 +2370,15 @@
      1,
      1
     ],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "37",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
     "uint64Data": []
    },
    {
@@ -2281,73 +2397,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "54",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     1
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "5",
-     "3",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "59",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
-     1,
-     1,
-     1,
-     1,
-     1,
-     1,
-     1,
-     1,
-     1,
-     1,
-     1,
-     1,
-     1,
-     1,
-     1
-    ],
-    "uint64Data": []
-   },
-   {
-    "dims": [
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1",
-     "1"
-    ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "76",
+    "name": "55",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -2368,17 +2418,8 @@
      "1",
      "1"
     ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "81",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
+    "dataType": 1,
+    "floatData": [
      1,
      1,
      1,
@@ -2395,6 +2436,15 @@
      1,
      1
     ],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "60",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
     "uint64Data": []
    },
    {
@@ -2413,7 +2463,7 @@
     "int32Data": [],
     "stringData": [],
     "int64Data": [],
-    "name": "92",
+    "name": "77",
     "docString": "",
     "rawData": "",
     "externalData": [],
@@ -2434,17 +2484,8 @@
      "1",
      "1"
     ],
-    "dataType": 11,
-    "floatData": [],
-    "int32Data": [],
-    "stringData": [],
-    "int64Data": [],
-    "name": "97",
-    "docString": "",
-    "rawData": "",
-    "externalData": [],
-    "dataLocation": "DEFAULT",
-    "doubleData": [
+    "dataType": 1,
+    "floatData": [
      1,
      1,
      1,
@@ -2461,6 +2502,81 @@
      1,
      1
     ],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "82",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 11,
+    "floatData": [],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "93",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [
+     1
+    ],
+    "uint64Data": []
+   },
+   {
+    "dims": [
+     "5",
+     "3",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1",
+     "1"
+    ],
+    "dataType": 1,
+    "floatData": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1
+    ],
+    "int32Data": [],
+    "stringData": [],
+    "int64Data": [],
+    "name": "98",
+    "docString": "",
+    "rawData": "",
+    "externalData": [],
+    "dataLocation": "DEFAULT",
+    "doubleData": [],
     "uint64Data": []
    }
   ],
@@ -2656,7 +2772,7 @@
   "valueInfo": [],
   "quantizationAnnotation": [
    {
-    "tensorName": "0",
+    "tensorName": "1",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2669,7 +2785,7 @@
     ]
    },
    {
-    "tensorName": "1",
+    "tensorName": "2",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2682,7 +2798,7 @@
     ]
    },
    {
-    "tensorName": "3",
+    "tensorName": "4",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2691,19 +2807,6 @@
      {
       "key": "LEAF_USAGE",
       "value": "variable"
-     }
-    ]
-   },
-   {
-    "tensorName": "8",
-    "quantParameterTensorNames": [
-     {
-      "key": "TENSOR_NAME",
-      "value": "1"
-     },
-     {
-      "key": "LEAF_USAGE",
-      "value": "constant"
      }
     ]
    },
@@ -2721,7 +2824,20 @@
     ]
    },
    {
-    "tensorName": "14",
+    "tensorName": "10",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "1"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "constant"
+     }
+    ]
+   },
+   {
+    "tensorName": "15",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2734,7 +2850,7 @@
     ]
    },
    {
-    "tensorName": "16",
+    "tensorName": "17",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2747,7 +2863,7 @@
     ]
    },
    {
-    "tensorName": "21",
+    "tensorName": "22",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2760,7 +2876,7 @@
     ]
    },
    {
-    "tensorName": "22",
+    "tensorName": "23",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2769,19 +2885,6 @@
      {
       "key": "LEAF_USAGE",
       "value": "variable"
-     }
-    ]
-   },
-   {
-    "tensorName": "23",
-    "quantParameterTensorNames": [
-     {
-      "key": "TENSOR_NAME",
-      "value": "1"
-     },
-     {
-      "key": "LEAF_USAGE",
-      "value": "constant"
      }
     ]
    },
@@ -2799,7 +2902,7 @@
     ]
    },
    {
-    "tensorName": "31",
+    "tensorName": "25",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2812,7 +2915,7 @@
     ]
    },
    {
-    "tensorName": "36",
+    "tensorName": "32",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2825,7 +2928,7 @@
     ]
    },
    {
-    "tensorName": "54",
+    "tensorName": "37",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2838,7 +2941,7 @@
     ]
    },
    {
-    "tensorName": "59",
+    "tensorName": "55",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2851,7 +2954,7 @@
     ]
    },
    {
-    "tensorName": "76",
+    "tensorName": "60",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2864,7 +2967,7 @@
     ]
    },
    {
-    "tensorName": "81",
+    "tensorName": "77",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2877,7 +2980,7 @@
     ]
    },
    {
-    "tensorName": "92",
+    "tensorName": "82",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",
@@ -2890,7 +2993,20 @@
     ]
    },
    {
-    "tensorName": "97",
+    "tensorName": "93",
+    "quantParameterTensorNames": [
+     {
+      "key": "TENSOR_NAME",
+      "value": "1"
+     },
+     {
+      "key": "LEAF_USAGE",
+      "value": "constant"
+     }
+    ]
+   },
+   {
+    "tensorName": "98",
     "quantParameterTensorNames": [
      {
       "key": "TENSOR_NAME",

@@ -1,0 +1,25 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":trainer_hdrs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "trainer_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "trainer",
+    hdrs = [":trainer_hdrs"],
+    copts = ["-std=c++17"],
+    deps = ["//tenncor/layr:layr"],
+    visibility = ["//visibility:public"],
+)

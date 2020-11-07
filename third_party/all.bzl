@@ -7,6 +7,7 @@ load("//third_party:repos/benchmark.bzl", "benchmark_repository")
 load("//third_party:repos/consul.bzl", "consul_repository")
 load("//third_party:repos/curl.bzl", "curl_repository")
 load("//third_party:repos/g3log.bzl", "g3log_repository")
+load("//third_party:repos/onnxds.bzl", "onnxds_repository")
 
 def dependencies(excludes = []):
     ignores = native.existing_rules().keys() + excludes
@@ -37,3 +38,6 @@ def dependencies(excludes = []):
 
     if "com_github_kjellkod_g3log" not in ignores:
         g3log_repository()
+
+    if "com_github_mingkaic_onnxds" not in ignores:
+        onnxds_repository()

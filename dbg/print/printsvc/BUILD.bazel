@@ -1,0 +1,81 @@
+licenses(["notice"])
+
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":printsvc_hdrs",
+        ":printsvc_srcs",
+        ":mock_hdrs",
+        ":mock_srcs",
+        ":protos",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "printsvc_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "printsvc_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "mock_hdrs",
+    srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
+    name = "mock_srcs",
+    srcs = glob(["mock/*.cpp"]),
+)
+
+filegroup(
+    name = "protos",
+    srcs = glob(["*.proto"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "printsvc",
+    hdrs = [":printsvc_hdrs"],
+    srcs = [":printsvc_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":printsvc_cc_grpc",
+        "//dbg/print:print",
+        "//tenncor/distr/iosvc:iosvc",
+        "//tenncor/distr:distr",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "printsvc_pb",
+    srcs = [":protos"],
+    visibility = ["//visibility:public"],
+)
+
+cpp_grpc_library(
+    name = "printsvc_cc_grpc",
+    deps = [":printsvc_pb"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "mock",
+    hdrs = [":mock_hdrs"],
+    srcs = [":mock_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":printsvc",
+        "//tenncor/distr:mock",
+    ],
+    visibility = ["//visibility:public"],
+)

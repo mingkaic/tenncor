@@ -1,20 +1,20 @@
 
-#include "eteq/etens.hpp"
-#include "eteq/variable.hpp"
-
 #ifndef ETEQ_EVARS_HPP
 #define ETEQ_EVARS_HPP
+
+#include "tenncor/eteq/etens.hpp"
+#include "tenncor/eteq/variable.hpp"
 
 namespace eteq
 {
 
 template <typename T>
-struct EVariable final : public ETensor<T>
+struct EVariable final : public ETensor
 {
 	EVariable (void) = default;
 
 	EVariable (VarptrT<T> vars, const global::CfgMapptrT& ctx = global::context()) :
-		ETensor<T>(vars, ctx) {}
+		ETensor(vars, ctx) {}
 
 	friend bool operator == (const EVariable<T>& l, const EVariable<T>& r)
 	{

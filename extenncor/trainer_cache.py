@@ -53,14 +53,13 @@ class CtxCache:
     def recover(self, ctx):
         cache_fpath = os.path.join(self.cache_dir,
             CtxCache._format_cachefile(self.cur_id))
-        try:
+        if os.path.isfile(cache_fpath):
             print('loading model from "{}"'.format(cache_fpath))
             roots = tc.load_context_file(cache_fpath, ctx)
             print('successfully recovered context from "{}"'.format(cache_fpath))
             return roots
-        except Exception as e:
-            print(e)
-            print('failed recover from "{}"'.format(cache_fpath))
+        else:
+            print('no such cache directory "{}"'.format(cache_fpath))
         return None
 
 class EnvManager(metaclass=abc.ABCMeta):

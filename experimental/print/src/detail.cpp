@@ -1,4 +1,4 @@
-#include "teq/ifunctor.hpp"
+#include "internal/teq/ifunctor.hpp"
 
 #include "experimental/print/detail.hpp"
 
@@ -35,7 +35,7 @@ std::string detail_str (teq::iTensor* tens, int64_t attrdepth)
 	std::string out = tens->to_string() + delim + tens->shape().to_string();
 	if (auto f = dynamic_cast<teq::iFunctor*>(tens))
 	{
-		std::vector<std::string> attrstrs = f->ls_attrs();
+		types::StringsT attrstrs = f->ls_attrs();
 		for (const std::string& attrstr : attrstrs)
 		{
 			attrstr += ":" + detail_str(f->get_attr(attrstr), attrdepth);

@@ -11,8 +11,8 @@
 #include <boost/asio/thread_pool.hpp>
 #include <boost/asio/post.hpp>
 
-#include "teq/isession.hpp"
-#include "teq/evaluator.hpp"
+#include "internal/teq/isession.hpp"
+#include "internal/teq/evaluator.hpp"
 
 #include "ccur/partition.hpp"
 

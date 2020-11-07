@@ -1,0 +1,11 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        "//internal/utils/coord:srcs",
+        "//internal/utils/stabilizer:srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)

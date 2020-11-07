@@ -1,4 +1,13 @@
+defines:
+  - EGEN_MINTYPE
+default_type: FLOAT
 dtype:
-  DOUBLE: double
-  FLOAT: float
-  INT32: int32_t
+  DOUBLE:
+    ctype: double
+    precision: 3
+  FLOAT:
+    ctype: float
+    precision: 2
+  INT32:
+    ctype: int32_t
+    precision: 1

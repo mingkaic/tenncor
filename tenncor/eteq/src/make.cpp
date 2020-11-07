@@ -1,45 +1,36 @@
-#include "eteq/make.hpp"
+#include "tenncor/eteq/make.hpp"
 
 #ifdef ETEQ_MAKE_HPP
 
 namespace eteq
 {
 
-teq::TensptrT make_layer (teq::TensptrT root,
-	const std::string& layername, teq::TensptrT input)
+#define _CHOOSE_TYPER(OPCODE)\
+typecode = egen::TypeParser<OPCODE>()(attrs, dtypes);
+
+#define _CHOOSE_FUNCTYPE(REALTYPE)\
+out = make_tfuncattr<REALTYPE>(opcode, children, attrs);
+
+teq::TensptrT make_funcattr (egen::_GENERATED_OPCODE opcode,
+	teq::TensptrsT children, marsh::Maps& attrs)
 {
-	auto f = estd::must_cast<teq::iFunctor>(root.get());
-	if (nullptr != f->get_attr(teq::layer_key))
+	teq::TensptrT out;
+	egen::_GENERATED_DTYPE typecode = egen::BAD_TYPE;
+	eigen::DTypesT dtypes;
+	dtypes.reserve(children.size());
+	std::transform(children.begin(), children.end(), std::back_inserter(dtypes),
+	[](teq::TensptrT child)
 	{
-		global::fatalf("attempting to attach layer attribute to node %s "
-			"with an existing layer attribute", root->to_string().c_str());
-	}
-	f->add_attr(teq::layer_key,
-		std::make_unique<teq::LayerObj>(layername, input));
-	return root;
+		return (egen::_GENERATED_DTYPE) child->get_meta().type_code();
+	});
+	OPCODE_LOOKUP(_CHOOSE_TYPER, opcode);
+	TYPE_LOOKUP(_CHOOSE_FUNCTYPE, typecode);
+	return out;
 }
 
-teq::TensptrT add_dependencies (teq::TensptrT root,
-	teq::TensptrsT dependencies)
-{
-	auto f = estd::must_cast<teq::iFunctor>(root.get());
-	auto deps_attr = dynamic_cast<teq::TensArrayT*>(
-		f->get_attr(dependency_key));
-	if (nullptr == deps_attr)
-	{
-		f->add_attr(dependency_key,
-			std::make_unique<teq::TensArrayT>());
-		deps_attr = static_cast<teq::TensArrayT*>(
-			f->get_attr(dependency_key));
-	}
-	auto& contents = deps_attr->contents_;
-	for (auto& tens : dependencies)
-	{
-		contents.emplace(contents.end(),
-			std::make_unique<teq::TensorObj>(tens));
-	}
-	return root;
-}
+#undef _CHOOSE_TYPER
+
+#undef _CHOOSE_FUNCTYPE
 
 }
 

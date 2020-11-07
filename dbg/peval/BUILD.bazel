@@ -1,0 +1,116 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":peval_hdrs",
+        ":stats_plugin_hdrs",
+        ":gemit_plugin_hdrs",
+        ":gemit_plugin_protos",
+        ":gemit_mock_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "peval_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "stats_plugin_hdrs",
+    srcs = glob(["stats/*.hpp"]),
+)
+
+filegroup(
+    name = "gemit_plugin_hdrs",
+    srcs = glob(["emit/*.hpp"]),
+)
+
+filegroup(
+    name = "gemit_plugin_protos",
+    srcs = glob(["emit/*.proto"]),
+)
+
+filegroup(
+    name = "gemit_mock_srcs",
+    srcs = glob(["emit/mock/*.cpp"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "peval",
+    hdrs = [":peval_hdrs"],
+    copts = ["-std=c++17"],
+    deps = ["//internal/teq:teq"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "stats_plugin",
+    hdrs = [":stats_plugin_hdrs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":peval",
+        "//internal/eigen:eigen",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "gemit_plugin",
+    hdrs = [":gemit_plugin_hdrs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":peval",
+        ":gemitter_cc_grpc",
+        "//tenncor:tenncor",
+        "@boost//:uuid",
+        "@com_github_mingkaic_cppkg//egrpc:egrpc",
+        "@com_github_mingkaic_cppkg//jobs:jobs",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "gemitter_grpc",
+    srcs = [":gemit_plugin_protos"],
+    deps = ["//internal/onnx:onnx_pb"],
+    visibility = ["//visibility:public"],
+)
+
+# cpp_grpc_library(
+#     name = "gemitter_cc_grpc",
+#     deps = [
+#         ":gemitter_grpc",
+#         "//internal/onnx:onnx_pb",
+#     ],
+#     visibility = ["//visibility:public"],
+# )
+
+cc_library(
+    name = "gemitter_cc_grpc",
+    hdrs = [
+        "emit/gemitter.pb.h",
+        "emit/gemitter.grpc.pb.h",
+    ],
+    srcs = [
+        "emit/gemitter.pb.cc",
+        "emit/gemitter.grpc.pb.cc",
+    ],
+    copts = ["-std=c++17"],
+    deps = [
+        "//internal/onnx:onnx_cc_pb",
+        "@com_github_grpc_grpc//:grpc++",
+    ],
+)
+
+######### TEST #########
+
+cc_binary(
+    name = "mockserver",
+    srcs = [":gemit_mock_srcs"],
+    deps = [":gemitter_cc_grpc"],
+)

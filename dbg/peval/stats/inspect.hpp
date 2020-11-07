@@ -1,9 +1,10 @@
-#include "eigen/eigen.hpp"
-
-#include "dbg/peval/plugin_eval.hpp"
 
 #ifndef DBG_STATS_HPP
 #define DBG_STATS_HPP
+
+#include "internal/eigen/eigen.hpp"
+
+#include "dbg/peval/plugin_eval.hpp"
 
 namespace stats
 {

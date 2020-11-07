@@ -6,7 +6,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-import tensorflow_datasets as tfds
+import onnxds.read_dataset as helper
 
 import tenncor as tc
 
@@ -99,7 +99,7 @@ def main(args):
         tc.api.random.rand_binom_one(tc.api.sigmoid(trained.connect(x)))))
 
     n_data = 55000
-    ds = tfds.as_numpy(tfds.load('mnist', split=tfds.Split.TRAIN, batch_size=1))
+    ds = helper.load('models/mnist.onnx')
     mnist_images = []
     for _ in range(n_data):
         image = next(ds)['image']

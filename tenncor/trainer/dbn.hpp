@@ -1,8 +1,9 @@
 
-#include "trainer/rbm.hpp"
-
 #ifndef DBN_TRAINER_HPP
 #define DBN_TRAINER_HPP
+
+#include "tenncor/trainer/rbm.hpp"
+#include "tenncor/trainer/shaped_arr.hpp"
 
 namespace trainer
 {
@@ -12,7 +13,7 @@ namespace trainer
 template <typename T>
 struct DBNTrainer final
 {
-	DBNTrainer (const std::vector<layr::RBMLayer<T>>& rbms, eteq::ETensor<T> dense,
+	DBNTrainer (const std::vector<layr::RBMLayer<T>>& rbms, eteq::ETensor dense,
 		teq::RankT softmax_dim, teq::DimT batch_size,
 		T pretrain_lr = 0.1, T train_lr = 0.1,
 		size_t cdk = 10, T l2_reg = 0., T lr_scaling = 0.95,
@@ -21,7 +22,7 @@ struct DBNTrainer final
 		batch_size_(batch_size),
 		context_(context)
 	{
-		input_size_ = eteq::get_input(rbms.front().fwd_)->shape().at(0);
+		input_size_ = layr::get_input(rbms.front().fwd_)->shape().at(0);
 		output_size_ = dense->shape().at(0);
 
 		teq::Shape inshape({(teq::DimT) input_size_, batch_size});
@@ -37,7 +38,7 @@ struct DBNTrainer final
 			sample_pipes_.push_back(sample_v2h(rbms[i], sample_pipes_[i]));
 		}
 
-		TenncorAPI<T> api(context);
+		TenncorAPI api(context);
 
 		// layer-wise rbm reconstruction
 		teq::TensptrSetT to_track;
@@ -47,8 +48,8 @@ struct DBNTrainer final
 			auto& rx = sample_pipes_[i];
 			auto& ry = sample_pipes_[i + 1];
 			teq::TensSetT to_learn;
-			auto fstorage = eteq::get_storage(rbm.fwd_);
-			auto bstorage = eteq::get_storage(rbm.bwd_);
+			auto fstorage = layr::get_storage<T>(rbm.fwd_);
+			auto bstorage = layr::get_storage<T>(rbm.bwd_);
 			for (auto var : fstorage)
 			{
 				to_learn.emplace(var.get());
@@ -67,9 +68,9 @@ struct DBNTrainer final
 				// if var is a weight or bias add assign with learning rate
 				// otherwise assign directly
 				auto assign = estd::has(to_learn, varerr.first.get()) ?
-					api.assign_add(eteq::EVariable<T>(varerr.first, context),
+					api.assign_add<T>(eteq::EVariable<T>(varerr.first, context),
 						pretrain_lr * varerr.second) :
-					api.assign(eteq::EVariable<T>(varerr.first, context), varerr.second);
+					api.assign<T>(eteq::EVariable<T>(varerr.first, context), varerr.second);
 				assigns.emplace(assign);
 				to_track.emplace(assign);
 			}
@@ -86,14 +87,14 @@ struct DBNTrainer final
 
 		// logistic layer training
 		// todo: improve this adhoc way of training log layer
-		auto contents = eteq::get_storage(dense);
+		auto contents = layr::get_storage<T>(dense);
 		eteq::VarptrT<T> w = contents[0];
 		eteq::VarptrT<T> b = contents[1];
-		auto final_out = api.softmax(eteq::connect(
+		auto final_out = api.softmax(layr::connect(
 			dense, sample_pipes_.back()), softmax_dim, 1);
 		auto diff = trainy_ - final_out;
 		auto l2_regularized = api.matmul(api.transpose(
-			sample_pipes_.back()), diff) - l2_reg * eteq::ETensor<T>(w, context);
+			sample_pipes_.back()), diff) - l2_reg * eteq::ETensor(w, context);
 
 		auto wshape = w->shape();
 		auto bshape = b->shape();
@@ -101,29 +102,28 @@ struct DBNTrainer final
 			train_lr, teq::Shape(), "learning_rate", context);
 		auto dw =
 			api.extend(tlr_placeholder, 0,
-				std::vector<teq::DimT>(wshape.begin(), wshape.end())) *
+				teq::DimsT(wshape.begin(), wshape.end())) *
 			l2_regularized;
 		auto db =
 			api.extend(tlr_placeholder, 0,
-				std::vector<teq::DimT>(bshape.begin(), bshape.end())) *
+				teq::DimsT(bshape.begin(), bshape.end())) *
 			api.reduce_mean_1d(diff, 1);
 		auto dtrain_lr = tlr_placeholder * lr_scaling;
 
-		tupdate_ = api.depends(api.assign(tlr_placeholder, dtrain_lr),
-			eteq::ETensorsT<T>{
-				api.assign_add(eteq::EVariable<T>(w, context), dw),
-				api.assign_add(eteq::EVariable<T>(b, context), db),
-			});
+		tupdate_ = api.assign<T>(tlr_placeholder, api.identity(dtrain_lr, {
+			api.assign_add<T>(eteq::EVariable<T>(w, context), dw),
+			api.assign_add<T>(eteq::EVariable<T>(b, context), db),
+		}));
 		tcost_ = -api.reduce_mean(
 			api.reduce_sum_1d(trainy_ * api.log(final_out) +
 			((T) 1 - trainy_) * api.log((T) 1 - final_out), 0));
 	}
 
-	void pretrain (teq::ShapedArr<T>& train_in, size_t nepochs = 100,
+	void pretrain (trainer::ShapedArr<T>& train_in, size_t nepochs = 100,
 		std::function<void(size_t,size_t)> logger =
 			std::function<void(size_t,size_t)>())
 	{
-		trainx_->assign(train_in, context_);
+		trainx_->assign(train_in.data_.data(), train_in.shape_, context_);
 
 		eigen::Device device;
 		auto& eval = teq::get_eval(global::context());
@@ -156,24 +156,24 @@ struct DBNTrainer final
 		}
 	}
 
-	void finetune (teq::ShapedArr<T>& train_in, teq::ShapedArr<T>& train_out,
+	void finetune (trainer::ShapedArr<T>& train_in, trainer::ShapedArr<T>& train_out,
 		size_t nepochs = 100, std::function<void(size_t)> logger =
 			std::function<void(size_t)>())
 	{
-		trainx_->assign(train_in, context_);
-		trainy_->assign(train_out, context_);
+		trainx_->assign(train_in.data_.data(), train_in.shape_, context_);
+		trainy_->assign(train_out.data_.data(), train_out.shape_, context_);
 
 		eigen::Device device;
 		// assert len(self.sample_pipes) > 1, since self.n_layers > 0
 		auto to_ignore = sample_pipes_.back();
 		auto prev_ignore = sample_pipes_[nlayers_ - 1].get();
 		assert(static_cast<eteq::Functor<T>*>(prev_ignore)->has_data());
-		to_ignore.calc({prev_ignore});
+		to_ignore.template calc<T>({prev_ignore});
 
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)
 		{
 			// train log layer
-			tupdate_.calc({to_ignore.get()});
+			tupdate_.template calc<T>({to_ignore.get()});
 			if (logger)
 			{
 				logger(epoch);
@@ -184,12 +184,12 @@ struct DBNTrainer final
 	T reconstruction_cost (size_t layer)
 	{
 		auto& rcost = rcosts_[layer];
-		return *rcost.calc();
+		return *rcost.template calc<T>();
 	}
 
 	T training_cost (void)
 	{
-		return *tcost_.calc();
+		return *tcost_.template calc<T>();
 	}
 
 	size_t nlayers_;
@@ -204,15 +204,15 @@ struct DBNTrainer final
 
 	eteq::EVariable<T> trainy_;
 
-	eteq::ETensorsT<T> sample_pipes_;
+	eteq::ETensorsT sample_pipes_;
 
 	std::vector<teq::TensptrSetT> rupdates_;
 
-	eteq::ETensor<T> tupdate_;
+	eteq::ETensor tupdate_;
 
-	eteq::ETensorsT<T> rcosts_;
+	eteq::ETensorsT rcosts_;
 
-	eteq::ETensor<T> tcost_;
+	eteq::ETensor tcost_;
 
 	global::CfgMapptrT context_;
 };

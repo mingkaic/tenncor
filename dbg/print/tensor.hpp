@@ -6,13 +6,13 @@
 /// Draw tensor data in python-array format
 ///
 
+#ifndef DBG_TENSOR_HPP
+#define DBG_TENSOR_HPP
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <numeric>
-
-#ifndef DBG_TENSOR_HPP
-#define DBG_TENSOR_HPP
 
 /// Draw data as a multi-dimension array (similar to python) according to shape
 template <typename T>

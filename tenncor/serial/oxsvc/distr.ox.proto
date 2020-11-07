@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+import "internal/onnx/onnx.proto";
+
+package distr.ox;
+
+message GetSaveGraphRequest {
+    repeated string uuids = 1;
+
+    map<string,string> identified = 2; // uuid to id
+
+    repeated string stop_uuids = 3;
+}
+
+message GetSaveGraphResponse {
+    onnx.GraphProto graph = 1;
+
+    map<string,string> topography = 2;
+}
+
+message PostLoadGraphRequest {
+    onnx.GraphProto graph = 1;
+
+    repeated string refs = 2;
+}
+
+message PostLoadGraphResponse {
+    map<string,string> roots = 1;
+}
+
+service DistrSerialization {
+    rpc GetSaveGraph (GetSaveGraphRequest) returns (GetSaveGraphResponse);
+
+    rpc PostLoadGraph (PostLoadGraphRequest) returns (PostLoadGraphResponse);
+}

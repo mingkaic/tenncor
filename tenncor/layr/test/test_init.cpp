@@ -1,20 +1,21 @@
 
-#ifndef DISABLE_INIT_TEST
+#define DISABLE_LAYR_INIT_TEST
+#ifndef DISABLE_LAYR_INIT_TEST
 
 
 #include "gtest/gtest.h"
 
 #include "exam/exam.hpp"
 
-#include "tenncor/tenncor.hpp"
+#include "tenncor/layr/layer.hpp"
 
 
 TEST(INIT, Zero)
 {
-	std::vector<teq::DimT> slist = {18, 9};
+	teq::DimsT slist = {18, 9};
 	std::string label = "abc";
 
-	auto z = tenncor<double>().layer.zero_init()(teq::Shape(slist), label);
+	auto z = tenncor().layer.zero_init<double>()(teq::Shape(slist), label);
 	auto shape = z->shape();
 	ASSERT_ARREQ(slist, shape);
 
@@ -30,13 +31,13 @@ TEST(INIT, Zero)
 
 TEST(INIT, VarianceScaling)
 {
-	std::vector<teq::DimT> slist = {18, 9, 3};
+	teq::DimsT slist = {18, 9, 3};
 	std::string label = "def";
 	double factor = 0.425;
 
-	auto v1 = tenncor<double>().layer.variance_scaling_init(factor)(
+	auto v1 = tenncor().layer.variance_scaling_init<double>(factor)(
 		teq::Shape(slist), label);
-	auto v2 = tenncor<double>().layer.variance_scaling_init(factor,
+	auto v2 = tenncor().layer.variance_scaling_init<double>(factor,
 		[](teq::Shape s){ return s.at(2); })(teq::Shape(slist), label);
 	{
 		auto shape = v1->shape();
@@ -77,11 +78,11 @@ TEST(INIT, VarianceScaling)
 
 TEST(INIT, UniformXavier)
 {
-	std::vector<teq::DimT> slist = {18, 9, 3};
+	teq::DimsT slist = {18, 9, 3};
 	std::string label = "ghi";
 	double factor = 0.712;
 
-	auto x = tenncor<double>().layer.unif_xavier_init(factor)(
+	auto x = tenncor().layer.unif_xavier_init(factor)(
 		teq::Shape(slist), label);
 
 	auto shape = x->shape();
@@ -102,11 +103,11 @@ TEST(INIT, UniformXavier)
 
 // TEST(INIT, NormalXavier)
 // {
-// 	std::vector<teq::DimT> slist = {11, 12, 10};
+// 	teq::DimsT slist = {11, 12, 10};
 // 	std::string label = "jkl";
 // 	double factor = 0.172;
 
-// 	auto x = tenncor<double>().layer.norm_xavier_init(factor)(
+// 	auto x = tenncor().layer.norm_xavier_init(factor)(
 // 		teq::Shape(slist), label);
 
 // 	auto shape = x->shape();
@@ -147,4 +148,4 @@ TEST(INIT, UniformXavier)
 // }
 
 
-#endif // DISABLE_INIT_TEST
+#endif // DISABLE_LAYR_INIT_TEST
