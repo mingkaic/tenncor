@@ -55,11 +55,13 @@ inline std::array<T,N> dim_copy (std::vector<T> d)
 	default: break;\
 } CASE(ARR,8)
 
+template <typename T, size_t N>
+using RsumRetT = Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<Eigen::internal::SumReducer<T>,N,T>>;
+
 #define _EIGEN_RSUM_CASE(ARR, N)\
-return make_eigentensor<T,\
-Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
-Eigen::internal::SumReducer<T>,N,T>>,TensMapT<T>>(\
-outdims, make_tensmap((T*) in.device().data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
+return make_eigentensor<T,RsumRetT<T,N>,TensMapT<T>>(\
+outdims, make_tensmap((T*) in.device().data(), in.shape()),\
+[&ARR, &outdims](TensMapT<T>& in) -> RsumRetT<T,N> {\
 return in.sum(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is sum
@@ -76,11 +78,13 @@ EigenptrT reduce_sum (teq::Shape outshape, const teq::iTensor& in, const marsh::
 
 #undef _EIGEN_RSUM_CASE
 
+template <typename T, size_t N>
+using RprodRetT = Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<Eigen::internal::ProdReducer<T>,N,T>>;
+
 #define _EIGEN_RPROD_CASE(ARR, N)\
-return make_eigentensor<T,\
-Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
-Eigen::internal::ProdReducer<T>,N,T>>,TensMapT<T>>(\
-outdims, make_tensmap((T*) in.device().data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
+return make_eigentensor<T,RprodRetT<T,N>,TensMapT<T>>(\
+outdims, make_tensmap((T*) in.device().data(), in.shape()),\
+[&ARR, &outdims](TensMapT<T>& in) -> RprodRetT<T,N> {\
 return in.prod(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is prod
@@ -97,11 +101,13 @@ EigenptrT reduce_prod (teq::Shape outshape, const teq::iTensor& in, const marsh:
 
 #undef _EIGEN_RPROD_CASE
 
+template <typename T, size_t N>
+using RminRetT = Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<Eigen::internal::MinReducer<T>,N,T>>;
+
 #define _EIGEN_RMIN_CASE(ARR, N)\
-return make_eigentensor<T,\
-Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
-Eigen::internal::MinReducer<T>,N,T>>,TensMapT<T>>(\
-outdims, make_tensmap((T*) in.device().data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
+return make_eigentensor<T,RminRetT<T,N>,TensMapT<T>>(\
+outdims, make_tensmap((T*) in.device().data(), in.shape()),\
+[&ARR, &outdims](TensMapT<T>& in) -> RminRetT<T,N> {\
 return in.minimum(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is min
@@ -118,11 +124,13 @@ EigenptrT reduce_min (teq::Shape outshape, const teq::iTensor& in, const marsh::
 
 #undef _EIGEN_RMIN_CASE
 
+template <typename T, size_t N>
+using RmaxRetT = Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<Eigen::internal::MaxReducer<T>,N,T>>;
+
 #define _EIGEN_RMAX_CASE(ARR, N)\
-return make_eigentensor<T,\
-Eigen::TensorReshapingOp<const DimensionsT,const ReduceOutT<\
-Eigen::internal::MaxReducer<T>,N,T>>,TensMapT<T>>(\
-outdims, make_tensmap((T*) in.device().data(), in.shape()), [&ARR, &outdims](TensMapT<T>& in) {\
+return make_eigentensor<T,RmaxRetT<T,N>,TensMapT<T>>(\
+outdims, make_tensmap((T*) in.device().data(), in.shape()),\
+[&ARR, &outdims](TensMapT<T>& in) -> RmaxRetT<T,N> {\
 return in.maximum(::eigen::internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Return Eigen data object representing reduction where aggregation is max
@@ -139,51 +147,85 @@ EigenptrT reduce_max (teq::Shape outshape, const teq::iTensor& in, const marsh::
 
 #undef _EIGEN_RMAX_CASE
 
-/// Return Eigen data object that argmax in tensor at return_dim
+template <typename T, size_t N>
+using ArgmaxRetT = Eigen::TensorReshapingOp<const DimensionsT,const Eigen::TensorConversionOp<T,
+	const Eigen::TensorTupleReducerOp<Eigen::internal::ArgMaxTupleReducer<
+	Eigen::Tuple<Eigen::Index,T>>,const Eigen::array<Eigen::Index,N>,const TensMapT<T>>>>;
+
+template <typename T>
+struct ArgmaxEigenHelper
+{
+	EigenptrT operator() (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+	{
+		teq::RankT return_dim;
+		Packer<teq::RankT>().unpack(return_dim, attrib);
+
+		DimensionsT outdims = shape_convert(outshape);
+		if (return_dim >= teq::rank_cap)
+		{
+			return make_eigentensor<T,ArgmaxRetT<T,teq::rank_cap>,TensMapT<T>>(
+				outdims, make_tensmap((T*) in.device().data(), in.shape()),
+				[&outdims](TensMapT<T>& in) -> ArgmaxRetT<T,teq::rank_cap>
+				{
+					ArgmaxRetT<T,teq::rank_cap> out = in.argmax().template cast<T>().reshape(outdims);
+					return out;
+				});
+		}
+		return make_eigentensor<T,ArgmaxRetT<T,1>,TensMapT<T>>(
+			outdims, make_tensmap((T*) in.device().data(), in.shape()),
+			[return_dim, &outdims](TensMapT<T>& in) -> ArgmaxRetT<T,1>
+			{
+				return in.argmax(return_dim).template cast<T>().reshape(outdims);
+			});
+	}
+};
+
+template <size_t N>
+using ArgmaxLongRetT = Eigen::TensorReshapingOp<const DimensionsT,
+	const Eigen::TensorTupleReducerOp<Eigen::internal::ArgMaxTupleReducer<
+	Eigen::Tuple<Eigen::Index,int64_t>>,const std::array<Eigen::Index,N>,const TensMapT<int64_t>>>;
+
+template <>
+struct ArgmaxEigenHelper<int64_t>
+{
+	EigenptrT operator() (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
+	{
+		teq::RankT return_dim;
+		Packer<teq::RankT>().unpack(return_dim, attrib);
+
+		DimensionsT outdims = shape_convert(outshape);
+		if (return_dim >= teq::rank_cap)
+		{
+			return make_eigentensor<int64_t,ArgmaxLongRetT<teq::rank_cap>,TensMapT<int64_t>>(
+				outdims, make_tensmap((int64_t*) in.device().data(), in.shape()),
+				[&outdims](TensMapT<int64_t>& in) -> ArgmaxLongRetT<teq::rank_cap>
+				{
+					ArgmaxLongRetT<teq::rank_cap> out = in.argmax().template cast<int64_t>().reshape(outdims);
+					return out;
+				});
+		}
+		return make_eigentensor<int64_t,ArgmaxLongRetT<1>,TensMapT<int64_t>>(
+			outdims, make_tensmap((int64_t*) in.device().data(), in.shape()),
+			[return_dim, &outdims](TensMapT<int64_t>& in) -> ArgmaxLongRetT<1>
+			{
+				return in.argmax(return_dim).template cast<int64_t>().reshape(outdims);
+			});
+	}
+};
+
+/// Return Eigen data object that rgmax in tensor at return_dim
 template <typename T>
 EigenptrT argmax (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
-	teq::RankT return_dim;
-	Packer<teq::RankT>().unpack(return_dim, attrib);
-
-	DimensionsT outdims = shape_convert(outshape);
-	if (return_dim >= teq::rank_cap)
-	{
-		return make_eigentensor<T,Eigen::TensorReshapingOp<
-			const DimensionsT,
-			const Eigen::TensorConversionOp<T,
-				const Eigen::TensorTupleReducerOp<
-					Eigen::internal::ArgMaxTupleReducer<
-						Eigen::Tuple<Eigen::Index,T>>,
-					const Eigen::array<Eigen::Index,teq::rank_cap>,
-					const TensMapT<T>>>>,
-			TensMapT<T>>(
-			outdims, make_tensmap((T*) in.device().data(), in.shape()),
-			[&outdims](TensMapT<T>& in)
-			{
-				return in.argmax().template cast<T>().reshape(outdims);
-			});
-	}
-	return make_eigentensor<T,Eigen::TensorReshapingOp<
-		const DimensionsT,
-		const Eigen::TensorConversionOp<T,
-			const Eigen::TensorTupleReducerOp<
-				Eigen::internal::ArgMaxTupleReducer<
-					Eigen::Tuple<Eigen::Index,T>>,
-				const Eigen::array<Eigen::Index,1>,
-				const TensMapT<T>>>>,
-		TensMapT<T>>(
-		outdims, make_tensmap((T*) in.device().data(), in.shape()),
-		[return_dim, &outdims](TensMapT<T>& in)
-		{
-			return in.argmax(return_dim).template cast<T>().reshape(outdims);
-		});
+	return ArgmaxEigenHelper<T>()(outshape, in, attrib);
 }
 
 /// Return Eigen data object representing data broadcast across dimensions
 template <typename T>
 EigenptrT extend (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
+	using ExtendRetT = Eigen::TensorBroadcastingOp<const teq::ShapeT,const TensMapT<T>>;
+
 	teq::Shape inshape = in.shape();
 	teq::DimsT bcast = *unpack_extend(inshape, attrib);
 
@@ -191,10 +233,9 @@ EigenptrT extend (teq::Shape outshape, const teq::iTensor& in, const marsh::iAtt
 	std::fill(coord.begin(), coord.end(), 1);
 	std::copy(bcast.begin(), bcast.begin() +
 		std::min((size_t) teq::rank_cap, bcast.size()), coord.begin());
-	return make_eigentensor<T,Eigen::TensorBroadcastingOp<
-		const teq::ShapeT,const TensMapT<T>>,TensMapT<T>>(
+	return make_eigentensor<T,ExtendRetT,TensMapT<T>>(
 		shape_convert(outshape), make_tensmap((T*) in.device().data(), inshape),
-		[coord](TensMapT<T>& in)
+		[coord](TensMapT<T>& in) -> ExtendRetT
 		{
 			return in.broadcast(coord);
 		});
@@ -223,19 +264,21 @@ EigenptrT permute (teq::Shape outshape, const teq::iTensor& in, const marsh::iAt
 	auto reorder = internal::dim_copy<teq::rank_cap,teq::RankT>(order);
 	if (is_2d(outshape) && reorder[0] == 1 && reorder[1] == 0)
 	{
+		using TransposeRetT = Eigen::Transpose<MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::Transpose<MatMapT<T>>,
-			MatMapT<T>>(
+		return make_eigenmatrix<T,TransposeRetT,MatMapT<T>>(
 			shape_convert(outshape), make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> TransposeRetT
 			{
 				return in.transpose();
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorShufflingOp<
-		const std::array<teq::RankT,teq::rank_cap>,TensMapT<T>>,TensMapT<T>>(
+	using PermuteRetT = Eigen::TensorShufflingOp<const std::array<teq::RankT,teq::rank_cap>,TensMapT<T>>;	
+
+	return make_eigentensor<T,PermuteRetT,TensMapT<T>>(
 		shape_convert(outshape), make_tensmap((T*) in.device().data(), in.shape()),
-		[reorder](TensMapT<T>& in)
+		[reorder](TensMapT<T>& in) -> PermuteRetT
 		{
 			return in.shuffle(reorder);
 		});
@@ -247,13 +290,16 @@ EigenptrT reshape (teq::Shape outshape, const teq::iTensor& in)
 {
 	return make_eigentensor<T,TensMapT<T>,TensMapT<T>>(
 		shape_convert(outshape), make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in){ return in; });
+		[](TensMapT<T>& in) -> TensMapT<T> { return in; });
 }
 
 /// Return Eigen data object representing data slicing of dimensions
 template <typename T>
 EigenptrT slice (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
+	using SliceRetT = Eigen::TensorReshapingOp<const DimensionsT,
+		Eigen::TensorSlicingOp<const teq::ShapeT, const teq::ShapeT,TensMapT<T>>>;
+
 	PairVecT<teq::DimT> encoding;
 	Packer<PairVecT<teq::DimT>>().unpack(encoding, attrib);
 
@@ -284,13 +330,9 @@ EigenptrT slice (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttr
 			(T*) in.device().data() + index * batchsize);
 	}
 	DimensionsT outdims = shape_convert(outshape);
-	return make_eigentensor<T,Eigen::TensorReshapingOp<
-		const DimensionsT, Eigen::TensorSlicingOp<
-			const teq::ShapeT, const teq::ShapeT,
-			TensMapT<T>>>,
-		TensMapT<T>>(
+	return make_eigentensor<T,SliceRetT,TensMapT<T>>(
 		outdims, make_tensmap((T*) in.device().data(), shape),
-		[&offsets, &extents, &outdims](TensMapT<T>& in)
+		[&offsets, &extents, &outdims](TensMapT<T>& in) -> SliceRetT
 		{
 			return in.slice(offsets, extents).reshape(outdims);
 		});
@@ -300,6 +342,9 @@ EigenptrT slice (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttr
 template <typename T>
 EigenptrT pad (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
+	using PadRetT = Eigen::TensorPaddingOp<const std::array<
+		std::pair<teq::DimT,teq::DimT>,teq::rank_cap>,const TensMapT<T>>;
+
 	PairVecT<teq::DimT> encoding;
 	Packer<PairVecT<teq::DimT>>().unpack(encoding, attrib);
 
@@ -309,13 +354,9 @@ EigenptrT pad (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttrib
 	std::copy(encoding.begin(), encoding.begin() +
 		std::min((size_t) teq::rank_cap, encoding.size()),
 		paddings.begin());
-	return make_eigentensor<T,Eigen::TensorPaddingOp<
-			const std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap>,
-			const TensMapT<T>
-		>,
-		TensMapT<T>>(
+	return make_eigentensor<T,PadRetT,TensMapT<T>>(
 		shape_convert(outshape), make_tensmap((T*) in.device().data(), in.shape()),
-		[&paddings](TensMapT<T>& in)
+		[&paddings](TensMapT<T>& in) -> PadRetT
 		{
 			return in.pad(paddings);
 		});
@@ -325,6 +366,9 @@ EigenptrT pad (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttrib
 template <typename T>
 EigenptrT stride (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
+	using StrideRetT = Eigen::TensorStridingOp<const Eigen::array<
+		Eigen::DenseIndex,teq::rank_cap>,TensMapT<T>>;
+
 	teq::DimsT c;
 	Packer<teq::DimsT>().unpack(c, attrib);
 
@@ -332,13 +376,9 @@ EigenptrT stride (teq::Shape outshape, const teq::iTensor& in, const marsh::iAtt
 	std::fill(incrs.begin(), incrs.end(), 1);
 	std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap, c.size()),
 		incrs.begin());
-	return make_eigentensor<T,Eigen::TensorStridingOp<
-			const Eigen::array<Eigen::DenseIndex,teq::rank_cap>,
-			TensMapT<T>
-		>,
-		TensMapT<T>>(
+	return make_eigentensor<T,StrideRetT,TensMapT<T>>(
 		shape_convert(outshape), make_tensmap((T*) in.device().data(), in.shape()),
-		[&incrs](TensMapT<T>& in)
+		[&incrs](TensMapT<T>& in) -> StrideRetT
 		{
 			return in.stride(incrs);
 		});
@@ -368,6 +408,9 @@ EigenptrT scatter (teq::Shape outshape, const teq::iTensor& in, const marsh::iAt
 template <typename T>
 EigenptrT reverse (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
+	using ReverseRetT = Eigen::TensorReverseOp<const std::array<
+		bool,teq::rank_cap>,TensMapT<T>>;
+
 	std::set<teq::RankT> dims;
 	Packer<std::set<teq::RankT>>().unpack(dims, attrib);
 
@@ -377,13 +420,9 @@ EigenptrT reverse (teq::Shape outshape, const teq::iTensor& in, const marsh::iAt
 	{
 		do_reverse[i] = true;
 	}
-	return make_eigentensor<T,Eigen::TensorReverseOp<
-			const std::array<bool,teq::rank_cap>,
-			TensMapT<T>
-		>,
-		TensMapT<T>>(
+	return make_eigentensor<T,ReverseRetT,TensMapT<T>>(
 		shape_convert(outshape), make_tensmap((T*) in.device().data(), in.shape()),
-		[&do_reverse](TensMapT<T>& in)
+		[&do_reverse](TensMapT<T>& in) -> ReverseRetT
 		{
 			return in.reverse(do_reverse);
 		});
@@ -397,16 +436,16 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 	Packer<teq::RankT>().unpack(axis, attrib);
 	if (group.size() == 2)
 	{
+		using ConcatRetT = Eigen::TensorConcatenationOp<
+			const teq::RankT,TensMapT<T>,TensMapT<T>>;
+
 		const teq::TensptrT& left = group[0];
 		const teq::TensptrT& right = group[1];
-		return make_eigentensor<T,
-			Eigen::TensorConcatenationOp<
-				const teq::RankT,TensMapT<T>,TensMapT<T>>,
-			std::vector<TensMapT<T>>>(
+		return make_eigentensor<T,ConcatRetT,std::vector<TensMapT<T>>>(
 			shape_convert(outshape), {
 				make_tensmap((T*) left->device().data(), left->shape()),
 				make_tensmap((T*) right->device().data(), right->shape())},
-			[axis](std::vector<TensMapT<T>>& args)
+			[axis](std::vector<TensMapT<T>>& args) -> ConcatRetT
 			{
 				return args[0].concatenate(args[1], axis);
 			});
@@ -448,21 +487,23 @@ EigenptrT abs (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
+		using AbsMatRetT = Eigen::CwiseUnaryOp<
+			Eigen::internal::scalar_abs_op<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
-			Eigen::internal::scalar_abs_op<T>,const MatMapT<T>>,
-			MatMapT<T>>(shape_convert(outshape),
+		return make_eigenmatrix<T,AbsMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> AbsMatRetT
 			{
 				return in.cwiseAbs();
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		Eigen::internal::scalar_abs_op<T>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using AbsTensRetT = Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_abs_op<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,AbsTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> AbsTensRetT
 		{
 			return in.abs();
 		});
@@ -475,21 +516,23 @@ EigenptrT neg (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
+		using NegMatRetT = Eigen::CwiseUnaryOp<
+			Eigen::internal::scalar_opposite_op<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
-			Eigen::internal::scalar_opposite_op<T>,const MatMapT<T>>,
-			MatMapT<T>>(shape_convert(outshape),
+		return make_eigenmatrix<T,NegMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> NegMatRetT
 			{
 				return -in;
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		Eigen::internal::scalar_opposite_op<T>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using NegTensRetT = Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_opposite_op<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,NegTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> NegTensRetT
 		{
 			return -in;
 		});
@@ -505,23 +548,24 @@ EigenptrT sin (teq::Shape outshape, const teq::iTensor& in)
 	{
 		if (is_2d(outshape))
 		{
+			using SinMatRetT = typename Eigen::ArrayWrapper<MatMapT<T>>::SinReturnType;
+
 			// use matrix when possible
-			return make_eigenmatrix<T,
-				typename Eigen::ArrayWrapper<MatMapT<T>>::SinReturnType,
-				MatMapT<T>>(shape_convert(outshape),
+			return make_eigenmatrix<T,SinMatRetT,MatMapT<T>>(shape_convert(outshape),
 				make_matmap((T*) in.device().data(), in.shape()),
-				[](MatMapT<T>& in)
+				[](MatMapT<T>& in) -> SinMatRetT
 				{
 					return in.array().sin();
 				});
 		}
 	}
 #endif
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		std::function<T(const T&)>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using SinTensRetT = Eigen::TensorCwiseUnaryOp<
+		std::function<T(const T&)>,const TensMapT<T>>;
+
+	return make_eigentensor<T,SinTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> SinTensRetT
 		{
 			return in.unaryExpr(std::function<T(const T&)>(
 				[](const T& a) -> T
@@ -541,23 +585,24 @@ EigenptrT cos (teq::Shape outshape, const teq::iTensor& in)
 	{
 		if (is_2d(outshape))
 		{
+			using CosMatRetT = typename Eigen::ArrayWrapper<MatMapT<T>>::CosReturnType;
+
 			// use matrix when possible
-			return make_eigenmatrix<T,
-				typename Eigen::ArrayWrapper<MatMapT<T>>::CosReturnType,
-				MatMapT<T>>(shape_convert(outshape),
+			return make_eigenmatrix<T,CosMatRetT,MatMapT<T>>(shape_convert(outshape),
 				make_matmap((T*) in.device().data(), in.shape()),
-				[](MatMapT<T>& in)
+				[](MatMapT<T>& in) -> CosMatRetT
 				{
 					return in.array().cos();
 				});
 		}
 	}
 #endif
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		std::function<T(const T&)>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using CosTensRetT = Eigen::TensorCwiseUnaryOp<
+		std::function<T(const T&)>,const TensMapT<T>>;
+
+	return make_eigentensor<T,CosTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> CosTensRetT
 		{
 			return in.unaryExpr(std::function<T(const T&)>(
 				[](const T& a) -> T
@@ -574,21 +619,22 @@ EigenptrT tan (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
+		using TanMatRetT = typename Eigen::ArrayWrapper<MatMapT<T>>::TanReturnType;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,
-			typename Eigen::ArrayWrapper<MatMapT<T>>::TanReturnType,
-			MatMapT<T>>(shape_convert(outshape),
+		return make_eigenmatrix<T,TanMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> TanMatRetT
 			{
 				return in.array().tan();
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		std::function<T(const T&)>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using TanTensRetT = Eigen::TensorCwiseUnaryOp<
+		std::function<T(const T&)>,const TensMapT<T>>;
+
+	return make_eigentensor<T,TanTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> TanTensRetT
 		{
 			return in.unaryExpr(std::function<T(const T&)>(
 				[](const T& a) -> T
@@ -605,21 +651,22 @@ EigenptrT exp (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
+		using ExpMatRetT = typename Eigen::ArrayWrapper<MatMapT<T>>::ExpReturnType;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,
-			typename Eigen::ArrayWrapper<MatMapT<T>>::ExpReturnType,
-			MatMapT<T>>(shape_convert(outshape),
+		return make_eigenmatrix<T,ExpMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> ExpMatRetT
 			{
 				return in.array().exp();
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		Eigen::internal::scalar_exp_op<T>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using ExpTensRetT = Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_exp_op<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,ExpTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> ExpTensRetT
 		{
 			return in.exp();
 		});
@@ -632,21 +679,22 @@ EigenptrT log (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
+		using LogMatRetT = typename Eigen::ArrayWrapper<MatMapT<T>>::LogReturnType;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,
-			typename Eigen::ArrayWrapper<MatMapT<T>>::LogReturnType,
-			MatMapT<T>>(shape_convert(outshape),
+		return make_eigenmatrix<T,LogMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> LogMatRetT
 			{
 				return in.array().log();
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		Eigen::internal::scalar_log_op<T>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using LogTensRetT = Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_log_op<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,LogTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> LogTensRetT
 		{
 			return in.log();
 		});
@@ -659,21 +707,23 @@ EigenptrT sqrt (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
+		using SqrtMatRetT = Eigen::CwiseUnaryOp<
+			Eigen::internal::scalar_sqrt_op<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
-			Eigen::internal::scalar_sqrt_op<T>,const MatMapT<T>>,
-			MatMapT<T>>(shape_convert(outshape),
+		return make_eigenmatrix<T,SqrtMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> SqrtMatRetT
 			{
 				return in.cwiseSqrt();
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		Eigen::internal::scalar_sqrt_op<T>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using SqrtTensRetT = Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_sqrt_op<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,SqrtTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> SqrtTensRetT
 		{
 			return in.sqrt();
 		});
@@ -686,21 +736,22 @@ EigenptrT round (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
+		using RoundMatRetT = typename Eigen::ArrayWrapper<MatMapT<T>>::RoundReturnType;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,
-			typename Eigen::ArrayWrapper<MatMapT<T>>::RoundReturnType,
-			MatMapT<T>>(shape_convert(outshape),
+		return make_eigenmatrix<T,RoundMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> RoundMatRetT
 			{
 				return in.array().round();
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		Eigen::internal::scalar_round_op<T>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using RoundTensRetT = Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_round_op<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,RoundTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> RoundTensRetT
 		{
 			return in.round();
 		});
@@ -711,21 +762,23 @@ EigenptrT sigmoid (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
+		using SigmoidMatRetT = Eigen::CwiseUnaryOp<
+			Eigen::internal::scalar_logistic_op<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
-			Eigen::internal::scalar_logistic_op<T>,const MatMapT<T>>,
-			MatMapT<T>>(shape_convert(outshape),
+		return make_eigenmatrix<T,SigmoidMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> SigmoidMatRetT
 			{
 				return in.unaryExpr(Eigen::internal::scalar_logistic_op<T>());
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		Eigen::internal::scalar_logistic_op<T>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using SigmoidTensRetT = Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_logistic_op<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,SigmoidTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> SigmoidTensRetT
 		{
 			return in.sigmoid();
 		});
@@ -736,21 +789,23 @@ EigenptrT tanh (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
+		using TanhMatRetT = Eigen::CwiseUnaryOp<
+			Eigen::internal::scalar_tanh_op<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
-			Eigen::internal::scalar_tanh_op<T>,const MatMapT<T>>,
-			MatMapT<T>>(shape_convert(outshape),
+		return make_eigenmatrix<T,TanhMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> TanhMatRetT
 			{
 				return in.unaryExpr(Eigen::internal::scalar_tanh_op<T>());
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		Eigen::internal::scalar_tanh_op<T>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using TanhTensRetT = Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_tanh_op<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,TanhTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> TanhTensRetT
 		{
 			return in.tanh();
 		});
@@ -761,21 +816,23 @@ EigenptrT square (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
+		using SquareMatRetT = Eigen::CwiseUnaryOp<
+			Eigen::internal::scalar_square_op<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
-			Eigen::internal::scalar_square_op<T>,const MatMapT<T>>,
-			MatMapT<T>>(shape_convert(outshape),
+		return make_eigenmatrix<T,SquareMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> SquareMatRetT
 			{
 				return in.unaryExpr(Eigen::internal::scalar_square_op<T>());
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		Eigen::internal::scalar_square_op<T>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using SquareTensRetT = Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_square_op<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,SquareTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> SquareTensRetT
 		{
 			return in.square();
 		});
@@ -786,21 +843,23 @@ EigenptrT cube (teq::Shape outshape, const teq::iTensor& in)
 {
 	if (is_2d(outshape))
 	{
+		using CubeMatRetT = Eigen::CwiseUnaryOp<
+			Eigen::internal::scalar_cube_op<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseUnaryOp<
-			Eigen::internal::scalar_cube_op<T>,const MatMapT<T>>,
-			MatMapT<T>>(shape_convert(outshape),
+		return make_eigenmatrix<T,CubeMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
-			[](MatMapT<T>& in)
+			[](MatMapT<T>& in) -> CubeMatRetT
 			{
 				return in.unaryExpr(Eigen::internal::scalar_cube_op<T>());
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseUnaryOp<
-		Eigen::internal::scalar_cube_op<T>,const TensMapT<T>>,
-		TensMapT<T>>(shape_convert(outshape),
+	using CubeTensRetT = Eigen::TensorCwiseUnaryOp<
+		Eigen::internal::scalar_cube_op<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,CubeTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
-		[](TensMapT<T>& in)
+		[](TensMapT<T>& in) -> CubeTensRetT
 		{
 			return in.cube();
 		});
@@ -814,14 +873,14 @@ EigenptrT pow (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 {
 	if (is_2d(outshape))
 	{
+		using PowMatRetT = Eigen::CwiseBinaryOp<std::function<
+			T(const T&,const T&)>,const MatMapT<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-			std::function<T(const T&,const T&)>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+		return make_eigenmatrix<T,PowMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> PowMatRetT
 			{
 				return args[0].binaryExpr(args[1],
 					std::function<T(const T&,const T&)>(
@@ -831,13 +890,13 @@ EigenptrT pow (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 					}));
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		std::function<T(const T&,const T&)>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using PowTensRetT = Eigen::TensorCwiseBinaryOp<std::function<
+		T(const T&,const T&)>,const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,PowTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) a.device().data(), a.shape()),
 			make_tensmap((T*) b.device().data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> PowTensRetT
 		{
 			return args[0].binaryExpr(args[1],
 				std::function<T(const T&,const T&)>(
@@ -858,25 +917,25 @@ EigenptrT add (teq::Shape outshape, const teq::TensptrsT& group)
 		const teq::TensptrT& b = group[1];
 		if (is_2d(outshape))
 		{
+			using AddMatRetT = Eigen::CwiseBinaryOp<
+				Eigen::internal::scalar_sum_op<T>,const MatMapT<T>,const MatMapT<T>>;
+
 			// use matrix when possible
-			return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-				Eigen::internal::scalar_sum_op<T>,
-				const MatMapT<T>,const MatMapT<T>>,
-				std::vector<MatMapT<T>>>(shape_convert(outshape), {
+			return make_eigenmatrix<T,AddMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 					make_matmap((T*) a->device().data(), a->shape()),
 					make_matmap((T*) b->device().data(), b->shape())},
-				[](std::vector<MatMapT<T>>& args)
+				[](std::vector<MatMapT<T>>& args) -> AddMatRetT
 				{
 					return args[0] + args[1];
 				});
 		}
-		return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-			Eigen::internal::scalar_sum_op<T>,
-			const TensMapT<T>,const TensMapT<T>>,
-			std::vector<TensMapT<T>>>(shape_convert(outshape), {
+		using AddTensRetT = Eigen::TensorCwiseBinaryOp<
+			Eigen::internal::scalar_sum_op<T>,const TensMapT<T>,const TensMapT<T>>;
+
+		return make_eigentensor<T,AddTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 				make_tensmap((T*) a->device().data(), a->shape()),
 				make_tensmap((T*) b->device().data(), b->shape())},
-			[](std::vector<TensMapT<T>>& args)
+			[](std::vector<TensMapT<T>>& args) -> AddTensRetT
 			{
 				return args[0] + args[1];
 			});
@@ -907,25 +966,25 @@ EigenptrT sub (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 {
 	if (is_2d(outshape))
 	{
+		using SubMatRetT = Eigen::CwiseBinaryOp<
+			Eigen::internal::scalar_difference_op<T>,const MatMapT<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-			Eigen::internal::scalar_difference_op<T>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+		return make_eigenmatrix<T,SubMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> SubMatRetT
 			{
 				return args[0] - args[1];
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		Eigen::internal::scalar_difference_op<T>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using SubTensRetT = Eigen::TensorCwiseBinaryOp<
+		Eigen::internal::scalar_difference_op<T>,const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,SubTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) a.device().data(), a.shape()),
 			make_tensmap((T*) b.device().data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> SubTensRetT
 		{
 			return args[0] - args[1];
 		});
@@ -941,25 +1000,25 @@ EigenptrT mul (teq::Shape outshape, const teq::TensptrsT& group)
 		const teq::TensptrT& b = group[1];
 		if (is_2d(outshape))
 		{
+			using MulMatRetT = Eigen::CwiseBinaryOp<
+				Eigen::internal::scalar_product_op<T>,const MatMapT<T>,const MatMapT<T>>;
+
 			// use matrix when possible
-			return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-				Eigen::internal::scalar_product_op<T>,
-				const MatMapT<T>,const MatMapT<T>>,
-				std::vector<MatMapT<T>>>(shape_convert(outshape), {
+			return make_eigenmatrix<T,MulMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 					make_matmap((T*) a->device().data(), a->shape()),
 					make_matmap((T*) b->device().data(), b->shape())},
-				[](std::vector<MatMapT<T>>& args)
+				[](std::vector<MatMapT<T>>& args) -> MulMatRetT
 				{
 					return args[0].cwiseProduct(args[1]);
 				});
 		}
-		return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-			Eigen::internal::scalar_product_op<T>,
-			const TensMapT<T>,const TensMapT<T>>,
-			std::vector<TensMapT<T>>>(shape_convert(outshape), {
+		using MulTensRetT = Eigen::TensorCwiseBinaryOp<
+			Eigen::internal::scalar_product_op<T>,const TensMapT<T>,const TensMapT<T>>;
+
+		return make_eigentensor<T,MulTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 				make_tensmap((T*) a->device().data(), a->shape()),
 				make_tensmap((T*) b->device().data(), b->shape())},
-			[](std::vector<TensMapT<T>>& args)
+			[](std::vector<TensMapT<T>>& args) -> MulTensRetT
 			{
 				return args[0] * args[1];
 			});
@@ -990,25 +1049,25 @@ EigenptrT div (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 {
 	if (is_2d(outshape))
 	{
+		using DivMatRetT = Eigen::CwiseBinaryOp<
+			Eigen::internal::scalar_quotient_op<T>,const MatMapT<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-			Eigen::internal::scalar_quotient_op<T>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+		return make_eigenmatrix<T,DivMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> DivMatRetT
 			{
 				return args[0].cwiseQuotient(args[1]);
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		Eigen::internal::scalar_quotient_op<T>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using DivTensRetT = Eigen::TensorCwiseBinaryOp<
+		Eigen::internal::scalar_quotient_op<T>,const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,DivTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) a.device().data(), a.shape()),
 			make_tensmap((T*) b.device().data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> DivTensRetT
 		{
 			return args[0] / args[1];
 		});
@@ -1022,14 +1081,14 @@ EigenptrT eq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
+		using EqMatRetT = Eigen::CwiseBinaryOp<std::function<
+			T(const T&,const T&)>,const MatMapT<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-			std::function<T(const T&,const T&)>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+		return make_eigenmatrix<T,EqMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> EqMatRetT
 			{
 				return args[0].binaryExpr(args[1],
 					std::function<T(const T&,const T&)>(
@@ -1039,13 +1098,13 @@ EigenptrT eq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 					}));
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		std::function<T(const T&,const T&)>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using EqTensRetT = Eigen::TensorCwiseBinaryOp<std::function<
+		T(const T&,const T&)>,const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,EqTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) a.device().data(), a.shape()),
 			make_tensmap((T*) b.device().data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> EqTensRetT
 		{
 			return args[0].binaryExpr(args[1],
 				std::function<T(const T&,const T&)>(
@@ -1064,14 +1123,14 @@ EigenptrT neq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 {
 	if (is_2d(outshape))
 	{
+		using NeqMatRetT = Eigen::CwiseBinaryOp<std::function<
+			T(const T&,const T&)>,const MatMapT<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-			std::function<T(const T&,const T&)>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+		return make_eigenmatrix<T,NeqMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> NeqMatRetT
 			{
 				return args[0].binaryExpr(args[1],
 					std::function<T(const T&,const T&)>(
@@ -1081,13 +1140,13 @@ EigenptrT neq (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 					}));
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		std::function<T(const T&,const T&)>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using NeqTensRetT = Eigen::TensorCwiseBinaryOp<std::function<
+		T(const T&,const T&)>,const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,NeqTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) a.device().data(), a.shape()),
 			make_tensmap((T*) b.device().data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> NeqTensRetT
 		{
 			return args[0].binaryExpr(args[1],
 				std::function<T(const T&,const T&)>(
@@ -1106,14 +1165,14 @@ EigenptrT lt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
+		using LtMatRetT = Eigen::CwiseBinaryOp<std::function<
+			T(const T&,const T&)>,const MatMapT<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-			std::function<T(const T&,const T&)>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+		return make_eigenmatrix<T,LtMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> LtMatRetT
 			{
 				return args[0].binaryExpr(args[1],
 					std::function<T(const T&,const T&)>(
@@ -1123,13 +1182,13 @@ EigenptrT lt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 					}));
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		std::function<T(const T&,const T&)>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using LtTensRetT = Eigen::TensorCwiseBinaryOp<std::function<
+		T(const T&,const T&)>,const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,LtTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) a.device().data(), a.shape()),
 			make_tensmap((T*) b.device().data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> LtTensRetT
 		{
 			return args[0].binaryExpr(args[1],
 				std::function<T(const T&,const T&)>(
@@ -1148,14 +1207,14 @@ EigenptrT gt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
 	if (is_2d(outshape))
 	{
+		using GtMatRetT = Eigen::CwiseBinaryOp<std::function<
+			T(const T&,const T&)>,const MatMapT<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-			std::function<T(const T&,const T&)>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+		return make_eigenmatrix<T,GtMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> GtMatRetT
 			{
 				return args[0].binaryExpr(args[1],
 					std::function<T(const T&,const T&)>(
@@ -1165,13 +1224,13 @@ EigenptrT gt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 					}));
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		std::function<T(const T&,const T&)>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using GtTensRetT = Eigen::TensorCwiseBinaryOp<std::function<
+		T(const T&,const T&)>,const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,GtTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) a.device().data(), a.shape()),
 			make_tensmap((T*) b.device().data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> GtTensRetT
 		{
 			return args[0].binaryExpr(args[1],
 				std::function<T(const T&,const T&)>(
@@ -1189,25 +1248,25 @@ EigenptrT min (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 {
 	if (is_2d(outshape))
 	{
+		using MinMatRetT = Eigen::CwiseBinaryOp<
+			Eigen::internal::scalar_min_op<T,T>,const MatMapT<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-			Eigen::internal::scalar_min_op<T,T>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+		return make_eigenmatrix<T,MinMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> MinMatRetT
 			{
 				return args[0].cwiseMin(args[1]);
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		Eigen::internal::scalar_min_op<T>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using MinTensRetT = Eigen::TensorCwiseBinaryOp<
+		Eigen::internal::scalar_min_op<T>,const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,MinTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) a.device().data(), a.shape()),
 			make_tensmap((T*) b.device().data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> MinTensRetT
 		{
 			return args[0].cwiseMin(args[1]);
 		});
@@ -1220,25 +1279,25 @@ EigenptrT max (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 {
 	if (is_2d(outshape))
 	{
+		using MaxMatRetT = Eigen::CwiseBinaryOp<
+			Eigen::internal::scalar_max_op<T,T>,const MatMapT<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-			Eigen::internal::scalar_max_op<T,T>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+		return make_eigenmatrix<T,MaxMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> MaxMatRetT
 			{
 				return args[0].cwiseMax(args[1]);
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		Eigen::internal::scalar_max_op<T>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using MaxTensRetT = Eigen::TensorCwiseBinaryOp<
+		Eigen::internal::scalar_max_op<T>,const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,MaxTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) a.device().data(), a.shape()),
 			make_tensmap((T*) b.device().data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> MaxTensRetT
 		{
 			return args[0].cwiseMax(args[1]);
 		});
@@ -1252,14 +1311,14 @@ EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::i
 {
 	if (is_2d(outshape))
 	{
+		using RUnifIntMatRetT = Eigen::CwiseBinaryOp<std::function<
+			T(const T&,const T&)>,const MatMapT<T>,const MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
-			std::function<T(const T&,const T&)>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+		return make_eigenmatrix<T,RUnifIntMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> RUnifIntMatRetT
 			{
 				auto generator = global::get_generator();
 				return args[0].binaryExpr(args[1],
@@ -1268,13 +1327,13 @@ EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::i
 						{ return generator->unif_int(a, b); }));
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		std::function<T(const T&,const T&)>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using RUnifIntTensRetT = Eigen::TensorCwiseBinaryOp<std::function<
+		T(const T&,const T&)>,const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,RUnifIntTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) a.device().data(), a.shape()),
 			make_tensmap((T*) b.device().data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> RUnifIntTensRetT
 		{
 			auto generator = global::get_generator();
 			return args[0].binaryExpr(args[1],
@@ -1289,14 +1348,15 @@ EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::i
 {
 	if (is_2d(outshape))
 	{
-		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::CwiseBinaryOp<
+		using RUnifDecMatRetT = Eigen::CwiseBinaryOp<
 			std::function<T(const T&,const T&)>,
-			const MatMapT<T>,const MatMapT<T>>,
-			std::vector<MatMapT<T>>>(shape_convert(outshape), {
+			const MatMapT<T>,const MatMapT<T>>;
+
+		// use matrix when possible
+		return make_eigenmatrix<T,RUnifDecMatRetT,std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> RUnifDecMatRetT
 			{
 				auto generator = global::get_generator();
 				return args[0].binaryExpr(args[1],
@@ -1305,13 +1365,13 @@ EigenptrT rand_uniform (teq::Shape outshape, const teq::iTensor& a, const teq::i
 						{ return generator->unif_dec(a, b); }));
 			});
 	}
-	return make_eigentensor<T,Eigen::TensorCwiseBinaryOp<
-		std::function<T(const T&,const T&)>,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using RUnifDecTensRetT = Eigen::TensorCwiseBinaryOp<
+		std::function<T(const T&,const T&)>,const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,RUnifDecTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) a.device().data(), a.shape()),
 			make_tensmap((T*) b.device().data(), b.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> RUnifDecTensRetT
 		{
 			auto generator = global::get_generator();
 			return args[0].binaryExpr(args[1],
@@ -1330,41 +1390,40 @@ EigenptrT select (teq::Shape outshape, const teq::iTensor& condition,
 {
 	if (is_2d(outshape))
 	{
+		using SelectMatRetT = Eigen::Select<MatMapT<T>,MatMapT<T>,MatMapT<T>>;
+
 		// use matrix when possible
-		return make_eigenmatrix<T,Eigen::Select<MatMapT<T>,
-			MatMapT<T>,MatMapT<T>>,std::vector<MatMapT<T>>>(
+		return make_eigenmatrix<T,SelectMatRetT,std::vector<MatMapT<T>>>(
 			shape_convert(outshape), {
 			make_matmap((T*) condition.device().data(), condition.shape()),
 			make_matmap((T*) then.device().data(), then.shape()),
 			make_matmap((T*) otherwise.device().data(), otherwise.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> SelectMatRetT
 			{
 				return args[0].select(args[1], args[2]);
 			});
 	}
-	return make_eigentensor<T,
-		Eigen::TensorSelectOp<const TensMapT<T>,
-			const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	using SelectTensRetT = Eigen::TensorSelectOp<const TensMapT<T>,
+		const TensMapT<T>,const TensMapT<T>>;
+
+	return make_eigentensor<T,SelectTensRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) condition.device().data(), condition.shape()),
 			make_tensmap((T*) then.device().data(), then.shape()),
 			make_tensmap((T*) otherwise.device().data(), otherwise.shape())},
-		[](std::vector<TensMapT<T>>& args)
+		[](std::vector<TensMapT<T>>& args) -> SelectTensRetT
 		{
 			return args[0].select(args[1], args[2]);
 		});
 }
 
-template <size_t N, typename T>
-using ContractionRetT = Eigen::TensorReshapingOp<
-	const DimensionsT,
-	const Eigen::TensorContractionOp<
-		const std::array<std::pair<teq::RankT,teq::RankT>,N>,
-		const TensMapT<T>,const TensMapT<T>>>;
+template <typename T, size_t N>
+using ContractionRetT = Eigen::TensorReshapingOp<const DimensionsT,
+	const Eigen::TensorContractionOp<const std::array<
+	std::pair<teq::RankT,teq::RankT>,N>,const TensMapT<T>,const TensMapT<T>>>;
 
 #define _EIGEN_MATMUL_CASE(ARR, N)\
-return make_eigentensor<T,ContractionRetT<N,T>,std::vector<TensMapT<T>>>(outdims, args,\
-[&](std::vector<TensMapT<T>>& args){\
+return make_eigentensor<T,ContractionRetT<T,N>,std::vector<TensMapT<T>>>(outdims, args,\
+[&](std::vector<TensMapT<T>>& args) -> ContractionRetT<T,N> {\
 return args[1].contract(args[0], internal::dim_copy<N>(ARR)).reshape(outdims); });
 
 /// Only applies to 2-d tensors
@@ -1387,7 +1446,7 @@ EigenptrT matmul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 			std::vector<MatMapT<T>>>(shape_convert(outshape), {
 				make_matmap((T*) a.device().data(), a.shape()),
 				make_matmap((T*) b.device().data(), b.shape())},
-			[](std::vector<MatMapT<T>>& args)
+			[](std::vector<MatMapT<T>>& args) -> Eigen::Product<MatMapT<T>,MatMapT<T>>
 			{
 				return args[0] * args[1];
 			});
@@ -1408,6 +1467,9 @@ template <typename T>
 EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 	const teq::iTensor& kernel, const marsh::iAttributed& attrib)
 {
+	using ConvRetT = Eigen::TensorConvolutionOp<const teq::ShapeT,
+		const TensMapT<T>,const TensMapT<T>>;
+
 	teq::RanksT order;
 	Packer<teq::RanksT>().unpack(order, attrib);
 
@@ -1444,10 +1506,7 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 	}
 	teq::ShapeT dims;
 	std::copy(order.begin(), order.end(), dims.begin());
-	return make_eigentensor<T,Eigen::TensorConvolutionOp<
-		const teq::ShapeT,
-		const TensMapT<T>,const TensMapT<T>>,
-		std::vector<TensMapT<T>>>(shape_convert(outshape), {
+	return make_eigentensor<T,ConvRetT,std::vector<TensMapT<T>>>(shape_convert(outshape), {
 			make_tensmap((T*) input.device().data(), input.shape()),
 			make_tensmap((T*) kernel.device().data(), kernel.shape())},
 		[&](std::vector<TensMapT<T>>& args)

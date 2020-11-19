@@ -68,25 +68,81 @@ ${GRPC_CPP_PLUGIN}:
 	bazel build @com_github_grpc_grpc//src/compiler:grpc_cpp_plugin
 
 .PHONY: gen-proto
-gen-proto: gen-extenncor-proto gen-onnx-proto gen-gemit-proto gen-oxsvc-proto
+gen-proto: gen-gemit-proto gen-extenncor-proto gen-internal-proto gen-tenncor-proto
 
-.PHONY: gen-extenncor-proto
-gen-extenncor-proto: ${PROTOC}
-	./${PROTOC} --python_out=. -I . extenncor/dataset_trainer.proto extenncor/dqn_trainer.proto
-
-.PHONY: gen-onnx-proto
-gen-onnx-proto: ${PROTOC}
-	./${PROTOC} --cpp_out=. -I . internal/onnx/onnx.proto
+# debug protos
 
 .PHONY: gen-gemit-proto
 gen-gemit-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
 	./${PROTOC} --cpp_out=. -I . dbg/peval/emit/gemitter.proto
 	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . dbg/peval/emit/gemitter.proto
 
+# extenncor protos
+
+.PHONY: gen-extenncor-proto
+gen-extenncor-proto: ${PROTOC}
+	./${PROTOC} --python_out=. -I . extenncor/dataset_trainer.proto extenncor/dqn_trainer.proto
+
+# internal protos
+
+.PHONY: gen-internal-proto
+gen-internal-proto: gen-query-proto gen-onnx-proto gen-opt-proto
+
+.PHONY: gen-query-proto
+gen-query-proto: ${PROTOC}
+	./${PROTOC} --cpp_out=. -I . internal/query/query.proto
+
+.PHONY: gen-onnx-proto
+gen-onnx-proto: ${PROTOC}
+	./${PROTOC} --cpp_out=. -I . internal/onnx/onnx.proto
+
+.PHONY: gen-opt-proto
+gen-opt-proto: ${PROTOC}
+	./${PROTOC} --cpp_out=. -I . internal/opt/optimize.proto
+
+# tenncor protos
+
+.PHONY: gen-tenncor-proto
+gen-tenncor-proto: gen-iosvc-proto gen-opsvc-proto gen-lusvc-proto gen-hosvc-proto gen-oxsvc-proto
+
+.PHONY: gen-iosvc-proto
+gen-iosvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
+	./${PROTOC} --cpp_out=. -I . tenncor/distr/iosvc/distr.io.proto
+	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . tenncor/distr/iosvc/distr.io.proto
+
+.PHONY: gen-opsvc-proto
+gen-opsvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
+	./${PROTOC} --cpp_out=. -I . tenncor/eteq/opsvc/distr.op.proto
+	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . tenncor/eteq/opsvc/distr.op.proto
+
+.PHONY: gen-lusvc-proto
+gen-lusvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
+	./${PROTOC} --cpp_out=. -I . tenncor/find/lusvc/distr.lu.proto
+	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . tenncor/find/lusvc/distr.lu.proto
+
+.PHONY: gen-hosvc-proto
+gen-hosvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
+	./${PROTOC} --cpp_out=. -I . tenncor/hone/hosvc/distr.ho.proto
+	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . tenncor/hone/hosvc/distr.ho.proto
+
 .PHONY: gen-oxsvc-proto
 gen-oxsvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
 	./${PROTOC} --cpp_out=. -I . tenncor/serial/oxsvc/distr.ox.proto
 	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . tenncor/serial/oxsvc/distr.ox.proto
+
+######## GENERATE CPP FILES #######
+
+CPP_GENTOOL := bazel-bin/tools/egen/egen
+
+${CPP_GENTOOL}:
+	bazel build //tools/egen:egen
+
+.PHONY: gen-cpp
+gen-cpp: gen-eigen-cpp
+
+.PHONY: gen-eigen-cpp
+gen-eigen-cpp:
+	${CPP_GENTOOL} --plugins plugins.dtypes:DTypesPlugin plugins.opcodes:OpcodesPlugin --out internal/eigen/generated --cfgs cfg/fulltype.yml cfg/ops.yml cfg/eteq.yml
 
 ######## MODEL FILE GENERATION ########
 

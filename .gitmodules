@@ -1,0 +1,12 @@
+[submodule "cppkg"]
+	path = third_party/cmake_repos/cppkg
+	url = git@github.com:mingkaic/cppkg.git
+[submodule "g3log"]
+	path = third_party/cmake_repos/g3log
+	url = git@github.com:KjellKod/g3log.git
+[submodule "eigen-git-mirror"]
+	path = third_party/cmake_repos/eigen-git-mirror
+	url = git@github.com:eigenteam/eigen-git-mirror.git
+[submodule "ppconsul"]
+	path = third_party/cmake_repos/ppconsul
+	url = git@github.com:mingkaic/ppconsul.git
