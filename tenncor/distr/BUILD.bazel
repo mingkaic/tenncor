@@ -53,7 +53,6 @@ cc_library(
         "@boost//:bimap",
         "@com_github_oliora_ppconsul//:consul",
         "@com_github_mingkaic_cppkg//egrpc:egrpc",
-        "@com_github_mingkaic_cppkg//error:error",
     ],
     visibility = ["//visibility:public"],
 )

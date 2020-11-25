@@ -267,16 +267,15 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_ten
   &scc_info_PostLoadGraphResponse_RootsEntry_DoNotUse_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto.base,
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_once;
-static bool descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto = {
-  &descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_initialized, descriptor_table_protodef_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto, "tenncor/serial/oxsvc/distr.ox.proto", 821,
+  false, false, descriptor_table_protodef_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto, "tenncor/serial/oxsvc/distr.ox.proto", 821,
   &descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_once, descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_sccs, descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto_deps, 7, 1,
   schemas, file_default_instances, TableStruct_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto::offsets,
   file_level_metadata_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto, 7, file_level_enum_descriptors_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto, file_level_service_descriptors_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto,
 };
 
 // Force running AddDescriptors() at dynamic initialization time.
-static bool dynamic_init_dummy_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto = (  ::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto), true);
+static bool dynamic_init_dummy_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto = (static_cast<void>(::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_tenncor_2fserial_2foxsvc_2fdistr_2eox_2eproto)), true);
 namespace distr {
 namespace ox {
 
@@ -305,17 +304,20 @@ class GetSaveGraphRequest::_Internal {
  public:
 };
 
-GetSaveGraphRequest::GetSaveGraphRequest()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+GetSaveGraphRequest::GetSaveGraphRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena),
+  uuids_(arena),
+  identified_(arena),
+  stop_uuids_(arena) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:distr.ox.GetSaveGraphRequest)
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:distr.ox.GetSaveGraphRequest)
 }
 GetSaveGraphRequest::GetSaveGraphRequest(const GetSaveGraphRequest& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
-      _internal_metadata_(nullptr),
       uuids_(from.uuids_),
       stop_uuids_(from.stop_uuids_) {
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   identified_.MergeFrom(from.identified_);
   // @@protoc_insertion_point(copy_constructor:distr.ox.GetSaveGraphRequest)
 }
@@ -327,11 +329,19 @@ void GetSaveGraphRequest::SharedCtor() {
 GetSaveGraphRequest::~GetSaveGraphRequest() {
   // @@protoc_insertion_point(destructor:distr.ox.GetSaveGraphRequest)
   SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 void GetSaveGraphRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
 }
 
+void GetSaveGraphRequest::ArenaDtor(void* object) {
+  GetSaveGraphRequest* _this = reinterpret_cast< GetSaveGraphRequest* >(object);
+  (void)_this;
+}
+void GetSaveGraphRequest::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
 void GetSaveGraphRequest::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
@@ -350,11 +360,12 @@ void GetSaveGraphRequest::Clear() {
   uuids_.Clear();
   identified_.Clear();
   stop_uuids_.Clear();
-  _internal_metadata_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 const char* GetSaveGraphRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
@@ -406,7 +417,9 @@ const char* GetSaveGraphRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAME
           ctx->SetLastTag(tag);
           goto success;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
         CHK_(ptr != nullptr);
         continue;
       }
@@ -493,7 +506,7 @@ failure:
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:distr.ox.GetSaveGraphRequest)
   return target;
@@ -559,7 +572,7 @@ void GetSaveGraphRequest::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from
 void GetSaveGraphRequest::MergeFrom(const GetSaveGraphRequest& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:distr.ox.GetSaveGraphRequest)
   GOOGLE_DCHECK_NE(&from, this);
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -588,7 +601,7 @@ bool GetSaveGraphRequest::IsInitialized() const {
 
 void GetSaveGraphRequest::InternalSwap(GetSaveGraphRequest* other) {
   using std::swap;
-  _internal_metadata_.Swap(&other->_internal_metadata_);
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   uuids_.InternalSwap(&other->uuids_);
   identified_.Swap(&other->identified_);
   stop_uuids_.InternalSwap(&other->stop_uuids_);
@@ -632,20 +645,21 @@ GetSaveGraphResponse::_Internal::graph(const GetSaveGraphResponse* msg) {
   return *msg->graph_;
 }
 void GetSaveGraphResponse::clear_graph() {
-  if (GetArenaNoVirtual() == nullptr && graph_ != nullptr) {
+  if (GetArena() == nullptr && graph_ != nullptr) {
     delete graph_;
   }
   graph_ = nullptr;
 }
-GetSaveGraphResponse::GetSaveGraphResponse()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+GetSaveGraphResponse::GetSaveGraphResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena),
+  topography_(arena) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:distr.ox.GetSaveGraphResponse)
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:distr.ox.GetSaveGraphResponse)
 }
 GetSaveGraphResponse::GetSaveGraphResponse(const GetSaveGraphResponse& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
-      _internal_metadata_(nullptr) {
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   topography_.MergeFrom(from.topography_);
   if (from._internal_has_graph()) {
     graph_ = new ::onnx::GraphProto(*from.graph_);
@@ -663,12 +677,20 @@ void GetSaveGraphResponse::SharedCtor() {
 GetSaveGraphResponse::~GetSaveGraphResponse() {
   // @@protoc_insertion_point(destructor:distr.ox.GetSaveGraphResponse)
   SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 void GetSaveGraphResponse::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
   if (this != internal_default_instance()) delete graph_;
 }
 
+void GetSaveGraphResponse::ArenaDtor(void* object) {
+  GetSaveGraphResponse* _this = reinterpret_cast< GetSaveGraphResponse* >(object);
+  (void)_this;
+}
+void GetSaveGraphResponse::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
 void GetSaveGraphResponse::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
@@ -685,15 +707,16 @@ void GetSaveGraphResponse::Clear() {
   (void) cached_has_bits;
 
   topography_.Clear();
-  if (GetArenaNoVirtual() == nullptr && graph_ != nullptr) {
+  if (GetArena() == nullptr && graph_ != nullptr) {
     delete graph_;
   }
   graph_ = nullptr;
-  _internal_metadata_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 const char* GetSaveGraphResponse::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
@@ -724,7 +747,9 @@ const char* GetSaveGraphResponse::_InternalParse(const char* ptr, ::PROTOBUF_NAM
           ctx->SetLastTag(tag);
           goto success;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
         CHK_(ptr != nullptr);
         continue;
       }
@@ -799,7 +824,7 @@ failure:
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:distr.ox.GetSaveGraphResponse)
   return target;
@@ -856,7 +881,7 @@ void GetSaveGraphResponse::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& fro
 void GetSaveGraphResponse::MergeFrom(const GetSaveGraphResponse& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:distr.ox.GetSaveGraphResponse)
   GOOGLE_DCHECK_NE(&from, this);
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -886,7 +911,7 @@ bool GetSaveGraphResponse::IsInitialized() const {
 
 void GetSaveGraphResponse::InternalSwap(GetSaveGraphResponse* other) {
   using std::swap;
-  _internal_metadata_.Swap(&other->_internal_metadata_);
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   topography_.Swap(&other->topography_);
   swap(graph_, other->graph_);
 }
@@ -912,21 +937,22 @@ PostLoadGraphRequest::_Internal::graph(const PostLoadGraphRequest* msg) {
   return *msg->graph_;
 }
 void PostLoadGraphRequest::clear_graph() {
-  if (GetArenaNoVirtual() == nullptr && graph_ != nullptr) {
+  if (GetArena() == nullptr && graph_ != nullptr) {
     delete graph_;
   }
   graph_ = nullptr;
 }
-PostLoadGraphRequest::PostLoadGraphRequest()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+PostLoadGraphRequest::PostLoadGraphRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena),
+  refs_(arena) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:distr.ox.PostLoadGraphRequest)
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:distr.ox.PostLoadGraphRequest)
 }
 PostLoadGraphRequest::PostLoadGraphRequest(const PostLoadGraphRequest& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
-      _internal_metadata_(nullptr),
       refs_(from.refs_) {
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   if (from._internal_has_graph()) {
     graph_ = new ::onnx::GraphProto(*from.graph_);
   } else {
@@ -943,12 +969,20 @@ void PostLoadGraphRequest::SharedCtor() {
 PostLoadGraphRequest::~PostLoadGraphRequest() {
   // @@protoc_insertion_point(destructor:distr.ox.PostLoadGraphRequest)
   SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 void PostLoadGraphRequest::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
   if (this != internal_default_instance()) delete graph_;
 }
 
+void PostLoadGraphRequest::ArenaDtor(void* object) {
+  PostLoadGraphRequest* _this = reinterpret_cast< PostLoadGraphRequest* >(object);
+  (void)_this;
+}
+void PostLoadGraphRequest::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
 void PostLoadGraphRequest::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
@@ -965,15 +999,16 @@ void PostLoadGraphRequest::Clear() {
   (void) cached_has_bits;
 
   refs_.Clear();
-  if (GetArenaNoVirtual() == nullptr && graph_ != nullptr) {
+  if (GetArena() == nullptr && graph_ != nullptr) {
     delete graph_;
   }
   graph_ = nullptr;
-  _internal_metadata_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 const char* PostLoadGraphRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
@@ -1006,7 +1041,9 @@ const char* PostLoadGraphRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAM
           ctx->SetLastTag(tag);
           goto success;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
         CHK_(ptr != nullptr);
         continue;
       }
@@ -1046,7 +1083,7 @@ failure:
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:distr.ox.PostLoadGraphRequest)
   return target;
@@ -1102,7 +1139,7 @@ void PostLoadGraphRequest::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& fro
 void PostLoadGraphRequest::MergeFrom(const PostLoadGraphRequest& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:distr.ox.PostLoadGraphRequest)
   GOOGLE_DCHECK_NE(&from, this);
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -1132,7 +1169,7 @@ bool PostLoadGraphRequest::IsInitialized() const {
 
 void PostLoadGraphRequest::InternalSwap(PostLoadGraphRequest* other) {
   using std::swap;
-  _internal_metadata_.Swap(&other->_internal_metadata_);
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   refs_.InternalSwap(&other->refs_);
   swap(graph_, other->graph_);
 }
@@ -1167,15 +1204,16 @@ class PostLoadGraphResponse::_Internal {
  public:
 };
 
-PostLoadGraphResponse::PostLoadGraphResponse()
-  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+PostLoadGraphResponse::PostLoadGraphResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena),
+  roots_(arena) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:distr.ox.PostLoadGraphResponse)
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:distr.ox.PostLoadGraphResponse)
 }
 PostLoadGraphResponse::PostLoadGraphResponse(const PostLoadGraphResponse& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
-      _internal_metadata_(nullptr) {
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   roots_.MergeFrom(from.roots_);
   // @@protoc_insertion_point(copy_constructor:distr.ox.PostLoadGraphResponse)
 }
@@ -1187,11 +1225,19 @@ void PostLoadGraphResponse::SharedCtor() {
 PostLoadGraphResponse::~PostLoadGraphResponse() {
   // @@protoc_insertion_point(destructor:distr.ox.PostLoadGraphResponse)
   SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 void PostLoadGraphResponse::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
 }
 
+void PostLoadGraphResponse::ArenaDtor(void* object) {
+  PostLoadGraphResponse* _this = reinterpret_cast< PostLoadGraphResponse* >(object);
+  (void)_this;
+}
+void PostLoadGraphResponse::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
 void PostLoadGraphResponse::SetCachedSize(int size) const {
   _cached_size_.Set(size);
 }
@@ -1208,11 +1254,12 @@ void PostLoadGraphResponse::Clear() {
   (void) cached_has_bits;
 
   roots_.Clear();
-  _internal_metadata_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 const char* PostLoadGraphResponse::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  ::PROTOBUF_NAMESPACE_ID::Arena* arena = GetArena(); (void)arena;
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
@@ -1236,7 +1283,9 @@ const char* PostLoadGraphResponse::_InternalParse(const char* ptr, ::PROTOBUF_NA
           ctx->SetLastTag(tag);
           goto success;
         }
-        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
         CHK_(ptr != nullptr);
         continue;
       }
@@ -1303,7 +1352,7 @@ failure:
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields(), target, stream);
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
   }
   // @@protoc_insertion_point(serialize_to_array_end:distr.ox.PostLoadGraphResponse)
   return target;
@@ -1353,7 +1402,7 @@ void PostLoadGraphResponse::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& fr
 void PostLoadGraphResponse::MergeFrom(const PostLoadGraphResponse& from) {
 // @@protoc_insertion_point(class_specific_merge_from_start:distr.ox.PostLoadGraphResponse)
   GOOGLE_DCHECK_NE(&from, this);
-  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -1380,7 +1429,7 @@ bool PostLoadGraphResponse::IsInitialized() const {
 
 void PostLoadGraphResponse::InternalSwap(PostLoadGraphResponse* other) {
   using std::swap;
-  _internal_metadata_.Swap(&other->_internal_metadata_);
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
   roots_.Swap(&other->roots_);
 }
 
@@ -1394,25 +1443,25 @@ void PostLoadGraphResponse::InternalSwap(PostLoadGraphResponse* other) {
 }  // namespace distr
 PROTOBUF_NAMESPACE_OPEN
 template<> PROTOBUF_NOINLINE ::distr::ox::GetSaveGraphRequest_IdentifiedEntry_DoNotUse* Arena::CreateMaybeMessage< ::distr::ox::GetSaveGraphRequest_IdentifiedEntry_DoNotUse >(Arena* arena) {
-  return Arena::CreateInternal< ::distr::ox::GetSaveGraphRequest_IdentifiedEntry_DoNotUse >(arena);
+  return Arena::CreateMessageInternal< ::distr::ox::GetSaveGraphRequest_IdentifiedEntry_DoNotUse >(arena);
 }
 template<> PROTOBUF_NOINLINE ::distr::ox::GetSaveGraphRequest* Arena::CreateMaybeMessage< ::distr::ox::GetSaveGraphRequest >(Arena* arena) {
-  return Arena::CreateInternal< ::distr::ox::GetSaveGraphRequest >(arena);
+  return Arena::CreateMessageInternal< ::distr::ox::GetSaveGraphRequest >(arena);
 }
 template<> PROTOBUF_NOINLINE ::distr::ox::GetSaveGraphResponse_TopographyEntry_DoNotUse* Arena::CreateMaybeMessage< ::distr::ox::GetSaveGraphResponse_TopographyEntry_DoNotUse >(Arena* arena) {
-  return Arena::CreateInternal< ::distr::ox::GetSaveGraphResponse_TopographyEntry_DoNotUse >(arena);
+  return Arena::CreateMessageInternal< ::distr::ox::GetSaveGraphResponse_TopographyEntry_DoNotUse >(arena);
 }
 template<> PROTOBUF_NOINLINE ::distr::ox::GetSaveGraphResponse* Arena::CreateMaybeMessage< ::distr::ox::GetSaveGraphResponse >(Arena* arena) {
-  return Arena::CreateInternal< ::distr::ox::GetSaveGraphResponse >(arena);
+  return Arena::CreateMessageInternal< ::distr::ox::GetSaveGraphResponse >(arena);
 }
 template<> PROTOBUF_NOINLINE ::distr::ox::PostLoadGraphRequest* Arena::CreateMaybeMessage< ::distr::ox::PostLoadGraphRequest >(Arena* arena) {
-  return Arena::CreateInternal< ::distr::ox::PostLoadGraphRequest >(arena);
+  return Arena::CreateMessageInternal< ::distr::ox::PostLoadGraphRequest >(arena);
 }
 template<> PROTOBUF_NOINLINE ::distr::ox::PostLoadGraphResponse_RootsEntry_DoNotUse* Arena::CreateMaybeMessage< ::distr::ox::PostLoadGraphResponse_RootsEntry_DoNotUse >(Arena* arena) {
-  return Arena::CreateInternal< ::distr::ox::PostLoadGraphResponse_RootsEntry_DoNotUse >(arena);
+  return Arena::CreateMessageInternal< ::distr::ox::PostLoadGraphResponse_RootsEntry_DoNotUse >(arena);
 }
 template<> PROTOBUF_NOINLINE ::distr::ox::PostLoadGraphResponse* Arena::CreateMaybeMessage< ::distr::ox::PostLoadGraphResponse >(Arena* arena) {
-  return Arena::CreateInternal< ::distr::ox::PostLoadGraphResponse >(arena);
+  return Arena::CreateMessageInternal< ::distr::ox::PostLoadGraphResponse >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

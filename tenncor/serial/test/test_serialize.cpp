@@ -24,7 +24,7 @@ const std::string testdir = "models/test";
 TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/serial.onnx";
-	std::string got_pbfile = "/tmp/serial.onnx";
+	std::string got_pbfile = "got_serial.onnx";
 	global::set_generator(std::make_shared<MockGenerator>());
 
 	{

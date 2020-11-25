@@ -11,9 +11,12 @@
 #include <grpcpp/impl/codegen/channel_interface.h>
 #include <grpcpp/impl/codegen/client_unary_call.h>
 #include <grpcpp/impl/codegen/client_callback.h>
+#include <grpcpp/impl/codegen/message_allocator.h>
 #include <grpcpp/impl/codegen/method_handler.h>
 #include <grpcpp/impl/codegen/rpc_service_method.h>
 #include <grpcpp/impl/codegen/server_callback.h>
+#include <grpcpp/impl/codegen/server_callback_handlers.h>
+#include <grpcpp/impl/codegen/server_context.h>
 #include <grpcpp/impl/codegen/service_type.h>
 #include <grpcpp/impl/codegen/sync_stream.h>
 namespace gemitter {
@@ -143,22 +146,42 @@ GraphEmitter::Service::Service() {
       GraphEmitter_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< GraphEmitter::Service, ::gemitter::Empty, ::gemitter::Empty>(
-          std::mem_fn(&GraphEmitter::Service::HealthCheck), this)));
+          [](GraphEmitter::Service* service,
+             ::grpc_impl::ServerContext* ctx,
+             const ::gemitter::Empty* req,
+             ::gemitter::Empty* resp) {
+               return service->HealthCheck(ctx, req, resp);
+             }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       GraphEmitter_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< GraphEmitter::Service, ::gemitter::CreateModelRequest, ::gemitter::CreateModelResponse>(
-          std::mem_fn(&GraphEmitter::Service::CreateModel), this)));
+          [](GraphEmitter::Service* service,
+             ::grpc_impl::ServerContext* ctx,
+             const ::gemitter::CreateModelRequest* req,
+             ::gemitter::CreateModelResponse* resp) {
+               return service->CreateModel(ctx, req, resp);
+             }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       GraphEmitter_method_names[2],
       ::grpc::internal::RpcMethod::CLIENT_STREAMING,
       new ::grpc::internal::ClientStreamingHandler< GraphEmitter::Service, ::gemitter::UpdateNodeDataRequest, ::gemitter::UpdateNodeDataResponse>(
-          std::mem_fn(&GraphEmitter::Service::UpdateNodeData), this)));
+          [](GraphEmitter::Service* service,
+             ::grpc_impl::ServerContext* ctx,
+             ::grpc_impl::ServerReader<::gemitter::UpdateNodeDataRequest>* reader,
+             ::gemitter::UpdateNodeDataResponse* resp) {
+               return service->UpdateNodeData(ctx, reader, resp);
+             }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       GraphEmitter_method_names[3],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< GraphEmitter::Service, ::gemitter::DeleteModelRequest, ::gemitter::DeleteModelResponse>(
-          std::mem_fn(&GraphEmitter::Service::DeleteModel), this)));
+          [](GraphEmitter::Service* service,
+             ::grpc_impl::ServerContext* ctx,
+             const ::gemitter::DeleteModelRequest* req,
+             ::gemitter::DeleteModelResponse* resp) {
+               return service->DeleteModel(ctx, req, resp);
+             }, this)));
 }
 
 GraphEmitter::Service::~Service() {

@@ -1,35 +1,200 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(Tenncor C CXX)
+project(tenncor C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(PACKAGE_TESTS "Build the tests" ON)
+
+add_compile_options(-fPIC)
+
 #### third_parties ####
+
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
+
+find_package(gRPC CONFIG REQUIRED)
 
 # cppkg, boost, grpc
 add_subdirectory(third_party/cmake_repos/cppkg EXCLUDE_FROM_ALL)
 
-# eigen
-if(NOT Eigen_FOUND AND NOT TARGET eigen)
-    add_subdirectory(third_party/cmake_repos/eigen-git-mirror EXCLUDE_FROM_ALL)
-endif()
-
 # ppconsul
-if(NOT Ppconsul_FOUND AND NOT TARGET ppconsul)
-    add_subdirectory(third_party/cmake_repos/ppconsul EXCLUDE_FROM_ALL)
-endif()
+add_subdirectory(third_party/cmake_repos/ppconsul EXCLUDE_FROM_ALL)
 
-# g3log
-if(NOT g3log_FOUND AND NOT TARGET g3log)
-    set(G3_SHARED_LIB OFF CACHE BOOL "Build shared library." FORCE)
-    set(CHANGE_G3LOG_DEBUG_TO_DBUG ON CACHE BOOL "Use DBUG logging level instead of DEBUG. By default DEBUG is the debugging level" FORCE)
-    set(USE_DYNAMIC_LOGGING_LEVELS ON CACHE BOOL "Turn ON/OFF log levels. An disabled level will not push logs of that level to the sink. By default dynamic logging is disabled" FORCE)
-    add_subdirectory(third_party/cmake_repos/g3log EXCLUDE_FROM_ALL)
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-        target_compile_options(g3logger PUBLIC -fvisibility=hidden -fvisibility-inlines-hidden)
-    endif()
-endif()
+#### generate cpp files ####
+
+set(EGEN_TOOL "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake-egen/egen")
+
+get_filename_component(EIGEN_TYPE_CFG "cfg/fulltype.yml" ABSOLUTE)
+get_filename_component(EIGEN_OP_CFG "cfg/ops.yml" ABSOLUTE)
+set(EIGEN_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/internal/eigen/generated")
+set(EIGEN_SRCS "${EIGEN_GENERATED_DIR}/dtype.cpp" "${EIGEN_GENERATED_DIR}/opcode.cpp")
+set(EIGEN_HDRS "${EIGEN_GENERATED_DIR}/dtype.hpp" "${EIGEN_GENERATED_DIR}/opcode.hpp")
+add_custom_command(
+    OUTPUT ${EIGEN_SRCS} ${EIGEN_HDRS}
+    COMMAND "${EGEN_TOOL}"
+    ARGS --plugins plugins.dtypes:DTypesPlugin plugins.opcodes:OpcodesPlugin
+        --out "${EIGEN_GENERATED_DIR}"
+	--cfgs "${EIGEN_TYPE_CFG}" "${EIGEN_OP_CFG}"
+    DEPENDS "${EIGEN_TYPE_CFG}" "${EIGEN_OP_CFG}"
+)
+
+get_filename_component(TENNCOR_CFG "cfg/eteq.yml" ABSOLUTE)
+set(TENNCOR_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/tenncor/generated")
+set(TENNCOR_SRCS "${TENNCOR_GENERATED_DIR}/api.cpp")
+set(TENNCOR_HDRS "${TENNCOR_GENERATED_DIR}/api.hpp")
+set(PYTENNCOR_SRCS "${TENNCOR_GENERATED_DIR}/pyapi_tenncor.cpp")
+set(PYTENNCOR_HDRS "${TENNCOR_GENERATED_DIR}/pyapi.hpp")
+add_custom_command(
+    OUTPUT "${TENNCOR_SRCS}" "${TENNCOR_HDRS}" "${PYTENNCOR_SRCS}" "${PYTENNCOR_HDRS}"
+    COMMAND "${EGEN_TOOL}"
+    ARGS --plugins plugins.apis:APIsPlugin plugins.pyapis:PyAPIsPlugin
+        --out "${TENNCOR_GENERATED_DIR}"
+        --ext_path "${CMAKE_CURRENT_SOURCE_DIR}/cfg/eteq"
+        --cfgs "${TENNCOR_CFG}"
+    DEPENDS "${TENNCOR_CFG}"
+)
+
+#### generate proto files ####
+
+find_program(_PROTOBUF_PROTOC protoc ${CONAN_BIN_DIRS_PROTOBUF} NO_DEFAULT_PATH)
+set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+
+# internal/onnx
+get_filename_component(ONNX_PROTO "internal/onnx/onnx.proto" ABSOLUTE)
+set(ONNX_PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/internal/onnx/onnx.pb.cc")
+set(ONNX_PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/internal/onnx/onnx.pb.h")
+add_custom_command(
+    OUTPUT "${ONNX_PROTO_SRCS}" "${ONNX_PROTO_HDRS}"
+    COMMAND ${_PROTOBUF_PROTOC}
+    ARGS --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        -I "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${ONNX_PROTO}"
+    DEPENDS "${ONNX_PROTO}"
+)
+add_library(onnx_proto_obj OBJECT ${ONNX_PROTO_SRCS})
+
+# internal/query
+get_filename_component(QUERY_PROTO "internal/query/query.proto" ABSOLUTE)
+set(QUERY_PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/internal/query/query.pb.cc")
+set(QUERY_PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/internal/query/query.pb.h")
+add_custom_command(
+    OUTPUT "${QUERY_PROTO_SRCS}" "${QUERY_PROTO_HDRS}"
+    COMMAND ${_PROTOBUF_PROTOC}
+    ARGS --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        -I "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${QUERY_PROTO}"
+    DEPENDS "${QUERY_PROTO}"
+)
+add_library(query_proto_obj OBJECT ${QUERY_PROTO_SRCS})
+
+# internal/opt
+get_filename_component(OPT_PROTO "internal/opt/optimize.proto" ABSOLUTE)
+set(OPT_PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/internal/opt/optimize.pb.cc")
+set(OPT_PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/internal/opt/optimize.pb.h")
+add_custom_command(
+    OUTPUT "${OPT_PROTO_SRCS}" "${OPT_PROTO_HDRS}"
+    COMMAND ${_PROTOBUF_PROTOC}
+    ARGS --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        -I "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${OPT_PROTO}"
+    DEPENDS "${OPT_PROTO}"
+)
+add_library(opt_proto_obj OBJECT ${OPT_PROTO_SRCS})
+
+# tenncor/distr/iosvc
+get_filename_component(DISTR_IOSVC_PROTO "tenncor/distr/iosvc/distr.io.proto" ABSOLUTE)
+set(DISTR_IOSVC_PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/distr/iosvc/distr.io.pb.cc")
+set(DISTR_IOSVC_PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/distr/iosvc/distr.io.pb.h")
+set(DISTR_IOSVC_GRPC_SRCS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/distr/iosvc/distr.io.grpc.pb.cc")
+set(DISTR_IOSVC_GRPC_HDRS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/distr/iosvc/distr.io.grpc.pb.h")
+add_custom_command(
+    OUTPUT "${DISTR_IOSVC_PROTO_SRCS}" "${DISTR_IOSVC_PROTO_HDRS}" "${DISTR_IOSVC_GRPC_SRCS}" "${DISTR_IOSVC_GRPC_HDRS}"
+    COMMAND ${_PROTOBUF_PROTOC}
+    ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        -I "${CMAKE_CURRENT_SOURCE_DIR}"
+        --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+        "${DISTR_IOSVC_PROTO}"
+    DEPENDS "${DISTR_IOSVC_PROTO}"
+)
+add_library(distr_iosvc_proto_obj OBJECT ${DISTR_IOSVC_PROTO_SRCS} ${DISTR_IOSVC_GRPC_SRCS})
+
+# tenncor/eteq/opsvc
+get_filename_component(DISTR_OPSVC_PROTO "tenncor/eteq/opsvc/distr.op.proto" ABSOLUTE)
+set(DISTR_OPSVC_PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/eteq/opsvc/distr.op.pb.cc")
+set(DISTR_OPSVC_PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/eteq/opsvc/distr.op.pb.h")
+set(DISTR_OPSVC_GRPC_SRCS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/eteq/opsvc/distr.op.grpc.pb.cc")
+set(DISTR_OPSVC_GRPC_HDRS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/eteq/opsvc/distr.op.grpc.pb.h")
+add_custom_command(
+    OUTPUT "${DISTR_OPSVC_PROTO_SRCS}" "${DISTR_OPSVC_PROTO_HDRS}" "${DISTR_OPSVC_GRPC_SRCS}" "${DISTR_OPSVC_GRPC_HDRS}"
+    COMMAND ${_PROTOBUF_PROTOC}
+    ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        -I "${CMAKE_CURRENT_SOURCE_DIR}"
+        --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+        "${DISTR_OPSVC_PROTO}"
+    DEPENDS "${DISTR_OPSVC_PROTO}"
+)
+add_library(distr_opsvc_proto_obj OBJECT ${DISTR_OPSVC_PROTO_SRCS} ${DISTR_OPSVC_GRPC_SRCS})
+
+# tenncor/find/lusvc
+get_filename_component(DISTR_LUSVC_PROTO "tenncor/find/lusvc/distr.lu.proto" ABSOLUTE)
+set(DISTR_LUSVC_PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/find/lusvc/distr.lu.pb.cc")
+set(DISTR_LUSVC_PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/find/lusvc/distr.lu.pb.h")
+set(DISTR_LUSVC_GRPC_SRCS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/find/lusvc/distr.lu.grpc.pb.cc")
+set(DISTR_LUSVC_GRPC_HDRS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/find/lusvc/distr.lu.grpc.pb.h")
+add_custom_command(
+    OUTPUT "${DISTR_LUSVC_PROTO_SRCS}" "${DISTR_LUSVC_PROTO_HDRS}" "${DISTR_LUSVC_GRPC_SRCS}" "${DISTR_LUSVC_GRPC_HDRS}"
+    COMMAND ${_PROTOBUF_PROTOC}
+    ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        -I "${CMAKE_CURRENT_SOURCE_DIR}"
+        --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+        "${DISTR_LUSVC_PROTO}"
+    DEPENDS "${DISTR_LUSVC_PROTO}"
+)
+add_library(distr_lusvc_proto_obj OBJECT ${DISTR_LUSVC_PROTO_SRCS} ${DISTR_LUSVC_GRPC_SRCS})
+
+# tenncor/hone/hosvc
+get_filename_component(DISTR_HOSVC_PROTO "tenncor/hone/hosvc/distr.ho.proto" ABSOLUTE)
+set(DISTR_HOSVC_PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/hone/hosvc/distr.ho.pb.cc")
+set(DISTR_HOSVC_PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/hone/hosvc/distr.ho.pb.h")
+set(DISTR_HOSVC_GRPC_SRCS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/hone/hosvc/distr.ho.grpc.pb.cc")
+set(DISTR_HOSVC_GRPC_HDRS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/hone/hosvc/distr.ho.grpc.pb.h")
+add_custom_command(
+    OUTPUT "${DISTR_HOSVC_PROTO_SRCS}" "${DISTR_HOSVC_PROTO_HDRS}" "${DISTR_HOSVC_GRPC_SRCS}" "${DISTR_HOSVC_GRPC_HDRS}"
+    COMMAND ${_PROTOBUF_PROTOC}
+    ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        -I "${CMAKE_CURRENT_SOURCE_DIR}"
+        --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+        "${DISTR_HOSVC_PROTO}"
+    DEPENDS "${DISTR_HOSVC_PROTO}"
+)
+add_library(distr_hosvc_proto_obj OBJECT ${DISTR_HOSVC_PROTO_SRCS} ${DISTR_HOSVC_GRPC_SRCS})
+
+# tenncor/serial/oxsvc
+get_filename_component(DISTR_OXSVC_PROTO "tenncor/serial/oxsvc/distr.ox.proto" ABSOLUTE)
+set(DISTR_OXSVC_PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/serial/oxsvc/distr.ox.pb.cc")
+set(DISTR_OXSVC_PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/serial/oxsvc/distr.ox.pb.h")
+set(DISTR_OXSVC_GRPC_SRCS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/serial/oxsvc/distr.ox.grpc.pb.cc")
+set(DISTR_OXSVC_GRPC_HDRS "${CMAKE_CURRENT_BINARY_DIR}/tenncor/serial/oxsvc/distr.ox.grpc.pb.h")
+add_custom_command(
+    OUTPUT "${DISTR_OXSVC_PROTO_SRCS}" "${DISTR_OXSVC_PROTO_HDRS}" "${DISTR_OXSVC_GRPC_SRCS}" "${DISTR_OXSVC_GRPC_HDRS}"
+    COMMAND ${_PROTOBUF_PROTOC}
+    ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        -I "${CMAKE_CURRENT_SOURCE_DIR}"
+        --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+        "${DISTR_OXSVC_PROTO}"
+    DEPENDS "${DISTR_OXSVC_PROTO}"
+)
+add_library(distr_oxsvc_proto_obj OBJECT ${DISTR_OXSVC_PROTO_SRCS} ${DISTR_OXSVC_GRPC_SRCS})
+
+# Include generated *.pb.h files
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
 #### local libraries ####
 
@@ -42,13 +207,13 @@ add_library(${GLOBAL_LIB}
     internal/global/src/random.cpp
 )
 target_include_directories(${GLOBAL_LIB} PUBLIC .)
-target_link_libraries(${GLOBAL_LIB} PUBLIC Boost::boost Cppkg_estd Cppkg_logs g3log)
+target_link_libraries(${GLOBAL_LIB} PUBLIC ${CONAN_LIBS_BOOST} cppkg::estd cppkg::logs ${CONAN_LIBS_G3LOG})
 
 # internal/marsh
 set(MARSH_LIB ${PROJECT_NAME}_marsh)
 add_library(${MARSH_LIB} internal/marsh/src/objs.cpp)
 target_include_directories(${MARSH_LIB} PUBLIC .)
-target_link_libraries(${MARSH_LIB} PUBLIC Cppkg_estd)
+target_link_libraries(${MARSH_LIB} PUBLIC cppkg::estd)
 
 # internal/teq
 set(TEQ_LIB ${PROJECT_NAME}_teq)
@@ -67,26 +232,27 @@ set(EIGEN_LIB ${PROJECT_NAME}_eigen)
 add_library(${EIGEN_LIB}
     internal/eigen/src/convert.cpp
     internal/eigen/src/packattr.cpp
+    ${EIGEN_SRCS}
 )
 target_include_directories(${EIGEN_LIB} PUBLIC .)
-target_link_libraries(${EIGEN_LIB} PUBLIC ${TEQ_LIB} Eigen3::Eigen)
+target_link_libraries(${EIGEN_LIB} PUBLIC ${TEQ_LIB} ${CONAN_LIBS_EIGEN})
 
 # internal/onnx
 set(ONNX_LIB ${PROJECT_NAME}_onnx)
 add_library(${ONNX_LIB}
-    internal/onnx/onnx.pb.cc
     internal/onnx/src/load.cpp
     internal/onnx/src/marshal.cpp
+    $<TARGET_OBJECTS:onnx_proto_obj>
 )
 target_include_directories(${ONNX_LIB} PUBLIC .)
-target_link_libraries(${ONNX_LIB} PUBLIC ${TEQ_LIB} Boost::boost protobuf::libprotobuf)
+target_link_libraries(${ONNX_LIB} PUBLIC ${TEQ_LIB} ${CONAN_LIBS_BOOST} protobuf::libprotobuf)
 
 # internal/query
 set(QUERY_LIB ${PROJECT_NAME}_query)
 add_library(${QUERY_LIB}
-    internal/query/query.pb.cc
     internal/query/src/parse.cpp
     internal/query/src/querier.cpp
+    $<TARGET_OBJECTS:query_proto_obj>
 )
 target_include_directories(${QUERY_LIB} PUBLIC .)
 target_link_libraries(${QUERY_LIB} PUBLIC ${EIGEN_LIB} protobuf::libprotobuf)
@@ -94,29 +260,32 @@ target_link_libraries(${QUERY_LIB} PUBLIC ${EIGEN_LIB} protobuf::libprotobuf)
 # internal/opt
 set(OPT_LIB ${PROJECT_NAME}_opt)
 add_library(${OPT_LIB}
-    internal/opt/optimize.pb.cc
     internal/opt/src/apply.cpp
     internal/opt/src/parse.cpp
+    $<TARGET_OBJECTS:opt_proto_obj>
 )
 target_include_directories(${OPT_LIB} PUBLIC .)
 target_link_libraries(${OPT_LIB} PUBLIC ${QUERY_LIB})
 
-## tenncor/distr
-#set(DISTR_LIB ${PROJECT_NAME}_distr)
-#add_library(${DISTR_LIB}
-#    tenncor/distr/src/manager.cpp
-#    tenncor/distr/src/p2p.cpp
-#    tenncor/distr/src/reference.cpp
-#)
-#target_include_directories(${DISTR_LIB} PUBLIC .)
-#target_link_libraries(${DISTR_LIB} PUBLIC ${EIGEN_LIB} ppconsul Cppkg_egrpc Cppkg_error)
+# tenncor/distr
+set(DISTR_LIB ${PROJECT_NAME}_distr)
+add_library(${DISTR_LIB}
+    tenncor/distr/src/manager.cpp
+    tenncor/distr/src/p2p.cpp
+    tenncor/distr/src/reference.cpp
+)
+target_include_directories(${DISTR_LIB} PUBLIC .)
+target_link_libraries(${DISTR_LIB} PUBLIC ${EIGEN_LIB} cppkg::egrpc ppconsul protobuf::libprotobuf)
 
-## tenncor/distr/iosvc
-#set(DISTR_IOSVC_LIB ${PROJECT_NAME}_distr_iosvc)
-#add_library(${DISTR_IOSVC_LIB}
-#)
-#target_include_directory(${DISTR_IOSVC_LIB} PUBLIC .)
-#target_link_libraries(${DISTR_IOSVC_LIB} PUBLIC ${DISTR_LIB})
+# tenncor/distr/iosvc
+set(DISTR_IOSVC_LIB ${PROJECT_NAME}_distr_iosvc)
+add_library(${DISTR_IOSVC_LIB}
+    tenncor/distr/iosvc/src/pb_helper.cpp
+    tenncor/distr/iosvc/src/service.cpp
+    $<TARGET_OBJECTS:distr_iosvc_proto_obj>
+)
+target_include_directories(${DISTR_IOSVC_LIB} PUBLIC .)
+target_link_libraries(${DISTR_IOSVC_LIB} PUBLIC ${DISTR_LIB})
 
 # tenncor/eteq
 set(ETEQ_LIB ${PROJECT_NAME}_eteq)
@@ -127,25 +296,23 @@ add_library(${ETEQ_LIB}
 target_include_directories(${ETEQ_LIB} PUBLIC .)
 target_link_libraries(${ETEQ_LIB} PUBLIC ${EIGEN_LIB})
 
-## tenncor/eteq/opsvc
-#set(DISTR_OPSVC_LIB ${PROJECT_NAME}_distr_opsvc)
-#add_library(${DISTR_OPSVC_LIB}
-#    tenncor/eteq/opsvc/distr.op.grpc.pb.cc
-#    tenncor/eteq/opsvc/distr.op.pb.cc
-#    tenncor/eteq/opsvc/src/service.cpp
-#)
-#target_include_directories(${DISTR_OPSVC_LIB} PUBLIC .)
-#target_link_libraries(${DISTR_OPSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${ETEQ_LIB})
+# tenncor/eteq/opsvc
+set(DISTR_OPSVC_LIB ${PROJECT_NAME}_distr_opsvc)
+add_library(${DISTR_OPSVC_LIB}
+    tenncor/eteq/opsvc/src/service.cpp
+    $<TARGET_OBJECTS:distr_opsvc_proto_obj>
+)
+target_include_directories(${DISTR_OPSVC_LIB} PUBLIC .)
+target_link_libraries(${DISTR_OPSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${ETEQ_LIB})
 
-## tenncor/find/lusvc
-#set(DISTR_LUSVC_LIB ${PROJECT_NAME}_distr_lusvc)
-#add_library(${DISTR_LUSVC_LIB}
-#    tenncor/find/lusvc/distr.lu.grpc.pb.cc
-#    tenncor/find/lusvc/distr.lu.pb.cc
-#    tenncor/find/lusvc/src/service.cpp
-#)
-#target_include_directories(${DISTR_LUSVC_LIB} PUBLIC .)
-#target_link_libraries(${DISTR_LUSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${QUERY_LIB})
+# tenncor/find/lusvc
+set(DISTR_LUSVC_LIB ${PROJECT_NAME}_distr_lusvc)
+add_library(${DISTR_LUSVC_LIB}
+    tenncor/find/lusvc/src/service.cpp
+    $<TARGET_OBJECTS:distr_lusvc_proto_obj>
+)
+target_include_directories(${DISTR_LUSVC_LIB} PUBLIC .)
+target_link_libraries(${DISTR_LUSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${QUERY_LIB})
 
 # tenncor/hone
 set(HONE_LIB ${PROJECT_NAME}_hone)
@@ -157,15 +324,14 @@ add_library(${HONE_LIB}
 target_include_directories(${HONE_LIB} PUBLIC .)
 target_link_libraries(${HONE_LIB} PUBLIC ${OPT_LIB} ${ETEQ_LIB})
 
-## tenncor/hone/hosvc
-#set(DISTR_HOSVC_LIB ${PROJECT_NAME}_distr_hosvc)
-#add_library(${DISTR_HOSVC_LIB}
-#    tenncor/hone/hosvc/distr.ho.grpc.pb.cc
-#    tenncor/hone/hosvc/distr.ho.pb.cc
-#    tenncor/hone/hosvc/src/service.cpp
-#)
-#target_include_directories(${DISTR_HOSVC_LIB} PUBLIC .)
-#target_link_libraries(${DISTR_HOSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${HONE_LIB})
+# tenncor/hone/hosvc
+set(DISTR_HOSVC_LIB ${PROJECT_NAME}_distr_hosvc)
+add_library(${DISTR_HOSVC_LIB}
+    tenncor/hone/hosvc/src/service.cpp
+    $<TARGET_OBJECTS:distr_hosvc_proto_obj>
+)
+target_include_directories(${DISTR_HOSVC_LIB} PUBLIC .)
+target_link_libraries(${DISTR_HOSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${HONE_LIB})
 
 # tenncor/layr
 set(LAYR_LIB ${PROJECT_NAME}_layr)
@@ -183,21 +349,39 @@ add_library(${SERIAL_LIB}
 target_include_directories(${SERIAL_LIB} PUBLIC .)
 target_link_libraries(${SERIAL_LIB} PUBLIC ${ONNX_LIB} ${LAYR_LIB})
 
-## tenncor/serial/oxsvc
-#set(DISTR_OXSVC_LIB ${PROJECT_NAME}_distr_oxsvc)
-#add_library(${DISTR_OXSVC_LIB}
-#    tenncor/serial/oxsvc/distr.ox.grpc.pb.cc
-#    tenncor/serial/oxsvc/distr.ox.pb.cc
-#    tenncor/serial/oxsvc/src/segment.cpp
-#    tenncor/serial/oxsvc/src/service.cpp
-#    tenncor/serial/oxsvc/src/topography.cpp
-#    tenncor/serial/oxsvc/src/util.cpp
-#)
-#target_include_directories(${DISTR_OXSVC_LIB} PUBLIC .)
-#target_link_libraries(${DISTR_OXSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${SERIAL_LIB})
+# tenncor/serial/oxsvc
+set(DISTR_OXSVC_LIB ${PROJECT_NAME}_distr_oxsvc)
+add_library(${DISTR_OXSVC_LIB}
+    tenncor/serial/oxsvc/src/segment.cpp
+    tenncor/serial/oxsvc/src/service.cpp
+    tenncor/serial/oxsvc/src/topography.cpp
+    tenncor/serial/oxsvc/src/util.cpp
+    $<TARGET_OBJECTS:distr_oxsvc_proto_obj>
+)
+target_include_directories(${DISTR_OXSVC_LIB} PUBLIC .)
+target_link_libraries(${DISTR_OXSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${SERIAL_LIB})
 
 # tenncor/trainer
 set(TRAINER_LIB ${PROJECT_NAME}_trainer)
 add_library(${TRAINER_LIB} INTERFACE)
 target_include_directories(${TRAINER_LIB} INTERFACE .)
 target_link_libraries(${TRAINER_LIB} INTERFACE ${LAYR_LIB})
+
+# tenncor
+set(TENNCOR_LIB ${PROJECT_NAME})
+add_library(${TENNCOR_LIB}
+    tenncor/src/distr.cpp
+    tenncor/src/eteq.cpp
+    tenncor/src/hone.cpp
+    tenncor/src/layr.cpp
+    tenncor/src/serial.cpp
+    ${TENNCOR_SRCS}
+)
+target_include_directories(${TENNCOR_LIB} PUBLIC .)
+target_link_libraries(${TENNCOR_LIB} PUBLIC
+    ${DISTR_OPSVC_LIB}
+    ${DISTR_LUSVC_LIB}
+    ${DISTR_HOSVC_LIB}
+    ${DISTR_OXSVC_LIB}
+    ${TRAINER_LIB}
+)

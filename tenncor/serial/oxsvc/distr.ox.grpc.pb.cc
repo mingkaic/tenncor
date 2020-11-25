@@ -11,9 +11,12 @@
 #include <grpcpp/impl/codegen/channel_interface.h>
 #include <grpcpp/impl/codegen/client_unary_call.h>
 #include <grpcpp/impl/codegen/client_callback.h>
+#include <grpcpp/impl/codegen/message_allocator.h>
 #include <grpcpp/impl/codegen/method_handler.h>
 #include <grpcpp/impl/codegen/rpc_service_method.h>
 #include <grpcpp/impl/codegen/server_callback.h>
+#include <grpcpp/impl/codegen/server_callback_handlers.h>
+#include <grpcpp/impl/codegen/server_context.h>
 #include <grpcpp/impl/codegen/service_type.h>
 #include <grpcpp/impl/codegen/sync_stream.h>
 namespace distr {
@@ -96,12 +99,22 @@ DistrSerialization::Service::Service() {
       DistrSerialization_method_names[0],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< DistrSerialization::Service, ::distr::ox::GetSaveGraphRequest, ::distr::ox::GetSaveGraphResponse>(
-          std::mem_fn(&DistrSerialization::Service::GetSaveGraph), this)));
+          [](DistrSerialization::Service* service,
+             ::grpc_impl::ServerContext* ctx,
+             const ::distr::ox::GetSaveGraphRequest* req,
+             ::distr::ox::GetSaveGraphResponse* resp) {
+               return service->GetSaveGraph(ctx, req, resp);
+             }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       DistrSerialization_method_names[1],
       ::grpc::internal::RpcMethod::NORMAL_RPC,
       new ::grpc::internal::RpcMethodHandler< DistrSerialization::Service, ::distr::ox::PostLoadGraphRequest, ::distr::ox::PostLoadGraphResponse>(
-          std::mem_fn(&DistrSerialization::Service::PostLoadGraph), this)));
+          [](DistrSerialization::Service* service,
+             ::grpc_impl::ServerContext* ctx,
+             const ::distr::ox::PostLoadGraphRequest* req,
+             ::distr::ox::PostLoadGraphResponse* resp) {
+               return service->PostLoadGraph(ctx, req, resp);
+             }, this)));
 }
 
 DistrSerialization::Service::~Service() {

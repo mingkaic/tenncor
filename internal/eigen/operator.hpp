@@ -152,72 +152,30 @@ using ArgmaxRetT = Eigen::TensorReshapingOp<const DimensionsT,const Eigen::Tenso
 	const Eigen::TensorTupleReducerOp<Eigen::internal::ArgMaxTupleReducer<
 	Eigen::Tuple<Eigen::Index,T>>,const Eigen::array<Eigen::Index,N>,const TensMapT<T>>>>;
 
-template <typename T>
-struct ArgmaxEigenHelper
-{
-	EigenptrT operator() (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
-	{
-		teq::RankT return_dim;
-		Packer<teq::RankT>().unpack(return_dim, attrib);
-
-		DimensionsT outdims = shape_convert(outshape);
-		if (return_dim >= teq::rank_cap)
-		{
-			return make_eigentensor<T,ArgmaxRetT<T,teq::rank_cap>,TensMapT<T>>(
-				outdims, make_tensmap((T*) in.device().data(), in.shape()),
-				[&outdims](TensMapT<T>& in) -> ArgmaxRetT<T,teq::rank_cap>
-				{
-					ArgmaxRetT<T,teq::rank_cap> out = in.argmax().template cast<T>().reshape(outdims);
-					return out;
-				});
-		}
-		return make_eigentensor<T,ArgmaxRetT<T,1>,TensMapT<T>>(
-			outdims, make_tensmap((T*) in.device().data(), in.shape()),
-			[return_dim, &outdims](TensMapT<T>& in) -> ArgmaxRetT<T,1>
-			{
-				return in.argmax(return_dim).template cast<T>().reshape(outdims);
-			});
-	}
-};
-
-template <size_t N>
-using ArgmaxLongRetT = Eigen::TensorReshapingOp<const DimensionsT,
-	const Eigen::TensorTupleReducerOp<Eigen::internal::ArgMaxTupleReducer<
-	Eigen::Tuple<Eigen::Index,int64_t>>,const std::array<Eigen::Index,N>,const TensMapT<int64_t>>>;
-
-template <>
-struct ArgmaxEigenHelper<int64_t>
-{
-	EigenptrT operator() (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
-	{
-		teq::RankT return_dim;
-		Packer<teq::RankT>().unpack(return_dim, attrib);
-
-		DimensionsT outdims = shape_convert(outshape);
-		if (return_dim >= teq::rank_cap)
-		{
-			return make_eigentensor<int64_t,ArgmaxLongRetT<teq::rank_cap>,TensMapT<int64_t>>(
-				outdims, make_tensmap((int64_t*) in.device().data(), in.shape()),
-				[&outdims](TensMapT<int64_t>& in) -> ArgmaxLongRetT<teq::rank_cap>
-				{
-					ArgmaxLongRetT<teq::rank_cap> out = in.argmax().template cast<int64_t>().reshape(outdims);
-					return out;
-				});
-		}
-		return make_eigentensor<int64_t,ArgmaxLongRetT<1>,TensMapT<int64_t>>(
-			outdims, make_tensmap((int64_t*) in.device().data(), in.shape()),
-			[return_dim, &outdims](TensMapT<int64_t>& in) -> ArgmaxLongRetT<1>
-			{
-				return in.argmax(return_dim).template cast<int64_t>().reshape(outdims);
-			});
-	}
-};
-
 /// Return Eigen data object that rgmax in tensor at return_dim
 template <typename T>
 EigenptrT argmax (teq::Shape outshape, const teq::iTensor& in, const marsh::iAttributed& attrib)
 {
-	return ArgmaxEigenHelper<T>()(outshape, in, attrib);
+	teq::RankT return_dim;
+	Packer<teq::RankT>().unpack(return_dim, attrib);
+
+	DimensionsT outdims = shape_convert(outshape);
+	if (return_dim >= teq::rank_cap)
+	{
+		return make_eigentensor<T,ArgmaxRetT<T,teq::rank_cap>,TensMapT<T>>(
+			outdims, make_tensmap((T*) in.device().data(), in.shape()),
+			[&outdims](TensMapT<T>& in) -> ArgmaxRetT<T,teq::rank_cap>
+			{
+				ArgmaxRetT<T,teq::rank_cap> out = in.argmax().template cast<T>().reshape(outdims);
+				return out;
+			});
+	}
+	return make_eigentensor<T,ArgmaxRetT<T,1>,TensMapT<T>>(
+		outdims, make_tensmap((T*) in.device().data(), in.shape()),
+		[return_dim, &outdims](TensMapT<T>& in) -> ArgmaxRetT<T,1>
+		{
+			return in.argmax(return_dim).template cast<T>().reshape(outdims);
+		});
 }
 
 /// Return Eigen data object representing data broadcast across dimensions
@@ -763,18 +721,18 @@ EigenptrT sigmoid (teq::Shape outshape, const teq::iTensor& in)
 	if (is_2d(outshape))
 	{
 		using SigmoidMatRetT = Eigen::CwiseUnaryOp<
-			Eigen::internal::scalar_logistic_op<T>,const MatMapT<T>>;
+			Eigen::internal::scalar_sigmoid_op<T>,const MatMapT<T>>;
 
 		// use matrix when possible
 		return make_eigenmatrix<T,SigmoidMatRetT,MatMapT<T>>(shape_convert(outshape),
 			make_matmap((T*) in.device().data(), in.shape()),
 			[](MatMapT<T>& in) -> SigmoidMatRetT
 			{
-				return in.unaryExpr(Eigen::internal::scalar_logistic_op<T>());
+				return in.unaryExpr(Eigen::internal::scalar_sigmoid_op<T>());
 			});
 	}
 	using SigmoidTensRetT = Eigen::TensorCwiseUnaryOp<
-		Eigen::internal::scalar_logistic_op<T>,const TensMapT<T>>;
+		Eigen::internal::scalar_sigmoid_op<T>,const TensMapT<T>>;
 
 	return make_eigentensor<T,SigmoidTensRetT,TensMapT<T>>(shape_convert(outshape),
 		make_tensmap((T*) in.device().data(), in.shape()),
@@ -1580,16 +1538,11 @@ EigenptrT assign_div (teq::iTensor& target, const teq::iTensor& source)
 		});
 }
 
-template <typename OUTTYPE, typename INTYPE>
-using EigenConvertT = typename Eigen::internal::conditional<
-	Eigen::internal::is_same<OUTTYPE,INTYPE>::value,TensMapT<OUTTYPE>,
-	Eigen::TensorConversionOp<OUTTYPE,const TensMapT<INTYPE>>>::type;
-
 #define _EIGEN_CAST_CASE(INTYPE)\
-out = make_eigentensor<T,EigenConvertT<T,INTYPE>,TensMapT<INTYPE>>(\
+out = make_eigentensor<T,Eigen::TensorConversionOp<T,const TensMapT<INTYPE>>,TensMapT<INTYPE>>(\
 shape_convert(input.shape()),make_tensmap(\
 (INTYPE*) input.device().data(), input.shape()),\
-[&](TensMapT<INTYPE>& arg) -> const EigenConvertT<T,INTYPE> {\
+[&](TensMapT<INTYPE>& arg) -> Eigen::TensorConversionOp<T,const TensMapT<INTYPE>> {\
 	return arg.template cast<T>();\
 });
 

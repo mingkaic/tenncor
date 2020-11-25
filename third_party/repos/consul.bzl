@@ -4,6 +4,6 @@ def consul_repository():
     new_git_repository(
         name = "com_github_oliora_ppconsul",
         remote = "https://github.com/mingkaic/ppconsul.git",
-        commit = "c8f894481e90c8d5f0c14af23fbff040f30a1f37",
+        commit = "43ae2d3e64f85224ad2059804942760e89aa553b",
         build_file = "@com_github_mingkaic_tenncor//third_party:consul.BUILD",
     )
