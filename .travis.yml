@@ -30,14 +30,14 @@ jobs:
         - docker run --network=host -e CODECOV_TOKEN=${CODECOV_TOKEN}
           -e REMOTE_CACHE=${TEST_REMOTE_CACHE} --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} all coverage
         - make test_consul_down
-    - stage: build docker image with C++ and python library
-      if: branch = master
-      script:
-        - git checkout ${TRAVIS_BRANCH}
-        - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-        - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=${TRAVIS_COMMIT} REMOTE_CACHE=${BUILD_REMOTE_CACHE} build_image
-        - docker images
-        - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=${TRAVIS_COMMIT} push_image
+    #- stage: build docker image with C++ and python library
+    #  if: branch = master
+    #  script:
+    #    - git checkout ${TRAVIS_BRANCH}
+    #    - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+    #    - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=${TRAVIS_COMMIT} REMOTE_CACHE=${BUILD_REMOTE_CACHE} build_image
+    #    - docker images
+    #    - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=${TRAVIS_COMMIT} push_image
 notifications:
   email: false
 branches:

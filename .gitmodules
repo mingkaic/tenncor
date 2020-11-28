@@ -1,6 +1,0 @@
-[submodule "cppkg"]
-	path = third_party/cmake_repos/cppkg
-	url = git@github.com:mingkaic/cppkg.git
-[submodule "ppconsul"]
-	path = third_party/cmake_repos/ppconsul
-	url = git@github.com:mingkaic/ppconsul.git

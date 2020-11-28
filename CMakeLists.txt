@@ -4,23 +4,17 @@ project(tenncor C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(PACKAGE_TESTS "Build the tests" ON)
 
-add_compile_options(-fPIC)
-
 #### third_parties ####
 
+set(CONAN_CMAKE_SILENT_OUTPUT OFF)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 find_package(gRPC CONFIG REQUIRED)
-
-# cppkg, boost, grpc
-add_subdirectory(third_party/cmake_repos/cppkg EXCLUDE_FROM_ALL)
-
-# ppconsul
-add_subdirectory(third_party/cmake_repos/ppconsul EXCLUDE_FROM_ALL)
 
 #### generate cpp files ####
 
@@ -193,6 +187,24 @@ add_custom_command(
 )
 add_library(distr_oxsvc_proto_obj OBJECT ${DISTR_OXSVC_PROTO_SRCS} ${DISTR_OXSVC_GRPC_SRCS})
 
+# dbg/print/printsvc
+get_filename_component(DISTR_PRINTSVC_PROTO "dbg/print/printsvc/distr.print.proto" ABSOLUTE)
+set(DISTR_PRINTSVC_PROTO_SRCS "${CMAKE_CURRENT_BINARY_DIR}/dbg/print/printsvc/distr.print.pb.cc")
+set(DISTR_PRINTSVC_PROTO_HDRS "${CMAKE_CURRENT_BINARY_DIR}/dbg/print/printsvc/distr.print.pb.h")
+set(DISTR_PRINTSVC_GRPC_SRCS "${CMAKE_CURRENT_BINARY_DIR}/dbg/print/printsvc/distr.print.grpc.pb.cc")
+set(DISTR_PRINTSVC_GRPC_HDRS "${CMAKE_CURRENT_BINARY_DIR}/dbg/print/printsvc/distr.print.grpc.pb.h")
+add_custom_command(
+    OUTPUT "${DISTR_PRINTSVC_PROTO_SRCS}" "${DISTR_PRINTSVC_PROTO_HDRS}" "${DISTR_PRINTSVC_GRPC_SRCS}" "${DISTR_PRINTSVC_GRPC_HDRS}"
+    COMMAND ${_PROTOBUF_PROTOC}
+    ARGS --grpc_out "${CMAKE_CURRENT_BINARY_DIR}"
+        --cpp_out "${CMAKE_CURRENT_BINARY_DIR}"
+        -I "${CMAKE_CURRENT_SOURCE_DIR}"
+        --plugin=protoc-gen-grpc="${_GRPC_CPP_PLUGIN_EXECUTABLE}"
+        "${DISTR_PRINTSVC_PROTO}"
+    DEPENDS "${DISTR_PRINTSVC_PROTO}"
+)
+add_library(distr_printsvc_proto_obj OBJECT ${DISTR_PRINTSVC_PROTO_SRCS} ${DISTR_PRINTSVC_GRPC_SRCS})
+
 # Include generated *.pb.h files
 include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -207,13 +219,13 @@ add_library(${GLOBAL_LIB}
     internal/global/src/random.cpp
 )
 target_include_directories(${GLOBAL_LIB} PUBLIC .)
-target_link_libraries(${GLOBAL_LIB} PUBLIC ${CONAN_LIBS_BOOST} cppkg::estd cppkg::logs ${CONAN_LIBS_G3LOG})
+target_link_libraries(${GLOBAL_LIB} PUBLIC ${CONAN_LIBS_BOOST} ${CONAN_LIBS_CPPKG} ${CONAN_LIBS_G3LOG})
 
 # internal/marsh
 set(MARSH_LIB ${PROJECT_NAME}_marsh)
 add_library(${MARSH_LIB} internal/marsh/src/objs.cpp)
 target_include_directories(${MARSH_LIB} PUBLIC .)
-target_link_libraries(${MARSH_LIB} PUBLIC cppkg::estd)
+target_link_libraries(${MARSH_LIB} PUBLIC ${CONAN_LIBS_CPPKG})
 
 # internal/teq
 set(TEQ_LIB ${PROJECT_NAME}_teq)
@@ -275,7 +287,7 @@ add_library(${DISTR_LIB}
     tenncor/distr/src/reference.cpp
 )
 target_include_directories(${DISTR_LIB} PUBLIC .)
-target_link_libraries(${DISTR_LIB} PUBLIC ${EIGEN_LIB} cppkg::egrpc ppconsul protobuf::libprotobuf)
+target_link_libraries(${DISTR_LIB} PUBLIC ${EIGEN_LIB} ${CONAN_LIBS_CPPKG} ${CONAN_LIBS_PPCONSUL} protobuf::libprotobuf)
 
 # tenncor/distr/iosvc
 set(DISTR_IOSVC_LIB ${PROJECT_NAME}_distr_iosvc)
@@ -385,3 +397,34 @@ target_link_libraries(${TENNCOR_LIB} PUBLIC
     ${DISTR_OXSVC_LIB}
     ${TRAINER_LIB}
 )
+
+# dbg/print
+set(PRINT_LIB "${PROJECT_NAME}_print")
+add_library(${PRINT_LIB}
+    dbg/print/src/teq.cpp
+)
+target_include_directories(${PRINT_LIB} PUBLIC .)
+target_link_libraries(${PRINT_LIB} PUBLIC ${TEQ_LIB})
+
+# dbg/print/printsvc
+set(DISTR_PRINTSVC_LIB "${PROJECT_NAME}_dbg_printsvc")
+add_library(${DISTR_PRINTSVC_LIB}
+    dbg/print/printsvc/src/data.cpp
+    dbg/print/printsvc/src/service.cpp
+    $<TARGET_OBJECTS:distr_printsvc_proto_obj>
+)
+target_include_directories(${DISTR_PRINTSVC_LIB} PUBLIC .)
+target_link_libraries(${DISTR_PRINTSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${PRINT_LIB})
+
+# CONAN_LIBS_PYBIND11
+set(PYTENNCOR ${PROJECT_NAME}_py)
+pybind11_add_module(${PYTENNCOR}
+    tenncor/python/distr_ext.cpp
+    tenncor/python/eteq_ext.cpp
+    tenncor/python/layr_ext.cpp
+    tenncor/python/query_ext.cpp
+    tenncor/pyutils/src/convert.cpp
+    ${PYTENNCOR_SRCS}
+)
+target_include_directories(${PYTENNCOR} PUBLIC . tenncor)
+target_link_libraries(${PYTENNCOR} PUBLIC ${TENNCOR_LIB} ${DISTR_PRINTSVC_LIB})

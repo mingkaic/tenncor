@@ -51,7 +51,6 @@ cc_library(
         ":printsvc_cc_grpc",
         "//dbg/print:print",
         "//tenncor/distr/iosvc:iosvc",
-        "//tenncor/distr:distr",
     ],
     visibility = ["//visibility:public"],
 )

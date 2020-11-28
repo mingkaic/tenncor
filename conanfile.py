@@ -11,17 +11,16 @@ class TenncorConan(ConanFile):
     topics = ["conan", "machine learning"]
     settings = "os", "compiler", "build_type", "arch"
     requires = (
-        "boost/1.73.0",
-        "grpc/1.29.1@inexorgame/stable",
-	"g3log/1.3.3",
-	"eigen/3.3.8",
-	"gtest/1.10.0",
+        "cppkg/0.1@mingkaic-co/stable",
+        "Ppconsul/0.2.1@mingkaic-co/stable",
+        "g3log/1.3.3",
+        "eigen/3.3.8",
+        "pybind11/2.6.1",
     )
     generators = "cmake", "cmake_find_package_multi"
-    #_modules = ["distr", "eteq", "find", "hone", "layr", "serial", "trainer"]
 
     def source(self):
-        self.run("git clone {}.git".format(self.url))
+        self.run("git clone {}.git .".format(self.url))
 
     def configure(self):
         g3log_options = self.options["g3log"]
