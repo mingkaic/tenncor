@@ -75,7 +75,6 @@ plugins.pyapis:PyAPIsPlugin \
 
 GEN_HDRS = [
     "generated/api.hpp",
-    "generated/pyapi.hpp",
 ]
 
 genrule(
@@ -85,7 +84,9 @@ genrule(
         "//internal/eigen:fast_build": ["//cfg:eteq_min"],
         "//internal/eigen:full_build": ["//cfg:eteq"],
     }) + ["//cfg:eteq_classes"],
-    outs = GEN_HDRS + [
+    outs = [
+        "generated/api.hpp",
+        "generated/pyapi.hpp",
         "generated/api.cpp",
         "generated/pyapi_tenncor.cpp",
     ],
@@ -100,9 +101,8 @@ genrule(
 cc_library(
     name = "tenncor",
     hdrs = [
+        ":generated/api.hpp",
         ":tenncor_hdrs",
-    ] + [
-        ":"+hdr for hdr in GEN_HDRS
     ],
     srcs = [
         ":generated/api.cpp",
@@ -125,6 +125,7 @@ pybind_py_library(
     cc_srcs = [
         ":pybind_hdrs",
         ":pybind_srcs",
+        ":generated/pyapi.hpp",
         ":generated/pyapi_tenncor.cpp",
     ],
     cc_deps = [
@@ -132,10 +133,7 @@ pybind_py_library(
         "//dbg/print/printsvc:printsvc",
         "//tenncor/pyutils:pyutils",
     ],
-    copts = [
-        "-std=c++17",
-        "-Itenncor",
-    ],
+    copts = ["-std=c++17"],
     py_imports = ["."]
 )
 

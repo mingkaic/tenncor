@@ -154,7 +154,7 @@ class PyAPIsPlugin:
 
         generated_files[_pyapi_header] = FileRep(
             _header_template.format(pybind=pybindt, pybind_type=bindtype),
-                user_includes=['"eteq/etens.hpp"'], internal_refs=[])
+                user_includes=['"tenncor/eteq/etens.hpp"'], internal_refs=[])
 
         # split modules by top-level namespaces
         modname = api['pybind_module']

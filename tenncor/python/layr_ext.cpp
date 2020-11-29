@@ -1,5 +1,5 @@
 
-#include "python/layr_ext.hpp"
+#include "tenncor/python/layr_ext.hpp"
 
 void layr_ext(py::module& m)
 {

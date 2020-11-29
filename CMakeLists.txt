@@ -8,6 +8,18 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 option(PACKAGE_TESTS "Build the tests" ON)
 
+set(tenncor_INSTALL_default ON)
+if(NOT CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+   set(tenncor_INSTALL_default OFF)
+endif()
+set(tenncor_INSTALL ${tenncor_INSTALL_default} CACHE BOOL "Generate installation target")
+set(tenncor_INSTALL_BINDIR "bin" CACHE STRING "Installation directory for executables")
+set(tenncor_INSTALL_LIBDIR "lib" CACHE STRING "Installation directory for libraries")
+set(tenncor_INSTALL_INCLUDEDIR "include" CACHE STRING "Installation directory for headers")
+set(tenncor_INSTALL_CMAKEDIR "lib/cmake/${PACKAGE_NAME}" CACHE STRING "Installation directory for cmake config files")
+
+set(tenncor_OPTIMIZE ON CACHE BOOL "Optimize tenncor libraries")
+
 #### third_parties ####
 
 set(CONAN_CMAKE_SILENT_OUTPUT OFF)
@@ -15,6 +27,17 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 find_package(gRPC CONFIG REQUIRED)
+
+#### set optimization options after potential third party overrides ####
+
+if(tenncor_OPTIMIZE)
+    add_compile_options(-march=native -O3)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        add_compile_options(-openmp)
+    else()
+        add_compile_options(-lgomp -fopenmp)
+    endif()
+endif()
 
 #### generate cpp files ####
 
@@ -30,7 +53,7 @@ add_custom_command(
     COMMAND "${EGEN_TOOL}"
     ARGS --plugins plugins.dtypes:DTypesPlugin plugins.opcodes:OpcodesPlugin
         --out "${EIGEN_GENERATED_DIR}"
-	--cfgs "${EIGEN_TYPE_CFG}" "${EIGEN_OP_CFG}"
+        --cfgs "${EIGEN_TYPE_CFG}" "${EIGEN_OP_CFG}"
     DEPENDS "${EIGEN_TYPE_CFG}" "${EIGEN_OP_CFG}"
 )
 
@@ -218,13 +241,19 @@ add_library(${GLOBAL_LIB}
     internal/global/src/logs.cpp
     internal/global/src/random.cpp
 )
-target_include_directories(${GLOBAL_LIB} PUBLIC .)
+target_include_directories(${GLOBAL_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${GLOBAL_LIB} PUBLIC ${CONAN_LIBS_BOOST} ${CONAN_LIBS_CPPKG} ${CONAN_LIBS_G3LOG})
 
 # internal/marsh
 set(MARSH_LIB ${PROJECT_NAME}_marsh)
 add_library(${MARSH_LIB} internal/marsh/src/objs.cpp)
-target_include_directories(${MARSH_LIB} PUBLIC .)
+target_include_directories(${MARSH_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${MARSH_LIB} PUBLIC ${CONAN_LIBS_CPPKG})
 
 # internal/teq
@@ -236,7 +265,10 @@ add_library(${TEQ_LIB}
     internal/teq/src/shape.cpp
     internal/teq/src/traveler.cpp
 )
-target_include_directories(${TEQ_LIB} PUBLIC .)
+target_include_directories(${TEQ_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${TEQ_LIB} PUBLIC ${GLOBAL_LIB} ${MARSH_LIB})
 
 # internal/eigen
@@ -246,7 +278,10 @@ add_library(${EIGEN_LIB}
     internal/eigen/src/packattr.cpp
     ${EIGEN_SRCS}
 )
-target_include_directories(${EIGEN_LIB} PUBLIC .)
+target_include_directories(${EIGEN_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${EIGEN_LIB} PUBLIC ${TEQ_LIB} ${CONAN_LIBS_EIGEN})
 
 # internal/onnx
@@ -256,7 +291,10 @@ add_library(${ONNX_LIB}
     internal/onnx/src/marshal.cpp
     $<TARGET_OBJECTS:onnx_proto_obj>
 )
-target_include_directories(${ONNX_LIB} PUBLIC .)
+target_include_directories(${ONNX_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${ONNX_LIB} PUBLIC ${TEQ_LIB} ${CONAN_LIBS_BOOST} protobuf::libprotobuf)
 
 # internal/query
@@ -266,7 +304,10 @@ add_library(${QUERY_LIB}
     internal/query/src/querier.cpp
     $<TARGET_OBJECTS:query_proto_obj>
 )
-target_include_directories(${QUERY_LIB} PUBLIC .)
+target_include_directories(${QUERY_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${QUERY_LIB} PUBLIC ${EIGEN_LIB} protobuf::libprotobuf)
 
 # internal/opt
@@ -276,7 +317,10 @@ add_library(${OPT_LIB}
     internal/opt/src/parse.cpp
     $<TARGET_OBJECTS:opt_proto_obj>
 )
-target_include_directories(${OPT_LIB} PUBLIC .)
+target_include_directories(${OPT_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${OPT_LIB} PUBLIC ${QUERY_LIB})
 
 # tenncor/distr
@@ -286,7 +330,10 @@ add_library(${DISTR_LIB}
     tenncor/distr/src/p2p.cpp
     tenncor/distr/src/reference.cpp
 )
-target_include_directories(${DISTR_LIB} PUBLIC .)
+target_include_directories(${DISTR_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${DISTR_LIB} PUBLIC ${EIGEN_LIB} ${CONAN_LIBS_CPPKG} ${CONAN_LIBS_PPCONSUL} protobuf::libprotobuf)
 
 # tenncor/distr/iosvc
@@ -296,7 +343,10 @@ add_library(${DISTR_IOSVC_LIB}
     tenncor/distr/iosvc/src/service.cpp
     $<TARGET_OBJECTS:distr_iosvc_proto_obj>
 )
-target_include_directories(${DISTR_IOSVC_LIB} PUBLIC .)
+target_include_directories(${DISTR_IOSVC_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${DISTR_IOSVC_LIB} PUBLIC ${DISTR_LIB})
 
 # tenncor/eteq
@@ -305,7 +355,10 @@ add_library(${ETEQ_LIB}
     tenncor/eteq/src/etens.cpp
     tenncor/eteq/src/make.cpp
 )
-target_include_directories(${ETEQ_LIB} PUBLIC .)
+target_include_directories(${ETEQ_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${ETEQ_LIB} PUBLIC ${EIGEN_LIB})
 
 # tenncor/eteq/opsvc
@@ -314,7 +367,10 @@ add_library(${DISTR_OPSVC_LIB}
     tenncor/eteq/opsvc/src/service.cpp
     $<TARGET_OBJECTS:distr_opsvc_proto_obj>
 )
-target_include_directories(${DISTR_OPSVC_LIB} PUBLIC .)
+target_include_directories(${DISTR_OPSVC_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${DISTR_OPSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${ETEQ_LIB})
 
 # tenncor/find/lusvc
@@ -323,7 +379,10 @@ add_library(${DISTR_LUSVC_LIB}
     tenncor/find/lusvc/src/service.cpp
     $<TARGET_OBJECTS:distr_lusvc_proto_obj>
 )
-target_include_directories(${DISTR_LUSVC_LIB} PUBLIC .)
+target_include_directories(${DISTR_LUSVC_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${DISTR_LUSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${QUERY_LIB})
 
 # tenncor/hone
@@ -333,7 +392,10 @@ add_library(${HONE_LIB}
     tenncor/hone/src/duplicates.cpp
     tenncor/hone/src/optimize.cpp
 )
-target_include_directories(${HONE_LIB} PUBLIC .)
+target_include_directories(${HONE_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${HONE_LIB} PUBLIC ${OPT_LIB} ${ETEQ_LIB})
 
 # tenncor/hone/hosvc
@@ -342,7 +404,10 @@ add_library(${DISTR_HOSVC_LIB}
     tenncor/hone/hosvc/src/service.cpp
     $<TARGET_OBJECTS:distr_hosvc_proto_obj>
 )
-target_include_directories(${DISTR_HOSVC_LIB} PUBLIC .)
+target_include_directories(${DISTR_HOSVC_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${DISTR_HOSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${HONE_LIB})
 
 # tenncor/layr
@@ -350,7 +415,10 @@ set(LAYR_LIB ${PROJECT_NAME}_layr)
 add_library(${LAYR_LIB}
     tenncor/layr/src/layer.cpp
 )
-target_include_directories(${LAYR_LIB} PUBLIC .)
+target_include_directories(${LAYR_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${LAYR_LIB} PUBLIC ${ETEQ_LIB})
 
 # tenncor/serial
@@ -358,7 +426,10 @@ set(SERIAL_LIB ${PROJECT_NAME}_serial)
 add_library(${SERIAL_LIB}
     tenncor/serial/src/serialize.cpp
 )
-target_include_directories(${SERIAL_LIB} PUBLIC .)
+target_include_directories(${SERIAL_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${SERIAL_LIB} PUBLIC ${ONNX_LIB} ${LAYR_LIB})
 
 # tenncor/serial/oxsvc
@@ -370,13 +441,19 @@ add_library(${DISTR_OXSVC_LIB}
     tenncor/serial/oxsvc/src/util.cpp
     $<TARGET_OBJECTS:distr_oxsvc_proto_obj>
 )
-target_include_directories(${DISTR_OXSVC_LIB} PUBLIC .)
+target_include_directories(${DISTR_OXSVC_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${DISTR_OXSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${SERIAL_LIB})
 
 # tenncor/trainer
 set(TRAINER_LIB ${PROJECT_NAME}_trainer)
 add_library(${TRAINER_LIB} INTERFACE)
-target_include_directories(${TRAINER_LIB} INTERFACE .)
+target_include_directories(${TRAINER_LIB} INTERFACE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${TRAINER_LIB} INTERFACE ${LAYR_LIB})
 
 # tenncor
@@ -389,7 +466,10 @@ add_library(${TENNCOR_LIB}
     tenncor/src/serial.cpp
     ${TENNCOR_SRCS}
 )
-target_include_directories(${TENNCOR_LIB} PUBLIC .)
+target_include_directories(${TENNCOR_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${TENNCOR_LIB} PUBLIC
     ${DISTR_OPSVC_LIB}
     ${DISTR_LUSVC_LIB}
@@ -398,12 +478,75 @@ target_link_libraries(${TENNCOR_LIB} PUBLIC
     ${TRAINER_LIB}
 )
 
+if(tenncor_INSTALL)
+    foreach(_PATH
+        internal/global
+        internal/marsh
+        internal/teq
+        internal/eigen
+        internal/onnx
+        internal/query
+        internal/opt
+        tenncor/distr
+        tenncor/distr/iosvc
+        tenncor/eteq
+        tenncor/eteq/opsvc
+        tenncor/find/lusvc
+        tenncor/hone
+        tenncor/hone/hosvc
+        tenncor/layr
+        tenncor/serial
+        tenncor/serial/oxsvc
+        tenncor/trainer
+        tenncor
+    )
+        file(GLOB _HDRS ${_PATH}/*.hpp)
+        install(FILES ${_HDRS} DESTINATION "${tenncor_INSTALL_INCLUDEDIR}/${_PATH}")
+    endforeach()
+    install(FILES internal/eigen/generated/dtype.hpp internal/eigen/generated/opcode.hpp DESTINATION "${tenncor_INSTALL_INCLUDEDIR}/internal/eigen/generated")
+    install(FILES tenncor/generated/api.hpp DESTINATION "${tenncor_INSTALL_INCLUDEDIR}/tenncor/generated")
+
+    set(TargetFile ${PROJECT_NAME}Targets)
+    install(TARGETS
+        ${GLOBAL_LIB}
+        ${MARSH_LIB}
+        ${TEQ_LIB}
+        ${EIGEN_LIB}
+        ${ONNX_LIB}
+        ${QUERY_LIB}
+        ${OPT_LIB}
+        ${DISTR_LIB}
+        ${DISTR_IOSVC_LIB}
+        ${ETEQ_LIB}
+        ${DISTR_OPSVC_LIB}
+        ${DISTR_LUSVC_LIB}
+        ${HONE_LIB}
+        ${DISTR_HOSVC_LIB}
+        ${LAYR_LIB}
+        ${SERIAL_LIB}
+        ${DISTR_OXSVC_LIB}
+        ${TRAINER_LIB}
+        ${PROJECT_NAME}
+        EXPORT ${TargetFile}
+        RUNTIME DESTINATION ${tenncor_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${tenncor_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${tenncor_INSTALL_LIBDIR}
+    )
+    install(EXPORT ${TargetFile}
+        DESTINATION ${tenncor_INSTALL_CMAKEDIR}
+        NAMESPACE ${PROJECT_NAME}::
+    )
+endif()
+
 # dbg/print
 set(PRINT_LIB "${PROJECT_NAME}_print")
 add_library(${PRINT_LIB}
     dbg/print/src/teq.cpp
 )
-target_include_directories(${PRINT_LIB} PUBLIC .)
+target_include_directories(${PRINT_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${PRINT_LIB} PUBLIC ${TEQ_LIB})
 
 # dbg/print/printsvc
@@ -413,10 +556,13 @@ add_library(${DISTR_PRINTSVC_LIB}
     dbg/print/printsvc/src/service.cpp
     $<TARGET_OBJECTS:distr_printsvc_proto_obj>
 )
-target_include_directories(${DISTR_PRINTSVC_LIB} PUBLIC .)
+target_include_directories(${DISTR_PRINTSVC_LIB} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${DISTR_PRINTSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${PRINT_LIB})
 
-# CONAN_LIBS_PYBIND11
+# tenncor/python
 set(PYTENNCOR ${PROJECT_NAME}_py)
 pybind11_add_module(${PYTENNCOR}
     tenncor/python/distr_ext.cpp
@@ -426,5 +572,8 @@ pybind11_add_module(${PYTENNCOR}
     tenncor/pyutils/src/convert.cpp
     ${PYTENNCOR_SRCS}
 )
-target_include_directories(${PYTENNCOR} PUBLIC . tenncor)
+target_include_directories(${PYTENNCOR} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/.>
+    $<INSTALL_INTERFACE:.>
+)
 target_link_libraries(${PYTENNCOR} PUBLIC ${TENNCOR_LIB} ${DISTR_PRINTSVC_LIB})

@@ -4,7 +4,9 @@
 
 #include <sstream>
 
-#include "python/tenncor_utils.hpp"
+#include "tenncor/generated/pyapi.hpp"
+
+#include "tenncor/python/tenncor_utils.hpp"
 
 void query_ext(py::module& m);
 

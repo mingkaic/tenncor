@@ -1,5 +1,4 @@
-from conans import ConanFile, CMake
-import os
+from conans import ConanFile, CMake, tools
 
 class TenncorConan(ConanFile):
     name = "tenncor"
@@ -14,32 +13,38 @@ class TenncorConan(ConanFile):
         "cppkg/0.1@mingkaic-co/stable",
         "Ppconsul/0.2.1@mingkaic-co/stable",
         "g3log/1.3.3",
-        "eigen/3.3.8",
+        "eigen/3.3.7",
         "pybind11/2.6.1",
     )
     generators = "cmake", "cmake_find_package_multi"
 
-    def source(self):
-        self.run("git clone {}.git .".format(self.url))
+    def _configure_cmake(self):
+        cmake = CMake(self)
+        cmake.configure()
+        return cmake
 
     def configure(self):
+        if self.settings.os == "Windows" and self.settings.compiler == "Visual Studio" and tools.Version(self.settings.compiler.version) < 14:
+            raise ConanInvalidConfiguration("gRPC can only be built with Visual Studio 2015 or higher.")
+
         g3log_options = self.options["g3log"]
         g3log_options.use_dynamic_logging_levels = True
         g3log_options.change_debug_to_dbug = True
         g3log_options.shared = False
 
+    def source(self):
+        self.run("git clone {}.git .".format(self.url))
+
     def build(self):
-        cmake = CMake(self)
-        cmake.configure()
+        cmake = self._configure_cmake()
         cmake.build()
 
     def package(self):
-        self.copy("*.hpp", dst=os.path.join("include", "tenncor"), src="tenncor")
-        self.copy("*.lib", dst="lib", keep_path=False)
-        self.copy("*.dll", dst="bin", keep_path=False)
-        self.copy("*.so", dst="lib", keep_path=False)
-        self.copy("*.dylib", dst="lib", keep_path=False)
-        self.copy("*.a", dst="lib", keep_path=False)
+        self.copy(pattern="LICENSE.*", dst="licenses", keep_path=False)
+        cmake = self._configure_cmake()
+        cmake.install()
 
     def package_info(self):
-        self.cpp_info.libs = ["{}_{}".format(self.name, module) for module in _modules]
+        self.cpp_info.names["cmake_find_package"] = self.name
+        self.cpp_info.names["cmake_find_package_multi"] = self.name
+        self.cpp_info.libs = ["tenncor"]

@@ -1,6 +1,7 @@
 
 #include "dbg/print/printsvc/service.hpp"
-#include "python/distr_ext.hpp"
+
+#include "tenncor/python/distr_ext.hpp"
 
 #ifdef PYTHON_DISTR_EXT_HPP
 

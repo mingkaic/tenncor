@@ -1,5 +1,5 @@
 
-#include "python/eteq_ext.hpp"
+#include "tenncor/python/eteq_ext.hpp"
 
 #ifdef PYTHON_ETEQ_EXT_HPP
 
