@@ -70,7 +70,7 @@ plugins.apis:APIsPlugin \
 plugins.pyapis:PyAPIsPlugin \
 --out $(@D)/generated \
 --strip_prefix=$(@D)/.. \
---ext_path=`dirname $$(echo '$(locations //cfg:eteq_classes)' | awk '{{print $$1}}')` \
+--ext_path=`dirname $$(echo '$(locations //cfg:tenncor_classes)' | awk '{{print $$1}}')` \
 --cfgs $(locations //cfg:{})"""
 
 GEN_HDRS = [
@@ -80,10 +80,10 @@ GEN_HDRS = [
 genrule(
     name = "generated_tenncor",
     srcs = select({
-        "//conditions:default": ["//cfg:eteq_min"],
-        "//internal/eigen:fast_build": ["//cfg:eteq_min"],
-        "//internal/eigen:full_build": ["//cfg:eteq"],
-    }) + ["//cfg:eteq_classes"],
+        "//conditions:default": ["//cfg:tenncor_min"],
+        "//internal/eigen:fast_build": ["//cfg:tenncor_min"],
+        "//internal/eigen:full_build": ["//cfg:tenncor"],
+    }) + ["//cfg:tenncor_classes"],
     outs = [
         "generated/api.hpp",
         "generated/pyapi.hpp",
@@ -92,9 +92,9 @@ genrule(
     ],
     tools = ["//tools/egen:egen"],
     cmd = select({
-        "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
-        "//internal/eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
-        "//internal/eigen:full_build": GEN_CMD_FMT.format("eteq"),
+        "//conditions:default": GEN_CMD_FMT.format("tenncor_min"),
+        "//internal/eigen:fast_build": GEN_CMD_FMT.format("tenncor_min"),
+        "//internal/eigen:full_build": GEN_CMD_FMT.format("tenncor"),
     })
 )
 

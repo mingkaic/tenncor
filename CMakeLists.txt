@@ -57,7 +57,7 @@ add_custom_command(
     DEPENDS "${EIGEN_TYPE_CFG}" "${EIGEN_OP_CFG}"
 )
 
-get_filename_component(TENNCOR_CFG "cfg/eteq.yml" ABSOLUTE)
+get_filename_component(TENNCOR_CFG "cfg/tenncor.yml" ABSOLUTE)
 set(TENNCOR_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/tenncor/generated")
 set(TENNCOR_SRCS "${TENNCOR_GENERATED_DIR}/api.cpp")
 set(TENNCOR_HDRS "${TENNCOR_GENERATED_DIR}/api.hpp")
@@ -68,7 +68,7 @@ add_custom_command(
     COMMAND "${EGEN_TOOL}"
     ARGS --plugins plugins.apis:APIsPlugin plugins.pyapis:PyAPIsPlugin
         --out "${TENNCOR_GENERATED_DIR}"
-        --ext_path "${CMAKE_CURRENT_SOURCE_DIR}/cfg/eteq"
+        --ext_path "${CMAKE_CURRENT_SOURCE_DIR}/cfg/tenncor"
         --cfgs "${TENNCOR_CFG}"
     DEPENDS "${TENNCOR_CFG}"
 )

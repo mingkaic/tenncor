@@ -381,3 +381,39 @@ funcs:
                   std::generate(vec.begin(), vec.end(), global::get_generator()->norm_decgen(0., stdev));
                   return eteq::make_variable(vec.data(), shape, label, ctx);
               };
+  - template: typename T
+    name: batch_normalization
+    description: Return batch normalization of input arg. That is output mean is close to 0 and variance is close to 1
+    args:
+      - type: eteq::ETensor
+        name: arg
+      - type: float
+        name: eps
+        default: std::numeric_limits<float>::epsilon()
+      - type: eteq::ETensor
+        name: offset
+        check_null: false
+        default: eteq::ETensor()
+      - type: eteq::ETensor
+        name: scale
+        check_null: false
+        default: eteq::ETensor()
+    out:
+      type: eteq::ETensor
+      val: |
+          //
+              auto mean = super->reduce_mean(arg);
+              auto variance = super->reduce_mean(super->square(super->sub(arg, mean)));
+              auto norm = super->div(
+                  super->sub(arg, mean),
+                  super->sqrt(super->add(variance, eps))
+              );
+              if (offset == nullptr)
+              {
+                  offset = eteq::make_constant_like_uncast<T>(0,arg,super->ctx);
+              }
+              if (scale == nullptr)
+              {
+                  scale = eteq::make_constant_like_uncast<T>(1,arg,super->ctx);
+              }
+              return super->add(super->mul(norm, scale), offset);

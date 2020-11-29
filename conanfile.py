@@ -1,4 +1,5 @@
 from conans import ConanFile, CMake, tools
+import os
 
 class TenncorConan(ConanFile):
     name = "tenncor"
@@ -34,6 +35,13 @@ class TenncorConan(ConanFile):
 
     def source(self):
         self.run("git clone {}.git .".format(self.url))
+
+        os.remove("dbg/peval/emit/gemitter.pb.h")
+        os.remove("dbg/peval/emit/gemitter.pb.cc")
+        os.remove("internal/onnx/onnx.pb.h")
+        os.remove("internal/onnx/onnx.pb.cc")
+        os.remove("tenncor/serial/oxsvc/distr.ox.pb.h")
+        os.remove("tenncor/serial/oxsvc/distr.ox.pb.cc")
 
     def build(self):
         cmake = self._configure_cmake()

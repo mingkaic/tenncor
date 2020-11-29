@@ -70,16 +70,16 @@ GEN_SRCS = [
 genrule(
     name = "generated_eigen",
     srcs = select({
-        "//conditions:default": ["//cfg:eteq_min"],
-        ":fast_build": ["//cfg:eteq_min"],
-        ":full_build": ["//cfg:eteq"]
+        "//conditions:default": ["//cfg:tenncor_min"],
+        ":fast_build": ["//cfg:tenncor_min"],
+        ":full_build": ["//cfg:tenncor"]
     }),
     outs = GEN_HDRS + GEN_SRCS,
     tools = ["//tools/egen:egen"],
     cmd = select({
-        "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
-        ":fast_build": GEN_CMD_FMT.format("eteq_min"),
-        ":full_build": GEN_CMD_FMT.format("eteq"),
+        "//conditions:default": GEN_CMD_FMT.format("tenncor_min"),
+        ":fast_build": GEN_CMD_FMT.format("tenncor_min"),
+        ":full_build": GEN_CMD_FMT.format("tenncor"),
     })
 )
 
