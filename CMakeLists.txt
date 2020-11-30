@@ -526,7 +526,7 @@ if(tenncor_INSTALL)
         ${SERIAL_LIB}
         ${DISTR_OXSVC_LIB}
         ${TRAINER_LIB}
-        ${PROJECT_NAME}
+        ${TENNCOR_LIB}
         EXPORT ${TargetFile}
         RUNTIME DESTINATION ${tenncor_INSTALL_BINDIR}
         LIBRARY DESTINATION ${tenncor_INSTALL_LIBDIR}

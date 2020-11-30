@@ -407,3 +407,7 @@ conan_build: build/conanbuildinfo.cmake
 .PHONY: conan_create
 conan_create:
 	conan create . mingkaic-co/stable
+
+.PHONY: python_create
+python_create:
+	python3 setup.py sdist bdist_wheel

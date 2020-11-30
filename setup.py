@@ -13,25 +13,25 @@ class ConanCMakeBuild(build_ext):
     def run(self):
         try:
             subprocess.check_output(["cmake", "--version"])
-        expect OSError:
-            raise RunetimeError("CMake missing - probably upgrade a newer version of pip")
+        except OSError:
+            raise RuntimeError("CMake missing - probably upgrade a newer version of pip")
+        try:
+            subprocess.check_output(["conan", "--version"])
+        except OSError:
+            raise RuntimeError("Conan missing")
 
-        super().run(self)
+        super().run()
 
     def build_extension(self, ext):
         ext_dir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        if not extdir.endswith(os.path.sep):
-            extdir += os.path.sep
+        if not ext_dir.endswith(os.path.sep):
+            ext_dir += os.path.sep
 
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 
+        subprocess.check_call(["conan", "install", "-if", ".", ext.source_dir], cwd=self.build_temp)
         subprocess.check_call(["conan", "build", "-bf", ".", ext.source_dir], cwd=self.build_temp)
-        subprocess.check_call(["cp", "lib/*.a", extdir)
-        subprocess.check_call(["cp", "lib/*.so", extdir)
-        subprocess.check_call(["cp", "lib/*.lib", extdir)
-        subprocess.check_call(["cp", "lib/*.dll", extdir)
-        subprocess.check_call(["cp", "lib/*.dylib*", extdir)
 
 __version__ = "0.0.3"
 
@@ -58,7 +58,6 @@ setup(
     author_email = "mingkaichen2009@gmail.com",
     license = "MIT",
     packages = find_packages(),
-    ext_modules=[Extension('', [], libraries=['tenncor/tenncor.so'])],
     install_requires = [],
     test_suite = "",
     tests_require = [],
