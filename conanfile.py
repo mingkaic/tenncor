@@ -1,5 +1,7 @@
-from conans import ConanFile, CMake, tools
 import os
+import sys
+
+from conans import ConanFile, CMake, tools
 
 class TenncorConan(ConanFile):
     name = "tenncor"
@@ -21,6 +23,8 @@ class TenncorConan(ConanFile):
 
     def _configure_cmake(self):
         cmake = CMake(self)
+        cmake.definitions["PYTHON_EXECUTABLE"] = sys.executable
+        cmake.definitions["CMAKE_BUILD_TYPE"] = self.settings.build_type
         cmake.configure()
         return cmake
 
@@ -55,4 +59,4 @@ class TenncorConan(ConanFile):
     def package_info(self):
         self.cpp_info.names["cmake_find_package"] = self.name
         self.cpp_info.names["cmake_find_package_multi"] = self.name
-        self.cpp_info.libs = ["tenncor"]
+        self.cpp_info.libs = ["ctenncor"]

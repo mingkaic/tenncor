@@ -1,4 +1,39 @@
+import os
+import subprocess
+
 from setuptools import setup, find_packages, Extension
+from setuptools.command.build_ext import build_ext
+
+class CMakeExtension(Extension):
+    def __init__(self, name, source_dir=""):
+        Extension.__init__(self, name, sources=[])
+        self.source_dir = os.path.abspath(source_dir)
+
+class ConanCMakeBuild(build_ext):
+    def run(self):
+        try:
+            subprocess.check_output(["cmake", "--version"])
+        expect OSError:
+            raise RunetimeError("CMake missing - probably upgrade a newer version of pip")
+
+        super().run(self)
+
+    def build_extension(self, ext):
+        ext_dir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
+        if not extdir.endswith(os.path.sep):
+            extdir += os.path.sep
+
+        if not os.path.exists(self.build_temp):
+            os.makedirs(self.build_temp)
+
+        subprocess.check_call(["conan", "build", "-bf", ".", ext.source_dir], cwd=self.build_temp)
+        subprocess.check_call(["cp", "lib/*.a", extdir)
+        subprocess.check_call(["cp", "lib/*.so", extdir)
+        subprocess.check_call(["cp", "lib/*.lib", extdir)
+        subprocess.check_call(["cp", "lib/*.dll", extdir)
+        subprocess.check_call(["cp", "lib/*.dylib*", extdir)
+
+__version__ = "0.0.3"
 
 def readme():
     with open("README.md") as f:
@@ -6,7 +41,7 @@ def readme():
 
 setup(
     name = "tenncor",
-    version = "0.0.3",
+    version = __version__,
     description = "Tensor algebra module.",
     long_description = readme(),
     long_description_content_type ="text/markdown",
@@ -29,4 +64,6 @@ setup(
     tests_require = [],
     zip_safe = False,
     python_requires = '>=3.6',
+    ext_modules=[CMakeExtension("tenncor")],
+    cmdclass={"build_ext": ConanCMakeBuild},
 )

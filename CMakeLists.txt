@@ -457,7 +457,7 @@ target_include_directories(${TRAINER_LIB} INTERFACE
 target_link_libraries(${TRAINER_LIB} INTERFACE ${LAYR_LIB})
 
 # tenncor
-set(TENNCOR_LIB ${PROJECT_NAME})
+set(TENNCOR_LIB c${PROJECT_NAME})
 add_library(${TENNCOR_LIB}
     tenncor/src/distr.cpp
     tenncor/src/eteq.cpp
@@ -563,7 +563,7 @@ target_include_directories(${DISTR_PRINTSVC_LIB} PUBLIC
 target_link_libraries(${DISTR_PRINTSVC_LIB} PUBLIC ${DISTR_IOSVC_LIB} ${PRINT_LIB})
 
 # tenncor/python
-set(PYTENNCOR ${PROJECT_NAME}_py)
+set(PYTENNCOR ${PROJECT_NAME})
 pybind11_add_module(${PYTENNCOR}
     tenncor/python/distr_ext.cpp
     tenncor/python/eteq_ext.cpp
