@@ -19,7 +19,7 @@ set(tenncor_INSTALL_LIBDIR "lib" CACHE STRING "Installation directory for librar
 set(tenncor_INSTALL_INCLUDEDIR "include" CACHE STRING "Installation directory for headers")
 set(tenncor_INSTALL_CMAKEDIR "lib/cmake/${PACKAGE_NAME}" CACHE STRING "Installation directory for cmake config files")
 
-set(tenncor_OPTIMIZE ON CACHE BOOL "Optimize tenncor libraries")
+set(tenncor_OPTIMIZE OFF CACHE BOOL "Optimize tenncor libraries")
 
 #### third_parties ####
 
@@ -33,8 +33,10 @@ find_package(gRPC CONFIG REQUIRED)
 if(tenncor_OPTIMIZE)
     add_compile_options(-march=native -O3)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        message(STATUS "setting clang optimization options")
         add_compile_options(-openmp)
     else()
+        message(STATUS "setting non-clang optimization options")
         add_compile_options(-lgomp -fopenmp)
     endif()
 endif()

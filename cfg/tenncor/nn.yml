@@ -96,19 +96,21 @@ funcs:
                   out = super->add(out,super->extend_like(bias,out));
               }
               return out;
-  - name: drop_out
+  - description: randomly sets input unit to 0 with frequency of dp_prob. dp_prob is in range [0, 1].
+    name: drop_out
     args:
     - type: const eteq::ETensor&
       name: input
     - type: float
-      name: prob
+      name: dp_prob
     out:
       type: eteq::ETensor
       val: |
           //
-              auto p = eteq::make_constant_like(prob,input,super->ctx);
-              return super->mul(input,super->div(
-                  super->random.rand_binom_one(p),p));
+              auto p = eteq::make_variable_like<float>(1.-dp_prob,input,"drop_out_prob",super->ctx);
+              auto mask = super->random.rand_binom_one(p);
+              auto denom = super->reduce_sum(mask) / super->n_elems(mask);
+              return super->mul(input,super->div(mask,denom));
   - name: mean_pool2d
     args:
     - type: const eteq::ETensor&
