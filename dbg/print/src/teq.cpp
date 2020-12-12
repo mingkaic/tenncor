@@ -3,7 +3,7 @@
 #ifdef DBG_TEQ_HPP
 
 void ten_stream (std::ostream& out,
-	teq::iTensor*& root, const std::string& prefix,
+	teq::iTensor*& root, const std::string&,
 	const PrintEqConfig& cfg)
 {
 	if (nullptr == root)

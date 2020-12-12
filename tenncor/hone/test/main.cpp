@@ -1,13 +1,13 @@
 
 #include "gtest/gtest.h"
 
-#include "exam/exam.hpp"
+#include "testutil/tutil.hpp"
 
 #include "internal/global/global.hpp"
 
 int main (int argc, char** argv)
 {
-	global::set_logger(new exam::TestLogger());
+	global::set_logger(new exam::NoSupportLogger());
 
 	::testing::InitGoogleTest(&argc, argv);
 	int ret = RUN_ALL_TESTS();

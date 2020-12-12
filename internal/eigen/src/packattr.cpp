@@ -23,7 +23,7 @@ std::string Packer<teq::Shape>::key_ = "shape";
 
 std::string Packer<teq::TensptrT>::key_ = "tensor";
 
-void pack_attr (marsh::iAttributed& attrs) {}
+void pack_attr (marsh::iAttributed&) {}
 
 OptDimsT unpack_extend (teq::Shape inshape, const marsh::iAttributed& attrib)
 {

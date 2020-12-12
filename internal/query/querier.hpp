@@ -180,7 +180,7 @@ struct Query final : public teq::iOnceTraveler
 
 private:
 	/// Implementation of iOnceTraveler
-	void visit_leaf (teq::iLeaf& leaf) override {}
+	void visit_leaf (teq::iLeaf&) override {}
 
 	/// Implementation of iOnceTraveler
 	void visit_func (teq::iFunctor& func) override

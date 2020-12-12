@@ -22,7 +22,7 @@ filegroup(
         "tutil.hpp",
         "graph_comp.hpp",
         "port_check.hpp",
-        "nosupport_log.hpp",
+        "testcase_with_logger.hpp",
     ],
 )
 

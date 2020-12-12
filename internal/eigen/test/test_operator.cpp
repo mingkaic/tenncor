@@ -6,7 +6,17 @@
 
 #include "exam/exam.hpp"
 
+#include "internal/global/global.hpp"
+
 #include "internal/eigen/mock/mock.hpp"
+
+#include "testutil/tutil.hpp"
+
+
+using ::testing::_;
+using ::testing::An;
+using ::testing::Return;
+using ::testing::Throw;
 
 
 static void test_reduce (
@@ -1120,6 +1130,10 @@ TEST(OPERATOR, Cube)
 
 TEST(OPERATOR, Convolution)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+	EXPECT_CALL(*logger, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	{
 		marsh::Maps mvalues;
 		eigen::Packer<teq::RanksT>().pack(mvalues, {1, 1});
@@ -1131,8 +1145,10 @@ TEST(OPERATOR, Convolution)
 		}, teq::Shape({3, 3}));
 		MockLeaf kernel(std::vector<double>{0.3, 0.6}, teq::Shape({2}));
 
-		EXPECT_FATAL(eigen::convolution<double>(outshape, image, kernel, mvalues),
-			"convolution does not support repeated kernel dimensions: [1\\1]");
+		std::string fatalmsg = "convolution does not support repeated kernel dimensions: [1\\1]";
+		EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+		EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+		EXPECT_FATAL(eigen::convolution<double>(outshape, image, kernel, mvalues), fatalmsg.c_str());
 	}
 
 	{
@@ -1146,8 +1162,10 @@ TEST(OPERATOR, Convolution)
 		}, teq::Shape({3, 3}));
 		MockLeaf kernel(std::vector<double>{0.3, 0.6, 4.0, 2.2}, teq::Shape({2, 2}));
 
-		EXPECT_FATAL(eigen::convolution<double>(outshape, image, kernel, mvalues),
-			"given kernel shape [2\\2\\1\\1\\1\\1\\1\\1], unspecified non-singular kernel dimension 1 is undefined");
+		std::string fatalmsg1 = "given kernel shape [2\\2\\1\\1\\1\\1\\1\\1], unspecified non-singular kernel dimension 1 is undefined";
+		EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+		EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));;
+		EXPECT_FATAL(eigen::convolution<double>(outshape, image, kernel, mvalues), fatalmsg1.c_str());
 	}
 
 	marsh::Maps mvalues;
@@ -1171,6 +1189,8 @@ TEST(OPERATOR, Convolution)
 	};
 	std::vector<double> got_raw(raw, raw + outshape.n_elems());
 	ASSERT_ARRDBLEQ(expect_raw, got_raw);
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 

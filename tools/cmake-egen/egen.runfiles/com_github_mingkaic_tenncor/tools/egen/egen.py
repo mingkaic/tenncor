@@ -1,1 +1,0 @@
-/home/mingkaichen/Developer/tenncor/tools/egen/egen.py

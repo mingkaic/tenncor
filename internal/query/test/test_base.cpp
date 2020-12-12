@@ -14,11 +14,24 @@
 #include "internal/query/parse.hpp"
 
 
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Throw;
+
+
 TEST(BASE, BadParse)
 {
+	auto* logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	std::stringstream badjson;
 	query::Node cond;
-	EXPECT_FATAL(query::json_parse(cond, badjson), "failed to parse json condition");
+	std::string fatalmsg = "failed to parse json condition";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(query::json_parse(cond, badjson), fatalmsg.c_str());
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
@@ -64,6 +77,9 @@ TEST(BASE, ErasedNode)
 
 TEST(BASE, BadNode)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	auto c1 = std::make_shared<MockLeaf>(teq::Shape(), "3.2");
 	auto c2 = std::make_shared<MockLeaf>(teq::Shape(), "3.5");
 	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
@@ -78,7 +94,10 @@ TEST(BASE, BadNode)
 	{
 		query::Node cond;
 		query::json_parse(cond, badjson);
-		EXPECT_FATAL(matcher.match(cond), "cannot look for unknown node");
+		std::string fatalmsg = "cannot look for unknown node";
+		EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+		EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+		EXPECT_FATAL(matcher.match(cond), fatalmsg.c_str());
 	}
 
 	std::stringstream badjson2;
@@ -90,8 +109,13 @@ TEST(BASE, BadNode)
 	{
 		query::Node cond;
 		query::json_parse(cond, badjson2);
-		EXPECT_FATAL(matcher.match(cond), "cannot look for unknown node");
+		std::string fatalmsg = "cannot look for unknown node";
+		EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+		EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+		EXPECT_FATAL(matcher.match(cond), fatalmsg.c_str());
 	}
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 

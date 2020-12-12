@@ -6,7 +6,17 @@
 
 #include "exam/exam.hpp"
 
+#include "internal/global/global.hpp"
+
 #include "internal/eigen/mock/mock.hpp"
+
+#include "testutil/tutil.hpp"
+
+
+using ::testing::_;
+using ::testing::An;
+using ::testing::Return;
+using ::testing::Throw;
 
 
 TEST(FUNCOPT, Default)
@@ -154,6 +164,10 @@ TEST(FUNCOPT, Reshape)
 
 TEST(FUNCOPT, Slice)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+	EXPECT_CALL(*logger, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	egen::FuncOpt<egen::SLICE> opt;
 	marsh::Maps attrs;
 
@@ -169,8 +183,10 @@ TEST(FUNCOPT, Slice)
 	attrs.rm_attr(packer.get_key());
 
 	packer.pack(attrs, eigen::PairVecT<teq::DimT>{{1, 2}, {4, 0}});
-	EXPECT_FATAL(opt.operator()<double>(attrs, {a}),
-		"cannot create slice with 0 dimensions (second value of extents) (extents=[1:2\\4:0])");
+	std::string fatalmsg = "cannot create slice with 0 dimensions (second value of extents) (extents=[1:2\\4:0])";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+	EXPECT_FATAL(opt.operator()<double>(attrs, {a}), fatalmsg.c_str());
 	attrs.rm_attr(packer.get_key());
 
 	// slice coverage greater than shape
@@ -180,6 +196,8 @@ TEST(FUNCOPT, Slice)
 
 	packer.pack(attrs, eigen::PairVecT<teq::DimT>{{1, 2}, {1, 3}});
 	EXPECT_FALSE(opt.operator()<double>(attrs, {a}));
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 

@@ -44,7 +44,7 @@ inline std::array<T,N> dim_copy (std::vector<T> d)
 }
 
 #define _ARRAY_SWITCH(ARR, CASE)switch (ARR.size()) {\
-	case 0: global::fatal("missing dimensions");\
+	case 0: global::fatal("missing dimensions"); [[fallthrough]];\
 	case 1: CASE(ARR,1)\
 	case 2: CASE(ARR,2)\
 	case 3: CASE(ARR,3)\
@@ -433,7 +433,7 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 /// Given reference to output array, and input vector ref,
 /// make output elements referencing input tensor
 template <typename T>
-EigenptrT ref (teq::Shape outshape, const teq::iTensor& in)
+EigenptrT ref (teq::Shape, const teq::iTensor& in)
 {
 	return std::make_shared<PtrRef<T>>((T*) in.device().data());
 }

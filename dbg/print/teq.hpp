@@ -43,7 +43,7 @@ void ten_stream (std::ostream& out,
 struct PrettyEquation final
 {
 	PrettyEquation (void) : renderer_(
-		[](teq::iTensor*& root, size_t depth) -> teq::TensT
+		[](teq::iTensor*& root, size_t) -> teq::TensT
 		{
 			if (auto f = dynamic_cast<teq::iFunctor*>(root))
 			{

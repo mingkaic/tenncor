@@ -17,7 +17,7 @@ struct TravEvaluator final : public iOnceTraveler
 
 private:
 	/// Implementation of iOnceTraveler
-	void visit_leaf (iLeaf& leaf) override {}
+	void visit_leaf (iLeaf&) override {}
 
 	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override

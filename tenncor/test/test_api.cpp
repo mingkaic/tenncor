@@ -4,11 +4,14 @@
 
 #include "testutil/tutil.hpp"
 
-#include "exam/exam.hpp"
-
 #include "internal/utils/coord/coord.hpp"
 
 #include "tenncor/tenncor.hpp"
+
+
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Throw;
 
 
 using UnaryDblF = std::function<double(double)>;
@@ -572,6 +575,9 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 
 TEST(API, Assign)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	eigen::Device device;
 	// tensor operation
 	teq::DimsT slist = {2, 3, 4};
@@ -628,13 +634,21 @@ TEST(API, Assign)
 		EXPECT_DOUBLE_EQ(-data2[i], aptr2[i]);
 	}
 
-	EXPECT_FATAL(tcr::derive(ass1, {src}), "cannot derive ASSIGN");
-	EXPECT_FATAL(tcr::derive(ass2, {src}), "cannot derive ASSIGN");
+	std::string fatalmsg = "cannot derive ASSIGN";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(2).WillRepeatedly(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(tcr::derive(ass1, {src}), fatalmsg.c_str());
+	EXPECT_FATAL(tcr::derive(ass2, {src}), fatalmsg.c_str());
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
 TEST(API, AssignHighToLowPrecision)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	eigen::Device device;
 	// tensor operation
 	teq::DimsT slist = {2, 3, 4};
@@ -710,8 +724,13 @@ TEST(API, AssignHighToLowPrecision)
 		EXPECT_DOUBLE_EQ(-data2[i], aptr2[i]);
 	}
 
-	EXPECT_FATAL(tcr::derive(ass1, {src}), "cannot derive ASSIGN");
-	EXPECT_FATAL(tcr::derive(ass2, {src}), "cannot derive ASSIGN");
+	std::string fatalmsg = "cannot derive ASSIGN";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(2).WillRepeatedly(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(tcr::derive(ass1, {src}), fatalmsg.c_str());
+	EXPECT_FATAL(tcr::derive(ass2, {src}), fatalmsg.c_str());
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
@@ -1486,6 +1505,9 @@ TEST(API, NDims)
 
 TEST(API, Argmax)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	teq::Shape shape({2, 3, 4});
 	std::vector<double> data = {
 		22, 15, 74, 38, 61, 95, 62, 81, 99, 76, 7, 22,
@@ -1506,7 +1528,12 @@ TEST(API, Argmax)
 	double* ptr = (double*) dest->device().data();
 	EXPECT_EQ(8, *ptr);
 
-	EXPECT_FATAL(tcr::derive(dest, {src}), "cannot derive ARGMAX");
+	std::string fatalmsg = "cannot derive ARGMAX";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(tcr::derive(dest, {src}), fatalmsg.c_str());
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 

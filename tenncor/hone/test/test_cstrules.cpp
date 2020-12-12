@@ -9,6 +9,13 @@
 #include "tenncor/hone/hone.hpp"
 
 
+#ifdef CMAKE_SOURCE_DIR
+const std::string optfile = std::string(CMAKE_SOURCE_DIR) + "cfg/optimizations.json";
+#else
+const std::string optfile = "cfg/optimizations.json";
+#endif
+
+
 TEST(CSTRULES, Typical)
 {
 	// tensor operation
@@ -34,7 +41,8 @@ TEST(CSTRULES, Typical)
 	teq::TensptrT rhs(eteq::make_functor(egen::ADD, {a, b}));
 	teq::TensptrT everyone(eteq::make_functor(egen::ADD, {lhs, rhs}));
 
-	std::ifstream rulefile("cfg/optimizations.json");
+	std::ifstream rulefile(optfile);
+	ASSERT_TRUE(rulefile.is_open());
 	auto optres = hone::optimize({everyone}, rulefile);
 	ASSERT_EQ(1, optres.size());
 	everyone = optres.front();
@@ -69,7 +77,8 @@ TEST(CSTRULES, StopAtVar)
 	teq::TensptrT rhs(eteq::make_functor(egen::ADD, {a, b}));
 	teq::TensptrT everyone(eteq::make_functor(egen::ADD, {lhs, rhs}));
 
-	std::ifstream rulefile("cfg/optimizations.json");
+	std::ifstream rulefile(optfile);
+	ASSERT_TRUE(rulefile.is_open());
 	auto optres = hone::optimize({everyone}, rulefile);
 	ASSERT_EQ(1, optres.size());
 	everyone = optres.front();
@@ -108,7 +117,8 @@ TEST(CSTRULES, IdentityDependency)
 	teq::TensptrT rhs(eteq::make_functor(egen::ADD, {a, b}));
 	teq::TensptrT identity(eteq::make_functor(egen::IDENTITY, {lhs, rhs}));
 
-	std::ifstream rulefile("cfg/optimizations.json");
+	std::ifstream rulefile(optfile);
+	ASSERT_TRUE(rulefile.is_open());
 	auto optres = hone::optimize({identity}, rulefile);
 	ASSERT_EQ(1, optres.size());
 	identity = optres.front();

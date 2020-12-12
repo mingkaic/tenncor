@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 
-#include "exam/exam.hpp"
+#include "testutil/tutil.hpp"
 
 #include "internal/teq/mock/mock.hpp"
 
@@ -15,26 +15,36 @@
 #include "internal/onnx/load.hpp"
 
 
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Throw;
+
+
+#ifdef CMAKE_SOURCE_DIR
+const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
+#else
 const std::string testdir = "models/test";
+#endif
+
 
 struct MockUnmarshFuncs final : public onnx::iUnmarshFuncs
 {
 	teq::TensptrT unmarsh_leaf (const onnx::TensorProto& tens,
-		teq::Usage usage, std::string name) const override
+		teq::Usage, std::string name) const override
 	{
 		return std::make_shared<MockLeaf>(
 			std::vector<double>{}, onnx::unmarshal_shape(tens), name);
 	}
 
 	teq::TensptrT unmarsh_func (std::string opname,
-		const teq::TensptrsT& edges, marsh::Maps&& attrs) const override
+		const teq::TensptrsT& edges, marsh::Maps&&) const override
 	{
 		return std::make_shared<MockFunctor>(edges, teq::Opcode{opname, 0});
 	}
 
 	teq::TensptrT unmarsh_layr (std::string opname,
-		const teq::TensptrT& root, const teq::TensptrT& child,
-		marsh::Maps&& attrs) const override
+		const teq::TensptrT&, const teq::TensptrT& child,
+		marsh::Maps&&) const override
 	{
 		// todo: implement mock layer
 		return std::make_shared<MockFunctor>(teq::TensptrsT{child}, teq::Opcode{opname, 0});
@@ -44,6 +54,9 @@ struct MockUnmarshFuncs final : public onnx::iUnmarshFuncs
 
 TEST(LOAD, BadGraph)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	{
 		onnx::ModelProto model;
 		std::fstream inputstr(testdir + "/bad_onnx.onnx",
@@ -52,8 +65,10 @@ TEST(LOAD, BadGraph)
 		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
 		MockUnmarshFuncs unmarsh;
 		onnx::TensptrIdT ids;
-		EXPECT_FATAL(onnx::load_graph(ids, model.graph(), unmarsh),
-			"unknown onnx attribute type of `peanut`");
+		std::string fatalmsg = "unknown onnx attribute type of `peanut`";
+		EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+		EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+		EXPECT_FATAL(onnx::load_graph(ids, model.graph(), unmarsh), fatalmsg.c_str());
 	}
 	{
 		onnx::ModelProto model;
@@ -63,9 +78,13 @@ TEST(LOAD, BadGraph)
 		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
 		MockUnmarshFuncs unmarsh;
 		onnx::TensptrIdT ids;
-		EXPECT_FATAL(onnx::load_graph(ids, model.graph(), unmarsh),
-			"unknown graph attribute `peanut`");
+		std::string fatalmsg = "unknown graph attribute `peanut`";
+		EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+		EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+		EXPECT_FATAL(onnx::load_graph(ids, model.graph(), unmarsh), fatalmsg.c_str());
 	}
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
@@ -181,6 +200,9 @@ TEST(LOAD, LayerGraph)
 
 TEST(LOAD, ReplaceLayerGraph)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	onnx::ModelProto model;
 	{
 		std::fstream inputstr(testdir + "/layer_onnx.onnx",
@@ -195,8 +217,10 @@ TEST(LOAD, ReplaceLayerGraph)
 		std::vector<double>{}, teq::Shape(), "bad_replaced");
 	onnx::TensptrIdT badids;
 	badids.insert({badm, "5"});
-	EXPECT_FATAL(onnx::load_graph(badids, model.graph(), unmarsh),
-		"duplicate id 5");
+	std::string fatalmsg = "duplicate id 5";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(onnx::load_graph(badids, model.graph(), unmarsh), fatalmsg.c_str());
 
 	teq::TensptrT m = std::make_shared<MockLeaf>(
 		std::vector<double>{}, teq::Shape(), "replaced");
@@ -207,6 +231,8 @@ TEST(LOAD, ReplaceLayerGraph)
 
 	ASSERT_HAS(ids.right, "root1");
 	ASSERT_HAS(ids.right, "root2");
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 

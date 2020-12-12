@@ -240,7 +240,7 @@ struct PathFinder final : public iOnceTraveler
 
 private:
 	/// Implementation of iOnceTraveler
-	void visit_leaf (iLeaf& leaf) override {}
+	void visit_leaf (iLeaf&) override {}
 
 	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override
@@ -429,7 +429,7 @@ struct OwnerTracker final : public iOnceTraveler
 
 private:
 	/// Implementation of iOnceTraveler
-	void visit_leaf (iLeaf& leaf) override {}
+	void visit_leaf (iLeaf&) override {}
 
 	/// Implementation of iOnceTraveler
 	void visit_func (iFunctor& func) override

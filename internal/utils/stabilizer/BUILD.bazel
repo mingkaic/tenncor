@@ -49,7 +49,7 @@ cc_test(
         ":stabilizer",
         "//internal/teq:mock",
         "@gtest//:gtest",
-        "@com_github_mingkaic_cppkg//exam:exam",
+        "//testutil:tutil",
     ],
     copts = ["-std=c++17"],
 )

@@ -6,73 +6,83 @@
 
 #include "testutil/tutil.hpp"
 
-#include "exam/exam.hpp"
-
 #include "internal/global/global.hpp"
+
+
+using ::testing::_;
+using ::testing::An;
+using ::testing::Return;
+using ::testing::Throw;
 
 
 TEST(LOGGER, SetGet)
 {
-	auto levelstr = exam::TestLogger::get_llevel =
-		"SetGet" + fmts::to_string(std::this_thread::get_id());
-
 	EXPECT_NE(nullptr, dynamic_cast<global::G3Logger*>(&global::get_logger()));
-	global::set_logger(new exam::TestLogger());
-	auto logger = dynamic_cast<exam::TestLogger*>(&global::get_logger());
+	global::set_logger(new exam::MockLogger());
+	auto logger = dynamic_cast<exam::MockLogger*>(&global::get_logger());
 	ASSERT_NE(nullptr, logger);
 
+	EXPECT_CALL(*logger, supports_level(An<const std::string&>())).WillRepeatedly(Return(true));
+	EXPECT_CALL(*logger, log(logs::info_level, "hello world", _)).Times(1);
+	EXPECT_CALL(*logger, log(logs::debug_level, "hello 0", _)).Times(1);
+	EXPECT_CALL(*logger, log(logs::warn_level, "hello 42", _)).Times(1);
+	EXPECT_CALL(*logger, log(logs::error_level, "hello 0.000000", _)).Times(1);
+	EXPECT_CALL(*logger, log(logs::throw_err_level, "hello 1.000000", _)).Times(1);
+	EXPECT_CALL(*logger, log(logs::fatal_level, "hello 2.000000", _)).Times(1);
 	global::infof("hello %s", "world");
-	EXPECT_EQ(logs::INFO, logger->latest_lvl_);
-	EXPECT_STREQ("hello world", logger->latest_msg_.c_str());
 	global::debugf("hello %d", 0);
-	EXPECT_EQ(logs::DEBUG, logger->latest_lvl_);
-	EXPECT_STREQ("hello 0", logger->latest_msg_.c_str());
 	global::warnf("hello %d", 42);
-	EXPECT_EQ(logs::WARN, logger->latest_lvl_);
-	EXPECT_STREQ("hello 42", logger->latest_msg_.c_str());
 	global::errorf("hello %f", 0.0);
-	EXPECT_EQ(logs::ERROR, logger->latest_lvl_);
-	EXPECT_STREQ("hello 0.000000", logger->latest_msg_.c_str());
-	EXPECT_FATAL(global::throw_errf("hello %f", 1.0), "hello 1.000000");
-	EXPECT_FATAL(global::fatalf("hello %f", 2.0), "hello 2.000000");
+	global::throw_errf("hello %f", 1.0);
+	global::fatalf("hello %f", 2.0);
 
+	EXPECT_CALL(*logger, set_log_level(logs::fatal_level)).Times(1);
 	global::set_log_level(logs::fatal_level);
-	EXPECT_STREQ(logs::fatal_level.c_str(), exam::TestLogger::set_llevel.c_str());
+
+	EXPECT_CALL(*logger, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+	EXPECT_CALL(*logger, log(An<const std::string&>(), _, _)).Times(0);
+	global::infof("hello %s", "world");
+	global::debugf("hello %d", 0);
+	global::warnf("hello %d", 42);
+	global::errorf("hello %f", 0.0);
+	global::throw_errf("hello %f", 1.0);
+	global::fatalf("hello %f", 2.0);
+
+	auto levelstr = "SetGet" + fmts::to_string(std::this_thread::get_id());
+	EXPECT_CALL(*logger, get_log_level()).WillOnce(Return(levelstr));
 	EXPECT_STREQ(levelstr.c_str(), global::get_log_level().c_str());
 
 	global::set_logger(nullptr);
-	EXPECT_EQ(nullptr, dynamic_cast<exam::TestLogger*>(&global::get_logger()));
+	EXPECT_EQ(nullptr, dynamic_cast<exam::MockLogger*>(&global::get_logger()));
 	EXPECT_NE(nullptr, dynamic_cast<global::G3Logger*>(&global::get_logger()));
 }
 
 
 TEST(LOGGER, FmtLogger)
 {
-	auto levelstr = exam::TestLogger::get_llevel =
-		"FmtLogger" + fmts::to_string(std::this_thread::get_id());
+	exam::MockLogger baselogger;
+	EXPECT_CALL(baselogger, supports_level(An<size_t>())).WillRepeatedly(Return(true));
+	EXPECT_CALL(baselogger, supports_level(An<const std::string&>())).WillRepeatedly(Return(true));
 
-	exam::TestLogger baselogger;
 	global::FormatLogger fmter(baselogger, "abcd ", " efgh");
 
+	EXPECT_CALL(baselogger, supports_level("not a real level")).WillOnce(Return(false));
+	EXPECT_CALL(baselogger, supports_level(logs::fatal_level)).WillOnce(Return(true));
 	EXPECT_FALSE(fmter.supports_level("not a real level"));
 	EXPECT_TRUE(fmter.supports_level(logs::fatal_level));
 
-	EXPECT_FALSE(fmter.supports_level(logs::NOT_SET));
-	EXPECT_TRUE(fmter.supports_level(logs::FATAL));
-
+	EXPECT_CALL(baselogger, log(logs::error_level, "abcd zzzxxxyyy efgh", _)).Times(1);
 	fmter.log(logs::error_level, "zzzxxxyyy");
-	EXPECT_EQ(logs::ERROR, exam::TestLogger::latest_lvl_);
-	EXPECT_STREQ("abcd zzzxxxyyy efgh", exam::TestLogger::latest_msg_.c_str());
 
+	EXPECT_CALL(baselogger, log(logs::WARN, "abcd kkjluvip efgh", _)).Times(1);
 	fmter.log(logs::WARN, "kkjluvip");
-	EXPECT_EQ(logs::WARN, exam::TestLogger::latest_lvl_);
-	EXPECT_STREQ("abcd kkjluvip efgh", exam::TestLogger::latest_msg_.c_str());
 
+	EXPECT_CALL(baselogger, set_log_level("abcd")).Times(1);
 	fmter.set_log_level("abcd");
-	EXPECT_STREQ("abcd", exam::TestLogger::set_llevel.c_str());
-	EXPECT_STREQ(levelstr.c_str(), fmter.get_log_level().c_str());
 
-	exam::TestLogger::set_llevel = "";
+	auto levelstr = "FmtLogger" + fmts::to_string(std::this_thread::get_id());
+	EXPECT_CALL(baselogger, get_log_level()).WillOnce(Return(levelstr));
+	EXPECT_STREQ(levelstr.c_str(), fmter.get_log_level().c_str());
 }
 
 
@@ -85,7 +95,7 @@ struct TestSink
 	{
 		auto level = entry.get()._level.value;
 		auto msg = entry.get().toString(
-			[](const g3::LogMessage& msg) -> std::string
+			[](const g3::LogMessage&) -> std::string
 			{ return "g3 message "; });
 		(*msgs_)[level] = msg;
 	}
@@ -96,7 +106,9 @@ struct TestSink
 
 TEST(LOGGER, G3Logger)
 {
-	global::set_logger(new exam::TestLogger());
+	auto mocklogger = new exam::MockLogger();
+	EXPECT_CALL(*mocklogger, log(An<const std::string&>(), _, _)).Times(0);
+	global::set_logger(mocklogger);
 	std::unordered_map<size_t,std::string> msgs;
 	std::stringstream outs;
 	{
@@ -185,9 +197,9 @@ TEST(LOGGER, G3Logger)
 
 TEST(LOGGER, NoSupport)
 {
-	global::set_logger(new tutil::NoSupportLogger());
+	global::set_logger(new exam::NoSupportLogger());
 
-	auto logger = dynamic_cast<tutil::NoSupportLogger*>(&global::get_logger());
+	auto logger = dynamic_cast<exam::NoSupportLogger*>(&global::get_logger());
 	global::infof("hello %s", "world");
 	EXPECT_FALSE(logger->called_);
 	global::debugf("hello %d", 0);

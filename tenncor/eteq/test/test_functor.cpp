@@ -4,15 +4,25 @@
 
 #include "gtest/gtest.h"
 
-#include "exam/exam.hpp"
+#include "testutil/tutil.hpp"
 
 #include "tenncor/eteq/eteq.hpp"
 
 #include "internal/eigen/mock/mock.hpp"
 
 
-TEST(FUNCTOR, Initiation)
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Throw;
+
+
+struct FUNCTOR : public tutil::TestcaseWithLogger<> {};
+
+
+TEST_F(FUNCTOR, Initiation)
 {
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+
 	teq::Shape argshape({4, 3});
 	std::vector<double> data{
 		1, 2, 3, 4, 5, 6,
@@ -28,13 +38,15 @@ TEST(FUNCTOR, Initiation)
 
 	marsh::Maps attrs;
 
+	std::string fatalmsg = "cannot perform `ADD` without arguments";
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(eteq::Functor<double>::get(
-		egen::ADD, teq::TensptrsT{}, std::move(attrs)),
-		"cannot perform `ADD` without arguments");
+		egen::ADD, teq::TensptrsT{}, std::move(attrs)), fatalmsg.c_str());
 
+	std::string fatalmsg1 = "children types are not all the same";
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
 	EXPECT_FATAL(eteq::Functor<double>::get(
-		egen::ADD, teq::TensptrsT{a, c}, std::move(attrs)),
-		"children types are not all the same");
+		egen::ADD, teq::TensptrsT{a, c}, std::move(attrs)), fatalmsg1.c_str());
 
 	eteq::Functor<double>* f = eteq::Functor<double>::get(
 		egen::ADD, {a, b}, std::move(attrs));
@@ -51,7 +63,9 @@ TEST(FUNCTOR, Initiation)
 	EXPECT_FALSE(f->has_data());
 
 	a->succeed_initial_ = false;
-	EXPECT_FATAL(f->must_initialize(), "failed to initialize");
+	std::string fatalmsg2 = "failed to initialize";
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg2, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg2)));
+	EXPECT_FATAL(f->must_initialize(), fatalmsg2.c_str());
 	a->succeed_initial_ = true;
 
 	g->must_initialize();
@@ -69,8 +83,11 @@ TEST(FUNCTOR, Initiation)
 }
 
 
-TEST(FUNCTOR, UpdateChild)
+TEST_F(FUNCTOR, UpdateChild)
 {
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillOnce(Return(true));
+
 	std::vector<double> data{
 		1, 2, 3, 4, 5, 6,
 		1, 2, 3, 4, 5, 6};
@@ -120,20 +137,27 @@ TEST(FUNCTOR, UpdateChild)
 	EXPECT_EQ(c, children.front());
 	EXPECT_EQ(c, children.back());
 
-	EXPECT_FATAL(f->update_child(d, 1), "cannot update child 1 to argument "
+	std::string fatalmsg = "cannot update child 1 to argument "
 		"with incompatible shape [3\\4\\1\\1\\1\\1\\1\\1] (requires shape "
-		"[4\\3\\1\\1\\1\\1\\1\\1])");
+		"[4\\3\\1\\1\\1\\1\\1\\1])";
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(f->update_child(d, 1), fatalmsg.c_str());
 
-	EXPECT_FATAL(f->update_child(e, 0), "cannot update child 0 to argument "
-		"with different type DOUBLE (requires type no_type)");
+	std::string fatalmsg1 = "cannot update child 0 to argument "
+		"with different type DOUBLE (requires type no_type)";
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
+	EXPECT_FATAL(f->update_child(e, 0), fatalmsg1.c_str());
 
-	EXPECT_FATAL(f->update_child(a, 2),
-		"cannot replace argument 2 when only there are only 2 available");
+	std::string fatalmsg2 = "cannot replace argument 2 when only there are only 2 available";
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg2, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg2)));
+	EXPECT_FATAL(f->update_child(a, 2), fatalmsg2.c_str());
 }
 
 
-TEST(FUNCTOR, Prop)
+TEST_F(FUNCTOR, Prop)
 {
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+
 	std::vector<double> data{
 		1, 2, 3, 4, 5, 6,
 		1, 2, 3, 4, 5, 6};
@@ -151,9 +175,11 @@ TEST(FUNCTOR, Prop)
 	teq::TensptrT ftens(f);
 
 	ASSERT_FALSE(f->has_data());
-	[](const eteq::Functor<double>* f)
+	[this](const eteq::Functor<double>* f)
 	{
-		EXPECT_FATAL(f->device(), "cannot get device of uninitialized functor");
+		std::string fatalmsg = "cannot get device of uninitialized functor";
+		EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+		EXPECT_FATAL(f->device(), fatalmsg.c_str());
 	}(f);
 
 	f->device();

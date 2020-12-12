@@ -13,17 +13,34 @@
 #include "internal/opt/mock/mock.hpp"
 
 
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Throw;
+
+
+#ifdef CMAKE_SOURCE_DIR
+const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
+#else
 const std::string testdir = "models/test";
+#endif
 
 
 TEST(PARSEATTR, BadAttr)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	opt::GraphInfo ginfo({});
 	google::protobuf::util::JsonParseOptions options;
 	options.ignore_unknown_fields = true;
 
 	query::Attribute badattr;
-	EXPECT_FATAL(opt::parse_attr(badattr, ginfo), "cannot parse unknown attribute");
+	std::string fatalmsg = "cannot parse unknown attribute";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(opt::parse_attr(badattr, ginfo), fatalmsg.c_str());
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
@@ -117,6 +134,9 @@ TEST(PARSEATTR, String)
 
 TEST(PARSEATTR, TensorObj)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	auto a = std::make_shared<MockLeaf>(
 		std::vector<double>{2, 8, 4, 5}, teq::Shape({1, 4}));
 	auto b = std::make_shared<MockLeaf>(
@@ -142,14 +162,22 @@ TEST(PARSEATTR, TensorObj)
 	ASSERT_EQ(google::protobuf::util::Status::OK,
 		google::protobuf::util::JsonStringToMessage(
 			"{\"node\":{\"leaf\":{\"shape\":[2,2]}}}", &ambigattr, options));
-	EXPECT_FATAL(opt::parse_attr(ambigattr, ginfo), "ambiguous node attribute");
+	std::string fatalmsg = "ambiguous node attribute";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(opt::parse_attr(ambigattr, ginfo), fatalmsg.c_str());
 
 	delete tens;
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
 TEST(PARSEATTR, LayerObj)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+
 	auto a = std::make_shared<MockLeaf>(
 		std::vector<double>{2, 8, 4, 5}, teq::Shape({1, 4}));
 	auto b = std::make_shared<MockLeaf>(
@@ -176,15 +204,20 @@ TEST(PARSEATTR, LayerObj)
 	ASSERT_EQ(google::protobuf::util::Status::OK,
 		google::protobuf::util::JsonStringToMessage(
 			"{\"layer\":{\"name\":\"bigbrain\",\"input\":{\"leaf\":{\"shape\":[1,4]}}}}", &ambigattr, options));
-	EXPECT_FATAL(opt::parse_attr(ambigattr, ginfo), "ambiguous layer attribute");
+	std::string fatalmsg = "ambiguous layer attribute";
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(opt::parse_attr(ambigattr, ginfo), fatalmsg.c_str());
 
 	query::Attribute noname;
 	ASSERT_EQ(google::protobuf::util::Status::OK,
 		google::protobuf::util::JsonStringToMessage(
 			"{\"layer\":{\"input\":{\"leaf\":{\"shape\":[2,2]}}}}", &noname, options));
-	EXPECT_FATAL(opt::parse_attr(noname, ginfo), "cannot parse layer attribute unnamed or without input");
+	std::string fatalmsg1 = "cannot parse layer attribute unnamed or without input";
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
+	EXPECT_FATAL(opt::parse_attr(noname, ginfo), fatalmsg1.c_str());
 
 	delete tens;
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 

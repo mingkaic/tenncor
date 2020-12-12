@@ -16,6 +16,13 @@
 using TensProcF = std::function<void(teq::TensptrsT&)>;
 
 
+#ifdef CMAKE_SOURCE_DIR
+const std::string optfile = std::string(CMAKE_SOURCE_DIR) + "cfg/optimizations.json";
+#else
+const std::string optfile = "cfg/optimizations.json";
+#endif
+
+
 static void matmul_complex (TensProcF root_proc = TensProcF())
 {
 	eigen::Device device;
@@ -1012,7 +1019,7 @@ TEST(EQUATION, OptimizedMatmulComplex)
 	matmul_complex(
 		[](teq::TensptrsT& roots)
 		{
-			std::ifstream file("cfg/optimizations.json");
+			std::ifstream file(optfile);
 			roots = hone::optimize(roots, file);
 		});
 }
@@ -1023,7 +1030,7 @@ TEST(EQUATION, OptimizedSlowSigmoidMLP)
 	sigmoid_MLP_slow(
 		[](teq::TensptrsT& roots)
 		{
-			std::ifstream file("cfg/optimizations.json");
+			std::ifstream file(optfile);
 			roots = hone::optimize(roots, file);
 		});
 }
@@ -1034,7 +1041,7 @@ TEST(EQUATION, OptimizedFastSigmoidMLP)
 	sigmoid_MLP_fast(
 		[](teq::TensptrsT& roots)
 		{
-			std::ifstream file("cfg/optimizations.json");
+			std::ifstream file(optfile);
 			roots = hone::optimize(roots, file);
 		});
 }
@@ -1045,7 +1052,7 @@ TEST(EQUATION, OptimizedTanhRNN)
 	tanh_RNN(
 		[](teq::TensptrsT& roots)
 		{
-			std::ifstream file("cfg/optimizations.json");
+			std::ifstream file(optfile);
 			roots = hone::optimize(roots, file);
 		});
 }
@@ -1056,7 +1063,7 @@ TEST(EQUATION, OptimizedTanhRNNLayer)
 	tanh_RNN_layer(
 		[](teq::TensptrsT& roots)
 		{
-			std::ifstream file("cfg/optimizations.json");
+			std::ifstream file(optfile);
 			roots = hone::optimize(roots, file);
 		});
 }

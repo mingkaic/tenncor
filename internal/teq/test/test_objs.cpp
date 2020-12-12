@@ -6,6 +6,8 @@
 
 #include "exam/exam.hpp"
 
+#include "testutil/tutil.hpp"
+
 #include "internal/marsh/mock/mock.hpp"
 
 #include "internal/teq/mock/mock.hpp"
@@ -14,7 +16,15 @@
 #include "internal/teq/findattr.hpp"
 
 
-TEST(OBJ, TensorObj)
+using ::testing::_;
+using ::testing::Return;
+using ::testing::An;
+
+
+struct OBJ : public tutil::TestcaseWithLogger<> {};
+
+
+TEST_F(OBJ, TensorObj)
 {
 	marsh::String str;
 	teq::TensptrT a(new MockLeaf(teq::Shape({1, 2, 3}), "A"));
@@ -41,6 +51,8 @@ TEST(OBJ, TensorObj)
 	tensobj.accept(mmarsh);
 	EXPECT_HAS(mmarsh.visited_, &tensobj);
 
+	EXPECT_CALL(*logger_, supports_level(logs::warn_level)).Times(1).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::warn_level, "non-teq marshaler cannot marshal tensor-typed objects", _)).Times(1);
 	MockMarsh gmarsh;
 	tensobj.accept(gmarsh);
 	EXPECT_HASNOT(gmarsh.visited_, &tensobj);
@@ -50,7 +62,7 @@ TEST(OBJ, TensorObj)
 }
 
 
-TEST(OBJ, LayerObj)
+TEST_F(OBJ, LayerObj)
 {
 	marsh::String str;
 	teq::TensptrT a(new MockLeaf(teq::Shape({1, 2, 3}), "A"));
@@ -61,8 +73,10 @@ TEST(OBJ, LayerObj)
 	auto direct_clone = layerobj.clone();
 	auto buildout = layerobj.copynreplace(b);
 
-	EXPECT_FATAL(teq::LayerObj("sandwich", nullptr),
-		"cannot `sandwich` with null input");
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, "cannot `sandwich` with null input", _)).Times(1);
+	teq::LayerObj("sandwich", nullptr);
 
 	EXPECT_EQ(a, layerobj.get_tensor());
 	EXPECT_EQ(a, direct_clone->get_tensor());
@@ -91,7 +105,7 @@ TEST(OBJ, LayerObj)
 }
 
 
-TEST(OBJ, FindAttrs)
+TEST_F(OBJ, FindAttrs)
 {
 	teq::TensptrT a(new MockLeaf(teq::Shape({1, 2, 3}), "A"));
 	teq::TensptrT b(new MockLeaf(teq::Shape({4, 2, 3}), "B"));

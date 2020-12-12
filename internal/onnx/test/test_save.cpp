@@ -17,56 +17,70 @@
 #include "internal/onnx/save.hpp"
 
 
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Throw;
+
+
+#ifdef CMAKE_SOURCE_DIR
+const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
+#else
 const std::string testdir = "models/test";
+#endif
 
 
 struct MockMarshFuncs final : public onnx::iMarshFuncs
 {
-	size_t get_typecode (const teq::iTensor& tens) const override { return 0; }
+	size_t get_typecode (const teq::iTensor&) const override { return 0; }
 
-	void marsh_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf) const override {}
+	void marsh_leaf (onnx::TensorProto&, const teq::iLeaf&) const override {}
 };
 
 
 TEST(SAVE, BadMarshal)
 {
+	auto* logger = new exam::MockLogger();
+	global::set_logger(logger);
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+
 	onnx::AttributeProto proto;
 	teq::CTensMapT<std::string> tensid;
 	onnx::OnnxAttrMarshaler marshal(&proto, tensid);
 
 	marsh::ObjTuple tup;
-	EXPECT_FATAL(tup.accept(marshal),
-		"onnx does not support tuple attributes");
+	std::string fatalmsg = "onnx does not support tuple attributes";
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(tup.accept(marshal), fatalmsg.c_str());
 
 	marsh::Maps mm;
-	EXPECT_FATAL(mm.accept(marshal),
-		"onnx does not support map attributes");
+	std::string fatalmsg1 = "onnx does not support map attributes";
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
+	EXPECT_FATAL(mm.accept(marshal), fatalmsg1.c_str());
 
 	teq::LayerObj layer("banana_split",
 		std::make_shared<MockLeaf>(std::vector<double>{3}, teq::Shape(), "m"));
-	EXPECT_FATAL(layer.accept(marshal),
-		"onnx does not support layer attributes");
+	std::string fatalmsg2 = "onnx does not support layer attributes";
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg2, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg2)));
+	EXPECT_FATAL(layer.accept(marshal), fatalmsg2.c_str());
 
 	{
-		auto nllog = new tutil::NoSupportLogger();
+		auto nllog = new exam::NoSupportLogger();
 		global::set_logger(nllog);
 		tup.accept(marshal);
 		EXPECT_FALSE(nllog->called_);
 	}
 	{
-		auto nllog = new tutil::NoSupportLogger();
+		auto nllog = new exam::NoSupportLogger();
 		global::set_logger(nllog);
 		mm.accept(marshal);
 		EXPECT_FALSE(nllog->called_);
 	}
 	{
-		auto nllog = new tutil::NoSupportLogger();
+		auto nllog = new exam::NoSupportLogger();
 		global::set_logger(nllog);
 		layer.accept(marshal);
 		EXPECT_FALSE(nllog->called_);
 	}
-
-	global::set_logger(new exam::TestLogger());
 }
 
 

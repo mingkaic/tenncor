@@ -19,7 +19,11 @@
 #include "tenncor/tenncor.hpp"
 
 
+#ifdef CMAKE_SOURCE_DIR
+const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
+#else
 const std::string testdir = "models/test";
+#endif
 
 
 TEST(SERIALIZE, SaveGraph)

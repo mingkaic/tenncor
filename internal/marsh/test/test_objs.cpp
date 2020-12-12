@@ -79,7 +79,7 @@ TEST(OBJS, ObjTuple)
 	EXPECT_STREQ("[[2\\1.11]\\3.3]", root.to_string().c_str());
 
 	std::vector<marsh::iObject*> root_refs;
-	root.foreach([&root_refs](size_t i, marsh::iObject* obj)
+	root.foreach([&root_refs](size_t, marsh::iObject* obj)
 		{ root_refs.push_back(obj); });
 	ASSERT_EQ(2, root_refs.size());
 	EXPECT_EQ(sub, root_refs[0]);

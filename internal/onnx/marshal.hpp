@@ -58,7 +58,7 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 		std::vector<double> floats;
 		types::StringsT tensors;
 		arr.foreach(
-			[&](size_t i, const marsh::iObject* obj)
+			[&](size_t, const marsh::iObject* obj)
 			{
 				if (auto str = dynamic_cast<const marsh::String*>(obj))
 				{
@@ -121,12 +121,12 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 		}
 	}
 
-	void marshal (const marsh::iTuple& tup) override
+	void marshal (const marsh::iTuple&) override
 	{
 		global::fatal("onnx does not support tuple attributes");
 	}
 
-	void marshal (const marsh::Maps& mm) override
+	void marshal (const marsh::Maps&) override
 	{
 		global::fatal("onnx does not support map attributes");
 	}
@@ -141,7 +141,7 @@ struct OnnxAttrMarshaler final : public teq::iTeqMarshaler
 		pb_tens->set_name(id);
 	}
 
-	void marshal (const teq::LayerObj& layer) override
+	void marshal (const teq::LayerObj&) override
 	{
 		// ignore: since marshaler resolves graph info
 		global::fatal("onnx does not support layer attributes");

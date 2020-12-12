@@ -1,5 +1,7 @@
 import os
 import subprocess
+import shutil
+import glob
 
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
@@ -24,14 +26,15 @@ class ConanCMakeBuild(build_ext):
 
     def build_extension(self, ext):
         ext_dir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        if not ext_dir.endswith(os.path.sep):
-            ext_dir += os.path.sep
-
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
 
         subprocess.check_call(["conan", "install", "-if", ".", ext.source_dir], cwd=self.build_temp)
         subprocess.check_call(["conan", "build", "-bf", ".", ext.source_dir], cwd=self.build_temp)
+        lib_dir = os.path.join(self.build_temp, "lib")
+        dlibs = glob.glob(os.path.join(lib_dir, "*.so"), recursive = True) + glob.glob(os.path.join(lib_dir, "*.dll"), recursive = True)
+        for dlib in dlibs:
+            shutil.move(dlib, ext_dir)
 
 __version__ = "0.0.3"
 

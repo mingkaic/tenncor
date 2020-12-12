@@ -11,8 +11,19 @@
 #include "internal/eigen/operator.hpp"
 
 
-TEST(PACKER, PairEncodeDecode)
+using ::testing::_;
+using ::testing::An;
+using ::testing::Return;
+using ::testing::Throw;
+
+
+struct PACKER : public tutil::TestcaseWithLogger<> {};
+
+
+TEST_F(PACKER, PairEncodeDecode)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	eigen::PairVecT<double> pairs = {{1.2, 2.3}, {3.4, 4.6}, {5.5, 6.7}};
 
 	auto vecs = eigen::encode_pair(pairs);
@@ -28,14 +39,16 @@ TEST(PACKER, PairEncodeDecode)
 	}
 
 	std::vector<int64_t> bad = {1, 2, 3, 4, 5};
-	EXPECT_FATAL(eigen::decode_pair<size_t>(bad),
-		"cannot decode odd vector [1\\2\\3\\4\\5] into vec of pairs");
+	std::string fatalmsg = "cannot decode odd vector [1\\2\\3\\4\\5] into vec of pairs";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+	EXPECT_FATAL(eigen::decode_pair<size_t>(bad), fatalmsg.c_str());
 
 	EXPECT_STREQ("[1:2\\3:4\\5:6]", eigen::to_string(pairs).c_str());
 }
 
 
-TEST(PACKER, Conversions)
+TEST_F(PACKER, Conversions)
 {
 	std::vector<int64_t> values = {
 		1, 2, 4, 8, 16, 32, 64, 128, 256};
@@ -78,8 +91,10 @@ TEST(PACKER, Conversions)
 }
 
 
-TEST(PACKER, MakeEigenmap)
+TEST_F(PACKER, MakeEigenmap)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	std::vector<double> a = {1, 2, 3, 4, 5, 6};
 	teq::Shape shape({2, 3});
 	eigen::MatMapT<double> mat = eigen::make_matmap<double>(a.data(), shape);
@@ -107,35 +122,44 @@ TEST(PACKER, MakeEigenmap)
 	EXPECT_ARREQ(shape, mshape);
 	EXPECT_ARREQ(shape, tshape);
 
-	EXPECT_FATAL(eigen::make_matmap<double>(nullptr, teq::Shape()),
-		"cannot get matmap from nullptr");
-	EXPECT_FATAL(eigen::make_tensmap<double>(nullptr, teq::Shape()),
-		"cannot get tensmap from nullptr");
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+	std::string fatalmsg = "cannot get matmap from nullptr";
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+	EXPECT_FATAL(eigen::make_matmap<double>(nullptr, teq::Shape()), fatalmsg.c_str());
+	std::string fatalmsg1 = "cannot get tensmap from nullptr";
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));;
+	EXPECT_FATAL(eigen::make_tensmap<double>(nullptr, teq::Shape()), fatalmsg1.c_str());
 }
 
 
-TEST(PACKER, BadPacker)
+TEST_F(PACKER, BadPacker)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+
 	eigen::Packer<std::string> badpack;
 	EXPECT_STREQ("", badpack.get_key().c_str());
 	marsh::Maps attr;
-	EXPECT_FATAL(eigen::get_attr(badpack, attr), "cannot find `` attribute");
+	std::string fatalmsg = "cannot find `` attribute";
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+	EXPECT_FATAL(eigen::get_attr(badpack, attr), fatalmsg.c_str());
 
 	std::string str;
-	EXPECT_FATAL(badpack.pack(attr, str), "unknown attribute");
-	EXPECT_FATAL(badpack.unpack(str, attr), "unknown attribute");
+	std::string fatalmsg1 = "unknown attribute";
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg1, _)).Times(2).WillRepeatedly(Throw(exam::TestException(fatalmsg1)));;
+	EXPECT_FATAL(badpack.pack(attr, str), fatalmsg1.c_str());
+	EXPECT_FATAL(badpack.unpack(str, attr), fatalmsg1.c_str());
 
-	global::set_logger(new tutil::NoSupportLogger());
+	global::set_logger(new exam::NoSupportLogger());
 	std::string special_input = "abc///input22z";
 	badpack.pack(attr, special_input);
 	badpack.unpack(str, attr);
 	EXPECT_STRNE(special_input.c_str(), str.c_str());
 	EXPECT_STREQ("", str.c_str());
-	global::set_logger(new exam::TestLogger());
 }
 
 
-TEST(PACKER, PackerDimPairs)
+TEST_F(PACKER, PackerDimPairs)
 {
 	eigen::PairVecT<teq::DimT> dims = {
 		{2, 2},
@@ -145,7 +169,10 @@ TEST(PACKER, PackerDimPairs)
 
 	eigen::Packer<eigen::PairVecT<teq::DimT>> packer;
 	marsh::Maps attrs;
-	EXPECT_FATAL(packer.unpack(outdims, attrs), "cannot find `dimension_pairs` attribute");
+	std::string fatalmsg = "cannot find `dimension_pairs` attribute";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+	EXPECT_FATAL(packer.unpack(outdims, attrs), fatalmsg.c_str());
 	packer.pack(attrs, dims);
 
 	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
@@ -167,7 +194,7 @@ TEST(PACKER, PackerDimPairs)
 }
 
 
-TEST(PACKER, PackerRankPairs)
+TEST_F(PACKER, PackerRankPairs)
 {
 	eigen::PairVecT<teq::RankT> ranks = {
 		{2, 2},
@@ -181,9 +208,14 @@ TEST(PACKER, PackerRankPairs)
 
 	eigen::Packer<eigen::PairVecT<teq::RankT>> packer;
 	marsh::Maps attrs;
-	EXPECT_FATAL(packer.unpack(outranks, attrs), "cannot find `rank_pairs` attribute");
-	EXPECT_FATAL(packer.pack(attrs, badranks),
-		"cannot reference ranks beyond rank_cap 8: [8:3\\4:10]");
+	std::string fatalmsg = "cannot find `rank_pairs` attribute";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+	EXPECT_FATAL(packer.unpack(outranks, attrs), fatalmsg.c_str());
+	std::string fatalmsg1 = "cannot reference ranks beyond rank_cap 8: [8:3\\4:10]";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));;
+	EXPECT_FATAL(packer.pack(attrs, badranks), fatalmsg1.c_str());
 	packer.pack(attrs, ranks);
 
 	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
@@ -205,14 +237,17 @@ TEST(PACKER, PackerRankPairs)
 }
 
 
-TEST(PACKER, PackerDims)
+TEST_F(PACKER, PackerDims)
 {
 	teq::DimsT dims = {2, 2, 3, 4};
 	teq::DimsT outdims;
 
 	eigen::Packer<teq::DimsT> packer;
 	marsh::Maps attrs;
-	EXPECT_FATAL(packer.unpack(outdims, attrs), "cannot find `dimensions` attribute");
+	std::string fatalmsg = "cannot find `dimensions` attribute";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+	EXPECT_FATAL(packer.unpack(outdims, attrs), fatalmsg.c_str());
 	packer.pack(attrs, dims);
 
 	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
@@ -231,7 +266,7 @@ TEST(PACKER, PackerDims)
 }
 
 
-TEST(PACKER, PackerRanks)
+TEST_F(PACKER, PackerRanks)
 {
 	teq::RanksT ranks = {2, 2, 3, 4};
 	teq::RanksT badranks = {
@@ -240,9 +275,14 @@ TEST(PACKER, PackerRanks)
 
 	eigen::Packer<teq::RanksT> packer;
 	marsh::Maps attrs;
-	EXPECT_FATAL(packer.unpack(outranks, attrs), "cannot find `ranks` attribute");
-	EXPECT_FATAL(packer.pack(attrs, badranks),
-		"cannot reference ranks beyond rank_cap 8: [8\\3\\4\\10]");
+	std::string fatalmsg = "cannot find `ranks` attribute";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+	EXPECT_FATAL(packer.unpack(outranks, attrs), fatalmsg.c_str());
+	std::string fatalmsg1 = "cannot reference ranks beyond rank_cap 8: [8\\3\\4\\10]";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));;
+	EXPECT_FATAL(packer.pack(attrs, badranks), fatalmsg1.c_str());
 	packer.pack(attrs, ranks);
 
 	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
@@ -261,7 +301,7 @@ TEST(PACKER, PackerRanks)
 }
 
 
-TEST(PACKER, PackerRankSet)
+TEST_F(PACKER, PackerRankSet)
 {
 	std::set<teq::RankT> ranks = {2, 6, 3, 4};
 	std::set<teq::RankT> badranks = {
@@ -272,11 +312,18 @@ TEST(PACKER, PackerRankSet)
 
 	eigen::Packer<std::set<teq::RankT>> packer;
 	marsh::Maps attrs;
-	EXPECT_FATAL(packer.unpack(outranks, attrs), "cannot find `rank_set` attribute");
-	EXPECT_FATAL(packer.pack(attrs, badranks),
-		"cannot reference ranks beyond rank_cap 8: [3\\4\\8\\10]");
-	EXPECT_FATAL(packer.pack(attrs, bigranks),
-		"cannot specify 9 ranks when 8 (rank_cap) are available");
+	std::string fatalmsg = "cannot find `rank_set` attribute";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+	EXPECT_FATAL(packer.unpack(outranks, attrs), fatalmsg.c_str());
+	std::string fatalmsg1 = "cannot reference ranks beyond rank_cap 8: [3\\4\\8\\10]";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));;
+	EXPECT_FATAL(packer.pack(attrs, badranks), fatalmsg1.c_str());
+	std::string fatalmsg2 = "cannot specify 9 ranks when 8 (rank_cap) are available";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg2, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg2)));;
+	EXPECT_FATAL(packer.pack(attrs, bigranks), fatalmsg2.c_str());
 	packer.pack(attrs, ranks);
 
 	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
@@ -290,14 +337,17 @@ TEST(PACKER, PackerRankSet)
 }
 
 
-TEST(PACKER, PackerRank)
+TEST_F(PACKER, PackerRank)
 {
 	teq::RankT rank = 2;
 	teq::RankT outrank;
 
 	eigen::Packer<teq::RankT> packer;
 	marsh::Maps attrs;
-	EXPECT_FATAL(packer.unpack(outrank, attrs), "cannot find `rank` attribute");
+	std::string fatalmsg = "cannot find `rank` attribute";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+	EXPECT_FATAL(packer.unpack(outrank, attrs), fatalmsg.c_str());
 	packer.pack(attrs, rank);
 
 	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
@@ -311,14 +361,17 @@ TEST(PACKER, PackerRank)
 }
 
 
-TEST(PACKER, PackerShape)
+TEST_F(PACKER, PackerShape)
 {
 	teq::Shape shape({2, 1, 4});
 	teq::Shape outshape;
 
 	eigen::Packer<teq::Shape> packer;
 	marsh::Maps attrs;
-	EXPECT_FATAL(packer.unpack(outshape, attrs), "cannot find `shape` attribute");
+	std::string fatalmsg = "cannot find `shape` attribute";
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
+	EXPECT_FATAL(packer.unpack(outshape, attrs), fatalmsg.c_str());
 	packer.pack(attrs, shape);
 
 	EXPECT_NE(nullptr, attrs.get_attr(packer.get_key()));
@@ -332,7 +385,7 @@ TEST(PACKER, PackerShape)
 }
 
 
-TEST(PACKER, PackerTensor)
+TEST_F(PACKER, PackerTensor)
 {
 	teq::TensptrT tens(new MockLeaf());
 
@@ -352,7 +405,7 @@ TEST(PACKER, PackerTensor)
 }
 
 
-TEST(PACKER, EmptyPacking)
+TEST_F(PACKER, EmptyPacking)
 {
 	marsh::Maps attrs;
 	eigen::pack_attr(attrs);
@@ -360,7 +413,7 @@ TEST(PACKER, EmptyPacking)
 }
 
 
-TEST(PACKER, ExtendPacking)
+TEST_F(PACKER, ExtendPacking)
 {
 	teq::Shape inshape({1, 2, 3});
 	teq::DimsT extends = {4, 1, 1, 2, 1, 1, 1, 1};

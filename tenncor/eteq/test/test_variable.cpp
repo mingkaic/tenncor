@@ -4,9 +4,14 @@
 
 #include "gtest/gtest.h"
 
-#include "exam/exam.hpp"
+#include "testutil/tutil.hpp"
 
 #include "tenncor/eteq/eteq.hpp"
+
+
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Throw;
 
 
 TEST(VARIABLE, CopyMove)
@@ -80,6 +85,9 @@ TEST(VARIABLE, Meta)
 
 TEST(VARIABLE, Assign)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	std::vector<double> big_d = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 	std::vector<float> big_f = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 	std::vector<int32_t> big_i = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
@@ -94,8 +102,10 @@ TEST(VARIABLE, Assign)
 
 	std::vector<double> d = {3, 1, 222, 21, 17, 7, 91, 11, 71, 13, 81, 2};
 
-	EXPECT_FATAL(a->assign(d.data(), teq::Shape({3, 7})),
-		"assigning data shaped [3\\7\\1\\1\\1\\1\\1\\1] to tensor [3\\4\\1\\1\\1\\1\\1\\1]");
+	std::string fatalmsg = "assigning data shaped [3\\7\\1\\1\\1\\1\\1\\1] to tensor [3\\4\\1\\1\\1\\1\\1\\1]";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(a->assign(d.data(), teq::Shape({3, 7})), fatalmsg.c_str());
 	a->assign(d.data(), teq::Shape({3, 4}));
 	b->assign(d.data(), egen::DOUBLE, teq::Shape({3, 4}));
 	c->assign(d.data(), egen::DOUBLE, teq::Shape({3, 4}));
@@ -113,6 +123,8 @@ TEST(VARIABLE, Assign)
 	std::vector<double> zeros(12, 0);
 	std::vector<double> avec(adata, adata + 12);
 	EXPECT_VECEQ(zeros, avec);
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 

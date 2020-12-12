@@ -4,13 +4,16 @@
 
 #include "gtest/gtest.h"
 
-#include "exam/exam.hpp"
-
 #include "testutil/tutil.hpp"
 
 #include "internal/teq/mock/mock.hpp"
 
 #include "tenncor/eteq/eteq.hpp"
+
+
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Throw;
 
 
 TEST(BACKPROP, Passthrough)
@@ -1006,6 +1009,10 @@ TEST(BACKPROP, Zeros)
 
 TEST(BACKPROP, Fatals)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+
 	eteq::DerivativeFuncs der;
 
 	auto super = std::make_shared<MockLeaf>(
@@ -1028,13 +1035,20 @@ TEST(BACKPROP, Fatals)
 	op->meta_.tcode_ = egen::DOUBLE;
 	op->meta_.tname_ = "DOUBLE";
 
-	EXPECT_FATAL(der.lderive(op, super, 1), "cannot derive op");
+	std::string fatalmsg = "cannot derive op";
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(der.lderive(op, super, 1), fatalmsg.c_str());
 
 	auto op2 = std::make_shared<MockFunctor>(
 		teq::TensptrsT{arg, arg2}, teq::Opcode{"zop", 999999});
 	op2->meta_.tcode_ = egen::DOUBLE;
 	op2->meta_.tname_ = "DOUBLE";
-	EXPECT_FATAL(der.lderive(op2, super, 1), "Unknown op zop");
+
+	std::string fatalmsg1 = "Unknown op zop";
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
+	EXPECT_FATAL(der.lderive(op2, super, 1), fatalmsg1.c_str());
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 

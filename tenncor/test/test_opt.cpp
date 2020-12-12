@@ -12,7 +12,14 @@
 
 #include "tenncor/tenncor.hpp"
 
+
+#ifdef CMAKE_SOURCE_DIR
+const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
+const std::string optfile = std::string(CMAKE_SOURCE_DIR) + "cfg/optimizations.json";
+#else
 const std::string testdir = "models/test";
+const std::string optfile = "cfg/optimizations.json";
+#endif
 
 
 TEST(OPTIMIZE, Depends)
@@ -40,7 +47,7 @@ TEST(OPTIMIZE, Depends)
 
 	auto ass = tenncor().assign(target, tenncor().identity(b * d, {c}));
 
-	std::ifstream rulefile("cfg/optimizations.json");
+	std::ifstream rulefile(optfile);
 	ass = hone::optimize({ass}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
@@ -85,7 +92,7 @@ TEST(OPTIMIZE, DependsNnary)
 	double* expect_data = (double*) add->device().data();
 	std::vector<double> evdata(expect_data, expect_data + exshape.n_elems());
 
-	std::ifstream rulefile("cfg/optimizations.json");
+	std::ifstream rulefile(optfile);
 	add = hone::optimize({add}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
@@ -189,7 +196,7 @@ TEST(OPTIMIZE, RNNLayer)
 	auto ders = tcr::derive(err, {weight, bias, istate});
 	teq::TensptrsT roots = {ders[0], ders[1], ders[2], err};
 
-	std::ifstream rulefile("cfg/optimizations.json");
+	std::ifstream rulefile(optfile);
 	roots = hone::optimize(roots, rulefile);
 
 	{
@@ -370,7 +377,7 @@ TEST(OPTIMIZE, CNNLayer)
 	}
 	auto err = tenncor().identity(layr::trail(error, umap), deps);
 
-	std::ifstream rulefile("cfg/optimizations.json");
+	std::ifstream rulefile(optfile);
 	err = hone::optimize({err}, rulefile)[0];
 
 	std::string expect_pbfile = testdir + "/cnn_opt.txt";

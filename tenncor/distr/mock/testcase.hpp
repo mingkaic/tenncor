@@ -35,7 +35,8 @@ protected:
 		estd::ConfigMap<> svcs;
 		for (auto& reg : services)
 		{
-			assert(nullptr == reg(svcs, cfg));
+			auto reg_res = reg(svcs, cfg);
+			assert(nullptr == reg_res);
 		}
 		auto out = std::make_shared<distr::DistrManager>(
 			distr::P2PSvcptrT(consul_svc), svcs);
@@ -59,7 +60,8 @@ protected:
 		estd::ConfigMap<> svcs;
 		for (auto& reg : services)
 		{
-			assert(nullptr == reg(svcs, cfg));
+			auto reg_res = reg(svcs, cfg);
+			assert(nullptr == reg_res);
 		}
 		auto out = std::make_shared<distr::DistrManager>(
 			distr::P2PSvcptrT(consul_svc), svcs, 3,
