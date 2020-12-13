@@ -316,7 +316,7 @@ struct MockClientAsyncResponseReader final : public grpc::ClientAsyncResponseRea
 		call_ = nullptr;
 	}
 
-	void ReadInitialMetadata (void* tag) override {}
+	void ReadInitialMetadata (void*) override {}
 
 	void Finish (R* msg, grpc::Status* status, void* tag) override
 	{
@@ -367,7 +367,7 @@ struct MockClientAsyncReader final : public grpc::ClientAsyncReaderInterface<R>
 		cq_->write((egrpc::iClientHandler*) tag);
 	}
 
-	void ReadInitialMetadata (void* tag) override {}
+	void ReadInitialMetadata (void*) override {}
 
 	void Read (R* msg, void* tag) override
 	{
