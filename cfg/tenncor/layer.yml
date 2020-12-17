@@ -387,7 +387,20 @@ funcs:
       - type: const eteq::ETensor&
         name: input
       - type: T
-        name: dp_prob
+        name: drop_rate
+      - type: const eteq::ETensor&
+        name: is_training
+        check_null: false
+        default: eteq::ETensor()
+    out:
+      type: eteq::ETensor
+      val: return dropout(input,eteq::make_variable_scalar<T>(drop_rate,teq::Shape(),"drop_rate",super->ctx),is_training);
+  - name: dropout
+    args:
+      - type: const eteq::ETensor&
+        name: input
+      - type: const eteq::ETensor&
+        name: drop_rate
       - type: const eteq::ETensor&
         name: is_training
         check_null: false
@@ -396,29 +409,122 @@ funcs:
       type: eteq::ETensor
       val: |
           //
-              auto out = super->nn.dropout(input, dp_prob);
+              auto out = super->nn.dropout(input,drop_rate);
               if (nullptr != is_training)
               {
-                  out = super->if_then_else(is_training, out, input);
+                  out = super->if_then_else(is_training,out,input);
               }
               return out;
   - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
     name: batch_normalization
-    description: Return batch normalization of input arg. That is output mean is close to 0 and variance is close to 1
+    description: Return batch normalization of input. That is output mean is close to 0 and variance is close to 1
     args:
       - type: eteq::ETensor
-        name: arg
+        name: input
+      - type: T
+        name: offset
+        default: 0
+      - type: T
+        name: scale
+        default: 1
       - type: T
         name: eps
         default: std::numeric_limits<T>::epsilon()
-      - type: eteq::ETensor
-        name: offset
+      - type: const eteq::ETensor&
+        name: is_training
         check_null: false
         default: eteq::ETensor()
-      - type: eteq::ETensor
-        name: scale
-        check_null: false
-        default: eteq::ETensor()
+      - type: T
+        name: momentum
+        default: 0.99
+      - type: T
+        name: moving_mean
+        default: 0
+      - type: T
+        name: moving_var
+        default: 1
     out:
       type: eteq::ETensor
-      val: return super->nn.batch_normalization<T>(arg, eps, offset, scale);
+      val: |
+          //
+              return batch_normalization<T>(input,
+                  eteq::make_constant_like_uncast<T>(offset,input,super->ctx),
+                  eteq::make_constant_like_uncast<T>(scale,input,super->ctx),
+                  eteq::make_constant_like_uncast<T>(eps,input,super->ctx),
+                  is_training,
+                  eteq::make_constant_like_uncast<T>(momentum,input,super->ctx),
+                  eteq::make_variable_like<T>(moving_mean,input,"moving_mean",super->ctx),
+                  eteq::make_variable_like<T>(moving_var,input,"moving_variance",super->ctx));
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: batch_normalization
+    args:
+      - type: eteq::ETensor
+        name: input
+      - type: eteq::ETensor
+        name: offset
+      - type: eteq::ETensor
+        name: scale
+      - type: eteq::ETensor
+        name: eps
+      - type: const eteq::ETensor&
+        name: is_training
+        check_null: false
+        default: eteq::ETensor()
+      - type: eteq::ETensor
+        name: momentum
+        check_null: false
+        default: eteq::ETensor()
+      - type: eteq::EVariable<T>
+        name: moving_mean
+        check_null: false
+        default: eteq::EVariable<T>()
+      - type: eteq::EVariable<T>
+        name: moving_var
+        check_null: false
+        default: eteq::EVariable<T>()
+    out:
+      type: eteq::ETensor
+      val: |
+          //
+              layr::UnaryF get_mean, get_var;
+              if (nullptr == is_training)
+              {
+                  get_mean = [this](const eteq::ETensor& input)
+                  {
+                      return super->extend_like(super->reduce_mean(input), input);
+                  };
+                  get_var = [this,is_training,momentum,moving_var](const eteq::ETensor& input)
+                  {
+                      return super->extend_like(super->reduce_variance(input), input);
+                  };
+              }
+              else
+              {
+                  if (nullptr == momentum)
+                  {
+                      momentum = eteq::make_variable_like<float>(0.99,input,"momentum",super->ctx);
+                  }
+                  if (nullptr == moving_mean)
+                  {
+                      moving_mean = eteq::make_variable_like<float>(0,input,"moving_mean",super->ctx);
+                  }
+                  if (nullptr == moving_var)
+                  {
+                      moving_var = eteq::make_variable_like<float>(1,input,"moving_var",super->ctx);
+                  }
+                  get_mean = [this,is_training,momentum,moving_mean](const eteq::ETensor& input)
+                  {
+                      auto mean = super->extend_like(super->reduce_mean(input), input);
+                      auto mmean = super->add(super->mul(moving_mean,momentum),super->mul(mean,super->sub(1.,momentum)));
+                      mmean = super->assign(moving_mean,mmean);
+                      return super->if_then_else(is_training,mean,mmean);
+                  };
+                  get_var = [this,is_training,momentum,moving_var](const eteq::ETensor& input)
+                  {
+                      auto var = super->extend_like(super->reduce_variance(input), input);
+                      auto mvar = super->add(super->mul(moving_var,momentum),super->mul(var,super->sub(1.,momentum)));
+                      mvar = super->assign(moving_var,mvar);
+                      return super->if_then_else(is_training,var,mvar);
+                  };
+              }
+              return super->nn.batch_normalization(input,offset,scale,eps,get_mean,get_var);

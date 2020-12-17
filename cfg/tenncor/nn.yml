@@ -140,14 +140,21 @@ funcs:
       - type: T
         name: eps
         default: std::numeric_limits<T>::epsilon()
+      - type: layr::UnaryF
+        name: get_mean
+        default: layr::UnaryF()
+      - type: layr::UnaryF
+        name: get_variance
+        default: layr::UnaryF()
     out:
       type: eteq::ETensor
       val: |
           //
               return batch_normalization(input,
-                  eteq::make_constant_like_uncast<T>(offset,arg,super->ctx),
-                  eteq::make_constant_like_uncast<T>(scale,arg,super->ctx),
-                  eteq::make_constant_like_uncast<T>(eps,arg,super->ctx));
+                  eteq::make_constant_like_uncast<T>(offset,input,super->ctx),
+                  eteq::make_constant_like_uncast<T>(scale,input,super->ctx),
+                  eteq::make_constant_like_uncast<T>(eps,input,super->ctx),
+                  get_mean,get_variance);
   - name: batch_normalization
     args:
       - type: const eteq::ETensor&
@@ -158,10 +165,30 @@ funcs:
         name: scale
       - type: eteq::ETensor
         name: eps
+      - type: layr::UnaryF
+        name: get_mean
+        default: layr::UnaryF()
+      - type: layr::UnaryF
+        name: get_variance
+        default: layr::UnaryF()
     out:
       type: eteq::ETensor
       val: |
           //
+              if (!get_mean)
+              {
+                  get_mean = [this](const eteq::ETensor& input)
+                  {
+                      return super->extend_like(super->reduce_mean(input), input);
+                  };
+              }
+              if (!get_variance)
+              {
+                  get_variance = [this](const eteq::ETensor& input)
+                  {
+                      return super->extend_like(super->reduce_variance(input), input);
+                  };
+              }
               if (false == offset->shape().compatible_after(input->shape(), 0))
               {
                   offset = super->extend_like(offset, input);
@@ -174,11 +201,9 @@ funcs:
               {
                   eps = super->extend_like(eps, input);
               }
-              auto mean = super->reduce_mean(arg);
-              auto variance = super->reduce_mean(super->square(super->sub(arg,mean)));
               auto norm = super->div(
-                  super->sub(arg,mean),
-                  super->sqrt(super->add(variance,eps))
+                  super->sub(input,get_mean(input)),
+                  super->sqrt(super->add(get_variance(input),eps))
               );
               return super->add(super->mul(norm, scale), offset);
   - name: mean_pool2d

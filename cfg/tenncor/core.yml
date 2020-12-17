@@ -78,11 +78,11 @@ move:
         }
 funcs:
   - python_only: True
-    description: Return a node that casts arg to specified dtype
+    description: Return a node that casts input to specified dtype
     name: cast
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: egen::_GENERATED_DTYPE
       name: dtype
     out:
@@ -90,20 +90,20 @@ funcs:
       val: |
           //
               eteq::ETensor out;
-          #define _CHOOSE_CAST(REALTYPE)out = self.cast<REALTYPE>(out);
+          #define _CHOOSE_CAST(REALTYPE)out = self.cast<REALTYPE>(input);
               TYPE_LOOKUP(_CHOOSE_CAST, dtype);
           #undef _CHOOSE_CAST
               return out;
   - nopython: True
     template: typename T
     name: cast
-    description: Return a node that casts arg to specified template.
+    description: Return a node that casts input to specified template.
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_tfunctor<T>(::egen::CAST,teq::TensptrsT{arg},egen::get_type<T>()),ctx);
+      val: return eteq::ETensor(eteq::make_tfunctor<T>(::egen::CAST,teq::TensptrsT{input},egen::get_type<T>()),ctx);
   - support_type: SUPPORTED_TYPE
     name: assign
     args:
@@ -156,11 +156,11 @@ funcs:
       val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_DIV,teq::TensptrsT{target,source}),ctx);
   - name: identity
     description: |
-                Return a node that takes on the reference of arg except any additional arguments are just operational dependencies.
-                Operational dependencies are calculated at the same time as arg.
+                Return a node that takes on the reference of input except any additional arguments are just operational dependencies.
+                Operational dependencies are calculated at the same time as input.
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: const eteq::ETensorsT&
       name: execute_in_parallel
       default: eteq::ETensorsT()
@@ -168,100 +168,100 @@ funcs:
       type: eteq::ETensor
       val: |
           //
-              teq::TensptrsT args = {arg};
+              teq::TensptrsT args = {input};
               args.insert(args.end(), execute_in_parallel.begin(), execute_in_parallel.end());
               return eteq::ETensor(eteq::make_functor(::egen::IDENTITY,args),ctx);
   - name: abs
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::ABS,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::ABS,teq::TensptrsT{input}),ctx);
   - name: neg
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::NEG,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::NEG,teq::TensptrsT{input}),ctx);
   - name: sin
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::SIN,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::SIN,teq::TensptrsT{input}),ctx);
   - name: cos
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::COS,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::COS,teq::TensptrsT{input}),ctx);
   - name: tan
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::TAN,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::TAN,teq::TensptrsT{input}),ctx);
   - name: exp
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::EXP,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::EXP,teq::TensptrsT{input}),ctx);
   - name: log
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::LOG,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::LOG,teq::TensptrsT{input}),ctx);
   - name: sqrt
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::SQRT,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::SQRT,teq::TensptrsT{input}),ctx);
   - name: round
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::ROUND,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::ROUND,teq::TensptrsT{input}),ctx);
   - name: sigmoid
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::SIGMOID,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::SIGMOID,teq::TensptrsT{input}),ctx);
   - name: tanh
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::TANH,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::TANH,teq::TensptrsT{input}),ctx);
   - name: square
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::SQUARE,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::SQUARE,teq::TensptrsT{input}),ctx);
   - name: cube
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::CUBE,teq::TensptrsT{arg}),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::CUBE,teq::TensptrsT{input}),ctx);
   - name: pow
     args:
     - type: const eteq::ETensor&
@@ -275,22 +275,22 @@ funcs:
     name: pow
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: SUPPORTED_TYPE
       name: scalar
     out:
       type: eteq::ETensor
-      val: return this->pow(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+      val: return this->pow(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
   - support_type: SUPPORTED_TYPE
     name: pow
     args:
     - type: SUPPORTED_TYPE
       name: scalar
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return this->pow(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
+      val: return this->pow(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
   - name: add
     args:
     - type: const eteq::ETensor&
@@ -304,22 +304,22 @@ funcs:
     name: add
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: SUPPORTED_TYPE
       name: scalar
     out:
       type: eteq::ETensor
-      val: return this->add(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+      val: return this->add(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
   - support_type: SUPPORTED_TYPE
     name: add
     args:
     - type: SUPPORTED_TYPE
       name: scalar
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return this->add(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
+      val: return this->add(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
   - name: sub
     args:
     - type: const eteq::ETensor&
@@ -333,22 +333,22 @@ funcs:
     name: sub
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: SUPPORTED_TYPE
       name: scalar
     out:
       type: eteq::ETensor
-      val: return this->sub(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+      val: return this->sub(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
   - support_type: SUPPORTED_TYPE
     name: sub
     args:
     - type: SUPPORTED_TYPE
       name: scalar
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return this->sub(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
+      val: return this->sub(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
   - name: mul
     args:
     - type: const eteq::ETensor&
@@ -362,22 +362,22 @@ funcs:
     name: mul
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: SUPPORTED_TYPE
       name: scalar
     out:
       type: eteq::ETensor
-      val: return this->mul(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+      val: return this->mul(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
   - support_type: SUPPORTED_TYPE
     name: mul
     args:
     - type: SUPPORTED_TYPE
       name: scalar
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return this->mul(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
+      val: return this->mul(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
   - name: div
     args:
     - type: const eteq::ETensor&
@@ -391,22 +391,22 @@ funcs:
     name: div
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: SUPPORTED_TYPE
       name: scalar
     out:
       type: eteq::ETensor
-      val: return this->div(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+      val: return this->div(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
   - support_type: SUPPORTED_TYPE
     name: div
     args:
     - type: SUPPORTED_TYPE
       name: scalar
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return this->div(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
+      val: return this->div(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
   - name: eq
     args:
     - type: const eteq::ETensor&
@@ -420,22 +420,22 @@ funcs:
     name: eq
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: SUPPORTED_TYPE
       name: scalar
     out:
       type: eteq::ETensor
-      val: return this->eq(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+      val: return this->eq(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
   - support_type: SUPPORTED_TYPE
     name: eq
     args:
     - type: SUPPORTED_TYPE
       name: scalar
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return this->eq(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
+      val: return this->eq(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
   - name: neq
     args:
     - type: const eteq::ETensor&
@@ -449,22 +449,22 @@ funcs:
     name: neq
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: SUPPORTED_TYPE
       name: scalar
     out:
       type: eteq::ETensor
-      val: return this->neq(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+      val: return this->neq(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
   - support_type: SUPPORTED_TYPE
     name: neq
     args:
     - type: SUPPORTED_TYPE
       name: scalar
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return this->neq(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
+      val: return this->neq(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
   - name: lt
     args:
     - type: const eteq::ETensor&
@@ -478,22 +478,22 @@ funcs:
     name: lt
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: SUPPORTED_TYPE
       name: scalar
     out:
       type: eteq::ETensor
-      val: return this->lt(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+      val: return this->lt(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
   - support_type: SUPPORTED_TYPE
     name: lt
     args:
     - type: SUPPORTED_TYPE
       name: scalar
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return this->lt(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
+      val: return this->lt(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
   - name: gt
     args:
     - type: const eteq::ETensor&
@@ -507,22 +507,22 @@ funcs:
     name: gt
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: SUPPORTED_TYPE
       name: scalar
     out:
       type: eteq::ETensor
-      val: return this->gt(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+      val: return this->gt(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
   - support_type: SUPPORTED_TYPE
     name: gt
     args:
     - type: SUPPORTED_TYPE
       name: scalar
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return this->gt(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
+      val: return this->gt(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
   - name: min
     args:
     - type: const eteq::ETensor&
@@ -536,22 +536,22 @@ funcs:
     name: min
     args:
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     - type: SUPPORTED_TYPE
       name: scalar
     out:
       type: eteq::ETensor
-      val: return this->min(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+      val: return this->min(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
   - support_type: SUPPORTED_TYPE
     name: min
     args:
     - type: SUPPORTED_TYPE
       name: scalar
     - type: const eteq::ETensor&
-      name: arg
+      name: input
     out:
       type: eteq::ETensor
-      val: return this->min(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
+      val: return this->min(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
   - name: min
     args:
     - type: const eteq::ETensorsT&
@@ -1093,6 +1093,22 @@ funcs:
               auto red = this->reduce_sum_1d(arg,dimension);
               auto dim = eteq::make_constant_like<teq::DimT>(arg->shape().at(dimension),red,ctx);
               return this->div(red,dim);
+  - name: reduce_variance
+    args:
+    - type: const eteq::ETensor&
+      name: arg
+    out:
+      type: eteq::ETensor
+      val: return reduce_mean(square(sub(arg,extend_like(reduce_mean(arg),arg))));
+  - name: reduce_variance_1d
+    args:
+    - type: const eteq::ETensor&
+      name: arg
+    - type: teq::RankT
+      name: dimension
+    out:
+      type: eteq::ETensor
+      val: return reduce_mean_1d(square(sub(arg,extend_like(reduce_mean_1d(arg,dimension),arg))),dimension);
   - name: reduce_l2norm
     args:
     - type: const eteq::ETensor&
