@@ -104,10 +104,10 @@ int main (int argc, const char** argv)
 	eteq::ETensor trained_model = tc.layer.link({
 		tc.layer.dense<float>(teq::Shape({n_in}), {n_hid},
 			tc.layer.unif_xavier_init<float>(1), tc.layer.zero_init<float>()),
-		tc.layer.bind<float>(sigmoid),
+		tc.layer.bind(sigmoid),
 		tc.layer.dense<float>(teq::Shape({n_hid}), {n_out},
 			tc.layer.unif_xavier_init<float>(1), tc.layer.zero_init<float>()),
-		tc.layer.bind<float>(sigmoid),
+		tc.layer.bind(sigmoid),
 	});
 	eteq::ETensor untrained_model = layr::deep_clone(trained_model);
 	eteq::ETensor pretrained_model = layr::deep_clone(trained_model);

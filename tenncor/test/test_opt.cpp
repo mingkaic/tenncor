@@ -347,7 +347,7 @@ TEST(OPTIMIZE, CNNLayer)
 				return eteq::make_variable<double>(cbias_data.data(), shape, label);
 			},
 			{{1, 1}, {1, 1}}), // outputs [2\4\4]
-		tenncor().layer.bind<double>(
+		tenncor().layer.bind(
 			[](const eteq::ETensor& x)
 			{
 				return tenncor().relu(x);

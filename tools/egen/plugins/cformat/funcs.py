@@ -88,6 +88,16 @@ EVERY_TYPE(_GEN_SUPPORT_TYPE)
 #undef _GEN_SUPPORT_TYPE
 '''
 
+def support_body_prep(msg):
+    lines = msg.strip().split('\n')
+    for i, line in enumerate(lines):
+        match = re.compile(r'(\s*)//(.*)').match(line)
+        if match:
+            lines[i] = '{}/*{} */'.format(match[1], match[2])
+        else:
+            lines[i] = line
+    return '\\\n'.join(lines)
+
 def render_decl(obj):
     if obj.get('python_only', False):
         return ''
@@ -103,8 +113,7 @@ def render_decl(obj):
     if support_type:
         comment = _handle_comment(obj, None)
         out = comment + '\n' + support_all_format.format(
-            support_type=support_type,
-            body='\\\n'.join(out.strip().split('\n')))
+            support_type=support_type, body=support_body_prep(out))
     return out
 
 def render_defn(obj, root=None, clas=None):
@@ -128,6 +137,5 @@ def render_defn(obj, root=None, clas=None):
     support_type = obj.get('support_type', None)
     if support_type:
         out = support_all_format.format(
-            support_type=support_type,
-            body='\\\n'.join(out.strip().split('\n')))
+            support_type=support_type, body=support_body_prep(out))
     return out

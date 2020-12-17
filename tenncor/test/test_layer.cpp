@@ -149,7 +149,7 @@ TEST(RBM, BackwardConnection)
 
 TEST(BIND, Sigmoid)
 {
-	auto sgm = tenncor().layer.bind<float>(tc_sigmoid<float>);
+	auto sgm = tenncor().layer.bind(tc_sigmoid<float>);
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
 	auto s = layr::connect(sgm, eteq::ETensor(x));
@@ -163,13 +163,13 @@ TEST(BIND, Sigmoid)
 
 TEST(BIND, Softmax)
 {
-	auto sft0 = tenncor().layer.bind<float>(
+	auto sft0 = tenncor().layer.bind(
 		[](eteq::ETensor e)
 		{
 			return tenncor().softmax(e, 0, 1);
 		});
 
-	auto sft1 = tenncor().layer.bind<float>(
+	auto sft1 = tenncor().layer.bind(
 		[](eteq::ETensor e)
 		{
 			return tenncor().softmax(e, 1, 1);
@@ -661,7 +661,7 @@ TEST(CONNECT, TanhRNNFull)
 
 	auto layer = tenncor().layer.link({
 		indense, rnn, outdense,
-		tenncor().layer.bind<double>(tc_sigmoid<double>),
+		tenncor().layer.bind(tc_sigmoid<double>),
 	});
 
 	auto output = layr::connect(layer, in);
@@ -903,7 +903,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 
 	auto layer = tenncor().layer.link({
 		indense, rnn, outdense,
-		tenncor().layer.bind<double>(tc_sigmoid<double>),
+		tenncor().layer.bind(tc_sigmoid<double>),
 	});
 
 	auto output = layr::connect(layer, in);
@@ -1336,7 +1336,7 @@ TEST(CONNECT, TanhRNNTraining)
 
 	auto layer = tenncor().layer.link({
 		indense, rnn, outdense,
-		tenncor().layer.bind<double>(tc_sigmoid<double>),
+		tenncor().layer.bind(tc_sigmoid<double>),
 	});
 
 	auto output = layr::connect(layer, in);

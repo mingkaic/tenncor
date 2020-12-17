@@ -43,7 +43,7 @@ endif()
 
 #### generate cpp files ####
 
-set(EGEN_TOOL "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake-egen/egen.py")
+set(EGEN_TOOL "${CMAKE_CURRENT_SOURCE_DIR}/tools/egen/egen.py")
 
 get_filename_component(EIGEN_TYPE_CFG "cfg/fulltype.yml" ABSOLUTE)
 get_filename_component(EIGEN_OP_CFG "cfg/ops.yml" ABSOLUTE)

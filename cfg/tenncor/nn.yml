@@ -96,21 +96,91 @@ funcs:
                   out = super->add(out,super->extend_like(bias,out));
               }
               return out;
-  - description: randomly sets input unit to 0 with frequency of dp_prob. dp_prob is in range [0, 1].
-    name: drop_out
+  - description: randomly sets input unit to 0 with frequency of drop_rate. drop_rate is in range [0, 1].
+    template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: dropout
     args:
     - type: const eteq::ETensor&
       name: input
-    - type: float
-      name: dp_prob
+    - type: T
+      name: drop_rate
+    out:
+      type: eteq::ETensor
+      val: return dropout(input,eteq::make_variable_scalar<T>(drop_rate,teq::Shape(),"drop_rate",super->ctx));
+  - name: dropout
+    args:
+    - type: const eteq::ETensor&
+      name: input
+    - type: const eteq::ETensor&
+      name: drop_rate
     out:
       type: eteq::ETensor
       val: |
           //
-              auto p = eteq::make_variable_like<float>(1.-dp_prob,input,"drop_out_prob",super->ctx);
-              auto mask = super->random.rand_binom_one(p);
+              auto rate = super->sub(1.,drop_rate);
+              if (false == rate->shape().compatible_after(input->shape(), 0))
+              {
+                  rate = super->extend_like(rate, input);
+              }
+              auto mask = super->random.rand_binom_one(rate);
               auto denom = super->reduce_sum(mask) / super->n_elems(mask);
               return super->mul(input,super->div(mask,denom));
+  - description: Return batch normalization of input arg. That is output mean is close to 0 and variance is close to 1
+    template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: batch_normalization
+    args:
+      - type: const eteq::ETensor&
+        name: input
+      - type: T
+        name: offset
+        default: 0
+      - type: T
+        name: scale
+        default: 1
+      - type: T
+        name: eps
+        default: std::numeric_limits<T>::epsilon()
+    out:
+      type: eteq::ETensor
+      val: |
+          //
+              return batch_normalization(input,
+                  eteq::make_constant_like_uncast<T>(offset,arg,super->ctx),
+                  eteq::make_constant_like_uncast<T>(scale,arg,super->ctx),
+                  eteq::make_constant_like_uncast<T>(eps,arg,super->ctx));
+  - name: batch_normalization
+    args:
+      - type: const eteq::ETensor&
+        name: input
+      - type: eteq::ETensor
+        name: offset
+      - type: eteq::ETensor
+        name: scale
+      - type: eteq::ETensor
+        name: eps
+    out:
+      type: eteq::ETensor
+      val: |
+          //
+              if (false == offset->shape().compatible_after(input->shape(), 0))
+              {
+                  offset = super->extend_like(offset, input);
+              }
+              if (false == scale->shape().compatible_after(input->shape(), 0))
+              {
+                  scale = super->extend_like(scale, input);
+              }
+              if (false == eps->shape().compatible_after(input->shape(), 0))
+              {
+                  eps = super->extend_like(eps, input);
+              }
+              auto mean = super->reduce_mean(arg);
+              auto variance = super->reduce_mean(super->square(super->sub(arg,mean)));
+              auto norm = super->div(
+                  super->sub(arg,mean),
+                  super->sqrt(super->add(variance,eps))
+              );
+              return super->add(super->mul(norm, scale), offset);
   - name: mean_pool2d
     args:
     - type: const eteq::ETensor&

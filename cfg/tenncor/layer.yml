@@ -11,8 +11,7 @@ init:
   initlist:
     super: super
 funcs:
-  - template: typename T
-    name: bind
+  - name: bind
     args:
     - type: layr::UnaryF
       name: unary
@@ -23,7 +22,7 @@ funcs:
       type: eteq::ETensor
       val: |
           //
-              eteq::ETensor input(eteq::make_variable_scalar<T>(
+              eteq::ETensor input(eteq::make_variable_scalar<float>(
                   0,inshape,layr::input_label,super->ctx));
               auto output = unary(input);
               auto layer_root = super->identity(output);
@@ -381,15 +380,37 @@ funcs:
                   std::generate(vec.begin(), vec.end(), global::get_generator()->norm_decgen(0., stdev));
                   return eteq::make_variable(vec.data(), shape, label, ctx);
               };
-  - template: typename T
+  - description: if is_training is true randomly sets input unit to 0 with frequency of drop_rate. drop_rate is in range [0, 1]. otherwise output is input
+    template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: dropout
+    args:
+      - type: const eteq::ETensor&
+        name: input
+      - type: T
+        name: dp_prob
+      - type: const eteq::ETensor&
+        name: is_training
+        check_null: false
+        default: eteq::ETensor()
+    out:
+      type: eteq::ETensor
+      val: |
+          //
+              auto out = super->nn.dropout(input, dp_prob);
+              if (nullptr != is_training)
+              {
+                  out = super->if_then_else(is_training, out, input);
+              }
+              return out;
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
     name: batch_normalization
     description: Return batch normalization of input arg. That is output mean is close to 0 and variance is close to 1
     args:
       - type: eteq::ETensor
         name: arg
-      - type: float
+      - type: T
         name: eps
-        default: std::numeric_limits<float>::epsilon()
+        default: std::numeric_limits<T>::epsilon()
       - type: eteq::ETensor
         name: offset
         check_null: false
@@ -400,20 +421,4 @@ funcs:
         default: eteq::ETensor()
     out:
       type: eteq::ETensor
-      val: |
-          //
-              auto mean = super->reduce_mean(arg);
-              auto variance = super->reduce_mean(super->square(super->sub(arg, mean)));
-              auto norm = super->div(
-                  super->sub(arg, mean),
-                  super->sqrt(super->add(variance, eps))
-              );
-              if (offset == nullptr)
-              {
-                  offset = eteq::make_constant_like_uncast<T>(0,arg,super->ctx);
-              }
-              if (scale == nullptr)
-              {
-                  scale = eteq::make_constant_like_uncast<T>(1,arg,super->ctx);
-              }
-              return super->add(super->mul(norm, scale), offset);
+      val: return super->nn.batch_normalization<T>(arg, eps, offset, scale);
