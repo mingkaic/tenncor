@@ -1110,10 +1110,10 @@ class LAYRTest(unittest.TestCase):
 
     def test_gru(self):
         brain = tc.api.layer.link([
-            tc.api.layer.conv([5, 5], 1, 16,
+            tc.api.layer.conv2d([5, 5], 1, 16,
                 weight_init=tc.api.layer.norm_xavier_init(0.5),
                 zero_padding=((2, 2), (2, 2))), # input of [1, 2641, 128, 1] -> output of [16, 2647, 128, 1]
-            tc.api.layer.conv([5, 5], 16, 20,
+            tc.api.layer.conv2d([5, 5], 16, 20,
                 weight_init=tc.api.layer.norm_xavier_init(0.5),
                 zero_padding=((2, 2), (2, 2))), # input of [16, 2647, 128, 1] -> output of [20, 2647, 128, 1]
             tc.api.layer.gru(tc.Shape([2647, 20]), 20, 128,

@@ -63,7 +63,7 @@ TEST(DENSE, Connection)
 
 TEST(CONV, Connection)
 {
-	auto conv = tenncor().layer.conv<float>({6, 5}, 4, 3,
+	auto conv = tenncor().layer.conv2d<float>({6, 5}, 4, 3,
 		tenncor().layer.unif_xavier_init<float>(1),
 		tenncor().layer.zero_init<float>());
 

@@ -21,5 +21,5 @@ class PluginBase(metaclass=abc.ABCMeta):
             dictionary of generated_files (
                 mapping filename to FileRep) and
             dictionary of arguments,
-        Return {filename: FileRep}
+        Return {filename: FileRep,...}
         '''

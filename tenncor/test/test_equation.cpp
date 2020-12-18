@@ -785,12 +785,12 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell = tenncor().nn.dense(cell_in, weight, bias);
+	auto cell = tenncor().layer.dense(cell_in, weight, bias);
 
 	auto state = tenncor().extend_like(istate,
 		tenncor().slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor().nn.rnn(in, state, cell,
+	auto output = tenncor().layer.rnn(in, state, cell,
 		[](const eteq::ETensor& x)
 		{ return tenncor().tanh(x); }, seq_dim);
 
@@ -915,13 +915,13 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell = tenncor().nn.dense(cell_in, weight, bias);
+	auto cell = tenncor().layer.dense(cell_in, weight, bias);
 
 	auto state = tenncor().extend_like(istate,
 		tenncor().slice(in, 0, 1, seq_dim));
 
 	eteq::ETensor layer_in(eteq::make_variable_scalar<double>(0, teq::Shape({5, 3})));
-	auto layer = tenncor().nn.rnn(layer_in, state, cell,
+	auto layer = tenncor().layer.rnn(layer_in, state, cell,
 		[](const eteq::ETensor& x)
 		{ return tenncor().tanh(x); }, seq_dim);
 	auto output = layr::connect(layer, in);

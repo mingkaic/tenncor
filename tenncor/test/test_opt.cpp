@@ -180,12 +180,12 @@ TEST(OPTIMIZE, RNNLayer)
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell = tenncor().nn.dense(cell_in, weight, bias);
+	auto cell = tenncor().layer.dense(cell_in, weight, bias);
 
 	auto state = tenncor().extend_like(istate,
 		tenncor().slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor().nn.rnn(in, state, cell,
+	auto output = tenncor().layer.rnn(in, state, cell,
 		[](const eteq::ETensor& x)
 		{
 			return tenncor().tanh(x);
@@ -337,7 +337,7 @@ TEST(OPTIMIZE, CNNLayer)
 
 	// construct CNN
 	auto model = tenncor().layer.link({ // input [2\4\4]
-		tenncor().layer.conv<double>({3, 3}, 2, 2,
+		tenncor().layer.conv2d<double>({3, 3}, 2, 2,
 			[&](teq::Shape shape, std::string label) -> eteq::EVariable<double>
 			{
 				return eteq::make_variable<double>(cweight_data.data(), shape, label);

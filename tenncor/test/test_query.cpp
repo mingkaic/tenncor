@@ -90,12 +90,12 @@ static teq::TensptrsT rnn_setup (void)
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell = tenncor().nn.dense(cell_in, weight, bias);
+	auto cell = tenncor().layer.dense(cell_in, weight, bias);
 
 	auto state = tenncor().extend_like(istate,
 		tenncor().slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor().nn.rnn(in, state, cell, tc_tanh, seq_dim);
+	auto output = tenncor().layer.rnn(in, state, cell, tc_tanh, seq_dim);
 
 	auto err = tenncor().pow(out - output, 2.);
 
