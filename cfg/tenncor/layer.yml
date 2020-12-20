@@ -129,15 +129,41 @@ funcs:
       type: eteq::ETensor
       val: |
         //
+            // image must be in form [in,iwidth,iheight,batch]
+            eteq::ETensor input(eteq::make_variable_scalar<T>(0,teq::Shape({
+                in_ncol,filter_hw.second,filter_hw.first,1}),layr::input_label,super->ctx));
+            return conv2d(input,out_ncol,kernel_init,bias_init,zero_padding,with_bias);
+  - template: typename T
+    name: conv2d
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: out_ncol
+        type: teq::DimT
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: zero_padding
+        type: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
+        default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
+      - name: with_bias
+        type: bool
+        default: "true"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
             if (!kernel_init)
             {
                 kernel_init = super->init.glorot_uniform<T>();
             }
-            // image must be in form [in,iwidth,iheight,batch]
-            eteq::ETensor input(eteq::make_variable_scalar<T>(0,teq::Shape({
-                in_ncol,filter_hw.second,filter_hw.first,1}),layr::input_label,super->ctx));
+            // image must be in form [in,iwidth,iheight,...]
+            teq::Shape inshape = input->shape();
             eteq::EVariable<T> kernel = kernel_init(teq::Shape({out_ncol,
-                in_ncol,filter_hw.second,filter_hw.first}),layr::weight_label);
+                inshape.at(0),inshape.at(1),inshape.at(2)}),layr::weight_label);
             eteq::EVariable<T> bias;
             if (with_bias)
             {
@@ -336,7 +362,7 @@ funcs:
                 dense(fwdinput,kernel,hbias,{{0,1}}),
                 dense(bwdinput,super->transpose(kernel),vbias,{{0,1}})
             };
-  - description: if is_training is true randomly sets input unit to 0 with frequency of drop_rate. drop_rate is in range [0, 1]. otherwise output is input
+  - description: if training is true randomly sets input unit to 0 with frequency of drop_rate. drop_rate is in range [0, 1]. otherwise output is input
     template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
     name: dropout
     args:
@@ -344,20 +370,20 @@ funcs:
         type: const eteq::ETensor&
       - name: drop_rate
         type: T
-      - name: is_training
+      - name: training
         type: const eteq::ETensor&
         check_null: false
         default: eteq::ETensor()
     out:
       type: eteq::ETensor
-      val: return dropout(input,eteq::make_variable_scalar<T>(drop_rate,teq::Shape(),"drop_rate",super->ctx),is_training);
+      val: return dropout(input,eteq::make_variable_scalar<T>(drop_rate,teq::Shape(),"drop_rate",super->ctx),training);
   - name: dropout
     args:
       - name: input
         type: const eteq::ETensor&
       - name: drop_rate
         type: const eteq::ETensor&
-      - name: is_training
+      - name: training
         type: eteq::ETensor
         check_null: false
         default: eteq::ETensor()
@@ -366,13 +392,13 @@ funcs:
       val: |
         //
             auto out = super->nn.dropout(input,drop_rate);
-            if (nullptr != is_training)
+            if (nullptr != training)
             {
-                if (false == is_training->shape().compatible_after(input->shape(), 0))
+                if (false == training->shape().compatible_after(input->shape(), 0))
                 {
-                    is_training = super->extend_like(is_training,input);
+                    training = super->extend_like(training,input);
                 }
-                out = super->if_then_else(is_training,out,input);
+                out = super->if_then_else(training,out,input);
             }
             return out;
   - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
@@ -390,7 +416,7 @@ funcs:
       - name: eps
         type: T
         default: std::numeric_limits<T>::epsilon()
-      - name: is_training
+      - name: training
         type: const eteq::ETensor&
         check_null: false
         default: eteq::ETensor()
@@ -403,6 +429,9 @@ funcs:
       - name: moving_var
         type: T
         default: 1
+      - name: axis
+        type: teq::RankT
+        default: teq::rank_cap
     out:
       type: eteq::ETensor
       val: |
@@ -411,10 +440,10 @@ funcs:
                 eteq::make_constant_like_uncast<T>(offset,input,super->ctx),
                 eteq::make_constant_like_uncast<T>(scale,input,super->ctx),
                 eteq::make_constant_like_uncast<T>(eps,input,super->ctx),
-                is_training,
+                training,
                 eteq::make_constant_like_uncast<T>(momentum,input,super->ctx),
                 super->init.constants<T>(moving_mean),
-                super->init.constants<T>(moving_var));
+                super->init.constants<T>(moving_var), axis);
   - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
     name: batch_normalization
     args:
@@ -426,7 +455,7 @@ funcs:
         type: eteq::ETensor
       - name: eps
         type: eteq::ETensor
-      - name: is_training
+      - name: training
         type: eteq::ETensor
         check_null: false
         default: eteq::ETensor()
@@ -440,21 +469,38 @@ funcs:
       - name: moving_var_init
         type: layr::InitF<T>
         default: layr::InitF<T>()
+      - name: axis
+        type: teq::RankT
+        default: teq::rank_cap
     out:
       type: eteq::ETensor
       val: |
         //
             layr::UnaryF get_mean, get_var;
-            if (nullptr == is_training)
+            if (nullptr == training)
             {
-                get_mean = [this](const eteq::ETensor& input)
+                if (axis >= teq::rank_cap)
                 {
-                    return super->extend_like(super->reduce_mean(input), input);
-                };
-                get_var = [this](const eteq::ETensor& input)
+                    get_mean = [this](const eteq::ETensor& input)
+                    {
+                        return super->extend_like(super->reduce_mean(input), input);
+                    };
+                    get_var = [this](const eteq::ETensor& input)
+                    {
+                        return super->extend_like(super->reduce_variance(input), input);
+                    };
+                }
+                else
                 {
-                    return super->extend_like(super->reduce_variance(input), input);
-                };
+                    get_mean = [this,axis](const eteq::ETensor& input)
+                    {
+                        return super->extend_like(super->reduce_mean_1d(input,axis), input);
+                    };
+                    get_var = [this,axis](const eteq::ETensor& input)
+                    {
+                        return super->extend_like(super->reduce_variance_1d(input,axis), input);
+                    };
+                }
             }
             else
             {
@@ -472,24 +518,44 @@ funcs:
                 }
                 auto moving_mean = moving_mean_init(input->shape(),"moving_mean");
                 auto moving_var = moving_var_init(input->shape(),"moving_var");
-                if (false == is_training->shape().compatible_after(input->shape(), 0))
+                if (false == training->shape().compatible_after(input->shape(), 0))
                 {
-                    is_training = super->extend_like(is_training,input);
+                    training = super->extend_like(training,input);
                 }
-                get_mean = [this,is_training,momentum,moving_mean](const eteq::ETensor& input)
+                if (axis >= teq::rank_cap)
                 {
-                    auto mean = super->extend_like(super->reduce_mean(input), input);
-                    auto mmean = super->add(super->mul(moving_mean,momentum),super->mul(mean,super->sub(1.,momentum)));
-                    mmean = super->assign(moving_mean,mmean);
-                    return super->if_then_else(is_training,mean,mmean);
-                };
-                get_var = [this,is_training,momentum,moving_var](const eteq::ETensor& input)
+                    get_mean = [this,training,momentum,moving_mean](const eteq::ETensor& input)
+                    {
+                        auto mean = super->extend_like(super->reduce_mean(input), input);
+                        auto mmean = super->add(super->mul(moving_mean,momentum),super->mul(mean,super->sub(1.,momentum)));
+                        mmean = super->assign(moving_mean,mmean);
+                        return super->if_then_else(training,mean,mmean);
+                    };
+                    get_var = [this,training,momentum,moving_var](const eteq::ETensor& input)
+                    {
+                        auto var = super->extend_like(super->reduce_variance(input), input);
+                        auto mvar = super->add(super->mul(moving_var,momentum),super->mul(var,super->sub(1.,momentum)));
+                        mvar = super->assign(moving_var,mvar);
+                        return super->if_then_else(training,var,mvar);
+                    };
+                }
+                else
                 {
-                    auto var = super->extend_like(super->reduce_variance(input), input);
-                    auto mvar = super->add(super->mul(moving_var,momentum),super->mul(var,super->sub(1.,momentum)));
-                    mvar = super->assign(moving_var,mvar);
-                    return super->if_then_else(is_training,var,mvar);
-                };
+                    get_mean = [this,training,momentum,moving_mean,axis](const eteq::ETensor& input)
+                    {
+                        auto mean = super->extend_like(super->reduce_mean_1d(input,axis), input);
+                        auto mmean = super->add(super->mul(moving_mean,momentum),super->mul(mean,super->sub(1.,momentum)));
+                        mmean = super->assign(moving_mean,mmean);
+                        return super->if_then_else(training,mean,mmean);
+                    };
+                    get_var = [this,training,momentum,moving_var,axis](const eteq::ETensor& input)
+                    {
+                        auto var = super->extend_like(super->reduce_variance_1d(input,axis), input);
+                        auto mvar = super->add(super->mul(moving_var,momentum),super->mul(var,super->sub(1.,momentum)));
+                        mvar = super->assign(moving_var,mvar);
+                        return super->if_then_else(training,var,mvar);
+                    };
+                }
             }
             return super->nn.batch_normalization(input,offset,scale,eps,get_mean,get_var);
   - name: dense
