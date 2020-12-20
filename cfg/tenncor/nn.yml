@@ -13,256 +13,256 @@ init:
 funcs:
   - name: fully_connect
     args:
-    - type: const eteq::ETensorsT&
-      name: lefts
-    - type: const eteq::ETensorsT&
-      name: rights
-    - type: const eteq::ETensor&
-      name: bias
-      default: eteq::ETensor()
-      check_null: false
-    - type: eigen::PairVecT<teq::RankT>
-      name: dims
-      default: eigen::PairVecT<teq::RankT>{{0,1}}
+      - name: lefts
+        type: const eteq::ETensorsT&
+      - name: rights
+        type: const eteq::ETensorsT&
+      - name: bias
+        type: const eteq::ETensor&
+        default: eteq::ETensor()
+        check_null: false
+      - name: dims
+        type: eigen::PairVecT<teq::RankT>
+        default: eigen::PairVecT<teq::RankT>{{0,1}}
     out:
       type: eteq::ETensor
       val: |
-          //
-              size_t nlefts = lefts.size();
-              if (nlefts != rights.size())
-              {
-                  global::fatalf(
-                      "number of lefts (%d) must equal the number of rights (%d)",
-                      nlefts,rights.size());
-              }
-              auto out = super->contract(lefts[0],rights[0],dims);
-              for (size_t i = 1; i < nlefts; ++i)
-              {
-                  out = super->add(out,super->contract(lefts[i],rights[i],dims));
-              }
-              if (nullptr != bias)
-              {
-                  out = super->add(out,super->extend_like(bias,out));
-              }
-              return out;
+        //
+            size_t nlefts = lefts.size();
+            if (nlefts != rights.size())
+            {
+                global::fatalf(
+                    "number of lefts (%d) must equal the number of rights (%d)",
+                    nlefts,rights.size());
+            }
+            auto out = super->contract(lefts[0],rights[0],dims);
+            for (size_t i = 1; i < nlefts; ++i)
+            {
+                out = super->add(out,super->contract(lefts[i],rights[i],dims));
+            }
+            if (nullptr != bias)
+            {
+                out = super->add(out,super->extend_like(bias,out));
+            }
+            return out;
   - name: conv2d
     description: |
-                Given image of shape [in,iwidth,iheight,batch]
-                and kernel of shape [out,in,kwidth,kheight]
-                Return output of shape [
-                  out,
-                  image.width-kernel.width+1+2*zero_padding.first,
-                  image.height-kernel.height+1+2*zero_padding.second,
-                  batch,
-                ]
-                Where image is zero-padded along the width,and height dimensions according to zero_padding argument (
-                of the form {size of width-pad,size of height-pad}) then convolved with kernel split along the out dimension
-                for each slice along image's batch dimension
-                This whole process is similar to tensorflow's conv2d (https://www.tensorflow.org/api_docs/python/tf/nn/conv2d)
+      Given image of shape [in,iwidth,iheight,batch]
+      and kernel of shape [out,in,kwidth,kheight]
+      Return output of shape [
+        out,
+        image.width-kernel.width+1+2*zero_padding.first,
+        image.height-kernel.height+1+2*zero_padding.second,
+        batch,
+      ]
+      Where image is zero-padded along the width,and height dimensions according to zero_padding argument (
+      of the form {size of width-pad,size of height-pad}) then convolved with kernel split along the out dimension
+      for each slice along image's batch dimension
+      This whole process is similar to tensorflow's conv2d (https://www.tensorflow.org/api_docs/python/tf/nn/conv2d)
     args:
-    - type: const eteq::ETensor&
-      name: image
-    - type: const eteq::ETensor&
-      name: kernel
-    - type: const eteq::ETensor&
-      name: bias
-      default: eteq::ETensor()
-      check_null: false
-    - type: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
-      name: zero_paddings
-      default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
+      - name: image
+        type: const eteq::ETensor&
+      - name: kernel
+        type: const eteq::ETensor&
+      - name: bias
+        type: const eteq::ETensor&
+        default: eteq::ETensor()
+        check_null: false
+      - name: zero_paddings
+        type: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
+        default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
     out:
       type: eteq::ETensor
       val: |
-          //
-              eteq::ETensor cimage = image;
-              if (zero_paddings.first.first > 0 ||
-                  zero_paddings.first.second > 0 ||
-                  zero_paddings.second.first > 0 ||
-                  zero_paddings.second.second > 0)
-              {
-                  cimage = super->pad(cimage,{{0,0},
-                      {zero_paddings.first.first,zero_paddings.first.second},
-                      {zero_paddings.second.first,zero_paddings.second.second}});
-              }
-              teq::DimT img_pad = kernel->shape().at(0) - 1; // out
-              cimage = super->pad(cimage,
-                  eteq::DimPairsT{img_pad,img_pad},4);
+        //
+            eteq::ETensor cimage = image;
+            if (zero_paddings.first.first > 0 ||
+                zero_paddings.first.second > 0 ||
+                zero_paddings.second.first > 0 ||
+                zero_paddings.second.second > 0)
+            {
+                cimage = super->pad(cimage,{{0,0},
+                    {zero_paddings.first.first,zero_paddings.first.second},
+                    {zero_paddings.second.first,zero_paddings.second.second}});
+            }
+            teq::DimT img_pad = kernel->shape().at(0) - 1; // out
+            cimage = super->pad(cimage,
+                eteq::DimPairsT{img_pad,img_pad},4);
 
-              auto out =  super->permute(super->convolution(cimage,
-                  super->reverse(kernel,{0}),{4,0,1,2}),{4,1,2,3});
-              if (nullptr != bias)
-              {
-                  out = super->add(out,super->extend_like(bias,out));
-              }
-              return out;
+            auto out =  super->permute(super->convolution(cimage,
+                super->reverse(kernel,{0}),{4,0,1,2}),{4,1,2,3});
+            if (nullptr != bias)
+            {
+                out = super->add(out,super->extend_like(bias,out));
+            }
+            return out;
   - description: randomly sets input unit to 0 with frequency of drop_rate. drop_rate is in range [0, 1].
     template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
     name: dropout
     args:
-    - type: const eteq::ETensor&
-      name: input
-    - type: T
-      name: drop_rate
+      - name: input
+        type: const eteq::ETensor&
+      - name: drop_rate
+        type: T
     out:
       type: eteq::ETensor
       val: return dropout(input,eteq::make_variable_scalar<T>(drop_rate,teq::Shape(),"drop_rate",super->ctx));
   - name: dropout
     args:
-    - type: const eteq::ETensor&
-      name: input
-    - type: const eteq::ETensor&
-      name: drop_rate
+      - name: input
+        type: const eteq::ETensor&
+      - name: drop_rate
+        type: const eteq::ETensor&
     out:
       type: eteq::ETensor
       val: |
-          //
-              auto rate = super->sub(1.,drop_rate);
-              if (false == rate->shape().compatible_after(input->shape(), 0))
-              {
-                  rate = super->extend_like(rate, input);
-              }
-              auto mask = super->random.rand_binom_one(rate);
-              auto denom = super->reduce_sum(mask) / super->n_elems(mask);
-              return super->mul(input,super->div(mask,denom));
+        //
+            auto rate = super->sub(1.,drop_rate);
+            if (false == rate->shape().compatible_after(input->shape(), 0))
+            {
+                rate = super->extend_like(rate, input);
+            }
+            auto mask = super->random.rand_binom_one(rate);
+            auto denom = super->reduce_sum(mask) / super->n_elems(mask);
+            return super->mul(input,super->div(mask,denom));
   - description: Return batch normalization of input arg. That is output mean is close to 0 and variance is close to 1
     template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
     name: batch_normalization
     args:
-      - type: const eteq::ETensor&
-        name: input
-      - type: T
-        name: offset
+      - name: input
+        type: const eteq::ETensor&
+      - name: offset
+        type: T
         default: 0
-      - type: T
-        name: scale
+      - name: scale
+        type: T
         default: 1
-      - type: T
-        name: eps
+      - name: eps
+        type: T
         default: std::numeric_limits<T>::epsilon()
-      - type: layr::UnaryF
-        name: get_mean
+      - name: get_mean
+        type: layr::UnaryF
         default: layr::UnaryF()
-      - type: layr::UnaryF
-        name: get_variance
+      - name: get_variance
+        type: layr::UnaryF
         default: layr::UnaryF()
     out:
       type: eteq::ETensor
       val: |
-          //
-              return batch_normalization(input,
-                  eteq::make_constant_like_uncast<T>(offset,input,super->ctx),
-                  eteq::make_constant_like_uncast<T>(scale,input,super->ctx),
-                  eteq::make_constant_like_uncast<T>(eps,input,super->ctx),
-                  get_mean,get_variance);
+        //
+            return batch_normalization(input,
+                eteq::make_constant_like_uncast<T>(offset,input,super->ctx),
+                eteq::make_constant_like_uncast<T>(scale,input,super->ctx),
+                eteq::make_constant_like_uncast<T>(eps,input,super->ctx),
+                get_mean,get_variance);
   - name: batch_normalization
     args:
-      - type: const eteq::ETensor&
-        name: input
-      - type: eteq::ETensor
-        name: offset
-      - type: eteq::ETensor
-        name: scale
-      - type: eteq::ETensor
-        name: eps
-      - type: layr::UnaryF
-        name: get_mean
+      - name: input
+        type: const eteq::ETensor&
+      - name: offset
+        type: eteq::ETensor
+      - name: scale
+        type: eteq::ETensor
+      - name: eps
+        type: eteq::ETensor
+      - name: get_mean
+        type: layr::UnaryF
         default: layr::UnaryF()
-      - type: layr::UnaryF
-        name: get_variance
+      - name: get_variance
+        type: layr::UnaryF
         default: layr::UnaryF()
     out:
       type: eteq::ETensor
       val: |
-          //
-              if (!get_mean)
-              {
-                  get_mean = [this](const eteq::ETensor& input)
-                  {
-                      return super->extend_like(super->reduce_mean(input), input);
-                  };
-              }
-              if (!get_variance)
-              {
-                  get_variance = [this](const eteq::ETensor& input)
-                  {
-                      return super->extend_like(super->reduce_variance(input), input);
-                  };
-              }
-              if (false == offset->shape().compatible_after(input->shape(), 0))
-              {
-                  offset = super->extend_like(offset, input);
-              }
-              if (false == scale->shape().compatible_after(input->shape(), 0))
-              {
-                  scale = super->extend_like(scale, input);
-              }
-              if (false == eps->shape().compatible_after(input->shape(), 0))
-              {
-                  eps = super->extend_like(eps, input);
-              }
-              auto norm = super->div(
-                  super->sub(input,get_mean(input)),
-                  super->sqrt(super->add(get_variance(input),eps))
-              );
-              return super->add(super->mul(norm, scale), offset);
+        //
+            if (!get_mean)
+            {
+                get_mean = [this](const eteq::ETensor& input)
+                {
+                    return super->extend_like(super->reduce_mean(input), input);
+                };
+            }
+            if (!get_variance)
+            {
+                get_variance = [this](const eteq::ETensor& input)
+                {
+                    return super->extend_like(super->reduce_variance(input), input);
+                };
+            }
+            if (false == offset->shape().compatible_after(input->shape(), 0))
+            {
+                offset = super->extend_like(offset, input);
+            }
+            if (false == scale->shape().compatible_after(input->shape(), 0))
+            {
+                scale = super->extend_like(scale, input);
+            }
+            if (false == eps->shape().compatible_after(input->shape(), 0))
+            {
+                eps = super->extend_like(eps, input);
+            }
+            auto norm = super->div(
+                super->sub(input,get_mean(input)),
+                super->sqrt(super->add(get_variance(input),eps))
+            );
+            return super->add(super->mul(norm, scale), offset);
   - name: mean_pool2d
     args:
-    - type: const eteq::ETensor&
-      name: arg
-    - type: std::pair<teq::RankT,teq::RankT>
-      name: dims
-      default: "std::pair<teq::RankT,teq::RankT>{0,1}"
+      - name: arg
+        type: const eteq::ETensor&
+      - name: dims
+        type: std::pair<teq::RankT,teq::RankT>
+        default: "std::pair<teq::RankT,teq::RankT>{0,1}"
     out:
       type: eteq::ETensor
       val: |
-          //
-              teq::Shape shape = arg->shape();
-              teq::DimT xextent = shape.at(dims.first) - 1;
-              teq::DimT yextent = shape.at(dims.second) - 1;
-              teq::DimsT strider(teq::rank_cap,1);
-              strider[dims.first] = strider[dims.second] = 2;
-              auto top_left = super->stride(arg,strider);
-              auto top_right = super->stride(
-                  super->slice(arg,1,xextent,dims.first),strider);
-              auto bot_left = super->stride(
-                  super->slice(arg,1,yextent,dims.second),strider);
-              eigen::PairVecT<teq::DimT> pvec(teq::rank_cap,
-                  {0,std::numeric_limits<teq::DimT>::max()});
-              pvec[dims.first] = {1,xextent};
-              pvec[dims.second] = {1,yextent};
-              auto bot_right = super->stride(
-                  super->slice(arg,pvec),strider);
+        //
+            teq::Shape shape = arg->shape();
+            teq::DimT xextent = shape.at(dims.first) - 1;
+            teq::DimT yextent = shape.at(dims.second) - 1;
+            teq::DimsT strider(teq::rank_cap,1);
+            strider[dims.first] = strider[dims.second] = 2;
+            auto top_left = super->stride(arg,strider);
+            auto top_right = super->stride(
+                super->slice(arg,1,xextent,dims.first),strider);
+            auto bot_left = super->stride(
+                super->slice(arg,1,yextent,dims.second),strider);
+            eigen::PairVecT<teq::DimT> pvec(teq::rank_cap,
+                {0,std::numeric_limits<teq::DimT>::max()});
+            pvec[dims.first] = {1,xextent};
+            pvec[dims.second] = {1,yextent};
+            auto bot_right = super->stride(
+                super->slice(arg,pvec),strider);
 
-              return super->div(super->sum(eteq::ETensorsT{
-                  top_left,top_right,bot_left,bot_right}),(float) 4);
+            return super->div(super->sum(eteq::ETensorsT{
+                top_left,top_right,bot_left,bot_right}),(float) 4);
   - name: max_pool2d
     args:
-    - type: const eteq::ETensor&
-      name: arg
-    - type: std::pair<teq::RankT,teq::RankT>
-      name: dims
-      default: "std::pair<teq::RankT,teq::RankT>{0,1}"
+      - name: arg
+        type: const eteq::ETensor&
+      - name: dims
+        type: std::pair<teq::RankT,teq::RankT>
+        default: "std::pair<teq::RankT,teq::RankT>{0,1}"
     out:
       type: eteq::ETensor
       val: |
-          //
-              teq::Shape shape = arg->shape();
-              teq::DimT xextent = shape.at(dims.first) - 1;
-              teq::DimT yextent = shape.at(dims.second) - 1;
-              teq::DimsT strider(teq::rank_cap,1);
-              strider[dims.first] = strider[dims.second] = 2;
-              auto top_left = super->stride(arg,strider);
-              auto top_right = super->stride(
-                  super->slice(arg,1,xextent,dims.first),strider);
-              auto bot_left = super->stride(
-                  super->slice(arg,1,yextent,dims.second),strider);
-              eigen::PairVecT<teq::DimT> pvec(teq::rank_cap,
-                  {0,std::numeric_limits<teq::DimT>::max()});
-              pvec[dims.first] = {1,xextent};
-              pvec[dims.second] = {1,yextent};
-              auto bot_right = super->stride(
-                  super->slice(arg,pvec),strider);
+        //
+            teq::Shape shape = arg->shape();
+            teq::DimT xextent = shape.at(dims.first) - 1;
+            teq::DimT yextent = shape.at(dims.second) - 1;
+            teq::DimsT strider(teq::rank_cap,1);
+            strider[dims.first] = strider[dims.second] = 2;
+            auto top_left = super->stride(arg,strider);
+            auto top_right = super->stride(
+                super->slice(arg,1,xextent,dims.first),strider);
+            auto bot_left = super->stride(
+                super->slice(arg,1,yextent,dims.second),strider);
+            eigen::PairVecT<teq::DimT> pvec(teq::rank_cap,
+                {0,std::numeric_limits<teq::DimT>::max()});
+            pvec[dims.first] = {1,xextent};
+            pvec[dims.second] = {1,yextent};
+            auto bot_right = super->stride(
+                super->slice(arg,pvec),strider);
 
-              return super->max(eteq::ETensorsT{
-                  top_left,top_right,bot_left,bot_right});
+            return super->max(eteq::ETensorsT{
+                top_left,top_right,bot_left,bot_right});

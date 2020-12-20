@@ -411,3 +411,21 @@ conan_create:
 .PHONY: python_create
 python_create:
 	python3 setup.py sdist bdist_wheel
+
+#### demo tryout ####
+
+CC := gcc
+
+.PHONY: try_all_demo
+try_demos:
+	bazel run --config ${CC}_eigen_optimal //demo:w2v_demo
+	bazel run --config ${CC}_eigen_optimal //demo:rnn_demo
+	bazel run --config ${CC}_eigen_optimal //demo:rbm_demo
+	bazel run --config ${CC}_eigen_optimal //demo:lstm_latin_demo
+	bazel run --config ${CC}_eigen_optimal //demo:lstm_fast_demo
+	bazel run --config ${CC}_eigen_optimal //demo:gru_latin_demo
+	bazel run --config ${CC}_eigen_optimal //demo:gru_fast_demo
+	bazel run --config ${CC}_eigen_optimal //demo:gd_demo
+	bazel run --config ${CC}_eigen_optimal //demo:dqn_demo
+	bazel run --config ${CC}_eigen_optimal //demo:dbn_demo
+	bazel run --config ${CC}_eigen_optimal //demo:cgd_demo

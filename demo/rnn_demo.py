@@ -22,11 +22,6 @@ def cross_entropy_loss(T, Y):
 def loss(T, Y):
     return tc.api.reduce_mean(cross_entropy_loss(T, Y))
 
-def weight_init(shape, label):
-    slist = shape.as_list()
-    a = np.sqrt(6.0 / np.sum(slist))
-    return tc.variable(np.array(np.random.uniform(-a, a, slist)), label)
-
 def create_dataset(nb_samples, sequence_len):
     """Create a dataset for binary addition and
     return as input, targets."""
@@ -143,11 +138,10 @@ def main(args):
     noutput = 1
 
     model = tc.api.layer.link([
-        tc.api.layer.dense([ninput], [nunits], weight_init),
-        tc.api.layer.rnn(nunits, nunits, tc.api.tanh, sequence_len,
-            weight_init=weight_init, bias_init=tc.api.layer.zero_init(),
-            seq_dim=2),
-        tc.api.layer.dense([nunits], [noutput], weight_init),
+        tc.api.layer.dense(inshape=[ninput], hidden_dims=[nunits]),
+        tc.api.layer.rnn(indim=nunits, hidden_dim=nunits,
+            activation=tc.api.tanh, nseq=sequence_len, seq_dim=2),
+        tc.api.layer.dense(inshape=[nunits], hidden_dims=[noutput]),
         tc.api.layer.bind(tc.api.sigmoid),
     ])
     untrained = model.deep_clone()

@@ -72,13 +72,9 @@ def main(args):
     nactions = 9
 
     model = tc.api.layer.link([
-        tc.api.layer.dense([nobservations], [nunits],
-            weight_init=tc.api.layer.unif_xavier_init(),
-            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.dense([nobservations], [nunits]),
         tc.api.layer.bind(tc.api.sigmoid),
-        tc.api.layer.dense([nunits], [nactions],
-            weight_init=tc.api.layer.unif_xavier_init(),
-            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.dense([nunits], [nactions]),
         tc.api.layer.bind(tc.api.sigmoid),
     ])
 

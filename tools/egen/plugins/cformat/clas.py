@@ -196,33 +196,37 @@ def _handle_members(obj):
         ['private:'] + [arender(a, True) + ';' for a in privs])
 
 def render(api, obj, hdr=True):
-    if hdr:
-        clas_decls = build_template(_template_hdr, globals(), obj)
-        funcs = obj.get('funcs', [])
-        if 'template' in obj:
+    try:
+        if hdr:
+            clas_decls = build_template(_template_hdr, globals(), obj)
+            funcs = obj.get('funcs', [])
+            if 'template' in obj:
+                initfuncs = [
+                    _handle_init(obj, decl=False),
+                    _handle_copynmove(obj, decl=False)
+                ]
+            else:
+                initfuncs = []
+                funcs = [func for func in funcs if 'template' in func]
+            func_decls = '\n\n'.join(initfuncs + [
+                fdefn_render(f, root=api, clas=obj)
+                for f in funcs
+            ])
+            return clas_decls, func_decls
+        elif 'template' not in obj:
             initfuncs = [
                 _handle_init(obj, decl=False),
                 _handle_copynmove(obj, decl=False)
             ]
+            funcs = obj.get('funcs', [])
+            funcs = [func for func in funcs if not 'template' in func]
+            func_defns = '\n\n'.join(initfuncs + [
+                fdefn_render(f, root=api, clas=obj)
+                for f in funcs
+            ])
+            return '', func_defns
         else:
-            initfuncs = []
-            funcs = [func for func in funcs if 'template' in func]
-        func_decls = '\n\n'.join(initfuncs + [
-            fdefn_render(f, root=api, clas=obj)
-            for f in funcs
-        ])
-        return clas_decls, func_decls
-    elif 'template' not in obj:
-        initfuncs = [
-            _handle_init(obj, decl=False),
-            _handle_copynmove(obj, decl=False)
-        ]
-        funcs = obj.get('funcs', [])
-        funcs = [func for func in funcs if not 'template' in func]
-        func_defns = '\n\n'.join(initfuncs + [
-            fdefn_render(f, root=api, clas=obj)
-            for f in funcs
-        ])
-        return '', func_defns
-    else:
-        return '', ''
+            return '', ''
+    except Exception as e:
+        print('failed to render class {}: {}'.format(obj.get('name', '?'), e))
+        raise e

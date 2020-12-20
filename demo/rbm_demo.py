@@ -66,8 +66,7 @@ def main(args):
     momentum = 0.95
 
     model = tc.api.layer.rbm(n_visible, n_hidden,
-        weight_init=tc.api.layer.unif_xavier_init(args.xavier_const),
-        bias_init=tc.api.layer.zero_init())
+        kernel_init=tc.api.init.xavier_uniform(args.xavier_const))
 
     untrained = model.deep_clone()
     trained = model.deep_clone()

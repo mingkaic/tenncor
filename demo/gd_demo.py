@@ -60,13 +60,9 @@ def main(args):
     train_input = tc.EVariable([nbatch, ninput])
     train_exout = tc.EVariable([nbatch, noutput])
     model = tc.api.layer.link([
-        tc.api.layer.dense([ninput], [nunits],
-            weight_init=tc.api.layer.unif_xavier_init(),
-            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.dense([ninput], [nunits]),
         tc.api.layer.bind(tc.api.sigmoid),
-        tc.api.layer.dense([nunits], [noutput],
-            weight_init=tc.api.layer.unif_xavier_init(),
-            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.dense([nunits], [noutput]),
         tc.api.layer.bind(tc.api.sigmoid),
     ], train_input)
 

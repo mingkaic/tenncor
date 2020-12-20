@@ -82,7 +82,7 @@ TEST(INIT, UniformXavier)
 	std::string label = "ghi";
 	double factor = 0.712;
 
-	auto x = tenncor().layer.unif_xavier_init(factor)(
+	auto x = tenncor().init.xavier_uniform(factor)(
 		teq::Shape(slist), label);
 
 	auto shape = x->shape();
@@ -107,7 +107,7 @@ TEST(INIT, UniformXavier)
 // 	std::string label = "jkl";
 // 	double factor = 0.172;
 
-// 	auto x = tenncor().layer.norm_xavier_init(factor)(
+// 	auto x = tenncor().init.xavier_normal(factor)(
 // 		teq::Shape(slist), label);
 
 // 	auto shape = x->shape();

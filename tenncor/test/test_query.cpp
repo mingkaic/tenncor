@@ -1385,8 +1385,8 @@ TEST_F(QUERY_DISTRIB, Dense)
 		tcr::set_distrmgr(mgrA, actx);
 
 		auto dense = TenncorAPI(actx).layer.dense<float>(shape, {5},
-			TenncorAPI(actx).layer.unif_xavier_init<float>(2),
-			TenncorAPI(actx).layer.unif_xavier_init<float>(4));
+			TenncorAPI(actx).init.xavier_uniform<float>(2),
+			TenncorAPI(actx).init.xavier_uniform<float>(4));
 
 		auto dense_input = layr::get_input(dense);
 
