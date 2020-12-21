@@ -1192,6 +1192,7 @@ funcs:
             {
                 case 0:
                     global::fatal("cannot sum without arguments");
+                    return eteq::ETensor();
                 case 1:
                     return args[0];
                 case 2:
@@ -1213,6 +1214,7 @@ funcs:
             {
                 case 0:
                     global::fatal("cannot prod without arguments");
+                    return eteq::ETensor();
                 case 1:
                     return args[0];
                 default:

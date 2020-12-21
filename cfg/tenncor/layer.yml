@@ -150,7 +150,7 @@ funcs:
         default: layr::InitF<T>()
       - name: padding
         type: const std::string&
-        default: "valid"
+        default: "\"valid\""
       - name: with_bias
         type: bool
         default: "true"
