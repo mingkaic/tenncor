@@ -107,7 +107,7 @@ funcs:
   - template: typename T
     name: conv2d
     args:
-      - name: filter_hw
+      - name: kernel_hw
         type: const eteq::DimPairsT&
       - name: in_ncol
         type: teq::DimT
@@ -131,8 +131,8 @@ funcs:
         //
             // image must be in form [in,iwidth,iheight,batch]
             eteq::ETensor input(eteq::make_variable_scalar<T>(0,teq::Shape({
-                in_ncol,filter_hw.second,filter_hw.first,1}),layr::input_label,super->ctx));
-            return conv2d(input,out_ncol,kernel_init,bias_init,zero_padding,with_bias);
+                in_ncol,kernel_hw.second,kernel_hw.first,1}),layr::input_label,super->ctx));
+            return conv2d(input,out_ncol,kernel_hw,kernel_init,bias_init,zero_padding,with_bias);
   - template: typename T
     name: conv2d
     args:
@@ -140,6 +140,58 @@ funcs:
         type: const eteq::ETensor&
       - name: out_ncol
         type: teq::DimT
+      - name: kernel_hw
+        type: const eteq::DimPairsT&
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: padding
+        type: const std::string&
+        default: "valid"
+      - name: with_bias
+        type: bool
+        default: "true"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            std::pair<eteq::DimPairsT,eteq::DimPairsT> zero_padding;
+            std::string zpadding;
+            std::transform(padding.begin(), padding.end(), std::back_inserter(zpadding),
+                [](unsigned char c){ return std::tolower(c); });
+            if ("valid" == zpadding)
+            {
+                zero_padding = {
+                    {0, 0},
+                    {0, 0}
+                };
+            }
+            else if ("same" == zpadding)
+            {
+                teq::DimT xpad = kernel_hw.second / 2;
+                teq::DimT ypad = kernel_hw.first / 2;
+                zero_padding = {
+                    {xpad, xpad},
+                    {ypad, ypad}
+                };
+            }
+            else
+            {
+                global::fatalf("unsupported padding type %s", padding.c_str());
+            }
+            return conv2d(input,out_ncol,kernel_hw,kernel_init,bias_init,zero_padding,with_bias);
+  - template: typename T
+    name: conv2d
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: out_ncol
+        type: teq::DimT
+      - name: kernel_hw
+        type: const eteq::DimPairsT&
       - name: kernel_init
         type: layr::InitF<T>
         default: layr::InitF<T>()
@@ -163,7 +215,7 @@ funcs:
             // image must be in form [in,iwidth,iheight,...]
             teq::Shape inshape = input->shape();
             eteq::EVariable<T> kernel = kernel_init(teq::Shape({out_ncol,
-                inshape.at(0),inshape.at(1),inshape.at(2)}),layr::weight_label);
+                inshape.at(0),kernel_hw.second,kernel_hw.first}),layr::weight_label);
             eteq::EVariable<T> bias;
             if (with_bias)
             {
