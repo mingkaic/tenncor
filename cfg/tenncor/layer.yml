@@ -87,13 +87,36 @@ funcs:
       type: eteq::ETensor
       val: |
         //
+            eteq::ETensor input(eteq::make_variable_scalar<T>(0,inshape,layr::input_label,super->ctx));
+            return dense(input,hidden_dims,kernel_init,bias_init,with_bias,dims);
+  - template: typename T
+    name: dense
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: hidden_dims
+        type: const teq::DimsT&
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: with_bias
+        type: bool
+        default: "true"
+      - name: dims
+        type: const eigen::PairVecT<teq::RankT>&
+        default: "eigen::PairVecT<teq::RankT>{{0,1}}"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
             if (!kernel_init)
             {
                 kernel_init = super->init.glorot_uniform<T>();
             }
-            eteq::ETensor input(eteq::make_variable_scalar<T>(0,inshape,layr::input_label,super->ctx));
-            eteq::EVariable<T> kernel = kernel_init(layr::gen_rshape(
-                hidden_dims,inshape,dims),layr::weight_label);
+            eteq::EVariable<T> kernel = kernel_init(layr::gen_rshape(hidden_dims,input->shape(),dims),layr::weight_label);
             eteq::EVariable<T> bias;
             if (with_bias)
             {
