@@ -311,7 +311,7 @@ api:
   classes:
     - core.yml
     - approx.yml
-    - error.yml
+    - loss.yml
     - layer.yml
     - nn.yml
     - init.yml

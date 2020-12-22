@@ -1091,7 +1091,7 @@ class LAYRTest(unittest.TestCase):
                 api.layer.bind(api.sigmoid),
             ])],
             lambda err, vars: api.approx.sgd(err, vars, learning_rate=0.9),
-            lambda models: api.error.sqr_diff(
+            lambda models: api.loss.mean_squared(
                 tc.EVariable([n_batch, noutput]), models[0].connect(
                     tc.EVariable([n_batch, ninput]))),
             ctx=context)

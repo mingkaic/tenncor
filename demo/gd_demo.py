@@ -68,7 +68,7 @@ def main(args):
 
     train = tc.apply_update([model],
         lambda err, leaves: tc.api.approx.sgd(err, leaves, learning_rate=0.9),
-        lambda models: tc.api.error.sqr_diff(train_exout, models[0].connect(train_input)))
+        lambda models: tc.api.loss.mean_squared(train_exout, models[0].connect(train_input)))
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:

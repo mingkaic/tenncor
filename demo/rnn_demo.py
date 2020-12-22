@@ -13,15 +13,6 @@ import matplotlib.pyplot as plt
 
 prog_description = 'Demo rnn model'
 
-def cross_entropy_loss(T, Y):
-    epsilon = 1e-5 # todo: make epsilon padding configurable for certain operators in tc
-    leftY = Y + epsilon
-    rightT = 1 - Y + epsilon
-    return -(T * tc.api.log(leftY) + (1-T) * tc.api.log(rightT))
-
-def loss(T, Y):
-    return tc.api.reduce_mean(cross_entropy_loss(T, Y))
-
 def create_dataset(nb_samples, sequence_len):
     """Create a dataset for binary addition and
     return as input, targets."""
@@ -161,7 +152,7 @@ def main(args):
 
     train_err = tc.apply_update([model],
         lambda error, leaves: make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps),
-        lambda models: loss(toutput, models[0].connect(tinput)))
+        lambda models: tc.api.reduce_mean(tc.api.loss.cross_entropy(toutput, models[0].connect(tinput))))
 
     # create training samples
     train_input, train_output = create_dataset(n_train, sequence_len)

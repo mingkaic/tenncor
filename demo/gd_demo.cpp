@@ -163,7 +163,7 @@ int main (int argc, const char** argv)
 	auto train_err = trainer::apply_update<float>({trained_model}, approx,
 		[&](const eteq::ETensorsT& models)
 		{
-			return tc.error.sqr_diff(train_exout,
+			return tc.loss.mean_squared(train_exout,
 				layr::connect(models.front(), train_input));
 		});
 

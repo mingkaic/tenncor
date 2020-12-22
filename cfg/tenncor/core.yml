@@ -1,6 +1,6 @@
 requires:
   - ApproxAPI
-  - ErrorAPI
+  - LossAPI
   - LayerAPI
   - NnAPI
   - RandomAPI
@@ -22,7 +22,10 @@ members:
     type: LayerAPI
     public: True
   - name: error
-    type: ErrorAPI
+    type: LossAPI
+    public: True
+  - name: loss
+    type: LossAPI
     public: True
   - name: approx
     type: ApproxAPI
@@ -38,6 +41,7 @@ init:
     nn: this
     layer: this
     error: this
+    loss: this
     approx: this
     ctx: context
 copy:
@@ -48,6 +52,7 @@ copy:
     nn: this
     layer: this
     error: this
+    loss: this
     approx: this
     ctx: other.ctx
   do: |
@@ -58,7 +63,8 @@ copy:
             this->random = RandomAPI(this);
             this->nn = NnAPI(this);
             this->layer = LayerAPI(this);
-            this->error = ErrorAPI(this);
+            this->error = LossAPI(this);
+            this->loss = LossAPI(this);
             this->approx = ApproxAPI(this);
         }
 move:
@@ -69,6 +75,7 @@ move:
     nn: this
     layer: this
     error: this
+    loss: this
     approx: this
     ctx: other.ctx
   do: |
@@ -79,7 +86,8 @@ move:
             this->random = RandomAPI(this);
             this->nn = NnAPI(this);
             this->layer = LayerAPI(this);
-            this->error = ErrorAPI(this);
+            this->error = LossAPI(this);
+            this->loss = LossAPI(this);
             this->approx = ApproxAPI(this);
         }
 funcs:
