@@ -53,7 +53,7 @@ def main(args):
     if cfgpaths and len(cfgpaths) > 0:
         cfg_strs = []
         for cfgpath in cfgpaths:
-            with open(str(cfgpath), 'r') as cfg:
+            with open(str(cfgpath), 'r', encoding='utf-8') as cfg:
                 cfg_str = cfg.read()
             if cfg_str == None:
                 raise Exception("cannot read from cfg file {}".format(cfgpath))

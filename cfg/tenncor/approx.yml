@@ -94,6 +94,87 @@ funcs:
             }
             return out;
   - template: typename T
+    name: adam
+    description: |
+      Return all batches of variables to their corresponding assignment operator
+      applied using adam error optimization
+      given the error tenncor node and their corresponding variables
+
+      :::::: Adam Optimization ::::::
+
+      Let f be the error,g be short hand for f'(x)
+      β_1 denotes exponential decay coefficient for first moment m
+      conversely β_2 denotes the exp decay coefficient for the second v
+      
+      Initialize m = 0, v = 0
+
+      m = β_1 * m_prev + (1 - β_1) * g
+      v = β_2 * v_prev + (1 - β_2) * g^2
+
+      to correct the bias:
+      m = m / (1 - β_1)
+      v = v / (1 - β_2)
+
+      For each variable x in variables
+      dx -= step_rate * m / (sqrt(v) + epsilon)
+
+    args:
+      - name: error
+        type: const eteq::ETensor&
+      - name: variables
+        type: const eteq::EVariablesT<T>&
+      - name: step_rate
+        type: T
+        default: 1
+      - name: decay1
+        type: T
+        default: 0.9
+      - name: decay2
+        type: T
+        default: 0.999
+      - name: epsilon
+        type: T
+        default: std::numeric_limits<T>::epsilon()
+      - name: apply
+        type: layr::UnaryF
+        default: layr::UnaryF()
+    out:
+      type: layr::VarErrsT<T>
+      val: |
+        //
+            layr::VarErrsT<T> out;
+            auto ders = tcr::derive(error,
+                eteq::ETensorsT(variables.begin(),variables.end()));
+            for (size_t i = 0,n = variables.size(); i < n; ++i)
+            {
+                auto& x = variables[i];
+                auto& der = ders[i];
+                if (apply)
+                {
+                    der = apply(der);
+                }
+
+                T nodecay1 = 1. - decay1;
+                T nodecay2 = 1. - decay2;
+                eteq::EVariable<T> m = eteq::make_variable_like<T>(0,der,"moment1",super->ctx);
+                eteq::EVariable<T> v = eteq::make_variable_like<T>(0,der,"moment2",super->ctx);
+                eteq::EVariable<T> t = eteq::make_variable_like<T>(0,der,"t",super->ctx);
+
+                auto next_m = super->assign(m,
+                    super->add(super->mul(decay1,m),super->mul(nodecay1,der)));
+                auto next_v = super->assign(m,
+                    super->add(super->mul(decay2,v),super->mul(nodecay2,super->square(der))));
+                auto incr = super->assign_add(t,eteq::make_constant_like<T>(1,t,super->ctx));
+
+                auto m_corr = super->div(next_m,super->sub(1.,super->pow(decay1,incr)));
+                auto v_corr = super->div(next_v,super->sub(1.,super->pow(decay2,incr)));
+
+                auto delta = super->div(super->mul(step_rate,m_corr),super->add(super->sqrt(v_corr),epsilon));
+
+                out.push_back({x, super->assign_sub(x,delta)});
+            }
+            return out;
+  - template: typename T
     name: adadelta
     description: |
       Return all batches of variables to their corresponding assignment operator
@@ -107,7 +188,7 @@ funcs:
       For each variable x in variables
 
       E(g_next^2) = decay * E(g^2) + (1 - decay) * f'(x) ^ 2
-      dx = step_rate * RMS(dx + offset) / (RMS(g_next + offset)) * f'(x)
+      dx = step_rate * RMS(dx + offset) / (RMS(g_next + offset) + epsilon) * f'(x)
         = step_rate * sqrt(E(dx^2) + offset) / sqrt(E(g_next^2) + epsilon) * f'(x)
 
       E(dx_next^2) = decay * E(dx^2) + (1 - decay) * dx ^ 2
@@ -126,6 +207,9 @@ funcs:
       - name: offset
         type: T
         default: 0.0001
+      - name: epsilon
+        type: T
+        default: std::numeric_limits<T>::epsilon()
       - name: apply
         type: layr::UnaryF
         default: layr::UnaryF()
@@ -158,7 +242,7 @@ funcs:
                 auto delta = super->mul(
                     super->mul(step_rate,super->div(
                         super->sqrt(super->add(msd,offset)),
-                        super->sqrt(super->add(msg_next,offset))
+                        super->add(super->sqrt(super->add(msg_next,offset)),epsilon)
                     )),der);
 
                 auto msd_next = super->assign(msd,

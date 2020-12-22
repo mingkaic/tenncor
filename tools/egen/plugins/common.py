@@ -19,7 +19,7 @@ def reference_classes(classes, ext_path):
     out = []
     for clas in classes:
         if isinstance(clas, str):
-            with open(os.path.join(ext_path, clas)) as f:
+            with open(os.path.join(ext_path, clas), encoding='utf-8') as f:
                 obj = yaml.safe_load(f.read())
                 if type(obj) != dict:
                     raise Exception('cannot treat non-dictionary object as class: {}'.format(clas))

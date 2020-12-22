@@ -48,5 +48,5 @@ class FileDump:
         out_content = file.generate(self.includepath)
         filepath = os.path.join(self.outpath, filename)
         logging.info('generating %s', filepath)
-        with open(filepath, 'w') as outf:
+        with open(filepath, 'w', encoding='utf-8') as outf:
             outf.write(out_content)
