@@ -25,7 +25,7 @@ void eteq_ext (py::module& m)
 			teq::TensptrSetT actives;
 			for (auto& r : eteq::get_reg(self))
 			{
-				actives.emplace(r.second);
+				actives.emplace(r.second->get_tensor());
 			}
 			eteq::ETensorsT out;
 			out.reserve(actives.size());
@@ -42,7 +42,7 @@ void eteq_ext (py::module& m)
 			teq::TensptrsT actives;
 			for (auto& r : eteq::get_reg(self))
 			{
-				actives.push_back(r.second);
+				actives.push_back(r.second->get_tensor());
 			}
 			opt::GraphInfo graph(actives);
 			teq::OwnMapT conversions;
@@ -442,41 +442,26 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 				global::throw_errf("failed to parse onnx from %s",
 					filename.c_str());
 			}
-			onnx::TensptrIdT ids;
-			auto roots = tcr::load_model(ids, pb_model, ctx);
+			auto out = tcr::load_model(ctx, pb_model);
 			input.close();
-			eteq::ETensorsT out;
-			out.reserve(roots.size());
-			std::transform(roots.begin(), roots.end(),
-				std::back_inserter(out),
-				[&](teq::TensptrT tens)
-				{
-					return eteq::ETensor(tens, ctx);
-				});
 			return out;
-		})
+		},
+		py::arg("filename"),
+		py::arg("ctx") = global::context())
 		.def("save_context_file",
 		[](const std::string& filename, global::CfgMapptrT ctx)
 		{
-			teq::TensptrSetT roots;
-			for (auto& r : eteq::get_reg(ctx))
-			{
-				roots.emplace(r.second);
-			}
-			eteq::ETensorsT etens;
-			etens.reserve(roots.size());
-			std::transform(roots.begin(), roots.end(), std::back_inserter(etens),
-				[&ctx](teq::TensptrT tens)
-				{ return eteq::ETensor(tens, ctx); });
 			std::ofstream output(filename);
 			if (false == output.is_open())
 			{
 				global::throw_errf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
-			tcr::save_model(pb_model, etens);
+			tcr::save_model(pb_model, ctx);
 			return pb_model.SerializeToOstream(&output);
-		});
+		},
+		py::arg("filename"),
+		py::arg("ctx") = global::context());
 }
 
 #endif

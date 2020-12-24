@@ -54,6 +54,11 @@ static inline teq::RanksT reorder_permute (
 	return reorder;
 }
 
+#define _CHOOSE_CSTTYPE(REALTYPE){\
+REALTYPE tmp = scalar;\
+cst = teq::TensptrT(Constant<REALTYPE>::get(&tmp, teq::Shape()));\
+}
+
 /// ETEQ implementation of TEQ's Backward Propagation Builder
 struct DerivativeFuncs final : public teq::iDerivativeFuncs
 {
@@ -90,7 +95,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::SQRT:
 				out = make_functor(egen::DIV, {
 					supgrad, make_functor(egen::MUL, {
-						make_constant_like(2.f, op), op})});
+						constant_like(2.f, op), op})});
 				break;
 			case egen::ABS:
 			case egen::SIN:
@@ -123,26 +128,26 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						break;
 					case egen::SQUARE:
 						local_der = make_functor(egen::MUL, {
-							make_constant_like(2.f, args.front()),
+							constant_like(2.f, args.front()),
 							args.front()
 						});
 						break;
 					case egen::CUBE:
 						local_der = make_functor(egen::MUL, {
-							make_constant_like(3.f, args.front()),
+							constant_like(3.f, args.front()),
 							make_functor(egen::SQUARE, {args.front()}),
 						});
 						break;
 					case egen::SIGMOID:
 						local_der = make_functor(egen::MUL, {
 							op, make_functor(egen::SUB, {
-								make_constant_like(1.f, op), op
+								constant_like(1.f, op), op
 							})
 						});
 						break;
 					case egen::TANH:
 						local_der = make_functor(egen::SUB, {
-							make_constant_like(1.f, op),
+							constant_like(1.f, op),
 							make_functor(egen::SQUARE, {op}),
 						});
 						break;
@@ -150,7 +155,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						local_der = arg_idx == 0 ? make_functor(egen::MUL, {
 								args[1], make_functor(egen::POW, {
 									args[0], make_functor(egen::SUB, {
-										args[1], make_constant_like(1.f, args[1])
+										args[1], constant_like(1.f, args[1])
 									})
 								})
 							}) :
@@ -485,7 +490,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			{
 				if (0 == arg_idx)
 				{
-					out = make_constant_like(0.f, args.front());
+					out = constant_like(0.f, args.front());
 					break;
 				}
 				teq::TensptrT condition = args[0];
@@ -493,11 +498,11 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				if (arg_idx == 1)
 				{
 					then = supgrad;
-					otherwise = make_constant_like(0.f, op);
+					otherwise = constant_like(0.f, op);
 				}
 				else // if (arg_idx > 2)
 				{
-					then = make_constant_like(0.f, op);
+					then = constant_like(0.f, op);
 					otherwise = supgrad;
 				}
 				out = make_functor(egen::SELECT, {condition, then, otherwise});
@@ -508,7 +513,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::NEQ:
 			case egen::GT:
 			case egen::LT:
-				out = make_constant_like(0.f, args.front());
+				out = constant_like(0.f, args.front());
 				break;
 			case egen::ASSIGN:
 			case egen::ASSIGN_ADD:
@@ -527,13 +532,15 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 	/// Implementation of iDerivativeFuncs
 	teq::TensptrT get_const_one (teq::Shape shape) const override
 	{
-		return make_constant_scalar(1.f, shape, egen::default_dtype);
+		std::vector<float> data(shape.n_elems(), 1.f);
+		return teq::TensptrT(Constant<float>::get(data.data(), shape));
 	}
 
 	/// Implementation of iDerivativeFuncs
 	teq::TensptrT get_const_zero (teq::Shape shape) const override
 	{
-		return make_constant_scalar(0.f, shape, egen::default_dtype);
+		std::vector<float> data(shape.n_elems(), 0.f);
+		return teq::TensptrT(Constant<float>::get(data.data(), shape));
 	}
 
 	/// Implementation of iDerivativeFuncs
@@ -542,8 +549,26 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 		assert(elems.size() > 0);
 		return make_functor(egen::ADD, elems);
 	}
+
+private:
+	teq::TensptrT constant_like (float scalar, teq::TensptrT like) const
+	{
+		auto like_type = (egen::_GENERATED_DTYPE) like->get_meta().type_code();
+		teq::TensptrT cst;
+		if (like_type == egen::get_type<float>())
+		{
+			cst = teq::TensptrT(Constant<float>::get(&scalar, teq::Shape()));
+		}
+		else
+		{
+			TYPE_LOOKUP(_CHOOSE_CSTTYPE, like_type);
+		}
+		return make_functor(::egen::EXTEND, teq::TensptrsT{cst}, (teq::TensptrT) like);
+	}
 };
 
 }
+
+#undef _CHOOSE_CSTTYPE
 
 #endif // ETEQ_BACKPROP_HPP

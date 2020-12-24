@@ -11,10 +11,12 @@
 
 #include "internal/eigen/eigen.hpp"
 
+#include "tenncor/eteq/graphinfo.hpp"
+
 namespace eteq
 {
 
-using TensRegistryT = std::unordered_map<void*,teq::TensptrT>;
+using TensRegistryT = std::unordered_map<void*,TensIdptrT>;
 
 void set_reg (TensRegistryT* reg, global::CfgMapptrT ctx = global::context());
 
@@ -31,7 +33,7 @@ struct ETensor
 		if (nullptr != ctx && nullptr != tens)
 		{
 			registry_ = &get_reg(ctx);
-			registry_->emplace(this, tens);
+			registry_->emplace((void*) this, TensIdentity::build(tens, ctx));
 		}
 	}
 
@@ -94,8 +96,14 @@ struct ETensor
 
 	operator teq::TensptrT() const
 	{
-		return nullptr == registry_ ? nullptr :
-			estd::try_get(*registry_, (void*) this, nullptr);
+		if (nullptr != registry_)
+		{
+			if (auto identity = estd::try_get(*registry_, (void*) this, nullptr))
+			{
+				return identity->get_tensor();
+			}
+		}
+		return nullptr;
 	}
 
 	teq::iTensor& operator* () const
@@ -150,7 +158,8 @@ private:
 		if ((registry_ = other.registry_))
 		{
 			ctx_ = other.ctx_;
-			registry_->emplace(this, teq::TensptrT(other));
+			registry_->emplace(this, estd::must_getf(*registry_, (void*) &other,
+				"failed to find tensor associated with non-null ETensor %p", &other));
 		}
 	}
 

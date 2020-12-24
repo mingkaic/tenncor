@@ -336,6 +336,7 @@ target_link_libraries(${DISTR_IOSVC_LIB} PUBLIC ${DISTR_LIB})
 set(ETEQ_LIB ${PROJECT_NAME}_eteq)
 add_library(${ETEQ_LIB}
     tenncor/eteq/src/etens.cpp
+    tenncor/eteq/src/graphinfo.cpp
     tenncor/eteq/src/make.cpp
 )
 target_link_libraries(${ETEQ_LIB} PUBLIC ${EIGEN_LIB})

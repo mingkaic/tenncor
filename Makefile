@@ -110,6 +110,8 @@ onnx_test_o2j: models/test/bad_onnx.onnx models/test/bad_onnx2.onnx models/test/
 eteq_test_o2j: models/test/eteq.onnx
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq.onnx --write /tmp/eteq.json
 	mv /tmp/eteq.json models/test
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq_ctx.onnx --write /tmp/eteq_ctx.json
+	mv /tmp/eteq_ctx.json models/test
 
 .PHONY: serial_test_o2j
 serial_test_o2j: models/test/serial.onnx
@@ -184,6 +186,8 @@ onnx_test_j2o: models/test/bad_onnx.json models/test/bad_onnx2.json models/test/
 eteq_test_j2o: models/test/eteq.json
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq.json --write /tmp/eteq.onnx
 	mv /tmp/eteq.onnx models/test
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq_ctx.json --write /tmp/eteq_ctx.onnx
+	mv /tmp/eteq_ctx.onnx models/test
 
 .PHONY: serial_test_j2o
 serial_test_j2o: models/test/serial.json

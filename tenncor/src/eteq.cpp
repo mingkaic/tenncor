@@ -68,9 +68,9 @@ eteq::ETensorsT derive (eteq::ETensor root, const eteq::ETensorsT& targets)
 	out.reserve(derivatives.size());
 	std::transform(derivatives.begin(), derivatives.end(),
 		std::back_inserter(out),
-		[&root](teq::TensptrT tens)
+		[&root,&root_ctx](teq::TensptrT tens)
 		{
-			return eteq::ETensor(tens, root.get_context());
+			return eteq::ETensor(tens, root_ctx);
 		});
 	return out;
 }

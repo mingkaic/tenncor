@@ -50,7 +50,6 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//internal/eigen:eigen",
-        "@boost//:bimap",
         "@com_github_oliora_ppconsul//:consul",
         "@com_github_mingkaic_cppkg//egrpc:egrpc",
     ],

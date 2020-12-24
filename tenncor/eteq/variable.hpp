@@ -20,7 +20,7 @@ static inline size_t get_lastvers (const global::CfgMapptrT& ctx)
 	size_t mvers = 0;
 	for (auto& r : get_reg(ctx))
 	{
-		mvers = std::max(mvers, r.second->get_meta().state_version());
+		mvers = std::max(mvers, r.second->get_tensor()->get_meta().state_version());
 	}
 	return mvers;
 }

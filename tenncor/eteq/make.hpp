@@ -161,11 +161,11 @@ ETensor make_constant_like (T scalar, teq::TensptrT like,
 	ETensor cst;
 	if (like_type == egen::get_type<T>())
 	{
-		cst = make_constant_scalar<T>(scalar, teq::Shape());
+		cst = make_constant_scalar<T>(scalar, teq::Shape(), ctx);
 	}
 	else
 	{
-		cst = make_constant_scalar<T>(scalar, teq::Shape(), like_type);
+		cst = make_constant_scalar<T>(scalar, teq::Shape(), like_type, ctx);
 	}
 	return ETensor(make_functor(::egen::EXTEND,
 		teq::TensptrsT{cst}, (teq::TensptrT) like), ctx);
@@ -176,7 +176,7 @@ ETensor make_constant_like_uncast (T scalar, teq::TensptrT like,
 	const global::CfgMapptrT& ctx = global::context())
 {
 	return ETensor(make_functor(::egen::EXTEND,
-		teq::TensptrsT{make_constant_scalar<T>(scalar, teq::Shape())},
+		teq::TensptrsT{make_constant_scalar<T>(scalar, teq::Shape(), ctx)},
 		(teq::TensptrT) like), ctx);
 }
 
