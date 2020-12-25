@@ -125,7 +125,7 @@ funcs:
         type: const eteq::EVariablesT<T>&
       - name: step_rate
         type: T
-        default: 1
+        default: 0.001
       - name: decay1
         type: T
         default: 0.9
@@ -142,6 +142,8 @@ funcs:
       type: layr::VarErrsT<T>
       val: |
         //
+            T nodecay1 = 1. - decay1;
+            T nodecay2 = 1. - decay2;
             layr::VarErrsT<T> out;
             auto ders = tcr::derive(error,
                 eteq::ETensorsT(variables.begin(),variables.end()));
@@ -149,27 +151,26 @@ funcs:
             {
                 auto& x = variables[i];
                 auto& der = ders[i];
-                if (apply)
-                {
-                    der = apply(der);
-                }
+                //if (apply)
+                //{
+                //    der = apply(der);
+                //}
 
-                T nodecay1 = 1. - decay1;
-                T nodecay2 = 1. - decay2;
-                eteq::EVariable<T> m = eteq::make_variable_like<T>(0,der,"moment1",super->ctx);
-                eteq::EVariable<T> v = eteq::make_variable_like<T>(0,der,"moment2",super->ctx);
-                eteq::EVariable<T> t = eteq::make_variable_like<T>(0,der,"t",super->ctx);
+                auto m = eteq::make_variable_like<T>(0,der,"moment1",super->ctx);
+                auto v = eteq::make_variable_like<T>(0,der,"moment2",super->ctx);
+                auto t = eteq::make_variable_like<T>(0,der,"t",super->ctx);
+                auto one_t = eteq::make_constant_like<T>(1,der,super->ctx);
 
                 auto next_m = super->assign(m,
                     super->add(super->mul(decay1,m),super->mul(nodecay1,der)));
-                auto next_v = super->assign(m,
+                auto next_v = super->assign(v,
                     super->add(super->mul(decay2,v),super->mul(nodecay2,super->square(der))));
-                auto incr = super->assign_add(t,eteq::make_constant_like<T>(1,t,super->ctx));
+                auto incr = super->assign_add(t,one_t);
 
-                auto m_corr = super->div(next_m,super->sub(1.,super->pow(decay1,incr)));
-                auto v_corr = super->div(next_v,super->sub(1.,super->pow(decay2,incr)));
+                auto m_corr = super->div(next_m,super->sub(one_t,super->pow(decay1,incr)));
+                auto v_corr = super->div(next_v,super->sub(one_t,super->pow(decay2,incr)));
 
-                auto delta = super->div(super->mul(step_rate,m_corr),super->add(super->sqrt(v_corr),epsilon));
+                auto delta = super->mul(step_rate,super->div(m_corr,super->add(super->sqrt(v_corr),epsilon)));
 
                 out.push_back({x, super->assign_sub(x,delta)});
             }
