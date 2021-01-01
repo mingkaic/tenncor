@@ -30,7 +30,7 @@ filegroup(
 
 filegroup(
     name = "benchmark_srcs",
-    srcs = glob(["bm/*.cpp"]),
+    srcs = glob(["bm/*.cpp", "bm/*.py"]),
 )
 
 filegroup(
@@ -148,6 +148,19 @@ cc_binary(
     ],
     copts = ["-std=c++17"],
     data = ["//cfg:optimizations"],
+)
+
+py_binary(
+    name = "tf_memory_benchmark",
+    srcs = ["bm/tf_mem_benchmark.py"],
+    main = "bm/tf_mem_benchmark.py",
+)
+
+py_binary(
+    name = "tc_memory_benchmark",
+    srcs = ["bm/tc_mem_benchmark.py"],
+    main = "bm/tc_mem_benchmark.py",
+    deps = [":tenncor_py"],
 )
 
 ######### TEST #########
