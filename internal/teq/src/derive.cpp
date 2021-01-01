@@ -24,13 +24,13 @@ TensptrsT derive (
 			std::back_inserter(out),
 			[&](const TensptrT& target)
 			{
-				return funcs.get_const_zero(target->shape());
+				return funcs.get_const_zero(*target);
 			});
 		return out;
 	}
 
 	TensMapT<TensptrsT> grads = {
-		{root.get(), {funcs.get_const_one(root->shape())}}
+		{root.get(), {funcs.get_const_one(*root)}}
 	};
 	TensSetT targset;
 	std::transform(targets.begin(), targets.end(),
@@ -44,7 +44,7 @@ TensptrsT derive (
 		TensptrsT tgrads;
 		if (nullptr == target)
 		{
-			tens = funcs.get_const_zero(Shape());
+			tens = funcs.get_const_zero(*root);
 		}
 		else if (estd::get(tgrads, grads, target.get()) && tgrads.size() > 0)
 		{
@@ -52,7 +52,7 @@ TensptrsT derive (
 		}
 		else
 		{
-			tens = funcs.get_const_zero(target->shape());
+			tens = funcs.get_const_zero(*target);
 		}
 		out.push_back(tens);
 	}

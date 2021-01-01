@@ -387,7 +387,7 @@ TEST_F(PACKER, PackerShape)
 
 TEST_F(PACKER, PackerTensor)
 {
-	teq::TensptrT tens(new MockLeaf());
+	teq::TensptrT tens = std::make_shared<MockLeaf>();
 
 	eigen::Packer<teq::TensptrT> packer;
 	marsh::Maps attrs;
@@ -430,7 +430,7 @@ TEST_F(PACKER, ExtendPacking)
 		EXPECT_VECEQ(extends, xlist);
 	}
 	{ // extend by tensor similarity
-		teq::TensptrT tens(new MockLeaf(outshape));
+		auto tens = make_var(outshape);
 		eigen::Packer<teq::TensptrT> packer;
 		marsh::Maps attrs;
 		packer.pack(attrs, tens);

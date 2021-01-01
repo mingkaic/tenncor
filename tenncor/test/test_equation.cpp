@@ -111,7 +111,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 	float* gbptr = (float*) db->device().data();
 	for (size_t i = 0, n = bshape.n_elems(); i < n; ++i)
 	{
-		EXPECT_EQ(expect_gb[i], gbptr[i]);
+		EXPECT_DOUBLE_EQ(expect_gb[i], gbptr[i]);
 	}
 
 	{

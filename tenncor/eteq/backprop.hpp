@@ -54,11 +54,6 @@ static inline teq::RanksT reorder_permute (
 	return reorder;
 }
 
-#define _CHOOSE_CSTTYPE(REALTYPE){\
-REALTYPE tmp = scalar;\
-cst = teq::TensptrT(Constant<REALTYPE>::get(&tmp, teq::Shape()));\
-}
-
 /// ETEQ implementation of TEQ's Backward Propagation Builder
 struct DerivativeFuncs final : public teq::iDerivativeFuncs
 {
@@ -530,17 +525,21 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 	}
 
 	/// Implementation of iDerivativeFuncs
-	teq::TensptrT get_const_one (teq::Shape shape) const override
+	teq::TensptrT get_const_one (teq::iTensor& reference) const override
 	{
+		auto reftype = (egen::_GENERATED_DTYPE) reference.get_meta().type_code();
+		auto shape = reference.shape();
 		std::vector<float> data(shape.n_elems(), 1.f);
-		return teq::TensptrT(Constant<float>::get(data.data(), shape));
+		return make_constant_tensor(data.data(), shape, reftype);
 	}
 
 	/// Implementation of iDerivativeFuncs
-	teq::TensptrT get_const_zero (teq::Shape shape) const override
+	teq::TensptrT get_const_zero (teq::iTensor& reference) const override
 	{
+		auto reftype = (egen::_GENERATED_DTYPE) reference.get_meta().type_code();
+		auto shape = reference.shape();
 		std::vector<float> data(shape.n_elems(), 0.f);
-		return teq::TensptrT(Constant<float>::get(data.data(), shape));
+		return make_constant_tensor(data.data(), shape, reftype);
 	}
 
 	/// Implementation of iDerivativeFuncs
@@ -554,21 +553,11 @@ private:
 	teq::TensptrT constant_like (float scalar, teq::TensptrT like) const
 	{
 		auto like_type = (egen::_GENERATED_DTYPE) like->get_meta().type_code();
-		teq::TensptrT cst;
-		if (like_type == egen::get_type<float>())
-		{
-			cst = teq::TensptrT(Constant<float>::get(&scalar, teq::Shape()));
-		}
-		else
-		{
-			TYPE_LOOKUP(_CHOOSE_CSTTYPE, like_type);
-		}
+		teq::TensptrT cst = make_constant_tensor(&scalar, teq::Shape(), like_type);
 		return make_functor(::egen::EXTEND, teq::TensptrsT{cst}, (teq::TensptrT) like);
 	}
 };
 
 }
-
-#undef _CHOOSE_CSTTYPE
 
 #endif // ETEQ_BACKPROP_HPP

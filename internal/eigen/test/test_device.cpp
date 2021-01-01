@@ -9,6 +9,10 @@
 #include "internal/eigen/mock/mock.hpp"
 
 
+using ::testing::Return;
+using ::testing::ReturnRef;
+
+
 TEST(DEVICE, SrcRef)
 {
 	teq::Shape shape({2, 2});
@@ -56,26 +60,32 @@ TEST(DEVICE, TensAssign)
 {
 	teq::Shape shape({2, 2});
 	std::vector<double> data = {1, 2, 3, 4};
-	auto dest = std::make_shared<MockMutableLeaf>(
-		std::vector<double>{2, 3, 7, 2}, shape);
+	std::vector<double> destdata = {2, 3, 7, 2};
+	eigen::SrcRef<double> devref(destdata.data(), shape);
+	auto dest = std::make_shared<MockMutableLeaf>();
+	EXPECT_CALL(*dest, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*dest, device()).WillRepeatedly(ReturnRef(devref));
+	eigen::PtrRef<double> src(data.data());
 
 	bool assign_called = false;
 	eigen::TensAssign<double,std::vector<double>> ref(*dest, data,
-	[&dest, &data, &assign_called](eigen::TensorT<double>& dst, std::vector<double>& src)
+	[&devref, &data, &assign_called](eigen::TensorT<double>& dst, std::vector<double>& src)
 	{
-		EXPECT_EQ(dest->device().data(), dst.data());
-		EXPECT_VECEQ(data, src);
+		EXPECT_EQ(devref.data(), dst.data());
+		auto srcbegin = (double*) src.data();
+		std::vector<double> srcdata(srcbegin, srcbegin + 4);
+		EXPECT_VECEQ(data, srcdata);
 		assign_called = true;
 	});
 
-	[&dest](const eigen::iEigen& ref)
+	[&devref](const eigen::iEigen& ref)
 	{
-		EXPECT_EQ(dest->device().data(), ref.data());
+		EXPECT_EQ(devref.data(), ref.data());
 	}(ref);
 
 	ref.assign(); // assigning shouldn't do anything
 
-	EXPECT_EQ(dest->device().data(), ref.data());
+	EXPECT_EQ(devref.data(), ref.data());
 	EXPECT_TRUE(assign_called);
 }
 
@@ -194,40 +204,45 @@ TEST(DEVICE, Calc)
 {
 	teq::Shape shape({3});
 	std::vector<double> data = {1, 2, 3};
-	auto dest = std::make_shared<MockMutableLeaf>(
-		std::vector<double>{2, 3, 7, 2}, shape);
-
-	bool assign_called = false;
+	std::vector<double> srcdata = {2, 3, 7, 2};
+	std::vector<double> srcdata2 = {2, 8, 4};
+	std::vector<double> srcdata3 = {3, 7, 5};
+	auto dest = std::make_shared<MockMutableLeaf>();
+	eigen::PtrRef<double> srcref(srcdata.data());
+	eigen::PtrRef<double> srcref2(srcdata2.data());
+	eigen::PtrRef<double> srcref3(srcdata3.data());
+	EXPECT_CALL(*dest, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*dest, device()).WillRepeatedly(ReturnRef(srcref));
 
 	eigen::Device dev;
 
-	auto lhs = std::make_shared<MockLeaf>(std::vector<double>{2, 8, 4}, shape);
-	auto rhs = std::make_shared<MockLeaf>(std::vector<double>{3, 7, 5}, shape);
+	auto lhs = make_var(shape);
+	auto rhs = make_var(shape);
+	EXPECT_CALL(*lhs, device()).WillRepeatedly(ReturnRef(srcref2));
+	EXPECT_CALL(*rhs, device()).WillRepeatedly(ReturnRef(srcref3));
 
-	auto obs = std::make_shared<MockObservable>(teq::TensptrsT{lhs, rhs},
-		std::vector<double>{1, 2, 3}, teq::Opcode{"Hello", 1337});
-	obs->func_.data_.ref_ = std::make_shared<
-	eigen::TensAssign<double,std::vector<double>>>(*dest, data,
-	[&assign_called](eigen::TensorT<double>& dst, std::vector<double>& src)
-	{
-		assign_called = true;
-	});
-	obs->succeed_prop_ = false;
+	eigen::PtrRef<double> src(data.data());
+	auto obsref = std::make_shared<MockEigen>();
+	MockMeta mockmeta;	
 
+	auto obs = std::make_shared<MockObservable>();
+	EXPECT_CALL(*obs, get_args()).WillRepeatedly(Return(teq::TensptrsT{lhs, rhs}));
+	EXPECT_CALL(*obs, device()).WillRepeatedly(ReturnRef(*obsref));
+	EXPECT_CALL(*obs, to_string()).WillRepeatedly(Return("Hello"));
+
+	EXPECT_CALL(*obsref, assign()).Times(1);
+	EXPECT_CALL(*obs, prop_version(dev.max_version_)).Times(1).WillOnce(Return(true));
 	dev.calc(*obs);
-	EXPECT_FALSE(assign_called);
-	EXPECT_EQ(1, obs->func_.meta_.version_);
 
-	obs->succeed_prop_ = true;
 	dev.max_version_ = 0;
+	EXPECT_CALL(*obsref, assign()).Times(0);
+	EXPECT_CALL(*obs, prop_version(dev.max_version_)).Times(1).WillOnce(Return(false));
 	dev.calc(*obs);
-	EXPECT_FALSE(assign_called);
-	EXPECT_EQ(1, obs->func_.meta_.version_);
 
 	dev.max_version_ = 10;
+	EXPECT_CALL(*obsref, assign()).Times(1);
+	EXPECT_CALL(*obs, prop_version(dev.max_version_)).Times(1).WillOnce(Return(true));
 	dev.calc(*obs);
-	EXPECT_TRUE(assign_called);
-	EXPECT_EQ(2, obs->func_.meta_.version_);
 }
 
 

@@ -6,6 +6,7 @@ filegroup(
         ":teq_hdrs",
         ":teq_srcs",
         ":mock_hdrs",
+        ":mock_srcs",
         ":test_srcs",
         "BUILD.bazel",
     ],
@@ -25,6 +26,11 @@ filegroup(
 filegroup(
     name = "mock_hdrs",
     srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
+    name = "mock_srcs",
+    srcs = glob(["mock/*.cpp"]),
 )
 
 filegroup(
@@ -49,8 +55,12 @@ cc_library(
 cc_library(
     name = "mock",
     hdrs = [":mock_hdrs"],
+    srcs = [":mock_srcs"],
     copts = ["-std=c++17"],
-    deps = [":teq"],
+    deps = [
+        ":teq",
+        "@gtest//:gtest"
+    ],
     visibility = ["//visibility:public"],
 )
 

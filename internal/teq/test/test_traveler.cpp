@@ -9,17 +9,19 @@
 #include "internal/teq/mock/mock.hpp"
 
 
+using ::testing::Const;
+using ::testing::Return;
+
+
 TEST(TRAVELER, GraphStat)
 {
-	teq::TensptrT a(new MockLeaf());
-	teq::TensptrT b(new MockLeaf());
-	teq::TensptrT c(new MockLeaf());
+	auto a = make_var(teq::Shape()); 
+	auto b = make_var(teq::Shape());
+	auto c = make_var(teq::Shape());
 
-	teq::TensptrT d(new MockFunctor(teq::TensptrsT{c}, teq::Opcode{"MOCK2", 0}));
-
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
-
-	teq::TensptrT g(new MockFunctor(teq::TensptrsT{d, f}, teq::Opcode{"MOCK0", 0}));
+	auto d = make_fnc("MOCK2", 0, teq::TensptrsT{c});
+	auto f = make_fnc("MOCK1", 0, teq::TensptrsT{a, b});
+	auto g = make_fnc("MOCK0", 0, teq::TensptrsT{d, f});
 
 	teq::GraphStat stat;
 	g->accept(stat);
@@ -33,15 +35,19 @@ TEST(TRAVELER, GraphStat)
 
 TEST(TRAVELER, PathFinder)
 {
-	teq::TensptrT a(new MockLeaf());
-	teq::TensptrT b(new MockLeaf());
-	teq::TensptrT c(new MockLeaf());
+	auto a = make_var(teq::Shape());
+	auto b = make_var(teq::Shape());
+	auto c = make_var(teq::Shape());
 
-	teq::TensptrT d(new MockFunctor(teq::TensptrsT{c}, teq::Opcode{"MOCK2", 0}));
-
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
-
-	teq::TensptrT g(new MockFunctor(teq::TensptrsT{d, f}, teq::Opcode{"MOCK0", 0}));
+	auto d = make_fnc("MOCK2", 0, teq::TensptrsT{c});
+	auto f = make_fnc("MOCK1", 0, teq::TensptrsT{a, b});
+	auto g = make_fnc("MOCK0", 0, teq::TensptrsT{d, f});
+	EXPECT_CALL(*d, ls_attrs()).WillRepeatedly(Return(types::StringsT{}));
+	EXPECT_CALL(*f, ls_attrs()).WillRepeatedly(Return(types::StringsT{}));
+	EXPECT_CALL(*g, ls_attrs()).WillRepeatedly(Return(types::StringsT{}));
+	EXPECT_CALL(*d, size()).WillRepeatedly(Return(0));
+	EXPECT_CALL(*f, size()).WillRepeatedly(Return(0));
+	EXPECT_CALL(*g, size()).WillRepeatedly(Return(0));
 
 	std::string target_key = "target";
 
@@ -103,20 +109,30 @@ TEST(TRAVELER, PathFinder)
 
 TEST(TRAVELER, PathFinderAttr)
 {
-	teq::TensptrT a(new MockLeaf());
-	teq::TensptrT b(new MockLeaf());
-	teq::TensptrT c(new MockLeaf());
+	auto a = make_var(teq::Shape());
+	auto b = make_var(teq::Shape());
+	auto c = make_var(teq::Shape());
 
-	auto df = new MockFunctor(teq::TensptrsT{b}, teq::Opcode{"MOCK2", 0});
-	teq::TensptrT d(df);
-	df->add_attr("yodoo", std::make_unique<teq::TensorObj>(c));
+	auto d = make_fnc("MOCK2", 0, teq::TensptrsT{b});
+	auto f = make_fnc("MOCK1", 0, teq::TensptrsT{a, c});
+	auto g = make_fnc("MOCK0", 0, teq::TensptrsT{a, d});
+	EXPECT_CALL(*d, ls_attrs()).WillRepeatedly(Return(types::StringsT{"yodoo"}));
+	EXPECT_CALL(*f, ls_attrs()).WillRepeatedly(Return(types::StringsT{}));
+	EXPECT_CALL(*g, ls_attrs()).WillRepeatedly(Return(types::StringsT{"numbers", "tensors"}));
+	EXPECT_CALL(*d, size()).WillRepeatedly(Return(1));
+	EXPECT_CALL(*f, size()).WillRepeatedly(Return(0));
+	EXPECT_CALL(*g, size()).WillRepeatedly(Return(2));
 
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, c}, teq::Opcode{"MOCK1", 1}));
+	teq::TensorObj ctens(c);
+	marsh::Number<double> numb(333.4);
+	teq::TensorObj ftens(f);
 
-	auto gf = new MockFunctor(teq::TensptrsT{a, d}, teq::Opcode{"MOCK0", 0});
-	teq::TensptrT g(gf);
-	gf->add_attr("numbers", std::make_unique<marsh::Number<double>>(333.4));
-	gf->add_attr("tensors", std::make_unique<teq::TensorObj>(f));
+	EXPECT_CALL(*d, get_attr("yodoo")).WillRepeatedly(Return(&ctens));
+	EXPECT_CALL(*g, get_attr("numbers")).WillRepeatedly(Return(&numb));
+	EXPECT_CALL(*g, get_attr("tensors")).WillRepeatedly(Return(&ftens));
+	EXPECT_CALL(Const(*d), get_attr("yodoo")).WillRepeatedly(Return(&ctens));
+	EXPECT_CALL(Const(*g), get_attr("numbers")).WillRepeatedly(Return(&numb));
+	EXPECT_CALL(Const(*g), get_attr("tensors")).WillRepeatedly(Return(&ftens));
 
 	std::string target_key = "target";
 
@@ -141,15 +157,19 @@ TEST(TRAVELER, PathFinderAttr)
 
 TEST(TRAVELER, ParentGraph)
 {
-	teq::TensptrT a(new MockLeaf());
-	teq::TensptrT b(new MockLeaf());
-	teq::TensptrT c(new MockLeaf());
+	auto a = make_var(teq::Shape());
+	auto b = make_var(teq::Shape());
+	auto c = make_var(teq::Shape());
 
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"f", 1}));
-
-	teq::TensptrT g(new MockFunctor(teq::TensptrsT{f, b}, teq::Opcode{"g", 2}));
-
-	teq::TensptrT h(new MockFunctor(teq::TensptrsT{c, f, g}, teq::Opcode{"h", 3}));
+	auto f = make_fnc("MOCK2", 0, teq::TensptrsT{a, b});
+	auto g = make_fnc("MOCK1", 0, teq::TensptrsT{f, b});
+	auto h = make_fnc("MOCK0", 0, teq::TensptrsT{c, f, g});
+	EXPECT_CALL(*f, ls_attrs()).WillRepeatedly(Return(types::StringsT{}));
+	EXPECT_CALL(*g, ls_attrs()).WillRepeatedly(Return(types::StringsT{}));
+	EXPECT_CALL(*h, ls_attrs()).WillRepeatedly(Return(types::StringsT{}));
+	EXPECT_CALL(*f, size()).WillRepeatedly(Return(0));
+	EXPECT_CALL(*g, size()).WillRepeatedly(Return(0));
+	EXPECT_CALL(*h, size()).WillRepeatedly(Return(0));
 
 	teq::ParentFinder finder;
 	h->accept(finder);
@@ -182,20 +202,30 @@ TEST(TRAVELER, ParentGraph)
 
 TEST(TRAVELER, ParentFinderAttr)
 {
-	teq::TensptrT a(new MockLeaf());
-	teq::TensptrT b(new MockLeaf());
-	teq::TensptrT c(new MockLeaf());
+	auto a = make_var(teq::Shape());
+	auto b = make_var(teq::Shape());
+	auto c = make_var(teq::Shape());
 
-	auto df = new MockFunctor(teq::TensptrsT{b}, teq::Opcode{"MOCK2", 0});
-	teq::TensptrT d(df);
-	df->add_attr("yodoo", std::make_unique<teq::TensorObj>(c));
+	auto d = make_fnc("MOCK2", 0, teq::TensptrsT{b});
+	auto f = make_fnc("MOCK1", 0, teq::TensptrsT{a, c});
+	auto g = make_fnc("MOCK0", 0, teq::TensptrsT{a, d});
+	EXPECT_CALL(*d, ls_attrs()).WillRepeatedly(Return(types::StringsT{"yodoo"}));
+	EXPECT_CALL(*f, ls_attrs()).WillRepeatedly(Return(types::StringsT{}));
+	EXPECT_CALL(*g, ls_attrs()).WillRepeatedly(Return(types::StringsT{"numbers", "tensors"}));
+	EXPECT_CALL(*d, size()).WillRepeatedly(Return(1));
+	EXPECT_CALL(*f, size()).WillRepeatedly(Return(0));
+	EXPECT_CALL(*g, size()).WillRepeatedly(Return(2));
 
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, c}, teq::Opcode{"MOCK1", 1}));
+	teq::TensorObj ctens(c);
+	marsh::Number<double> numb(333.4);
+	teq::TensorObj ftens(f);
 
-	auto gf = new MockFunctor(teq::TensptrsT{a, d}, teq::Opcode{"MOCK0", 0});
-	teq::TensptrT g(gf);
-	gf->add_attr("numbers", std::make_unique<marsh::Number<double>>(333.4));
-	gf->add_attr("tensors", std::make_unique<teq::TensorObj>(f));
+	EXPECT_CALL(*d, get_attr("yodoo")).WillRepeatedly(Return(&ctens));
+	EXPECT_CALL(*g, get_attr("numbers")).WillRepeatedly(Return(&numb));
+	EXPECT_CALL(*g, get_attr("tensors")).WillRepeatedly(Return(&ftens));
+	EXPECT_CALL(Const(*d), get_attr("yodoo")).WillRepeatedly(Return(&ctens));
+	EXPECT_CALL(Const(*g), get_attr("numbers")).WillRepeatedly(Return(&numb));
+	EXPECT_CALL(Const(*g), get_attr("tensors")).WillRepeatedly(Return(&ftens));
 
 	std::string target_key = "target";
 
@@ -236,16 +266,21 @@ TEST(TRAVELER, ParentFinderAttr)
 
 TEST(TRAVELER, Owners)
 {
+	auto a = make_var(teq::Shape());
+	auto b = make_var(teq::Shape());
+	auto c = make_var(teq::Shape());
+
 	teq::RefMapT owners;
-	teq::TensptrT a(new MockLeaf());
-	teq::TensptrT b(new MockLeaf());
-	teq::TensptrT c(new MockLeaf());
 	teq::iTensor* fref;
 	teq::iTensor* gref;
 	{
-		teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"f", 1}));
+		auto f = make_fnc("f", 0, teq::TensptrsT{a, b});
+		auto g = make_fnc("g", 0, teq::TensptrsT{f, c});
+		EXPECT_CALL(*f, ls_attrs()).WillRepeatedly(Return(types::StringsT{}));
+		EXPECT_CALL(*g, ls_attrs()).WillRepeatedly(Return(types::StringsT{}));
+		EXPECT_CALL(*f, size()).WillRepeatedly(Return(0));
+		EXPECT_CALL(*g, size()).WillRepeatedly(Return(0));
 
-		teq::TensptrT g(new MockFunctor(teq::TensptrsT{f, c}, teq::Opcode{"g", 2}));
 		fref = f.get();
 		gref = g.get();
 

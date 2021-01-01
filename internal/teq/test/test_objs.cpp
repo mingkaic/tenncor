@@ -17,6 +17,7 @@
 
 
 using ::testing::_;
+using ::testing::Invoke;
 using ::testing::Return;
 using ::testing::An;
 
@@ -27,8 +28,10 @@ struct OBJ : public tutil::TestcaseWithLogger<> {};
 TEST_F(OBJ, TensorObj)
 {
 	marsh::String str;
-	teq::TensptrT a(new MockLeaf(teq::Shape({1, 2, 3}), "A"));
-	teq::TensptrT b(new MockLeaf(teq::Shape({4, 2, 3}), "B"));
+	teq::Shape ashape({1, 2, 3});
+	teq::Shape bshape({4, 2, 3});
+	auto a = make_var(ashape, "A");
+	auto b = make_var(bshape, "B");
 
 	teq::TensorObj tensobj(a);
 	auto direct_clone = tensobj.clone();
@@ -47,15 +50,19 @@ TEST_F(OBJ, TensorObj)
 	EXPECT_FALSE(buildout->equals(tensobj));
 	EXPECT_FALSE(buildout->equals(str));
 
+	const teq::TensorObj* captens = nullptr;
+	auto capture_tens = [&](const teq::TensorObj& arg){ captens = &arg; };
+
 	MockTeqMarsh mmarsh;
+	EXPECT_CALL(mmarsh, marshal(An<const teq::TensorObj&>())).Times(1).WillOnce(Invoke(capture_tens));
 	tensobj.accept(mmarsh);
-	EXPECT_HAS(mmarsh.visited_, &tensobj);
+	EXPECT_EQ(&tensobj, captens);
 
 	EXPECT_CALL(*logger_, supports_level(logs::warn_level)).Times(1).WillOnce(Return(true));
 	EXPECT_CALL(*logger_, log(logs::warn_level, "non-teq marshaler cannot marshal tensor-typed objects", _)).Times(1);
+
 	MockMarsh gmarsh;
 	tensobj.accept(gmarsh);
-	EXPECT_HASNOT(gmarsh.visited_, &tensobj);
 
 	delete direct_clone;
 	delete buildout;
@@ -65,8 +72,8 @@ TEST_F(OBJ, TensorObj)
 TEST_F(OBJ, LayerObj)
 {
 	marsh::String str;
-	teq::TensptrT a(new MockLeaf(teq::Shape({1, 2, 3}), "A"));
-	teq::TensptrT b(new MockLeaf(teq::Shape({4, 2, 3}), "B"));
+	auto a = make_var(teq::Shape({1, 2, 3}), "A");
+	auto b = make_var(teq::Shape({4, 2, 3}), "B");
 
 	teq::LayerObj layerobj("lasagna", a);
 	teq::LayerObj layerobj2("nacho_dip", a);
@@ -92,13 +99,19 @@ TEST_F(OBJ, LayerObj)
 	EXPECT_FALSE(buildout->equals(layerobj2));
 	EXPECT_FALSE(buildout->equals(str));
 
+	const teq::LayerObj* captens = nullptr;
+	auto capture_layr = [&](const teq::LayerObj& arg){ captens = &arg; };
+
 	MockTeqMarsh mmarsh;
+	EXPECT_CALL(mmarsh, marshal(An<const teq::LayerObj&>())).Times(1).WillOnce(Invoke(capture_layr));
 	layerobj.accept(mmarsh);
-	EXPECT_HAS(mmarsh.visited_, &layerobj);
+	EXPECT_EQ(&layerobj, captens);
+
+	EXPECT_CALL(*logger_, supports_level(logs::warn_level)).Times(1).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::warn_level, "non-teq marshaler cannot marshal layer-typed objects", _)).Times(1);
 
 	MockMarsh gmarsh;
 	layerobj.accept(gmarsh);
-	EXPECT_HASNOT(gmarsh.visited_, &layerobj);
 
 	delete direct_clone;
 	delete buildout;
@@ -107,9 +120,9 @@ TEST_F(OBJ, LayerObj)
 
 TEST_F(OBJ, FindAttrs)
 {
-	teq::TensptrT a(new MockLeaf(teq::Shape({1, 2, 3}), "A"));
-	teq::TensptrT b(new MockLeaf(teq::Shape({4, 2, 3}), "B"));
-	teq::TensptrT c(new MockLeaf(teq::Shape({4, 1, 3}), "C"));
+	auto a = make_var(teq::Shape({1, 2, 3}), "A");
+	auto b = make_var(teq::Shape({4, 2, 3}), "B");
+	auto c = make_var(teq::Shape({4, 1, 3}), "C");
 
 	marsh::Maps root;
 	root.add_attr("obj1",
@@ -144,8 +157,8 @@ TEST_F(OBJ, FindAttrs)
 	EXPECT_ARRHAS(finder.tens_, b);
 	EXPECT_ARRHAS(finder.tens_, c);
 
-	teq::TensptrT d(new MockLeaf(teq::Shape({4, 1, 3}), "D"));
-	teq::TensptrT e(new MockLeaf(teq::Shape({4, 1, 3}), "E"));
+	auto d = make_var(teq::Shape({4, 1, 3}), "D");
+	auto e = make_var(teq::Shape({4, 1, 3}), "E");
 	teq::LayerObj layer("sundae", d);
 	teq::TensorObj tensor(e);
 

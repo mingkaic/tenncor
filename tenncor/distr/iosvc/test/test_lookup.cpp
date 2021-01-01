@@ -46,10 +46,10 @@ TEST_F(LOOKUP, LookupId)
 	auto& service = distr::get_iosvc(*mgr);
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
-	auto b = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
+	std::vector<double> data{2, 3, 7, 2};
+	MockDeviceRef devref;
+	auto a = make_var(data.data(), devref, outshape);
+	auto b = make_var(data.data(), devref, outshape);
 	service.expose_node(a);
 
 	auto ida = service.lookup_id(a.get());
@@ -65,8 +65,9 @@ TEST_F(LOOKUP, LocalLookupNode)
 	auto& service = distr::get_iosvc(*mgr);
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
+	std::vector<double> data{2, 3, 7, 2};
+	MockDeviceRef devref;
+	auto a = make_var(data.data(), devref, outshape);
 	service.expose_node(a);
 	auto ida = *service.lookup_id(a.get());
 
@@ -83,10 +84,13 @@ TEST_F(LOOKUP, RemoteLookupNode)
 	auto& service = distr::get_iosvc(*manager);
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
-	a->meta_.tcode_ = egen::DOUBLE;
-	a->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{2, 3, 7, 2};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto a = make_var(data.data(), devref, outshape);
+	EXPECT_CALL(*a, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
 	service.expose_node(a);
 	auto ida = *service.lookup_id(a.get());
 
@@ -118,10 +122,13 @@ TEST_F(LOOKUP, ExposingReferences)
 	auto& service2 = distr::get_iosvc(*manager2);
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
-	a->meta_.tcode_ = egen::DOUBLE;
-	a->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{2, 3, 7, 2};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto a = make_var(data.data(), devref, outshape);
+	EXPECT_CALL(*a, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
 
 	auto aid = service.expose_node(a);
 

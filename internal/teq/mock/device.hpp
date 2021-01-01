@@ -4,40 +4,17 @@
 
 #include "internal/teq/teq.hpp"
 
-struct MockDeviceRef : public teq::iDeviceRef
+#include "gmock/gmock.h"
+
+struct MockDeviceRef final : public teq::iDeviceRef
 {
-	MockDeviceRef (void) = default;
-
-	MockDeviceRef (const std::string& data) : data_(data) {}
-
-	template <typename T>
-	MockDeviceRef (const std::vector<T>& data)
-	{
-		auto raw = (char*) data.data();
-		data_ = std::string(raw, raw + sizeof(T) * data.size());
-	}
-
-	void* data (void) override
-	{
-		return &data_[0];
-	}
-
-	const void* data (void) const override
-	{
-		return data_.c_str();
-	}
-
-	std::string data_;
-
-	bool updated_ = false;
+	MOCK_METHOD0(data, void*(void));
+	MOCK_CONST_METHOD0(data, const void*(void));
 };
 
-struct MockDevice : public teq::iDevice
+struct MockDevice final : public teq::iDevice
 {
-	void calc (teq::iTensor& tens) override
-	{
-		static_cast<MockDeviceRef&>(tens.device()).updated_ = true;
-	}
+	MOCK_METHOD1(calc, void(teq::iTensor&));
 };
 
 #endif // TEQ_MOCK_DEVICEREF_HPP

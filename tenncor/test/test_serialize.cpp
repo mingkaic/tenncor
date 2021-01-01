@@ -19,6 +19,9 @@
 #include "tenncor/tenncor.hpp"
 
 
+using ::testing::Invoke;
+
+
 #ifdef CMAKE_SOURCE_DIR
 const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
 #else
@@ -71,7 +74,14 @@ TEST(SERIALIZE, SaveGraph)
 	std::string expect_pbfile = testdir + "/eteq.onnx";
 	//std::string got_pbfile = "got_eteq.onnx";
 	std::string got_pbfile = "/tmp/eteq.onnx";
-	global::set_generator(std::make_shared<MockGenerator>());
+
+	size_t counter = 0;
+	auto incr_id = [&]{ return fmts::to_string(++counter); };
+
+	auto gen = std::make_shared<MockGenerator>();
+	global::set_generator(gen);
+	EXPECT_CALL(*gen, get_str()).
+		WillRepeatedly(Invoke(incr_id));
 
 	onnx::ModelProto model;
 	auto mockders = mock_model(global::context());
@@ -188,7 +198,14 @@ TEST(SERIALIZE, SaveContext)
 	std::string expect_pbfile = testdir + "/eteq_ctx.onnx";
 	//std::string got_pbfile = "got_eteq_ctx.onnx";
 	std::string got_pbfile = "/tmp/eteq_ctx.onnx";
-	global::set_generator(std::make_shared<MockGenerator>());
+
+	size_t counter = 0;
+	auto incr_id = [&]{ return fmts::to_string(++counter); };
+
+	auto gen = std::make_shared<MockGenerator>();
+	global::set_generator(gen);
+	EXPECT_CALL(*gen, get_str()).
+		WillRepeatedly(Invoke(incr_id));
 
 	onnx::ModelProto model;
 

@@ -12,7 +12,7 @@
 namespace marsh
 {
 
-struct iObject
+struct iObject : public fmts::iStringable
 {
 	virtual ~iObject (void) = default;
 
@@ -22,8 +22,6 @@ struct iObject
 	}
 
 	virtual size_t class_code (void) const = 0;
-
-	virtual std::string to_string (void) const = 0;
 
 	virtual bool equals (const iObject& other) const = 0;
 

@@ -13,7 +13,7 @@ class TenncorConan(ConanFile):
     topics = ["conan", "machine learning"]
     settings = "os", "compiler", "build_type", "arch"
     requires = (
-        "cppkg/0.1.1@mingkaic-co/stable",
+        "cppkg/0.1.2@mingkaic-co/stable",
         "Ppconsul/0.2.1@mingkaic-co/stable",
         "g3log/1.3.3",
         "eigen/3.3.7",

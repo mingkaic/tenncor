@@ -141,7 +141,7 @@ pybind_py_library(
 
 cc_binary(
     name = "benchmark",
-    srcs = [":benchmark_srcs"],
+    srcs = ["bm/benchmark.cpp"],
     deps = [
         ":tenncor",
         "@com_github_google_benchmark//:benchmark",
@@ -160,7 +160,7 @@ cc_test(
         "//internal/utils/coord:coord",
         "//internal/global:mock",
         "//tenncor/distr:mock",
-        "//tenncor:tenncor",
+        ":tenncor",
         "//testutil:tutil",
         "//dbg/print/printsvc:printsvc",
         "@com_github_mingkaic_cppkg//diff:diff",
@@ -179,7 +179,7 @@ py_test(
     srcs = [":ptest_srcs"],
     deps = [
         "//dbg:print_py",
-        "//tenncor:tenncor_py",
+        ":tenncor_py",
         "//testutil:pyunit_util",
     ],
     data = [

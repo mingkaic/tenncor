@@ -129,6 +129,11 @@ struct Observable : public teq::iFunctor
 		return attrs_.size();
 	}
 
+	size_t nsubs (void) const
+	{
+		return subs_.size();
+	}
+
 protected:
 	std::unordered_set<Observable*> subs_;
 

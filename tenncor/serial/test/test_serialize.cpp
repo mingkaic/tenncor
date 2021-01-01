@@ -18,6 +18,9 @@
 #include "tenncor/serial/serial.hpp"
 
 
+using ::testing::Invoke;
+
+
 #ifdef CMAKE_SOURCE_DIR
 const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
 #else
@@ -29,7 +32,14 @@ TEST(SERIALIZE, SaveGraph)
 {
 	std::string expect_pbfile = testdir + "/serial.onnx";
 	std::string got_pbfile = "got_serial.onnx";
-	global::set_generator(std::make_shared<MockGenerator>());
+
+	size_t counter = 0;
+	auto incr_id = [&]{ return fmts::to_string(++counter); };
+
+	auto gen = std::make_shared<MockGenerator>();
+	global::set_generator(gen);
+	EXPECT_CALL(*gen, get_str()).
+		WillRepeatedly(Invoke(incr_id));
 
 	{
 		onnx::ModelProto model;

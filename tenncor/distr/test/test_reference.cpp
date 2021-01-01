@@ -90,9 +90,9 @@ TEST(REFERENCE, Reachability)
 	auto c = std::make_shared<distr::DistrRef>(
 		egen::DOUBLE, shape, cluster_id, "c", "cdefgh");
 
-	teq::TensptrT d(new MockFunctor(teq::TensptrsT{c}, teq::Opcode{"MOCK2", 0}));
-	teq::TensptrT f(new MockFunctor(teq::TensptrsT{a, b}, teq::Opcode{"MOCK1", 1}));
-	teq::TensptrT g(new MockFunctor(teq::TensptrsT{d, f}, teq::Opcode{"MOCK0", 0}));
+	auto d = make_fnc("MOCK2", 0, teq::TensptrsT{c});
+	auto f = make_fnc("MOCK1", 1, teq::TensptrsT{a, b});
+	auto g = make_fnc("MOCK0", 0, teq::TensptrsT{d, f});
 
 	auto everything = distr::reachable_refs(teq::TensptrsT{g});
 	auto ab = distr::reachable_refs(teq::TensptrsT{g}, teq::TensSetT{d.get()});

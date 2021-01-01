@@ -9,9 +9,6 @@
 namespace hone
 {
 
-#define _CHOOSE_SCALAR_TARGETTYPE(REALTYPE)\
-out = eteq::make_constant_scalar<REALTYPE>((REALTYPE)scalar_, outshape);
-
 struct ScalarTarget final : public opt::iTarget
 {
 	ScalarTarget (double scalar, const std::string& sshape) :
@@ -24,16 +21,14 @@ struct ScalarTarget final : public opt::iTarget
 		teq::TensptrT out;
 		auto outtype = (egen::_GENERATED_DTYPE) cand->get_meta().type_code();
 		auto outshape = cand->shape();
-		TYPE_LOOKUP(_CHOOSE_SCALAR_TARGETTYPE, outtype);
-		return out;
+		std::vector<double> vec(outshape.n_elems(), scalar_);
+		return eteq::make_constant_tensor(vec.data(), outshape, outtype);
 	}
 
 	double scalar_;
 
 	std::string symb_;
 };
-
-#undef _CHOOSE_SCALAR_TARGETTYPE
 
 struct SymbolTarget final : public opt::iTarget
 {

@@ -28,11 +28,11 @@ struct iDerivativeFuncs
 	virtual TensptrT lderive (FuncptrT op,
 		TensptrT supgrad, size_t i) const = 0;
 
-	/// Return tensor representing 1 constant
-	virtual TensptrT get_const_one (Shape shape) const = 0;
+	/// Return tensor representing 1 constant shaped like reference tensor
+	virtual TensptrT get_const_one (iTensor& reference) const = 0;
 
 	/// Return tensor representing 0 constant
-	virtual TensptrT get_const_zero (Shape shape) const = 0;
+	virtual TensptrT get_const_zero (iTensor& reference) const = 0;
 
 	/// Return functor representing sum(elems)
 	virtual TensptrT add (TensptrsT elems) const = 0;

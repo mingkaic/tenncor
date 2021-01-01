@@ -16,6 +16,7 @@
 using ::testing::_;
 using ::testing::An;
 using ::testing::Return;
+using ::testing::ReturnRef;
 using ::testing::Throw;
 
 
@@ -25,10 +26,8 @@ TEST(FUNCOPT, Default)
 	marsh::Maps attrs;
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
-	auto b = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
+	auto a = make_var(outshape);
+	auto b = make_var(outshape);
 	EXPECT_FALSE(opt.operator()<double>(attrs, {a, b}));
 }
 
@@ -39,8 +38,7 @@ TEST(FUNCOPT, Reduce)
 	marsh::Maps attrs;
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
+	auto a = make_var(outshape);
 
 	eigen::Packer<std::set<teq::RankT>> packer;
 	packer.pack(attrs, {});
@@ -63,8 +61,7 @@ TEST(FUNCOPT, ArgReduce)
 	marsh::Maps attrs;
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
+	auto a = make_var(outshape);
 
 	eigen::Packer<teq::RankT> packer;
 
@@ -87,8 +84,7 @@ TEST(FUNCOPT, Permute)
 	marsh::Maps attrs;
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
+	auto a = make_var(outshape);
 
 	eigen::Packer<teq::RanksT> packer;
 
@@ -122,8 +118,7 @@ TEST(FUNCOPT, Extend)
 	marsh::Maps attrs;
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
+	auto a = make_var(outshape);
 
 	eigen::Packer<teq::DimsT> packer;
 
@@ -148,8 +143,7 @@ TEST(FUNCOPT, Reshape)
 	marsh::Maps attrs;
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
+	auto a = make_var(outshape);
 
 	eigen::Packer<teq::Shape> packer;
 
@@ -172,8 +166,7 @@ TEST(FUNCOPT, Slice)
 	marsh::Maps attrs;
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
+	auto a = make_var(outshape);
 
 	eigen::Packer<eigen::PairVecT<teq::DimT>> packer;
 
@@ -207,8 +200,7 @@ TEST(FUNCOPT, Pad)
 	marsh::Maps attrs;
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
+	auto a = make_var(outshape);
 
 	eigen::Packer<eigen::PairVecT<teq::DimT>> packer;
 
@@ -234,12 +226,9 @@ TEST(FUNCOPT, Add)
 	marsh::Maps attrs;
 
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
-	auto b = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
-	auto c = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
+	auto a = make_var(outshape);
+	auto b = make_var(outshape);
+	auto c = make_var(outshape);
 
 	EXPECT_TRUE(opt.operator()<double>(attrs, {a}));
 	EXPECT_FALSE(opt.operator()<double>(attrs, {a, b}));
@@ -252,10 +241,11 @@ TEST(FUNCOPT, Cast)
 	egen::FuncOpt<egen::CAST> opt;
 	marsh::Maps attrs;
 
+	MockMeta mockmeta;
 	teq::Shape outshape({2, 2});
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 3, 7, 2}, outshape);
-	a->meta_.tcode_ = egen::DOUBLE;
+	auto a = make_var(outshape);
+	EXPECT_CALL(*a, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
 
 	EXPECT_TRUE(opt.operator()<double>(attrs, {a}));
 	EXPECT_FALSE(opt.operator()<float>(attrs, {a}));

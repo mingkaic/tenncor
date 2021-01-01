@@ -1,5 +1,4 @@
-
-#define DISABLE_LAYR_CONNECT_TEST
+#define DISABLE_LAYR_CONNECT_TEST // these tests are moved to tenncor/test/test_layer.cpp
 #ifndef DISABLE_LAYR_CONNECT_TEST
 
 #include "dbg/print/teq.hpp"

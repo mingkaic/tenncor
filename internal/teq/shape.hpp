@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "internal/global/global.hpp"
+#include "internal/marsh/marsh.hpp"
 
 namespace teq
 {
@@ -56,7 +57,7 @@ using CstSiteratorT = ShapeT::const_iterator;
 /// For each DimT at index i, DimT value is number of elements at dimension i
 /// For example, shape={3, 2} can model tensor [[x, y, z], [u, v, w]]
 /// (In cartesian coordinate, we treat values along the X-axis as dimension 0)
-struct Shape final
+struct Shape final : public fmts::iStringable
 {
 	Shape (void)
 	{
@@ -83,6 +84,12 @@ struct Shape final
 	}
 
 	// >>>> ACCESSORS <<<<
+
+	/// Implementation of iStringable
+	std::string to_string (void) const override
+	{
+		return fmts::to_string(dims_.begin(), dims_.end());
+	}
 
 	/// Return DimT element at idx for any index in range [0:rank_cap)
 	DimT at (RankT idx) const
@@ -119,12 +126,6 @@ struct Shape final
 		return idx < rank_cap && std::equal(
 			dims_.begin() + idx, dims_.end(), other.begin() + idx,
 			[](DimT a, DimT b) { return a == 0 || b == 0 || a == b; });
-	}
-
-	/// Return string representation of shape
-	std::string to_string (void) const
-	{
-		return fmts::to_string(dims_.begin(), dims_.end());
 	}
 
 	// >>>> INTERNAL CONTROL <<<<

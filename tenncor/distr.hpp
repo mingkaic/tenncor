@@ -15,8 +15,7 @@ struct DistrEvaluator final : public teq::iEvaluator
 	DistrEvaluator (distr::iDistrManager& mgr) : svc_(distr::get_opsvc(mgr)) {}
 
 	/// Implementation of iEvaluator
-	void evaluate (
-		teq::iDevice& device,
+	void evaluate (teq::iDevice& device,
 		const teq::TensSetT& targets,
 		const teq::TensSetT& ignored = {}) override
 	{

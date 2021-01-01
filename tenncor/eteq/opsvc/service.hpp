@@ -95,22 +95,19 @@ struct OpService final : public iOpService
 
 struct DistrOpService final : public PeerService<DistrOpCli>
 {
-	DistrOpService (std::unique_ptr<teq::iDevice>&& evaluator,
+	DistrOpService (std::unique_ptr<teq::iDevice>&& eval_device,
 		std::unique_ptr<teq::iDerivativeFuncs>&& dfuncs,
 		const PeerServiceConfig& cfg, io::DistrIOService* iosvc,
-		CliBuildptrT builder =
-			std::make_shared<ClientBuilder<DistrOpCli>>(),
-		std::shared_ptr<iOpService> svc =
-			std::make_shared<OpService>()) :
-		PeerService<DistrOpCli>(cfg, builder), evaluator_(std::move(evaluator)),
+		CliBuildptrT builder = std::make_shared<ClientBuilder<DistrOpCli>>(),
+		std::shared_ptr<iOpService> svc = std::make_shared<OpService>()) :
+		PeerService<DistrOpCli>(cfg, builder), eval_device_(std::move(eval_device)),
 		deriver_(std::move(dfuncs)), iosvc_(iosvc), service_(svc)
 	{
 		assert(nullptr != service_);
 	}
 
 	/// Evalute target tensor set ignoring all tensors in ignored set
-	void evaluate (
-		teq::iDevice& device,
+	void evaluate (teq::iDevice& local_device,
 		const teq::TensSetT& targets,
 		const teq::TensSetT& ignored = {})
 	{
@@ -159,7 +156,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			global::fatal(err->to_string());
 		});
 		// locally evaluate
-		teq::TravEvaluator eval(device, ignored);
+		teq::TravEvaluator eval(local_device, ignored);
 		teq::multi_visit(eval, targets);
 	}
 
@@ -359,7 +356,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 					}
 					else
 					{
-						tens = deriver_->get_const_zero(parent->shape());
+						tens = deriver_->get_const_zero(*parent);
 					}
 					pgrads.emplace(pid, tens);
 				}
@@ -426,7 +423,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			}
 			else
 			{
-				tens = deriver_->get_const_zero(target->shape());
+				tens = deriver_->get_const_zero(*target);
 			}
 			out.emplace(target, tens);
 		}
@@ -511,6 +508,16 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 		});
 	}
 
+	teq::iDevice* get_evaluator (void)
+	{
+		return eval_device_.get();
+	}
+
+	teq::iDerivativeFuncs* get_derivfuncs (void)
+	{
+		return deriver_.get();
+	}
+
 private:
 	grpc::Status startup_get_data (
 		DataStatesT& states, const GetDataRequest& req)
@@ -536,7 +543,7 @@ private:
 				fmts::sprintf("%s:GetData", get_peer_id().c_str()).c_str());
 			ignored.emplace(tens);
 		}
-		evaluate(*evaluator_, targets, ignored);
+		evaluate(*eval_device_, targets, ignored);
 		return grpc::Status::OK;
 	}
 
@@ -622,7 +629,7 @@ private:
 		return grpc::Status::OK;
 	}
 
-	std::unique_ptr<teq::iDevice> evaluator_;
+	std::unique_ptr<teq::iDevice> eval_device_;
 
 	std::unique_ptr<teq::iDerivativeFuncs> deriver_;
 

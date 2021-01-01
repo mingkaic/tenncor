@@ -27,32 +27,34 @@ TEST_F(FUNCTOR, Initiation)
 	std::vector<double> data{
 		1, 2, 3, 4, 5, 6,
 		1, 2, 3, 4, 5, 6};
-	auto a = std::make_shared<MockObservable>(teq::TensptrsT{
-		std::make_shared<MockLeaf>(argshape)},
-		data, teq::Opcode{});
-	auto b = std::make_shared<MockObservable>(teq::TensptrsT{
-		std::make_shared<MockLeaf>(argshape)},
-		data, teq::Opcode{});
-	auto c = std::make_shared<MockLeaf>(argshape);
-	c->meta_.tcode_ = egen::DOUBLE;
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	MockMeta badmeta;
+	auto leaf = make_var(argshape);
+	auto a = make_obs(data.data(), devref, "", 0, teq::TensptrsT{leaf});
+	auto b = make_obs(data.data(), devref, "", 0, teq::TensptrsT{leaf});
+	auto c = make_var(argshape);
+	EXPECT_CALL(*a, shape()).WillRepeatedly(Return(argshape));
+	EXPECT_CALL(*b, shape()).WillRepeatedly(Return(argshape));
+	EXPECT_CALL(*a, get_meta()).WillRepeatedly(ReturnRef(badmeta));
+	EXPECT_CALL(*b, get_meta()).WillRepeatedly(ReturnRef(badmeta));
+	EXPECT_CALL(*c, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(badmeta, type_code()).WillRepeatedly(Return(0));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
 
 	marsh::Maps attrs;
 
 	std::string fatalmsg = "cannot perform `ADD` without arguments";
 	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
-	EXPECT_FATAL(eteq::Functor<double>::get(
-		egen::ADD, teq::TensptrsT{}, std::move(attrs)), fatalmsg.c_str());
+	EXPECT_FATAL(eteq::Functor<double>::get(egen::ADD, teq::TensptrsT{}, std::move(attrs)), fatalmsg.c_str());
 
 	std::string fatalmsg1 = "children types are not all the same";
 	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
-	EXPECT_FATAL(eteq::Functor<double>::get(
-		egen::ADD, teq::TensptrsT{a, c}, std::move(attrs)), fatalmsg1.c_str());
+	EXPECT_FATAL(eteq::Functor<double>::get(egen::ADD, teq::TensptrsT{a, c}, std::move(attrs)), fatalmsg1.c_str());
 
-	eteq::Functor<double>* f = eteq::Functor<double>::get(
-		egen::ADD, {a, b}, std::move(attrs));
+	eteq::Functor<double>* f = eteq::Functor<double>::get(egen::ADD, {a, b}, std::move(attrs));
 	teq::TensptrT ftens(f);
-	auto g = eteq::Functor<double>::get(
-		egen::SIN, {ftens}, std::move(attrs));
+	auto g = eteq::Functor<double>::get(egen::SIN, {ftens}, std::move(attrs));
 	teq::TensptrT gtens(g);
 
 	auto fshape = f->shape();
@@ -62,12 +64,18 @@ TEST_F(FUNCTOR, Initiation)
 	EXPECT_STREQ("ADD", f->to_string().c_str());
 	EXPECT_FALSE(f->has_data());
 
-	a->succeed_initial_ = false;
+	EXPECT_CALL(*a, has_data()).Times(2).WillRepeatedly(Return(false));
+	EXPECT_CALL(*b, has_data()).Times(1).WillRepeatedly(Return(true));
+	EXPECT_CALL(*a, must_initialize()).Times(1);
 	std::string fatalmsg2 = "failed to initialize";
 	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg2, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg2)));
 	EXPECT_FATAL(f->must_initialize(), fatalmsg2.c_str());
-	a->succeed_initial_ = true;
 
+	EXPECT_CALL(*a, has_data()).Times(2).
+		WillOnce(Return(false)).
+		WillOnce(Return(true));
+	EXPECT_CALL(*b, has_data()).Times(2).WillRepeatedly(Return(true));
+	EXPECT_CALL(*a, must_initialize()).Times(1);
 	g->must_initialize();
 	EXPECT_TRUE(g->has_data());
 	EXPECT_TRUE(f->has_data());
@@ -79,7 +87,11 @@ TEST_F(FUNCTOR, Initiation)
 	eteq::Functor<double>* fcpy = f->clone();
 	teq::TensptrT fcpytens(fcpy);
 
+#ifdef SKIP_INIT
+	EXPECT_FALSE(fcpy->has_data());
+#else
 	EXPECT_TRUE(fcpy->has_data());
+#endif
 }
 
 
@@ -92,25 +104,31 @@ TEST_F(FUNCTOR, UpdateChild)
 		1, 2, 3, 4, 5, 6,
 		1, 2, 3, 4, 5, 6};
 	teq::Shape argshape({4, 3});
-	auto a = std::make_shared<MockObservable>(teq::TensptrsT{
-		std::make_shared<MockLeaf>(argshape)},
-		data, teq::Opcode{"ABC", 0});
-	auto b = std::make_shared<MockObservable>(teq::TensptrsT{
-		std::make_shared<MockLeaf>(argshape)},
-		data, teq::Opcode{"DEF", 1});
-	auto c = std::make_shared<MockObservable>(teq::TensptrsT{
-		std::make_shared<MockLeaf>(argshape)},
-		data, teq::Opcode{"GHI", 2});
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto leaf = make_var(argshape);
+	auto a = make_obs(data.data(), devref, "ABC", 0, teq::TensptrsT{leaf});
+	auto b = make_obs(data.data(), devref, "DEF", 1, teq::TensptrsT{leaf});
+	auto c = make_obs(data.data(), devref, "GHI", 2, teq::TensptrsT{leaf});
+	EXPECT_CALL(*a, shape()).WillRepeatedly(Return(argshape));
+	EXPECT_CALL(*b, shape()).WillRepeatedly(Return(argshape));
+	EXPECT_CALL(*c, shape()).WillRepeatedly(Return(argshape));
+	EXPECT_CALL(*a, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*b, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*c, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(0));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("no_type"));
 
-	auto d = std::make_shared<MockObservable>(teq::TensptrsT{
-		std::make_shared<MockLeaf>(teq::Shape({3, 4}))},
-		data, teq::Opcode{"ZXY", 3});
-	auto e = std::make_shared<MockLeaf>(argshape);
-	e->meta_.tname_ = "DOUBLE";
+	MockMeta mockmeta2;
+	auto leaf2 = make_var(teq::Shape({3, 4}));
+	auto d = make_obs(data.data(), devref, "ZXY", 3, teq::TensptrsT{leaf2});
+	auto e = make_var(argshape);
+	EXPECT_CALL(*d, shape()).WillRepeatedly(Return(teq::Shape({3, 4})));
+	EXPECT_CALL(*e, get_meta()).WillRepeatedly(ReturnRef(mockmeta2));
+	EXPECT_CALL(mockmeta2, type_label()).WillRepeatedly(Return("DOUBLE"));
 
 	marsh::Maps attrs;
-	auto f = eteq::Functor<double>::get(
-		egen::ADD, {a, b}, std::move(attrs));
+	auto f = eteq::Functor<double>::get(egen::ADD, {a, b}, std::move(attrs));
 	teq::TensptrT ftens(f);
 
 	EXPECT_FALSE(f->has_data());
@@ -119,6 +137,8 @@ TEST_F(FUNCTOR, UpdateChild)
 	EXPECT_EQ(a, children.front());
 	EXPECT_EQ(b, children.back());
 
+	EXPECT_CALL(*a, has_data()).Times(2).WillRepeatedly(Return(true));
+	EXPECT_CALL(*b, has_data()).Times(2).WillRepeatedly(Return(true));
 	f->must_initialize();
 
 	f->update_child(c, 1);
@@ -162,16 +182,23 @@ TEST_F(FUNCTOR, Prop)
 		1, 2, 3, 4, 5, 6,
 		1, 2, 3, 4, 5, 6};
 	teq::Shape argshape({4, 3});
-	auto a = std::make_shared<MockObservable>(teq::TensptrsT{
-		std::make_shared<MockLeaf>(argshape)},
-		data, teq::Opcode{"ABC", 0});
-	auto b = std::make_shared<MockObservable>(teq::TensptrsT{
-		std::make_shared<MockLeaf>(argshape)},
-		data, teq::Opcode{"DEF", 1});
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	MockMeta mockmeta2;
+	auto leaf = make_var(argshape);
+	auto a = make_obs<double>(data.data(), devref, "ABC", 0, teq::TensptrsT{leaf});
+	auto b = make_obs("DEF", 1, teq::TensptrsT{leaf});
+	EXPECT_CALL(*b, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(Const(*b), device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*a, shape()).WillRepeatedly(Return(argshape));
+	EXPECT_CALL(*b, shape()).WillRepeatedly(Return(argshape));
+	EXPECT_CALL(*a, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*b, get_meta()).WillRepeatedly(ReturnRef(mockmeta2));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(0));
+	EXPECT_CALL(mockmeta2, type_code()).WillRepeatedly(Return(0));
 
 	marsh::Maps attrs;
-	auto f = eteq::Functor<double>::get(
-		egen::ADD, {a, b}, std::move(attrs));
+	auto f = eteq::Functor<double>::get(egen::ADD, {a, b}, std::move(attrs));
 	teq::TensptrT ftens(f);
 
 	ASSERT_FALSE(f->has_data());
@@ -182,18 +209,19 @@ TEST_F(FUNCTOR, Prop)
 		EXPECT_FATAL(f->device(), fatalmsg.c_str());
 	}(f);
 
+	EXPECT_CALL(*a, has_data()).Times(2).WillRepeatedly(Return(true));
+	EXPECT_CALL(*b, has_data()).Times(2).WillRepeatedly(Return(true));
 	f->device();
 	EXPECT_TRUE(f->has_data());
 
 	EXPECT_EQ(0, f->get_meta().state_version());
-	a->func_.meta_.version_ = 1;
-	b->func_.meta_.version_ = 1;
+	EXPECT_CALL(mockmeta, state_version()).WillRepeatedly(Return(1));
+	EXPECT_CALL(mockmeta2, state_version()).WillRepeatedly(Return(1));
 	EXPECT_TRUE(f->prop_version(3));
 	EXPECT_EQ(1, f->get_meta().state_version());
 	EXPECT_FALSE(f->prop_version(3));
 
-	auto g = eteq::Functor<double>::get(
-		egen::RAND_UNIF, {a, b}, std::move(attrs));
+	auto g = eteq::Functor<double>::get(egen::RAND_UNIF, {a, b}, std::move(attrs));
 	teq::TensptrT gtens(g);
 	EXPECT_TRUE(g->prop_version(3));
 	EXPECT_EQ(1, g->get_meta().state_version());

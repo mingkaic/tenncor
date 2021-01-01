@@ -137,12 +137,13 @@ TEST(PARSEATTR, TensorObj)
 	auto logger = new exam::MockLogger();
 	global::set_logger(logger);
 
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 8, 4, 5}, teq::Shape({1, 4}));
-	auto b = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 8, 4, 5}, teq::Shape({2, 2}));
-	auto c = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 8, 4, 5}, teq::Shape({2, 2}));
+	std::vector<double> exdata{2, 8, 4, 5};
+	MockDeviceRef mockref1;
+	MockDeviceRef mockref2;
+	MockDeviceRef mockref3;
+	auto a = make_var<double>(exdata.data(), mockref1, teq::Shape({1, 4}));
+	auto b = make_var<double>(exdata.data(), mockref2, teq::Shape({2, 2}));
+	auto c = make_var<double>(exdata.data(), mockref3, teq::Shape({2, 2}));
 
 	opt::GraphInfo ginfo({a, b, c});
 	google::protobuf::util::JsonParseOptions options;
@@ -178,12 +179,13 @@ TEST(PARSEATTR, LayerObj)
 	global::set_logger(logger);
 	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
 
-	auto a = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 8, 4, 5}, teq::Shape({1, 4}));
-	auto b = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 8, 4, 5}, teq::Shape({2, 2}));
-	auto c = std::make_shared<MockLeaf>(
-		std::vector<double>{2, 8, 4, 5}, teq::Shape({1, 4}));
+	std::vector<double> exdata{2, 8, 4, 5};
+	MockDeviceRef mockref1;
+	MockDeviceRef mockref2;
+	MockDeviceRef mockref3;
+	auto a = make_var<double>(exdata.data(), mockref1, teq::Shape({1, 4}));
+	auto b = make_var<double>(exdata.data(), mockref2, teq::Shape({2, 2}));
+	auto c = make_var<double>(exdata.data(), mockref3, teq::Shape({1, 4}));
 
 	opt::GraphInfo ginfo({a, b, c});
 	google::protobuf::util::JsonParseOptions options;

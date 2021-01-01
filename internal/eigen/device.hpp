@@ -10,6 +10,8 @@ namespace eigen
 
 struct iEigen : public teq::iDeviceRef
 {
+	virtual ~iEigen (void) = default;
+
 	virtual void assign (void) = 0;
 };
 

@@ -1,5 +1,4 @@
-
-#define DISABLE_LAYR_INIT_TEST
+#define DISABLE_LAYR_INIT_TEST // tests move to tenncor/test/test_init.cpp
 #ifndef DISABLE_LAYR_INIT_TEST
 
 

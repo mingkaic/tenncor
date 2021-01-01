@@ -20,6 +20,9 @@
 #include "tenncor/serial/oxsvc/mock/mock.hpp"
 
 
+using ::testing::Invoke;
+
+
 #ifdef CMAKE_SOURCE_DIR
 const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
 #else
@@ -187,7 +190,14 @@ TEST_F(SEGMENT, TwoMeans)
 {
 	distr::iDistrMgrptrT manager(make_mgr("mgr"));
 	distr::iDistrMgrptrT manager2(make_mgr("mgr2"));
-	global::set_generator(std::make_shared<MockGenerator>());
+
+	size_t counter = 0;
+	auto incr_id = [&]{ return fmts::to_string(++counter); };
+
+	auto gen = std::make_shared<MockGenerator>();
+	global::set_generator(gen);
+	EXPECT_CALL(*gen, get_str()).
+		WillRepeatedly(Invoke(incr_id));
 
 	onnx::ModelProto model;
 	{

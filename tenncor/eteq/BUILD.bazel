@@ -40,6 +40,7 @@ cc_library(
         "//internal/eigen:eigen",
         "@boost//:bimap",
     ],
+    defines = ["SKIP_INIT"],
     visibility = ["//visibility:public"],
 )
 

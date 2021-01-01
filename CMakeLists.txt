@@ -340,6 +340,7 @@ add_library(${ETEQ_LIB}
     tenncor/eteq/src/make.cpp
 )
 target_link_libraries(${ETEQ_LIB} PUBLIC ${EIGEN_LIB})
+target_compile_definitions(${ETEQ_LIB} PUBLIC "SKIP_INIT")
 
 # tenncor/eteq/opsvc
 set(DISTR_OPSVC_LIB ${PROJECT_NAME}_distr_opsvc)
@@ -512,6 +513,17 @@ target_link_libraries(${PYTENNCOR} PRIVATE ${TENNCOR_LIB} ${DISTR_PRINTSVC_LIB})
 
 #### test mocks ####
 
+# internal/teq
+add_library(teq_mock
+    internal/teq/mock/functor.cpp
+    internal/teq/mock/leaf.cpp)
+target_link_libraries(teq_mock PUBLIC ${TEQ_LIB} ${CONAN_LIBS_GTEST})
+
+# internal/eigen
+add_library(eigen_mock
+    internal/eigen/mock/observable.cpp)
+target_link_libraries(eigen_mock PUBLIC ${EIGEN_LIB} teq_mock)
+
 # tenncor/distr
 add_library(distr_mock tenncor/distr/mock/serverio.cpp)
 target_link_libraries(distr_mock PUBLIC ${DISTR_LIB})
@@ -580,7 +592,7 @@ add_executable(${TEQ_TEST}
     internal/teq/test/test_objs.cpp
     internal/teq/test/test_shape.cpp
     internal/teq/test/test_traveler.cpp)
-target_link_libraries(${TEQ_TEST} ${_TESTUTIL} ${TEQ_LIB})
+target_link_libraries(${TEQ_TEST} ${_TESTUTIL} ${TEQ_LIB} teq_mock)
 add_test(NAME ${TEQ_TEST} COMMAND ${TEQ_TEST})
 
 # internal/eigen
@@ -595,7 +607,7 @@ add_executable(${EIGEN_TEST}
     internal/eigen/test/test_packer.cpp
     internal/eigen/test/test_shaper.cpp
     internal/eigen/test/test_typer.cpp)
-target_link_libraries(${EIGEN_TEST} ${_TESTUTIL} ${EIGEN_LIB})
+target_link_libraries(${EIGEN_TEST} ${_TESTUTIL} ${EIGEN_LIB} eigen_mock)
 add_test(NAME ${EIGEN_TEST} COMMAND ${EIGEN_TEST})
 
 # internal/onnx
@@ -604,7 +616,7 @@ add_executable(${ONNX_TEST}
     internal/onnx/test/main.cpp
     internal/onnx/test/test_load.cpp
     internal/onnx/test/test_save.cpp)
-target_link_libraries(${ONNX_TEST} ${_TESTUTIL} ${ONNX_LIB})
+target_link_libraries(${ONNX_TEST} ${_TESTUTIL} ${ONNX_LIB} teq_mock)
 add_test(NAME ${ONNX_TEST} COMMAND ${ONNX_TEST})
 target_compile_definitions(${ONNX_TEST} PRIVATE CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/")
 
@@ -616,7 +628,7 @@ add_executable(${QUERY_TEST}
     internal/query/test/test_base.cpp
     internal/query/test/test_path.cpp
     internal/query/test/test_query.cpp)
-target_link_libraries(${QUERY_TEST} ${_TESTUTIL} ${QUERY_LIB})
+target_link_libraries(${QUERY_TEST} ${_TESTUTIL} ${QUERY_LIB} teq_mock)
 add_test(NAME ${QUERY_TEST} COMMAND ${QUERY_TEST})
 
 # internal/opt
@@ -627,7 +639,7 @@ add_executable(${OPT_TEST}
     internal/opt/test/test_graph.cpp
     internal/opt/test/test_parse.cpp
     internal/opt/test/test_parseattr.cpp)
-target_link_libraries(${OPT_TEST} ${_TESTUTIL} ${OPT_LIB})
+target_link_libraries(${OPT_TEST} ${_TESTUTIL} ${OPT_LIB} teq_mock)
 add_test(NAME ${OPT_TEST} COMMAND ${OPT_TEST})
 target_compile_definitions(${OPT_TEST} PRIVATE CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/")
 
@@ -638,7 +650,7 @@ add_executable(${DISTR_TEST}
     tenncor/distr/test/test_manager.cpp
     tenncor/distr/test/test_peersvc.cpp
     tenncor/distr/test/test_reference.cpp)
-target_link_libraries(${DISTR_TEST} ${_TESTUTIL} ${DISTR_LIB})
+target_link_libraries(${DISTR_TEST} ${_TESTUTIL} ${DISTR_LIB} teq_mock)
 add_test(NAME ${DISTR_TEST} COMMAND ${DISTR_TEST})
 
 # tenncor/distr/iosvc
@@ -647,7 +659,7 @@ add_executable(${DISTR_IOSVC_TEST}
     tenncor/distr/iosvc/test/main.cpp
     tenncor/distr/iosvc/test/test_lookup.cpp
     tenncor/distr/iosvc/test/test_remote.cpp)
-target_link_libraries(${DISTR_IOSVC_TEST} ${_TESTUTIL} distr_iosvc_mock)
+target_link_libraries(${DISTR_IOSVC_TEST} ${_TESTUTIL} distr_iosvc_mock teq_mock)
 add_test(NAME ${DISTR_IOSVC_TEST} COMMAND ${DISTR_IOSVC_TEST})
 
 # tenncor/eteq
@@ -660,7 +672,7 @@ add_executable(${ETEQ_TEST}
     tenncor/eteq/test/test_etens.cpp
     tenncor/eteq/test/test_functor.cpp
     tenncor/eteq/test/test_variable.cpp)
-target_link_libraries(${ETEQ_TEST} ${_TESTUTIL} ${ETEQ_LIB})
+target_link_libraries(${ETEQ_TEST} ${_TESTUTIL} ${ETEQ_LIB} eigen_mock)
 add_test(NAME ${ETEQ_TEST} COMMAND ${ETEQ_TEST})
 
 # tenncor/eteq/opsvc
@@ -670,7 +682,7 @@ add_executable(${DISTR_OPSVC_TEST}
     tenncor/eteq/opsvc/test/test_derive.cpp
     tenncor/eteq/opsvc/test/test_evaluator.cpp
     tenncor/eteq/opsvc/test/test_reachable.cpp)
-target_link_libraries(${DISTR_OPSVC_TEST} ${_TESTUTIL} distr_iosvc_mock distr_opsvc_mock)
+target_link_libraries(${DISTR_OPSVC_TEST} ${_TESTUTIL} distr_iosvc_mock distr_opsvc_mock teq_mock)
 add_test(NAME ${DISTR_OPSVC_TEST} COMMAND ${DISTR_OPSVC_TEST})
 
 # tenncor/find/lusvc
@@ -678,7 +690,7 @@ set(DISTR_LUSVC_TEST distr_lusvc_test)
 add_executable(${DISTR_LUSVC_TEST}
     tenncor/find/lusvc/test/main.cpp
     tenncor/find/lusvc/test/test_lookup.cpp)
-target_link_libraries(${DISTR_LUSVC_TEST} ${_TESTUTIL} distr_iosvc_mock distr_lusvc_mock)
+target_link_libraries(${DISTR_LUSVC_TEST} ${_TESTUTIL} distr_iosvc_mock distr_lusvc_mock teq_mock)
 add_test(NAME ${DISTR_LUSVC_TEST} COMMAND ${DISTR_LUSVC_TEST})
 
 # tenncor/hone
@@ -695,7 +707,7 @@ set(DISTR_HOSVC_TEST distr_hosvc_test)
 add_executable(${DISTR_HOSVC_TEST}
     tenncor/hone/hosvc/test/main.cpp
     tenncor/hone/hosvc/test/test_optimize.cpp)
-target_link_libraries(${DISTR_HOSVC_TEST} ${_TESTUTIL} distr_iosvc_mock distr_hosvc_mock distr_printsvc_mock)
+target_link_libraries(${DISTR_HOSVC_TEST} ${_TESTUTIL} distr_iosvc_mock distr_hosvc_mock distr_printsvc_mock teq_mock)
 add_test(NAME ${DISTR_HOSVC_TEST} COMMAND ${DISTR_HOSVC_TEST})
 
 # tenncor/layr
@@ -706,7 +718,7 @@ add_executable(${LAYR_TEST}
     tenncor/layr/test/test_approx.cpp
     tenncor/layr/test/test_connect.cpp
     tenncor/layr/test/test_init.cpp)
-target_link_libraries(${LAYR_TEST} ${_TESTUTIL} ${LAYR_LIB})
+target_link_libraries(${LAYR_TEST} ${_TESTUTIL} ${LAYR_LIB} teq_mock)
 add_test(NAME ${LAYR_TEST} COMMAND ${LAYR_TEST})
 
 # tenncor/serial
@@ -725,7 +737,7 @@ add_executable(${DISTR_OXSVC_TEST}
     tenncor/serial/oxsvc/test/test_load.cpp
     tenncor/serial/oxsvc/test/test_save.cpp
     tenncor/serial/oxsvc/test/test_segment.cpp)
-target_link_libraries(${DISTR_OXSVC_TEST} ${_TESTUTIL} distr_iosvc_mock distr_oxsvc_mock distr_printsvc_mock)
+target_link_libraries(${DISTR_OXSVC_TEST} ${_TESTUTIL} distr_iosvc_mock distr_oxsvc_mock distr_printsvc_mock teq_mock)
 add_test(NAME ${DISTR_OXSVC_TEST} COMMAND ${DISTR_OXSVC_TEST})
 target_compile_definitions(${DISTR_OXSVC_TEST} PRIVATE CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}/")
 
