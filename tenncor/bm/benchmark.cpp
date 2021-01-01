@@ -135,6 +135,21 @@ static void NAME(benchmark::State& state)\
 }
 
 
+DEFN_BENCHMARK(BM_Assign, tenncor().assign, DEFN_BINARY)
+
+
+DEFN_BENCHMARK(BM_AssignAdd, tenncor().assign_add, DEFN_BINARY)
+
+
+DEFN_BENCHMARK(BM_AssignSub, tenncor().assign_sub, DEFN_BINARY)
+
+
+DEFN_BENCHMARK(BM_AssignMul, tenncor().assign_mul, DEFN_BINARY)
+
+
+DEFN_BENCHMARK(BM_AssignDiv, tenncor().assign_div, DEFN_BINARY)
+
+
 DEFN_BENCHMARK(BM_Pow, tenncor().pow, DEFN_BINARY)
 
 
