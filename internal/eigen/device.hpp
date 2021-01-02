@@ -66,12 +66,13 @@ struct PtrRef final : public iEigen
 	T* ref_;
 };
 
-template <typename T, typename ARGS>
+template <typename T>
 struct TensAssign final : public iEigen
 {
-	TensAssign (teq::iTensor& target, ARGS args,
-		std::function<void(TensorT<T>&,ARGS&)> assign) :
-		target_(&target), args_(args), assign_(assign) {}
+	using AssignF = std::function<void(TensorT<T>&,const teq::iTensor&)>;
+
+	TensAssign (teq::iTensor& target, const teq::iTensor& arg, AssignF assign) :
+		target_(&target), arg_(&arg), assign_(assign) {}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override
@@ -88,15 +89,15 @@ struct TensAssign final : public iEigen
 	/// Implementation of iEigen
 	void assign (void) override
 	{
-		assign_(static_cast<SrcRef<T>&>(target_->device()).data_, args_);
+		assign_(static_cast<SrcRef<T>&>(target_->device()).data_, *arg_);
 	}
 
 	teq::iTensor* target_;
 
-	/// Assignment arguments
-	ARGS args_;
+	/// Assignment argument
+	const teq::iTensor* arg_;
 
-	std::function<void(TensorT<T>&,ARGS&)> assign_;
+	AssignF assign_;
 };
 
 /// Implementation of iEigen that assigns TensorMap to Tensor object

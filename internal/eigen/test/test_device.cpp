@@ -65,27 +65,18 @@ TEST(DEVICE, TensAssign)
 	auto dest = std::make_shared<MockMutableLeaf>();
 	EXPECT_CALL(*dest, shape()).WillRepeatedly(Return(shape));
 	EXPECT_CALL(*dest, device()).WillRepeatedly(ReturnRef(devref));
-	eigen::PtrRef<double> src(data.data());
+
+	auto srcvar = make_var(shape);
 
 	bool assign_called = false;
-	eigen::TensAssign<double,std::vector<double>> ref(*dest, data,
-	[&devref, &data, &assign_called](eigen::TensorT<double>& dst, std::vector<double>& src)
+	eigen::TensAssign<double> ref(*dest, *srcvar,
+	[&devref, &assign_called, &srcvar](eigen::TensorT<double>& dst, const teq::iTensor& src)
 	{
 		EXPECT_EQ(devref.data(), dst.data());
-		auto srcbegin = (double*) src.data();
-		std::vector<double> srcdata(srcbegin, srcbegin + 4);
-		EXPECT_VECEQ(data, srcdata);
+		EXPECT_EQ(srcvar.get(), &src);
 		assign_called = true;
 	});
-
-	[&devref](const eigen::iEigen& ref)
-	{
-		EXPECT_EQ(devref.data(), ref.data());
-	}(ref);
-
 	ref.assign(); // assigning shouldn't do anything
-
-	EXPECT_EQ(devref.data(), ref.data());
 	EXPECT_TRUE(assign_called);
 }
 
