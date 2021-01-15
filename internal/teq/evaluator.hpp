@@ -10,8 +10,19 @@ namespace teq
 
 struct TravEvaluator final : public iOnceTraveler
 {
-	TravEvaluator (iDevice& device, const TensSetT& ignored = {}) :
-		ignored_(ignored), device_(&device) {}
+	TravEvaluator (iDevice& device,
+		const TensSetT& targets, const TensSetT& ignored) :
+		ignored_(ignored), device_(&device), targets_(targets)
+	{
+		for (auto ig : ignored)
+		{
+			if (nullptr != ig && nullptr == ig->device().data())
+			{
+				global::throw_errf("cannot ignore tensor %s without existing data",
+					ig->to_string().c_str());
+			}
+		}
+	}
 
 	TensSetT ignored_;
 
@@ -28,10 +39,12 @@ private:
 		}
 		auto dependencies = func.get_args();
 		multi_visit(*this, dependencies);
-		device_->calc(func);
+		device_->calc(func, (size_t) estd::has(targets_, &func));
 	}
 
 	iDevice* device_;
+
+	TensSetT targets_;
 };
 
 struct Evaluator final : public iEvaluator
@@ -42,7 +55,7 @@ struct Evaluator final : public iEvaluator
 		const TensSetT& targets,
 		const TensSetT& ignored = {}) override
 	{
-		TravEvaluator eval(device, ignored);
+		TravEvaluator eval(device, targets, ignored);
 		multi_visit(eval, targets);
 	}
 };

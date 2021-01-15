@@ -215,27 +215,30 @@ TEST(LOAD, LayerGraph)
 		WillOnce(Invoke(handle_leaf(exshape2,"e"))).
 		WillOnce(Invoke(handle_leaf(exshape2,"f"))).
 		WillOnce(Invoke(handle_leaf(exshape2,"g")));
-	EXPECT_CALL(unmarsh, unmarsh_func(_,_,_)).Times(11).
-		WillOnce(Invoke(handle_func({"c"}, "h"))).
-		WillOnce(Invoke(handle_func({"d"}, "i"))).
-		WillOnce(Invoke(handle_func({"i","d"}, "j"))).
-		WillOnce(Invoke(handle_func({"h","j"}, "k"))).
-		WillOnce(Invoke(handle_func({"k","a"}, "l"))).
-		WillOnce(Invoke(handle_func({"b","l"}, "m"))).
-		WillOnce(Invoke(handle_func({"e"}, "n"))).
-		WillOnce(Invoke(handle_func({"g"}, "o"))).
-		WillOnce(Invoke(handle_func({"f"}, "p"))).
-		WillOnce(Invoke(handle_func({"n","o","p"}, "q"))).
-		WillOnce(Invoke(handle_func({"e","q"}, "r")));
-	EXPECT_CALL(unmarsh, unmarsh_layr(_,_,_,_)).Times(1).
-		WillOnce(Invoke(handle_layer("j", "i", "s")));
+	EXPECT_CALL(unmarsh, unmarsh_func(_,_,_)).Times(13).
+		WillOnce(Invoke(handle_func({"c"}, "i"))).
+		WillOnce(Invoke(handle_func({"c"}, "j"))).
+		WillOnce(Invoke(handle_func({"d"}, "z"))).
+		WillOnce(Invoke(handle_func({"z","d"}, "j"))).
+		WillOnce(Invoke(handle_func({"a"}, "k"))).
+		WillOnce(Invoke(handle_func({"j","j"}, "l"))).
+		WillOnce(Invoke(handle_func({"l","a"}, "m"))).
+		WillOnce(Invoke(handle_func({"b", "m"}, "n"))).
+		WillOnce(Invoke(handle_func({"e"}, "o"))).
+		WillOnce(Invoke(handle_func({"g"}, "p"))).
+		WillOnce(Invoke(handle_func({"f"}, "q"))).
+		WillOnce(Invoke(handle_func({"o","p", "q"}, "r"))).
+		WillOnce(Invoke(handle_func({"e", "r"}, "j")));
+	EXPECT_CALL(unmarsh, unmarsh_layr(_,_,_,_)).Times(2).
+		WillOnce(Invoke(handle_layer("j", "i", "s"))).
+		WillOnce(Invoke(handle_layer("j", "z", "zz")));
 
 	onnx::TensptrIdT ids;
 	teq::TensptrsT graph_roots = onnx::load_graph(ids, model.graph(), unmarsh);
 	ASSERT_EQ(2, graph_roots.size());
 
-	EXPECT_STREQ("m", graph_roots.front()->to_string().c_str());
-	EXPECT_STREQ("r", graph_roots.back()->to_string().c_str());
+	EXPECT_STREQ("n", graph_roots.front()->to_string().c_str());
+	EXPECT_STREQ("j", graph_roots.back()->to_string().c_str());
 }
 
 
@@ -273,26 +276,31 @@ TEST(LOAD, ReplaceLayerGraph)
 		WillOnce(Invoke(handle_leaf(exshape2,"k"))).
 		WillOnce(Invoke(handle_leaf(exshape2,"l"))).
 		WillOnce(Invoke(handle_leaf(exshape2,"m")));
-	EXPECT_CALL(unmarsh, unmarsh_func(_,_,_)).Times(12).
+	EXPECT_CALL(unmarsh, unmarsh_func(_,_,_)).Times(15).
 		WillOnce(Invoke(handle_func({"c"}, "n"))).
-		WillOnce(Invoke(handle_func({"i"}, "o"))).
-		WillOnce(Invoke(handle_func({"j"}, "p"))).
-		WillOnce(Invoke(handle_func({"p", "j"}, "q"))).
-		WillOnce(Invoke(handle_func({"o","q"}, "r"))).
-		WillOnce(Invoke(handle_func({"r","h"}, "s"))).
-		WillOnce(Invoke(handle_func({"replaced","s"}, "t"))).
-		WillOnce(Invoke(handle_func({"k"}, "u"))).
-		WillOnce(Invoke(handle_func({"m"}, "v"))).
-		WillOnce(Invoke(handle_func({"l"}, "w"))).
-		WillOnce(Invoke(handle_func({"u","v","w"}, "x"))).
-		WillOnce(Invoke(handle_func({"k","x"}, "y")));
-	EXPECT_CALL(unmarsh, unmarsh_layr(_,_,_,_)).Times(1).
-		WillOnce(Invoke(handle_layer("q", "p", "z")));
+		WillOnce(Invoke(handle_func({"c"}, "o"))).
+		WillOnce(Invoke(handle_func({"i"}, "p"))).
+		WillOnce(Invoke(handle_func({"i"}, "q"))).
+		WillOnce(Invoke(handle_func({"j"}, "r"))).
+		WillOnce(Invoke(handle_func({"r","j"}, "s"))).
+		WillOnce(Invoke(handle_func({"h"}, "t"))).
+		WillOnce(Invoke(handle_func({"q", "s"}, "u"))).
+		WillOnce(Invoke(handle_func({"u", "h"}, "v"))).
+		WillOnce(Invoke(handle_func({"replaced","v"}, "w"))).
+		WillOnce(Invoke(handle_func({"k"}, "x"))).
+		WillOnce(Invoke(handle_func({"m"}, "y"))).
+		WillOnce(Invoke(handle_func({"l"}, "aa"))).
+		WillOnce(Invoke(handle_func({"x","y","aa"}, "ad"))).
+		WillOnce(Invoke(handle_func({"k","ad"}, "ae")));
+	EXPECT_CALL(unmarsh, unmarsh_layr(_,_,_,_)).Times(3).
+		WillOnce(Invoke(handle_layer("o", "n", "z"))).
+		WillOnce(Invoke(handle_layer("q", "p", "ab"))).
+		WillOnce(Invoke(handle_layer("s", "r", "ac")));
 
-	auto badm = std::make_shared<MockLeaf>();
+	auto badm = make_var(exshape);
 	onnx::TensptrIdT badids;
-	badids.insert({badm, "5"});
-	std::string fatalmsg = "duplicate id 5";
+	badids.insert({badm, "6"});
+	std::string fatalmsg = "duplicate id 6";
 	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
 	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(onnx::load_graph(badids, model.graph(), unmarsh), fatalmsg.c_str());

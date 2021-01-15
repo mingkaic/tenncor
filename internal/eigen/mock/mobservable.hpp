@@ -92,6 +92,11 @@ struct MockMObservable final : public eigen::Observable
 		func_.must_initialize();
 	}
 
+	void cache_init (void) override
+	{
+		func_.cache_init();
+	}
+
 	bool prop_version (size_t max_version) override
 	{
 		return func_.prop_version(max_version);

@@ -285,7 +285,7 @@ TEST_F(SHAPER, Matmul)
 	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
 	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillRepeatedly(Return(true));
 
-	egen::ShapeParser<egen::MATMUL> parser;
+	egen::ShapeParser<egen::CONTRACT> parser;
 	eigen::Packer<eigen::PairVecT<teq::RankT>> packer;
 
 	teq::Shape c({3, 4, 6});

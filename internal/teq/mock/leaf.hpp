@@ -30,11 +30,11 @@ void make_var (MockLeaf& out, const teq::Shape& shape, const std::string& label 
 
 template <typename T>
 void make_var (MockLeaf& out, T* data, MockDeviceRef& devref,
-	const teq::Shape& shape, const std::string& label = "")
+	const teq::Shape& shape, const std::string& label = "",
+	jobs::GuardOpF once_exec = jobs::GuardOpF())
 {
 	make_var(out, shape, label);
-	EXPECT_CALL(devref, data()).WillRepeatedly(Return(data));
-	EXPECT_CALL(Const(devref), data()).WillRepeatedly(Return(data));
+	make_devref(devref, data, once_exec);
 
 	EXPECT_CALL(out, device()).WillRepeatedly(ReturnRef(devref));
 	EXPECT_CALL(Const(out), device()).WillRepeatedly(ReturnRef(devref));
@@ -45,10 +45,11 @@ MockLeafptrT make_var (const teq::Shape& shape, const std::string& label = "");
 
 template <typename T>
 MockLeafptrT make_var (T* data, MockDeviceRef& devref,
-	const teq::Shape& shape, const std::string& label = "")
+	const teq::Shape& shape, const std::string& label = "",
+	jobs::GuardOpF once_exec = jobs::GuardOpF())
 {
-	auto out = make_var(shape, label);
-	make_var<T>(*out, data, devref, shape, label);
+	auto out = std::make_shared<MockLeaf>();
+	make_var<T>(*out, data, devref, shape, label, once_exec);
 	return out;
 }
 

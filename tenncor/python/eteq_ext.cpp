@@ -103,16 +103,27 @@ void eteq_ext (py::module& m)
 			return py::array(ipshape.size(), ipshape.data());
 		},
 		"Return this instance's shape")
-		.def("raw",
+		.def("data",
 		[](eteq::ETensor& self)
 		{
 			auto dtype = (egen::_GENERATED_DTYPE) self->get_meta().type_code();
-#define _CHOOSE_RAWTYPE(REALTYPE)\
-			return pytenncor::typedata_to_array<REALTYPE>(\
-				self.data<REALTYPE>(), self->shape(),\
-				self->get_meta().type_code(), py::dtype::of<REALTYPE>());
-TYPE_LOOKUP(_CHOOSE_RAWTYPE, dtype);
-#undef _CHOOSE_RAWTYPE
+#define _CHOOSE_DATATYPE(REALTYPE)\
+			return pytenncor::typedata_to_array<REALTYPE>(self.data<REALTYPE>(),\
+				self->shape(), self->get_meta().type_code(), py::dtype::of<REALTYPE>());
+			TYPE_LOOKUP(_CHOOSE_DATATYPE, dtype);
+#undef _CHOOSE_DATATYPE
+			return py::array();
+		})
+		.def("release_data",
+		[](eteq::ETensor& self)
+		{
+			auto dtype = (egen::_GENERATED_DTYPE) self->get_meta().type_code();
+#define _CHOOSE_RELEASE_DATATYPE(REALTYPE){\
+			auto data = self.odata<REALTYPE>();\
+			return pytenncor::typedata_to_array<REALTYPE>(data.get(), self->shape(),\
+				self->get_meta().type_code(), py::dtype::of<REALTYPE>()); }
+			TYPE_LOOKUP(_CHOOSE_RELEASE_DATATYPE, dtype);
+#undef _CHOOSE_RELEASE_DATATYPE
 			return py::array();
 		})
 		.def("get",
@@ -123,8 +134,22 @@ TYPE_LOOKUP(_CHOOSE_RAWTYPE, dtype);
 			return pytenncor::typedata_to_array<REALTYPE>(\
 				self.calc<REALTYPE>(ignored, max_version), self->shape(),\
 				self->get_meta().type_code(), py::dtype::of<REALTYPE>());
-TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
+			TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 #undef _CHOOSE_CALCTYPE
+			return py::array();
+		},
+		py::arg("ignored") = teq::TensSetT{},
+		py::arg("max_version") = std::numeric_limits<size_t>::max())
+		.def("release_get",
+		[](eteq::ETensor& self, teq::TensSetT ignored, size_t max_version)
+		{
+			auto dtype = (egen::_GENERATED_DTYPE) self->get_meta().type_code();
+#define _CHOOSE_RELEASE_CALCTYPE(REALTYPE){\
+			auto out = self.calc_release<REALTYPE>(ignored, max_version);\
+			return pytenncor::typedata_to_array<REALTYPE>(out.get(), self->shape(),\
+				self->get_meta().type_code(), py::dtype::of<REALTYPE>()); }
+			TYPE_LOOKUP(_CHOOSE_RELEASE_CALCTYPE, dtype);
+#undef _CHOOSE_RELEASE_CALCTYPE
 			return py::array();
 		},
 		py::arg("ignored") = teq::TensSetT{},
@@ -133,6 +158,14 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 		[](const eteq::ETensor& self)
 		{
 			return self->get_meta().state_version();
+		})
+		.def("cache",
+		[](eteq::ETensor& self)
+		{
+			if (auto f = dynamic_cast<eigen::Observable*>(self.get()))
+			{
+				f->cache_init();
+			}
 		})
 
 		// layer extensions
@@ -227,6 +260,22 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 
 	// ==== inline functions ====
 	m
+		// ==== operations ====
+		.def("run",
+		[](const eteq::ETensorsT& targets, const eteq::ETensorsT& ignored, size_t max_version)
+		{
+			teq::TensSetT igset;
+			igset.reserve(ignored.size());
+			for (auto& etens : ignored)
+			{
+				igset.emplace(etens.get());
+			}
+			eteq::run(targets, igset, max_version);
+		},
+		py::arg("targets"),
+		py::arg("ignored") = eteq::ETensorsT{},
+		py::arg("max_version") = std::numeric_limits<size_t>::max())
+
 		// ==== constant creation ====
 		.def("scalar_constant",
 		[](PybindT scalar, py::list slist)

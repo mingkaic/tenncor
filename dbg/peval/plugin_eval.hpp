@@ -25,7 +25,7 @@ struct PlugableEvaluator final : public teq::iEvaluator
 		const teq::TensSetT& targets,
 		const teq::TensSetT& ignored = {}) override
 	{
-		teq::TravEvaluator eval(device, ignored);
+		teq::TravEvaluator eval(device, targets, ignored);
 		teq::multi_visit(eval, targets);
 		for (iPlugin& plugin : plugins_)
 		{

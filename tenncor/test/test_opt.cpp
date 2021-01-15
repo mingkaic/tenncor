@@ -200,11 +200,11 @@ TEST(OPTIMIZE, RNNLayer)
 	roots = hone::optimize(roots, rulefile);
 
 	{
-	std::ofstream os("opt0.txt");
-	PrettyEquation artist;
-	artist.cfg_.showshape_ = true;
-	artist.cfg_.showtype_ = true;
-	artist.print(os, roots[0]);
+		std::ofstream os("opt0.txt");
+		PrettyEquation artist;
+		artist.cfg_.showshape_ = true;
+		artist.cfg_.showtype_ = true;
+		artist.print(os, roots[0]);
 
 		std::string expect_pbfile = testdir + "/opt0.txt";
 		std::ifstream expect_ifs(expect_pbfile);
@@ -214,11 +214,11 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[0]);
 	}
 	{
-	std::ofstream os("opt1.txt");
-	PrettyEquation artist;
-	artist.cfg_.showshape_ = true;
-	artist.cfg_.showtype_ = true;
-	artist.print(os, roots[1]);
+		std::ofstream os("opt1.txt");
+		PrettyEquation artist;
+		artist.cfg_.showshape_ = true;
+		artist.cfg_.showtype_ = true;
+		artist.print(os, roots[1]);
 
 		std::string expect_pbfile = testdir + "/opt1.txt";
 		std::ifstream expect_ifs(expect_pbfile);
@@ -228,11 +228,11 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[1]);
 	}
 	{
-	std::ofstream os("opt2.txt");
-	PrettyEquation artist;
-	artist.cfg_.showshape_ = true;
-	artist.cfg_.showtype_ = true;
-	artist.print(os, roots[2]);
+		std::ofstream os("opt2.txt");
+		PrettyEquation artist;
+		artist.cfg_.showshape_ = true;
+		artist.cfg_.showtype_ = true;
+		artist.print(os, roots[2]);
 
 		std::string expect_pbfile = testdir + "/opt2.txt";
 		std::ifstream expect_ifs(expect_pbfile);
@@ -242,11 +242,11 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[2]);
 	}
 	{
-	std::ofstream os("opt3.txt");
-	PrettyEquation artist;
-	artist.cfg_.showshape_ = true;
-	artist.cfg_.showtype_ = true;
-	artist.print(os, roots[3]);
+		std::ofstream os("opt3.txt");
+		PrettyEquation artist;
+		artist.cfg_.showshape_ = true;
+		artist.cfg_.showtype_ = true;
+		artist.print(os, roots[3]);
 
 		std::string expect_pbfile = testdir + "/opt3.txt";
 		std::ifstream expect_ifs(expect_pbfile);

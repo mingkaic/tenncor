@@ -488,7 +488,8 @@ class TFWriter(TestWriter):
     def generate_matmul(self):
         shapes = [
             ([5, 5], [5, 5]),
-            ([50, 16], [16, 1])
+            ([50, 16], [16, 1]),
+            ([2, 5, 6], [2, 6, 7])
         ]
 
         if 'matmul.shape_shape_left' in _generate_data and\

@@ -250,6 +250,23 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			}
 				break;
 			case egen::MATMUL:
+				if (arg_idx == 0)
+				{
+					out = make_functor(egen::MATMUL, {
+						supgrad, 
+						make_functor(egen::PERMUTE, {args[1]}, teq::RanksT{1, 0})
+					});
+				}
+				else
+				{
+					// (sup^T @ arg0)^T = arg0^T @ sup
+					out = make_functor(egen::MATMUL, {
+						make_functor(egen::PERMUTE, {args[0]}, teq::RanksT{1, 0}),
+						supgrad 
+					});
+				}
+				break;
+			case egen::CONTRACT:
 			{
 				eigen::PairVecT<teq::RankT> dims;
 				eigen::Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, *op);
@@ -310,10 +327,10 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 					{
 						grad_dims.push_back({i, rucom_ranks[i]});
 					}
-					// convolution output has shape <lucom, lcom>
+					// contract output has shape <lucom, lcom>
 					order = lcom_ranks;
 					order.insert(order.end(), lucom_ranks.begin(), lucom_ranks.end());
-					// reverse order such that convolution output permutes to args[0]->shape()
+					// reverse order such that contract output permutes to args[0]->shape()
 					order = reorder_permute(order);
 				}
 				else
@@ -323,10 +340,10 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 					{
 						grad_dims.push_back({rucom_ranks.size() + i, lucom_ranks[i]});
 					}
-					// convolution output has shape <rcom, rucom>
+					// contract output has shape <rcom, rucom>
 					order = rcom_ranks;
 					order.insert(order.end(), rucom_ranks.begin(), rucom_ranks.end());
-					// reverse order such that convolution output permutes to args[1]->shape()
+					// reverse order such that contract output permutes to args[1]->shape()
 					order = reorder_permute(order);
 				}
 				if (grad_dims.empty())
@@ -336,7 +353,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						teq::narrow_shape(right->shape()).size()});
 				}
 				out = make_functor(egen::PERMUTE, {
-					make_functor(egen::MATMUL, {supgrad, right}, grad_dims),
+					make_functor(egen::CONTRACT, {supgrad, right}, grad_dims),
 				}, order);
 			}
 				break;

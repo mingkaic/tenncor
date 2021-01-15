@@ -71,15 +71,19 @@ static eteq::ETensorsT mock_model (global::CfgMapptrT ctx)
 
 TEST(SERIALIZE, SaveGraph)
 {
+	auto gen = std::make_shared<MockGenerator>();
+	global::set_generator(gen);
+
 	std::string expect_pbfile = testdir + "/eteq.onnx";
-	//std::string got_pbfile = "got_eteq.onnx";
+#ifdef EXPORT_TESTDATA
 	std::string got_pbfile = "/tmp/eteq.onnx";
+#else
+	std::string got_pbfile = "got_eteq.onnx";
+#endif
 
 	size_t counter = 0;
 	auto incr_id = [&]{ return fmts::to_string(++counter); };
 
-	auto gen = std::make_shared<MockGenerator>();
-	global::set_generator(gen);
 	EXPECT_CALL(*gen, get_str()).
 		WillRepeatedly(Invoke(incr_id));
 
@@ -121,6 +125,7 @@ TEST(SERIALIZE, SaveGraph)
 		differ.ReportDifferencesToString(&report);
 		EXPECT_TRUE(differ.Compare(expect_model, got_model)) << report;
 	}
+	global::set_generator(nullptr);
 }
 
 
@@ -195,15 +200,19 @@ TEST(SERIALIZE, LoadGraph)
 
 TEST(SERIALIZE, SaveContext)
 {
+	auto gen = std::make_shared<MockGenerator>();
+	global::set_generator(gen);
+
 	std::string expect_pbfile = testdir + "/eteq_ctx.onnx";
-	//std::string got_pbfile = "got_eteq_ctx.onnx";
+#ifdef EXPORT_TESTDATA
 	std::string got_pbfile = "/tmp/eteq_ctx.onnx";
+#else
+	std::string got_pbfile = "got_eteq_ctx.onnx";
+#endif
 
 	size_t counter = 0;
 	auto incr_id = [&]{ return fmts::to_string(++counter); };
 
-	auto gen = std::make_shared<MockGenerator>();
-	global::set_generator(gen);
 	EXPECT_CALL(*gen, get_str()).
 		WillRepeatedly(Invoke(incr_id));
 
@@ -247,6 +256,7 @@ TEST(SERIALIZE, SaveContext)
 		differ.ReportDifferencesToString(&report);
 		EXPECT_TRUE(differ.Compare(expect_model, got_model)) << report;
 	}
+	global::set_generator(nullptr);
 }
 
 
@@ -305,7 +315,11 @@ TEST(SERIALIZE, LoadContext)
 	artist.print(gotstr, dw1);
 	artist.print(gotstr, db1);
 
+#ifdef EXPORT_TESTDATA
 	std::ofstream os("/tmp/eteq.json");
+#else
+	std::ofstream os("got_eteq.json");
+#endif
 	artist.print(os, dw0);
 	artist.print(os, db0);
 	artist.print(os, dw1);
@@ -321,6 +335,10 @@ TEST(SERIALIZE, LoadContext)
 	}
 
 	EXPECT_STREQ(expect.c_str(), got.c_str());
+#ifdef EXPORT_TESTDATA
+	std::ofstream extract("/tmp/eteq.txt");
+	extract << got;
+#endif
 }
 
 

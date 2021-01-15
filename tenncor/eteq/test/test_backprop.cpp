@@ -447,13 +447,13 @@ TEST(BACKPROP, Matmul)
 	EXPECT_CALL(*arg2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
 	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
-	auto op = eteq::make_functor(egen::MATMUL, teq::TensptrsT{arg, arg2},
+	auto op = eteq::make_functor(egen::CONTRACT, teq::TensptrsT{arg, arg2},
 		eigen::PairVecT<teq::RankT>{{0, 1}});
 
 	auto result = der.lderive(std::dynamic_pointer_cast<teq::iFunctor>(op), super, 1);
 	EXPECT_GRAPHEQ(
 		"(PERMUTE<DOUBLE>[2\\3\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(MATMUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(CONTRACT<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(constant:super<DOUBLE>[2\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
 }

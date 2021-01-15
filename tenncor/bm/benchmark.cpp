@@ -218,6 +218,48 @@ BENCHMARK_TEMPLATE(BM_Matmul, int32_t)
 	->Complexity(benchmark::oN);
 
 
+template <typename T>
+static void BM_Batch_Matmul(benchmark::State& state)
+{
+	size_t n = state.range(0);
+	for (auto _ : state)
+	{
+		state.PauseTiming();
+		std::uniform_int_distribution<teq::DimT> distc(9, std::min(255ul, n - 1));
+		teq::DimT common_dim = distc(mersenne_engine);
+		int remaining = (double) n / common_dim;
+		std::uniform_int_distribution<> distsides(1, std::min(255, remaining));
+		teq::DimT left_dim = distsides(mersenne_engine);
+		teq::DimT right_dim = distsides(mersenne_engine);
+		teq::DimT batch_dim = 2;
+		teq::Shape leftshape({common_dim, left_dim, batch_dim});
+		teq::Shape rightshape({right_dim, common_dim, batch_dim});
+		std::vector<double> data = random_data(leftshape.n_elems(), -35, 35);
+		std::vector<double> data2 = random_data(rightshape.n_elems(), -35, 35);
+		std::vector<T> convdata(data.begin(), data.end());
+		std::vector<T> convdata2(data2.begin(), data2.end());
+		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), leftshape, "var");
+		eteq::EVariable<T> var2 = eteq::make_variable<T>(convdata2.data(), rightshape, "var2");
+		eteq::ETensor out = tenncor().matmul(var, var2);
+		state.ResumeTiming();
+		out.template calc<T>();
+	}
+	state.SetComplexityN(state.range(0));
+}
+
+BENCHMARK_TEMPLATE(BM_Batch_Matmul, double)
+	->Range(64, 2048)
+	->Complexity(benchmark::oN);
+
+BENCHMARK_TEMPLATE(BM_Batch_Matmul, float)
+	->Range(64, 2048)
+	->Complexity(benchmark::oN);
+
+BENCHMARK_TEMPLATE(BM_Batch_Matmul, int32_t)
+	->Range(64, 2048)
+	->Complexity(benchmark::oN);
+
+
 static void BM_MatmulComplex(benchmark::State& state)
 {
 	teq::DimsT alist = {3, 2};

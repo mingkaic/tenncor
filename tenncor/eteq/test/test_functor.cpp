@@ -233,4 +233,45 @@ TEST_F(FUNCTOR, Prop)
 }
 
 
+#ifndef PERM_OP
+TEST_F(FUNCTOR, Cache)
+{
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+
+	std::vector<double> data{
+		1, 2, 3, 4, 5, 6,
+		1, 2, 3, 4, 5, 6};
+	teq::Shape argshape({4, 3});
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto a = make_var(data.data(), devref, argshape);
+	EXPECT_CALL(*a, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(0));
+
+	std::vector<double> outdata(12);
+	MockRuntimeMemory memory;
+	{
+		marsh::Maps attrs;
+		auto f = eteq::Functor<double>::get(egen::SIN, {a}, std::move(attrs));
+		teq::TensptrT ftens(f);
+
+		ASSERT_FALSE(f->has_data());
+		f->cache_init();
+		EXPECT_TRUE(f->has_data());
+
+		auto dev = dynamic_cast<eigen::iEigen*>(&f->device());
+		ASSERT_NE(nullptr, dev);
+
+		EXPECT_CALL(memory, allocate(12 * sizeof(double))).
+			WillOnce(Return(outdata.data()));
+		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+
+		dev->assign(1, memory);
+		dev->odata();
+		EXPECT_NE(nullptr, dev->data());
+	}
+}
+#endif
+
+
 #endif // DISABLE_ETEQ_FUNCTOR_TEST

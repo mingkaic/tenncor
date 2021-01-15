@@ -145,8 +145,8 @@ static void unary_generic (UnaryOpF<double> op,
 
 	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
 	{
-		eigen::Device(true).calc(*dtens);
-		eigen::Device(true).calc(*dtens); // idempotency check
+		eigen::Device(true).calc(*dtens,0);
+		eigen::Device(true).calc(*dtens,0); // idempotency check
 	}
 	verify(dest, shape, data);
 
@@ -601,8 +601,8 @@ TEST(API, Assign)
 	auto ass1 = tenncor().assign(target1, src);
 	auto ass2 = tenncor().assign(target2, -src);
 
-	eigen::Device(true).calc(*ass1);
-	eigen::Device(true).calc(*ass1); // idempotency check
+	eigen::Device(true).calc(*ass1,0);
+	eigen::Device(true).calc(*ass1,0); // idempotency check
 	{
 		auto gotshape = target1->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -1246,8 +1246,8 @@ TEST(API, Select)
 
 		auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 		ASSERT_NE(nullptr, dtens);
-		eigen::Device(true).calc(*dtens);
-		eigen::Device(true).calc(*dtens); // idempotency check
+		eigen::Device(true).calc(*dtens,0);
+		eigen::Device(true).calc(*dtens,0); // idempotency check
 		{
 			auto gotshape = dest->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -1333,8 +1333,8 @@ TEST(API, Slice)
 	};
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	auto gotshape = dest->shape();
 	ASSERT_ARREQ(exshape, gotshape);
 	double* optr = (double*) dest->device().data();
@@ -1519,8 +1519,8 @@ TEST(API, Argmax)
 
 	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
 	{
-		eigen::Device(true).calc(*dtens);
-		eigen::Device(true).calc(*dtens); // idempotency check
+		eigen::Device(true).calc(*dtens,0);
+		eigen::Device(true).calc(*dtens,0); // idempotency check
 	}
 	teq::Shape oshape = dest->shape();
 	teq::Shape exshape;
@@ -1615,8 +1615,8 @@ TEST(API, Rprod)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	{
 		size_t n = dest->shape().n_elems();
 		{
@@ -1630,8 +1630,8 @@ TEST(API, Rprod)
 
 	auto dtens2 = static_cast<eteq::Functor<int32_t>*>(dest2.get());
 	ASSERT_NE(nullptr, dtens2);
-	eigen::Device(true).calc(*dtens2);
-	eigen::Device(true).calc(*dtens2); // idempotency check
+	eigen::Device(true).calc(*dtens2,0);
+	eigen::Device(true).calc(*dtens2,0); // idempotency check
 	{
 		teq::DimsT expect_list(shape.begin(), shape.end());
 		expect_list[1] = 1;
@@ -1890,8 +1890,8 @@ TEST(API, Permute)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	size_t n = dest->shape().n_elems();
 	ASSERT_EQ(nelem, n);
 	double* got = (double*) dest->device().data();
@@ -1945,8 +1945,8 @@ TEST(API, Extend)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	size_t ext_nelem = teq::Shape(ext).n_elems();
 	auto extshape = dest->shape();
 	teq::Shape expect_shape({2, 5, 1, 3});
@@ -2023,8 +2023,8 @@ TEST(API, Matmul)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(2, gotshape.at(1));
@@ -2125,8 +2125,8 @@ TEST(API, Contract)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(1, gotshape.at(1));
@@ -2203,8 +2203,8 @@ static void test_rand_unif (teq::DimsT shape_list)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -2326,8 +2326,8 @@ TEST(API, Convolution)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(expectslist, gotshape);
@@ -2433,7 +2433,7 @@ TEST(API, Dense)
 	EXPECT_GRAPHEQ(
 		"(IDENTITY<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(ADD<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(MATMUL<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(CONTRACT<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(variable:x<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(variable:weight<FLOAT>[5\\6\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(EXTEND<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -2441,7 +2441,7 @@ TEST(API, Dense)
 
 	EXPECT_GRAPHEQ(
 		"(IDENTITY<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(MATMUL<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(CONTRACT<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(variable:x2<FLOAT>[7\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(variable:weight<FLOAT>[6\\7\\1\\1\\1\\1\\1\\1])", y);
 }
@@ -2474,7 +2474,7 @@ TEST(API, DenseSerialization)
 		EXPECT_GRAPHEQ(
 			"(IDENTITY<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_`--(ADD<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			"_____`--(MATMUL<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"_____`--(CONTRACT<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_____|___`--(variable:x<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_____|___`--(variable:weight<FLOAT>[5\\6\\1\\1\\1\\1\\1\\1])\n"
 			"_____`--(EXTEND<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -2493,7 +2493,7 @@ TEST(API, DenseSerialization)
 		EXPECT_GRAPHEQ(
 			"(IDENTITY<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_`--(ADD<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			"_____`--(MATMUL<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"_____`--(CONTRACT<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_____|___`--(variable:x<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_____|___`--(variable:weight<FLOAT>[5\\6\\1\\1\\1\\1\\1\\1])\n"
 			"_____`--(EXTEND<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"

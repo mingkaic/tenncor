@@ -11,7 +11,7 @@ struct iDevice
 {
 	virtual ~iDevice (void) = default;
 
-	virtual void calc (iTensor& tens) = 0;
+	virtual void calc (iTensor& tens, size_t cache_ttl) = 0;
 };
 
 struct iEvaluator

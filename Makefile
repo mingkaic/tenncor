@@ -8,7 +8,8 @@ install_test_deps:
 .PHONY: generate_testcases
 generate_testcases: install_test_deps
 	bazel run //testutil:tf_gen -- /tmp/tf_testcases.json
-	mv /tmp/tf_testcases.json models/test
+	mv /tmp/tf_testcases.json models/test/testcases/
+	jq -c . < /tmp/tf_testcases.json | split -b 10000000 --additional-suffix=.json - models/test/testcases/tf_cases_
 
 .PHONY: test_consul_up
 test_consul_up:
@@ -424,16 +425,16 @@ python_create:
 
 CC := gcc
 
-.PHONY: try_all_demo
+.PHONY: try_demos
 try_demos:
-	bazel run --config ${CC}_eigen_optimal //demo:w2v_demo
-	bazel run --config ${CC}_eigen_optimal //demo:rnn_demo
-	bazel run --config ${CC}_eigen_optimal //demo:rbm_demo
-	bazel run --config ${CC}_eigen_optimal //demo:lstm_latin_demo
-	bazel run --config ${CC}_eigen_optimal //demo:lstm_fast_demo
-	bazel run --config ${CC}_eigen_optimal //demo:gru_latin_demo
-	bazel run --config ${CC}_eigen_optimal //demo:gru_fast_demo
-	bazel run --config ${CC}_eigen_optimal //demo:gd_demo
-	bazel run --config ${CC}_eigen_optimal //demo:dqn_demo
-	bazel run --config ${CC}_eigen_optimal //demo:dbn_demo
-	bazel run --config ${CC}_eigen_optimal //demo:cgd_demo
+	bazel run --config ${CC}_eigen_optimal //demo:w2v
+	bazel run --config ${CC}_eigen_optimal //demo:rnn -- --save /tmp/rnn.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:rbm -- --save /tmp/rbm.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:lstm_latin -- --save /tmp/latin_lstm.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:lstm_fast -- --save /tmp/fast_lstm.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:gru_latin -- --save /tmp/latin_gru.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:gru_fast -- --save /tmp/fast_gru.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:gd -- --save /tmp/gd.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:dqn -- --save /tmp/dqn.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:dbn -- --save /tmp/dbn.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:cgd

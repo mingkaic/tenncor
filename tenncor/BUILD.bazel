@@ -60,7 +60,12 @@ filegroup(
 
 filegroup(
     name = "ptest_srcs",
-    srcs = ["test/ptest.py"],
+    srcs = [
+        "test/main.py",
+        "test/test_api.py",
+        "test/test_distrib.py",
+        "test/test_layer.py",
+    ],
 )
 
 ######### LIBRARY #########
@@ -150,6 +155,18 @@ cc_binary(
     data = ["//cfg:optimizations"],
 )
 
+cc_binary(
+    name = "perm_benchmark",
+    srcs = ["bm/benchmark.cpp"],
+    deps = [
+        ":tenncor",
+        "@com_github_google_benchmark//:benchmark",
+    ],
+    copts = ["-std=c++17"],
+    defines = ["PERM_OP"],
+    data = ["//cfg:optimizations"],
+)
+
 py_binary(
     name = "tf_memory_benchmark",
     srcs = ["bm/tf_mem_benchmark.py"],
@@ -190,6 +207,7 @@ cc_test(
 py_test(
     name = "ptest",
     srcs = [":ptest_srcs"],
+    main = "test/main.py",
     deps = [
         "//dbg:print_py",
         ":tenncor_py",

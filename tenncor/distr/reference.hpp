@@ -134,6 +134,18 @@ private:
 			return data_.data();
 		}
 
+		teq::Once<void*> odata (void) override
+		{
+			teq::Once<void*> out(data());
+			return out;
+		}
+
+		teq::Once<const void*> odata (void) const override
+		{
+			teq::Once<const void*> out(data());
+			return out;
+		}
+
 		std::string data_;
 	};
 

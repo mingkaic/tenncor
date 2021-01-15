@@ -1,6 +1,7 @@
 opcode:
   includes:
     - internal/eigen/operator.hpp
+    - internal/eigen/perm_operator.hpp
     - internal/eigen/packattr.hpp
   params: eigen::EigenptrT& out, teq::Shape outshape, const teq::TensptrsT& in, const marsh::iAttributed& attrib
   per_op:
@@ -61,7 +62,7 @@ opcode:
                   });
   opcalls:
     IDENTITY:
-      stmt: out = eigen::ref<T>(outshape, *in[0]);
+      stmt: out = eigen::ref(in[0]);
       ShapeParser:
         out:
           val: |
@@ -281,7 +282,7 @@ opcode:
                     }
                     return teq::Shape(slist);
     RESHAPE:
-      stmt: out = eigen::reshape<T>(outshape, *in[0]);
+      stmt: out = eigen::ref(in[0]);
       FuncOpt:
         out:
           val: |
@@ -316,7 +317,7 @@ opcode:
                     }
                     return outshape;
     SLICE:
-      stmt: out = eigen::slice<T>(outshape, *in[0], attrib);
+      stmt: out = eigen::slice<T>(outshape, in[0], attrib);
       FuncOpt:
         out:
           val: |
@@ -491,7 +492,28 @@ opcode:
     GT:
       stmt: out = eigen::gt<T>(outshape, *in[0], *in[1]);
     MATMUL:
-      stmt: out = eigen::matmul<T>(outshape, *in[0], *in[1], attrib);
+      stmt: out = eigen::matmul<T>(outshape, *in[0], *in[1]);
+      ShapeParser:
+        out:
+          val: |
+                    // check common dimensions
+                    teq::Shape ashape = shapes[0];
+                    teq::Shape bshape = shapes[1];
+                    if (false == ashape.compatible_after(bshape, 2))
+                    {
+                        global::throw_errf("invalid shapes %s and %s do not match for dimensions 2+",
+                            ashape.to_string().c_str(), bshape.to_string().c_str());
+                    }
+                    if (ashape.at(0) != bshape.at(1))
+                    {
+                        global::throw_errf("invalid shapes %s and %s have mismatch common dimension 0,1",
+                            ashape.to_string().c_str(), bshape.to_string().c_str());
+                    }
+                    teq::DimsT outlist = {bshape.at(0), ashape.at(1)};
+                    outlist.insert(outlist.end(), ashape.begin() + 2, ashape.end());
+                    return teq::Shape(outlist);
+    CONTRACT:
+      stmt: out = eigen::contract<T>(outshape, *in[0], *in[1], attrib);
       ShapeParser:
         out:
           val: |
@@ -657,7 +679,7 @@ opcode:
       TypeParser: ASSIGN
       idempotent: False
     CAST:
-      stmt: out = eigen::cast<T>(*in[0]);
+      stmt: out = eigen::cast<T>(in[0]);
       FuncOpt:
         out:
           val: |

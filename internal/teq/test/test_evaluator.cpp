@@ -56,11 +56,11 @@ TEST(EVALUATOR, Update)
 	// `-- c
 	const teq::iTensor* capx = nullptr;
 	const teq::iTensor* captarg = nullptr;
-	auto capture_x = [&](const teq::iTensor& arg){ capx = &arg; };
-	auto capture_target = [&](const teq::iTensor& arg){ captarg = &arg; };
+	auto capture_x = [&](const teq::iTensor& arg, size_t){ capx = &arg; };
+	auto capture_target = [&](const teq::iTensor& arg, size_t){ captarg = &arg; };
 
 	MockDevice mdevice;
-	EXPECT_CALL(mdevice, calc(_)).Times(2).
+	EXPECT_CALL(mdevice, calc(_,_)).Times(2).
 		WillOnce(Invoke(capture_x)).
 		WillOnce(Invoke(capture_target));
 
@@ -85,6 +85,12 @@ TEST(EVALUATOR, UpdateIgnore)
 	auto y = make_fnc("", 0, teq::TensptrsT{x, c});
 	auto target = make_fnc("", 0, teq::TensptrsT{y, d});
 
+	double mockdata = 0;
+	MockDeviceRef devref;
+	EXPECT_CALL(*y, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*x, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(devref, data()).WillRepeatedly(Return(&mockdata));
+
 	// before
 	// (target) = not updated
 	// `-- (y) = not updated
@@ -103,10 +109,10 @@ TEST(EVALUATOR, UpdateIgnore)
 	// |   `-- c
 	// `-- d
 	const teq::iTensor* captarg = nullptr;
-	auto capture_target = [&](const teq::iTensor& arg){ captarg = &arg; };
+	auto capture_target = [&](const teq::iTensor& arg,size_t){ captarg = &arg; };
 
 	MockDevice mdevice;
-	EXPECT_CALL(mdevice, calc(_)).Times(1).
+	EXPECT_CALL(mdevice, calc(_,_)).Times(1).
 		WillOnce(Invoke(capture_target));
 
 	teq::Evaluator eval;
@@ -124,10 +130,10 @@ TEST(EVALUATOR, UpdateIgnore)
 	// `-- d
 	const teq::iTensor* capy = nullptr;
 	const teq::iTensor* captarg2 = nullptr;
-	auto capture_y = [&](const teq::iTensor& arg){ capy = &arg; };
-	auto capture_target2 = [&](const teq::iTensor& arg){ captarg2 = &arg; };
+	auto capture_y = [&](const teq::iTensor& arg, size_t){ capy = &arg; };
+	auto capture_target2 = [&](const teq::iTensor& arg, size_t){ captarg2 = &arg; };
 
-	EXPECT_CALL(mdevice, calc(_)).Times(2).
+	EXPECT_CALL(mdevice, calc(_,_)).Times(2).
 		WillOnce(Invoke(capture_y)).
 		WillOnce(Invoke(capture_target2));
 
@@ -150,6 +156,13 @@ TEST(EVALUATOR, UpdateIgnoreCommonDesc)
 	auto x = make_fnc("", 0, teq::TensptrsT{u, b});
 	auto y = make_fnc("", 0, teq::TensptrsT{c, u});
 	auto target = make_fnc("", 0, teq::TensptrsT{y, x});
+
+	double mockdata = 0;
+	MockDeviceRef devref;
+	EXPECT_CALL(*y, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*x, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*u, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(devref, data()).WillRepeatedly(Return(&mockdata));
 
 	// before
 	// (target) = not updated
@@ -175,12 +188,12 @@ TEST(EVALUATOR, UpdateIgnoreCommonDesc)
 	const teq::iTensor* capu = nullptr;
 	const teq::iTensor* capx = nullptr;
 	const teq::iTensor* captarg = nullptr;
-	auto capture_u = [&](const teq::iTensor& arg){ capu = &arg; };
-	auto capture_x = [&](const teq::iTensor& arg){ capx = &arg; };
-	auto capture_target = [&](const teq::iTensor& arg){ captarg = &arg; };
+	auto capture_u = [&](const teq::iTensor& arg, size_t){ capu = &arg; };
+	auto capture_x = [&](const teq::iTensor& arg, size_t){ capx = &arg; };
+	auto capture_target = [&](const teq::iTensor& arg, size_t){ captarg = &arg; };
 
 	MockDevice mdevice;
-	EXPECT_CALL(mdevice, calc(_)).Times(3).
+	EXPECT_CALL(mdevice, calc(_,_)).Times(3).
 		WillOnce(Invoke(capture_u)).
 		WillOnce(Invoke(capture_x)).
 		WillOnce(Invoke(capture_target));
@@ -219,10 +232,10 @@ TEST(EVALUATOR, TargetedUpdate)
 	// |   `-- b
 	// `-- c
 	const teq::iTensor* capx = nullptr;
-	auto capture_x = [&](const teq::iTensor& arg){ capx = &arg; };
+	auto capture_x = [&](const teq::iTensor& arg, size_t){ capx = &arg; };
 
 	MockDevice mdevice;
-	EXPECT_CALL(mdevice, calc(_)).Times(1).
+	EXPECT_CALL(mdevice, calc(_,_)).Times(1).
 		WillOnce(Invoke(capture_x));
 
 	teq::Evaluator eval;
@@ -245,6 +258,12 @@ TEST(EVALUATOR, TargetedUpdateIgnore)
 	auto y = make_fnc("", 0, teq::TensptrsT{x, c});
 	auto target = make_fnc("", 0, teq::TensptrsT{y, d});
 
+	double mockdata = 0;
+	MockDeviceRef devref;
+	EXPECT_CALL(*y, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*x, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(devref, data()).WillRepeatedly(Return(&mockdata));
+
 	// before
 	// (targetd) = not updated
 	// `-- (y) = not updated
@@ -263,10 +282,10 @@ TEST(EVALUATOR, TargetedUpdateIgnore)
 	// |   `-- c
 	// `-- d
 	const teq::iTensor* capy = nullptr;
-	auto capture_y = [&](const teq::iTensor& arg){ capy = &arg; };
+	auto capture_y = [&](const teq::iTensor& arg, size_t){ capy = &arg; };
 
 	MockDevice mdevice;
-	EXPECT_CALL(mdevice, calc(_)).Times(1).
+	EXPECT_CALL(mdevice, calc(_,_)).Times(1).
 		WillOnce(Invoke(capture_y));
 
 	teq::Evaluator eval;
@@ -290,6 +309,14 @@ TEST(EVALUATOR, TargetedUpdateIgnoreCommonDesc)
 	auto y = make_fnc("", 0, teq::TensptrsT{c, u});
 	auto z = make_fnc("", 0, teq::TensptrsT{y, x});
 	auto target = make_fnc("", 0, teq::TensptrsT{z, d});
+
+	double mockdata = 0;
+	MockDeviceRef devref;
+	EXPECT_CALL(*z, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*y, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*x, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*u, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(devref, data()).WillRepeatedly(Return(&mockdata));
 
 	// before
 	// (targeted) = not updated
@@ -319,12 +346,12 @@ TEST(EVALUATOR, TargetedUpdateIgnoreCommonDesc)
 	const teq::iTensor* capu = nullptr;
 	const teq::iTensor* capx = nullptr;
 	const teq::iTensor* capz = nullptr;
-	auto capture_u = [&](const teq::iTensor& arg){ capu = &arg; };
-	auto capture_x = [&](const teq::iTensor& arg){ capx = &arg; };
-	auto capture_z = [&](const teq::iTensor& arg){ capz = &arg; };
+	auto capture_u = [&](const teq::iTensor& arg, size_t){ capu = &arg; };
+	auto capture_x = [&](const teq::iTensor& arg, size_t){ capx = &arg; };
+	auto capture_z = [&](const teq::iTensor& arg, size_t){ capz = &arg; };
 
 	MockDevice mdevice;
-	EXPECT_CALL(mdevice, calc(_)).Times(3).
+	EXPECT_CALL(mdevice, calc(_,_)).Times(3).
 		WillOnce(Invoke(capture_u)).
 		WillOnce(Invoke(capture_x)).
 		WillOnce(Invoke(capture_z));

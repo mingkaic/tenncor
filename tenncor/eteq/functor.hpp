@@ -189,17 +189,23 @@ struct Functor final : public eigen::Observable
 	bool initialize (void) override
 	{
 		if (std::all_of(args_.begin(), args_.end(),
-			[](teq::TensptrT child)
+		[](teq::TensptrT child)
+		{
+			if (auto f = dynamic_cast<eigen::Observable*>(child.get()))
 			{
-				if (auto f = dynamic_cast<eigen::Observable*>(child.get()))
-				{
-					return f->has_data();
-				}
-				return true;
-			}))
+				return f->has_data();
+			}
+			return true;
+		}))
 		{
 			egen::typed_exec<T>((egen::_GENERATED_OPCODE) opcode_.code_,
 				ref_, shape_, args_, *this);
+#ifndef PERM_OP
+			if (cache_data_)
+			{
+				ref_ = std::make_shared<eigen::CacheEigen>(ref_);
+			}
+#endif
 		}
 		return has_data();
 	}
@@ -219,6 +225,21 @@ struct Functor final : public eigen::Observable
 		{
 			global::fatal("failed to initialize");
 		}
+	}
+
+	/// Implementation of Observable
+	void cache_init (void) override
+	{
+		// no point in all this if PERM_OP is not defined
+#ifndef PERM_OP
+		if (cache_data_)
+		{
+			return;
+		}
+		// reinitialize with cache
+		cache_data_ = true;
+		must_initialize();
+#endif
 	}
 
 	/// Implementation of Observable
@@ -290,6 +311,8 @@ private:
 	teq::TensptrsT args_;
 
 	eigen::EMetadata<T> meta_;
+
+	bool cache_data_ = false;
 };
 
 #undef _CHOOSE_PARSER

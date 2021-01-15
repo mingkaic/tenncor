@@ -129,6 +129,13 @@ struct DBNTrainer final
 		auto& eval = teq::get_eval(global::context());
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
+			if (auto igfnc = dynamic_cast<eteq::Functor<T>*>(sample_pipes_[i].get()))
+			{
+				igfnc->cache_init();
+			}
+		}
+		for (size_t i = 0; i < nlayers_; ++i)
+		{
 			// train rbm layers (reconstruction) setup
 			auto to_ignore = sample_pipes_[i].get();
 			auto& updates = rupdates_[i];
@@ -168,6 +175,10 @@ struct DBNTrainer final
 		auto to_ignore = sample_pipes_.back();
 		auto prev_ignore = sample_pipes_[nlayers_ - 1].get();
 		assert(static_cast<eteq::Functor<T>*>(prev_ignore)->has_data());
+		if (auto igfnc = dynamic_cast<eteq::Functor<T>*>(to_ignore.get()))
+		{
+			igfnc->cache_init();
+		}
 		to_ignore.template calc<T>({prev_ignore});
 
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)

@@ -43,6 +43,24 @@ TensRegistryT& get_reg (const global::CfgMapptrT& ctx)
 	return *reg;
 }
 
+void run (const ETensorsT& targets, teq::TensSetT ignored, size_t max_version)
+{
+	if (targets.empty())
+	{
+		return;
+	}
+	if (auto ctx = targets.front().get_context())
+	{
+		eigen::Device device(max_version);
+		teq::TensSetT targset;
+		for (const auto& etens : targets)
+		{
+			targset.emplace(etens.get());
+		}
+		teq::get_eval(ctx).evaluate(device, targset, ignored);
+	}
+}
+
 }
 
 #endif

@@ -274,6 +274,7 @@ target_link_libraries(${TEQ_LIB} PUBLIC ${GLOBAL_LIB} ${MARSH_LIB})
 set(EIGEN_LIB ${PROJECT_NAME}_eigen)
 add_library(${EIGEN_LIB}
     internal/eigen/src/convert.cpp
+    internal/eigen/src/operator.cpp
     internal/eigen/src/packattr.cpp
     ${EIGEN_SRCS}
 )

@@ -138,10 +138,10 @@ TEST_F(EVALUATE, SimpleGraph)
 	MockDevice* foreigndev = dynamic_cast<MockDevice*>(distr::get_opsvc(*mgr).get_evaluator());
 	ASSERT_NE(nullptr, localdev);
 	ASSERT_NE(nullptr, foreigndev);
-	EXPECT_CALL(*localdev, calc(_)).Times(1).
-		WillOnce(Invoke([&capdest2](const teq::iTensor& args){ capdest2 = &args; }));
-	EXPECT_CALL(*foreigndev, calc(_)).Times(1).
-		WillOnce(Invoke([&capdest](const teq::iTensor& args){ capdest = &args; }));
+	EXPECT_CALL(*localdev, calc(_,_)).Times(1).
+		WillOnce(Invoke([&capdest2](const teq::iTensor& args, size_t){ capdest2 = &args; }));
+	EXPECT_CALL(*foreigndev, calc(_,_)).Times(1).
+		WillOnce(Invoke([&capdest](const teq::iTensor& args, size_t){ capdest = &args; }));
 	distr::get_opsvc(*mgr2).evaluate(*localdev, {dest2.get()});
 
 	EXPECT_EQ(dest.get(), capdest);

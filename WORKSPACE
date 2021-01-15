@@ -41,3 +41,12 @@ python_configure(name="local_config_python")
 
 load("//third_party:repos/benchmark.bzl", "benchmark_repository")
 benchmark_repository()
+
+# === development ===
+
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+git_repository(
+    name = "com_grail_bazel_compdb",
+	remote = "https://github.com/grailbio/bazel-compilation-database",
+	tag = "0.4.5",
+)

@@ -84,6 +84,8 @@ struct Observable : public teq::iFunctor
 	/// Do or die populate internal data object, will recurse
 	virtual void must_initialize (void) = 0;
 
+	virtual void cache_init (void) = 0;
+
 	/// Update metadata version to a desired version
 	/// Desired version is the maximum version of all functor children
 	/// and can be no higher than max_version

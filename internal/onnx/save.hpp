@@ -175,7 +175,10 @@ private:
 			if (auto tensattr = dynamic_cast<
 				const teq::TensorObj*>(func.get_attr(attr)))
 			{
-				tensattr->get_tensor()->accept(*this);
+				auto tens = tensattr->get_tensor();
+				assert(nullptr != tens);
+				tens->accept(*this);
+				roots_.erase(tens.get());
 			}
 		}
 
@@ -202,7 +205,9 @@ private:
 	{
 		// for layers, skip the subgraph and marshal inputs first
 		teq::TensptrT input = layer->get_tensor();
+		assert(nullptr != input);
 		input->accept(*this);
+		roots_.erase(input.get());
 
 		NodeProto* pb_node = pb_graph_.add_node();
 		pb_node->set_op_type(layer->get_opname());
@@ -289,10 +294,10 @@ void save_graph (GraphProto& pb_graph, const TS& roots,
 		marshal.roots_.begin(), marshal.roots_.end());
 #ifdef ORDERED_SAVE
 	std::sort(rtens.begin(), rtens.end(),
-		[&marshal](const teq::iTensor* a, const teq::iTensor* b)
-		{
-			return marshal.tens_.at(a) < marshal.tens_.at(b);
-		});
+    [&marshal](const teq::iTensor* a, const teq::iTensor* b)
+    {
+        return marshal.tens_.at(a) < marshal.tens_.at(b);
+    });
 #endif
 	for (const teq::iTensor* root : rtens)
 	{

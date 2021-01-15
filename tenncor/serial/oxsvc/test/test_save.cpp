@@ -35,6 +35,18 @@ const std::string test_service = "tenncor.serial.oxsvc.test";
 struct SAVE : public ::testing::Test, public DistrTestcase
 {
 protected:
+	virtual void SetUp (void)
+	{
+		gen_ = std::make_shared<MockGenerator>();
+		global::set_generator(gen_);
+	}
+
+	virtual void TearDown (void)
+	{
+		global::set_generator(nullptr);
+		gen_ = nullptr;
+	}
+
 	distr::iDistrMgrptrT make_mgr (const std::string& id)
 	{
 		return make_mgr(id, reserve_port());
@@ -47,6 +59,8 @@ protected:
 			register_mock_oxsvc,
 		}, id);
 	}
+
+	std::shared_ptr<MockGenerator> gen_;
 };
 
 
@@ -60,9 +74,7 @@ TEST_F(SAVE, AllLocalGraph)
 	size_t counter = 0;
 	auto incr_id = [&]{ return fmts::to_string(++counter); };
 
-	auto gen = std::make_shared<MockGenerator>();
-	global::set_generator(gen);
-	EXPECT_CALL(*gen, get_str()).
+	EXPECT_CALL(*gen_, get_str()).
 		WillRepeatedly(Invoke(incr_id));
 
 	{
@@ -163,9 +175,7 @@ TEST_F(SAVE, RemoteGraph)
 	size_t counter = 0;
 	auto incr_id = [&]{ return fmts::to_string(++counter); };
 
-	auto gen = std::make_shared<MockGenerator>();
-	global::set_generator(gen);
-	EXPECT_CALL(*gen, get_str()).
+	EXPECT_CALL(*gen_, get_str()).
 		WillRepeatedly(Invoke(incr_id));
 
 	{
@@ -307,9 +317,7 @@ TEST_F(SAVE, RootExposeGraph)
 	size_t counter = 0;
 	auto incr_id = [&]{ return fmts::to_string(++counter); };
 
-	auto gen = std::make_shared<MockGenerator>();
-	global::set_generator(gen);
-	EXPECT_CALL(*gen, get_str()).
+	EXPECT_CALL(*gen_, get_str()).
 		WillRepeatedly(Invoke(incr_id));
 
 	{

@@ -8,7 +8,7 @@
 
 #include "internal/teq/mock/mock.hpp"
 
-#include "internal/eigen/operator.hpp"
+#include "internal/eigen/eigen.hpp"
 
 
 using ::testing::_;

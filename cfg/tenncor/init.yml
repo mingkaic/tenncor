@@ -182,7 +182,7 @@ funcs:
             {
                 if (false == shape.compatible_after(teq::Shape(), 2))
                 {
-                    global::fatalf("identity initialization can only be used for to 2D tensors");
+                    global::fatal("identity initialization can only be used for to 2D tensors");
                 }
                 std::vector<T> vec(shape.n_elems(), 0);
                 teq::DimT x = shape.at(0), y = shape.at(1);

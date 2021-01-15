@@ -33,10 +33,28 @@ class TestWriter:
         })
 
 class TestReader:
-    def __init__(self, infile):
-        with open(infile, 'r') as file:
-            self.cases = json.load(file)
+    def __init__(self, tfile):
+        self.cases = json.load(tfile)
 
     def get_case(self, case_name):
         cases = self.cases[case_name]
         return [(case.get('input', ()), case.get('output', None)) for case in cases]
+
+def joint_json(testcases):
+    if len(testcases) > 1:
+        testcases.sort()
+        content = ''
+        for tcase in testcases:
+            with open(tcase, 'r') as src:
+                content += src.read()
+        class _Tmp:
+            def read(self):
+                return content
+            def close(self):
+                pass
+        casefile = _Tmp()
+    else:
+        casefile = open(testcases, 'r')
+    reader = TestReader(casefile)
+    casefile.close()
+    return reader

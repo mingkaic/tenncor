@@ -14,6 +14,7 @@
 
 #include "internal/teq/shape.hpp"
 #include "internal/teq/itraveler.hpp"
+#include "internal/teq/once.hpp"
 
 namespace teq
 {
@@ -27,6 +28,10 @@ struct iDeviceRef
 
 	/// Return const pointer to internal data
 	virtual const void* data (void) const = 0;
+
+	virtual Once<void*> odata (void) = 0;
+
+	virtual Once<const void*> odata (void) const = 0;
 };
 
 struct iMetadata
@@ -83,6 +88,8 @@ using TensrefT = std::weak_ptr<iTensor>;
 
 /// Vector of raw tensor pointers
 using TensT = std::vector<iTensor*>;
+
+using CTensT = std::vector<const iTensor*>;
 
 /// Vector of tensor smart pointers
 using TensptrsT = std::vector<TensptrT>;

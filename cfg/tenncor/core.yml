@@ -983,7 +983,7 @@ funcs:
         default: eigen::PairVecT<teq::RankT>{{0,1}}
     out:
       type: eteq::ETensor
-      val: return eteq::ETensor(eteq::make_functor(::egen::MATMUL,teq::TensptrsT{a,b},dims),ctx);
+      val: return eteq::ETensor(eteq::make_functor(::egen::CONTRACT,teq::TensptrsT{a,b},dims),ctx);
   - name: matmul
     args:
       - name: a
@@ -992,7 +992,7 @@ funcs:
         type: const eteq::ETensor&
     out:
       type: eteq::ETensor
-      val: return this->contract(a,b);
+      val: return eteq::ETensor(eteq::make_functor(::egen::MATMUL,teq::TensptrsT{a,b}),ctx);
   - name: convolution
     args:
       - name: image

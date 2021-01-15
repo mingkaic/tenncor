@@ -1,36 +1,3 @@
-{
-    "config_pools": {
-        "narrow": {
-            "nprod": 26000,
-            "val_range": {
-                "min": 1,
-                "max": 5
-            }
-        },
-        "tight": {
-            "nprod": 26000,
-            "val_range": {
-                "min": 1,
-                "max": 255
-            }
-        },
-        "matrix": {
-            "nprod": 26000,
-            "length": 2,
-            "val_range": {
-                "min": 1,
-                "max": 161
-            }
-        },
-        "vector": {
-            "nprod": 6600,
-            "length": 1
-        }
-    },
-    "test_cases": {
-        "elementary.shape": ["narrow", "tight"],
-        "notvector.shape": ["matrix"],
-        "matmul.shape_left": ["matrix"],
-        "matmul.shape_right": ["vector"]
-    }
-}
+version https://git-lfs.github.com/spec/v1
+oid sha256:885d914037ce06ff63f2cce91fd245f89ed92a97536f0e18226a722b7876692d
+size 791

@@ -141,13 +141,13 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			}
 
 			completions.push_back(client->get_data(*cq_, req,
-				[this, peer_id](NodeData& res)
-				{
-					auto uuid = res.uuid();
-					auto ref = static_cast<iDistrRef*>(
-						iosvc_->must_lookup_node(uuid).get());
-					ref->update_data(res.data().data(), res.version());
-				}));
+			[this, peer_id](NodeData& res)
+			{
+				auto uuid = res.uuid();
+				auto ref = static_cast<iDistrRef*>(
+					iosvc_->must_lookup_node(uuid).get());
+				ref->update_data(res.data().data(), res.version());
+			}));
 		}
 		// wait for completion before evaluating in local
 		egrpc::wait_for(completions,
@@ -156,8 +156,7 @@ struct DistrOpService final : public PeerService<DistrOpCli>
 			global::fatal(err->to_string());
 		});
 		// locally evaluate
-		teq::TravEvaluator eval(local_device, ignored);
-		teq::multi_visit(eval, targets);
+		teq::Evaluator().evaluate(local_device, targets, ignored);
 	}
 
 	/// Return map of reachable src tensors mapped to reachable dest ids

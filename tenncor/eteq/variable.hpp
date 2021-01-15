@@ -57,7 +57,7 @@ struct Variable final : public eigen::iMutableLeaf
 	{
 		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
-		this->ref_.data_ = input;
+		this->ref_.assign(input);
 	}
 
 	void assign (const eigen::TensorT<T>& input,
@@ -65,7 +65,7 @@ struct Variable final : public eigen::iMutableLeaf
 	{
 		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
-		this->ref_.data_ = input;
+		this->ref_.assign(input);
 	}
 
 	/// Assign void pointer of specified data type enum and shape

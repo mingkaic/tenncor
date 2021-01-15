@@ -9,6 +9,7 @@
 #include "internal/eigen/mock/mock.hpp"
 
 
+using ::testing::_;
 using ::testing::Return;
 using ::testing::ReturnRef;
 
@@ -26,31 +27,11 @@ TEST(DEVICE, SrcRef)
 		EXPECT_VECEQ(data, vec);
 	}(ref);
 
-	ref.assign(); // referencing shouldn't do anything
+	MockRuntimeMemory memory;
+	EXPECT_CALL(memory, allocate(_)).Times(0);
+	ref.assign(0, memory); // referencing shouldn't do anything
 
 	auto ptr = (double*) ref.data();
-	std::vector<double> vec(ptr, ptr + 4);
-	EXPECT_VECEQ(data, vec);
-}
-
-
-TEST(DEVICE, PtrRef)
-{
-	std::vector<double> data = {1, 2, 3, 4};
-	eigen::PtrRef<double> ref(data.data());
-
-	[&data](const eigen::iEigen& ref)
-	{
-		auto ptr = (double*) ref.data();
-		EXPECT_EQ(data.data(), ptr);
-		std::vector<double> vec(ptr, ptr + 4);
-		EXPECT_VECEQ(data, vec);
-	}(ref);
-
-	ref.assign(); // referencing shouldn't do anything
-
-	auto ptr = (double*) ref.data();
-	EXPECT_EQ(data.data(), ptr);
 	std::vector<double> vec(ptr, ptr + 4);
 	EXPECT_VECEQ(data, vec);
 }
@@ -65,129 +46,105 @@ TEST(DEVICE, TensAssign)
 	auto dest = std::make_shared<MockMutableLeaf>();
 	EXPECT_CALL(*dest, shape()).WillRepeatedly(Return(shape));
 	EXPECT_CALL(*dest, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*dest, upversion(1)).Times(1);
 
-	auto srcvar = make_var(shape);
+	MockDeviceRef srcref;
+	MockMeta mockmeta;
+	auto srcvar = make_var(data.data(), srcref, shape);
+	EXPECT_CALL(*srcvar, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, state_version()).WillOnce(Return(0));
 
 	bool assign_called = false;
 	eigen::TensAssign<double> ref(*dest, *srcvar,
-	[&devref, &assign_called, &srcvar](eigen::TensorT<double>& dst, const teq::iTensor& src)
+	[&devref, &srcref, &assign_called](eigen::TensMapT<double>& dst, const eigen::TensMapT<double>& src)
 	{
 		EXPECT_EQ(devref.data(), dst.data());
-		EXPECT_EQ(srcvar.get(), &src);
-		assign_called = true;
-	});
-	ref.assign(); // assigning shouldn't do anything
-	EXPECT_TRUE(assign_called);
-}
-
-
-TEST(DEVICE, TensAccum)
-{
-	teq::Shape shape({2, 2});
-	std::vector<double> data = {1, 2, 3, 4};
-
-	bool assign_called = false;
-	eigen::TensAccum<double,std::vector<double>> ref(
-	4., eigen::shape_convert(shape), data,
-	[&data, &assign_called](eigen::TensorT<double>& dst, const std::vector<double>& src)
-	{
-		double* ptr = dst.data();
-		std::vector<double> expect(4, 4);
-		std::vector<double> vec(ptr, ptr + 4);
-		EXPECT_VECEQ(expect, vec);
-		EXPECT_VECEQ(data, src);
+		EXPECT_EQ(srcref.data(), src.data());
 		assign_called = true;
 	});
 
-	[](const eigen::iEigen& ref)
-	{
-		auto ptr = (double*) ref.data();
-		std::vector<double> expect(4, 0);
-		std::vector<double> vec(ptr, ptr + 4);
-		EXPECT_VECEQ(expect, vec);
-	}(ref);
-
-	ref.assign(); // should initialize
-
-	auto ptr = (double*) ref.data();
-	std::vector<double> expect(4, 4);
-	std::vector<double> vec(ptr, ptr + 4);
-	EXPECT_VECEQ(expect, vec);
+	MockRuntimeMemory memory;
+	EXPECT_CALL(memory, allocate(_)).Times(0);
+	ref.assign(0, memory); // assigning shouldn't do anything
 	EXPECT_TRUE(assign_called);
 }
 
 
 TEST(DEVICE, TensOp)
 {
+	teq::Shape outshape({3, 1, 2});
 	teq::Shape shape({2, 1, 2});
 	std::vector<double> data = {1, 2, 3, 4};
+	std::vector<double> alloc_mem = {1, 2, 3, 4, 5, 6};
 
-	bool init_called = false;
-	eigen::TensOp<double,eigen::TensorT<double>,std::vector<double>>
-	ref(eigen::shape_convert(shape), data,
-	[&shape, &data, &init_called](std::vector<double>& src)
+	size_t lifetimes = 0;
+	auto incr_life = [&lifetimes]{ ++lifetimes; };
+
+	MockDeviceRef devref;
+	auto var = make_var(data.data(), devref, shape, "", incr_life);
+
+	MockRuntimeMemory memory;
+
 	{
-		EXPECT_VECEQ(data, src);
-		eigen::TensorT<double> out(eigen::shape_convert(shape));
-		out.setConstant(5);
-		init_called = true;
-		return out;
-	});
-	EXPECT_TRUE(init_called);
-	init_called = false;
+		bool init_called = false;
+		eigen::TensOp<double> ref(outshape, teq::CTensT{var.get()},
+		[&alloc_mem, &data, &init_called](
+			eigen::TensMapT<double>& out,
+			const std::vector<eigen::TensMapT<double>>& args)
+		{
+			ASSERT_EQ(1, args.size());
+			EXPECT_EQ(alloc_mem.data(), out.data());
+			EXPECT_EQ(data.data(), args[0].data());
+			init_called = true;
+		});
+		EXPECT_FALSE(init_called);
+		EXPECT_EQ(nullptr, ref.data());
 
-	[](const eigen::iEigen& ref)
-	{
-		auto ptr = (double*) ref.data();
-		std::vector<double> expect(4, 0);
-		std::vector<double> vec(ptr, ptr + 4);
-		EXPECT_VECEQ(expect, vec);
-	}(ref);
-
-	ref.assign(); // should initialize
-
-	auto ptr = (double*) ref.data();
-	std::vector<double> expect(4, 5);
-	std::vector<double> vec(ptr, ptr + 4);
-	EXPECT_VECEQ(expect, vec);
-	EXPECT_FALSE(init_called);
+		EXPECT_CALL(memory, allocate(outshape.n_elems() * sizeof(double))).Times(1).
+			WillOnce(Return(alloc_mem.data()));
+		EXPECT_CALL(memory, deallocate(alloc_mem.data())).Times(1);
+		ref.assign(1, memory); // should initialize
+		EXPECT_TRUE(init_called);
+	}
 }
 
 
 TEST(DEVICE, MatOp)
 {
+	teq::Shape outshape({3, 2});
 	teq::Shape shape({2, 2});
 	std::vector<double> data = {1, 2, 3, 4};
+	std::vector<double> alloc_mem = {1, 2, 3, 4, 5, 6};
 
-	bool init_called = false;
-	eigen::MatOp<double,eigen::MatrixT<double>,std::vector<double>>
-	ref(eigen::shape_convert(shape), data,
-	[&shape, &data, &init_called](std::vector<double>& src)
+	size_t lifetimes = 0;
+	auto incr_life = [&lifetimes]{ ++lifetimes; };
+
+	MockDeviceRef devref;
+	auto var = make_var(data.data(), devref, shape, "", incr_life);
+
+	MockRuntimeMemory memory;
+
 	{
-		EXPECT_VECEQ(data, src);
-		eigen::MatrixT<double> out(2, 2);
-		out.setConstant(6);
-		init_called = true;
-		return out;
-	});
-	EXPECT_TRUE(init_called);
-	init_called = false;
+		bool init_called = false;
+		eigen::MatOp<double> ref(outshape, teq::CTensT{var.get()},
+		[&alloc_mem, &data, &init_called](
+			eigen::MatMapT<double>& out,
+			const std::vector<eigen::MatMapT<double>>& args)
+		{
+			ASSERT_EQ(1, args.size());
+			EXPECT_EQ(alloc_mem.data(), out.data());
+			EXPECT_EQ(data.data(), args[0].data());
+			init_called = true;
+		});
+		EXPECT_FALSE(init_called);
+		EXPECT_EQ(nullptr, ref.data());
 
-	[](const eigen::iEigen& ref)
-	{
-		auto ptr = (double*) ref.data();
-		std::vector<double> expect(4, 0);
-		std::vector<double> vec(ptr, ptr + 4);
-		EXPECT_VECEQ(expect, vec);
-	}(ref);
-
-	ref.assign(); // should initialize
-
-	auto ptr = (double*) ref.data();
-	std::vector<double> expect(4, 6);
-	std::vector<double> vec(ptr, ptr + 4);
-	EXPECT_VECEQ(expect, vec);
-	EXPECT_FALSE(init_called);
+		EXPECT_CALL(memory, allocate(outshape.n_elems() * sizeof(double))).Times(1).
+			WillOnce(Return(alloc_mem.data()));
+		EXPECT_CALL(memory, deallocate(alloc_mem.data())).Times(1);
+		ref.assign(1, memory); // should initialize
+		EXPECT_TRUE(init_called);
+	}
 }
 
 
@@ -199,9 +156,10 @@ TEST(DEVICE, Calc)
 	std::vector<double> srcdata2 = {2, 8, 4};
 	std::vector<double> srcdata3 = {3, 7, 5};
 	auto dest = std::make_shared<MockMutableLeaf>();
-	eigen::PtrRef<double> srcref(srcdata.data());
-	eigen::PtrRef<double> srcref2(srcdata2.data());
-	eigen::PtrRef<double> srcref3(srcdata3.data());
+	MockDeviceRef srcref, srcref2, srcref3;
+	make_devref(srcref, srcdata.data());
+	make_devref(srcref2, srcdata2.data());
+	make_devref(srcref3, srcdata3.data());
 	EXPECT_CALL(*dest, shape()).WillRepeatedly(Return(shape));
 	EXPECT_CALL(*dest, device()).WillRepeatedly(ReturnRef(srcref));
 
@@ -212,28 +170,39 @@ TEST(DEVICE, Calc)
 	EXPECT_CALL(*lhs, device()).WillRepeatedly(ReturnRef(srcref2));
 	EXPECT_CALL(*rhs, device()).WillRepeatedly(ReturnRef(srcref3));
 
-	eigen::PtrRef<double> src(data.data());
+	MockDeviceRef src;
+	make_devref(src, data.data());
 	auto obsref = std::make_shared<MockEigen>();
 	MockMeta mockmeta;	
+
+	double mockdata = 0;
+	EXPECT_CALL(*obsref, data()).WillRepeatedly(Return(&mockdata));
+	EXPECT_CALL(Const(*obsref), data()).WillRepeatedly(Return(&mockdata));
 
 	auto obs = std::make_shared<MockObservable>();
 	EXPECT_CALL(*obs, get_args()).WillRepeatedly(Return(teq::TensptrsT{lhs, rhs}));
 	EXPECT_CALL(*obs, device()).WillRepeatedly(ReturnRef(*obsref));
 	EXPECT_CALL(*obs, to_string()).WillRepeatedly(Return("Hello"));
 
-	EXPECT_CALL(*obsref, assign()).Times(1);
+	EXPECT_CALL(*obsref, assign(1, _)).Times(1);
 	EXPECT_CALL(*obs, prop_version(dev.max_version_)).Times(1).WillOnce(Return(true));
-	dev.calc(*obs);
+	dev.calc(*obs,0);
 
 	dev.max_version_ = 0;
-	EXPECT_CALL(*obsref, assign()).Times(0);
+	EXPECT_CALL(*obsref, assign(_, _)).Times(0);
 	EXPECT_CALL(*obs, prop_version(dev.max_version_)).Times(1).WillOnce(Return(false));
-	dev.calc(*obs);
+	dev.calc(*obs,0);
 
 	dev.max_version_ = 10;
-	EXPECT_CALL(*obsref, assign()).Times(1);
+	EXPECT_CALL(*obsref, assign(1, _)).Times(1);
 	EXPECT_CALL(*obs, prop_version(dev.max_version_)).Times(1).WillOnce(Return(true));
-	dev.calc(*obs);
+	dev.calc(*obs,0);
+
+	MockMObservable parent({obs});
+	MockMObservable parent2({obs});
+	EXPECT_CALL(*obsref, assign(2, _)).Times(1);
+	EXPECT_CALL(*obs, prop_version(dev.max_version_)).Times(1).WillOnce(Return(true));
+	dev.calc(*obs, 0);
 }
 
 

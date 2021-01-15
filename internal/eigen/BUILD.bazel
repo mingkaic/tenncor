@@ -133,3 +133,18 @@ cc_test(
     ],
     linkstatic = True,
 )
+
+cc_test(
+    name = "perm_test",
+    srcs = [":test_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        ":mock",
+        "//dbg/print:print",
+        "//testutil:tutil",
+        "@com_github_mingkaic_cppkg//diff:diff",
+        "@com_github_mingkaic_cppkg//exam:exam",
+    ],
+    defines = ["PERM_OP"],
+    linkstatic = True,
+)

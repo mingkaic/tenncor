@@ -139,17 +139,40 @@ struct ETensor
 	}
 
 	template <typename T>
+	teq::Once<T*> odata (void)
+	{
+		auto tens = get();
+		assert(tens->get_meta().type_code() == egen::get_type<T>());
+		auto out = tens->device().odata();
+		teq::Once<T*> result((T*) out.get(), std::move(out));
+		return result;
+	}
+
+	template <typename T>
 	T* calc (teq::TensSetT ignored = {},
 		size_t max_version = std::numeric_limits<size_t>::max())
 	{
 		if (auto ctx = get_context())
 		{
-			auto tens = get();
 			eigen::Device device(max_version);
-			teq::get_eval(ctx).evaluate(device, {tens}, ignored);
+			teq::get_eval(ctx).evaluate(device, {get()}, ignored);
 			return data<T>();
 		}
 		return nullptr;
+	}
+
+	template <typename T>
+	teq::Once<T*> calc_release (teq::TensSetT ignored = {},
+		size_t max_version = std::numeric_limits<size_t>::max())
+	{
+		if (auto ctx = get_context())
+		{
+			eigen::Device device(max_version);
+			teq::get_eval(ctx).evaluate(device, {get()}, ignored);
+			return odata<T>();
+		}
+		teq::Once<T*> result(nullptr);
+		return result;
 	}
 
 private:
@@ -181,6 +204,9 @@ private:
 using ETensorsT = std::vector<ETensor>;
 
 teq::TensptrsT to_tensors (const ETensorsT& etensors);
+
+void run (const ETensorsT& targets, teq::TensSetT ignored = {},
+	size_t max_version = std::numeric_limits<size_t>::max());
 
 }
 

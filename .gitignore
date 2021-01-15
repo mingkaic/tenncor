@@ -72,8 +72,12 @@ CMakeFiles
 
 html/
 
+tags
+compile_commands.json
+
 # whitelist
 !.gitignore
+!.gitattributes
 !.travis.yml
 !.dockerignore
 !.gitmodules

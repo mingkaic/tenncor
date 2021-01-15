@@ -31,13 +31,10 @@ struct MockObservable : public eigen::Observable
 	MOCK_METHOD2(update_child, void(teq::TensptrT,size_t));
 
 	MOCK_CONST_METHOD0(has_data, bool(void));
-
 	MOCK_METHOD0(uninitialize, void(void));
-
 	MOCK_METHOD0(initialize, bool(void));
-
 	MOCK_METHOD0(must_initialize, void(void));
-
+	MOCK_METHOD0(cache_init, void(void));
 	MOCK_METHOD1(prop_version, bool(size_t));
 };
 

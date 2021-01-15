@@ -159,9 +159,10 @@ TEST_F(LOAD, RemoteEqualRootExpose)
 
 TEST_F(LOAD, SimpleRemoteGraph)
 {
+	global::set_generator(std::make_shared<MockGenerator>());
+
 	distr::iDistrMgrptrT manager(make_mgr("mgr"));
 	distr::iDistrMgrptrT manager2(make_mgr("mgr2"));
-	global::set_generator(std::make_shared<MockGenerator>());
 
 	onnx::ModelProto model;
 	{
@@ -253,14 +254,16 @@ TEST_F(LOAD, SimpleRemoteGraph)
 	// 	"_____`--(NEG)\n"
 	// 	"_________`--[mgr2]:(variable:s2src3)\n";
 	// EXPECT_STREQ(expect2.c_str(), ss2.str().c_str());
+	global::set_generator(nullptr);
 }
 
 
 TEST_F(LOAD, FlattenRemoteGraph)
 {
+	global::set_generator(std::make_shared<MockGenerator>());
+
 	distr::iDistrMgrptrT manager(make_mgr("mgr"));
 	distr::iDistrMgrptrT manager2(make_mgr("mgr2"));
-	global::set_generator(std::make_shared<MockGenerator>());
 	auto& svc2 = distr::get_iosvc(*manager2);
 
 	onnx::ModelProto model;
@@ -330,14 +333,16 @@ TEST_F(LOAD, FlattenRemoteGraph)
 		"_____|___`--(variable:s2src2<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(NEG<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n"
 		"_________`--(variable:s2src3<DOUBLE>[3\\7\\1\\1\\1\\1\\1\\1])\n", root2);
+	global::set_generator(nullptr);
 }
 
 
 TEST_F(LOAD, CyclicRemoteGraph)
 {
+	global::set_generator(std::make_shared<MockGenerator>());
+
 	distr::iDistrMgrptrT manager(make_mgr("mgr"));
 	distr::iDistrMgrptrT manager2(make_mgr("mgr2"));
-	global::set_generator(std::make_shared<MockGenerator>());
 
 	onnx::ModelProto model;
 	{
@@ -402,6 +407,7 @@ TEST_F(LOAD, CyclicRemoteGraph)
 		"_____`--(NEG)\n"
 		"_________`--(variable:s2src3)\n";
 	EXPECT_STREQ(expect2.c_str(), ss2.str().c_str());
+	global::set_generator(nullptr);
 }
 
 
