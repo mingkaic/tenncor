@@ -42,11 +42,16 @@ struct PermTensOp final : public iPermEigen
 {
 	using OpF = std::function<void(TensorT<T>&,const std::vector<TensMapT<INTYPE>>&)>;
 
-	PermTensOp (const teq::Shape& outshape, const teq::CTensT& args,
-		OpF op, T init = 0) :
-		data_(shape_convert(outshape)), op_(op), args_(args)
+	PermTensOp (const teq::Shape& outshape, const teq::CTensT& args, OpF op) :
+		data_(shape_convert(outshape)), op_(op)
 	{
-		data_.setConstant(init);
+		args_.reserve(args.size());
+		for (auto& arg : args)
+		{
+			teq::Once<const void*> argdata = arg->device().odata();
+			assert(nullptr != argdata.get());
+			args_.push_back(make_tensmap((INTYPE*) argdata.get(), arg->shape()));
+		}
 	}
 
 	/// Implementation of iDeviceRef
@@ -76,27 +81,17 @@ struct PermTensOp final : public iPermEigen
 	/// Implementation of iEigen
 	void assign (size_t, iRuntimeMemory&) override
 	{
-		std::vector<TensMapT<INTYPE>> args;
-		std::vector<teq::Once<const void*>> onces;
-		args.reserve(args_.size());
-		onces.reserve(args_.size());
-		for (auto& arg : args_)
-		{
-			teq::Once<const void*> argdata = arg->device().odata();
-			assert(nullptr != argdata.get());
-			args.push_back(make_tensmap((INTYPE*) argdata.get(), arg->shape()));
-			onces.push_back(std::move(argdata));
-		}
-		op_(data_, args);
+		op_(data_, args_);
 	}
 
 private:
+	/// Tensor operator arguments
+	std::vector<TensMapT<INTYPE>> args_;
+
+	/// Output tensor data object
 	TensorT<T> data_;
 
 	OpF op_;
-
-	/// Tensor operator arguments
-	teq::CTensT args_;
 };
 
 template <typename T, typename INTYPE=T>
@@ -104,11 +99,16 @@ struct PermMatOp final : public iPermEigen
 {
 	using OpF = std::function<void(MatrixT<T>&,const std::vector<MatMapT<INTYPE>>&)>;
 
-	PermMatOp (const teq::Shape& outshape, const teq::CTensT& args,
-		OpF op, T init = 0) :
-		data_(outshape.at(1), outshape.at(0)), op_(op), args_(args)
+	PermMatOp (const teq::Shape& outshape, const teq::CTensT& args, OpF op) :
+		data_(outshape.at(1), outshape.at(0)), op_(op)
 	{
-		data_.setConstant(init);
+		args_.reserve(args.size());
+		for (auto& arg : args)
+		{
+			teq::Once<const void*> argdata = arg->device().odata();
+			assert(nullptr != argdata.get());
+			args_.push_back(make_matmap((INTYPE*) argdata.get(), arg->shape()));
+		}
 	}
 
 	/// Implementation of iDeviceRef
@@ -138,27 +138,17 @@ struct PermMatOp final : public iPermEigen
 	/// Implementation of iEigen
 	void assign (size_t, iRuntimeMemory&) override
 	{
-		std::vector<MatMapT<INTYPE>> args;
-		std::vector<teq::Once<const void*>> onces;
-		args.reserve(args_.size());
-		onces.reserve(args_.size());
-		for (auto& arg : args_)
-		{
-			teq::Once<const void*> argdata = arg->device().odata();
-			assert(nullptr != argdata.get());
-			args.push_back(make_matmap((INTYPE*) argdata.get(), arg->shape()));
-			onces.push_back(std::move(argdata));
-		}
-		op_(data_, args);
+		op_(data_, args_);
 	}
 
 private:
+	/// Matrix operator arguments
+	std::vector<MatMapT<INTYPE>> args_;
+
+	/// Output matrix data object
 	MatrixT<T> data_;
 
 	OpF op_;
-
-	/// Tensor operator arguments
-	teq::CTensT args_;
 };
 
 #endif

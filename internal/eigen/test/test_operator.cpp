@@ -41,13 +41,13 @@ static void test_reduce (
 		MockLeaf edge;
 		MockDeviceRef mockdev;
 		make_var(edge, expect_raw.data(), mockdev, teq::Shape({3, 2}), "", incr_life);
-		auto r = red(teq::Shape({3}), edge, mvalues);
 
 #ifndef PERM_OP
 		EXPECT_CALL(memory, allocate(3 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = red(teq::Shape({3}), edge, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -73,10 +73,11 @@ TEST(OPERATOR, Ref)
 	teq::Shape outshape({2, 3});
 	MockDeviceRef mockdev;
 	auto origin = make_var(expect_raw.data(), mockdev, outshape);
-	auto r = eigen::ref(origin);
 
 	MockRuntimeMemory memory;
 	EXPECT_CALL(memory, allocate(_)).Times(0);
+
+	auto r = eigen::ref(origin);
 
 	auto raw = (double*) r->data();
 	EXPECT_EQ(odata, raw);
@@ -139,13 +140,12 @@ TEST(OPERATOR, ArgMax)
 	MockRuntimeMemory memory;
 
 	{
-		auto r = eigen::argmax<double>(teq::Shape({3}), edge, mvalues);
-
 #ifndef PERM_OP
 		EXPECT_CALL(memory, allocate(3 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::argmax<double>(teq::Shape({3}), edge, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -160,13 +160,12 @@ TEST(OPERATOR, ArgMax)
 		EXPECT_EQ(0, raw[1]);
 		EXPECT_EQ(1, raw[2]);
 
-		auto r2 = eigen::argmax<double>(teq::Shape({1}), edge2, mvalues2);
-
 #ifndef PERM_OP
 		EXPECT_CALL(memory, allocate(sizeof(double))).
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
 #endif
+		auto r2 = eigen::argmax<double>(teq::Shape({1}), edge2, mvalues2);
 
 		auto before2 = r2->data();
 		r2->assign(1, memory);
@@ -206,13 +205,12 @@ TEST(OPERATOR, Extend)
 	MockRuntimeMemory memory;
 
 	{
-		auto r = eigen::extend<double>(outshape, edge, mvalues);
-
 #ifndef PERM_OP
 		EXPECT_CALL(memory, allocate(24 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data()));
 #endif
+		auto r = eigen::extend<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -250,7 +248,6 @@ TEST(OPERATOR, Permute)
 		MockLeaf edge;
 		MockDeviceRef mockdev;
 		make_var(edge, orig_raw.data(), mockdev, teq::Shape({2, 2, 3}));
-		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -265,6 +262,7 @@ TEST(OPERATOR, Permute)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data()));
 #endif
+		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -293,7 +291,6 @@ TEST(OPERATOR, Permute)
 		MockLeaf edge;
 		MockDeviceRef mockdev;
 		make_var(edge, orig_raw.data(), mockdev, teq::Shape({2, 2, 3}));
-		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -308,6 +305,7 @@ TEST(OPERATOR, Permute)
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data()));
 #endif
+		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -336,7 +334,6 @@ TEST(OPERATOR, Permute)
 		MockLeaf edge;
 		MockDeviceRef mockdev;
 		make_var(edge, orig_raw.data(), mockdev, teq::Shape({2, 3}));
-		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -351,6 +348,7 @@ TEST(OPERATOR, Permute)
 			WillOnce(Return(outdata3.data()));
 		EXPECT_CALL(memory, deallocate(outdata3.data()));
 #endif
+		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -384,7 +382,6 @@ TEST(OPERATOR, Slice)
 			{{1, 2}, {1, 1}});
 
 		teq::Shape outshape({2, 1});
-		auto r = eigen::slice<double>(outshape, edge, mvalues);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -399,6 +396,7 @@ TEST(OPERATOR, Slice)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data()));
 #endif
+		auto r = eigen::slice<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -450,7 +448,6 @@ TEST(OPERATOR, MultiConcat)
 		MockDeviceRef mockdev2;
 		auto edge = make_var(orig_raw.data(), mockdev, teq::Shape({1, 4}));
 		auto edge2 = make_var(orig_raw2.data(), mockdev2, teq::Shape({1, 4}));
-		auto r = eigen::concat<double>(outshape, teq::TensptrsT{edge, edge2}, mvalues);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -471,6 +468,7 @@ TEST(OPERATOR, MultiConcat)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::concat<double>(outshape, teq::TensptrsT{edge, edge2}, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -502,7 +500,6 @@ TEST(OPERATOR, MultiConcat)
 		auto edge = make_var(orig_raw.data(), mockdev, teq::Shape({1, 4}));
 		auto edge2 = make_var(orig_raw2.data(), mockdev2, teq::Shape({1, 4}));
 		auto edge3 = make_var(orig_raw3.data(), mockdev3, teq::Shape({1, 4}));
-		auto r = eigen::concat<double>(outshape, teq::TensptrsT{edge, edge2, edge3}, mvalues);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -529,6 +526,7 @@ TEST(OPERATOR, MultiConcat)
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
 #endif
+		auto r = eigen::concat<double>(outshape, teq::TensptrsT{edge, edge2, edge3}, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -565,7 +563,6 @@ TEST(OPERATOR, Pow)
 		MockDeviceRef mockdev2;
 		auto edge = make_var(orig_raw.data(), mockdev, outshape);
 		auto edge2 = make_var(orig_raw2.data(), mockdev2, outshape);
-		auto r = eigen::pow<double>(outshape, *edge, *edge2);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -586,7 +583,8 @@ TEST(OPERATOR, Pow)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
-		
+		auto r = eigen::pow<double>(outshape, *edge, *edge2);
+
 		auto before = r->data();
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
@@ -609,7 +607,6 @@ TEST(OPERATOR, Pow)
 		MockDeviceRef mockdev2;
 		auto edge = make_var(orig_raw.data(), mockdev, outshape);
 		auto edge2 = make_var(orig_raw2.data(), mockdev2, outshape);
-		auto r = eigen::pow<double>(outshape, *edge, *edge2);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -630,6 +627,7 @@ TEST(OPERATOR, Pow)
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
 #endif
+		auto r = eigen::pow<double>(outshape, *edge, *edge2);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -661,7 +659,6 @@ TEST(OPERATOR, Add)
 		MockDeviceRef mockdev2;
 		auto edge = make_var(orig_raw.data(), mockdev, outshape);
 		auto edge2 = make_var(orig_raw2.data(), mockdev2, outshape);
-		auto r = eigen::add<double>(outshape, teq::TensptrsT{edge, edge2});
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -682,6 +679,7 @@ TEST(OPERATOR, Add)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::add<double>(outshape, teq::TensptrsT{edge, edge2});
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -709,9 +707,6 @@ TEST(OPERATOR, Add)
 	auto edge3 = make_var(orig_raw3.data(), mockdev3, outshape);
 
 	{
-		auto r = eigen::add<double>(outshape, teq::TensptrsT{
-			edge, edge2});
-
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
 		[&orig_raw, &lifetimes]() -> teq::Once<const void*>
@@ -731,6 +726,7 @@ TEST(OPERATOR, Add)
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
 #endif
+		auto r = eigen::add<double>(outshape, teq::TensptrsT{edge, edge2});
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -747,9 +743,6 @@ TEST(OPERATOR, Add)
 		EXPECT_EQ(2, lifetimes);
 	}
 	{
-		auto r = eigen::add<double>(outshape, teq::TensptrsT{
-			edge, edge2, edge3});
-
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
 		[&orig_raw, &lifetimes]() -> teq::Once<const void*>
@@ -775,6 +768,7 @@ TEST(OPERATOR, Add)
 			WillOnce(Return(outdata3.data()));
 		EXPECT_CALL(memory, deallocate(outdata3.data())).Times(1);
 #endif
+		auto r = eigen::add<double>(outshape, teq::TensptrsT{edge, edge2, edge3});
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -806,7 +800,6 @@ TEST(OPERATOR, Sub)
 		MockDeviceRef mockdev2;
 		auto edge = make_var(orig_raw.data(), mockdev, outshape);
 		auto edge2 = make_var(orig_raw2.data(), mockdev2, outshape);
-		auto r = eigen::sub<double>(outshape, *edge, *edge2);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -827,7 +820,8 @@ TEST(OPERATOR, Sub)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
-		
+		auto r = eigen::sub<double>(outshape, *edge, *edge2);
+
 		auto before = r->data();
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
@@ -850,7 +844,6 @@ TEST(OPERATOR, Sub)
 		MockDeviceRef mockdev2;
 		auto edge = make_var(orig_raw.data(), mockdev, outshape);
 		auto edge2 = make_var(orig_raw2.data(), mockdev2, outshape);
-		auto r = eigen::sub<double>(outshape, *edge, *edge2);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -871,6 +864,7 @@ TEST(OPERATOR, Sub)
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
 #endif
+		auto r = eigen::sub<double>(outshape, *edge, *edge2);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -900,7 +894,6 @@ TEST(OPERATOR, Mul)
 		MockDeviceRef mockdev2;
 		auto edge = make_var(orig_raw.data(), mockdev, outshape);
 		auto edge2 = make_var(orig_raw2.data(), mockdev2, outshape);
-		auto r = eigen::mul<double>(outshape, teq::TensptrsT{edge, edge2});
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -921,6 +914,7 @@ TEST(OPERATOR, Mul)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::mul<double>(outshape, teq::TensptrsT{edge, edge2});
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -948,9 +942,6 @@ TEST(OPERATOR, Mul)
 	auto edge2 = make_var(orig_raw2.data(), mockdev2, outshape);
 	auto edge3 = make_var(orig_raw3.data(), mockdev3, outshape);
 	{
-		auto r = eigen::mul<double>(outshape, teq::TensptrsT{
-			edge, edge2});
-
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
 		[&orig_raw, &lifetimes]() -> teq::Once<const void*>
@@ -971,6 +962,7 @@ TEST(OPERATOR, Mul)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::mul<double>(outshape, teq::TensptrsT{edge, edge2});
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -987,9 +979,6 @@ TEST(OPERATOR, Mul)
 		EXPECT_EQ(2, lifetimes);
 	}
 	{
-		auto r = eigen::mul<double>(outshape, teq::TensptrsT{
-			edge, edge2, edge3});
-
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
 		[&orig_raw, &lifetimes]() -> teq::Once<const void*>
@@ -1016,6 +1005,7 @@ TEST(OPERATOR, Mul)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::mul<double>(outshape, teq::TensptrsT{edge, edge2, edge3});
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1046,7 +1036,6 @@ TEST(OPERATOR, Div)
 		MockDeviceRef mockdev2;
 		auto edge = make_var(orig_raw.data(), mockdev, outshape);
 		auto edge2 = make_var(orig_raw2.data(), mockdev2, outshape);
-		auto r = eigen::div<double>(outshape, *edge, *edge2);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -1067,6 +1056,7 @@ TEST(OPERATOR, Div)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::div<double>(outshape, *edge, *edge2);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1090,7 +1080,6 @@ TEST(OPERATOR, Div)
 		MockDeviceRef mockdev2;
 		auto edge = make_var(orig_raw.data(), mockdev, outshape);
 		auto edge2 = make_var(orig_raw2.data(), mockdev2, outshape);
-		auto r = eigen::div<double>(outshape, *edge, *edge2);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -1112,6 +1101,7 @@ TEST(OPERATOR, Div)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::div<double>(outshape, *edge, *edge2);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1156,13 +1146,12 @@ TEST(OPERATOR, Eq)
 			return out;
 		}));
 
-		auto r = eigen::eq<double>(outshape, *edgea, *edgeb);
-
 #ifndef PERM_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::eq<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1186,7 +1175,6 @@ TEST(OPERATOR, Eq)
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
-		auto r = eigen::eq<double>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1208,6 +1196,7 @@ TEST(OPERATOR, Eq)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::eq<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1237,7 +1226,6 @@ TEST(OPERATOR, Neq)
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
-		auto r = eigen::neq<double>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1258,6 +1246,7 @@ TEST(OPERATOR, Neq)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::neq<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1280,7 +1269,6 @@ TEST(OPERATOR, Neq)
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
-		auto r = eigen::neq<double>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1302,6 +1290,7 @@ TEST(OPERATOR, Neq)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::neq<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1331,7 +1320,6 @@ TEST(OPERATOR, Lt)
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
-		auto r = eigen::lt<double>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1352,6 +1340,7 @@ TEST(OPERATOR, Lt)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::lt<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1375,7 +1364,6 @@ TEST(OPERATOR, Lt)
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
-		auto r = eigen::lt<double>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1397,6 +1385,7 @@ TEST(OPERATOR, Lt)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::lt<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1426,7 +1415,6 @@ TEST(OPERATOR, Gt)
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
-		auto r = eigen::gt<double>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1447,6 +1435,7 @@ TEST(OPERATOR, Gt)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::gt<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1469,7 +1458,6 @@ TEST(OPERATOR, Gt)
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
-		auto r = eigen::gt<double>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1491,6 +1479,7 @@ TEST(OPERATOR, Gt)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::gt<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1520,7 +1509,6 @@ TEST(OPERATOR, Min)
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
-		auto r = eigen::min<double>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1541,6 +1529,7 @@ TEST(OPERATOR, Min)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::min<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1563,7 +1552,6 @@ TEST(OPERATOR, Min)
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
-		auto r = eigen::min<double>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1585,6 +1573,7 @@ TEST(OPERATOR, Min)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::min<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1615,7 +1604,6 @@ TEST(OPERATOR, Max)
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
-		auto r = eigen::max<double>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1636,6 +1624,7 @@ TEST(OPERATOR, Max)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::max<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1658,7 +1647,6 @@ TEST(OPERATOR, Max)
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
-		auto r = eigen::max<double>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1680,6 +1668,7 @@ TEST(OPERATOR, Max)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::max<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1713,7 +1702,6 @@ void rand_uniform_test (
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(araw.data(), mockdeva, outshape);
 		auto edgeb = make_var(braw.data(), mockdevb, outshape);
-		auto r = eigen::rand_uniform<T>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1734,6 +1722,7 @@ void rand_uniform_test (
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::rand_uniform<T>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1761,7 +1750,6 @@ void rand_uniform_test (
 		MockDeviceRef mockdevb;
 		auto edgea = make_var(araw.data(), mockdeva, outshape);
 		auto edgeb = make_var(braw.data(), mockdevb, outshape);
-		auto r = eigen::rand_uniform<T>(outshape, *edgea, *edgeb);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1783,6 +1771,7 @@ void rand_uniform_test (
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::rand_uniform<T>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1841,9 +1830,6 @@ TEST(OPERATOR, Select)
 		auto edgea = make_var(orig_rawa.data(), mockdeva, outshape);
 		auto edgeb = make_var(orig_rawb.data(), mockdevb, outshape);
 
-		auto r = eigen::select<double>(outshape,
-			*comp, *edgea, *edgeb);
-
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdevcomp), odata()).WillOnce(Invoke(
 		[&orig_raw, &lifetimes]() -> teq::Once<const void*>
@@ -1869,6 +1855,7 @@ TEST(OPERATOR, Select)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::select<double>(outshape, *comp, *edgea, *edgeb);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -1921,8 +1908,8 @@ TEST(OPERATOR, Select)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
-
 		auto r = eigen::select<double>(outshape, *comp, *edgea, *edgeb);
+
 		auto before = r->data();
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
@@ -1957,7 +1944,6 @@ TEST(OPERATOR, Contract)
 
 		marsh::Maps mvalues;
 		eigen::Packer<eigen::PairVecT<teq::RankT>>().pack(mvalues, {{0, 1}});
-		auto r = eigen::contract<double>(outshape, *edgea, *edgeb, mvalues);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
@@ -1978,6 +1964,7 @@ TEST(OPERATOR, Contract)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::contract<double>(outshape, *edgea, *edgeb, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -2006,7 +1993,7 @@ TEST(OPERATOR, Contract)
 		EXPECT_CALL(*edgeb, device()).WillRepeatedly(ReturnRef(mockdevb));
 		EXPECT_CALL(Const(*edgea), device()).WillRepeatedly(ReturnRef(mockdeva));
 		EXPECT_CALL(Const(*edgeb), device()).WillRepeatedly(ReturnRef(mockdevb));
-		
+
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdeva), odata()).WillOnce(Invoke(
 		[&orig_rawa, &lifetimes]() -> teq::Once<const void*>
@@ -2024,7 +2011,6 @@ TEST(OPERATOR, Contract)
 		marsh::Maps mvalues;
 		eigen::Packer<eigen::PairVecT<teq::RankT>>().pack(mvalues,
 			{{0, 1}, {1, 2}});
-		auto r = eigen::contract<double>(outshape, *edgea, *edgeb, mvalues);
 
 		std::vector<double> outdata(6);
 #ifndef PERM_OP
@@ -2032,6 +2018,7 @@ TEST(OPERATOR, Contract)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::contract<double>(outshape, *edgea, *edgeb, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -2066,8 +2053,6 @@ TEST(OPERATOR, Pad)
 	MockRuntimeMemory memory;
 
 	{
-		auto r = eigen::pad<double>(outshape, edge, mvalues);
-
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
 		[&orig_raw, &lifetimes]() -> teq::Once<const void*>
@@ -2081,6 +2066,7 @@ TEST(OPERATOR, Pad)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::pad<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -2118,8 +2104,6 @@ TEST(OPERATOR, Stride)
 	MockRuntimeMemory memory;
 
 	{
-		auto r = eigen::stride<double>(outshape, edge, mvalues);
-
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
 		[&orig_raw, &lifetimes]() -> teq::Once<const void*>
@@ -2127,12 +2111,13 @@ TEST(OPERATOR, Stride)
 			teq::Once<const void*> out(orig_raw.data(), [&lifetimes]{ ++lifetimes; });
 			return out;
 		}));
-		
+
 #ifndef PERM_OP
 		EXPECT_CALL(memory, allocate(4 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::stride<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -2176,13 +2161,12 @@ TEST(OPERATOR, Scatter)
 	}));
 
 	{
-		auto r = eigen::scatter<double>(outshape, edge, mvalues);
-
 #ifndef PERM_OP
 		EXPECT_CALL(memory, allocate(9 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::scatter<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -2228,13 +2212,12 @@ TEST(OPERATOR, Reverse)
 	}));
 
 	{
-		auto r = eigen::reverse<double>(outshape, edge, mvalues);
-
 #ifndef PERM_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::reverse<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -2286,13 +2269,12 @@ TEST(OPERATOR, Concat)
 	}));
 
 	{
-		auto r = eigen::concat<double>(outshape, teq::TensptrsT{edgea, edgeb}, mvalues);
-
 #ifndef PERM_OP
 		EXPECT_CALL(memory, allocate(9 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::concat<double>(outshape, teq::TensptrsT{edgea, edgeb}, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -2347,7 +2329,6 @@ static void elementary_unary (
 		MockLeaf edge;
 		MockDeviceRef mockdev;
 		make_var(edge, invec.data(), mockdev, shape);
-		auto r = f(shape, edge);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -2362,6 +2343,7 @@ static void elementary_unary (
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = f(shape, edge);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -2381,7 +2363,6 @@ static void elementary_unary (
 		MockLeaf edge;
 		MockDeviceRef mockdev;
 		make_var(edge, invec.data(), mockdev, shape);
-		auto r = f(shape, edge);
 
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
@@ -2397,6 +2378,7 @@ static void elementary_unary (
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = f(shape, edge);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -2584,13 +2566,12 @@ TEST(OPERATOR, Convolution)
 	}));
 
 	{
-		auto r = eigen::convolution<double>(outshape, image, kernel, mvalues);
-
 #ifndef PERM_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::convolution<double>(outshape, image, kernel, mvalues);
 
 		auto before = r->data();
 		r->assign(1, memory);
@@ -2632,10 +2613,10 @@ TEST(OPERATOR, Assign)
 	EXPECT_CALL(edgeb, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 	EXPECT_CALL(mockmeta, state_version()).WillRepeatedly(Return(0));
 
-	auto r = eigen::assign<double>(edgea, edgeb);
-
 	MockRuntimeMemory memory;
 	EXPECT_CALL(memory, allocate(_)).Times(0);
+
+	auto r = eigen::assign<double>(edgea, edgeb);
 
 	r->assign(1, memory);
 	double* raw = (double*) r->data();
@@ -2665,10 +2646,10 @@ TEST(OPERATOR, AssignAdd)
 	EXPECT_CALL(edgeb, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 	EXPECT_CALL(mockmeta, state_version()).WillRepeatedly(Return(0));
 
-	auto r = eigen::assign_add<double>(edgea, edgeb);
-
 	MockRuntimeMemory memory;
 	EXPECT_CALL(memory, allocate(_)).Times(0);
+
+	auto r = eigen::assign_add<double>(edgea, edgeb);
 
 	r->assign(1, memory);
 	double* raw = (double*) r->data();
@@ -2699,10 +2680,10 @@ TEST(OPERATOR, AssignSub)
 	EXPECT_CALL(edgeb, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 	EXPECT_CALL(mockmeta, state_version()).WillRepeatedly(Return(0));
 
-	auto r = eigen::assign_sub<double>(edgea, edgeb);
-
 	MockRuntimeMemory memory;
 	EXPECT_CALL(memory, allocate(_)).Times(0);
+
+	auto r = eigen::assign_sub<double>(edgea, edgeb);
 
 	r->assign(1, memory);
 	double* raw = (double*) r->data();
@@ -2733,10 +2714,10 @@ TEST(OPERATOR, AssignMul)
 	EXPECT_CALL(edgeb, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 	EXPECT_CALL(mockmeta, state_version()).WillRepeatedly(Return(0));
 
-	auto r = eigen::assign_mul<double>(edgea, edgeb);
-
 	MockRuntimeMemory memory;
 	EXPECT_CALL(memory, allocate(_)).Times(0);
+
+	auto r = eigen::assign_mul<double>(edgea, edgeb);
 
 	r->assign(1, memory);
 	double* raw = (double*) r->data();
@@ -2767,10 +2748,10 @@ TEST(OPERATOR, AssignDiv)
 	EXPECT_CALL(edgeb, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 	EXPECT_CALL(mockmeta, state_version()).WillRepeatedly(Return(0));
 
-	auto r = eigen::assign_div<double>(edgea, edgeb);
-
 	MockRuntimeMemory memory;
 	EXPECT_CALL(memory, allocate(_)).Times(0);
+
+	auto r = eigen::assign_div<double>(edgea, edgeb);
 
 	r->assign(1, memory);
 	double* raw = (double*) r->data();
@@ -2798,9 +2779,9 @@ TEST(OPERATOR, Cast)
 	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
 
 	{
-		auto r = eigen::cast<double>(edgea);
-
 		EXPECT_CALL(memory, allocate(_)).Times(0);
+
+		auto r = eigen::cast<double>(edgea);
 
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw); // assert data existing at the beginning due to ptr ref
@@ -2810,8 +2791,6 @@ TEST(OPERATOR, Cast)
 		ASSERT_ARRDBLEQ(a, got_raw);
 	}
 	{
-		auto r = eigen::cast<int32_t>(edgea);
-
 		size_t lifetimes = 0;
 		EXPECT_CALL(Const(mockdev), odata()).WillOnce(Invoke(
 		[&a, &lifetimes]() -> teq::Once<const void*>
@@ -2825,6 +2804,7 @@ TEST(OPERATOR, Cast)
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
 #endif
+		auto r = eigen::cast<int32_t>(edgea);
 
 		auto before = r->data();
 		r->assign(1, memory);

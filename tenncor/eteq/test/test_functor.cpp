@@ -42,6 +42,15 @@ TEST_F(FUNCTOR, Initiation)
 	EXPECT_CALL(badmeta, type_code()).WillRepeatedly(Return(0));
 	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
 
+#ifdef PERM_OP
+	EXPECT_CALL(Const(devref), odata()).WillRepeatedly(Invoke(
+	[&data]() -> teq::Once<const void*>
+	{
+		teq::Once<const void*> out(data.data());
+		return out;
+	}));
+#endif
+
 	marsh::Maps attrs;
 
 	std::string fatalmsg = "cannot perform `ADD` without arguments";
@@ -127,6 +136,15 @@ TEST_F(FUNCTOR, UpdateChild)
 	EXPECT_CALL(*e, get_meta()).WillRepeatedly(ReturnRef(mockmeta2));
 	EXPECT_CALL(mockmeta2, type_label()).WillRepeatedly(Return("DOUBLE"));
 
+#ifdef PERM_OP
+	EXPECT_CALL(Const(devref), odata()).WillRepeatedly(Invoke(
+	[&data]() -> teq::Once<const void*>
+	{
+		teq::Once<const void*> out(data.data());
+		return out;
+	}));
+#endif
+
 	marsh::Maps attrs;
 	auto f = eteq::Functor<double>::get(egen::ADD, {a, b}, std::move(attrs));
 	teq::TensptrT ftens(f);
@@ -196,6 +214,15 @@ TEST_F(FUNCTOR, Prop)
 	EXPECT_CALL(*b, get_meta()).WillRepeatedly(ReturnRef(mockmeta2));
 	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(0));
 	EXPECT_CALL(mockmeta2, type_code()).WillRepeatedly(Return(0));
+
+#ifdef PERM_OP
+	EXPECT_CALL(Const(devref), odata()).WillRepeatedly(Invoke(
+	[&data]() -> teq::Once<const void*>
+	{
+		teq::Once<const void*> out(data.data());
+		return out;
+	}));
+#endif
 
 	marsh::Maps attrs;
 	auto f = eteq::Functor<double>::get(egen::ADD, {a, b}, std::move(attrs));
