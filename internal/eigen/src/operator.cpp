@@ -1,4 +1,6 @@
-#ifdef PERM_OP
+#ifdef LEGACY_OP
+#include "internal/eigen/legacy_operator.hpp"
+#elif defined PERM_OP
 #include "internal/eigen/perm_operator.hpp"
 #else
 #include "internal/eigen/operator.hpp"

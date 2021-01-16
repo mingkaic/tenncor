@@ -42,7 +42,7 @@ static void test_reduce (
 		MockDeviceRef mockdev;
 		make_var(edge, expect_raw.data(), mockdev, teq::Shape({3, 2}), "", incr_life);
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(3 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -53,7 +53,7 @@ static void test_reduce (
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -140,7 +140,7 @@ TEST(OPERATOR, ArgMax)
 	MockRuntimeMemory memory;
 
 	{
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(3 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -151,7 +151,7 @@ TEST(OPERATOR, ArgMax)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -160,7 +160,7 @@ TEST(OPERATOR, ArgMax)
 		EXPECT_EQ(0, raw[1]);
 		EXPECT_EQ(1, raw[2]);
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(sizeof(double))).
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
@@ -171,7 +171,7 @@ TEST(OPERATOR, ArgMax)
 		r2->assign(1, memory);
 		double* raw2 = (double*) r2->data();
 		ASSERT_NE(nullptr, raw2);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before2);
 		EXPECT_EQ(outdata2.data(), raw2);
 #endif
@@ -205,7 +205,7 @@ TEST(OPERATOR, Extend)
 	MockRuntimeMemory memory;
 
 	{
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(24 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data()));
@@ -216,7 +216,7 @@ TEST(OPERATOR, Extend)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -257,7 +257,7 @@ TEST(OPERATOR, Permute)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(12 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data()));
@@ -268,7 +268,7 @@ TEST(OPERATOR, Permute)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -300,7 +300,7 @@ TEST(OPERATOR, Permute)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(12 * sizeof(double))).
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data()));
@@ -311,7 +311,7 @@ TEST(OPERATOR, Permute)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata2.data(), raw);
 #endif
@@ -343,7 +343,7 @@ TEST(OPERATOR, Permute)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata3.data()));
 		EXPECT_CALL(memory, deallocate(outdata3.data()));
@@ -354,7 +354,7 @@ TEST(OPERATOR, Permute)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata3.data(), raw);
 #endif
@@ -391,7 +391,7 @@ TEST(OPERATOR, Slice)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(2 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data()));
@@ -402,7 +402,7 @@ TEST(OPERATOR, Slice)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -463,7 +463,7 @@ TEST(OPERATOR, MultiConcat)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -474,7 +474,7 @@ TEST(OPERATOR, MultiConcat)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -521,7 +521,7 @@ TEST(OPERATOR, MultiConcat)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(12 * sizeof(double))).
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
@@ -532,7 +532,7 @@ TEST(OPERATOR, MultiConcat)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata2.data(), raw);
 #endif
@@ -578,7 +578,7 @@ TEST(OPERATOR, Pow)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -589,7 +589,7 @@ TEST(OPERATOR, Pow)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -622,7 +622,7 @@ TEST(OPERATOR, Pow)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
@@ -633,7 +633,7 @@ TEST(OPERATOR, Pow)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata2.data(), raw);
 #endif
@@ -674,7 +674,7 @@ TEST(OPERATOR, Add)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -685,7 +685,7 @@ TEST(OPERATOR, Add)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -721,7 +721,7 @@ TEST(OPERATOR, Add)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
@@ -732,7 +732,7 @@ TEST(OPERATOR, Add)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata2.data(), raw);
 #endif
@@ -763,7 +763,7 @@ TEST(OPERATOR, Add)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata3.data()));
 		EXPECT_CALL(memory, deallocate(outdata3.data())).Times(1);
@@ -774,7 +774,7 @@ TEST(OPERATOR, Add)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata3.data(), raw);
 #endif
@@ -815,7 +815,7 @@ TEST(OPERATOR, Sub)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -826,7 +826,7 @@ TEST(OPERATOR, Sub)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -859,7 +859,7 @@ TEST(OPERATOR, Sub)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata2.data()));
 		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
@@ -870,7 +870,7 @@ TEST(OPERATOR, Sub)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata2.data(), raw);
 #endif
@@ -909,7 +909,7 @@ TEST(OPERATOR, Mul)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -920,7 +920,7 @@ TEST(OPERATOR, Mul)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -957,7 +957,7 @@ TEST(OPERATOR, Mul)
 		}));
 
 		std::vector<double> outdata(6);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -968,7 +968,7 @@ TEST(OPERATOR, Mul)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1000,7 +1000,7 @@ TEST(OPERATOR, Mul)
 		}));
 
 		std::vector<double> outdata(6);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1011,7 +1011,7 @@ TEST(OPERATOR, Mul)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1051,7 +1051,7 @@ TEST(OPERATOR, Div)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1062,7 +1062,7 @@ TEST(OPERATOR, Div)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1096,7 +1096,7 @@ TEST(OPERATOR, Div)
 		}));
 
 		std::vector<double> outdata(8);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1107,7 +1107,7 @@ TEST(OPERATOR, Div)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1146,7 +1146,7 @@ TEST(OPERATOR, Eq)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1157,7 +1157,7 @@ TEST(OPERATOR, Eq)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1191,7 +1191,7 @@ TEST(OPERATOR, Eq)
 		}));
 
 		std::vector<double> outdata(8);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1202,7 +1202,7 @@ TEST(OPERATOR, Eq)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1241,7 +1241,7 @@ TEST(OPERATOR, Neq)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1252,7 +1252,7 @@ TEST(OPERATOR, Neq)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1285,7 +1285,7 @@ TEST(OPERATOR, Neq)
 		}));
 
 		std::vector<double> outdata(8);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1296,7 +1296,7 @@ TEST(OPERATOR, Neq)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1335,7 +1335,7 @@ TEST(OPERATOR, Lt)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1346,7 +1346,7 @@ TEST(OPERATOR, Lt)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1380,7 +1380,7 @@ TEST(OPERATOR, Lt)
 		}));
 
 		std::vector<double> outdata(8);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1391,7 +1391,7 @@ TEST(OPERATOR, Lt)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1430,7 +1430,7 @@ TEST(OPERATOR, Gt)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1441,7 +1441,7 @@ TEST(OPERATOR, Gt)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1474,7 +1474,7 @@ TEST(OPERATOR, Gt)
 		}));
 
 		std::vector<double> outdata(8);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1485,7 +1485,7 @@ TEST(OPERATOR, Gt)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1524,7 +1524,7 @@ TEST(OPERATOR, Min)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1535,7 +1535,7 @@ TEST(OPERATOR, Min)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1568,7 +1568,7 @@ TEST(OPERATOR, Min)
 		}));
 
 		std::vector<double> outdata(8);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1579,7 +1579,7 @@ TEST(OPERATOR, Min)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1619,7 +1619,7 @@ TEST(OPERATOR, Max)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1630,7 +1630,7 @@ TEST(OPERATOR, Max)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1663,7 +1663,7 @@ TEST(OPERATOR, Max)
 		}));
 
 		std::vector<double> outdata(8);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1674,7 +1674,7 @@ TEST(OPERATOR, Max)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1717,7 +1717,7 @@ void rand_uniform_test (
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1728,7 +1728,7 @@ void rand_uniform_test (
 		r->assign(1, memory);
 		T* raw = (T*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1766,7 +1766,7 @@ void rand_uniform_test (
 		}));
 
 		std::vector<T> outdata(8);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1777,7 +1777,7 @@ void rand_uniform_test (
 		r->assign(1, memory);
 		T* raw = (T*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1850,7 +1850,7 @@ TEST(OPERATOR, Select)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1861,7 +1861,7 @@ TEST(OPERATOR, Select)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1903,7 +1903,7 @@ TEST(OPERATOR, Select)
 		}));
 
 		std::vector<double> outdata(8);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1914,7 +1914,7 @@ TEST(OPERATOR, Select)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -1959,7 +1959,7 @@ TEST(OPERATOR, Contract)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -1970,7 +1970,7 @@ TEST(OPERATOR, Contract)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -2013,7 +2013,7 @@ TEST(OPERATOR, Contract)
 			{{0, 1}, {1, 2}});
 
 		std::vector<double> outdata(6);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -2024,7 +2024,7 @@ TEST(OPERATOR, Contract)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -2061,7 +2061,7 @@ TEST(OPERATOR, Pad)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(12 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -2072,7 +2072,7 @@ TEST(OPERATOR, Pad)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -2112,7 +2112,7 @@ TEST(OPERATOR, Stride)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(4 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -2123,7 +2123,7 @@ TEST(OPERATOR, Stride)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -2161,7 +2161,7 @@ TEST(OPERATOR, Scatter)
 	}));
 
 	{
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(9 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -2172,7 +2172,7 @@ TEST(OPERATOR, Scatter)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -2212,7 +2212,7 @@ TEST(OPERATOR, Reverse)
 	}));
 
 	{
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -2223,7 +2223,7 @@ TEST(OPERATOR, Reverse)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -2269,7 +2269,7 @@ TEST(OPERATOR, Concat)
 	}));
 
 	{
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(9 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -2280,7 +2280,7 @@ TEST(OPERATOR, Concat)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -2338,7 +2338,7 @@ static void elementary_unary (
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -2349,7 +2349,7 @@ static void elementary_unary (
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -2373,7 +2373,7 @@ static void elementary_unary (
 		}));
 
 		std::vector<double> outdata(6);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -2384,7 +2384,7 @@ static void elementary_unary (
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -2566,7 +2566,7 @@ TEST(OPERATOR, Convolution)
 	}));
 
 	{
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -2577,7 +2577,7 @@ TEST(OPERATOR, Convolution)
 		r->assign(1, memory);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif
@@ -2799,7 +2799,7 @@ TEST(OPERATOR, Cast)
 			return out;
 		}));
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_CALL(memory, allocate(6 * sizeof(int32_t))).
 			WillOnce(Return(outdata.data()));
 		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
@@ -2810,7 +2810,7 @@ TEST(OPERATOR, Cast)
 		r->assign(1, memory);
 		int32_t* raw = (int32_t*) r->data();
 		ASSERT_NE(nullptr, raw);
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 		EXPECT_EQ(nullptr, before);
 		EXPECT_EQ(outdata.data(), raw);
 #endif

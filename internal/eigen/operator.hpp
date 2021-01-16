@@ -8,7 +8,7 @@
 ///
 // todo: make this generated
 
-#ifndef PERM_OP
+#if not defined PERM_OP and not defined LEGACY_OP
 #ifndef EIGEN_OPERATOR_HPP
 #define EIGEN_OPERATOR_HPP
 
@@ -1066,7 +1066,7 @@ EigenptrT select (teq::Shape outshape, const teq::iTensor& condition,
 	});
 }
 
-#define _EIGEN_MATMUL_CASE(ARR, N)\
+#define _EIGEN_CONTRACT_CASE(ARR, N)\
 return std::make_shared<TensOp<T>>(outshape,teq::CTensT{&a,&b},\
 [ARR,outdims](TensMapT<T>& out, const std::vector<TensMapT<T>>& args){\
 	out = args[1].contract(args[0], internal::dim_copy<N>(ARR)).reshape(outdims);\
@@ -1097,10 +1097,10 @@ EigenptrT contract (teq::Shape outshape, const teq::iTensor& a, const teq::iTens
 		});
 	}
 	DimensionsT outdims = shape_convert(outshape);
-	_ARRAY_SWITCH(dims, _EIGEN_MATMUL_CASE);
+	_ARRAY_SWITCH(dims, _EIGEN_CONTRACT_CASE);
 }
 
-#undef _EIGEN_MATMUL_CASE
+#undef _EIGEN_CONTRACT_CASE
 
 #undef _ARRAY_SWITCH
 
@@ -1265,4 +1265,4 @@ EigenptrT cast (const teq::TensptrT& input)
 
 
 #endif // EIGEN_OPERATOR_HPP
-#endif // PERM_OP
+#endif // not defined PERM_OP and not defined LEGACY_OP

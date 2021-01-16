@@ -103,6 +103,7 @@ cc_library(
         "@boost//:uuid",
         "@com_github_eigenteam_eigen//:eigen",
     ],
+    defines = ["LEGACY_OP"],
     visibility = ["//visibility:public"],
 )
 
@@ -131,20 +132,5 @@ cc_test(
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",
     ],
-    linkstatic = True,
-)
-
-cc_test(
-    name = "perm_test",
-    srcs = [":test_srcs"],
-    copts = ["-std=c++17"],
-    deps = [
-        ":mock",
-        "//dbg/print:print",
-        "//testutil:tutil",
-        "@com_github_mingkaic_cppkg//diff:diff",
-        "@com_github_mingkaic_cppkg//exam:exam",
-    ],
-    defines = ["PERM_OP"],
     linkstatic = True,
 )

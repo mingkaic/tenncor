@@ -63,22 +63,3 @@ cc_test(
         "//cfg:optimizations",
     ],
 )
-
-cc_test(
-    name = "perm_test",
-    srcs = [":test_srcs"],
-    copts = ["-std=c++17"],
-    deps = [
-        "//internal/eigen:mock",
-        "//tenncor/eteq:eteq",
-        "//testutil:tutil",
-        "@com_github_mingkaic_cppkg//diff:diff",
-        "@com_github_mingkaic_cppkg//exam:exam",
-    ],
-    defines = ["PERM_OP"],
-    linkstatic = True,
-    data = [
-        "//:test_models",
-        "//cfg:optimizations",
-    ],
-)

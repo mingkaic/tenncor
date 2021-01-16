@@ -155,18 +155,6 @@ cc_binary(
     data = ["//cfg:optimizations"],
 )
 
-cc_binary(
-    name = "perm_benchmark",
-    srcs = ["bm/benchmark.cpp"],
-    deps = [
-        ":tenncor",
-        "@com_github_google_benchmark//:benchmark",
-    ],
-    copts = ["-std=c++17"],
-    defines = ["PERM_OP"],
-    data = ["//cfg:optimizations"],
-)
-
 py_binary(
     name = "tf_memory_benchmark",
     srcs = ["bm/tf_mem_benchmark.py"],
