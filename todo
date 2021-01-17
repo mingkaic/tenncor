@@ -17,6 +17,7 @@ P5 = "get to it eventually"
    - implement and verify correctness of deep speech finetuning layers
       (outlined in https://arxiv.org/pdf/1412.5567.pdf)
       (or GRU veriants in https://arxiv.org/pdf/1901.03860.pdf)
+   - extend benchmark to validate etens creation/get/copy/delete and variable assignment performance
 
 >>>> aux project >>>> (preferrable to ensure smooth completion of inprogress tasks)
    - implement sparse embedding using eigen sparse matrix
