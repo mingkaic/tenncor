@@ -197,13 +197,11 @@ DEFN_BENCHMARK(BM_Gt, tenncor().gt, DEFN_BINARY)
 template <typename T>
 static void BM_Matmul(benchmark::State& state)
 {
-	size_t n = state.range(0);
-	std::uniform_int_distribution<teq::DimT> distc(9, std::min(255ul, n - 1));
-	teq::DimT common_dim = distc(mersenne_engine);
-	int remaining = (double) n / common_dim;
-	std::uniform_int_distribution<> distsides(1, std::min(255, remaining));
-	teq::DimT left_dim = distsides(mersenne_engine);
-	teq::DimT right_dim = distsides(mersenne_engine);
+	teq::DimT common_dim = state.range(0);
+	std::uniform_int_distribution<> distsides(1, 255);
+	teq::DimT vari = distsides(mersenne_engine);
+	teq::DimT left_dim = common_dim + vari;
+	teq::DimT right_dim = common_dim + (255 - vari);
 	teq::Shape leftshape({common_dim, left_dim});
 	teq::Shape rightshape({right_dim, common_dim});
 	eteq::EVariable<T> var = eteq::make_variable_scalar<T>(0, leftshape, "var");
@@ -243,13 +241,11 @@ BENCHMARK_TEMPLATE(BM_Matmul, int32_t)
 template <typename T>
 static void BM_Batch_Matmul(benchmark::State& state)
 {
-	size_t n = state.range(0);
-	std::uniform_int_distribution<teq::DimT> distc(9, std::min(255ul, n - 1));
-	teq::DimT common_dim = distc(mersenne_engine);
-	int remaining = (double) n / common_dim;
-	std::uniform_int_distribution<> distsides(1, std::min(255, remaining));
-	teq::DimT left_dim = distsides(mersenne_engine);
-	teq::DimT right_dim = distsides(mersenne_engine);
+	teq::DimT common_dim = state.range(0);
+	std::uniform_int_distribution<> distsides(1, 255);
+	teq::DimT vari = distsides(mersenne_engine);
+	teq::DimT left_dim = common_dim + vari;
+	teq::DimT right_dim = common_dim + (255 - vari);
 	teq::DimT batch_dim = 2;
 	teq::Shape leftshape({common_dim, left_dim, batch_dim});
 	teq::Shape rightshape({right_dim, common_dim, batch_dim});
