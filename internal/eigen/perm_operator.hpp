@@ -1133,8 +1133,8 @@ EigenptrT matmul (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor
 		});
 	}
 	marsh::Maps contract_attr;
-	PairVecT<teq::RankT> dims = {std::pair<teq::RankT,teq::RankT>{1, 0}};
-	Packer<PairVecT<teq::RankT>>().unpack(dims, contract_attr);
+	PairVecT<teq::RankT> dims = {{0, 1}};
+	Packer<PairVecT<teq::RankT>>().pack(contract_attr, dims);
 	return contract<T>(outshape, a, b, contract_attr);
 }
 
