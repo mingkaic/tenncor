@@ -8,7 +8,7 @@
 ///
 // todo: make this generated
 
-#if not defined PERM_OP and not defined LEGACY_OP
+#ifndef PERM_OP
 #ifndef EIGEN_OPERATOR_HPP
 #define EIGEN_OPERATOR_HPP
 
@@ -1265,4 +1265,4 @@ EigenptrT cast (const teq::TensptrT& input)
 
 
 #endif // EIGEN_OPERATOR_HPP
-#endif // not defined PERM_OP and not defined LEGACY_OP
+#endif // PERM_OP

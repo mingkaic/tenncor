@@ -153,168 +153,6 @@ private:
 
 #endif
 
-#ifdef LEGACY_OP
-
-/// Implementation of iEigen that assigns TensorMap to Tensor object
-/// using some custom assignment
-template <typename T, typename ARGS>
-struct TensAccum final : public iPermEigen
-{
-	TensAccum (T init_value, DimensionsT dims, ARGS args,
-		std::function<void(TensorT<T>&,const ARGS&)> assign) :
-		args_(args), assign_(assign), data_(dims), init_(init_value)
-	{
-		data_.setConstant(0);
-	}
-
-	/// Implementation of iDeviceRef
-	void* data (void) override
-	{
-		return data_.data();
-	}
-
-	/// Implementation of iDeviceRef
-	const void* data (void) const override
-	{
-		return data_.data();
-	}
-
-	teq::Once<void*> odata (void) override
-	{
-		teq::Once<void*> out(data());
-		return out;
-	}
-
-	teq::Once<const void*> odata (void) const override
-	{
-		teq::Once<const void*> out(data());
-		return out;
-	}
-
-	/// Implementation of iEigen
-	void assign (size_t, iRuntimeMemory&) override
-	{
-		data_.setConstant(init_);
-		assign_(data_, args_);
-	}
-
-	/// Tensor operator arguments
-	ARGS args_;
-
-	/// Tensor assignment
-	std::function<void(TensorT<T>&,const ARGS&)> assign_;
-
-	/// Output tensor data object
-	TensorT<T> data_;
-
-	T init_;
-};
-
-/// Implementation of iEigen that assigns Tensor operator to Tensor object
-template <typename T, typename SRC, typename ARGS>
-struct LegacyTensOp final : public iPermEigen
-{
-	LegacyTensOp (DimensionsT dims, ARGS args,
-		std::function<SRC(ARGS&)> make_base) :
-		args_(args), tensorbase_(make_base(args_)), data_(dims)
-	{
-		data_.setConstant(0);
-	}
-
-	/// Implementation of iDeviceRef
-	void* data (void) override
-	{
-		return data_.data();
-	}
-
-	/// Implementation of iDeviceRef
-	const void* data (void) const override
-	{
-		return data_.data();
-	}
-
-	teq::Once<void*> odata (void) override
-	{
-		teq::Once<void*> out(data());
-		return out;
-	}
-
-	teq::Once<const void*> odata (void) const override
-	{
-		teq::Once<const void*> out(data());
-		return out;
-	}
-
-	/// Implementation of iEigen
-	void assign (size_t, iRuntimeMemory&) override
-	{
-		data_ = tensorbase_;
-	}
-
-	/// Tensor operator arguments
-	ARGS args_;
-
-	/// Tensor operator
-	SRC tensorbase_;
-
-	/// Output tensor data object
-	TensorT<T> data_;
-};
-
-/// Implementation of iEigen that assigns Matrix operator to Matrix object
-template <typename T, typename SRC, typename ARGS>
-struct LegacyMatOp final : public iPermEigen
-{
-	LegacyMatOp (DimensionsT dims, ARGS args,
-		std::function<SRC(ARGS&)> make_base) :
-		args_(args), matrixbase_(make_base(args_)),
-		data_(dims.at(1), dims.at(0))
-	{
-		data_.setConstant(0);
-	}
-
-	/// Implementation of iDeviceRef
-	void* data (void) override
-	{
-		return data_.data();
-	}
-
-	/// Implementation of iDeviceRef
-	const void* data (void) const override
-	{
-		return data_.data();
-	}
-
-	teq::Once<void*> odata (void) override
-	{
-		teq::Once<void*> out(data());
-		return out;
-	}
-
-	teq::Once<const void*> odata (void) const override
-	{
-		teq::Once<const void*> out(data());
-		return out;
-	}
-
-	/// Implementation of iEigen
-	void assign (size_t, iRuntimeMemory&) override
-	{
-		data_ = matrixbase_;
-	}
-
-	/// Matrix operator arguments
-	ARGS args_;
-
-	/// Matrix operator
-	SRC matrixbase_;
-
-	/// Output matrix data object
-	MatrixT<T> data_;
-};
-
-#endif
-
 struct CacheEigen final : public iPermEigen
 {
 	CacheEigen (EigenptrT data) : data_(data)
@@ -473,6 +311,7 @@ struct TensOp final : public iTmpEigen<T>
 		{
 			this->data_.extend_life(ttl);
 		}
+		// argument transformation is the most expensive operation
 		auto out = make_tensmap(this->data_.get(), outshape_);
 		std::vector<TensMapT<INTYPE>> args;
 		std::vector<teq::Once<const void*>> onces;
@@ -516,6 +355,7 @@ struct MatOp final : public iTmpEigen<T>
 		{
 			this->data_.extend_life(ttl);
 		}
+		// argument transformation is the most expensive operation
 		auto out = make_matmap(this->data_.get(), outshape_);
 		std::vector<MatMapT<INTYPE>> args;
 		std::vector<teq::Once<const void*>> onces;

@@ -103,7 +103,6 @@ cc_library(
         "@boost//:uuid",
         "@com_github_eigenteam_eigen//:eigen",
     ],
-    defines = ["LEGACY_OP"],
     visibility = ["//visibility:public"],
 )
 

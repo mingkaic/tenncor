@@ -185,7 +185,7 @@ TEST(ETENS, DataCalc)
 	auto udata = utens.data<double>();
 	ASSERT_NE(nullptr, tdata);
 	EXPECT_EQ(512, *tdata);
-#if not defined PERM_OP and not defined LEGACY_OP
+#ifndef PERM_OP
 	EXPECT_EQ(nullptr, zdata);
 	EXPECT_EQ(nullptr, ydata);
 	EXPECT_EQ(nullptr, xdata);
@@ -207,7 +207,7 @@ TEST(ETENS, DataCalc)
 	// |       `-- b = 3
 	// `-- d = 3
 
-#if not defined PERM_OP and not defined LEGACY_OP
+#ifndef PERM_OP
 	std::string fatalmsg = "cannot ignore tensor DIV without existing data";
 	EXPECT_CALL(*logger, supports_level(logs::throw_err_level)).WillOnce(Return(true));
 	EXPECT_CALL(*logger, log(logs::throw_err_level, fatalmsg, _)).WillOnce(Throw(exam::TestException(fatalmsg)));
@@ -239,7 +239,7 @@ TEST(ETENS, DataCalc)
 	ASSERT_NE(nullptr, zdata);
 	EXPECT_EQ(512, *tdata);
 	EXPECT_EQ(4.5, *zdata);
-#if not defined PERM_OP and not defined LEGACY_OP
+#ifndef PERM_OP
 	EXPECT_EQ(nullptr, ydata);
 	EXPECT_EQ(nullptr, xdata);
 	EXPECT_EQ(nullptr, udata);
@@ -363,7 +363,7 @@ TEST(ETENS, DefaultEvaluate)
 	ASSERT_NE(nullptr, zdata);
 	EXPECT_EQ(512, *tdata);
 	EXPECT_EQ(5, *zdata);
-#if not defined PERM_OP and not defined LEGACY_OP
+#ifndef PERM_OP
 	EXPECT_EQ(nullptr, ydata);
 #endif
 

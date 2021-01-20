@@ -42,7 +42,7 @@ TEST_F(FUNCTOR, Initiation)
 	EXPECT_CALL(badmeta, type_code()).WillRepeatedly(Return(0));
 	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
 
-#if defined PERM_OP or defined LEGACY_OP
+#ifdef PERM_OP
 	EXPECT_CALL(Const(devref), odata()).WillRepeatedly(Invoke(
 	[&data]() -> teq::Once<const void*>
 	{
@@ -136,7 +136,7 @@ TEST_F(FUNCTOR, UpdateChild)
 	EXPECT_CALL(*e, get_meta()).WillRepeatedly(ReturnRef(mockmeta2));
 	EXPECT_CALL(mockmeta2, type_label()).WillRepeatedly(Return("DOUBLE"));
 
-#if defined PERM_OP or defined LEGACY_OP
+#ifdef PERM_OP
 	EXPECT_CALL(Const(devref), odata()).WillRepeatedly(Invoke(
 	[&data]() -> teq::Once<const void*>
 	{
@@ -215,7 +215,7 @@ TEST_F(FUNCTOR, Prop)
 	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(0));
 	EXPECT_CALL(mockmeta2, type_code()).WillRepeatedly(Return(0));
 
-#if defined PERM_OP or defined LEGACY_OP
+#ifdef PERM_OP
 	EXPECT_CALL(Const(devref), odata()).WillRepeatedly(Invoke(
 	[&data]() -> teq::Once<const void*>
 	{
@@ -260,7 +260,7 @@ TEST_F(FUNCTOR, Prop)
 }
 
 
-#if not defined PERM_OP and not defined LEGACY_OP
+#ifndef PERM_OP
 TEST_F(FUNCTOR, Cache)
 {
 	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
