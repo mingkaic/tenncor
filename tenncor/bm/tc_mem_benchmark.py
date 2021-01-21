@@ -10,7 +10,7 @@ def main():
     b = tc.api.init.random_uniform(1.,2.)(shape, "W2")
     c = tc.api.matmul(tc.api.matmul(a,b),a)
 
-    stuff = c.get()
+    stuff = c.release_get()
 
     print('hello')
 

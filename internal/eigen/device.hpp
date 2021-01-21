@@ -13,7 +13,7 @@ struct iEigen : public teq::iDeviceRef
 {
 	virtual ~iEigen (void) = default;
 
-	virtual void assign (size_t ttl, iRuntimeMemory& runtime) = 0;
+	virtual void assign (size_t ttl, RTMemptrT& runtime) = 0;
 
 	virtual bool valid_for (size_t desired_ttl) const = 0;
 
@@ -79,7 +79,7 @@ struct PermTensOp final : public iPermEigen
 	}
 
 	/// Implementation of iEigen
-	void assign (size_t, iRuntimeMemory&) override
+	void assign (size_t, RTMemptrT&) override
 	{
 		op_(data_, args_);
 	}
@@ -136,7 +136,7 @@ struct PermMatOp final : public iPermEigen
 	}
 
 	/// Implementation of iEigen
-	void assign (size_t, iRuntimeMemory&) override
+	void assign (size_t, RTMemptrT&) override
 	{
 		op_(data_, args_);
 	}
@@ -188,7 +188,7 @@ struct CacheEigen final : public iPermEigen
 	}
 
 	/// Implementation of iEigen
-	void assign (size_t ttl, iRuntimeMemory& runtime) override
+	void assign (size_t ttl, RTMemptrT& runtime) override
 	{
 		data_->assign(ttl, runtime);
 	}
@@ -229,7 +229,7 @@ struct SrcRef final : public iPermEigen
 	}
 
 	/// Implementation of iEigen
-	void assign (size_t, iRuntimeMemory&) override {}
+	void assign (size_t, RTMemptrT&) override {}
 
 	void assign (const TensMapT<T>& input)
 	{
@@ -301,7 +301,7 @@ struct TensOp final : public iTmpEigen<T>
 		outshape_(outshape), op_(op), args_(args) {}
 
 	/// Implementation of iEigen
-	void assign (size_t ttl, iRuntimeMemory& runtime) override
+	void assign (size_t ttl, RTMemptrT& runtime) override
 	{
 		if (this->data_.is_expired())
 		{
@@ -345,7 +345,7 @@ struct MatOp final : public iTmpEigen<T>
 		outshape_(outshape), op_(op), args_(args) {}
 
 	/// Implementation of iEigen
-	void assign (size_t ttl, iRuntimeMemory& runtime) override
+	void assign (size_t ttl, RTMemptrT& runtime) override
 	{
 		if (this->data_.is_expired())
 		{
@@ -451,7 +451,7 @@ struct TensRef final : public iRefEigen
 	}
 
 	/// Implementation of iEigen
-	void assign (size_t ttl, iRuntimeMemory&) override
+	void assign (size_t ttl, RTMemptrT&) override
 	{
 		extend_life(ttl);
 	}
@@ -485,7 +485,7 @@ struct UnsafeTensRef final : public iRefEigen
 	}
 
 	/// Implementation of iEigen
-	void assign (size_t ttl, iRuntimeMemory&) override
+	void assign (size_t ttl, RTMemptrT&) override
 	{
 		extend_life(ttl);
 	}
@@ -525,7 +525,7 @@ struct TensAssign final : public iRefEigen
 	}
 
 	/// Implementation of iEigen
-	void assign (size_t ttl, iRuntimeMemory&) override
+	void assign (size_t ttl, RTMemptrT&) override
 	{
 		extend_life(ttl);
 		auto next_version = arg_->get_meta().state_version() + 1;
@@ -543,12 +543,14 @@ private:
 	AssignF assign_;
 };
 
-static RuntimeMemory global_runtime; // temporary workaround
-
 struct Device final : public teq::iDevice
 {
 	Device (size_t max_version = std::numeric_limits<size_t>::max()) :
-		max_version_(max_version) {}
+		max_version_(max_version), memory_(std::make_shared<RuntimeMemory>()) {}
+
+	Device (RTMemptrT memory,
+		size_t max_version = std::numeric_limits<size_t>::max()) :
+		max_version_(max_version), memory_(memory) {}
 
 	void calc (teq::iTensor& tens, size_t cache_ttl) override
 	{
@@ -559,7 +561,7 @@ struct Device final : public teq::iDevice
 		if (obs.prop_version(max_version_) ||
 			nullptr == obsdev.data())
 		{
-			obsdev.assign(std::max<size_t>(1, valid_ttl), global_runtime);
+			obsdev.assign(std::max<size_t>(1, valid_ttl), memory_);
 		}
 		else if (false == obsdev.valid_for(valid_ttl))
 		{
@@ -568,6 +570,9 @@ struct Device final : public teq::iDevice
 	}
 
 	size_t max_version_;
+
+private:
+	RTMemptrT memory_;
 };
 
 }

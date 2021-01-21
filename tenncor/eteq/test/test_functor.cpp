@@ -276,7 +276,7 @@ TEST_F(FUNCTOR, Cache)
 	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(0));
 
 	std::vector<double> outdata(12);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		marsh::Maps attrs;
 		auto f = eteq::Functor<double>::get(egen::SIN, {a}, std::move(attrs));
@@ -289,11 +289,12 @@ TEST_F(FUNCTOR, Cache)
 		auto dev = dynamic_cast<eigen::iEigen*>(&f->device());
 		ASSERT_NE(nullptr, dev);
 
-		EXPECT_CALL(memory, allocate(12 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 12 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 
-		dev->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		dev->assign(1, mem);
 		dev->odata();
 		EXPECT_NE(nullptr, dev->data());
 	}

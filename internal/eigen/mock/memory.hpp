@@ -8,7 +8,7 @@
 struct MockRuntimeMemory final : public eigen::iRuntimeMemory
 {
 	MOCK_METHOD1(allocate, void*(size_t));
-	MOCK_METHOD1(deallocate, void(void*));
+	MOCK_METHOD2(deallocate, void(void*,size_t));
 };
 
 #endif // EIGEN_MOCK_MEMORY_HPP

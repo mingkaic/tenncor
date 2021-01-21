@@ -4,6 +4,10 @@
 
 #include <cstdlib>
 
+#include <boost/pool/pool.hpp>
+
+#include "internal/global/global.hpp"
+
 namespace eigen
 {
 
@@ -13,8 +17,10 @@ struct iRuntimeMemory
 
 	virtual void* allocate (size_t size) = 0;
 
-	virtual void deallocate (void* ptr) = 0;
+	virtual void deallocate (void* ptr, size_t size) = 0;
 };
+
+using RTMemptrT = std::shared_ptr<iRuntimeMemory>;
 
 // Manage temporary memory
 struct RuntimeMemory final : public iRuntimeMemory
@@ -24,10 +30,28 @@ struct RuntimeMemory final : public iRuntimeMemory
 		return malloc(size);
 	}
 
-	void deallocate (void* ptr) override
+	void deallocate (void* ptr, size_t) override
 	{
 		free(ptr);
 	}
+};
+
+// Manage temporary memory using boost pool
+struct BoostRuntimeMemory final : public iRuntimeMemory
+{
+	BoostRuntimeMemory (void) : pool_(sizeof(char)) {}
+
+	void* allocate (size_t size) override
+	{
+		return pool_.ordered_malloc(size);
+	}
+
+	void deallocate (void* ptr, size_t size) override
+	{
+		pool_.ordered_free(ptr, size);
+	}
+
+	boost::pool<> pool_;
 };
 
 template <typename T>
@@ -37,8 +61,9 @@ struct Expirable final
 	{
 		if (ptr_ != nullptr)
 		{
-			allocator_->deallocate(ptr_);
+			allocator_->deallocate(ptr_, size_);
 			ptr_ = nullptr;
+			size_ = 0;
 			allocator_ = nullptr;
 		}
 		ttl_ = 0;
@@ -73,14 +98,19 @@ struct Expirable final
 	}
 
 	// borrow memory from runtime memory
-	void borrow (iRuntimeMemory& memory, size_t nelems, size_t ttl)
+	void borrow (RTMemptrT& memory, size_t nelems, size_t ttl)
 	{
+		if (nullptr == memory)
+		{
+			global::fatal("cannot borrow from null memory");
+		}
 		if (false == is_expired())
 		{
 			global::throw_err("cannot borrow memory when Expirable is not expired");
 		}
-		ptr_ = (T*) memory.allocate(sizeof(T) * nelems);
-		allocator_ = &memory;
+		size_ = sizeof(T) * nelems;
+		ptr_ = (T*) memory->allocate(size_);
+		allocator_ = memory;
 		extend_life(ttl);
 	}
 
@@ -103,8 +133,14 @@ private:
 
 	T* ptr_ = nullptr;
 
-	iRuntimeMemory* allocator_ = nullptr;
+	size_t size_ = 0;
+
+	RTMemptrT allocator_ = nullptr;
 };
+
+void set_runtime (RTMemptrT mem, global::CfgMapptrT ctx = global::context());
+
+RTMemptrT get_runtime (const global::CfgMapptrT& ctx = global::context());
 
 }
 

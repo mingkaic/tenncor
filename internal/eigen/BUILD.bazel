@@ -101,6 +101,7 @@ cc_library(
     deps = [
         "//internal/teq:teq",
         "@boost//:uuid",
+        "@boost//:pool",
         "@com_github_eigenteam_eigen//:eigen",
     ],
     visibility = ["//visibility:public"],

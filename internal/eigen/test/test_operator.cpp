@@ -31,7 +31,7 @@ static void test_reduce (
 	marsh::Maps mvalues;
 	eigen::Packer<std::set<teq::RankT>>().pack(mvalues, rranks);
 	std::vector<double> outdata(3);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	{
 		size_t lifetimes = 0;
@@ -43,14 +43,15 @@ static void test_reduce (
 		make_var(edge, expect_raw.data(), mockdev, teq::Shape({3, 2}), "", incr_life);
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(3 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 3 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = red(teq::Shape({3}), edge, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -74,8 +75,8 @@ TEST(OPERATOR, Ref)
 	MockDeviceRef mockdev;
 	auto origin = make_var(expect_raw.data(), mockdev, outshape);
 
-	MockRuntimeMemory memory;
-	EXPECT_CALL(memory, allocate(_)).Times(0);
+	auto memory = std::make_shared<MockRuntimeMemory>();
+	EXPECT_CALL(*memory, allocate(_)).Times(0);
 
 	auto r = eigen::ref(origin);
 
@@ -83,7 +84,8 @@ TEST(OPERATOR, Ref)
 	EXPECT_EQ(odata, raw);
 	std::vector<double> got_raw(raw, raw + outshape.n_elems());
 	EXPECT_VECEQ(expect_raw, got_raw);
-	r->assign(0, memory);
+	eigen::RTMemptrT mem = memory;
+	r->assign(0, mem);
 
 	got_raw = std::vector<double>(raw, raw + outshape.n_elems());
 	EXPECT_VECEQ(expect_raw, got_raw);
@@ -137,18 +139,19 @@ TEST(OPERATOR, ArgMax)
 
 	std::vector<double> outdata(6);
 	std::vector<double> outdata2(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	{
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(3 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 3 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::argmax<double>(teq::Shape({3}), edge, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -161,14 +164,14 @@ TEST(OPERATOR, ArgMax)
 		EXPECT_EQ(1, raw[2]);
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(sizeof(double))).
-			WillOnce(Return(outdata2.data()));
-		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
+		auto outbytes2 = sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes2)).WillOnce(Return(outdata2.data()));
+		EXPECT_CALL(*memory, deallocate(outdata2.data(), outbytes2)).Times(1);
 #endif
 		auto r2 = eigen::argmax<double>(teq::Shape({1}), edge2, mvalues2);
 
 		auto before2 = r2->data();
-		r2->assign(1, memory);
+		r2->assign(1, mem);
 		double* raw2 = (double*) r2->data();
 		ASSERT_NE(nullptr, raw2);
 #ifndef PERM_OP
@@ -202,18 +205,19 @@ TEST(OPERATOR, Extend)
 	}));
 
 	std::vector<double> outdata(24);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	{
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(24 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data()));
+		auto outbytes = 24 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes));
 #endif
 		auto r = eigen::extend<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -237,7 +241,7 @@ TEST(OPERATOR, Permute)
 	std::vector<double> outdata(12);
 	std::vector<double> outdata2(12);
 	std::vector<double> outdata3(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		marsh::Maps mvalues;
 		eigen::Packer<teq::RanksT>().pack(mvalues,
@@ -258,14 +262,15 @@ TEST(OPERATOR, Permute)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(12 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data()));
+		auto outbytes = 12 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes));
 #endif
 		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -301,14 +306,15 @@ TEST(OPERATOR, Permute)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(12 * sizeof(double))).
-			WillOnce(Return(outdata2.data()));
-		EXPECT_CALL(memory, deallocate(outdata2.data()));
+		auto outbytes = 12 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata2.data()));
+		EXPECT_CALL(*memory, deallocate(outdata2.data(), outbytes));
 #endif
 		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -344,14 +350,15 @@ TEST(OPERATOR, Permute)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata3.data()));
-		EXPECT_CALL(memory, deallocate(outdata3.data()));
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata3.data()));
+		EXPECT_CALL(*memory, deallocate(outdata3.data(), outbytes));
 #endif
 		auto r = eigen::permute<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -370,7 +377,7 @@ TEST(OPERATOR, Permute)
 TEST(OPERATOR, Slice)
 {
 	std::vector<double> outdata(2);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	std::vector<double> orig_raw{2, 8, 4, 5, 6, 7};
 	MockDeviceRef mockdev;
@@ -392,14 +399,15 @@ TEST(OPERATOR, Slice)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(2 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data()));
+		auto outbytes = 2 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes));
 #endif
 		auto r = eigen::slice<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -423,7 +431,8 @@ TEST(OPERATOR, Slice)
 
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 
 		std::vector<double> expect_raw = {5, 6, 7};
 		std::vector<double> got_raw(raw, raw + outshape.n_elems());
@@ -436,7 +445,7 @@ TEST(OPERATOR, MultiConcat)
 {
 	std::vector<double> outdata(8);
 	std::vector<double> outdata2(12);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	marsh::Maps mvalues;
 	eigen::Packer<teq::RankT>().pack(mvalues, 0);
@@ -464,14 +473,15 @@ TEST(OPERATOR, MultiConcat)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::concat<double>(outshape, teq::TensptrsT{edge, edge2}, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -522,14 +532,15 @@ TEST(OPERATOR, MultiConcat)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(12 * sizeof(double))).
-			WillOnce(Return(outdata2.data()));
-		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
+		auto outbytes = 12 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata2.data()));
+		EXPECT_CALL(*memory, deallocate(outdata2.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::concat<double>(outshape, teq::TensptrsT{edge, edge2, edge3}, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -554,7 +565,7 @@ TEST(OPERATOR, Pow)
 {
 	std::vector<double> outdata(6);
 	std::vector<double> outdata2(8);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 3});
 		std::vector<double> orig_raw{2, 8, 4, 5, 6, 7};
@@ -579,14 +590,15 @@ TEST(OPERATOR, Pow)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::pow<double>(outshape, *edge, *edge2);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -623,14 +635,15 @@ TEST(OPERATOR, Pow)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata2.data()));
-		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata2.data()));
+		EXPECT_CALL(*memory, deallocate(outdata2.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::pow<double>(outshape, *edge, *edge2);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -650,7 +663,7 @@ TEST(OPERATOR, Add)
 	std::vector<double> outdata(8);
 	std::vector<double> outdata2(6);
 	std::vector<double> outdata3(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 2, 2});
 		std::vector<double> orig_raw{2, 8, 4, 5, 6, 7, 8, 11};
@@ -675,14 +688,15 @@ TEST(OPERATOR, Add)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::add<double>(outshape, teq::TensptrsT{edge, edge2});
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -722,14 +736,15 @@ TEST(OPERATOR, Add)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata2.data()));
-		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata2.data()));
+		EXPECT_CALL(*memory, deallocate(outdata2.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::add<double>(outshape, teq::TensptrsT{edge, edge2});
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -764,14 +779,15 @@ TEST(OPERATOR, Add)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata3.data()));
-		EXPECT_CALL(memory, deallocate(outdata3.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata3.data()));
+		EXPECT_CALL(*memory, deallocate(outdata3.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::add<double>(outshape, teq::TensptrsT{edge, edge2, edge3});
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -791,7 +807,7 @@ TEST(OPERATOR, Sub)
 {
 	std::vector<double> outdata(6);
 	std::vector<double> outdata2(8);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 3});
 		std::vector<double> orig_raw{2, 8, 4, 5, 6, 7};
@@ -816,14 +832,15 @@ TEST(OPERATOR, Sub)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::sub<double>(outshape, *edge, *edge2);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -860,14 +877,15 @@ TEST(OPERATOR, Sub)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata2.data()));
-		EXPECT_CALL(memory, deallocate(outdata2.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata2.data()));
+		EXPECT_CALL(*memory, deallocate(outdata2.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::sub<double>(outshape, *edge, *edge2);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -885,7 +903,7 @@ TEST(OPERATOR, Sub)
 TEST(OPERATOR, Mul)
 {
 	std::vector<double> outdata(8);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 2, 2});
 		std::vector<double> orig_raw{2, 8, 4, 5, 6, 7, 1.2, 3};
@@ -910,14 +928,15 @@ TEST(OPERATOR, Mul)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::mul<double>(outshape, teq::TensptrsT{edge, edge2});
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -958,14 +977,15 @@ TEST(OPERATOR, Mul)
 
 		std::vector<double> outdata(6);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::mul<double>(outshape, teq::TensptrsT{edge, edge2});
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1001,14 +1021,15 @@ TEST(OPERATOR, Mul)
 
 		std::vector<double> outdata(6);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::mul<double>(outshape, teq::TensptrsT{edge, edge2, edge3});
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1027,7 +1048,7 @@ TEST(OPERATOR, Mul)
 TEST(OPERATOR, Div)
 {
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 3});
 		std::vector<double> orig_raw{2, 8, 4, 5, 6, 7};
@@ -1052,14 +1073,15 @@ TEST(OPERATOR, Div)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::div<double>(outshape, *edge, *edge2);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1097,14 +1119,15 @@ TEST(OPERATOR, Div)
 
 		std::vector<double> outdata(8);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::div<double>(outshape, *edge, *edge2);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1122,7 +1145,7 @@ TEST(OPERATOR, Div)
 TEST(OPERATOR, Eq)
 {
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 3});
 		std::vector<double> orig_rawa{2, 8, 4, 5, 6, 7};
@@ -1147,14 +1170,15 @@ TEST(OPERATOR, Eq)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::eq<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1192,14 +1216,15 @@ TEST(OPERATOR, Eq)
 
 		std::vector<double> outdata(8);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::eq<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1217,7 +1242,7 @@ TEST(OPERATOR, Eq)
 TEST(OPERATOR, Neq)
 {
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 3});
 		std::vector<double> orig_rawa{2, 8, 4, 5, 6, 7};
@@ -1242,14 +1267,15 @@ TEST(OPERATOR, Neq)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::neq<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1286,14 +1312,15 @@ TEST(OPERATOR, Neq)
 
 		std::vector<double> outdata(8);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::neq<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1311,7 +1338,7 @@ TEST(OPERATOR, Neq)
 TEST(OPERATOR, Lt)
 {
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 3});
 		std::vector<double> orig_rawa{2, 8, 4, 5, 6, 7};
@@ -1336,14 +1363,15 @@ TEST(OPERATOR, Lt)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::lt<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1381,14 +1409,15 @@ TEST(OPERATOR, Lt)
 
 		std::vector<double> outdata(8);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::lt<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1406,7 +1435,7 @@ TEST(OPERATOR, Lt)
 TEST(OPERATOR, Gt)
 {
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 3});
 		std::vector<double> orig_rawa{2, 8, 4, 5, 6, 7};
@@ -1431,14 +1460,15 @@ TEST(OPERATOR, Gt)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::gt<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1475,14 +1505,15 @@ TEST(OPERATOR, Gt)
 
 		std::vector<double> outdata(8);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::gt<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1500,7 +1531,7 @@ TEST(OPERATOR, Gt)
 TEST(OPERATOR, Min)
 {
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 3});
 		std::vector<double> orig_rawa{2, 8, 4, 5, 6, 7};
@@ -1525,14 +1556,15 @@ TEST(OPERATOR, Min)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::min<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1569,14 +1601,15 @@ TEST(OPERATOR, Min)
 
 		std::vector<double> outdata(8);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::min<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1595,7 +1628,7 @@ TEST(OPERATOR, Min)
 TEST(OPERATOR, Max)
 {
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 3});
 		std::vector<double> orig_rawa{2, 8, 4, 5, 6, 7};
@@ -1620,14 +1653,15 @@ TEST(OPERATOR, Max)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::max<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1664,14 +1698,15 @@ TEST(OPERATOR, Max)
 
 		std::vector<double> outdata(8);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::max<double>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1693,7 +1728,7 @@ void rand_uniform_test (
 	const std::array<T,8>& bdata)
 {
 	std::vector<T> outdata(8);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 4});
 		std::vector<T> araw(adata.begin(), adata.end());
@@ -1718,14 +1753,15 @@ void rand_uniform_test (
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::rand_uniform<T>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		T* raw = (T*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1767,14 +1803,15 @@ void rand_uniform_test (
 
 		std::vector<T> outdata(8);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::rand_uniform<T>(outshape, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		T* raw = (T*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1817,7 +1854,7 @@ TEST(OPERATOR, RandUniformDouble)
 TEST(OPERATOR, Select)
 {
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 3});
 		std::vector<double> orig_raw{0, 1, 0, 0, 1, 1};
@@ -1851,14 +1888,15 @@ TEST(OPERATOR, Select)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::select<double>(outshape, *comp, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1904,14 +1942,15 @@ TEST(OPERATOR, Select)
 
 		std::vector<double> outdata(8);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(8 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 8 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::select<double>(outshape, *comp, *edgea, *edgeb);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -1930,7 +1969,7 @@ TEST(OPERATOR, Select)
 TEST(OPERATOR, Contract)
 {
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		teq::Shape outshape({2, 3});
 		teq::Shape lshape({4, 3});
@@ -1960,14 +1999,15 @@ TEST(OPERATOR, Contract)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::contract<double>(outshape, *edgea, *edgeb, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -2014,14 +2054,15 @@ TEST(OPERATOR, Contract)
 
 		std::vector<double> outdata(6);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::contract<double>(outshape, *edgea, *edgeb, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -2050,7 +2091,7 @@ TEST(OPERATOR, Pad)
 	make_var(edge, orig_raw.data(), mockdev, teq::Shape({2, 3}));
 
 	std::vector<double> outdata(12);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	{
 		size_t lifetimes = 0;
@@ -2062,14 +2103,15 @@ TEST(OPERATOR, Pad)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(12 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 12 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::pad<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -2101,7 +2143,7 @@ TEST(OPERATOR, Stride)
 	make_var(edge, orig_raw.data(), mockdev, teq::Shape({2, 3}));
 
 	std::vector<double> outdata(4);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	{
 		size_t lifetimes = 0;
@@ -2113,14 +2155,15 @@ TEST(OPERATOR, Stride)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(4 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 4 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::stride<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -2141,7 +2184,7 @@ TEST(OPERATOR, Stride)
 TEST(OPERATOR, Scatter)
 {
 	std::vector<double> outdata(9);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	marsh::Maps mvalues;
 	eigen::Packer<teq::DimsT>().pack(mvalues, {2, 2});
@@ -2162,14 +2205,15 @@ TEST(OPERATOR, Scatter)
 
 	{
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(9 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 9 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::scatter<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -2192,7 +2236,7 @@ TEST(OPERATOR, Scatter)
 TEST(OPERATOR, Reverse)
 {
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	marsh::Maps mvalues;
 	eigen::Packer<std::set<teq::RankT>>().pack(mvalues, {1});
@@ -2213,14 +2257,15 @@ TEST(OPERATOR, Reverse)
 
 	{
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::reverse<double>(outshape, edge, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -2241,7 +2286,7 @@ TEST(OPERATOR, Reverse)
 TEST(OPERATOR, Concat)
 {
 	std::vector<double> outdata(9);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	marsh::Maps mvalues;
 	eigen::Packer<teq::RankT>().pack(mvalues, 0);
@@ -2270,14 +2315,15 @@ TEST(OPERATOR, Concat)
 
 	{
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(9 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 9 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::concat<double>(outshape, teq::TensptrsT{edgea, edgeb}, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -2319,7 +2365,7 @@ static void elementary_unary (
 	std::vector<double> invec = {-2, 8, -4, -5, 7, 6})
 {
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	std::vector<double> expect;
 	std::transform(invec.begin(), invec.end(), std::back_inserter(expect),
@@ -2339,14 +2385,15 @@ static void elementary_unary (
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = f(shape, edge);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -2374,14 +2421,15 @@ static void elementary_unary (
 
 		std::vector<double> outdata(6);
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = f(shape, edge);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -2536,7 +2584,7 @@ TEST(OPERATOR, Convolution)
 	}
 
 	std::vector<double> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	marsh::Maps mvalues;
 	eigen::Packer<teq::RanksT>().pack(mvalues, {1});
@@ -2567,14 +2615,15 @@ TEST(OPERATOR, Convolution)
 
 	{
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(double))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::convolution<double>(outshape, image, kernel, mvalues);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP
@@ -2613,12 +2662,13 @@ TEST(OPERATOR, Assign)
 	EXPECT_CALL(edgeb, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 	EXPECT_CALL(mockmeta, state_version()).WillRepeatedly(Return(0));
 
-	MockRuntimeMemory memory;
-	EXPECT_CALL(memory, allocate(_)).Times(0);
+	auto memory = std::make_shared<MockRuntimeMemory>();
+	EXPECT_CALL(*memory, allocate(_)).Times(0);
 
 	auto r = eigen::assign<double>(edgea, edgeb);
 
-	r->assign(1, memory);
+	eigen::RTMemptrT mem = memory;
+	r->assign(1, mem);
 	double* raw = (double*) r->data();
 	ASSERT_NE(nullptr, raw);
 	EXPECT_EQ(raw, devref.data());
@@ -2646,12 +2696,13 @@ TEST(OPERATOR, AssignAdd)
 	EXPECT_CALL(edgeb, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 	EXPECT_CALL(mockmeta, state_version()).WillRepeatedly(Return(0));
 
-	MockRuntimeMemory memory;
-	EXPECT_CALL(memory, allocate(_)).Times(0);
+	auto memory = std::make_shared<MockRuntimeMemory>();
+	EXPECT_CALL(*memory, allocate(_)).Times(0);
 
 	auto r = eigen::assign_add<double>(edgea, edgeb);
 
-	r->assign(1, memory);
+	eigen::RTMemptrT mem = memory;
+	r->assign(1, mem);
 	double* raw = (double*) r->data();
 	ASSERT_NE(nullptr, raw);
 	EXPECT_EQ(raw, devref.data());
@@ -2680,12 +2731,13 @@ TEST(OPERATOR, AssignSub)
 	EXPECT_CALL(edgeb, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 	EXPECT_CALL(mockmeta, state_version()).WillRepeatedly(Return(0));
 
-	MockRuntimeMemory memory;
-	EXPECT_CALL(memory, allocate(_)).Times(0);
+	auto memory = std::make_shared<MockRuntimeMemory>();
+	EXPECT_CALL(*memory, allocate(_)).Times(0);
 
 	auto r = eigen::assign_sub<double>(edgea, edgeb);
 
-	r->assign(1, memory);
+	eigen::RTMemptrT mem = memory;
+	r->assign(1, mem);
 	double* raw = (double*) r->data();
 	ASSERT_NE(nullptr, raw);
 	EXPECT_EQ(raw, devref.data());
@@ -2714,12 +2766,13 @@ TEST(OPERATOR, AssignMul)
 	EXPECT_CALL(edgeb, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 	EXPECT_CALL(mockmeta, state_version()).WillRepeatedly(Return(0));
 
-	MockRuntimeMemory memory;
-	EXPECT_CALL(memory, allocate(_)).Times(0);
+	auto memory = std::make_shared<MockRuntimeMemory>();
+	EXPECT_CALL(*memory, allocate(_)).Times(0);
 
 	auto r = eigen::assign_mul<double>(edgea, edgeb);
 
-	r->assign(1, memory);
+	eigen::RTMemptrT mem = memory;
+	r->assign(1, mem);
 	double* raw = (double*) r->data();
 	ASSERT_NE(nullptr, raw);
 	EXPECT_EQ(raw, devref.data());
@@ -2748,12 +2801,13 @@ TEST(OPERATOR, AssignDiv)
 	EXPECT_CALL(edgeb, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 	EXPECT_CALL(mockmeta, state_version()).WillRepeatedly(Return(0));
 
-	MockRuntimeMemory memory;
-	EXPECT_CALL(memory, allocate(_)).Times(0);
+	auto memory = std::make_shared<MockRuntimeMemory>();
+	EXPECT_CALL(*memory, allocate(_)).Times(0);
 
 	auto r = eigen::assign_div<double>(edgea, edgeb);
 
-	r->assign(1, memory);
+	eigen::RTMemptrT mem = memory;
+	r->assign(1, mem);
 	double* raw = (double*) r->data();
 	ASSERT_NE(nullptr, raw);
 	EXPECT_EQ(raw, devref.data());
@@ -2767,7 +2821,7 @@ TEST(OPERATOR, AssignDiv)
 TEST(OPERATOR, Cast)
 {
 	std::vector<int32_t> outdata(6);
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	teq::Shape outshape({2, 3});
 	std::vector<double> a{2.1, 8.5, 4.3, 5.2, 6.1, 7.2};
@@ -2779,13 +2833,14 @@ TEST(OPERATOR, Cast)
 	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
 
 	{
-		EXPECT_CALL(memory, allocate(_)).Times(0);
+		EXPECT_CALL(*memory, allocate(_)).Times(0);
 
 		auto r = eigen::cast<double>(edgea);
 
 		double* raw = (double*) r->data();
 		ASSERT_NE(nullptr, raw); // assert data existing at the beginning due to ptr ref
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 
 		std::vector<double> got_raw(raw, raw + outshape.n_elems());
 		ASSERT_ARRDBLEQ(a, got_raw);
@@ -2800,14 +2855,15 @@ TEST(OPERATOR, Cast)
 		}));
 
 #ifndef PERM_OP
-		EXPECT_CALL(memory, allocate(6 * sizeof(int32_t))).
-			WillOnce(Return(outdata.data()));
-		EXPECT_CALL(memory, deallocate(outdata.data())).Times(1);
+		auto outbytes = 6 * sizeof(int32_t);
+		EXPECT_CALL(*memory, allocate(outbytes)).WillOnce(Return(outdata.data()));
+		EXPECT_CALL(*memory, deallocate(outdata.data(), outbytes)).Times(1);
 #endif
 		auto r = eigen::cast<int32_t>(edgea);
 
 		auto before = r->data();
-		r->assign(1, memory);
+		eigen::RTMemptrT mem = memory;
+		r->assign(1, mem);
 		int32_t* raw = (int32_t*) r->data();
 		ASSERT_NE(nullptr, raw);
 #ifndef PERM_OP

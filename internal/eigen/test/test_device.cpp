@@ -27,9 +27,10 @@ TEST(DEVICE, SrcRef)
 		EXPECT_VECEQ(data, vec);
 	}(ref);
 
-	MockRuntimeMemory memory;
-	EXPECT_CALL(memory, allocate(_)).Times(0);
-	ref.assign(0, memory); // referencing shouldn't do anything
+	auto memory = std::make_shared<MockRuntimeMemory>();
+	EXPECT_CALL(*memory, allocate(_)).Times(0);
+	eigen::RTMemptrT mem = memory;
+	ref.assign(0, mem); // referencing shouldn't do anything
 
 	auto ptr = (double*) ref.data();
 	std::vector<double> vec(ptr, ptr + 4);
@@ -63,9 +64,10 @@ TEST(DEVICE, TensAssign)
 		assign_called = true;
 	});
 
-	MockRuntimeMemory memory;
-	EXPECT_CALL(memory, allocate(_)).Times(0);
-	ref.assign(0, memory); // assigning shouldn't do anything
+	auto memory = std::make_shared<MockRuntimeMemory>();
+	EXPECT_CALL(*memory, allocate(_)).Times(0);
+	eigen::RTMemptrT mem = memory;
+	ref.assign(0, mem); // assigning shouldn't do anything
 	EXPECT_TRUE(assign_called);
 }
 
@@ -83,8 +85,7 @@ TEST(DEVICE, TensOp)
 	MockDeviceRef devref;
 	auto var = make_var(data.data(), devref, shape, "", incr_life);
 
-	MockRuntimeMemory memory;
-
+	auto memory = std::make_shared<MockRuntimeMemory>();
 	{
 		bool init_called = false;
 		eigen::TensOp<double> ref(outshape, teq::CTensT{var.get()},
@@ -100,10 +101,11 @@ TEST(DEVICE, TensOp)
 		EXPECT_FALSE(init_called);
 		EXPECT_EQ(nullptr, ref.data());
 
-		EXPECT_CALL(memory, allocate(outshape.n_elems() * sizeof(double))).Times(1).
-			WillOnce(Return(alloc_mem.data()));
-		EXPECT_CALL(memory, deallocate(alloc_mem.data())).Times(1);
-		ref.assign(1, memory); // should initialize
+		auto outbytes = outshape.n_elems() * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).Times(1).WillOnce(Return(alloc_mem.data()));
+		EXPECT_CALL(*memory, deallocate(alloc_mem.data(), outbytes)).Times(1);
+		eigen::RTMemptrT mem = memory;
+		ref.assign(1, mem); // should initialize
 		EXPECT_TRUE(init_called);
 	}
 }
@@ -122,7 +124,7 @@ TEST(DEVICE, MatOp)
 	MockDeviceRef devref;
 	auto var = make_var(data.data(), devref, shape, "", incr_life);
 
-	MockRuntimeMemory memory;
+	auto memory = std::make_shared<MockRuntimeMemory>();
 
 	{
 		bool init_called = false;
@@ -139,10 +141,11 @@ TEST(DEVICE, MatOp)
 		EXPECT_FALSE(init_called);
 		EXPECT_EQ(nullptr, ref.data());
 
-		EXPECT_CALL(memory, allocate(outshape.n_elems() * sizeof(double))).Times(1).
-			WillOnce(Return(alloc_mem.data()));
-		EXPECT_CALL(memory, deallocate(alloc_mem.data())).Times(1);
-		ref.assign(1, memory); // should initialize
+		auto outbytes = outshape.n_elems() * sizeof(double);
+		EXPECT_CALL(*memory, allocate(outbytes)).Times(1).WillOnce(Return(alloc_mem.data()));
+		EXPECT_CALL(*memory, deallocate(alloc_mem.data(), outbytes)).Times(1);
+		eigen::RTMemptrT mem = memory;
+		ref.assign(1, mem); // should initialize
 		EXPECT_TRUE(init_called);
 	}
 }
@@ -173,7 +176,7 @@ TEST(DEVICE, Calc)
 	MockDeviceRef src;
 	make_devref(src, data.data());
 	auto obsref = std::make_shared<MockEigen>();
-	MockMeta mockmeta;	
+	MockMeta mockmeta;
 
 	double mockdata = 0;
 	EXPECT_CALL(*obsref, data()).WillRepeatedly(Return(&mockdata));

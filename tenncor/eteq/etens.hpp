@@ -154,7 +154,7 @@ struct ETensor
 	{
 		if (auto ctx = get_context())
 		{
-			eigen::Device device(max_version);
+			eigen::Device device(eigen::get_runtime(ctx), max_version);
 			teq::get_eval(ctx).evaluate(device, {get()}, ignored);
 			return data<T>();
 		}
