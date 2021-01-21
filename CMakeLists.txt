@@ -275,6 +275,7 @@ set(EIGEN_LIB ${PROJECT_NAME}_eigen)
 add_library(${EIGEN_LIB}
     internal/eigen/src/convert.cpp
     internal/eigen/src/operator.cpp
+	internal/eigen/src/memory.cpp
     internal/eigen/src/packattr.cpp
     ${EIGEN_SRCS}
 )
