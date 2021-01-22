@@ -5,6 +5,18 @@
 
 using ETensKeysT = types::StrUMapT<eteq::ETensor>;
 
+static py::array get_releasedata (eteq::ETensor& self)
+{
+	auto dtype = (egen::_GENERATED_DTYPE) self->get_meta().type_code();
+#define _CHOOSE_RELEASE_DATATYPE(REALTYPE){\
+	auto data = self.odata<REALTYPE>();\
+	return pytenncor::typedata_to_array<REALTYPE>(data.get(), self->shape(),\
+		self->get_meta().type_code(), py::dtype::of<REALTYPE>()); }
+	TYPE_LOOKUP(_CHOOSE_RELEASE_DATATYPE, dtype);
+#undef _CHOOSE_RELEASE_DATATYPE
+	return py::array();
+}
+
 void eteq_ext (py::module& m)
 {
 #define DEF_GENERATED_DTYPE_ENUM(CODE,REALTYPE).value(#REALTYPE, CODE)
@@ -114,18 +126,7 @@ void eteq_ext (py::module& m)
 #undef _CHOOSE_DATATYPE
 			return py::array();
 		})
-		.def("release_data",
-		[](eteq::ETensor& self)
-		{
-			auto dtype = (egen::_GENERATED_DTYPE) self->get_meta().type_code();
-#define _CHOOSE_RELEASE_DATATYPE(REALTYPE){\
-			auto data = self.odata<REALTYPE>();\
-			return pytenncor::typedata_to_array<REALTYPE>(data.get(), self->shape(),\
-				self->get_meta().type_code(), py::dtype::of<REALTYPE>()); }
-			TYPE_LOOKUP(_CHOOSE_RELEASE_DATATYPE, dtype);
-#undef _CHOOSE_RELEASE_DATATYPE
-			return py::array();
-		})
+		.def("release_data", get_releasedata)
 		.def("get",
 		[](eteq::ETensor& self, teq::TensSetT ignored, size_t max_version)
 		{
@@ -262,7 +263,7 @@ void eteq_ext (py::module& m)
 	m
 		// ==== operations ====
 		.def("run",
-		[](const eteq::ETensorsT& targets, const eteq::ETensorsT& ignored, size_t max_version)
+		[](eteq::ETensorsT& targets, eteq::ETensorsT& ignored, size_t max_version)
 		{
 			teq::TensSetT igset;
 			igset.reserve(ignored.size());
@@ -271,6 +272,13 @@ void eteq_ext (py::module& m)
 				igset.emplace(etens.get());
 			}
 			eteq::run(targets, igset, max_version);
+			std::vector<py::array> out;
+			out.reserve(targets.size());
+			for (auto& targ : targets)
+			{
+				out.push_back(get_releasedata(targ));
+			}
+			return out;
 		},
 		py::arg("targets"),
 		py::arg("ignored") = eteq::ETensorsT{},
