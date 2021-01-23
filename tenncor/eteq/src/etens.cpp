@@ -24,7 +24,7 @@ teq::TensptrsT to_tensors (const ETensorsT& etensors)
 void set_reg (TensRegistryT* reg, global::CfgMapptrT ctx)
 {
 	ctx->rm_entry(reg_key);
-	if (reg)
+	if (nullptr != reg)
 	{
 		ctx->template add_entry<TensRegistryT>(reg_key,
 			[=]{ return reg; });
@@ -41,6 +41,24 @@ TensRegistryT& get_reg (const global::CfgMapptrT& ctx)
 		set_reg(reg, ctx);
 	}
 	return *reg;
+}
+
+void run (const ETensorsT& targets, teq::TensSetT ignored, size_t max_version)
+{
+	if (targets.empty())
+	{
+		return;
+	}
+	if (auto ctx = targets.front().get_context())
+	{
+		eigen::Device device(max_version);
+		teq::TensSetT targset;
+		for (const auto& etens : targets)
+		{
+			targset.emplace(etens.get());
+		}
+		teq::get_eval(ctx).evaluate(device, targset, ignored);
+	}
 }
 
 }

@@ -4,31 +4,31 @@ package(
     default_visibility = ["//visibility:public"],
 )
 
-COMMON_CFGS = ["ops.yml", "eteq.yml"]
+COMMON_CFGS = ["ops.yml", "tenncor.yml"]
 
 filegroup(
     name = "srcs",
     srcs = [
-        ":eteq_classes",
-        ":eteq",
-        ":eteq_min",
+        ":tenncor_classes",
+        ":tenncor",
+        ":tenncor_min",
         ":optimizations",
         "BUILD.bazel",
     ],
 )
 
 filegroup(
-    name = "eteq_classes",
-    srcs = glob(["eteq/*.yml"]),
+    name = "tenncor_classes",
+    srcs = glob(["tenncor/*.yml"]),
 )
 
 filegroup(
-    name = "eteq",
+    name = "tenncor",
     srcs = ["fulltype.yml"] + COMMON_CFGS,
 )
 
 filegroup(
-    name = "eteq_min",
+    name = "tenncor_min",
     srcs = ["mintype.yml"] + COMMON_CFGS,
 )
 

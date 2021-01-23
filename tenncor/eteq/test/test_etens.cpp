@@ -9,6 +9,11 @@
 #include "tenncor/eteq/eteq.hpp"
 
 
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Throw;
+
+
 TEST(ETENS, CopyMove)
 {
 	std::vector<double> big_d = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
@@ -123,6 +128,9 @@ TEST(ETENS, Convert)
 
 TEST(ETENS, DataCalc)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	teq::Shape shape;
 	double data = 3;
 
@@ -170,11 +178,19 @@ TEST(ETENS, DataCalc)
 	// |       `-- b = 3
 	// `-- d = 3
 
-	EXPECT_EQ(512, *targetens.data<double>());
-	EXPECT_EQ(8, *ztens.data<double>());
-	EXPECT_EQ(-1, *ytens.data<double>());
-	EXPECT_EQ(-9, *xtens.data<double>());
-	EXPECT_EQ(-3, *utens.data<double>());
+	auto tdata = targetens.data<double>();
+	auto zdata = ztens.data<double>();
+	auto ydata = ytens.data<double>();
+	auto xdata = xtens.data<double>();
+	auto udata = utens.data<double>();
+	ASSERT_NE(nullptr, tdata);
+	EXPECT_EQ(512, *tdata);
+#ifndef PERM_OP
+	EXPECT_EQ(nullptr, zdata);
+	EXPECT_EQ(nullptr, ydata);
+	EXPECT_EQ(nullptr, xdata);
+	EXPECT_EQ(nullptr, udata);
+#endif
 
 	double nextdata = 2;
 	a->assign(&nextdata, shape);
@@ -191,27 +207,14 @@ TEST(ETENS, DataCalc)
 	// |       `-- b = 3
 	// `-- d = 3
 
-	ztens.calc<double>(teq::TensSetT{y.get()});
-	// expected state:
-	// pow (targeted) = 512
-	// `-- - (z) = 5
-	// |   `-- / (y) = -1
-	// |   |   `-- c = 3
-	// |   |   `-- - (u) = -2
-	// |   |       `-- a = 2
-	// |   `-- * (x) = -6
-	// |       `-- - (u)
-	// |       |   `-- a = 2
-	// |       `-- b = 3
-	// `-- d = 3
-	EXPECT_EQ(512, *targetens.data<double>());
-	EXPECT_EQ(5, *ztens.data<double>());
-	EXPECT_EQ(-1, *ytens.data<double>());
-	EXPECT_EQ(-6, *xtens.data<double>());
-	EXPECT_EQ(-2, *utens.data<double>());
+#ifndef PERM_OP
+	std::string fatalmsg = "cannot ignore tensor DIV without existing data";
+	EXPECT_CALL(*logger, supports_level(logs::throw_err_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger, log(logs::throw_err_level, fatalmsg, _)).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(ztens.calc<double>(teq::TensSetT{y.get()}), fatalmsg.c_str());
+#endif
 
-	a->upversion(a->get_meta().state_version() + 1);
-	// no change
+	// no change in state or version, but everything has no data, expect calculation
 
 	ztens.calc<double>();
 	// expected state:
@@ -227,11 +230,181 @@ TEST(ETENS, DataCalc)
 	// |       `-- b = 3
 	// `-- d = 3
 
-	EXPECT_EQ(512, *targetens.data<double>());
-	EXPECT_EQ(4.5, *ztens.data<double>());
-	EXPECT_EQ(-1.5, *ytens.data<double>());
-	EXPECT_EQ(-6, *xtens.data<double>());
-	EXPECT_EQ(-2, *utens.data<double>());
+	tdata = targetens.data<double>();
+	zdata = ztens.data<double>();
+	ydata = ytens.data<double>();
+	xdata = xtens.data<double>();
+	udata = utens.data<double>();
+	ASSERT_NE(nullptr, tdata);
+	ASSERT_NE(nullptr, zdata);
+	EXPECT_EQ(512, *tdata);
+	EXPECT_EQ(4.5, *zdata);
+#ifndef PERM_OP
+	EXPECT_EQ(nullptr, ydata);
+	EXPECT_EQ(nullptr, xdata);
+	EXPECT_EQ(nullptr, udata);
+#endif
+
+	global::set_logger(new exam::NoSupportLogger());
+}
+
+
+TEST(ETENS, DefaultEvaluate)
+{
+	teq::Shape shape;
+	double data = 3;
+
+	eteq::EVariable<double> a(eteq::VarptrT<double>(
+		eteq::Variable<double>::get(&data, shape, "A")));
+	eteq::EVariable<double> b(eteq::VarptrT<double>(
+		eteq::Variable<double>::get(&data, shape, "B")));
+	eteq::EVariable<double> c(eteq::VarptrT<double>(
+		eteq::Variable<double>::get(&data, shape, "C")));
+	eteq::EVariable<double> d(eteq::VarptrT<double>(
+		eteq::Variable<double>::get(&data, shape, "D")));
+
+	marsh::Maps attrs;
+	teq::TensptrT u(eteq::Functor<double>::get(
+		egen::NEG, {a}, std::move(attrs)));
+	teq::TensptrT x(eteq::Functor<double>::get(
+		egen::MUL, {u, b}, std::move(attrs)));
+	teq::TensptrT y(eteq::Functor<double>::get(
+		egen::DIV, {c, u}, std::move(attrs)));
+	teq::TensptrT z(eteq::Functor<double>::get(
+		egen::SUB, {y, x}, std::move(attrs)));
+	teq::TensptrT target(eteq::Functor<double>::get(
+		egen::POW, {z, d}, std::move(attrs)));
+
+	eteq::ETensor targetens(target);
+	eteq::ETensor ztens(z);
+	eteq::ETensor ytens(y);
+	eteq::ETensor xtens(x);
+	eteq::ETensor utens(u);
+	eteq::ETensor nothing;
+
+	eigen::Device device(std::numeric_limits<size_t>::max());
+	teq::get_eval(global::context()).evaluate(device, {
+		targetens.get(),
+		ztens.get(),
+		ytens.get(),
+		xtens.get(),
+		utens.get(),
+		nothing.get(),
+	});
+
+	// pow (targeted) = 512
+	// `-- - (z) = 8
+	// |   `-- / (y) = -1
+	// |   |   `-- c = 3
+	// |   |   `-- - (u) = -3
+	// |   |       `-- a = 3
+	// |   `-- * (x) = -9
+	// |       `-- - (u)
+	// |       |   `-- a = 3
+	// |       `-- b = 3
+	// `-- d = 3
+
+	auto tdata = targetens.data<double>();
+	auto zdata = ztens.data<double>();
+	auto ydata = ytens.data<double>();
+	auto xdata = xtens.data<double>();
+	auto udata = utens.data<double>();
+	ASSERT_NE(nullptr, tdata);
+	ASSERT_NE(nullptr, zdata);
+	ASSERT_NE(nullptr, ydata);
+	ASSERT_NE(nullptr, xdata);
+	ASSERT_NE(nullptr, udata);
+	EXPECT_EQ(512, *tdata);
+	EXPECT_EQ(8, *zdata);
+	EXPECT_EQ(-1, *ydata);
+	EXPECT_EQ(-9, *xdata);
+	EXPECT_EQ(-3, *udata);
+
+	double nextdata = 2;
+	a->assign(&nextdata, shape);
+	// new state:
+	// pow (targeted) = 512
+	// `-- - (z) = 8
+	// |   `-- / (y) = -1
+	// |   |   `-- c = 3
+	// |   |   `-- - (u) = -3
+	// |   |       `-- a = 2
+	// |   `-- * (x) = -9
+	// |       `-- - (u)
+	// |       |   `-- a = 2
+	// |       `-- b = 3
+	// `-- d = 3
+
+	teq::get_eval(global::context()).evaluate(device, {
+		ztens.get(),
+		ytens.get(),
+		xtens.get(),
+		utens.get(),
+		nothing.get(),
+	}, {y.get()});
+	// expected state:
+	// pow (targeted) = 512
+	// `-- - (z) = 5
+	// |   `-- / (y) = -1
+	// |   |   `-- c = 3
+	// |   |   `-- - (u) = -2
+	// |   |       `-- a = 2
+	// |   `-- * (x) = -6
+	// |       `-- - (u)
+	// |       |   `-- a = 2
+	// |       `-- b = 3
+	// `-- d = 3
+	tdata = targetens.data<double>();
+	zdata = ztens.data<double>();
+	ydata = ytens.data<double>();
+	xdata = xtens.data<double>();
+	udata = utens.data<double>();
+	ASSERT_NE(nullptr, tdata);
+	ASSERT_NE(nullptr, zdata);
+	EXPECT_EQ(512, *tdata);
+	EXPECT_EQ(5, *zdata);
+#ifndef PERM_OP
+	EXPECT_EQ(nullptr, ydata);
+#endif
+
+	a->upversion(a->get_meta().state_version() + 1);
+	// no change
+
+	teq::get_eval(global::context()).evaluate(device, {
+		ztens.get(),
+		ytens.get(),
+		xtens.get(),
+		utens.get(),
+		nothing.get(),
+	});
+	// expected state:
+	// pow (targeted) = 512
+	// `-- - (z) = 4.5
+	// |   `-- / (y) = -1.5
+	// |   |   `-- c = 3
+	// |   |   `-- - (u) = -2
+	// |   |       `-- a = 2
+	// |   `-- * (x) = -6
+	// |       `-- - (u)
+	// |       |   `-- a = 2
+	// |       `-- b = 3
+	// `-- d = 3
+
+	tdata = targetens.data<double>();
+	zdata = ztens.data<double>();
+	ydata = ytens.data<double>();
+	xdata = xtens.data<double>();
+	udata = utens.data<double>();
+	ASSERT_NE(nullptr, tdata);
+	ASSERT_NE(nullptr, zdata);
+	ASSERT_NE(nullptr, ydata);
+	ASSERT_NE(nullptr, xdata);
+	ASSERT_NE(nullptr, udata);
+	EXPECT_EQ(512, *tdata);
+	EXPECT_EQ(4.5, *zdata);
+	EXPECT_EQ(-1.5, *ydata);
+	EXPECT_EQ(-6, *xdata);
+	EXPECT_EQ(-2, *udata);
 }
 
 

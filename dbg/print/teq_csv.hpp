@@ -31,7 +31,7 @@ using GetTypeF = std::function<NODE_TYPE(teq::iFunctor&)>;
 struct CSVEquation final : public teq::iOnceTraveler
 {
 	CSVEquation (GetTypeF get_ftype =
-		[](teq::iFunctor& func) { return FUNCTOR; }) :
+		[](teq::iFunctor&) { return FUNCTOR; }) :
 		get_ftype_(get_ftype) {}
 
 	/// Stream visited graphs to out

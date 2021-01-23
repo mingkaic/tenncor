@@ -1,0 +1,318 @@
+api:
+  pybind_type: float
+  includes:
+    - '"tenncor/eteq.hpp"'
+    - '"tenncor/layr.hpp"'
+  nullcheck_type:
+    - teq::TensptrT
+    - eteq::ETensor
+  pyignore_type:
+    - float
+    - SUPPORTED_TYPE
+    - teq::RankT
+    - teq::DimT
+    - eigen::PairVecT<teq::RankT>
+    - eteq::DimPairsT
+    - eteq::EVariable<T>
+    - eteq::ETensorsT
+    - eteq::EVariablesT<T>
+    - layr::UnaryF
+    - layr::ShapeFactorF
+    - layr::InitF<T>
+    - std::set<teq::RankT>
+    - teq::DimsT
+    - std::pair<eteq::DimPairsT,eteq::DimPairsT>
+  pybind_includes:
+    - '"internal/global/config.hpp"'
+    - '"internal/eigen/device.hpp"'
+    - '"tenncor/python/tenncor.hpp"'
+  pybind_module: tenncor
+  pyglobal:
+    - name: api
+      type: TenncorAPI
+      decl: |
+        //
+            static TenncorAPI global(global::context());
+            return global;
+  funcs:
+    - description: Get global tenncor api instance
+      name: tenncor
+      out:
+        type: TenncorAPI&
+        val: |
+          //
+              static TenncorAPI api;
+              return api;
+      pyignores: True
+    - description: Negation operator with output ETensor using the same context as the input
+      operator: "-"
+      args:
+        - name: arg
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).neg(arg);
+    - description: Addition operator with output ETensor using the same context as the left input
+      operator: +
+      args:
+        - name: a
+          type: const eteq::ETensor&
+        - name: b
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(a.get_context()).add(a,b);
+    - support_type: SUPPORTED_TYPE
+      description: Addition operator with output ETensor using the same context as the tensor input
+      operator: +
+      args:
+        - name: arg
+          type: const eteq::ETensor&
+        - name: scalar
+          type: SUPPORTED_TYPE
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).add(arg,scalar);
+    - support_type: SUPPORTED_TYPE
+      description: Addition operator with output ETensor using the same context as the tensor input
+      operator: +
+      args:
+        - name: scalar
+          type: SUPPORTED_TYPE
+        - name: arg
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).add(scalar,arg);
+    - description: Subtraction operator with output ETensor using the same context as the left input
+      operator: "-"
+      args:
+        - name: a
+          type: const eteq::ETensor&
+        - name: b
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(a.get_context()).sub(a,b);
+    - support_type: SUPPORTED_TYPE
+      description: Subtraction operator with output ETensor using the same context as the tensor input
+      operator: "-"
+      args:
+        - name: arg
+          type: const eteq::ETensor&
+        - name: scalar
+          type: SUPPORTED_TYPE
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).sub(arg,scalar);
+    - support_type: SUPPORTED_TYPE
+      description: Subtraction operator with output ETensor using the same context as the tensor input
+      operator: "-"
+      args:
+        - name: scalar
+          type: SUPPORTED_TYPE
+        - name: arg
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).sub(scalar,arg);
+    - description: Multiplication operator with output ETensor using the same context as the left input
+      operator: "*"
+      args:
+        - name: a
+          type: const eteq::ETensor&
+        - name: b
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(a.get_context()).mul(a,b);
+    - support_type: SUPPORTED_TYPE
+      description: Multiplication operator with output ETensor using the same context as the tensor input
+      operator: "*"
+      args:
+        - name: arg
+          type: const eteq::ETensor&
+        - name: scalar
+          type: SUPPORTED_TYPE
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).mul(arg,scalar);
+    - support_type: SUPPORTED_TYPE
+      description: Multiplication operator with output ETensor using the same context as the tensor input
+      operator: "*"
+      args:
+        - name: scalar
+          type: SUPPORTED_TYPE
+        - name: arg
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).mul(scalar,arg);
+    - description: Division operator with output ETensor using the same context as the left input
+      operator: /
+      args:
+        - name: a
+          type: const eteq::ETensor&
+        - name: b
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(a.get_context()).div(a,b);
+    - support_type: SUPPORTED_TYPE
+      description: Division operator with output ETensor using the same context as the tensor input
+      operator: /
+      args:
+        - name: arg
+          type: const eteq::ETensor&
+        - name: scalar
+          type: SUPPORTED_TYPE
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).div(arg,scalar);
+    - support_type: SUPPORTED_TYPE
+      description: Division operator with output ETensor using the same context as the tensor input
+      operator: /
+      args:
+        - name: scalar
+          type: SUPPORTED_TYPE
+        - name: arg
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).div(scalar,arg);
+    - description: Equality operator with output ETensor using the same context as the left input
+      operator: ==
+      args:
+        - name: a
+          type: const eteq::ETensor&
+        - name: b
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(a.get_context()).eq(a,b);
+    - support_type: SUPPORTED_TYPE
+      description: Equality operator with output ETensor using the same context as the tensor input
+      operator: ==
+      args:
+        - name: arg
+          type: const eteq::ETensor&
+        - name: scalar
+          type: SUPPORTED_TYPE
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).eq(arg,scalar);
+    - support_type: SUPPORTED_TYPE
+      description: Equality operator with output ETensor using the same context as the tensor input
+      operator: ==
+      args:
+        - name: scalar
+          type: SUPPORTED_TYPE
+        - name: arg
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).eq(scalar,arg);
+    - description: Inequality operator with output ETensor using the same context as the left input
+      operator: "!="
+      args:
+        - name: a
+          type: const eteq::ETensor&
+        - name: b
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(a.get_context()).neq(a,b);
+    - support_type: SUPPORTED_TYPE
+      description: Inequality operator with output ETensor using the same context as the tensor input
+      operator: "!="
+      args:
+        - name: arg
+          type: const eteq::ETensor&
+        - name: scalar
+          type: SUPPORTED_TYPE
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).neq(arg,scalar);
+    - support_type: SUPPORTED_TYPE
+      description: Inequality operator with output ETensor using the same context as the tensor input
+      operator: "!="
+      args:
+        - name: scalar
+          type: SUPPORTED_TYPE
+        - name: arg
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).neq(scalar,arg);
+    - description: Lesser than operator with output ETensor using the same context as the left input
+      operator: <
+      args:
+        - name: a
+          type: const eteq::ETensor&
+        - name: b
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(a.get_context()).lt(a,b);
+    - support_type: SUPPORTED_TYPE
+      description: Lesser than operator with output ETensor using the same context as the tensor input
+      operator: <
+      args:
+        - name: arg
+          type: const eteq::ETensor&
+        - name: scalar
+          type: SUPPORTED_TYPE
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).lt(arg,scalar);
+    - support_type: SUPPORTED_TYPE
+      description: Lesser than operator with output ETensor using the same context as the tensor input
+      operator: <
+      args:
+        - name: scalar
+          type: SUPPORTED_TYPE
+        - name: arg
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).lt(scalar,arg);
+    - description: Greater than operator with output ETensor using the same context as the left input
+      operator: ">"
+      args:
+        - name: a
+          type: const eteq::ETensor&
+        - name: b
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(a.get_context()).gt(a,b);
+    - support_type: SUPPORTED_TYPE
+      description: Greater than operator with output ETensor using the same context as the tensor input
+      operator: ">"
+      args:
+        - name: arg
+          type: const eteq::ETensor&
+        - name: scalar
+          type: SUPPORTED_TYPE
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).gt(arg,scalar);
+    - support_type: SUPPORTED_TYPE
+      description: Greater than operator with output ETensor using the same context as the tensor input
+      operator: ">"
+      args:
+        - name: scalar
+          type: SUPPORTED_TYPE
+        - name: arg
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(arg.get_context()).gt(scalar,arg);
+  classes:
+    - core.yml
+    - approx.yml
+    - loss.yml
+    - layer.yml
+    - nn.yml
+    - init.yml
+    - random.yml

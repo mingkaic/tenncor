@@ -7,34 +7,24 @@
 #include "dbg/peval/emit/gemitter.pb.h"
 
 #include <functional>
+#include <grpc/impl/codegen/port_platform.h>
 #include <grpcpp/impl/codegen/async_generic_service.h>
 #include <grpcpp/impl/codegen/async_stream.h>
 #include <grpcpp/impl/codegen/async_unary_call.h>
 #include <grpcpp/impl/codegen/client_callback.h>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/completion_queue.h>
+#include <grpcpp/impl/codegen/message_allocator.h>
 #include <grpcpp/impl/codegen/method_handler.h>
 #include <grpcpp/impl/codegen/proto_utils.h>
 #include <grpcpp/impl/codegen/rpc_method.h>
 #include <grpcpp/impl/codegen/server_callback.h>
+#include <grpcpp/impl/codegen/server_callback_handlers.h>
 #include <grpcpp/impl/codegen/server_context.h>
 #include <grpcpp/impl/codegen/service_type.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <grpcpp/impl/codegen/stub_options.h>
 #include <grpcpp/impl/codegen/sync_stream.h>
-
-namespace grpc_impl {
-class CompletionQueue;
-class ServerCompletionQueue;
-class ServerContext;
-}  // namespace grpc_impl
-
-namespace grpc {
-namespace experimental {
-template <typename RequestT, typename ResponseT>
-class MessageAllocator;
-}  // namespace experimental
-}  // namespace grpc
 
 namespace gemitter {
 
@@ -86,21 +76,55 @@ class GraphEmitter final {
       // Liveness probe: no timeout means host is reachable
       virtual void HealthCheck(::grpc::ClientContext* context, const ::gemitter::Empty* request, ::gemitter::Empty* response, std::function<void(::grpc::Status)>) = 0;
       virtual void HealthCheck(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::Empty* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void HealthCheck(::grpc::ClientContext* context, const ::gemitter::Empty* request, ::gemitter::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
       virtual void HealthCheck(::grpc::ClientContext* context, const ::gemitter::Empty* request, ::gemitter::Empty* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void HealthCheck(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::Empty* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
       virtual void HealthCheck(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::Empty* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // Create uniquely identified graph
       virtual void CreateModel(::grpc::ClientContext* context, const ::gemitter::CreateModelRequest* request, ::gemitter::CreateModelResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void CreateModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::CreateModelResponse* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void CreateModel(::grpc::ClientContext* context, const ::gemitter::CreateModelRequest* request, ::gemitter::CreateModelResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
       virtual void CreateModel(::grpc::ClientContext* context, const ::gemitter::CreateModelRequest* request, ::gemitter::CreateModelResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void CreateModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::CreateModelResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
       virtual void CreateModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::CreateModelResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       // Update tensor/node data in specified graph
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void UpdateNodeData(::grpc::ClientContext* context, ::gemitter::UpdateNodeDataResponse* response, ::grpc::ClientWriteReactor< ::gemitter::UpdateNodeDataRequest>* reactor) = 0;
+      #else
       virtual void UpdateNodeData(::grpc::ClientContext* context, ::gemitter::UpdateNodeDataResponse* response, ::grpc::experimental::ClientWriteReactor< ::gemitter::UpdateNodeDataRequest>* reactor) = 0;
+      #endif
       // Delete existing graph
       virtual void DeleteModel(::grpc::ClientContext* context, const ::gemitter::DeleteModelRequest* request, ::gemitter::DeleteModelResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void DeleteModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::DeleteModelResponse* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void DeleteModel(::grpc::ClientContext* context, const ::gemitter::DeleteModelRequest* request, ::gemitter::DeleteModelResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
       virtual void DeleteModel(::grpc::ClientContext* context, const ::gemitter::DeleteModelRequest* request, ::gemitter::DeleteModelResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void DeleteModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::DeleteModelResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
       virtual void DeleteModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::DeleteModelResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
     };
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    typedef class experimental_async_interface async_interface;
+    #endif
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    async_interface* async() { return experimental_async(); }
+    #endif
     virtual class experimental_async_interface* experimental_async() { return nullptr; }
   private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::gemitter::Empty>* AsyncHealthCheckRaw(::grpc::ClientContext* context, const ::gemitter::Empty& request, ::grpc::CompletionQueue* cq) = 0;
@@ -151,17 +175,45 @@ class GraphEmitter final {
      public:
       void HealthCheck(::grpc::ClientContext* context, const ::gemitter::Empty* request, ::gemitter::Empty* response, std::function<void(::grpc::Status)>) override;
       void HealthCheck(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::Empty* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void HealthCheck(::grpc::ClientContext* context, const ::gemitter::Empty* request, ::gemitter::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
       void HealthCheck(::grpc::ClientContext* context, const ::gemitter::Empty* request, ::gemitter::Empty* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void HealthCheck(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::Empty* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
       void HealthCheck(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::Empty* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void CreateModel(::grpc::ClientContext* context, const ::gemitter::CreateModelRequest* request, ::gemitter::CreateModelResponse* response, std::function<void(::grpc::Status)>) override;
       void CreateModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::CreateModelResponse* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void CreateModel(::grpc::ClientContext* context, const ::gemitter::CreateModelRequest* request, ::gemitter::CreateModelResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
       void CreateModel(::grpc::ClientContext* context, const ::gemitter::CreateModelRequest* request, ::gemitter::CreateModelResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void CreateModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::CreateModelResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
       void CreateModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::CreateModelResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void UpdateNodeData(::grpc::ClientContext* context, ::gemitter::UpdateNodeDataResponse* response, ::grpc::ClientWriteReactor< ::gemitter::UpdateNodeDataRequest>* reactor) override;
+      #else
       void UpdateNodeData(::grpc::ClientContext* context, ::gemitter::UpdateNodeDataResponse* response, ::grpc::experimental::ClientWriteReactor< ::gemitter::UpdateNodeDataRequest>* reactor) override;
+      #endif
       void DeleteModel(::grpc::ClientContext* context, const ::gemitter::DeleteModelRequest* request, ::gemitter::DeleteModelResponse* response, std::function<void(::grpc::Status)>) override;
       void DeleteModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::DeleteModelResponse* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void DeleteModel(::grpc::ClientContext* context, const ::gemitter::DeleteModelRequest* request, ::gemitter::DeleteModelResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
       void DeleteModel(::grpc::ClientContext* context, const ::gemitter::DeleteModelRequest* request, ::gemitter::DeleteModelResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void DeleteModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::DeleteModelResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
       void DeleteModel(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::gemitter::DeleteModelResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
      private:
       friend class Stub;
       explicit experimental_async(Stub* stub): stub_(stub) { }
@@ -289,19 +341,28 @@ class GraphEmitter final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithCallbackMethod_HealthCheck() {
-      ::grpc::Service::experimental().MarkMethodCallback(0,
-        new ::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::Empty, ::gemitter::Empty>(
-          [this](::grpc::ServerContext* context,
-                 const ::gemitter::Empty* request,
-                 ::gemitter::Empty* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   return this->HealthCheck(context, request, response, controller);
-                 }));
-    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(0,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::Empty, ::gemitter::Empty>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::gemitter::Empty* request, ::gemitter::Empty* response) { return this->HealthCheck(context, request, response); }));}
     void SetMessageAllocatorFor_HealthCheck(
         ::grpc::experimental::MessageAllocator< ::gemitter::Empty, ::gemitter::Empty>* allocator) {
-      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::Empty, ::gemitter::Empty>*>(
-          ::grpc::Service::experimental().GetHandler(0))
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(0);
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(0);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::Empty, ::gemitter::Empty>*>(handler)
               ->SetMessageAllocator(allocator);
     }
     ~ExperimentalWithCallbackMethod_HealthCheck() override {
@@ -312,7 +373,14 @@ class GraphEmitter final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void HealthCheck(::grpc::ServerContext* /*context*/, const ::gemitter::Empty* /*request*/, ::gemitter::Empty* /*response*/, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* HealthCheck(
+      ::grpc::CallbackServerContext* /*context*/, const ::gemitter::Empty* /*request*/, ::gemitter::Empty* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* HealthCheck(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::gemitter::Empty* /*request*/, ::gemitter::Empty* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithCallbackMethod_CreateModel : public BaseClass {
@@ -320,19 +388,28 @@ class GraphEmitter final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithCallbackMethod_CreateModel() {
-      ::grpc::Service::experimental().MarkMethodCallback(1,
-        new ::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::CreateModelRequest, ::gemitter::CreateModelResponse>(
-          [this](::grpc::ServerContext* context,
-                 const ::gemitter::CreateModelRequest* request,
-                 ::gemitter::CreateModelResponse* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   return this->CreateModel(context, request, response, controller);
-                 }));
-    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(1,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::CreateModelRequest, ::gemitter::CreateModelResponse>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::gemitter::CreateModelRequest* request, ::gemitter::CreateModelResponse* response) { return this->CreateModel(context, request, response); }));}
     void SetMessageAllocatorFor_CreateModel(
         ::grpc::experimental::MessageAllocator< ::gemitter::CreateModelRequest, ::gemitter::CreateModelResponse>* allocator) {
-      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::CreateModelRequest, ::gemitter::CreateModelResponse>*>(
-          ::grpc::Service::experimental().GetHandler(1))
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(1);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::CreateModelRequest, ::gemitter::CreateModelResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
     ~ExperimentalWithCallbackMethod_CreateModel() override {
@@ -343,7 +420,14 @@ class GraphEmitter final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void CreateModel(::grpc::ServerContext* /*context*/, const ::gemitter::CreateModelRequest* /*request*/, ::gemitter::CreateModelResponse* /*response*/, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* CreateModel(
+      ::grpc::CallbackServerContext* /*context*/, const ::gemitter::CreateModelRequest* /*request*/, ::gemitter::CreateModelResponse* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* CreateModel(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::gemitter::CreateModelRequest* /*request*/, ::gemitter::CreateModelResponse* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithCallbackMethod_UpdateNodeData : public BaseClass {
@@ -351,9 +435,20 @@ class GraphEmitter final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithCallbackMethod_UpdateNodeData() {
-      ::grpc::Service::experimental().MarkMethodCallback(2,
-        new ::grpc_impl::internal::CallbackClientStreamingHandler< ::gemitter::UpdateNodeDataRequest, ::gemitter::UpdateNodeDataResponse>(
-          [this] { return this->UpdateNodeData(); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(2,
+          new ::grpc_impl::internal::CallbackClientStreamingHandler< ::gemitter::UpdateNodeDataRequest, ::gemitter::UpdateNodeDataResponse>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, ::gemitter::UpdateNodeDataResponse* response) { return this->UpdateNodeData(context, response); }));
     }
     ~ExperimentalWithCallbackMethod_UpdateNodeData() override {
       BaseClassMustBeDerivedFromService(this);
@@ -363,9 +458,14 @@ class GraphEmitter final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::experimental::ServerReadReactor< ::gemitter::UpdateNodeDataRequest, ::gemitter::UpdateNodeDataResponse>* UpdateNodeData() {
-      return new ::grpc_impl::internal::UnimplementedReadReactor<
-        ::gemitter::UpdateNodeDataRequest, ::gemitter::UpdateNodeDataResponse>;}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerReadReactor< ::gemitter::UpdateNodeDataRequest>* UpdateNodeData(
+      ::grpc::CallbackServerContext* /*context*/, ::gemitter::UpdateNodeDataResponse* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerReadReactor< ::gemitter::UpdateNodeDataRequest>* UpdateNodeData(
+      ::grpc::experimental::CallbackServerContext* /*context*/, ::gemitter::UpdateNodeDataResponse* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithCallbackMethod_DeleteModel : public BaseClass {
@@ -373,19 +473,28 @@ class GraphEmitter final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithCallbackMethod_DeleteModel() {
-      ::grpc::Service::experimental().MarkMethodCallback(3,
-        new ::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::DeleteModelRequest, ::gemitter::DeleteModelResponse>(
-          [this](::grpc::ServerContext* context,
-                 const ::gemitter::DeleteModelRequest* request,
-                 ::gemitter::DeleteModelResponse* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   return this->DeleteModel(context, request, response, controller);
-                 }));
-    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(3,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::DeleteModelRequest, ::gemitter::DeleteModelResponse>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::gemitter::DeleteModelRequest* request, ::gemitter::DeleteModelResponse* response) { return this->DeleteModel(context, request, response); }));}
     void SetMessageAllocatorFor_DeleteModel(
         ::grpc::experimental::MessageAllocator< ::gemitter::DeleteModelRequest, ::gemitter::DeleteModelResponse>* allocator) {
-      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::DeleteModelRequest, ::gemitter::DeleteModelResponse>*>(
-          ::grpc::Service::experimental().GetHandler(3))
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(3);
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(3);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::gemitter::DeleteModelRequest, ::gemitter::DeleteModelResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
     ~ExperimentalWithCallbackMethod_DeleteModel() override {
@@ -396,8 +505,19 @@ class GraphEmitter final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void DeleteModel(::grpc::ServerContext* /*context*/, const ::gemitter::DeleteModelRequest* /*request*/, ::gemitter::DeleteModelResponse* /*response*/, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* DeleteModel(
+      ::grpc::CallbackServerContext* /*context*/, const ::gemitter::DeleteModelRequest* /*request*/, ::gemitter::DeleteModelResponse* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* DeleteModel(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::gemitter::DeleteModelRequest* /*request*/, ::gemitter::DeleteModelResponse* /*response*/)
+    #endif
+      { return nullptr; }
   };
+  #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+  typedef ExperimentalWithCallbackMethod_HealthCheck<ExperimentalWithCallbackMethod_CreateModel<ExperimentalWithCallbackMethod_UpdateNodeData<ExperimentalWithCallbackMethod_DeleteModel<Service > > > > CallbackService;
+  #endif
+
   typedef ExperimentalWithCallbackMethod_HealthCheck<ExperimentalWithCallbackMethod_CreateModel<ExperimentalWithCallbackMethod_UpdateNodeData<ExperimentalWithCallbackMethod_DeleteModel<Service > > > > ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_HealthCheck : public BaseClass {
@@ -553,14 +673,20 @@ class GraphEmitter final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithRawCallbackMethod_HealthCheck() {
-      ::grpc::Service::experimental().MarkMethodRawCallback(0,
-        new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-          [this](::grpc::ServerContext* context,
-                 const ::grpc::ByteBuffer* request,
-                 ::grpc::ByteBuffer* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   this->HealthCheck(context, request, response, controller);
-                 }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(0,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->HealthCheck(context, request, response); }));
     }
     ~ExperimentalWithRawCallbackMethod_HealthCheck() override {
       BaseClassMustBeDerivedFromService(this);
@@ -570,7 +696,14 @@ class GraphEmitter final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void HealthCheck(::grpc::ServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* HealthCheck(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* HealthCheck(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithRawCallbackMethod_CreateModel : public BaseClass {
@@ -578,14 +711,20 @@ class GraphEmitter final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithRawCallbackMethod_CreateModel() {
-      ::grpc::Service::experimental().MarkMethodRawCallback(1,
-        new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-          [this](::grpc::ServerContext* context,
-                 const ::grpc::ByteBuffer* request,
-                 ::grpc::ByteBuffer* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   this->CreateModel(context, request, response, controller);
-                 }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(1,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->CreateModel(context, request, response); }));
     }
     ~ExperimentalWithRawCallbackMethod_CreateModel() override {
       BaseClassMustBeDerivedFromService(this);
@@ -595,7 +734,14 @@ class GraphEmitter final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void CreateModel(::grpc::ServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* CreateModel(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* CreateModel(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithRawCallbackMethod_UpdateNodeData : public BaseClass {
@@ -603,9 +749,20 @@ class GraphEmitter final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithRawCallbackMethod_UpdateNodeData() {
-      ::grpc::Service::experimental().MarkMethodRawCallback(2,
-        new ::grpc_impl::internal::CallbackClientStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-          [this] { return this->UpdateNodeData(); }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(2,
+          new ::grpc_impl::internal::CallbackClientStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, ::grpc::ByteBuffer* response) { return this->UpdateNodeData(context, response); }));
     }
     ~ExperimentalWithRawCallbackMethod_UpdateNodeData() override {
       BaseClassMustBeDerivedFromService(this);
@@ -615,9 +772,14 @@ class GraphEmitter final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::experimental::ServerReadReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* UpdateNodeData() {
-      return new ::grpc_impl::internal::UnimplementedReadReactor<
-        ::grpc::ByteBuffer, ::grpc::ByteBuffer>;}
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerReadReactor< ::grpc::ByteBuffer>* UpdateNodeData(
+      ::grpc::CallbackServerContext* /*context*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerReadReactor< ::grpc::ByteBuffer>* UpdateNodeData(
+      ::grpc::experimental::CallbackServerContext* /*context*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithRawCallbackMethod_DeleteModel : public BaseClass {
@@ -625,14 +787,20 @@ class GraphEmitter final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithRawCallbackMethod_DeleteModel() {
-      ::grpc::Service::experimental().MarkMethodRawCallback(3,
-        new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-          [this](::grpc::ServerContext* context,
-                 const ::grpc::ByteBuffer* request,
-                 ::grpc::ByteBuffer* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   this->DeleteModel(context, request, response, controller);
-                 }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(3,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->DeleteModel(context, request, response); }));
     }
     ~ExperimentalWithRawCallbackMethod_DeleteModel() override {
       BaseClassMustBeDerivedFromService(this);
@@ -642,7 +810,14 @@ class GraphEmitter final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void DeleteModel(::grpc::ServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* DeleteModel(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* DeleteModel(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_HealthCheck : public BaseClass {
@@ -651,7 +826,14 @@ class GraphEmitter final {
    public:
     WithStreamedUnaryMethod_HealthCheck() {
       ::grpc::Service::MarkMethodStreamed(0,
-        new ::grpc::internal::StreamedUnaryHandler< ::gemitter::Empty, ::gemitter::Empty>(std::bind(&WithStreamedUnaryMethod_HealthCheck<BaseClass>::StreamedHealthCheck, this, std::placeholders::_1, std::placeholders::_2)));
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::gemitter::Empty, ::gemitter::Empty>(
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
+                     ::gemitter::Empty, ::gemitter::Empty>* streamer) {
+                       return this->StreamedHealthCheck(context,
+                         streamer);
+                  }));
     }
     ~WithStreamedUnaryMethod_HealthCheck() override {
       BaseClassMustBeDerivedFromService(this);
@@ -671,7 +853,14 @@ class GraphEmitter final {
    public:
     WithStreamedUnaryMethod_CreateModel() {
       ::grpc::Service::MarkMethodStreamed(1,
-        new ::grpc::internal::StreamedUnaryHandler< ::gemitter::CreateModelRequest, ::gemitter::CreateModelResponse>(std::bind(&WithStreamedUnaryMethod_CreateModel<BaseClass>::StreamedCreateModel, this, std::placeholders::_1, std::placeholders::_2)));
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::gemitter::CreateModelRequest, ::gemitter::CreateModelResponse>(
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
+                     ::gemitter::CreateModelRequest, ::gemitter::CreateModelResponse>* streamer) {
+                       return this->StreamedCreateModel(context,
+                         streamer);
+                  }));
     }
     ~WithStreamedUnaryMethod_CreateModel() override {
       BaseClassMustBeDerivedFromService(this);
@@ -691,7 +880,14 @@ class GraphEmitter final {
    public:
     WithStreamedUnaryMethod_DeleteModel() {
       ::grpc::Service::MarkMethodStreamed(3,
-        new ::grpc::internal::StreamedUnaryHandler< ::gemitter::DeleteModelRequest, ::gemitter::DeleteModelResponse>(std::bind(&WithStreamedUnaryMethod_DeleteModel<BaseClass>::StreamedDeleteModel, this, std::placeholders::_1, std::placeholders::_2)));
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::gemitter::DeleteModelRequest, ::gemitter::DeleteModelResponse>(
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
+                     ::gemitter::DeleteModelRequest, ::gemitter::DeleteModelResponse>* streamer) {
+                       return this->StreamedDeleteModel(context,
+                         streamer);
+                  }));
     }
     ~WithStreamedUnaryMethod_DeleteModel() override {
       BaseClassMustBeDerivedFromService(this);

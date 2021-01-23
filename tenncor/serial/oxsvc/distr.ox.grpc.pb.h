@@ -7,34 +7,24 @@
 #include "tenncor/serial/oxsvc/distr.ox.pb.h"
 
 #include <functional>
+#include <grpc/impl/codegen/port_platform.h>
 #include <grpcpp/impl/codegen/async_generic_service.h>
 #include <grpcpp/impl/codegen/async_stream.h>
 #include <grpcpp/impl/codegen/async_unary_call.h>
 #include <grpcpp/impl/codegen/client_callback.h>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/completion_queue.h>
+#include <grpcpp/impl/codegen/message_allocator.h>
 #include <grpcpp/impl/codegen/method_handler.h>
 #include <grpcpp/impl/codegen/proto_utils.h>
 #include <grpcpp/impl/codegen/rpc_method.h>
 #include <grpcpp/impl/codegen/server_callback.h>
+#include <grpcpp/impl/codegen/server_callback_handlers.h>
 #include <grpcpp/impl/codegen/server_context.h>
 #include <grpcpp/impl/codegen/service_type.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <grpcpp/impl/codegen/stub_options.h>
 #include <grpcpp/impl/codegen/sync_stream.h>
-
-namespace grpc_impl {
-class CompletionQueue;
-class ServerCompletionQueue;
-class ServerContext;
-}  // namespace grpc_impl
-
-namespace grpc {
-namespace experimental {
-template <typename RequestT, typename ResponseT>
-class MessageAllocator;
-}  // namespace experimental
-}  // namespace grpc
 
 namespace distr {
 namespace ox {
@@ -66,13 +56,35 @@ class DistrSerialization final {
       virtual ~experimental_async_interface() {}
       virtual void GetSaveGraph(::grpc::ClientContext* context, const ::distr::ox::GetSaveGraphRequest* request, ::distr::ox::GetSaveGraphResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void GetSaveGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::GetSaveGraphResponse* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void GetSaveGraph(::grpc::ClientContext* context, const ::distr::ox::GetSaveGraphRequest* request, ::distr::ox::GetSaveGraphResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
       virtual void GetSaveGraph(::grpc::ClientContext* context, const ::distr::ox::GetSaveGraphRequest* request, ::distr::ox::GetSaveGraphResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void GetSaveGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::GetSaveGraphResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
       virtual void GetSaveGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::GetSaveGraphResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
       virtual void PostLoadGraph(::grpc::ClientContext* context, const ::distr::ox::PostLoadGraphRequest* request, ::distr::ox::PostLoadGraphResponse* response, std::function<void(::grpc::Status)>) = 0;
       virtual void PostLoadGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::PostLoadGraphResponse* response, std::function<void(::grpc::Status)>) = 0;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void PostLoadGraph(::grpc::ClientContext* context, const ::distr::ox::PostLoadGraphRequest* request, ::distr::ox::PostLoadGraphResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
       virtual void PostLoadGraph(::grpc::ClientContext* context, const ::distr::ox::PostLoadGraphRequest* request, ::distr::ox::PostLoadGraphResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      virtual void PostLoadGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::PostLoadGraphResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      #else
       virtual void PostLoadGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::PostLoadGraphResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) = 0;
+      #endif
     };
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    typedef class experimental_async_interface async_interface;
+    #endif
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    async_interface* async() { return experimental_async(); }
+    #endif
     virtual class experimental_async_interface* experimental_async() { return nullptr; }
   private:
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::distr::ox::GetSaveGraphResponse>* AsyncGetSaveGraphRaw(::grpc::ClientContext* context, const ::distr::ox::GetSaveGraphRequest& request, ::grpc::CompletionQueue* cq) = 0;
@@ -102,12 +114,28 @@ class DistrSerialization final {
      public:
       void GetSaveGraph(::grpc::ClientContext* context, const ::distr::ox::GetSaveGraphRequest* request, ::distr::ox::GetSaveGraphResponse* response, std::function<void(::grpc::Status)>) override;
       void GetSaveGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::GetSaveGraphResponse* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void GetSaveGraph(::grpc::ClientContext* context, const ::distr::ox::GetSaveGraphRequest* request, ::distr::ox::GetSaveGraphResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
       void GetSaveGraph(::grpc::ClientContext* context, const ::distr::ox::GetSaveGraphRequest* request, ::distr::ox::GetSaveGraphResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void GetSaveGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::GetSaveGraphResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
       void GetSaveGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::GetSaveGraphResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
       void PostLoadGraph(::grpc::ClientContext* context, const ::distr::ox::PostLoadGraphRequest* request, ::distr::ox::PostLoadGraphResponse* response, std::function<void(::grpc::Status)>) override;
       void PostLoadGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::PostLoadGraphResponse* response, std::function<void(::grpc::Status)>) override;
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void PostLoadGraph(::grpc::ClientContext* context, const ::distr::ox::PostLoadGraphRequest* request, ::distr::ox::PostLoadGraphResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
       void PostLoadGraph(::grpc::ClientContext* context, const ::distr::ox::PostLoadGraphRequest* request, ::distr::ox::PostLoadGraphResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
+      #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      void PostLoadGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::PostLoadGraphResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      #else
       void PostLoadGraph(::grpc::ClientContext* context, const ::grpc::ByteBuffer* request, ::distr::ox::PostLoadGraphResponse* response, ::grpc::experimental::ClientUnaryReactor* reactor) override;
+      #endif
      private:
       friend class Stub;
       explicit experimental_async(Stub* stub): stub_(stub) { }
@@ -182,19 +210,28 @@ class DistrSerialization final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithCallbackMethod_GetSaveGraph() {
-      ::grpc::Service::experimental().MarkMethodCallback(0,
-        new ::grpc_impl::internal::CallbackUnaryHandler< ::distr::ox::GetSaveGraphRequest, ::distr::ox::GetSaveGraphResponse>(
-          [this](::grpc::ServerContext* context,
-                 const ::distr::ox::GetSaveGraphRequest* request,
-                 ::distr::ox::GetSaveGraphResponse* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   return this->GetSaveGraph(context, request, response, controller);
-                 }));
-    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(0,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::distr::ox::GetSaveGraphRequest, ::distr::ox::GetSaveGraphResponse>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::distr::ox::GetSaveGraphRequest* request, ::distr::ox::GetSaveGraphResponse* response) { return this->GetSaveGraph(context, request, response); }));}
     void SetMessageAllocatorFor_GetSaveGraph(
         ::grpc::experimental::MessageAllocator< ::distr::ox::GetSaveGraphRequest, ::distr::ox::GetSaveGraphResponse>* allocator) {
-      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::distr::ox::GetSaveGraphRequest, ::distr::ox::GetSaveGraphResponse>*>(
-          ::grpc::Service::experimental().GetHandler(0))
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(0);
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(0);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::distr::ox::GetSaveGraphRequest, ::distr::ox::GetSaveGraphResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
     ~ExperimentalWithCallbackMethod_GetSaveGraph() override {
@@ -205,7 +242,14 @@ class DistrSerialization final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void GetSaveGraph(::grpc::ServerContext* /*context*/, const ::distr::ox::GetSaveGraphRequest* /*request*/, ::distr::ox::GetSaveGraphResponse* /*response*/, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* GetSaveGraph(
+      ::grpc::CallbackServerContext* /*context*/, const ::distr::ox::GetSaveGraphRequest* /*request*/, ::distr::ox::GetSaveGraphResponse* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* GetSaveGraph(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::distr::ox::GetSaveGraphRequest* /*request*/, ::distr::ox::GetSaveGraphResponse* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithCallbackMethod_PostLoadGraph : public BaseClass {
@@ -213,19 +257,28 @@ class DistrSerialization final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithCallbackMethod_PostLoadGraph() {
-      ::grpc::Service::experimental().MarkMethodCallback(1,
-        new ::grpc_impl::internal::CallbackUnaryHandler< ::distr::ox::PostLoadGraphRequest, ::distr::ox::PostLoadGraphResponse>(
-          [this](::grpc::ServerContext* context,
-                 const ::distr::ox::PostLoadGraphRequest* request,
-                 ::distr::ox::PostLoadGraphResponse* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   return this->PostLoadGraph(context, request, response, controller);
-                 }));
-    }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodCallback(1,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::distr::ox::PostLoadGraphRequest, ::distr::ox::PostLoadGraphResponse>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::distr::ox::PostLoadGraphRequest* request, ::distr::ox::PostLoadGraphResponse* response) { return this->PostLoadGraph(context, request, response); }));}
     void SetMessageAllocatorFor_PostLoadGraph(
         ::grpc::experimental::MessageAllocator< ::distr::ox::PostLoadGraphRequest, ::distr::ox::PostLoadGraphResponse>* allocator) {
-      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::distr::ox::PostLoadGraphRequest, ::distr::ox::PostLoadGraphResponse>*>(
-          ::grpc::Service::experimental().GetHandler(1))
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(1);
+    #else
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::experimental().GetHandler(1);
+    #endif
+      static_cast<::grpc_impl::internal::CallbackUnaryHandler< ::distr::ox::PostLoadGraphRequest, ::distr::ox::PostLoadGraphResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
     ~ExperimentalWithCallbackMethod_PostLoadGraph() override {
@@ -236,8 +289,19 @@ class DistrSerialization final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void PostLoadGraph(::grpc::ServerContext* /*context*/, const ::distr::ox::PostLoadGraphRequest* /*request*/, ::distr::ox::PostLoadGraphResponse* /*response*/, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* PostLoadGraph(
+      ::grpc::CallbackServerContext* /*context*/, const ::distr::ox::PostLoadGraphRequest* /*request*/, ::distr::ox::PostLoadGraphResponse* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* PostLoadGraph(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::distr::ox::PostLoadGraphRequest* /*request*/, ::distr::ox::PostLoadGraphResponse* /*response*/)
+    #endif
+      { return nullptr; }
   };
+  #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+  typedef ExperimentalWithCallbackMethod_GetSaveGraph<ExperimentalWithCallbackMethod_PostLoadGraph<Service > > CallbackService;
+  #endif
+
   typedef ExperimentalWithCallbackMethod_GetSaveGraph<ExperimentalWithCallbackMethod_PostLoadGraph<Service > > ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_GetSaveGraph : public BaseClass {
@@ -319,14 +383,20 @@ class DistrSerialization final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithRawCallbackMethod_GetSaveGraph() {
-      ::grpc::Service::experimental().MarkMethodRawCallback(0,
-        new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-          [this](::grpc::ServerContext* context,
-                 const ::grpc::ByteBuffer* request,
-                 ::grpc::ByteBuffer* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   this->GetSaveGraph(context, request, response, controller);
-                 }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(0,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->GetSaveGraph(context, request, response); }));
     }
     ~ExperimentalWithRawCallbackMethod_GetSaveGraph() override {
       BaseClassMustBeDerivedFromService(this);
@@ -336,7 +406,14 @@ class DistrSerialization final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void GetSaveGraph(::grpc::ServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* GetSaveGraph(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* GetSaveGraph(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class ExperimentalWithRawCallbackMethod_PostLoadGraph : public BaseClass {
@@ -344,14 +421,20 @@ class DistrSerialization final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     ExperimentalWithRawCallbackMethod_PostLoadGraph() {
-      ::grpc::Service::experimental().MarkMethodRawCallback(1,
-        new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
-          [this](::grpc::ServerContext* context,
-                 const ::grpc::ByteBuffer* request,
-                 ::grpc::ByteBuffer* response,
-                 ::grpc::experimental::ServerCallbackRpcController* controller) {
-                   this->PostLoadGraph(context, request, response, controller);
-                 }));
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+      ::grpc::Service::
+    #else
+      ::grpc::Service::experimental().
+    #endif
+        MarkMethodRawCallback(1,
+          new ::grpc_impl::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+                   ::grpc::CallbackServerContext*
+    #else
+                   ::grpc::experimental::CallbackServerContext*
+    #endif
+                     context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->PostLoadGraph(context, request, response); }));
     }
     ~ExperimentalWithRawCallbackMethod_PostLoadGraph() override {
       BaseClassMustBeDerivedFromService(this);
@@ -361,7 +444,14 @@ class DistrSerialization final {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual void PostLoadGraph(::grpc::ServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/, ::grpc::experimental::ServerCallbackRpcController* controller) { controller->Finish(::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "")); }
+    #ifdef GRPC_CALLBACK_API_NONEXPERIMENTAL
+    virtual ::grpc::ServerUnaryReactor* PostLoadGraph(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #else
+    virtual ::grpc::experimental::ServerUnaryReactor* PostLoadGraph(
+      ::grpc::experimental::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)
+    #endif
+      { return nullptr; }
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_GetSaveGraph : public BaseClass {
@@ -370,7 +460,14 @@ class DistrSerialization final {
    public:
     WithStreamedUnaryMethod_GetSaveGraph() {
       ::grpc::Service::MarkMethodStreamed(0,
-        new ::grpc::internal::StreamedUnaryHandler< ::distr::ox::GetSaveGraphRequest, ::distr::ox::GetSaveGraphResponse>(std::bind(&WithStreamedUnaryMethod_GetSaveGraph<BaseClass>::StreamedGetSaveGraph, this, std::placeholders::_1, std::placeholders::_2)));
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::distr::ox::GetSaveGraphRequest, ::distr::ox::GetSaveGraphResponse>(
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
+                     ::distr::ox::GetSaveGraphRequest, ::distr::ox::GetSaveGraphResponse>* streamer) {
+                       return this->StreamedGetSaveGraph(context,
+                         streamer);
+                  }));
     }
     ~WithStreamedUnaryMethod_GetSaveGraph() override {
       BaseClassMustBeDerivedFromService(this);
@@ -390,7 +487,14 @@ class DistrSerialization final {
    public:
     WithStreamedUnaryMethod_PostLoadGraph() {
       ::grpc::Service::MarkMethodStreamed(1,
-        new ::grpc::internal::StreamedUnaryHandler< ::distr::ox::PostLoadGraphRequest, ::distr::ox::PostLoadGraphResponse>(std::bind(&WithStreamedUnaryMethod_PostLoadGraph<BaseClass>::StreamedPostLoadGraph, this, std::placeholders::_1, std::placeholders::_2)));
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::distr::ox::PostLoadGraphRequest, ::distr::ox::PostLoadGraphResponse>(
+            [this](::grpc_impl::ServerContext* context,
+                   ::grpc_impl::ServerUnaryStreamer<
+                     ::distr::ox::PostLoadGraphRequest, ::distr::ox::PostLoadGraphResponse>* streamer) {
+                       return this->StreamedPostLoadGraph(context,
+                         streamer);
+                  }));
     }
     ~WithStreamedUnaryMethod_PostLoadGraph() override {
       BaseClassMustBeDerivedFromService(this);

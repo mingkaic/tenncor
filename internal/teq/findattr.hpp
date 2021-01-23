@@ -8,9 +8,9 @@ namespace teq
 
 struct FindTensAttr final : public iTeqMarshaler
 {
-	void marshal (const marsh::String& num) override {}
+	void marshal (const marsh::String&) override {}
 
-	void marshal (const marsh::iNumber& num) override {}
+	void marshal (const marsh::iNumber&) override {}
 
 	void marshal (const marsh::iArray& arr) override
 	{

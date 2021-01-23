@@ -14,21 +14,36 @@
 #include "internal/query/parse.hpp"
 
 
+using ::testing::_;
+using ::testing::Return;
+using ::testing::ReturnRef;
+using ::testing::Throw;
+using ::testing::Const;
+
+
 TEST(BASE, BadParse)
 {
+	auto* logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	std::stringstream badjson;
 	query::Node cond;
-	EXPECT_FATAL(query::json_parse(cond, badjson), "failed to parse json condition");
+	std::string fatalmsg = "failed to parse json condition";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(query::json_parse(cond, badjson), fatalmsg.c_str());
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
 TEST(BASE, ErasedNode)
 {
-	auto c1 = std::make_shared<MockLeaf>(teq::Shape(), "3.2");
-	auto c2 = std::make_shared<MockLeaf>(teq::Shape(), "3.5");
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto interm = std::make_shared<MockFunctor>(teq::TensptrsT{c1,x}, teq::Opcode{"SUB", 0});
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{c2, interm}, teq::Opcode{"SUB", 0});
+	auto c1 = make_var(teq::Shape(), "3.2");
+	auto c2 = make_var(teq::Shape(), "3.5");
+	auto x = make_var(teq::Shape(), "X");
+	auto interm = make_fnc("SUB", 0, teq::TensptrsT{c1,x});
+	auto root = make_fnc("SUB", 0, teq::TensptrsT{c2, interm});
 	query::Query matcher;
 	root->accept(matcher);
 
@@ -64,12 +79,14 @@ TEST(BASE, ErasedNode)
 
 TEST(BASE, BadNode)
 {
-	auto c1 = std::make_shared<MockLeaf>(teq::Shape(), "3.2");
-	auto c2 = std::make_shared<MockLeaf>(teq::Shape(), "3.5");
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{c2,
-		std::make_shared<MockFunctor>(teq::TensptrsT{c1,x}, teq::Opcode{"SUB", 0})
-	}, teq::Opcode{"SUB", 0});
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
+	auto c1 = make_var(teq::Shape(), "3.2");
+	auto c2 = make_var(teq::Shape(), "3.5");
+	auto x = make_var(teq::Shape(), "X");
+	auto f1 = make_fnc("SUB", 0, teq::TensptrsT{c1,x});
+	auto root = make_fnc("SUB", 0, teq::TensptrsT{c2, f1});
 	query::Query matcher;
 	root->accept(matcher);
 
@@ -78,7 +95,10 @@ TEST(BASE, BadNode)
 	{
 		query::Node cond;
 		query::json_parse(cond, badjson);
-		EXPECT_FATAL(matcher.match(cond), "cannot look for unknown node");
+		std::string fatalmsg = "cannot look for unknown node";
+		EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+		EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+		EXPECT_FATAL(matcher.match(cond), fatalmsg.c_str());
 	}
 
 	std::stringstream badjson2;
@@ -90,19 +110,23 @@ TEST(BASE, BadNode)
 	{
 		query::Node cond;
 		query::json_parse(cond, badjson2);
-		EXPECT_FATAL(matcher.match(cond), "cannot look for unknown node");
+		std::string fatalmsg = "cannot look for unknown node";
+		EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+		EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+		EXPECT_FATAL(matcher.match(cond), fatalmsg.c_str());
 	}
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
 TEST(BASE, DirectConstants)
 {
-	auto c1 = std::make_shared<MockLeaf>(teq::Shape(), "3.2");
-	auto c2 = std::make_shared<MockLeaf>(teq::Shape(), "3.5");
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{c2,
-		std::make_shared<MockFunctor>(teq::TensptrsT{c1,x}, teq::Opcode{"SUB", 0})
-	}, teq::Opcode{"SUB", 0});
+	auto c1 = make_var(teq::Shape(), "3.2");
+	auto c2 = make_var(teq::Shape(), "3.5");
+	auto x = make_var(teq::Shape(), "X");
+	auto f1 = make_fnc("SUB", 0, teq::TensptrsT{c1,x});
+	auto root = make_fnc("SUB", 0, teq::TensptrsT{c2,f1});
 
 	std::stringstream condjson;
 	condjson << "{\"cst\":3.5}";
@@ -120,12 +144,11 @@ TEST(BASE, DirectConstants)
 
 TEST(BASE, Constants)
 {
-	auto c1 = std::make_shared<MockLeaf>(teq::Shape(), "3.2");
-	auto c2 = std::make_shared<MockLeaf>(teq::Shape(), "3.5");
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{c2,
-		std::make_shared<MockFunctor>(teq::TensptrsT{c1,x}, teq::Opcode{"SUB", 0})
-	}, teq::Opcode{"SUB", 0});
+	auto c1 = make_var(teq::Shape(), "3.2");
+	auto c2 = make_var(teq::Shape(), "3.5");
+	auto x = make_var(teq::Shape(), "X");
+	auto f1 = make_fnc("SUB", 0, teq::TensptrsT{c1,x});
+	auto root = make_fnc("SUB", 0, teq::TensptrsT{c2,f1});
 
 	std::stringstream condjson;
 	condjson <<
@@ -157,13 +180,21 @@ TEST(BASE, Constants)
 
 TEST(BASE, DirectLeafs)
 {
-	auto c1 = std::make_shared<MockLeaf>(teq::Shape({1, 2}), "X");
-	auto c2 = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto x = std::make_shared<MockLeaf>(teq::Shape({1, 2}), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{c2,
-		std::make_shared<MockFunctor>(teq::TensptrsT{c1,x}, teq::Opcode{"SUB", 0})
-	}, teq::Opcode{"SUB", 0});
-	x->meta_.tname_ = "specops";
+	auto c1 = make_var(teq::Shape({1, 2}), "X");
+	auto c2 = make_var(teq::Shape(), "X");
+	auto x = make_var(teq::Shape({1, 2}), "X");
+	auto f1 = make_fnc("SUB", 0, teq::TensptrsT{c1,x});
+	auto root = make_fnc("SUB", 0, teq::TensptrsT{c2,f1});
+	MockMeta mockmeta;
+	MockMeta mockmeta2;
+	EXPECT_CALL(*x, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*c1, get_meta()).WillRepeatedly(ReturnRef(mockmeta2));
+	EXPECT_CALL(*c2, get_meta()).WillRepeatedly(ReturnRef(mockmeta2));
+	EXPECT_CALL(Const(*x), get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(Const(*c1), get_meta()).WillRepeatedly(ReturnRef(mockmeta2));
+	EXPECT_CALL(Const(*c2), get_meta()).WillRepeatedly(ReturnRef(mockmeta2));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("specops"));
+	EXPECT_CALL(mockmeta2, type_label()).WillRepeatedly(Return(""));
 
 	std::stringstream condjson;
 	condjson << "{\"leaf\":{"
@@ -185,12 +216,11 @@ TEST(BASE, DirectLeafs)
 
 TEST(BASE, Leafs)
 {
-	auto c1 = std::make_shared<MockLeaf>(teq::Shape({1, 2}), "X");
-	auto c2 = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{c2,
-		std::make_shared<MockFunctor>(teq::TensptrsT{c1,x}, teq::Opcode{"SUB", 0})
-	}, teq::Opcode{"SUB", 0});
+	auto c1 = make_var(teq::Shape({1, 2}), "X");
+	auto c2 = make_var(teq::Shape(), "X");
+	auto x = make_var(teq::Shape(), "X");
+	auto f1 = make_fnc("SUB", 0, teq::TensptrsT{c1,x});
+	auto root = make_fnc("SUB", 0, teq::TensptrsT{c2,f1});
 
 	std::stringstream condjson;
 	condjson <<
@@ -226,11 +256,10 @@ TEST(BASE, Leafs)
 
 TEST(BASE, NoComNoSymbs)
 {
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{
-		std::make_shared<MockFunctor>(teq::TensptrsT{x}, teq::Opcode{"SIN", 0}),
-		std::make_shared<MockFunctor>(teq::TensptrsT{x,x}, teq::Opcode{"SUB", 0})
-	}, teq::Opcode{"SUB", 0});
+	auto x = make_var(teq::Shape(), "X");
+	auto f1 = make_fnc("SIN", 0, teq::TensptrsT{x});
+	auto f2 = make_fnc("SUB", 0, teq::TensptrsT{x,x});
+	auto root = make_fnc("SUB", 0, teq::TensptrsT{f1,f2});
 
 	std::stringstream condjson;
 	condjson <<
@@ -274,11 +303,10 @@ TEST(BASE, NoComNoSymbs)
 
 TEST(BASE, NoComBadStruct)
 {
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{
-		std::make_shared<MockFunctor>(teq::TensptrsT{x}, teq::Opcode{"SIN", 0}),
-		std::make_shared<MockFunctor>(teq::TensptrsT{x,x}, teq::Opcode{"SUB", 0})
-	}, teq::Opcode{"SUB", 0});
+	auto x = make_var(teq::Shape(), "X");
+	auto f1 = make_fnc("SIN", 0, teq::TensptrsT{x});
+	auto f2 = make_fnc("SUB", 0, teq::TensptrsT{x,x});
+	auto root = make_fnc("SUB", 0, teq::TensptrsT{f1,f2});
 
 	std::stringstream condjson;
 	condjson <<
@@ -300,11 +328,10 @@ TEST(BASE, NoComBadStruct)
 
 TEST(BASE, NoComSymbOnly)
 {
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{
-		std::make_shared<MockFunctor>(teq::TensptrsT{x}, teq::Opcode{"SIN", 0}),
-		std::make_shared<MockFunctor>(teq::TensptrsT{x,x}, teq::Opcode{"SUB", 0})
-	}, teq::Opcode{"SUB", 0});
+	auto x = make_var(teq::Shape(), "X");
+	auto f1 = make_fnc("SIN", 0, teq::TensptrsT{x});
+	auto f2 = make_fnc("SUB", 0, teq::TensptrsT{x,x});
+	auto root = make_fnc("SUB", 0, teq::TensptrsT{f1,f2});
 
 	std::stringstream condjson;
 	condjson <<
@@ -333,11 +360,10 @@ TEST(BASE, NoComSymbOnly)
 
 TEST(BASE, CommNoSymbs)
 {
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{
-		std::make_shared<MockFunctor>(teq::TensptrsT{x}, teq::Opcode{"SIN", 0}),
-		std::make_shared<MockFunctor>(teq::TensptrsT{x,x}, teq::Opcode{"ADD", 0})
-	}, teq::Opcode{"ADD", 0});
+	auto x = make_var(teq::Shape(), "X");
+	auto f1 = make_fnc("SIN", 0, teq::TensptrsT{x});
+	auto f2 = make_fnc("ADD", 0, teq::TensptrsT{x,x});
+	auto root = make_fnc("ADD", 0, teq::TensptrsT{f1,f2});
 
 	std::stringstream condjson;
 	condjson <<
@@ -372,11 +398,10 @@ TEST(BASE, CommNoSymbs)
 
 TEST(BASE, CommBadStruct)
 {
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{
-		std::make_shared<MockFunctor>(teq::TensptrsT{x}, teq::Opcode{"SIN", 0}),
-		std::make_shared<MockFunctor>(teq::TensptrsT{x,x}, teq::Opcode{"ADD", 0})
-	}, teq::Opcode{"ADD", 0});
+	auto x = make_var(teq::Shape(), "X");
+	auto f1 = make_fnc("SIN", 0, teq::TensptrsT{x});
+	auto f2 = make_fnc("ADD", 0, teq::TensptrsT{x,x});
+	auto root = make_fnc("ADD", 0, teq::TensptrsT{f1,f2});
 
 	std::stringstream condjson;
 	condjson <<
@@ -398,11 +423,10 @@ TEST(BASE, CommBadStruct)
 
 TEST(BASE, CommSymbOnly)
 {
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{
-		std::make_shared<MockFunctor>(teq::TensptrsT{x}, teq::Opcode{"SIN", 0}),
-		std::make_shared<MockFunctor>(teq::TensptrsT{x,x}, teq::Opcode{"ADD", 0})
-	}, teq::Opcode{"ADD", 0});
+	auto x = make_var(teq::Shape(), "X");
+	auto f1 = make_fnc("SIN", 0, teq::TensptrsT{x});
+	auto f2 = make_fnc("ADD", 0, teq::TensptrsT{x,x});
+	auto root = make_fnc("ADD", 0, teq::TensptrsT{f1,f2});
 
 	std::stringstream condjson;
 	condjson <<
@@ -431,11 +455,10 @@ TEST(BASE, CommSymbOnly)
 
 TEST(BASE, Capture)
 {
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{
-		std::make_shared<MockFunctor>(teq::TensptrsT{x}, teq::Opcode{"SIN", 0}),
-		std::make_shared<MockFunctor>(teq::TensptrsT{x,x}, teq::Opcode{"SUB", 0})
-	}, teq::Opcode{"SUB", 0});
+	auto x = make_var(teq::Shape(), "X");
+	auto f1 = make_fnc("SIN", 0, teq::TensptrsT{x});
+	auto f2 = make_fnc("SUB", 0, teq::TensptrsT{x,x});
+	auto root = make_fnc("SUB", 0, teq::TensptrsT{f1,f2});
 
 	std::stringstream condjson;
 	condjson <<

@@ -72,8 +72,12 @@ CMakeFiles
 
 html/
 
+tags
+compile_commands.json
+
 # whitelist
 !.gitignore
+!.gitattributes
 !.travis.yml
 !.dockerignore
 !.gitmodules
@@ -81,3 +85,4 @@ html/
 !.bazelrc
 !models/*.onnx
 !models/**/*.onnx
+!.bazelignore

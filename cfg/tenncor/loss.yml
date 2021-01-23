@@ -1,0 +1,59 @@
+name: LossAPI
+members:
+  - name: super
+    type: TenncorAPI*
+init:
+  args:
+    - name: super
+      type: TenncorAPI*
+  initlist:
+    super: super
+funcs:
+  - name: sqr_diff
+    args:
+      - name: target
+        type: const eteq::ETensor&
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return super->square(super->sub(target,input));
+  - name: mean_squared
+    args:
+      - name: target
+        type: const eteq::ETensor&
+      - name: input
+        type: const eteq::ETensor&
+      - name: axis
+        type: teq::RankT
+        default: teq::rank_cap
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            auto sqr_diff = super->square(super->sub(target,input));
+            if (axis >= teq::rank_cap)
+            {
+                return super->reduce_mean(sqr_diff);
+            }
+            return super->reduce_mean_1d(sqr_diff, axis);
+  - name: cross_entropy
+    args:
+      - name: target
+        type: const eteq::ETensor&
+      - name: input
+        type: const eteq::ETensor&
+      - name: eps
+        type: float
+        default: std::numeric_limits<float>::epsilon()
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            auto in = super->add(input,eps);
+            auto not_in = super->sub(1.,in);
+            auto not_targ = super->sub(1.,target);
+            return super->neg(super->add(
+                super->mul(target,super->log(in)),
+                super->mul(not_targ,super->log(not_in))
+            ));

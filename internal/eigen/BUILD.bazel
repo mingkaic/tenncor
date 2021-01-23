@@ -6,6 +6,7 @@ filegroup(
         ":eigen_hdrs",
         ":eigen_srcs",
         ":mock_hdrs",
+        ":mock_srcs",
         ":test_srcs",
         "BUILD.bazel",
     ],
@@ -25,6 +26,11 @@ filegroup(
 filegroup(
     name = "mock_hdrs",
     srcs = glob(["mock/*.hpp"]),
+)
+
+filegroup(
+    name = "mock_srcs",
+    srcs = glob(["mock/*.cpp"]),
 )
 
 filegroup(
@@ -70,16 +76,16 @@ GEN_SRCS = [
 genrule(
     name = "generated_eigen",
     srcs = select({
-        "//conditions:default": ["//cfg:eteq_min"],
-        ":fast_build": ["//cfg:eteq_min"],
-        ":full_build": ["//cfg:eteq"]
+        "//conditions:default": ["//cfg:tenncor_min"],
+        ":fast_build": ["//cfg:tenncor_min"],
+        ":full_build": ["//cfg:tenncor"]
     }),
     outs = GEN_HDRS + GEN_SRCS,
     tools = ["//tools/egen:egen"],
     cmd = select({
-        "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
-        ":fast_build": GEN_CMD_FMT.format("eteq_min"),
-        ":full_build": GEN_CMD_FMT.format("eteq"),
+        "//conditions:default": GEN_CMD_FMT.format("tenncor_min"),
+        ":fast_build": GEN_CMD_FMT.format("tenncor_min"),
+        ":full_build": GEN_CMD_FMT.format("tenncor"),
     })
 )
 
@@ -95,6 +101,7 @@ cc_library(
     deps = [
         "//internal/teq:teq",
         "@boost//:uuid",
+        "@boost//:pool",
         "@com_github_eigenteam_eigen//:eigen",
     ],
     visibility = ["//visibility:public"],
@@ -103,6 +110,7 @@ cc_library(
 cc_library(
     name = "mock",
     hdrs = [":mock_hdrs"],
+    srcs = [":mock_srcs"],
     copts = ["-std=c++17"],
     deps = [
         ":eigen",

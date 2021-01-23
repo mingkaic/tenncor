@@ -30,7 +30,7 @@ filegroup(
 
 filegroup(
     name = "benchmark_srcs",
-    srcs = glob(["bm/*.cpp"]),
+    srcs = glob(["bm/*.cpp", "bm/*.py"]),
 )
 
 filegroup(
@@ -60,7 +60,12 @@ filegroup(
 
 filegroup(
     name = "ptest_srcs",
-    srcs = ["test/ptest.py"],
+    srcs = [
+        "test/main.py",
+        "test/test_api.py",
+        "test/test_distrib.py",
+        "test/test_layer.py",
+    ],
 )
 
 ######### LIBRARY #########
@@ -70,39 +75,39 @@ plugins.apis:APIsPlugin \
 plugins.pyapis:PyAPIsPlugin \
 --out $(@D)/generated \
 --strip_prefix=$(@D)/.. \
---ext_path=`dirname $$(echo '$(locations //cfg:eteq_classes)' | awk '{{print $$1}}')` \
+--ext_path=`dirname $$(echo '$(locations //cfg:tenncor_classes)' | awk '{{print $$1}}')` \
 --cfgs $(locations //cfg:{})"""
 
 GEN_HDRS = [
     "generated/api.hpp",
-    "generated/pyapi.hpp",
 ]
 
 genrule(
     name = "generated_tenncor",
     srcs = select({
-        "//conditions:default": ["//cfg:eteq_min"],
-        "//internal/eigen:fast_build": ["//cfg:eteq_min"],
-        "//internal/eigen:full_build": ["//cfg:eteq"],
-    }) + ["//cfg:eteq_classes"],
-    outs = GEN_HDRS + [
+        "//conditions:default": ["//cfg:tenncor_min"],
+        "//internal/eigen:fast_build": ["//cfg:tenncor_min"],
+        "//internal/eigen:full_build": ["//cfg:tenncor"],
+    }) + ["//cfg:tenncor_classes"],
+    outs = [
+        "generated/api.hpp",
+        "generated/pyapi.hpp",
         "generated/api.cpp",
         "generated/pyapi_tenncor.cpp",
     ],
     tools = ["//tools/egen:egen"],
     cmd = select({
-        "//conditions:default": GEN_CMD_FMT.format("eteq_min"),
-        "//internal/eigen:fast_build": GEN_CMD_FMT.format("eteq_min"),
-        "//internal/eigen:full_build": GEN_CMD_FMT.format("eteq"),
+        "//conditions:default": GEN_CMD_FMT.format("tenncor_min"),
+        "//internal/eigen:fast_build": GEN_CMD_FMT.format("tenncor_min"),
+        "//internal/eigen:full_build": GEN_CMD_FMT.format("tenncor"),
     })
 )
 
 cc_library(
     name = "tenncor",
     hdrs = [
+        ":generated/api.hpp",
         ":tenncor_hdrs",
-    ] + [
-        ":"+hdr for hdr in GEN_HDRS
     ],
     srcs = [
         ":generated/api.cpp",
@@ -125,6 +130,7 @@ pybind_py_library(
     cc_srcs = [
         ":pybind_hdrs",
         ":pybind_srcs",
+        ":generated/pyapi.hpp",
         ":generated/pyapi_tenncor.cpp",
     ],
     cc_deps = [
@@ -132,10 +138,7 @@ pybind_py_library(
         "//dbg/print/printsvc:printsvc",
         "//tenncor/pyutils:pyutils",
     ],
-    copts = [
-        "-std=c++17",
-        "-Itenncor",
-    ],
+    copts = ["-std=c++17"],
     py_imports = ["."]
 )
 
@@ -143,13 +146,26 @@ pybind_py_library(
 
 cc_binary(
     name = "benchmark",
-    srcs = [":benchmark_srcs"],
+    srcs = ["bm/benchmark.cpp"],
     deps = [
         ":tenncor",
         "@com_github_google_benchmark//:benchmark",
     ],
     copts = ["-std=c++17"],
     data = ["//cfg:optimizations"],
+)
+
+py_binary(
+    name = "tf_memory_benchmark",
+    srcs = ["bm/tf_mem_benchmark.py"],
+    main = "bm/tf_mem_benchmark.py",
+)
+
+py_binary(
+    name = "tc_memory_benchmark",
+    srcs = ["bm/tc_mem_benchmark.py"],
+    main = "bm/tc_mem_benchmark.py",
+    deps = [":tenncor_py"],
 )
 
 ######### TEST #########
@@ -162,7 +178,7 @@ cc_test(
         "//internal/utils/coord:coord",
         "//internal/global:mock",
         "//tenncor/distr:mock",
-        "//tenncor:tenncor",
+        ":tenncor",
         "//testutil:tutil",
         "//dbg/print/printsvc:printsvc",
         "@com_github_mingkaic_cppkg//diff:diff",
@@ -179,9 +195,10 @@ cc_test(
 py_test(
     name = "ptest",
     srcs = [":ptest_srcs"],
+    main = "test/main.py",
     deps = [
         "//dbg:print_py",
-        "//tenncor:tenncor_py",
+        ":tenncor_py",
         "//testutil:pyunit_util",
     ],
     data = [

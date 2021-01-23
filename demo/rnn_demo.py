@@ -69,8 +69,6 @@ def make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps):
     grad_deps = [tc.trail(grad, tincr_mapping)for grad in gs]
 
     # update moving average, dependent on target incr
-    print([e.shape() for e in mvavg_sqrs])
-    print([e.shape() for e in grad_deps])
     umvavg_sqrs = [tc.api.assign(mvavg_sqr,
         lmbd * mvavg_sqr + (1-lmbd) * tc.api.pow(grad_dep, 2))
         for mvavg_sqr, grad_dep in zip(mvavg_sqrs, grad_deps)]
@@ -143,11 +141,15 @@ def main(args):
     noutput = 1
 
     model = tc.api.layer.link([
-        tc.api.layer.dense([ninput], [nunits], weight_init),
-        tc.api.layer.rnn(nunits, nunits, tc.api.tanh, sequence_len,
-            weight_init=weight_init, bias_init=tc.api.layer.zero_init(),
-            seq_dim=2),
-        tc.api.layer.dense([nunits], [noutput], weight_init),
+        tc.api.layer.dense(inshape=[ninput], hidden_dims=[nunits], kernel_init=weight_init),
+        tc.api.layer.rnn(indim=nunits, hidden_dim=nunits,
+            activation=tc.api.tanh, nseq=sequence_len, seq_dim=2,
+            kernel_init=weight_init, bias_init=tc.api.init.zeros()),
+        tc.api.layer.dense(inshape=[nunits], hidden_dims=[noutput], kernel_init=weight_init),
+        #tc.api.layer.dense(inshape=[ninput], hidden_dims=[nunits]),
+        #tc.api.layer.rnn(indim=nunits, hidden_dim=nunits,
+        #    activation=tc.api.tanh, nseq=sequence_len, seq_dim=2),
+        #tc.api.layer.dense(inshape=[nunits], hidden_dims=[noutput]),
         tc.api.layer.bind(tc.api.sigmoid),
     ])
     untrained = model.deep_clone()
@@ -167,7 +169,7 @@ def main(args):
 
     train_err = tc.apply_update([model],
         lambda error, leaves: make_rms_prop(error, leaves, learning_rate, momentum_term, lmbd, eps),
-        lambda models: loss(toutput, models[0].connect(tinput)))
+        lambda models: loss(toutput, models[0].connect(tinput))) #tc.api.reduce_mean(tc.api.loss.cross_entropy(toutput, models[0].connect(tinput))))
 
     # create training samples
     train_input, train_output = create_dataset(n_train, sequence_len)

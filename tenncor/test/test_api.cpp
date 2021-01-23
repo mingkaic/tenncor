@@ -4,11 +4,14 @@
 
 #include "testutil/tutil.hpp"
 
-#include "exam/exam.hpp"
-
 #include "internal/utils/coord/coord.hpp"
 
 #include "tenncor/tenncor.hpp"
+
+
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Throw;
 
 
 using UnaryDblF = std::function<double(double)>;
@@ -142,8 +145,8 @@ static void unary_generic (UnaryOpF<double> op,
 
 	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
 	{
-		eigen::Device(true).calc(*dtens);
-		eigen::Device(true).calc(*dtens); // idempotency check
+		eigen::Device(true).calc(*dtens,0);
+		eigen::Device(true).calc(*dtens,0); // idempotency check
 	}
 	verify(dest, shape, data);
 
@@ -572,6 +575,9 @@ static void nnary_elementary (std::vector<std::vector<double>> datas,
 
 TEST(API, Assign)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	eigen::Device device;
 	// tensor operation
 	teq::DimsT slist = {2, 3, 4};
@@ -595,8 +601,8 @@ TEST(API, Assign)
 	auto ass1 = tenncor().assign(target1, src);
 	auto ass2 = tenncor().assign(target2, -src);
 
-	eigen::Device(true).calc(*ass1);
-	eigen::Device(true).calc(*ass1); // idempotency check
+	eigen::Device(true).calc(*ass1,0);
+	eigen::Device(true).calc(*ass1,0); // idempotency check
 	{
 		auto gotshape = target1->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -628,13 +634,21 @@ TEST(API, Assign)
 		EXPECT_DOUBLE_EQ(-data2[i], aptr2[i]);
 	}
 
-	EXPECT_FATAL(tcr::derive(ass1, {src}), "cannot derive ASSIGN");
-	EXPECT_FATAL(tcr::derive(ass2, {src}), "cannot derive ASSIGN");
+	std::string fatalmsg = "cannot derive ASSIGN";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(2).WillRepeatedly(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(tcr::derive(ass1, {src}), fatalmsg.c_str());
+	EXPECT_FATAL(tcr::derive(ass2, {src}), fatalmsg.c_str());
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
 TEST(API, AssignHighToLowPrecision)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	eigen::Device device;
 	// tensor operation
 	teq::DimsT slist = {2, 3, 4};
@@ -710,8 +724,13 @@ TEST(API, AssignHighToLowPrecision)
 		EXPECT_DOUBLE_EQ(-data2[i], aptr2[i]);
 	}
 
-	EXPECT_FATAL(tcr::derive(ass1, {src}), "cannot derive ASSIGN");
-	EXPECT_FATAL(tcr::derive(ass2, {src}), "cannot derive ASSIGN");
+	std::string fatalmsg = "cannot derive ASSIGN";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(2).WillRepeatedly(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(tcr::derive(ass1, {src}), fatalmsg.c_str());
+	EXPECT_FATAL(tcr::derive(ass2, {src}), fatalmsg.c_str());
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
@@ -1227,8 +1246,8 @@ TEST(API, Select)
 
 		auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 		ASSERT_NE(nullptr, dtens);
-		eigen::Device(true).calc(*dtens);
-		eigen::Device(true).calc(*dtens); // idempotency check
+		eigen::Device(true).calc(*dtens,0);
+		eigen::Device(true).calc(*dtens,0); // idempotency check
 		{
 			auto gotshape = dest->shape();
 			ASSERT_ARREQ(shape, gotshape);
@@ -1314,8 +1333,8 @@ TEST(API, Slice)
 	};
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	auto gotshape = dest->shape();
 	ASSERT_ARREQ(exshape, gotshape);
 	double* optr = (double*) dest->device().data();
@@ -1486,6 +1505,9 @@ TEST(API, NDims)
 
 TEST(API, Argmax)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+
 	teq::Shape shape({2, 3, 4});
 	std::vector<double> data = {
 		22, 15, 74, 38, 61, 95, 62, 81, 99, 76, 7, 22,
@@ -1497,8 +1519,8 @@ TEST(API, Argmax)
 
 	if (auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get()))
 	{
-		eigen::Device(true).calc(*dtens);
-		eigen::Device(true).calc(*dtens); // idempotency check
+		eigen::Device(true).calc(*dtens,0);
+		eigen::Device(true).calc(*dtens,0); // idempotency check
 	}
 	teq::Shape oshape = dest->shape();
 	teq::Shape exshape;
@@ -1506,7 +1528,12 @@ TEST(API, Argmax)
 	double* ptr = (double*) dest->device().data();
 	EXPECT_EQ(8, *ptr);
 
-	EXPECT_FATAL(tcr::derive(dest, {src}), "cannot derive ARGMAX");
+	std::string fatalmsg = "cannot derive ARGMAX";
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(tcr::derive(dest, {src}), fatalmsg.c_str());
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
@@ -1588,8 +1615,8 @@ TEST(API, Rprod)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	{
 		size_t n = dest->shape().n_elems();
 		{
@@ -1603,8 +1630,8 @@ TEST(API, Rprod)
 
 	auto dtens2 = static_cast<eteq::Functor<int32_t>*>(dest2.get());
 	ASSERT_NE(nullptr, dtens2);
-	eigen::Device(true).calc(*dtens2);
-	eigen::Device(true).calc(*dtens2); // idempotency check
+	eigen::Device(true).calc(*dtens2,0);
+	eigen::Device(true).calc(*dtens2,0); // idempotency check
 	{
 		teq::DimsT expect_list(shape.begin(), shape.end());
 		expect_list[1] = 1;
@@ -1863,8 +1890,8 @@ TEST(API, Permute)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	size_t n = dest->shape().n_elems();
 	ASSERT_EQ(nelem, n);
 	double* got = (double*) dest->device().data();
@@ -1918,8 +1945,8 @@ TEST(API, Extend)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	size_t ext_nelem = teq::Shape(ext).n_elems();
 	auto extshape = dest->shape();
 	teq::Shape expect_shape({2, 5, 1, 3});
@@ -1996,8 +2023,8 @@ TEST(API, Matmul)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(2, gotshape.at(1));
@@ -2098,8 +2125,8 @@ TEST(API, Contract)
 
 	auto dtens = dynamic_cast<eteq::Functor<int32_t>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	teq::Shape gotshape = dest->shape();
 	EXPECT_EQ(4, gotshape.at(0));
 	EXPECT_EQ(1, gotshape.at(1));
@@ -2176,8 +2203,8 @@ static void test_rand_unif (teq::DimsT shape_list)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(shape, gotshape);
@@ -2299,8 +2326,8 @@ TEST(API, Convolution)
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
 	ASSERT_NE(nullptr, dtens);
-	eigen::Device(true).calc(*dtens);
-	eigen::Device(true).calc(*dtens); // idempotency check
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
 	{
 		auto gotshape = dest->shape();
 		ASSERT_ARREQ(expectslist, gotshape);
@@ -2398,15 +2425,15 @@ TEST(API, Dense)
 
 	teq::TensptrT weight2 = eteq::make_variable_scalar<float>(0, teq::Shape({6, ninput2}), "weight");
 
-	auto biasedy = tenncor().nn.dense(eteq::ETensor(x),
+	auto biasedy = tenncor().layer.dense(eteq::ETensor(x),
 		eteq::ETensor(weight), eteq::ETensor(bias));
-	auto y = tenncor().nn.dense(eteq::ETensor(x2),
+	auto y = tenncor().layer.dense(eteq::ETensor(x2),
 		eteq::ETensor(weight2));
 
 	EXPECT_GRAPHEQ(
 		"(IDENTITY<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(ADD<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(MATMUL<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(CONTRACT<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(variable:x<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(variable:weight<FLOAT>[5\\6\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(EXTEND<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -2414,7 +2441,7 @@ TEST(API, Dense)
 
 	EXPECT_GRAPHEQ(
 		"(IDENTITY<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(MATMUL<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(CONTRACT<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(variable:x2<FLOAT>[7\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(variable:weight<FLOAT>[6\\7\\1\\1\\1\\1\\1\\1])", y);
 }
@@ -2433,7 +2460,7 @@ TEST(API, DenseSerialization)
 			0, teq::Shape({noutput, ninput}), "weight");
 		eteq::VarptrT<float> bias = eteq::make_variable_scalar<float>(
 			0, teq::Shape({noutput}), "bias");
-		auto y = tenncor().nn.dense(eteq::ETensor(x),
+		auto y = tenncor().layer.dense(eteq::ETensor(x),
 			eteq::ETensor(weight), eteq::ETensor(bias));
 		eteq::VarptrsT<float> contents = layr::get_storage<float>(y);
 		ASSERT_EQ(2, contents.size());
@@ -2447,7 +2474,7 @@ TEST(API, DenseSerialization)
 		EXPECT_GRAPHEQ(
 			"(IDENTITY<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_`--(ADD<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			"_____`--(MATMUL<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"_____`--(CONTRACT<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_____|___`--(variable:x<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_____|___`--(variable:weight<FLOAT>[5\\6\\1\\1\\1\\1\\1\\1])\n"
 			"_____`--(EXTEND<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -2466,7 +2493,7 @@ TEST(API, DenseSerialization)
 		EXPECT_GRAPHEQ(
 			"(IDENTITY<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_`--(ADD<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
-			"_____`--(MATMUL<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
+			"_____`--(CONTRACT<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_____|___`--(variable:x<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 			"_____|___`--(variable:weight<FLOAT>[5\\6\\1\\1\\1\\1\\1\\1])\n"
 			"_____`--(EXTEND<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -2486,7 +2513,7 @@ TEST(API, Conv)
 	teq::TensptrT weight = eteq::make_variable_scalar<float>(0,
 		teq::Shape({outdim, indim, filters.second, filters.first}), "weight");
 	teq::TensptrT bias = eteq::make_variable_scalar<float>(0, teq::Shape({outdim}), "bias");
-	auto y = tenncor().nn.conv(eteq::ETensor(x),
+	auto y = tenncor().layer.conv2d(eteq::ETensor(x),
 		eteq::ETensor(weight), eteq::ETensor(bias));
 
 	EXPECT_GRAPHEQ(

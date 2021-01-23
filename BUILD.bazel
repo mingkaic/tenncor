@@ -48,7 +48,8 @@ filegroup(
         "models/test/*.onnx",
         "models/test/*.txt",
         "models/test/*.json",
-    ])
+        "models/test/**/*.json",
+    ]),
 )
 
 filegroup(
@@ -57,5 +58,27 @@ filegroup(
         "models/*.onnx",
         "models/*.json",
         "models/data/*",
-    ])
+    ]),
+)
+
+######### PYTHON PACKAGE #########
+
+py_binary(
+    name = "setup",
+    srcs = ["setup.py"],
+    deps = ["//tenncor:tenncor_py"],
+    data = ["README.md"],
+)
+
+######### DEVELOPER TOOLS ########
+
+load("@com_grail_bazel_compdb//:aspects.bzl", "compilation_database")
+compilation_database(
+    name = "compdb",
+    targets = [
+        "//internal/utils/stabilizer:stabilizer",
+        "//internal/utils/coord:coord",
+        "//tenncor:tenncor",
+    ],
+    exec_root = "",
 )

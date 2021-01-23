@@ -37,6 +37,8 @@ class FileDump:
     '''
     def __init__(self, outpath, includepath=None):
         self.outpath = outpath
+        if not os.path.isdir(outpath) and not os.path.exists(outpath):
+            os.makedirs(outpath)
         if includepath is None:
             self.includepath = outpath
         else:
@@ -46,5 +48,5 @@ class FileDump:
         out_content = file.generate(self.includepath)
         filepath = os.path.join(self.outpath, filename)
         logging.info('generating %s', filepath)
-        with open(filepath, 'w') as outf:
+        with open(filepath, 'w', encoding='utf-8') as outf:
             outf.write(out_content)

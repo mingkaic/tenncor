@@ -132,9 +132,18 @@ double percent_dataeq (const eteq::ETensor& lroot, const eteq::ETensor& rroot)
 		orders[rpair.second].second = rpair.first;
 	}
 
+	size_t nvalids = 0;
 	size_t nequals = 0;
 	for (const std::pair<teq::iTensor*,teq::iTensor*>& ord : orders)
 	{
+		assert(nullptr != ord.first && nullptr != ord.second);
+		const char* lptr = (const char*) ord.first->device().data();
+		const char* rptr = (const char*) ord.second->device().data();
+		if (nullptr == lptr || nullptr == rptr)
+		{
+			continue;
+		}
+		++nvalids;
 		teq::Shape shape = ord.first->shape();
 		auto dtype = (egen::_GENERATED_DTYPE) ord.first->get_meta().type_code();
 		if (false == std::equal(shape.begin(), shape.end(),
@@ -143,15 +152,17 @@ double percent_dataeq (const eteq::ETensor& lroot, const eteq::ETensor& rroot)
 		{
 			continue;
 		}
-		const char* lptr = (const char*) ord.first->device().data();
-		const char* rptr = (const char*) ord.second->device().data();
 		if (std::equal(lptr,
 			lptr + shape.n_elems() * egen::type_size(dtype), rptr))
 		{
 			++nequals;
 		}
 	}
-	return nequals / (double) orders.size();
+	if (0 == nvalids)
+	{
+		return 1;
+	}
+	return nequals / (double) nvalids;
 }
 
 #endif

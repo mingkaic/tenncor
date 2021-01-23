@@ -18,14 +18,29 @@
 #include "tenncor/serial/serial.hpp"
 
 
+using ::testing::Invoke;
+
+
+#ifdef CMAKE_SOURCE_DIR
+const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
+#else
 const std::string testdir = "models/test";
+#endif
 
 
 TEST(SERIALIZE, SaveGraph)
 {
+	auto gen = std::make_shared<MockGenerator>();
+	global::set_generator(gen);
+
 	std::string expect_pbfile = testdir + "/serial.onnx";
-	std::string got_pbfile = "/tmp/serial.onnx";
-	global::set_generator(std::make_shared<MockGenerator>());
+	std::string got_pbfile = "got_serial.onnx";
+
+	size_t counter = 0;
+	auto incr_id = [&]{ return fmts::to_string(++counter); };
+
+	EXPECT_CALL(*gen, get_str()).
+		WillRepeatedly(Invoke(incr_id));
 
 	{
 		onnx::ModelProto model;
@@ -105,6 +120,7 @@ TEST(SERIALIZE, SaveGraph)
 		differ.ReportDifferencesToString(&report);
 		EXPECT_TRUE(differ.Compare(expect_model, got_model)) << report;
 	}
+	global::set_generator(nullptr);
 }
 
 

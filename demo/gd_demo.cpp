@@ -19,23 +19,23 @@
 
 #include "tenncor/trainer/trainer.hpp"
 
-static trainer::ShapedArr<PybindT> batch_generate (teq::DimT n, teq::DimT batchsize)
+static trainer::ShapedArr<float> batch_generate (teq::DimT n, teq::DimT batchsize)
 {
 	// Specify the engine and distribution.
 	std::mt19937 mersenne_engine(global::get_generator()->unif_int(
 		std::numeric_limits<int64_t>::min(),
 		std::numeric_limits<int64_t>::max()));
-	std::uniform_real_distribution<PybindT> dist(0, 1);
+	std::uniform_real_distribution<float> dist(0, 1);
 
 	auto gen = std::bind(dist, mersenne_engine);
-	trainer::ShapedArr<PybindT> out(teq::Shape({n, batchsize}));
+	trainer::ShapedArr<float> out(teq::Shape({n, batchsize}));
 	std::generate(std::begin(out.data_), std::end(out.data_), gen);
 	return out;
 }
 
-static trainer::ShapedArr<PybindT> avgevry2 (trainer::ShapedArr<PybindT>& in)
+static trainer::ShapedArr<float> avgevry2 (trainer::ShapedArr<float>& in)
 {
-	trainer::ShapedArr<PybindT> out(teq::Shape({
+	trainer::ShapedArr<float> out(teq::Shape({
 		static_cast<teq::DimT>(in.shape_.at(0) / 2),
 		in.shape_.at(1)}));
 	for (size_t i = 0, n = in.data_.size() / 2; i < n; i++)
@@ -84,7 +84,7 @@ int main (int argc, const char** argv)
 
 	int exit_status = 0;
 	std::clock_t start;
-	PybindT duration;
+	float duration;
 
 	if (false == flags.parse(argc, argv))
 	{
@@ -102,12 +102,12 @@ int main (int argc, const char** argv)
 	uint8_t n_out = n_in / 2;
 
 	eteq::ETensor trained_model = tc.layer.link({
-		tc.layer.dense<PybindT>(teq::Shape({n_in}), {n_hid},
-			tc.layer.unif_xavier_init<PybindT>(1), tc.layer.zero_init<PybindT>()),
-		tc.layer.bind<PybindT>(sigmoid),
-		tc.layer.dense<PybindT>(teq::Shape({n_hid}), {n_out},
-			tc.layer.unif_xavier_init<PybindT>(1), tc.layer.zero_init<PybindT>()),
-		tc.layer.bind<PybindT>(sigmoid),
+		tc.layer.dense<float>(teq::Shape({n_in}), {n_hid},
+			tc.init.xavier_uniform<float>(1), tc.init.zeros<float>()),
+		tc.layer.bind(sigmoid),
+		tc.layer.dense<float>(teq::Shape({n_hid}), {n_out},
+			tc.init.xavier_uniform<float>(1), tc.init.zeros<float>()),
+		tc.layer.bind(sigmoid),
 	});
 	eteq::ETensor untrained_model = layr::deep_clone(trained_model);
 	eteq::ETensor pretrained_model = layr::deep_clone(trained_model);
@@ -136,11 +136,11 @@ int main (int argc, const char** argv)
 
 	uint8_t n_batch = 3;
 	size_t show_every_n = 500;
-	layr::ApproxF<PybindT> approx =
+	layr::ApproxF<float> approx =
 		[&](const eteq::ETensor& error,
-			const eteq::EVariablesT<PybindT>& leaves)
+			const eteq::EVariablesT<float>& leaves)
 		{
-			return tc.approx.sgd<PybindT>(error, leaves, 0.9); // learning rate = 0.9
+			return tc.approx.sgd<float>(error, leaves, 0.9); // learning rate = 0.9
 		};
 	// emit::Emitter emitter("localhost:50051");
 	// auto eval = new dbg::PlugableEvaluator();
@@ -158,16 +158,16 @@ int main (int argc, const char** argv)
 	// 		emitter.join_then_stop(deadline);
 	// 	});
 
-	auto train_input = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_in, n_batch}));
-	auto train_exout = eteq::make_variable_scalar<PybindT>(0, teq::Shape({n_out, n_batch}));
-	auto train_err = trainer::apply_update<PybindT>({trained_model}, approx,
+	auto train_input = eteq::make_variable_scalar<float>(0, teq::Shape({n_in, n_batch}));
+	auto train_exout = eteq::make_variable_scalar<float>(0, teq::Shape({n_out, n_batch}));
+	auto train_err = trainer::apply_update<float>({trained_model}, approx,
 		[&](const eteq::ETensorsT& models)
 		{
-			return tc.error.sqr_diff(train_exout,
+			return tc.loss.mean_squared(train_exout,
 				layr::connect(models.front(), train_input));
 		});
 
-	eteq::EVariable<PybindT> testin = eteq::make_variable_scalar<PybindT>(
+	eteq::EVariable<float> testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");
 	auto untrained_out = layr::connect(untrained_model, testin);
 	auto trained_out = layr::connect(trained_model, testin);
@@ -179,29 +179,29 @@ int main (int argc, const char** argv)
 	start = std::clock();
 	for (size_t i = 0; i < n_train; i++)
 	{
-		trainer::ShapedArr<PybindT> batch = batch_generate(n_in, n_batch);
-		trainer::ShapedArr<PybindT> batch_out = avgevry2(batch);
+		trainer::ShapedArr<float> batch = batch_generate(n_in, n_batch);
+		trainer::ShapedArr<float> batch_out = avgevry2(batch);
 		train_input->assign(batch.data_.data(), batch.shape_);
 		train_exout->assign(batch_out.data_.data(), batch_out.shape_);
-		PybindT* data = train_err.calc<PybindT>();
+		float* data = train_err.calc<float>();
 		if (i % show_every_n == show_every_n - 1)
 		{
-			PybindT* data_end = data + train_err->shape().n_elems();
-			PybindT ferr = std::accumulate(data, data_end, 0.f);
+			float* data_end = data + train_err->shape().n_elems();
+			float ferr = std::accumulate(data, data_end, 0.f);
 			std::cout << "training " << i + 1 << '\n';
 			std::cout << "trained error: "
 				<< fmts::to_string(data, data_end) << "~" << ferr << '\n';
 		}
 	}
-	duration = (std::clock() - start) / (PybindT) CLOCKS_PER_SEC;
+	duration = (std::clock() - start) / (float) CLOCKS_PER_SEC;
 	std::cout << "training time: " << duration << " seconds" << '\n';
 
 	// exit code:
 	//	0 = fine
 	//	1 = training error rate is wrong
-	PybindT untrained_err = 0;
-	PybindT trained_err = 0;
-	PybindT pretrained_err = 0;
+	float untrained_err = 0;
+	float trained_err = 0;
+	float pretrained_err = 0;
 
 	for (size_t i = 0; i < n_test; i++)
 	{
@@ -209,16 +209,16 @@ int main (int argc, const char** argv)
 		{
 			std::cout << "testing " << i + 1 << '\n';
 		}
-		trainer::ShapedArr<PybindT> batch = batch_generate(n_in, 1);
-		trainer::ShapedArr<PybindT> batch_out = avgevry2(batch);
+		trainer::ShapedArr<float> batch = batch_generate(n_in, 1);
+		trainer::ShapedArr<float> batch_out = avgevry2(batch);
 		testin->assign(batch.data_.data(), batch.shape_);
-		PybindT* untrained_res = untrained_out.calc<PybindT>();
-		PybindT* trained_res = trained_out.calc<PybindT>();
-		PybindT* pretrained_res = pretrained_out.calc<PybindT>();
+		float* untrained_res = untrained_out.calc<float>();
+		float* trained_res = trained_out.calc<float>();
+		float* pretrained_res = pretrained_out.calc<float>();
 
-		PybindT untrained_avgerr = 0;
-		PybindT trained_avgerr = 0;
-		PybindT pretrained_avgerr = 0;
+		float untrained_avgerr = 0;
+		float trained_avgerr = 0;
+		float pretrained_avgerr = 0;
 		for (size_t i = 0; i < n_out; i++)
 		{
 			untrained_avgerr += std::abs(untrained_res[i] - batch_out.data_[i]);
@@ -229,9 +229,9 @@ int main (int argc, const char** argv)
 		trained_err += trained_avgerr / n_out;
 		pretrained_err += pretrained_avgerr / n_out;
 	}
-	untrained_err /= (PybindT) n_test;
-	trained_err /= (PybindT) n_test;
-	pretrained_err /= (PybindT) n_test;
+	untrained_err /= (float) n_test;
+	trained_err /= (float) n_test;
+	pretrained_err /= (float) n_test;
 	std::cout << "untrained mlp error rate: " << untrained_err * 100 << "%\n";
 	std::cout << "trained mlp error rate: " << trained_err * 100 << "%\n";
 	std::cout << "pretrained mlp error rate: " << pretrained_err * 100 << "%\n";

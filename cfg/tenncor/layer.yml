@@ -1,0 +1,815 @@
+requires:
+  - InitAPI
+  - NnAPI
+name: LayerAPI
+members:
+  - name: super
+    type: TenncorAPI*
+init:
+  args:
+    - name: super
+      type: TenncorAPI*
+  initlist:
+    super: super
+funcs:
+  - name: bind
+    args:
+      - name: unary
+        type: layr::UnaryF
+      - name: inshape
+        type: const teq::Shape&
+        default: teq::Shape()
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            eteq::ETensor input(eteq::make_variable_scalar<float>(
+                0,inshape,layr::input_label,super->ctx));
+            auto output = unary(input);
+            auto layer_root = super->identity(output);
+            return eteq::ETensor(layr::make_layer(layer_root,layr::bind_name,input),super->ctx);
+  - name: link
+    args:
+      - name: layers
+        type: eteq::ETensorsT
+      - name: input
+        type: eteq::ETensor
+        check_null: false
+        default: eteq::ETensor()
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            if (layers.empty())
+            {
+                global::fatal("cannot link without layers");
+            }
+            eteq::ETensor output = input;
+            if (nullptr == input)
+            {
+                output = layers.front();
+                input = layr::get_input(output);
+                layers = eteq::ETensorsT(layers.begin()+1,layers.end());
+            }
+            for (auto layer : layers)
+            {
+                if (layr::get_input(layer).get() == output.get())
+                {
+                    output = layer;
+                }
+                else
+                {
+                    output = layr::connect(layer,output);
+                }
+            }
+            auto layer_root = super->identity(output);
+            return eteq::ETensor(layr::make_layer(layer_root,layr::link_name,input),super->ctx);
+  - template: typename T
+    name: dense
+    args:
+      - name: inshape
+        type: const teq::Shape&
+      - name: hidden_dims
+        type: const teq::DimsT&
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: with_bias
+        type: bool
+        default: "true"
+      - name: dims
+        type: const eigen::PairVecT<teq::RankT>&
+        default: "eigen::PairVecT<teq::RankT>{{0,1}}"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            eteq::ETensor input(eteq::make_variable_scalar<T>(0,inshape,layr::input_label,super->ctx));
+            return dense(input,hidden_dims,kernel_init,bias_init,with_bias,dims);
+  - template: typename T
+    name: dense
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: hidden_dims
+        type: const teq::DimsT&
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: with_bias
+        type: bool
+        default: "true"
+      - name: dims
+        type: const eigen::PairVecT<teq::RankT>&
+        default: "eigen::PairVecT<teq::RankT>{{0,1}}"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            if (!kernel_init)
+            {
+                kernel_init = super->init.glorot_uniform<T>();
+            }
+            eteq::EVariable<T> kernel = kernel_init(layr::gen_rshape(hidden_dims,input->shape(),dims),layr::weight_label);
+            eteq::EVariable<T> bias;
+            if (with_bias)
+            {
+                if (!bias_init)
+                {
+                    bias_init = super->init.zeros<T>();
+                }
+                bias = bias_init(teq::Shape(hidden_dims),layr::bias_label);
+            }
+            return dense(input,kernel,bias,dims);
+  - template: typename T
+    name: conv2d
+    args:
+      - name: kernel_hw
+        type: const eteq::DimPairsT&
+      - name: in_ncol
+        type: teq::DimT
+      - name: out_ncol
+        type: teq::DimT
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: zero_padding
+        type: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
+        default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
+      - name: with_bias
+        type: bool
+        default: "true"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            // image must be in form [in,iwidth,iheight,batch]
+            eteq::ETensor input(eteq::make_variable_scalar<T>(0,teq::Shape({
+                in_ncol,kernel_hw.second,kernel_hw.first,1}),layr::input_label,super->ctx));
+            return conv2d(input,out_ncol,kernel_hw,kernel_init,bias_init,zero_padding,with_bias);
+  - template: typename T
+    name: conv2d
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: out_ncol
+        type: teq::DimT
+      - name: kernel_hw
+        type: const eteq::DimPairsT&
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: padding
+        type: const std::string&
+        default: "\"valid\""
+      - name: with_bias
+        type: bool
+        default: "true"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            std::pair<eteq::DimPairsT,eteq::DimPairsT> zero_padding;
+            std::string zpadding;
+            std::transform(padding.begin(), padding.end(), std::back_inserter(zpadding),
+                [](unsigned char c){ return std::tolower(c); });
+            if ("valid" == zpadding)
+            {
+                zero_padding = {
+                    {0, 0},
+                    {0, 0}
+                };
+            }
+            else if ("same" == zpadding)
+            {
+                teq::DimT xpad = kernel_hw.second / 2;
+                teq::DimT ypad = kernel_hw.first / 2;
+                zero_padding = {
+                    {xpad, xpad},
+                    {ypad, ypad}
+                };
+            }
+            else
+            {
+                global::fatalf("unsupported padding type %s", padding.c_str());
+            }
+            return conv2d(input,out_ncol,kernel_hw,kernel_init,bias_init,zero_padding,with_bias);
+  - template: typename T
+    name: conv2d
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: out_ncol
+        type: teq::DimT
+      - name: kernel_hw
+        type: const eteq::DimPairsT&
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: zero_padding
+        type: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
+        default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
+      - name: with_bias
+        type: bool
+        default: "true"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            if (!kernel_init)
+            {
+                kernel_init = super->init.glorot_uniform<T>();
+            }
+            // image must be in form [in,iwidth,iheight,...]
+            teq::Shape inshape = input->shape();
+            eteq::EVariable<T> kernel = kernel_init(teq::Shape({out_ncol,
+                inshape.at(0),kernel_hw.second,kernel_hw.first}),layr::weight_label);
+            eteq::EVariable<T> bias;
+            if (with_bias)
+            {
+                if (!bias_init)
+                {
+                    bias_init = super->init.zeros<T>();
+                }
+                bias = bias_init(teq::Shape({out_ncol}),layr::bias_label);
+            }
+            return conv2d(input,kernel,bias,zero_padding);
+  - template: typename T
+    name: rnn
+    args:
+      - name: indim
+        type: teq::DimT
+      - name: hidden_dim
+        type: teq::DimT
+      - name: activation
+        type: const layr::UnaryF&
+      - name: nseq
+        type: teq::DimT
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: seq_dim
+        type: teq::RankT
+        default: "1"
+      - name: with_bias
+        type: bool
+        default: "true"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            // input needs to specify number of sequences,
+            // since graph topography can't be traced
+            teq::DimsT inslist(teq::rank_cap,1);
+            inslist[0] = indim;
+            inslist[seq_dim] = nseq;
+            eteq::ETensor input(eteq::make_variable_scalar<T>(
+                0,teq::Shape(inslist),layr::input_label,super->ctx));
+
+            auto cell = this->dense(teq::Shape({(teq::DimT) (hidden_dim + indim)}),
+                {hidden_dim},kernel_init,bias_init,with_bias);
+
+            auto init_state = eteq::make_variable<T>(
+                teq::Shape({hidden_dim}),"init_state",super->ctx);
+            eteq::ETensor state = super->extend_like(init_state,
+                super->slice(input,0,1,seq_dim));
+
+            return rnn(input,state,cell,activation,seq_dim);
+  - template: typename T
+    name: lstm
+    args:
+      - name: inshape
+        type: const teq::Shape&
+      - name: hidden_dim
+        type: teq::DimT
+      - name: nseq
+        type: teq::DimT
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: seq_dim
+        type: teq::RankT
+        default: "1"
+      - name: with_bias
+        type: bool
+        default: "true"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            // input needs to specify number of sequences,
+            // since graph topography can't be traced
+            teq::DimsT inslist(inshape.begin(),inshape.end());
+            inslist[seq_dim] = nseq;
+            eteq::ETensor input(eteq::make_variable_scalar<T>(
+                0,teq::Shape(inslist),layr::input_label,super->ctx));
+
+            teq::DimsT inputlist(inshape.begin(),inshape.end());
+            teq::DimsT statelist(inshape.begin(),inshape.end());
+            inputlist[0] += hidden_dim;
+            statelist[0] = hidden_dim;
+            inputlist[seq_dim] = statelist[seq_dim] = 1;
+
+            teq::Shape inputshape(inputlist);
+            teq::Shape stateshape(statelist);
+            teq::DimsT hid_dims = {hidden_dim};
+            auto ggate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto forgate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto ingate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto outgate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+
+            auto state = eteq::make_constant_scalar<T>(0,stateshape,super->ctx);
+            auto hidden = eteq::make_constant_scalar<T>(0,stateshape,super->ctx);
+
+            return lstm(input,state,hidden,ggate,forgate,ingate,outgate,seq_dim);
+  - template: typename T
+    name: gru
+    args:
+      - name: inshape
+        type: const teq::Shape&
+      - name: hidden_dim
+        type: teq::DimT
+      - name: nseq
+        type: teq::DimT
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: seq_dim
+        type: teq::RankT
+        default: "1"
+      - name: with_bias
+        type: bool
+        default: "true"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            // input needs to specify number of sequences,
+            // since graph topography can't be traced
+            teq::DimsT inslist(inshape.begin(),inshape.end());
+            inslist[seq_dim] = nseq;
+            eteq::ETensor input(eteq::make_variable_scalar<T>(
+                0,teq::Shape(inslist),layr::input_label,super->ctx));
+
+            teq::DimsT inputlist(inshape.begin(),inshape.end());
+            teq::DimsT statelist(inshape.begin(),inshape.end());
+            inputlist[0] += hidden_dim;
+            statelist[0] = hidden_dim;
+            inputlist[seq_dim] = statelist[seq_dim] = 1;
+
+            teq::Shape inputshape(inputlist);
+            teq::Shape stateshape(statelist);
+            teq::DimsT hid_dims = {hidden_dim};
+            auto ugate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto rgate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto hgate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+
+            auto state = eteq::make_constant_scalar<T>(0,stateshape,super->ctx);
+
+            return gru(input,state,ugate,rgate,hgate,seq_dim);
+  - template: typename T
+    name: rbm
+    args:
+      - name: nvisible
+        type: teq::DimT
+      - name: nhidden
+        type: teq::DimT
+      - name: kernel_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: bias_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: with_bias
+        type: bool
+        default: "true"
+    out:
+      type: layr::RBMLayer<T>
+      val: |
+        //
+            if (!kernel_init)
+            {
+                kernel_init = super->init.glorot_uniform<T>();
+            }
+            /// Returns forward builder,and assigns backward builder
+            eteq::ETensor fwdinput(eteq::make_variable_scalar<T>(
+                0,teq::Shape({nvisible}),layr::input_label,super->ctx));
+            eteq::ETensor bwdinput(eteq::make_variable_scalar<T>(
+                0,teq::Shape({nhidden}),layr::input_label,super->ctx));
+            eteq::EVariable<T> kernel = kernel_init(
+                teq::Shape({nhidden,nvisible}),layr::weight_label);
+            eteq::EVariable<T> hbias;
+            eteq::EVariable<T> vbias;
+            if (with_bias)
+            {
+                if (!bias_init)
+                {
+                    bias_init = super->init.zeros<T>();
+                }
+                hbias = bias_init(teq::Shape({nhidden}),"h" + layr::bias_label);
+                vbias = bias_init(teq::Shape({nvisible}),"v" + layr::bias_label);
+            }
+            return layr::RBMLayer<T>{
+                dense(fwdinput,kernel,hbias,{{0,1}}),
+                dense(bwdinput,super->transpose(kernel),vbias,{{0,1}})
+            };
+  - description: if training is true randomly sets input unit to 0 with frequency of drop_rate. drop_rate is in range [0, 1]. otherwise output is input
+    template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: dropout
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: drop_rate
+        type: T
+      - name: training
+        type: const eteq::ETensor&
+        check_null: false
+        default: eteq::ETensor()
+    out:
+      type: eteq::ETensor
+      val: return dropout(input,eteq::make_variable_scalar<T>(drop_rate,teq::Shape(),"drop_rate",super->ctx),training);
+  - name: dropout
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: drop_rate
+        type: const eteq::ETensor&
+      - name: training
+        type: eteq::ETensor
+        check_null: false
+        default: eteq::ETensor()
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            auto out = super->nn.dropout(input,drop_rate);
+            if (nullptr != training)
+            {
+                if (false == training->shape().compatible_after(input->shape(), 0))
+                {
+                    training = super->extend_like(training,input);
+                }
+                out = super->if_then_else(training,out,input);
+            }
+            return out;
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: batch_normalization
+    description: Return batch normalization of input. That is output mean is close to 0 and variance is close to 1
+    args:
+      - name: input
+        type: eteq::ETensor
+      - name: offset
+        type: T
+        default: 0
+      - name: scale
+        type: T
+        default: 1
+      - name: eps
+        type: T
+        default: std::numeric_limits<T>::epsilon()
+      - name: training
+        type: const eteq::ETensor&
+        check_null: false
+        default: eteq::ETensor()
+      - name: momentum
+        type: T
+        default: 0.99
+      - name: moving_mean
+        type: T
+        default: 0
+      - name: moving_var
+        type: T
+        default: 1
+      - name: axis
+        type: teq::RankT
+        default: teq::rank_cap
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            return batch_normalization<T>(input,
+                eteq::make_constant_like_uncast<T>(offset,input,super->ctx),
+                eteq::make_constant_like_uncast<T>(scale,input,super->ctx),
+                eteq::make_constant_like_uncast<T>(eps,input,super->ctx),
+                training,
+                eteq::make_constant_like_uncast<T>(momentum,input,super->ctx),
+                super->init.constants<T>(moving_mean),
+                super->init.constants<T>(moving_var), axis);
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: batch_normalization
+    args:
+      - name: input
+        type: eteq::ETensor
+      - name: offset
+        type: eteq::ETensor
+      - name: scale
+        type: eteq::ETensor
+      - name: eps
+        type: eteq::ETensor
+      - name: training
+        type: eteq::ETensor
+        check_null: false
+        default: eteq::ETensor()
+      - name: momentum
+        type: eteq::ETensor
+        check_null: false
+        default: eteq::ETensor()
+      - name: moving_mean_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: moving_var_init
+        type: layr::InitF<T>
+        default: layr::InitF<T>()
+      - name: axis
+        type: teq::RankT
+        default: teq::rank_cap
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            layr::UnaryF get_mean, get_var;
+            if (nullptr == training)
+            {
+                if (axis >= teq::rank_cap)
+                {
+                    get_mean = [this](const eteq::ETensor& input)
+                    {
+                        return super->extend_like(super->reduce_mean(input), input);
+                    };
+                    get_var = [this](const eteq::ETensor& input)
+                    {
+                        return super->extend_like(super->reduce_variance(input), input);
+                    };
+                }
+                else
+                {
+                    get_mean = [this,axis](const eteq::ETensor& input)
+                    {
+                        return super->extend_like(super->reduce_mean_1d(input,axis), input);
+                    };
+                    get_var = [this,axis](const eteq::ETensor& input)
+                    {
+                        return super->extend_like(super->reduce_variance_1d(input,axis), input);
+                    };
+                }
+            }
+            else
+            {
+                if (nullptr == momentum)
+                {
+                    momentum = eteq::make_constant_like_uncast<T>(0.99,input,super->ctx);
+                }
+                if (!moving_mean_init)
+                {
+                    moving_mean_init = super->init.zeros<T>();
+                }
+                if (!moving_var_init)
+                {
+                    moving_var_init = super->init.ones<T>();
+                }
+                auto moving_mean = moving_mean_init(input->shape(),"moving_mean");
+                auto moving_var = moving_var_init(input->shape(),"moving_var");
+                if (false == training->shape().compatible_after(input->shape(), 0))
+                {
+                    training = super->extend_like(training,input);
+                }
+                if (axis >= teq::rank_cap)
+                {
+                    get_mean = [this,training,momentum,moving_mean](const eteq::ETensor& input)
+                    {
+                        auto mean = super->extend_like(super->reduce_mean(input), input);
+                        auto mmean = super->add(super->mul(moving_mean,momentum),super->mul(mean,super->sub(1.,momentum)));
+                        mmean = super->assign(moving_mean,mmean);
+                        return super->if_then_else(training,mean,mmean);
+                    };
+                    get_var = [this,training,momentum,moving_var](const eteq::ETensor& input)
+                    {
+                        auto var = super->extend_like(super->reduce_variance(input), input);
+                        auto mvar = super->add(super->mul(moving_var,momentum),super->mul(var,super->sub(1.,momentum)));
+                        mvar = super->assign(moving_var,mvar);
+                        return super->if_then_else(training,var,mvar);
+                    };
+                }
+                else
+                {
+                    get_mean = [this,training,momentum,moving_mean,axis](const eteq::ETensor& input)
+                    {
+                        auto mean = super->extend_like(super->reduce_mean_1d(input,axis), input);
+                        auto mmean = super->add(super->mul(moving_mean,momentum),super->mul(mean,super->sub(1.,momentum)));
+                        mmean = super->assign(moving_mean,mmean);
+                        return super->if_then_else(training,mean,mmean);
+                    };
+                    get_var = [this,training,momentum,moving_var,axis](const eteq::ETensor& input)
+                    {
+                        auto var = super->extend_like(super->reduce_variance_1d(input,axis), input);
+                        auto mvar = super->add(super->mul(moving_var,momentum),super->mul(var,super->sub(1.,momentum)));
+                        mvar = super->assign(moving_var,mvar);
+                        return super->if_then_else(training,var,mvar);
+                    };
+                }
+            }
+            return super->nn.batch_normalization(input,offset,scale,eps,get_mean,get_var);
+  - name: dense
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: kernel
+        type: const eteq::ETensor&
+      - name: bias
+        type: const eteq::ETensor&
+        default: eteq::ETensor()
+        check_null: false
+      - name: dims
+        type: eigen::PairVecT<teq::RankT>
+        default: "eigen::PairVecT<teq::RankT>{{0,1}}"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            auto output = super->nn.fully_connect({input},{kernel},bias,dims);
+            auto layer_root = super->identity(output);
+            return eteq::ETensor(layr::make_layer(
+                layer_root,layr::dense_name,input),super->ctx);
+  - name: conv2d
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: kernel
+        type: const eteq::ETensor&
+      - name: bias
+        type: const eteq::ETensor&
+        default: eteq::ETensor()
+        check_null: false
+      - name: zero_padding
+        type: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
+        default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            auto output = super->nn.conv2d(input,kernel,bias,zero_padding);
+            auto layer_root = super->identity(output);
+            return eteq::ETensor(layr::make_layer(
+                layer_root,layr::conv_name,input),super->ctx);
+  - name: rnn
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: init_state
+        type: const eteq::ETensor&
+      - name: cell
+        type: const eteq::ETensor&
+      - name: activation
+        type: const layr::UnaryF&
+      - name: seq_dim
+        type: teq::RankT
+        default: "1"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            teq::Shape inshape = input->shape();
+            teq::DimT nseq = inshape.at(seq_dim);
+            if (seq_dim == 0)
+            {
+                global::fatal("spliting input across 0th dimension... "
+                    "dense connection will not match");
+            }
+            eteq::ETensor inslice;
+            eteq::ETensor state = init_state;
+            eteq::ETensorsT states;
+            for (teq::DimT i = 0; i < nseq; ++i)
+            {
+                inslice = super->slice(input,i,1,seq_dim);
+                state = activation(layr::connect(cell,
+                    super->concat(inslice,state,0)));
+                states.push_back(state);
+            }
+            auto output = super->concat(states,seq_dim);
+            auto layer_root = super->identity(output);
+            return eteq::ETensor(layr::make_layer(
+                layer_root,layr::rnn_name,input),super->ctx);
+  - name: lstm
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: init_state
+        type: const eteq::ETensor&
+      - name: init_hidden
+        type: const eteq::ETensor&
+      - name: ggate
+        type: const eteq::ETensor&
+      - name: forgate
+        type: const eteq::ETensor&
+      - name: ingate
+        type: const eteq::ETensor&
+      - name: outgate
+        type: const eteq::ETensor&
+      - name: seq_dim
+        type: teq::RankT
+        default: "1"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            teq::Shape inshape = input->shape();
+            teq::DimT nseq = inshape.at(seq_dim);
+            if (seq_dim == 0)
+            {
+                global::fatal("spliting input across 0th dimension... "
+                    "dense connection will not match");
+            }
+            eteq::ETensor inslice;
+            eteq::ETensor xc;
+            eteq::ETensor state = init_state;
+            eteq::ETensor hidden = init_hidden;
+            eteq::ETensorsT states;
+            for (teq::DimT i = 0; i < nseq; ++i)
+            {
+                inslice = super->slice(input,i,1,seq_dim);
+                xc = super->concat(inslice,hidden,0);
+
+                auto gate = super->tanh(layr::connect(ggate,xc));
+                auto input = super->sigmoid(layr::connect(ingate,xc));
+                auto forget = super->sigmoid(layr::connect(forgate,xc));
+                auto output = super->sigmoid(layr::connect(outgate,xc));
+                state = super->add(super->mul(gate,input),
+                    super->mul(state,forget));
+                hidden = super->mul(state,output);
+                states.push_back(hidden);
+            }
+            auto output = super->concat(states,seq_dim);
+            auto layer_root = super->identity(output);
+            return eteq::ETensor(layr::make_layer(
+                layer_root,layr::lstm_name,input),super->ctx);
+  - name: gru
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: init_state
+        type: const eteq::ETensor&
+      - name: ugate
+        type: const eteq::ETensor&
+      - name: rgate
+        type: const eteq::ETensor&
+      - name: hgate
+        type: const eteq::ETensor&
+      - name: seq_dim
+        type: teq::RankT
+        default: "1"
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            teq::Shape inshape = input->shape();
+            teq::DimT nseq = inshape.at(seq_dim);
+            if (seq_dim == 0)
+            {
+                global::fatal("spliting input across 0th dimension... "
+                    "dense connection will not match");
+            }
+            eteq::ETensor inslice;
+            eteq::ETensor xc;
+            eteq::ETensor state = init_state;
+            eteq::ETensorsT states;
+            for (teq::DimT i = 0; i < nseq; ++i)
+            {
+                inslice = super->slice(input,i,1,seq_dim);
+                xc = super->concat(inslice,state,0);
+
+                auto update = super->sigmoid(layr::connect(ugate,xc));
+                auto reset = super->sigmoid(layr::connect(rgate,xc));
+                auto hidden = super->tanh(layr::connect(hgate,
+                    super->concat(inslice,super->mul(reset,state),0)));
+                state = super->add(super->mul(update,state),
+                    super->mul(super->sub((float) 1,update),hidden));
+                states.push_back(state);
+            }
+            auto output = super->concat(states,seq_dim);
+            auto layer_root = super->identity(output);
+            return eteq::ETensor(layr::make_layer(
+                layer_root,layr::gru_name,input),super->ctx);

@@ -57,7 +57,6 @@ cc_library(
         ":opsvc_cc_grpc",
         "//tenncor/eteq:eteq",
         "//tenncor/distr/iosvc:iosvc",
-        "//tenncor/distr:distr",
     ],
     visibility = ["//visibility:public"],
 )

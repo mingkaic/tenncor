@@ -1,9 +1,21 @@
 
-#include "python/eteq_ext.hpp"
+#include "tenncor/python/eteq_ext.hpp"
 
 #ifdef PYTHON_ETEQ_EXT_HPP
 
 using ETensKeysT = types::StrUMapT<eteq::ETensor>;
+
+static py::array get_releasedata (eteq::ETensor& self)
+{
+	auto dtype = (egen::_GENERATED_DTYPE) self->get_meta().type_code();
+#define _CHOOSE_RELEASE_DATATYPE(REALTYPE){\
+	auto data = self.odata<REALTYPE>();\
+	return pytenncor::typedata_to_array<REALTYPE>(data.get(), self->shape(),\
+		self->get_meta().type_code(), py::dtype::of<REALTYPE>()); }
+	TYPE_LOOKUP(_CHOOSE_RELEASE_DATATYPE, dtype);
+#undef _CHOOSE_RELEASE_DATATYPE
+	return py::array();
+}
 
 void eteq_ext (py::module& m)
 {
@@ -25,7 +37,7 @@ void eteq_ext (py::module& m)
 			teq::TensptrSetT actives;
 			for (auto& r : eteq::get_reg(self))
 			{
-				actives.emplace(r.second);
+				actives.emplace(r.second->get_tensor());
 			}
 			eteq::ETensorsT out;
 			out.reserve(actives.size());
@@ -42,7 +54,7 @@ void eteq_ext (py::module& m)
 			teq::TensptrsT actives;
 			for (auto& r : eteq::get_reg(self))
 			{
-				actives.push_back(r.second);
+				actives.push_back(r.second->get_tensor());
 			}
 			opt::GraphInfo graph(actives);
 			teq::OwnMapT conversions;
@@ -103,18 +115,18 @@ void eteq_ext (py::module& m)
 			return py::array(ipshape.size(), ipshape.data());
 		},
 		"Return this instance's shape")
-		.def("raw",
+		.def("data",
 		[](eteq::ETensor& self)
 		{
 			auto dtype = (egen::_GENERATED_DTYPE) self->get_meta().type_code();
-#define _CHOOSE_RAWTYPE(REALTYPE)\
-			return pytenncor::typedata_to_array<REALTYPE>(\
-				self.data<REALTYPE>(), self->shape(),\
-				self->get_meta().type_code(), py::dtype::of<REALTYPE>());
-TYPE_LOOKUP(_CHOOSE_RAWTYPE, dtype);
-#undef _CHOOSE_RAWTYPE
+#define _CHOOSE_DATATYPE(REALTYPE)\
+			return pytenncor::typedata_to_array<REALTYPE>(self.data<REALTYPE>(),\
+				self->shape(), self->get_meta().type_code(), py::dtype::of<REALTYPE>());
+			TYPE_LOOKUP(_CHOOSE_DATATYPE, dtype);
+#undef _CHOOSE_DATATYPE
 			return py::array();
 		})
+		.def("release_data", get_releasedata)
 		.def("get",
 		[](eteq::ETensor& self, teq::TensSetT ignored, size_t max_version)
 		{
@@ -123,8 +135,22 @@ TYPE_LOOKUP(_CHOOSE_RAWTYPE, dtype);
 			return pytenncor::typedata_to_array<REALTYPE>(\
 				self.calc<REALTYPE>(ignored, max_version), self->shape(),\
 				self->get_meta().type_code(), py::dtype::of<REALTYPE>());
-TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
+			TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 #undef _CHOOSE_CALCTYPE
+			return py::array();
+		},
+		py::arg("ignored") = teq::TensSetT{},
+		py::arg("max_version") = std::numeric_limits<size_t>::max())
+		.def("release_get",
+		[](eteq::ETensor& self, teq::TensSetT ignored, size_t max_version)
+		{
+			auto dtype = (egen::_GENERATED_DTYPE) self->get_meta().type_code();
+#define _CHOOSE_RELEASE_CALCTYPE(REALTYPE){\
+			auto out = self.calc_release<REALTYPE>(ignored, max_version);\
+			return pytenncor::typedata_to_array<REALTYPE>(out.get(), self->shape(),\
+				self->get_meta().type_code(), py::dtype::of<REALTYPE>()); }
+			TYPE_LOOKUP(_CHOOSE_RELEASE_CALCTYPE, dtype);
+#undef _CHOOSE_RELEASE_CALCTYPE
 			return py::array();
 		},
 		py::arg("ignored") = teq::TensSetT{},
@@ -133,6 +159,14 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 		[](const eteq::ETensor& self)
 		{
 			return self->get_meta().state_version();
+		})
+		.def("cache",
+		[](eteq::ETensor& self)
+		{
+			if (auto f = dynamic_cast<eigen::Observable*>(self.get()))
+			{
+				f->cache_init();
+			}
 		})
 
 		// layer extensions
@@ -227,6 +261,29 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 
 	// ==== inline functions ====
 	m
+		// ==== operations ====
+		.def("run",
+		[](eteq::ETensorsT& targets, eteq::ETensorsT& ignored, size_t max_version)
+		{
+			teq::TensSetT igset;
+			igset.reserve(ignored.size());
+			for (auto& etens : ignored)
+			{
+				igset.emplace(etens.get());
+			}
+			eteq::run(targets, igset, max_version);
+			std::vector<py::array> out;
+			out.reserve(targets.size());
+			for (auto& targ : targets)
+			{
+				out.push_back(get_releasedata(targ));
+			}
+			return out;
+		},
+		py::arg("targets"),
+		py::arg("ignored") = eteq::ETensorsT{},
+		py::arg("max_version") = std::numeric_limits<size_t>::max())
+
 		// ==== constant creation ====
 		.def("scalar_constant",
 		[](PybindT scalar, py::list slist)
@@ -442,41 +499,26 @@ TYPE_LOOKUP(_CHOOSE_CALCTYPE, dtype);
 				global::throw_errf("failed to parse onnx from %s",
 					filename.c_str());
 			}
-			onnx::TensptrIdT ids;
-			auto roots = tcr::load_model(ids, pb_model, ctx);
+			auto out = tcr::load_model(ctx, pb_model);
 			input.close();
-			eteq::ETensorsT out;
-			out.reserve(roots.size());
-			std::transform(roots.begin(), roots.end(),
-				std::back_inserter(out),
-				[&](teq::TensptrT tens)
-				{
-					return eteq::ETensor(tens, ctx);
-				});
 			return out;
-		})
+		},
+		py::arg("filename"),
+		py::arg("ctx") = global::context())
 		.def("save_context_file",
 		[](const std::string& filename, global::CfgMapptrT ctx)
 		{
-			teq::TensptrSetT roots;
-			for (auto& r : eteq::get_reg(ctx))
-			{
-				roots.emplace(r.second);
-			}
-			eteq::ETensorsT etens;
-			etens.reserve(roots.size());
-			std::transform(roots.begin(), roots.end(), std::back_inserter(etens),
-				[&ctx](teq::TensptrT tens)
-				{ return eteq::ETensor(tens, ctx); });
 			std::ofstream output(filename);
 			if (false == output.is_open())
 			{
 				global::throw_errf("file %s not found", filename.c_str());
 			}
 			onnx::ModelProto pb_model;
-			tcr::save_model(pb_model, etens);
+			tcr::save_model(pb_model, ctx);
 			return pb_model.SerializeToOstream(&output);
-		});
+		},
+		py::arg("filename"),
+		py::arg("ctx") = global::context());
 }
 
 #endif

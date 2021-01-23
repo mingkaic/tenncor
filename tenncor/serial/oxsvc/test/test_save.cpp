@@ -19,7 +19,14 @@
 #include "tenncor/serial/oxsvc/mock/mock.hpp"
 
 
+using ::testing::Invoke;
+
+
+#ifdef CMAKE_SOURCE_DIR
+const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
+#else
 const std::string testdir = "models/test";
+#endif
 
 
 const std::string test_service = "tenncor.serial.oxsvc.test";
@@ -28,6 +35,18 @@ const std::string test_service = "tenncor.serial.oxsvc.test";
 struct SAVE : public ::testing::Test, public DistrTestcase
 {
 protected:
+	virtual void SetUp (void)
+	{
+		gen_ = std::make_shared<MockGenerator>();
+		global::set_generator(gen_);
+	}
+
+	virtual void TearDown (void)
+	{
+		global::set_generator(nullptr);
+		gen_ = nullptr;
+	}
+
 	distr::iDistrMgrptrT make_mgr (const std::string& id)
 	{
 		return make_mgr(id, reserve_port());
@@ -40,16 +59,23 @@ protected:
 			register_mock_oxsvc,
 		}, id);
 	}
+
+	std::shared_ptr<MockGenerator> gen_;
 };
 
 
 TEST_F(SAVE, AllLocalGraph)
 {
 	distr::iDistrMgrptrT manager(make_mgr("mgr"));
-	global::set_generator(std::make_shared<MockGenerator>());
 
 	std::string expect_pbfile = testdir + "/local_oxsvc.onnx";
-	std::string got_pbfile = "/tmp/local_oxsvc.onnx";
+	std::string got_pbfile = "got_local_oxsvc.onnx";
+
+	size_t counter = 0;
+	auto incr_id = [&]{ return fmts::to_string(++counter); };
+
+	EXPECT_CALL(*gen_, get_str()).
+		WillRepeatedly(Invoke(incr_id));
 
 	{
 		onnx::ModelProto model;
@@ -144,8 +170,13 @@ TEST_F(SAVE, AllLocalGraph)
 TEST_F(SAVE, RemoteGraph)
 {
 	std::string expect_pbfile = testdir + "/remote_oxsvc.onnx";
-	std::string got_pbfile = "/tmp/remote_oxsvc.onnx";
-	global::set_generator(std::make_shared<MockGenerator>());
+	std::string got_pbfile = "got_remote_oxsvc.onnx";
+
+	size_t counter = 0;
+	auto incr_id = [&]{ return fmts::to_string(++counter); };
+
+	EXPECT_CALL(*gen_, get_str()).
+		WillRepeatedly(Invoke(incr_id));
 
 	{
 		distr::iDistrMgrptrT manager(make_mgr("mgr"));
@@ -281,8 +312,13 @@ TEST_F(SAVE, RemoteGraph)
 TEST_F(SAVE, RootExposeGraph)
 {
 	std::string expect_pbfile = testdir + "/rootexpose_oxsvc.onnx";
-	std::string got_pbfile = "/tmp/rootexpose_oxsvc.onnx";
-	global::set_generator(std::make_shared<MockGenerator>());
+	std::string got_pbfile = "got_rootexpose_oxsvc.onnx";
+
+	size_t counter = 0;
+	auto incr_id = [&]{ return fmts::to_string(++counter); };
+
+	EXPECT_CALL(*gen_, get_str()).
+		WillRepeatedly(Invoke(incr_id));
 
 	{
 		distr::iDistrMgrptrT manager(make_mgr("mgr"));

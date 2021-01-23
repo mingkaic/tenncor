@@ -4,7 +4,9 @@
 
 #include "pybind11/functional.h"
 
-#include "python/tenncor_utils.hpp"
+#include "tenncor/generated/pyapi.hpp"
+
+#include "tenncor/python/tenncor_utils.hpp"
 
 void eteq_ext (py::module& m);
 

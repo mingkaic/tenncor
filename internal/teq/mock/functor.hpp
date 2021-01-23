@@ -4,141 +4,40 @@
 
 #include "internal/teq/teq.hpp"
 
-#include "internal/teq/mock/leaf.hpp"
-#include "internal/teq/mock/meta.hpp"
+#include "gmock/gmock.h"
 
-struct MockFunctor : public teq::iFunctor
+using ::testing::_;
+using ::testing::Const;
+using ::testing::Return;
+
+struct MockFunctor final : public teq::iFunctor
 {
-	MockFunctor (teq::TensptrsT children, std::vector<double> data, teq::Opcode opcode) :
-		children_(children), opcode_(opcode), data_(data, children.front()->shape()) {}
+	MOCK_CONST_METHOD0(to_string, std::string(void));
+	MOCK_METHOD0(device, teq::iDeviceRef&(void));
+	MOCK_CONST_METHOD0(device, const teq::iDeviceRef&(void));
+	MOCK_CONST_METHOD0(get_meta, const teq::iMetadata&(void));
+	MOCK_CONST_METHOD0(shape, teq::Shape(void));
+	MOCK_CONST_METHOD0(clone_impl, teq::iTensor*(void));
 
-	MockFunctor (teq::TensptrsT children, std::vector<double> data) :
-		MockFunctor(children, data, teq::Opcode()) {}
+	MOCK_CONST_METHOD0(get_opcode, teq::Opcode(void));
+	MOCK_CONST_METHOD0(get_args, teq::TensptrsT(void));
+	MOCK_METHOD2(update_child, void(teq::TensptrT,size_t));
 
-	MockFunctor (teq::TensptrsT children, teq::Opcode opcode) :
-		MockFunctor(children, {}, opcode) {}
+	MOCK_CONST_METHOD0(ls_attrs, types::StringsT(void));
 
-	MockFunctor (teq::TensptrsT children) :
-		MockFunctor(children, {}, teq::Opcode()) {}
+	MOCK_CONST_METHOD1(get_attr, const marsh::iObject*(const std::string&));
 
-	MockFunctor (const MockFunctor& other) :
-		children_(other.children_), opcode_(other.opcode_), data_(other.data_) {}
+	MOCK_METHOD1(get_attr, marsh::iObject*(const std::string&));
 
-	MockFunctor (MockFunctor&& other) :
-		children_(std::move(other.children_)),
-		opcode_(std::move(other.opcode_)),
-		data_(std::move(other.data_)) {}
+	MOCK_METHOD(void, add_attr, (const std::string& attr_key, marsh::ObjptrT&& attr_val), (override));
 
-	MockFunctor& operator = (const MockFunctor& other)
-	{
-		if (&other != this)
-		{
-			children_ = other.children_;
-			opcode_ = other.opcode_;
-			data_ = other.data_;
-		}
-		return *this;
-	}
+	MOCK_METHOD1(rm_attr, void(const std::string&));
 
-	MockFunctor& operator = (MockFunctor&& other)
-	{
-		if (&other != this)
-		{
-			children_ = std::move(other.children_);
-			opcode_ = std::move(other.opcode_);
-			data_ = std::move(other.data_);
-		}
-		return *this;
-	}
-
-	virtual ~MockFunctor (void) = default;
-
-	std::string to_string (void) const override
-	{
-		return opcode_.name_;
-	}
-
-	teq::Opcode get_opcode (void) const override
-	{
-		return opcode_;
-	}
-
-	teq::TensptrsT get_args (void) const override
-	{
-		return children_;
-	}
-
-	types::StringsT ls_attrs (void) const override
-	{
-		return attrs_.ls_attrs();
-	}
-
-	const marsh::iObject* get_attr (const std::string& attr_key) const override
-	{
-		return attrs_.get_attr(attr_key);
-	}
-
-	marsh::iObject* get_attr (const std::string& attr_key) override
-	{
-		return attrs_.get_attr(attr_key);
-	}
-
-	void add_attr (const std::string& attr_key, marsh::ObjptrT&& attr_val) override
-	{
-		attrs_.add_attr(attr_key, std::move(attr_val));
-	}
-
-	void rm_attr (const std::string& attr_key) override
-	{
-		attrs_.rm_attr(attr_key);
-	}
-
-	size_t size (void) const override
-	{
-		return attrs_.size();
-	}
-
-	void update_child (teq::TensptrT arg, size_t index) override
-	{
-		children_[index] = arg;
-	}
-
-	teq::iDeviceRef& device (void) override
-	{
-		return data_.device();
-	}
-
-	const teq::iDeviceRef& device (void) const override
-	{
-		return data_.device();
-	}
-
-	const teq::iMetadata& get_meta (void) const override
-	{
-		return meta_;
-	}
-
-	teq::Shape shape (void) const override
-	{
-		return data_.shape();
-	}
-
-	teq::iTensor* clone_impl (void) const override
-	{
-		return new MockFunctor(*this);
-	}
-
-	bool updated_ = false;
-
-	teq::TensptrsT children_;
-
-	teq::Opcode opcode_;
-
-	marsh::Maps attrs_;
-
-	MockLeaf data_;
-
-	MockMeta meta_;
+	MOCK_CONST_METHOD0(size, size_t(void));
 };
+
+using MockFuncptrT = std::shared_ptr<MockFunctor>;
+
+MockFuncptrT make_fnc (std::string opname, size_t opcode, teq::TensptrsT args);
 
 #endif // TEQ_MOCK_FUNCTOR_HPP

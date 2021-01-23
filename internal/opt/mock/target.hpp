@@ -2,74 +2,25 @@
 #ifndef OPT_MOCK_TARGET_HPP
 #define OPT_MOCK_TARGET_HPP
 
-#include "internal/teq/mock/mock.hpp"
-
 #include "internal/opt/opt.hpp"
 
-const std::string tfactory_delim = ":";
+#include "internal/teq/mock/mock.hpp"
+
+#include "gmock/gmock.h"
 
 struct MockTarget final : public opt::iTarget
 {
-	MockTarget (teq::TensptrT tag, const opt::TargptrsT& targs = {}) :
-		tag_(tag), targs_(targs) {}
-
-	teq::TensptrT convert (
-		const query::SymbMapT& candidates) const override
-	{
-		return tag_;
-	}
-
-	teq::TensptrT tag_;
-
-	opt::TargptrsT targs_;
-};
-
-using TargetCondF = std::function<teq::TensptrT(const query::SymbMapT&)>;
-
-struct ConditionalMockTarget final : public opt::iTarget
-{
-	ConditionalMockTarget (TargetCondF cond) : cond_(cond) {}
-
-	teq::TensptrT convert (
-		const query::SymbMapT& candidates) const override
-	{
-		return cond_(candidates);
-	}
-
-	TargetCondF cond_;
+	MOCK_CONST_METHOD1(convert, teq::TensptrT(const query::SymbMapT&));
 };
 
 struct MockTargetFactory final : public opt::iTargetFactory
 {
-	MockTargetFactory (void) : index_(0) {}
+	MOCK_CONST_METHOD2(make_scalar, opt::TargptrT(double,std::string));
 
-	opt::TargptrT make_scalar (double scalar,
-		std::string sshape) const override
-	{
-		return std::make_shared<MockTarget>(
-			std::make_shared<MockLeaf>(teq::Shape(),
-			fmts::to_string(scalar) +
-			tfactory_delim + sshape +
-			tfactory_delim + fmts::to_string(index_++)));
-	}
+	MOCK_CONST_METHOD1(make_symbol, opt::TargptrT(const std::string&));
 
-	opt::TargptrT make_symbol (const std::string& symbol) const override
-	{
-		return std::make_shared<MockTarget>(
-			std::make_shared<MockLeaf>(teq::Shape(),
-			symbol + tfactory_delim + fmts::to_string(index_++)));
-	}
-
-	opt::TargptrT make_functor (const std::string& opname,
-		const google::protobuf::Map<std::string,query::Attribute>& attrs,
-		const opt::TargptrsT& args) const override
-	{
-		return std::make_shared<MockTarget>(
-			std::make_shared<MockLeaf>(teq::Shape(),
-			opname + tfactory_delim + fmts::to_string(index_++)), args);
-	}
-
-	mutable size_t index_;
+	MOCK_CONST_METHOD3(make_functor, opt::TargptrT(const std::string&,
+		const google::protobuf::Map<std::string,query::Attribute>&,const opt::TargptrsT&));
 };
 
 #endif // OPT_MOCK_TARGET_HPP

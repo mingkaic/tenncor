@@ -17,6 +17,7 @@ P5 = "get to it eventually"
    - implement and verify correctness of deep speech finetuning layers
       (outlined in https://arxiv.org/pdf/1412.5567.pdf)
       (or GRU veriants in https://arxiv.org/pdf/1901.03860.pdf)
+   - extend benchmark to validate etens creation/get/copy/delete and variable assignment performance
 
 >>>> aux project >>>> (preferrable to ensure smooth completion of inprogress tasks)
    - implement sparse embedding using eigen sparse matrix
@@ -35,6 +36,11 @@ P5 = "get to it eventually"
    - trainer
 
 === transparency/code readability ===
+   - improve api generation tool (egen) to
+       1. permute type arguments such that shared yaml config can share same function logic for different function signature given argument translation
+       2. inject plugin for instrumentation to verify api test coverage
+       3. distinguish between C++ and python descriptions
+   - make reduce_x_1d overloaded reduce_x in cfg api
    - restructure so that core/utility modules, and generator are clear
    - refactor derivative to merge local_derivative AND chain_rule
 P2 - generate value-range graph to detect erroneous operators

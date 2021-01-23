@@ -18,7 +18,7 @@ filegroup(
 ######### DEMOS #########
 
 cc_binary(
-    name = "cgd_demo",
+    name = "cgd",
     srcs = ["gd_demo.cpp"],
     copts = ["-std=c++17"],
     deps = [
@@ -31,7 +31,8 @@ cc_binary(
 )
 
 py_binary(
-    name = "gd_demo",
+    name = "gd",
+	main = "gd_demo.py",
     srcs = ["gd_demo.py"],
     deps = [
         "//tenncor:tenncor_py",
@@ -41,14 +42,16 @@ py_binary(
 )
 
 py_binary(
-    name = "w2v_demo",
+    name = "w2v",
+    main = "w2v_demo.py",
     srcs = ["w2v_demo.py"],
     deps = ["//extenncor:extenncor"],
     data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
-    name = "dqn_demo",
+    name = "dqn",
+    main = "dqn_demo.py",
     srcs = ["dqn_demo.py"],
     deps = ["//extenncor:extenncor"],
     data = ["//:models", "//cfg:optimizations"],
@@ -57,14 +60,15 @@ py_binary(
 # recurrent demos
 
 py_binary(
-    name = "rnn_demo",
+    name = "rnn",
+    main = "rnn_demo.py",
     srcs = ["rnn_demo.py"],
     deps = ["//tenncor:tenncor_py"],
     data = ["//:models", "//cfg:optimizations"],
 )
 
 py_binary(
-    name = "lstm_fast_demo",
+    name = "lstm_fast",
     main = "lstm/fast_demo.py",
     srcs = ["lstm/fast_demo.py"],
     deps = ["//tenncor:tenncor_py"],
@@ -72,7 +76,7 @@ py_binary(
 )
 
 py_binary(
-    name = "lstm_latin_demo",
+    name = "lstm_latin",
     main = "lstm/latin_demo.py",
     srcs = ["lstm/latin_demo.py"],
     deps = ["//tenncor:tenncor_py"],
@@ -80,7 +84,7 @@ py_binary(
 )
 
 py_binary(
-    name = "gru_fast_demo",
+    name = "gru_fast",
     main = "gru/fast_demo.py",
     srcs = ["gru/fast_demo.py"],
     deps = ["//tenncor:tenncor_py"],
@@ -88,7 +92,7 @@ py_binary(
 )
 
 py_binary(
-    name = "gru_latin_demo",
+    name = "gru_latin",
     main = "gru/latin_demo.py",
     srcs = ["gru/latin_demo.py"],
     deps = ["//tenncor:tenncor_py"],
@@ -98,7 +102,8 @@ py_binary(
 # belief demos
 
 py_binary(
-    name = "rbm_demo",
+    name = "rbm",
+    main = "rbm_demo.py",
     srcs = ["rbm_demo.py"],
     deps = [
         "//tenncor:tenncor_py",
@@ -111,7 +116,8 @@ py_binary(
 )
 
 py_binary(
-    name = "dbn_demo",
+    name = "dbn",
+    main = "dbn_demo.py",
     srcs = ["dbn_demo.py"],
     deps = ["//tenncor:tenncor_py"],
     data = ["//:models", "//cfg:optimizations"],

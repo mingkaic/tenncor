@@ -13,7 +13,7 @@ eteq::ETensorsT derive_with_manager (
 {
 	eteq::DerivativeFuncs builder;
 	teq::TensMapT<teq::TensptrsT> grads = {
-		{root.get(), {builder.get_const_one(root->shape())}}
+		{root.get(), {builder.get_const_one(*root)}}
 	};
 	teq::TensSetT targset;
 	std::transform(targets.begin(), targets.end(),
@@ -68,9 +68,9 @@ eteq::ETensorsT derive (eteq::ETensor root, const eteq::ETensorsT& targets)
 	out.reserve(derivatives.size());
 	std::transform(derivatives.begin(), derivatives.end(),
 		std::back_inserter(out),
-		[&root](teq::TensptrT tens)
+		[&root,&root_ctx](teq::TensptrT tens)
 		{
-			return eteq::ETensor(tens, root.get_context());
+			return eteq::ETensor(tens, root_ctx);
 		});
 	return out;
 }

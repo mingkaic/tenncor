@@ -1,5 +1,4 @@
-
-#define DISABLE_LAYR_CONNECT_TEST
+#define DISABLE_LAYR_CONNECT_TEST // these tests are moved to tenncor/test/test_layer.cpp
 #ifndef DISABLE_LAYR_CONNECT_TEST
 
 #include "dbg/print/teq.hpp"
@@ -30,9 +29,9 @@ TEST(DENSE, Connection)
 	teq::Shape shape({6});
 	teq::Shape shape2({7});
 	auto biased_dense = tenncor().layer.dense<float>(shape, {5},
-		tenncor().layer.unif_xavier_init<float>(2), tenncor().layer.unif_xavier_init<float>(4));
+		tenncor().init.xavier_uniform<float>(2), tenncor().init.xavier_uniform<float>(4));
 	auto dense = tenncor().layer.dense<float>(shape2, {6},
-		tenncor().layer.unif_xavier_init<float>(3), layr::InitF<float>());
+		tenncor().init.xavier_uniform<float>(3), layr::InitF<float>());
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({6, 2}), "x");
@@ -61,8 +60,8 @@ TEST(DENSE, Connection)
 TEST(CONV, Connection)
 {
 	auto conv = tenncor().layer.conv<float>({6, 5}, 4, 3,
-		tenncor().layer.unif_xavier_init<float>(1),
-		tenncor().layer.zero_init<float>());
+		tenncor().init.xavier_uniform<float>(1),
+		tenncor().init.zeros<float>());
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({4, 10, 9, 2}), "x");
@@ -85,10 +84,10 @@ TEST(CONV, Connection)
 TEST(RBM, Connection)
 {
 	auto rrbm = tenncor().layer.rbm(6, 5,
-		tenncor().layer.unif_xavier_init<float>(2),
-		tenncor().layer.unif_xavier_init<float>(4));
+		tenncor().init.xavier_uniform<float>(2),
+		tenncor().init.xavier_uniform<float>(4));
 	auto nobias = tenncor().layer.rbm(7, 6,
-		tenncor().layer.unif_xavier_init<float>(3), layr::InitF<float>());
+		tenncor().init.xavier_uniform<float>(3), layr::InitF<float>());
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<float>(0, teq::Shape({7, 2}), "x2");
@@ -115,10 +114,10 @@ TEST(RBM, Connection)
 TEST(RBM, BackwardConnection)
 {
 	auto rrbm = tenncor().layer.rbm(6, 5,
-		tenncor().layer.unif_xavier_init<float>(2),
-		tenncor().layer.unif_xavier_init<float>(4));
+		tenncor().init.xavier_uniform<float>(2),
+		tenncor().init.xavier_uniform<float>(4));
 	auto nobias = tenncor().layer.rbm(7, 6,
-		tenncor().layer.unif_xavier_init<float>(3), layr::InitF<float>());
+		tenncor().init.xavier_uniform<float>(3), layr::InitF<float>());
 
 	auto y = eteq::make_variable_scalar<float>(0, teq::Shape({5, 2}), "y");
 	auto y2 = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "y2");

@@ -149,7 +149,7 @@ eteq::ETensor rbm (const layr::RBMLayer<T>& model,
 	eteq::ETensor visible, T learning_rate, T discount_factor,
 	layr::BErrorF err_func = [](const eteq::ETensor& a, const eteq::ETensor& b)
 	{
-		return tenncor().error.sqr_diff(a, b);
+		return tenncor().loss.mean_squared(a, b);
 	}, size_t cdk = 1,
 	global::CfgMapptrT context = global::context())
 {

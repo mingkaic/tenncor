@@ -1,5 +1,5 @@
 
-#include "python/query_ext.hpp"
+#include "tenncor/python/query_ext.hpp"
 
 void query_ext(py::module& m)
 {

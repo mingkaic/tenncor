@@ -4,58 +4,25 @@
 
 #include "internal/global/global.hpp"
 
-struct MockGenerator : public global::iGenerator
+#include "gmock/gmock.h"
+
+struct MockGenerator final : public global::iGenerator
 {
-	std::string get_str (void) const override
-	{
-		return fmts::to_string(++counter_);
-	}
+	MOCK_CONST_METHOD0(get_str, std::string(void));
 
-	int64_t unif_int (
-		const int64_t& lower, const int64_t& upper) const override
-	{
-		return randomizer_.unif_int(lower, upper);
-	}
+	MOCK_CONST_METHOD2(unif_int, int64_t(const int64_t&,const int64_t&));
 
-	double unif_dec (
-		const double& lower, const double& upper) const override
-	{
-		return randomizer_.unif_dec(lower, upper);
-	}
+	MOCK_CONST_METHOD2(unif_dec, double(const double&,const double&));
 
-	double norm_dec (
-		const double& mean, const double& stdev) const override
-	{
-		return randomizer_.norm_dec(mean, stdev);
-	}
+	MOCK_CONST_METHOD2(norm_dec, double(const double&,const double&));
 
-	global::GenF<std::string> get_strgen (void) const override
-	{
-		return [this]{ return get_str(); };
-	}
+	MOCK_CONST_METHOD0(get_strgen, global::GenF<std::string>(void));
 
-	global::GenF<int64_t> unif_intgen (
-		const int64_t& lower, const int64_t& upper) const override
-	{
-		return randomizer_.unif_intgen(lower, upper);
-	}
+	MOCK_CONST_METHOD2(unif_intgen, global::GenF<int64_t>(const int64_t&,const int64_t&));
 
-	global::GenF<double> unif_decgen (
-		const double& lower, const double& upper) const override
-	{
-		return randomizer_.unif_decgen(lower, upper);
-	}
+	MOCK_CONST_METHOD2(unif_decgen, global::GenF<double>(const double&,const double&));
 
-	global::GenF<double> norm_decgen (
-		const double& mean, const double& stdev) const override
-	{
-		return randomizer_.norm_decgen(mean, stdev);
-	}
-
-private:
-	mutable size_t counter_ = 0;
-
-	global::Randomizer randomizer_;
+	MOCK_CONST_METHOD2(norm_decgen, global::GenF<double>(const double&,const double&));
 };
 
 #endif // GLOBAL_MOCK_GENERATOR_HPP

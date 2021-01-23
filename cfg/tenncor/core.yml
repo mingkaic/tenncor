@@ -1,0 +1,1281 @@
+requires:
+  - ApproxAPI
+  - LossAPI
+  - LayerAPI
+  - NnAPI
+  - RandomAPI
+name: TenncorAPI
+members:
+  - name: ctx
+    type: global::CfgMapptrT
+    public: True
+  - name: random
+    type: RandomAPI
+    public: True
+  - name: init
+    type: InitAPI
+    public: True
+  - name: nn
+    type: NnAPI
+    public: True
+  - name: layer
+    type: LayerAPI
+    public: True
+  - name: error
+    type: LossAPI
+    public: True
+  - name: loss
+    type: LossAPI
+    public: True
+  - name: approx
+    type: ApproxAPI
+    public: True
+init:
+  args:
+    - name: context
+      type: global::CfgMapptrT
+      default: global::context()
+  initlist:
+    random: this
+    init: this
+    nn: this
+    layer: this
+    error: this
+    loss: this
+    approx: this
+    ctx: context
+copy:
+  other: other
+  initlist:
+    random: this
+    init: this
+    nn: this
+    layer: this
+    error: this
+    loss: this
+    approx: this
+    ctx: other.ctx
+  do: |
+    //
+        if (&other != this)
+        {
+            this->ctx = other.ctx;
+            this->random = RandomAPI(this);
+            this->nn = NnAPI(this);
+            this->layer = LayerAPI(this);
+            this->error = LossAPI(this);
+            this->loss = LossAPI(this);
+            this->approx = ApproxAPI(this);
+        }
+move:
+  other: other
+  initlist:
+    random: this
+    init: this
+    nn: this
+    layer: this
+    error: this
+    loss: this
+    approx: this
+    ctx: other.ctx
+  do: |
+    //
+        if (&other != this)
+        {
+            this->ctx = other.ctx;
+            this->random = RandomAPI(this);
+            this->nn = NnAPI(this);
+            this->layer = LayerAPI(this);
+            this->error = LossAPI(this);
+            this->loss = LossAPI(this);
+            this->approx = ApproxAPI(this);
+        }
+funcs:
+  - python_only: True
+    description: Return a node that casts input to specified dtype
+    name: cast
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: dtype
+        type: egen::_GENERATED_DTYPE
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            eteq::ETensor out;
+        #define _CHOOSE_CAST(REALTYPE)out = self.cast<REALTYPE>(input);
+            TYPE_LOOKUP(_CHOOSE_CAST, dtype);
+        #undef _CHOOSE_CAST
+            return out;
+  - nopython: True
+    template: typename T
+    name: cast
+    description: Return a node that casts input to specified template.
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_tfunctor<T>(::egen::CAST,teq::TensptrsT{input},egen::get_type<T>()),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: assign
+    args:
+      - name: target
+        type: const eteq::EVariable<SUPPORTED_TYPE>&
+      - name: source
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN,teq::TensptrsT{target,source}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: assign_add
+    args:
+      - name: target
+        type: const eteq::EVariable<SUPPORTED_TYPE>&
+      - name: source
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_ADD,teq::TensptrsT{target,source}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: assign_sub
+    args:
+      - name: target
+        type: const eteq::EVariable<SUPPORTED_TYPE>&
+      - name: source
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_SUB,teq::TensptrsT{target,source}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: assign_mul
+    args:
+      - name: target
+        type: const eteq::EVariable<SUPPORTED_TYPE>&
+      - name: source
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_MUL,teq::TensptrsT{target,source}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: assign_div
+    args:
+      - name: target
+        type: const eteq::EVariable<SUPPORTED_TYPE>&
+      - name: source
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_DIV,teq::TensptrsT{target,source}),ctx);
+  - name: identity
+    description: |
+      Return a node that takes on the reference of input except any additional arguments are just operational dependencies.
+      Operational dependencies are calculated at the same time as input.
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: execute_in_parallel
+        type: const eteq::ETensorsT&
+        default: eteq::ETensorsT()
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            teq::TensptrsT args = {input};
+            args.insert(args.end(), execute_in_parallel.begin(), execute_in_parallel.end());
+            return eteq::ETensor(eteq::make_functor(::egen::IDENTITY,args),ctx);
+  - name: abs
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::ABS,teq::TensptrsT{input}),ctx);
+  - name: neg
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::NEG,teq::TensptrsT{input}),ctx);
+  - name: sin
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::SIN,teq::TensptrsT{input}),ctx);
+  - name: cos
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::COS,teq::TensptrsT{input}),ctx);
+  - name: tan
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::TAN,teq::TensptrsT{input}),ctx);
+  - name: exp
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::EXP,teq::TensptrsT{input}),ctx);
+  - name: log
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::LOG,teq::TensptrsT{input}),ctx);
+  - name: sqrt
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::SQRT,teq::TensptrsT{input}),ctx);
+  - name: round
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::ROUND,teq::TensptrsT{input}),ctx);
+  - name: sigmoid
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::SIGMOID,teq::TensptrsT{input}),ctx);
+  - name: tanh
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::TANH,teq::TensptrsT{input}),ctx);
+  - name: square
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::SQUARE,teq::TensptrsT{input}),ctx);
+  - name: cube
+    args:
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::CUBE,teq::TensptrsT{input}),ctx);
+  - name: pow
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::POW,teq::TensptrsT{a,b}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: pow
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: scalar
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: return this->pow(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
+  - support_type: SUPPORTED_TYPE
+    name: pow
+    args:
+      - name: scalar
+        type: SUPPORTED_TYPE
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->pow(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
+  - name: add
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::ADD,teq::TensptrsT{a,b}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: add
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: scalar
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: return this->add(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
+  - support_type: SUPPORTED_TYPE
+    name: add
+    args:
+      - name: scalar
+        type: SUPPORTED_TYPE
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->add(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
+  - name: sub
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::SUB,teq::TensptrsT{a,b}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: sub
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: scalar
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: return this->sub(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
+  - support_type: SUPPORTED_TYPE
+    name: sub
+    args:
+      - name: scalar
+        type: SUPPORTED_TYPE
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->sub(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
+  - name: mul
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::MUL,teq::TensptrsT{a,b}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: mul
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: scalar
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: return this->mul(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
+  - support_type: SUPPORTED_TYPE
+    name: mul
+    args:
+      - name: scalar
+        type: SUPPORTED_TYPE
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->mul(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
+  - name: div
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::DIV,teq::TensptrsT{a,b}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: div
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: scalar
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: return this->div(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
+  - support_type: SUPPORTED_TYPE
+    name: div
+    args:
+      - name: scalar
+        type: SUPPORTED_TYPE
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->div(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
+  - name: eq
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::EQ,teq::TensptrsT{a,b}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: eq
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: scalar
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: return this->eq(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
+  - support_type: SUPPORTED_TYPE
+    name: eq
+    args:
+      - name: scalar
+        type: SUPPORTED_TYPE
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->eq(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
+  - name: neq
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::NEQ,teq::TensptrsT{a,b}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: neq
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: scalar
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: return this->neq(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
+  - support_type: SUPPORTED_TYPE
+    name: neq
+    args:
+      - name: scalar
+        type: SUPPORTED_TYPE
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->neq(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
+  - name: lt
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::LT,teq::TensptrsT{a,b}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: lt
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: scalar
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: return this->lt(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
+  - support_type: SUPPORTED_TYPE
+    name: lt
+    args:
+      - name: scalar
+        type: SUPPORTED_TYPE
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->lt(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
+  - name: gt
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::GT,teq::TensptrsT{a,b}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: gt
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: scalar
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: return this->gt(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
+  - support_type: SUPPORTED_TYPE
+    name: gt
+    args:
+      - name: scalar
+        type: SUPPORTED_TYPE
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->gt(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
+  - name: min
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::MIN,teq::TensptrsT{a,b}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: min
+    args:
+      - name: input
+        type: const eteq::ETensor&
+      - name: scalar
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: return this->min(input,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx));
+  - support_type: SUPPORTED_TYPE
+    name: min
+    args:
+      - name: scalar
+        type: SUPPORTED_TYPE
+      - name: input
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->min(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,input,ctx),input);
+  - name: min
+    args:
+      - name: args
+        type: const eteq::ETensorsT&
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            if (args.empty())
+            {
+                global::fatal("cannot min without arguments");
+            }
+            eteq::ETensor out = args[0];
+            for (size_t i = 1,n = args.size(); i < n; ++i)
+            {
+                out = this->min(out,args[i]);
+            }
+            return out;
+  - name: max
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::MAX,teq::TensptrsT{a,b}),ctx);
+  - support_type: SUPPORTED_TYPE
+    name: max
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: scalar
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: return this->max(arg,eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx));
+  - support_type: SUPPORTED_TYPE
+    name: max
+    args:
+      - name: scalar
+        type: SUPPORTED_TYPE
+      - name: arg
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->max(eteq::make_constant_like_uncast<SUPPORTED_TYPE>(scalar,arg,ctx),arg);
+  - name: max
+    args:
+      - name: args
+        type: const eteq::ETensorsT&
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            if (args.empty())
+            {
+                global::fatal("cannot max without arguments");
+            }
+            eteq::ETensor out = args[0];
+            for (size_t i = 1,n = args.size(); i < n; ++i)
+            {
+                out = this->max(out,args[i]);
+            }
+            return out;
+  - name: if_then_else
+    args:
+      - name: condition
+        type: const eteq::ETensor&
+      - name: then
+        type: const eteq::ETensor&
+      - name: otherwise
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            // if then == otherwise and neither are ambiguous,then treat as identity
+            if (then.get() == otherwise.get())
+            {
+                return then;
+            }
+            return eteq::ETensor(eteq::make_functor(::egen::SELECT,teq::TensptrsT{condition,then,otherwise}),ctx);
+  - name: reverse
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: dims
+        type: const std::set<teq::RankT>&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::REVERSE,teq::TensptrsT{arg},dims),ctx);
+  - name: permute
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: order
+        type: const teq::RanksT&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::PERMUTE,teq::TensptrsT{arg},order),ctx);
+  - name: extend
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: bcast
+        type: const teq::DimsT&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::EXTEND,teq::TensptrsT{arg},bcast),ctx);
+  - name: extend
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: offset
+        type: teq::RankT
+      - name: xlist
+        type: const teq::DimsT&
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            teq::DimsT bcast(offset,1);
+            bcast.insert(bcast.end(),xlist.begin(),xlist.end());
+            return eteq::ETensor(eteq::make_functor(::egen::EXTEND,teq::TensptrsT{arg},bcast),ctx);
+  - name: concat
+    args:
+      - name: left
+        type: const eteq::ETensor&
+      - name: right
+        type: const eteq::ETensor&
+      - name: axis
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::CONCAT,teq::TensptrsT{left,right},axis),ctx);
+  - name: concat
+    args:
+      - name: args
+        type: const eteq::ETensorsT&
+      - name: axis
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::CONCAT,eteq::to_tensors(args),axis),ctx);
+  - description: Return extended arg so that output shape matches like tensor exactly
+    name: extend_like
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: like
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::EXTEND,teq::TensptrsT{arg},(teq::TensptrT) like),ctx);
+  - name: reshape
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: shape
+        type: teq::Shape
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::RESHAPE,teq::TensptrsT{arg},shape),ctx);
+  - description: Return sum of values along dimensions specified
+    name: reduce_sum
+    args:
+      - name: tens
+        type: const eteq::ETensor&
+      - name: dims
+        type: std::set<teq::RankT>
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::REDUCE_SUM,teq::TensptrsT{tens},dims),ctx);
+  - description: Return product of values along dimensions specified
+    name: reduce_prod
+    args:
+      - name: tens
+        type: const eteq::ETensor&
+      - name: dims
+        type: std::set<teq::RankT>
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::REDUCE_PROD,teq::TensptrsT{tens},dims),ctx);
+  - description: Return min of values along dimensions specified
+    name: reduce_min
+    args:
+      - name: tens
+        type: const eteq::ETensor&
+      - name: dims
+        type: std::set<teq::RankT>
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::REDUCE_MIN,teq::TensptrsT{tens},dims),ctx);
+  - description: Return max of values along dimensions specified
+    name: reduce_max
+    args:
+      - name: tens
+        type: const eteq::ETensor&
+      - name: dims
+        type: std::set<teq::RankT>
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::REDUCE_MAX,teq::TensptrsT{tens},dims),ctx);
+  - description: Return sum of values for ndims dimensions after offset
+    name: reduce_sum
+    args:
+      - name: tens
+        type: const eteq::ETensor&
+      - name: offset
+        type: teq::RankT
+        default: "0"
+      - name: ndims
+        type: teq::RankT
+        default: teq::rank_cap
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            if (offset >= teq::rank_cap)
+            {
+                global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                    offset,teq::rank_cap);
+            }
+            teq::RanksT dims(std::min(ndims,
+                (teq::RankT) (teq::rank_cap - offset)));
+            std::iota(dims.begin(),dims.end(),offset);
+            return eteq::ETensor(eteq::make_functor(::egen::REDUCE_SUM,teq::TensptrsT{tens},
+                std::set<teq::RankT>(dims.begin(),dims.end())),ctx);
+  - description: Return product of values for ndims dimensions after offset
+    name: reduce_prod
+    args:
+      - name: tens
+        type: const eteq::ETensor&
+      - name: offset
+        type: teq::RankT
+        default: "0"
+      - name: ndims
+        type: teq::RankT
+        default: teq::rank_cap
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            if (offset >= teq::rank_cap)
+            {
+                global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                    offset,teq::rank_cap);
+            }
+            teq::RanksT dims(std::min(ndims,
+                (teq::RankT) (teq::rank_cap - offset)));
+            std::iota(dims.begin(),dims.end(),offset);
+            return eteq::ETensor(eteq::make_functor(::egen::REDUCE_PROD,teq::TensptrsT{tens},
+                std::set<teq::RankT>(dims.begin(),dims.end())),ctx);
+  - description: Return min of values for ndims dimensions after offset
+    name: reduce_min
+    args:
+      - name: tens
+        type: const eteq::ETensor&
+      - name: offset
+        type: teq::RankT
+        default: "0"
+      - name: ndims
+        type: teq::RankT
+        default: teq::rank_cap
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            if (offset >= teq::rank_cap)
+            {
+                global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                    offset,teq::rank_cap);
+            }
+            teq::RanksT dims(std::min(ndims,
+                (teq::RankT) (teq::rank_cap - offset)));
+            std::iota(dims.begin(),dims.end(),offset);
+            return eteq::ETensor(eteq::make_functor(::egen::REDUCE_MIN,teq::TensptrsT{tens},
+                std::set<teq::RankT>(dims.begin(),dims.end())),ctx);
+  - description: Return max of values for ndims dimensions after offset
+    name: reduce_max
+    args:
+      - name: tens
+        type: const eteq::ETensor&
+      - name: offset
+        type: teq::RankT
+        default: "0"
+      - name: ndims
+        type: teq::RankT
+        default: teq::rank_cap
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            if (offset >= teq::rank_cap)
+            {
+                global::fatalf("cannot reduce dimensions [%d:]. Must be less than %d",
+                    offset,teq::rank_cap);
+            }
+            teq::RanksT dims(std::min(ndims,
+                (teq::RankT) (teq::rank_cap - offset)));
+            std::iota(dims.begin(),dims.end(),offset);
+            return eteq::ETensor(eteq::make_functor(::egen::REDUCE_MAX,teq::TensptrsT{tens},
+                std::set<teq::RankT>(dims.begin(),dims.end())),ctx);
+  - name: argmax
+    args:
+      - name: tens
+        type: const eteq::ETensor&
+      - name: return_dim
+        type: teq::RankT
+        default: "8"
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::ARGMAX,teq::TensptrsT{tens},return_dim),ctx);
+  - name: n_elems
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::make_constant_scalar<teq::NElemT>(arg->shape().n_elems(),teq::Shape(),(egen::_GENERATED_DTYPE)arg->get_meta().type_code(),ctx);
+  - name: n_dims
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: rank
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: return eteq::make_constant_scalar<teq::DimT>(arg->shape().at(rank),teq::Shape(),(egen::_GENERATED_DTYPE)arg->get_meta().type_code(),ctx);
+  - description: extents vector consists of pairs offset and extent for each dimension
+    name: slice
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: extents
+        type: eigen::PairVecT<teq::DimT>
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::SLICE,teq::TensptrsT{arg},extents),ctx);
+  - name: slice
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: offset
+        type: teq::DimT
+      - name: extent
+        type: teq::DimT
+      - name: dimension
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            eigen::PairVecT<teq::DimT> extents(
+                std::max(teq::rank_cap,dimension),
+                {0,std::numeric_limits<teq::DimT>::max()});
+            extents[dimension] = {offset,extent};
+            return this->slice(arg,extents);
+  - name: pad
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: paddings
+        type: eigen::PairVecT<teq::DimT>
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::PAD,teq::TensptrsT{arg},paddings),ctx);
+  - name: pad
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: padding
+        type: const eteq::DimPairsT&
+      - name: dimension
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            eigen::PairVecT<teq::DimT> paddings(
+                std::max(teq::rank_cap,dimension),{0,0});
+            paddings[dimension] = padding;
+            return this->pad(arg,paddings);
+  - name: stride
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: incrs
+        type: const teq::DimsT&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::STRIDE,teq::TensptrsT{arg},incrs),ctx);
+  - description: populate input values at specific increments along its dimensions to fit specified shape (opposite of stride)
+    name: scatter
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: outshape
+        type: const teq::Shape&
+      - name: incrs
+        type: const teq::DimsT&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::SCATTER,teq::TensptrsT{arg},outshape,incrs),ctx);
+  - description: multiple values across specify dimensions pairs before summing all products (generalization of matrix product),defaults to matrix product
+    name: contract
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+      - name: dims
+        type: eigen::PairVecT<teq::RankT>
+        default: eigen::PairVecT<teq::RankT>{{0,1}}
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::CONTRACT,teq::TensptrsT{a,b},dims),ctx);
+  - name: matmul
+    args:
+      - name: a
+        type: const eteq::ETensor&
+      - name: b
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::MATMUL,teq::TensptrsT{a,b}),ctx);
+  - name: convolution
+    args:
+      - name: image
+        type: const eteq::ETensor&
+      - name: kernel
+        type: const eteq::ETensor&
+      - name: dims
+        type: const teq::RanksT&
+    out:
+      type: eteq::ETensor
+      val: return eteq::ETensor(eteq::make_functor(::egen::CONV,teq::TensptrsT{image,kernel},dims),ctx);
+  - name: reduce_sum_1d
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: dimension
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            auto red = this->reduce_sum(arg,dimension,1);
+
+            teq::RanksT indices(teq::rank_cap);
+            auto bt = indices.begin();
+            auto it = bt + dimension;
+            std::iota(bt,it,0);
+            std::iota(it,indices.end(),dimension + 1);
+            indices[teq::rank_cap - 1] = dimension;
+            return this->permute(red,indices);
+  - name: reduce_prod_1d
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: dimension
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            auto red = this->reduce_prod(arg,dimension,1);
+
+            teq::RanksT indices(teq::rank_cap);
+            auto bt = indices.begin();
+            auto it = bt + dimension;
+            std::iota(bt,it,0);
+            std::iota(it,indices.end(),dimension + 1);
+            indices[teq::rank_cap - 1] = dimension;
+            return this->permute(red,indices);
+  - name: reduce_min_1d
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: dimension
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            auto red = this->reduce_min(arg,dimension,1);
+
+            teq::RanksT indices(teq::rank_cap);
+            auto bt = indices.begin();
+            auto it = bt + dimension;
+            std::iota(bt,it,0);
+            std::iota(it,indices.end(),dimension + 1);
+            indices[teq::rank_cap - 1] = dimension;
+            return this->permute(red,indices);
+  - name: reduce_max_1d
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: dimension
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            auto red = this->reduce_max(arg,dimension,1);
+
+            teq::RanksT indices(teq::rank_cap);
+            auto bt = indices.begin();
+            auto it = bt + dimension;
+            std::iota(bt,it,0);
+            std::iota(it,indices.end(),dimension + 1);
+            indices[teq::rank_cap - 1] = dimension;
+            return this->permute(red,indices);
+  - name: transpose
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->permute(arg,{1,0});
+  - name: reduce_mean
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->div(this->reduce_sum(arg),this->n_elems(arg));
+  - name: reduce_mean_1d
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: dimension
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            auto red = this->reduce_sum_1d(arg,dimension);
+            auto dim = eteq::make_constant_like<teq::DimT>(arg->shape().at(dimension),red,ctx);
+            return this->div(red,dim);
+  - name: reduce_variance
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return reduce_mean(square(sub(arg,extend_like(reduce_mean(arg),arg))));
+  - name: reduce_variance_1d
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: dimension
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: return reduce_mean_1d(square(sub(arg,extend_like(reduce_mean_1d(arg,dimension),arg))),dimension);
+  - name: reduce_l2norm
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: offset
+        type: teq::RankT
+        default: "0"
+      - name: ndims
+        type: teq::RankT
+        default: teq::rank_cap
+    out:
+      type: eteq::ETensor
+      val: return this->sqrt(this->reduce_sum(this->square(arg),offset,ndims));
+  - name: reduce_l2norm_1d
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: dimension
+        type: teq::RankT
+    out:
+      type: eteq::ETensor
+      val: return this->sqrt(this->reduce_sum_1d(this->square(arg),dimension));
+  - support_type: SUPPORTED_TYPE
+    name: clip_by_range
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: minval
+        type: SUPPORTED_TYPE
+      - name: maxval
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            if (minval > maxval)
+            {
+                global::fatal("min value is below max");
+            }
+            auto lo = eteq::make_constant_like<SUPPORTED_TYPE>(minval,arg,ctx);
+            auto hi = eteq::make_constant_like<SUPPORTED_TYPE>(maxval,arg,ctx);
+            return this->max(this->min(arg,hi),lo);
+  - support_type: SUPPORTED_TYPE
+    description: clip by l2norm
+    name: clip_by_l2norm
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: upper
+        type: SUPPORTED_TYPE
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            // todo: parameterize l2norm offset and ndims
+            if (upper == 0)
+            {
+                global::fatal("cannot clip_by_norm with a upper limit of 0");
+            }
+            auto norm = this->extend_like(
+                this->reduce_l2norm(arg),arg);
+            auto limit = eteq::make_constant_like<SUPPORTED_TYPE>(upper,arg,ctx);
+            return this->if_then_else(this->lt(norm,limit),
+                arg,this->div(this->mul(arg,limit),norm));
+  - name: sum
+    args:
+      - name: args
+        type: const eteq::ETensorsT&
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            size_t nargs = args.size();
+            switch (nargs)
+            {
+                case 0:
+                    global::fatal("cannot sum without arguments");
+                    return eteq::ETensor();
+                case 1:
+                    return args[0];
+                case 2:
+                    return this->add(args[0],args[1]);
+                default:
+                    break;
+            }
+            return eteq::ETensor(eteq::make_functor(::egen::ADD,eteq::to_tensors(args)),ctx);
+  - name: prod
+    args:
+      - name: args
+        type: const eteq::ETensorsT&
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            size_t nargs = args.size();
+            switch (nargs)
+            {
+                case 0:
+                    global::fatal("cannot prod without arguments");
+                    return eteq::ETensor();
+                case 1:
+                    return args[0];
+                default:
+                    break;
+            }
+            return eteq::ETensor(eteq::make_functor(::egen::MUL,eteq::to_tensors(args)),ctx);
+  - name: softmax
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+      - name: offset
+        type: teq::RankT
+        default: "0"
+      - name: ndims
+        type: teq::RankT
+        default: teq::rank_cap
+    out:
+      type: eteq::ETensor
+      val: |
+        //
+            if (offset + ndims > teq::rank_cap)
+            {
+                global::fatalf("cannot perform softmax on dimensions beyond %d",
+                    teq::rank_cap);
+            }
+            teq::Shape shape = arg->shape();
+            auto overflow_preventer = this->extend_like(
+                this->reduce_max(arg,offset,ndims),arg);
+            auto exarg = this->exp(this->sub(arg,overflow_preventer));
+            auto it = shape.begin() + offset;
+            teq::DimsT xlist(it,it + ndims);
+            return this->div(exarg,
+                this->extend_like(this->add(
+                    this->reduce_sum(exarg,offset,ndims),
+                    std::numeric_limits<float>::epsilon()),exarg));
+  - name: relu
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->max(arg,(float) 0);
+  - name: softplus
+    args:
+      - name: arg
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->log(this->add((float) 1,this->exp(arg)));
+  - name: sign
+    args:
+      - name: x
+        type: const eteq::ETensor&
+    out:
+      type: eteq::ETensor
+      val: return this->add(this->mul((float)-2,this->lt(x,(float)0)),(float)1);

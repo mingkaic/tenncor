@@ -68,9 +68,9 @@ struct DBNTrainer final
 				// if var is a weight or bias add assign with learning rate
 				// otherwise assign directly
 				auto assign = estd::has(to_learn, varerr.first.get()) ?
-					api.assign_add<T>(eteq::EVariable<T>(varerr.first, context),
+					api.assign_add(eteq::EVariable<T>(varerr.first, context),
 						pretrain_lr * varerr.second) :
-					api.assign<T>(eteq::EVariable<T>(varerr.first, context), varerr.second);
+					api.assign(eteq::EVariable<T>(varerr.first, context), varerr.second);
 				assigns.emplace(assign);
 				to_track.emplace(assign);
 			}
@@ -110,9 +110,9 @@ struct DBNTrainer final
 			api.reduce_mean_1d(diff, 1);
 		auto dtrain_lr = tlr_placeholder * lr_scaling;
 
-		tupdate_ = api.assign<T>(tlr_placeholder, api.identity(dtrain_lr, {
-			api.assign_add<T>(eteq::EVariable<T>(w, context), dw),
-			api.assign_add<T>(eteq::EVariable<T>(b, context), db),
+		tupdate_ = api.assign(tlr_placeholder, api.identity(dtrain_lr, {
+			api.assign_add(eteq::EVariable<T>(w, context), dw),
+			api.assign_add(eteq::EVariable<T>(b, context), db),
 		}));
 		tcost_ = -api.reduce_mean(
 			api.reduce_sum_1d(trainy_ * api.log(final_out) +
@@ -127,6 +127,13 @@ struct DBNTrainer final
 
 		eigen::Device device;
 		auto& eval = teq::get_eval(global::context());
+		for (size_t i = 0; i < nlayers_; ++i)
+		{
+			if (auto igfnc = dynamic_cast<eteq::Functor<T>*>(sample_pipes_[i].get()))
+			{
+				igfnc->cache_init();
+			}
+		}
 		for (size_t i = 0; i < nlayers_; ++i)
 		{
 			// train rbm layers (reconstruction) setup
@@ -168,6 +175,10 @@ struct DBNTrainer final
 		auto to_ignore = sample_pipes_.back();
 		auto prev_ignore = sample_pipes_[nlayers_ - 1].get();
 		assert(static_cast<eteq::Functor<T>*>(prev_ignore)->has_data());
+		if (auto igfnc = dynamic_cast<eteq::Functor<T>*>(to_ignore.get()))
+		{
+			igfnc->cache_init();
+		}
 		to_ignore.template calc<T>({prev_ignore});
 
 		for (size_t epoch = 0; epoch < nepochs; ++epoch)

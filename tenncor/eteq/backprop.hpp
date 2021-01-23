@@ -90,7 +90,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::SQRT:
 				out = make_functor(egen::DIV, {
 					supgrad, make_functor(egen::MUL, {
-						make_constant_like(2.f, op), op})});
+						constant_like(2.f, op), op})});
 				break;
 			case egen::ABS:
 			case egen::SIN:
@@ -123,26 +123,26 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						break;
 					case egen::SQUARE:
 						local_der = make_functor(egen::MUL, {
-							make_constant_like(2.f, args.front()),
+							constant_like(2.f, args.front()),
 							args.front()
 						});
 						break;
 					case egen::CUBE:
 						local_der = make_functor(egen::MUL, {
-							make_constant_like(3.f, args.front()),
+							constant_like(3.f, args.front()),
 							make_functor(egen::SQUARE, {args.front()}),
 						});
 						break;
 					case egen::SIGMOID:
 						local_der = make_functor(egen::MUL, {
 							op, make_functor(egen::SUB, {
-								make_constant_like(1.f, op), op
+								constant_like(1.f, op), op
 							})
 						});
 						break;
 					case egen::TANH:
 						local_der = make_functor(egen::SUB, {
-							make_constant_like(1.f, op),
+							constant_like(1.f, op),
 							make_functor(egen::SQUARE, {op}),
 						});
 						break;
@@ -150,7 +150,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						local_der = arg_idx == 0 ? make_functor(egen::MUL, {
 								args[1], make_functor(egen::POW, {
 									args[0], make_functor(egen::SUB, {
-										args[1], make_constant_like(1.f, args[1])
+										args[1], constant_like(1.f, args[1])
 									})
 								})
 							}) :
@@ -250,6 +250,23 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			}
 				break;
 			case egen::MATMUL:
+				if (arg_idx == 0)
+				{
+					out = make_functor(egen::MATMUL, {
+						supgrad, 
+						make_functor(egen::PERMUTE, {args[1]}, teq::RanksT{1, 0})
+					});
+				}
+				else
+				{
+					// (sup^T @ arg0)^T = arg0^T @ sup
+					out = make_functor(egen::MATMUL, {
+						make_functor(egen::PERMUTE, {args[0]}, teq::RanksT{1, 0}),
+						supgrad 
+					});
+				}
+				break;
+			case egen::CONTRACT:
 			{
 				eigen::PairVecT<teq::RankT> dims;
 				eigen::Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, *op);
@@ -310,10 +327,10 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 					{
 						grad_dims.push_back({i, rucom_ranks[i]});
 					}
-					// convolution output has shape <lucom, lcom>
+					// contract output has shape <lucom, lcom>
 					order = lcom_ranks;
 					order.insert(order.end(), lucom_ranks.begin(), lucom_ranks.end());
-					// reverse order such that convolution output permutes to args[0]->shape()
+					// reverse order such that contract output permutes to args[0]->shape()
 					order = reorder_permute(order);
 				}
 				else
@@ -323,10 +340,10 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 					{
 						grad_dims.push_back({rucom_ranks.size() + i, lucom_ranks[i]});
 					}
-					// convolution output has shape <rcom, rucom>
+					// contract output has shape <rcom, rucom>
 					order = rcom_ranks;
 					order.insert(order.end(), rucom_ranks.begin(), rucom_ranks.end());
-					// reverse order such that convolution output permutes to args[1]->shape()
+					// reverse order such that contract output permutes to args[1]->shape()
 					order = reorder_permute(order);
 				}
 				if (grad_dims.empty())
@@ -336,7 +353,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 						teq::narrow_shape(right->shape()).size()});
 				}
 				out = make_functor(egen::PERMUTE, {
-					make_functor(egen::MATMUL, {supgrad, right}, grad_dims),
+					make_functor(egen::CONTRACT, {supgrad, right}, grad_dims),
 				}, order);
 			}
 				break;
@@ -485,7 +502,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			{
 				if (0 == arg_idx)
 				{
-					out = make_constant_like(0.f, args.front());
+					out = constant_like(0.f, args.front());
 					break;
 				}
 				teq::TensptrT condition = args[0];
@@ -493,11 +510,11 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				if (arg_idx == 1)
 				{
 					then = supgrad;
-					otherwise = make_constant_like(0.f, op);
+					otherwise = constant_like(0.f, op);
 				}
 				else // if (arg_idx > 2)
 				{
-					then = make_constant_like(0.f, op);
+					then = constant_like(0.f, op);
 					otherwise = supgrad;
 				}
 				out = make_functor(egen::SELECT, {condition, then, otherwise});
@@ -508,7 +525,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 			case egen::NEQ:
 			case egen::GT:
 			case egen::LT:
-				out = make_constant_like(0.f, args.front());
+				out = constant_like(0.f, args.front());
 				break;
 			case egen::ASSIGN:
 			case egen::ASSIGN_ADD:
@@ -525,15 +542,21 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 	}
 
 	/// Implementation of iDerivativeFuncs
-	teq::TensptrT get_const_one (teq::Shape shape) const override
+	teq::TensptrT get_const_one (teq::iTensor& reference) const override
 	{
-		return make_constant_scalar(1.f, shape, egen::default_dtype);
+		auto reftype = (egen::_GENERATED_DTYPE) reference.get_meta().type_code();
+		auto shape = reference.shape();
+		std::vector<float> data(shape.n_elems(), 1.f);
+		return make_constant_tensor(data.data(), shape, reftype);
 	}
 
 	/// Implementation of iDerivativeFuncs
-	teq::TensptrT get_const_zero (teq::Shape shape) const override
+	teq::TensptrT get_const_zero (teq::iTensor& reference) const override
 	{
-		return make_constant_scalar(0.f, shape, egen::default_dtype);
+		auto reftype = (egen::_GENERATED_DTYPE) reference.get_meta().type_code();
+		auto shape = reference.shape();
+		std::vector<float> data(shape.n_elems(), 0.f);
+		return make_constant_tensor(data.data(), shape, reftype);
 	}
 
 	/// Implementation of iDerivativeFuncs
@@ -541,6 +564,14 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 	{
 		assert(elems.size() > 0);
 		return make_functor(egen::ADD, elems);
+	}
+
+private:
+	teq::TensptrT constant_like (float scalar, teq::TensptrT like) const
+	{
+		auto like_type = (egen::_GENERATED_DTYPE) like->get_meta().type_code();
+		teq::TensptrT cst = make_constant_tensor(&scalar, teq::Shape(), like_type);
+		return make_functor(::egen::EXTEND, teq::TensptrsT{cst}, (teq::TensptrT) like);
 	}
 };
 

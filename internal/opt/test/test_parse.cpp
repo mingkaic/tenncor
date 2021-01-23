@@ -13,7 +13,11 @@
 #include "internal/opt/mock/mock.hpp"
 
 
+#ifdef CMAKE_SOURCE_DIR
+const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
+#else
 const std::string testdir = "models/test";
+#endif
 
 
 TEST(PARSE, Parse)
@@ -38,33 +42,34 @@ TEST(PARSE, Parse)
 			"]}"
 		"}"
 	"}]}";
-	opt::json_parse(rules, ss, MockTargetFactory());
 
-	// test target
+	auto incont = std::make_shared<MockTarget>();
+	auto zinga = std::make_shared<MockTarget>();
+	auto inentia = std::make_shared<MockTarget>();
+	auto diggus = std::make_shared<MockTarget>();
+
+	MockTargetFactory mockfac;
+	EXPECT_CALL(mockfac, make_symbol("INCONT")).Times(1).WillOnce(Return(incont));
+	EXPECT_CALL(mockfac, make_scalar(3, "ZINGA")).Times(1).WillOnce(Return(zinga));
+	EXPECT_CALL(mockfac, make_functor("INENTIA", _, opt::TargptrsT{})).Times(1).WillOnce(Return(inentia));
+	EXPECT_CALL(mockfac, make_functor("DIGGUS_BICKUS", _, opt::TargptrsT{incont, zinga, inentia})).Times(1).WillOnce(Return(diggus));
+
+	opt::json_parse(rules, ss, mockfac);
+
+	// verify target 
 	ASSERT_EQ(1, rules.size());
 	opt::OptRule& rule = rules.front();
-	auto troot = dynamic_cast<MockTarget*>(rule.target_.get());
-	ASSERT_NE(nullptr, troot);
-	EXPECT_STREQ("DIGGUS_BICKUS:3", troot->tag_->to_string().c_str());
-	ASSERT_EQ(3, troot->targs_.size());
+	auto troot = rule.target_;
+	EXPECT_EQ(diggus, troot);
 
-	std::array<std::string,3> labels = {"INCONT:0", "3:ZINGA:1", "INENTIA:2"};
-	for (size_t i = 0, n = troot->targs_.size(); i < n; ++i)
-	{
-		const auto& targ = troot->targs_.at(i);
-		auto arg = dynamic_cast<MockTarget*>(targ.get());
-		ASSERT_NE(nullptr, arg);
-		EXPECT_STREQ(labels[i].c_str(), arg->tag_->to_string().c_str());
-		EXPECT_EQ(0, arg->targs_.size());
-	}
-
+	// verify source
 	// test srcs
-	teq::TensptrT leaf = std::make_shared<MockLeaf>(teq::Shape(), "LORD_FRAYDO");
-	teq::TensptrT leaf2 = std::make_shared<MockLeaf>(teq::Shape(), "DINGUS_FINGUS");
-	teq::TensptrT leaf3 = std::make_shared<MockLeaf>(teq::Shape(), "ZA_WARDO");
-	teq::TensptrT leaf4 = std::make_shared<MockLeaf>(teq::Shape(), "ZINGLING");
-	teq::TensptrT func = std::make_shared<MockFunctor>(teq::TensptrsT{leaf2, leaf3}, teq::Opcode{"BIG_CHUNGUS", 0});
-	teq::TensptrT func2 = std::make_shared<MockFunctor>(teq::TensptrsT{leaf, leaf4}, teq::Opcode{"AL_ZAMBONI", 0});
+	teq::TensptrT leaf = make_var(teq::Shape(), "LORD_FRAYDO");
+	teq::TensptrT leaf2 = make_var(teq::Shape(), "DINGUS_FINGUS");
+	teq::TensptrT leaf3 = make_var(teq::Shape(), "ZA_WARDO");
+	teq::TensptrT leaf4 = make_var(teq::Shape(), "ZINGLING");
+	teq::TensptrT func = make_fnc("BIG_CHUNGUS", 0, teq::TensptrsT{leaf2, leaf3});
+	teq::TensptrT func2 = make_fnc("AL_ZAMBONI", 0, teq::TensptrsT{leaf, leaf4});
 
 	query::Query q;
 	func->accept(q);

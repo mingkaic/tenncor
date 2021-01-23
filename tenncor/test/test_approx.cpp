@@ -22,12 +22,12 @@ TEST(APPROX, StochasticGD)
 {
 	teq::DimsT slist = {18, 9, 3};
 
-	auto leaf = eteq::make_variable_scalar<PybindT>(
+	auto leaf = eteq::make_variable_scalar<float>(
 		0, teq::Shape(slist), "leaf");
 	auto err = tenncor().abs(leaf);
 
-	auto groups = tenncor().approx.sgd<PybindT>(
-		err, eteq::EVariablesT<PybindT>{leaf}, 0.67);
+	auto groups = tenncor().approx.sgd<float>(
+		err, eteq::EVariablesT<float>{leaf}, 0.67);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
 		"(ASSIGN_SUB<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -49,12 +49,12 @@ TEST(APPROX, Adagrad)
 {
 	teq::DimsT slist = {18, 9, 3};
 
-	auto leaf = eteq::make_variable_scalar<PybindT>(
+	auto leaf = eteq::make_variable_scalar<float>(
 		0, teq::Shape(slist), "leaf");
 	auto err = tenncor().abs(leaf);
 
-	auto groups = tenncor().approx.adagrad<PybindT>(
-		err, eteq::EVariablesT<PybindT>{leaf}, 0.67);
+	auto groups = tenncor().approx.adagrad<float>(
+		err, eteq::EVariablesT<float>{leaf}, 0.67);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
 		"(ASSIGN_SUB<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -92,17 +92,19 @@ TEST(APPROX, Adadelta)
 	teq::DimsT slist = {18, 9, 3};
 	teq::Shape shape(slist);
 
-	auto leaf = eteq::make_variable_scalar<PybindT>(
+	auto leaf = eteq::make_variable_scalar<float>(
 		0, shape, "leaf");
 	auto err = tenncor().sin(leaf);
 
-	PybindT step_rate = 1;
-	PybindT decay = 0.91;
-	PybindT offset = 0.16;
+	float step_rate = 1;
+	float decay = 0.91;
+	float offset = 0.16;
 	auto groups = tenncor().approx.adadelta(
-		err, eteq::EVariablesT<PybindT>{leaf}, step_rate, decay, offset);
+		err, eteq::EVariablesT<float>{leaf}, step_rate, decay, offset);
 	ASSERT_EQ(1, groups.size());
-	EXPECT_GRAPHEQ(
+	std::string eps_str = fmts::to_string(std::numeric_limits<float>::epsilon());
+	const char* eps = eps_str.c_str();
+	EXPECT_GRAPHEQ(fmts::sprintf(
 		"(ASSIGN_SUB<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_`--(variable:leaf<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_`--(IDENTITY<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -116,25 +118,28 @@ TEST(APPROX, Adadelta)
 		"_____|___|_______|_______`--(variable:ex_sqr_delx<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_____|___|_______|_______`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_____|___|_______|___________`--(constant:0.16<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______`--(SQRT<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|___________`--(ADD<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________`--(ASSIGN<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|___`--(variable:ex_sqr_grad<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|___`--(ADD<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|_______`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|_______|___`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|_______|___|___`--(constant:0.91<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|_______|___`--(variable:ex_sqr_grad<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|_______`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|___________`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|___________|___`--(constant:0.09<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|___________`--(SQUARE<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|_______________`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|___________________`--(COS<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|___________________|___`--(variable:leaf<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________|___________________`--(constant:1<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|_______________`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____|___|___________________`--(constant:0.16<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___|_______`--(ADD<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________`--(SQRT<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|___`--(ADD<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______`--(ASSIGN<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|___`--(variable:ex_sqr_grad<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|___`--(ADD<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|_______`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|_______|___`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|_______|___|___`--(constant:0.91<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|_______|___`--(variable:ex_sqr_grad<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|_______`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|___________`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|___________|___`--(constant:0.09<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|___________`--(SQUARE<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|_______________`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|___________________`--(COS<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|___________________|___`--(variable:leaf<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______|___________________`--(constant:1<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|_______`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________|___________`--(constant:0.16<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___|___________`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_____|___|_______________`--(constant:%s<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_____|_______`--(COS<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_____|_______|___`--(variable:leaf<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -160,36 +165,39 @@ TEST(APPROX, Adadelta)
 		"_________________________|_______|_______`--(variable:ex_sqr_delx<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_________________________|_______|_______`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_________________________|_______|___________`--(constant:0.16<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______`--(SQRT<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|___________`--(ADD<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________`--(ASSIGN<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|___`--(variable:ex_sqr_grad<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|___`--(ADD<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|_______`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|_______|___`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|_______|___|___`--(constant:0.91<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|_______|___`--(variable:ex_sqr_grad<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|_______`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|___________`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|___________|___`--(constant:0.09<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|___________`--(SQUARE<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|_______________`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|___________________`--(COS<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|___________________|___`--(variable:leaf<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________|___________________`--(constant:1<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|_______________`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_________________________|___________________`--(constant:0.16<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________________________|_______`--(ADD<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________`--(SQRT<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|___`--(ADD<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______`--(ASSIGN<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|___`--(variable:ex_sqr_grad<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|___`--(ADD<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|_______`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|_______|___`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|_______|___|___`--(constant:0.91<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|_______|___`--(variable:ex_sqr_grad<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|_______`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|___________`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|___________|___`--(constant:0.09<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|___________`--(SQUARE<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|_______________`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|___________________`--(COS<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|___________________|___`--(variable:leaf<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______|___________________`--(constant:1<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|_______`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"_________________________|___________|___________`--(constant:0.16<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"________________________|___________`--(EXTEND<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
+		"________________________|_______________`--(constant:%s<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		"_________________________`--(MUL<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_____________________________`--(COS<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
 		"_____________________________|___`--(variable:leaf<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
-		"_____________________________`--(constant:1<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])",
+		"_____________________________`--(constant:1<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])", eps, eps).c_str(),
 		groups.begin()->second);
 
 	// evaluating execution order
 	teq::Evaluator eval;
 	eval.evaluate(device, {groups.begin()->second.get()});
 
-	eteq::Variable<PybindT>* g;
+	eteq::Variable<float>* g;
 	{
 		std::stringstream ss;
 		ss << "{\"leaf\":{\"label\":\"ex_sqr_grad\"}}";
@@ -198,10 +206,10 @@ TEST(APPROX, Adadelta)
 		query::Node cond;
 		query::json_parse(cond, ss);
 		auto results = itable.match(cond);
-		g = static_cast<eteq::Variable<PybindT>*>(results.front().root_);
+		g = static_cast<eteq::Variable<float>*>(results.front().root_);
 	}
 
-	eteq::Variable<PybindT>* d;
+	eteq::Variable<float>* d;
 	{
 		std::stringstream ss;
 		ss << "{\"leaf\":{\"label\":\"ex_sqr_delx\"}}";
@@ -210,7 +218,7 @@ TEST(APPROX, Adadelta)
 		query::Node cond;
 		query::json_parse(cond, ss);
 		auto results = itable.match(cond);
-		d = static_cast<eteq::Variable<PybindT>*>(results.front().root_);
+		d = static_cast<eteq::Variable<float>*>(results.front().root_);
 	}
 
 	// g = decay * g + (1 - decay) * f'(x) ^ 2
@@ -252,24 +260,24 @@ TEST(APPROX, Adadelta)
 	//   = -0.43451121964  / sqrt(0.25)
 	//   = -0.86902243929
 
-	PybindT* og = (PybindT*) g->device().data();
-	PybindT exog = 0.09;
+	float* og = (float*) g->device().data();
+	float exog = 0.09;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		ASSERT_GT(0.001, abs((exog - og[i]) / exog)) <<
 			"expect: " << exog << ", got: " << og[i];
 	}
 
-	PybindT* od = (PybindT*) d->device().data();
-	PybindT exod = 0.0576;
+	float* od = (float*) d->device().data();
+	float exod = 0.0576;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		ASSERT_GT(0.001, abs((exod - od[i]) / exod)) <<
 			"expect: " << exod << ", got: " << od[i];
 	}
 
-	PybindT* data = (PybindT*) leaf->device().data();
-	PybindT exdval = -0.8;
+	float* data = (float*) leaf->device().data();
+	float exdval = -0.8;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		ASSERT_GT(0.001, abs((exdval - data[i]) / exdval)) <<
@@ -283,15 +291,15 @@ TEST(APPROX, RmsMomentum)
 	eigen::Device device;
 	teq::Shape shape({5});
 
-	auto leaf = eteq::make_variable_scalar<PybindT>(0, shape, "leaf");
+	auto leaf = eteq::make_variable_scalar<float>(0, shape, "leaf");
 	auto err = tenncor().sin(leaf) / 2.f;
 
-	PybindT learning_rate = 1.;
-	PybindT discount_rate = 0.52;
-	layr::VarErrsT<PybindT> groups = tenncor().approx.rms_momentum(
-		err, eteq::EVariablesT<PybindT>{leaf},
+	float learning_rate = 1.;
+	float discount_rate = 0.52;
+	layr::VarErrsT<float> groups = tenncor().approx.rms_momentum(
+		err, eteq::EVariablesT<float>{leaf},
 		learning_rate, discount_rate,
-		std::numeric_limits<PybindT>::epsilon());
+		std::numeric_limits<float>::epsilon());
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
 		"(ASSIGN_SUB<FLOAT>[5\\1\\1\\1\\1\\1\\1\\1])\n"
@@ -335,7 +343,7 @@ TEST(APPROX, RmsMomentum)
 	teq::Evaluator eval;
 	eval.evaluate(device, {groups[0].second.get()});
 
-	eteq::Variable<PybindT>* momentum;
+	eteq::Variable<float>* momentum;
 	{
 		std::stringstream ss;
 		ss << "{\"leaf\":{\"label\":\"momentum\"}}";
@@ -344,7 +352,7 @@ TEST(APPROX, RmsMomentum)
 		query::Node cond;
 		query::json_parse(cond, ss);
 		auto results = itable.match(cond);
-		momentum = static_cast<eteq::Variable<PybindT>*>(
+		momentum = static_cast<eteq::Variable<float>*>(
 			results.front().root_);
 	}
 
@@ -362,18 +370,145 @@ TEST(APPROX, RmsMomentum)
 	// leaf = leaf - 1 * err / sqrt(momentum)
 	//      = 0 - 1 * 0.5 / sqrt(1) = -0.5
 
-	PybindT* o = (PybindT*) momentum->device().data();
-	std::vector<PybindT> expecto(shape.n_elems(), 0.64);
-	std::vector<PybindT> ovec(o, o + shape.n_elems());
+	float* o = (float*) momentum->device().data();
+	std::vector<float> expecto(shape.n_elems(), 0.64);
+	std::vector<float> ovec(o, o + shape.n_elems());
 	EXPECT_VECEQ(expecto, ovec);
 
-	PybindT* d = (PybindT*) leaf->device().data();
-	PybindT exdval = -0.625;
+	float* d = (float*) leaf->device().data();
+	float exdval = -0.625;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		ASSERT_GT(0.001, abs((exdval - d[i]) / exdval)) <<
 			"expect: " << exdval << ", got: " << d[i];
 	}
+}
+
+
+TEST(APPROX, Adam)
+{
+	const size_t converge_limit = 1000; // way too high
+
+	global::CfgMapptrT ctx = std::make_shared<estd::ConfigMap<>>();
+	TenncorAPI api(ctx);
+	auto x = eteq::make_variable_scalar<float>(
+		0, teq::Shape(), "x", ctx);
+	auto loss = api.square(x) - 2.f * x + 1.f;
+	// loss = m ^ 2 - 2 * m + 1
+	// dloss = 2 * m - 2
+	// start at m = 0, dloss = -2
+	// converge towards m = 1, dloss = 0
+	auto step = api.approx.adam<float>(loss, eteq::EVariablesT<float>{x}, 0.01, 0.9, 0.999, 1e-8)[0].second;
+
+	EXPECT_GRAPHEQ(
+		"(ASSIGN_SUB<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(variable:x<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(MUL<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____|___`--(constant:0.01<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(DIV<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________`--(DIV<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___`--(ASSIGN<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|___`--(variable:moment1<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|___`--(ADD<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|_______`--(MUL<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|_______|___`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|_______|___|___`--(constant:0.9<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|_______|___`--(variable:moment1<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|_______`--(MUL<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|___________`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|___________|___`--(constant:0.1<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|___________`--(ADD<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|_______________`--(MUL<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|_______________|___`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|_______________|___|___`--(constant:2<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|_______________|___`--(NEG<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|_______________|_______`--(constant:1<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|_______________`--(MUL<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|___________________`--(MUL<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|___________________|___`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|___________________|___|___`--(constant:2<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|___________________|___`--(variable:x<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___|___________________`--(constant:1<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___`--(SUB<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|_______`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|_______|___`--(constant:1<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|_______`--(POW<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___________`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___________|___`--(constant:0.9<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___________`--(ASSIGN_ADD<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|_______________`--(variable:t<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|_______________`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________|___________________`--(constant:1<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________`--(ADD<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________`--(SQRT<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|___`--(DIV<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______`--(ASSIGN<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|___`--(variable:moment2<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|___`--(ADD<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|_______`--(MUL<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|_______|___`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|_______|___|___`--(constant:0.999<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|_______|___`--(variable:moment2<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|_______`--(MUL<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|___________`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|___________|___`--(constant:0.000999987<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|___________`--(SQUARE<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|_______________`--(ADD<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|___________________`--(MUL<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|___________________|___`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|___________________|___|___`--(constant:2<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|___________________|___`--(NEG<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|___________________|_______`--(constant:1<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|___________________`--(MUL<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|_______________________`--(MUL<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|_______________________|___`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|_______________________|___|___`--(constant:2<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|_______________________|___`--(variable:x<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______|_______________________`--(constant:1<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______`--(SUB<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|___________`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|___________|___`--(constant:1<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|___________`--(POW<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______________`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______________|___`--(constant:0.999<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______________`--(ASSIGN_ADD<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|___________________`--(variable:t<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|___________________`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________|_______________________`--(constant:1<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_____________`--(EXTEND<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])\n"
+		"_________________`--(constant:1e-08<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])",
+		step);
+
+	// evaluating execution
+	eteq::Variable<float>* t;
+	{
+		std::stringstream ss;
+		ss << "{\"leaf\":{\"label\":\"t\"}}";
+		query::Query itable;
+		step->accept(itable);
+		query::Node cond;
+		query::json_parse(cond, ss);
+		auto results = itable.match(cond);
+		t = static_cast<eteq::Variable<float>*>(
+			results.front().root_);
+	}
+
+	size_t i = 0;
+	for (i = 0; i < converge_limit; ++i)
+	{
+		float x_old = *(x.calc<float>());
+		step.calc<float>();
+		float x_new = *(x.calc<float>());
+		if (x_old == x_new)
+		{
+			break;
+		}
+	}
+
+	EXPECT_LT(i, converge_limit); // expect to converge way before converge limit
+	EXPECT_LT(std::abs(1 - *(x.calc<float>())), 1e-4);
+	EXPECT_EQ(i + 1, *((float*) t->device().data()));
 }
 
 

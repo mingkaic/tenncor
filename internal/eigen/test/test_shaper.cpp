@@ -4,16 +4,29 @@
 
 #include "gtest/gtest.h"
 
-#include "exam/exam.hpp"
+#include "testutil/tutil.hpp"
 
 #include "internal/eigen/eigen.hpp"
 
 
-TEST(SHAPER, Default)
+using ::testing::_;
+using ::testing::An;
+using ::testing::Return;
+using ::testing::Throw;
+
+
+struct SHAPER : public tutil::TestcaseWithLogger<> {};
+
+
+TEST_F(SHAPER, Default)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	egen::ShapeParser<egen::ABS> parser;
 	marsh::Maps empty;
 
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, eigen::no_argument_err, _)).Times(1).WillOnce(Throw(exam::TestException(eigen::no_argument_err)));
 	EXPECT_FATAL(parser(empty, {}), eigen::no_argument_err.c_str());
 
 	teq::ShapesT conflicting = {
@@ -21,8 +34,10 @@ TEST(SHAPER, Default)
 		teq::Shape({3, 2, 5}),
 	};
 
-	EXPECT_FATAL(parser(empty, conflicting),
-		"cannot ABS with incompatible shapes [3\\2\\5\\1\\1\\1\\1\\1] and [3\\4\\5\\1\\1\\1\\1\\1]");
+	std::string fatalmsg = "cannot ABS with incompatible shapes [3\\2\\5\\1\\1\\1\\1\\1] and [3\\4\\5\\1\\1\\1\\1\\1]";
+	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(parser(empty, conflicting), fatalmsg.c_str());
 
 	teq::Shape expect({3, 4, 6});
 	teq::ShapesT good = {expect, expect};
@@ -32,11 +47,15 @@ TEST(SHAPER, Default)
 }
 
 
-TEST(SHAPER, Identity)
+TEST_F(SHAPER, Identity)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	egen::ShapeParser<egen::IDENTITY> parser;
 	marsh::Maps empty;
 
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, eigen::no_argument_err, _)).Times(1).WillOnce(Throw(exam::TestException(eigen::no_argument_err)));
 	EXPECT_FATAL(parser(empty, {}), eigen::no_argument_err.c_str());
 
 	teq::Shape a({3, 4, 5});
@@ -47,14 +66,18 @@ TEST(SHAPER, Identity)
 }
 
 
-TEST(SHAPER, Reduce)
+TEST_F(SHAPER, Reduce)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	std::set<teq::RankT> rdims = {3, 2, 5};
 
 	egen::ShapeParser<egen::REDUCE_SUM> parser;
 	marsh::Maps dimmed;
 	eigen::Packer<std::set<teq::RankT>>().pack(dimmed, rdims);
 
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, eigen::no_argument_err, _)).Times(1).WillOnce(Throw(exam::TestException(eigen::no_argument_err)));
 	EXPECT_FATAL(parser(dimmed, {}), eigen::no_argument_err.c_str());
 
 	teq::Shape inshape({3, 4, 6, 7, 3});
@@ -65,13 +88,17 @@ TEST(SHAPER, Reduce)
 }
 
 
-TEST(SHAPER, ArgReduce)
+TEST_F(SHAPER, ArgReduce)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	teq::RankT rdim = 3;
 	egen::ShapeParser<egen::ARGMAX> parser;
 	marsh::Maps dimmed;
 	eigen::Packer<teq::RankT>().pack(dimmed, rdim);
 
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, eigen::no_argument_err, _)).Times(1).WillOnce(Throw(exam::TestException(eigen::no_argument_err)));
 	EXPECT_FATAL(parser(dimmed, {}), eigen::no_argument_err.c_str());
 
 	teq::Shape inshape({3, 4, 6, 7, 3});
@@ -90,8 +117,10 @@ TEST(SHAPER, ArgReduce)
 }
 
 
-TEST(SHAPER, Permute)
+TEST_F(SHAPER, Permute)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	teq::RanksT rdims = {2, 1, 0};
 
 	egen::ShapeParser<egen::PERMUTE> parser;
@@ -106,8 +135,11 @@ TEST(SHAPER, Permute)
 }
 
 
-TEST(SHAPER, Extend)
+TEST_F(SHAPER, Extend)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillRepeatedly(Return(true));
+
 	egen::ShapeParser<egen::EXTEND> parser;
 	marsh::Maps good;
 	marsh::Maps bad;
@@ -117,8 +149,12 @@ TEST(SHAPER, Extend)
 	teq::Shape goodshape({3, 1, 6, 7, 3});
 	teq::Shape badshape({3, 4, 6, 7, 3});
 
-	EXPECT_FATAL(parser(bad, {goodshape}), "cannot extend using zero dimensions [1\\2\\0]");
-	EXPECT_FATAL(parser(good, {badshape}), "cannot extend non-singular dimension 1 of shape [3\\4\\6\\7\\3\\1\\1\\1]: bcast=[1\\2\\1]");
+	std::string fatalmsg = "cannot extend using zero dimensions [1\\2\\0]";
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(parser(bad, {goodshape}), fatalmsg.c_str());
+	std::string fatalmsg1 = "cannot extend non-singular dimension 1 of shape [3\\4\\6\\7\\3\\1\\1\\1]: bcast=[1\\2\\1]";
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
+	EXPECT_FATAL(parser(good, {badshape}), fatalmsg1.c_str());
 
 	teq::Shape expect({3, 2, 6, 7, 3});
 	teq::Shape got = parser(good, {goodshape});
@@ -127,19 +163,25 @@ TEST(SHAPER, Extend)
 }
 
 
-TEST(SHAPER, Reshape)
+TEST_F(SHAPER, Reshape)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	teq::Shape expect({3, 4, 6});
 
 	egen::ShapeParser<egen::RESHAPE> parser;
 	marsh::Maps shaped;
 	eigen::Packer<teq::Shape>().pack(shaped, expect);
 
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, eigen::no_argument_err, _)).Times(1).WillOnce(Throw(exam::TestException(eigen::no_argument_err)));
 	EXPECT_FATAL(parser(shaped, {}), eigen::no_argument_err.c_str());
 
 	teq::Shape conflicting({3, 4, 5});
-	EXPECT_FATAL(parser(shaped, {conflicting}),
-		"cannot RESHAPE with shapes of different sizes 60 (shape [3\\4\\5\\1\\1\\1\\1\\1]) and 72 (shape [3\\4\\6\\1\\1\\1\\1\\1])");
+	std::string fatalmsg = "cannot RESHAPE with shapes of different sizes 60 (shape [3\\4\\5\\1\\1\\1\\1\\1]) and 72 (shape [3\\4\\6\\1\\1\\1\\1\\1])";
+	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(parser(shaped, {conflicting}), fatalmsg.c_str());
 
 	teq::Shape inshape({8, 3, 3});
 	teq::Shape got = parser(shaped, {inshape});
@@ -148,13 +190,17 @@ TEST(SHAPER, Reshape)
 }
 
 
-TEST(SHAPER, Pad)
+TEST_F(SHAPER, Pad)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	eigen::PairVecT<teq::DimT> pads = {{3, 6}, {2, 3}, {0, 2}};
 	egen::ShapeParser<egen::PAD> parser;
 	marsh::Maps padded;
 	eigen::Packer<eigen::PairVecT<teq::DimT>>().pack(padded, pads);
 
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, eigen::no_argument_err, _)).Times(1).WillOnce(Throw(exam::TestException(eigen::no_argument_err)));
 	EXPECT_FATAL(parser(padded, {}), eigen::no_argument_err.c_str());
 
 	teq::Shape inshape({5, 4, 6, 7, 3});
@@ -165,13 +211,17 @@ TEST(SHAPER, Pad)
 }
 
 
-TEST(SHAPER, Slice)
+TEST_F(SHAPER, Slice)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	eigen::PairVecT<teq::DimT> extents = {{3, 6}, {2, 3}, {0, 2}};
 	egen::ShapeParser<egen::SLICE> parser;
 	marsh::Maps exed;
 	eigen::Packer<eigen::PairVecT<teq::DimT>>().pack(exed, extents);
 
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, eigen::no_argument_err, _)).Times(1).WillOnce(Throw(exam::TestException(eigen::no_argument_err)));
 	EXPECT_FATAL(parser(exed, {}), eigen::no_argument_err.c_str());
 
 	teq::Shape inshape({5, 4, 6, 7, 3});
@@ -182,13 +232,17 @@ TEST(SHAPER, Slice)
 }
 
 
-TEST(SHAPER, Stride)
+TEST_F(SHAPER, Stride)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	teq::DimsT strides = {3, 2, 3};
 	egen::ShapeParser<egen::STRIDE> parser;
 	marsh::Maps strided;
 	eigen::Packer<teq::DimsT>().pack(strided, strides);
 
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, eigen::no_argument_err, _)).Times(1).WillOnce(Throw(exam::TestException(eigen::no_argument_err)));
 	EXPECT_FATAL(parser(strided, {}), eigen::no_argument_err.c_str());
 
 	teq::Shape inshape({41, 4, 6, 7, 3});
@@ -199,14 +253,18 @@ TEST(SHAPER, Stride)
 }
 
 
-TEST(SHAPER, Scatter)
+TEST_F(SHAPER, Scatter)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	teq::Shape expect({3, 4, 6});
 
 	egen::ShapeParser<egen::SCATTER> parser;
 	marsh::Maps shaped;
 	eigen::Packer<teq::Shape>().pack(shaped, expect);
 
+	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::fatal_level, eigen::no_argument_err, _)).Times(1).WillOnce(Throw(exam::TestException(eigen::no_argument_err)));
 	EXPECT_FATAL(parser(shaped, {}), eigen::no_argument_err.c_str());
 
 	// scatter allows conflicting shape
@@ -222,9 +280,12 @@ TEST(SHAPER, Scatter)
 }
 
 
-TEST(SHAPER, Matmul)
+TEST_F(SHAPER, Matmul)
 {
-	egen::ShapeParser<egen::MATMUL> parser;
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillRepeatedly(Return(true));
+
+	egen::ShapeParser<egen::CONTRACT> parser;
 	eigen::Packer<eigen::PairVecT<teq::RankT>> packer;
 
 	teq::Shape c({3, 4, 6});
@@ -237,8 +298,9 @@ TEST(SHAPER, Matmul)
 	teq::Shape sym({2, 2, 2});
 	marsh::Maps bad;
 	packer.pack(bad, {{0, 0}, {0, 1}, {2, 0}});
-	EXPECT_FATAL(parser(bad, {sym, sym}),
-		"contraction dimensions [0:0\\0:1\\2:0] must be unique for each side");
+	std::string fatalmsg = "contraction dimensions [0:0\\0:1\\2:0] must be unique for each side";
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(parser(bad, {sym, sym}), fatalmsg.c_str());
 
 	marsh::Maps outer;
 	packer.pack(outer, {});
@@ -253,9 +315,10 @@ TEST(SHAPER, Matmul)
 	marsh::Maps transposed;
 	packer.pack(transposed, {{1, 0}});
 
-	EXPECT_FATAL(parser(transposed, {c, c}),
-		"invalid shapes [3\\4\\6\\1\\1\\1\\1\\1] and [3\\4\\6\\1\\1\\1\\1\\1] "
-		"do not match common dimensions [1:0]");
+	std::string fatalmsg1 = "invalid shapes [3\\4\\6\\1\\1\\1\\1\\1] and [3\\4\\6\\1\\1\\1\\1\\1] "
+		"do not match common dimensions [1:0]";
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
+	EXPECT_FATAL(parser(transposed, {c, c}), fatalmsg1.c_str());
 
 	teq::Shape trans3d = parser(transposed, {a, b});
 	teq::Shape expect2({5, 6, 4, 6});
@@ -280,8 +343,11 @@ TEST(SHAPER, Matmul)
 }
 
 
-TEST(SHAPER, Conv)
+TEST_F(SHAPER, Conv)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillRepeatedly(Return(true));
+
 	egen::ShapeParser<egen::CONV> parser;
 	eigen::Packer<teq::RanksT> packer;
 
@@ -290,16 +356,18 @@ TEST(SHAPER, Conv)
 
 	marsh::Maps badranks;
 	packer.pack(badranks, {0, 2});
-	EXPECT_FATAL(parser(badranks, {imgshape, kernshape}),
-		"cannot have ambiguous ranks not specified in kernelshape "
-		"[3\\2\\5\\1\\1\\1\\1\\1] (ranks=[0\\2])");
+	std::string fatalmsg = "cannot have ambiguous ranks not specified in kernelshape "
+		"[3\\2\\5\\1\\1\\1\\1\\1] (ranks=[0\\2])";
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg.c_str(), _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(parser(badranks, {imgshape, kernshape}), fatalmsg.c_str());
 
 	marsh::Maps badkern;
 	packer.pack(badkern, {2, 1, 0});
-	EXPECT_FATAL(parser(badkern, {imgshape, kernshape}),
-		"cannot convolve a kernel of shape [3\\2\\5\\1\\1\\1\\1\\1] "
+	std::string fatalmsg1 = "cannot convolve a kernel of shape [3\\2\\5\\1\\1\\1\\1\\1] "
 		"against smaller image of shape [4\\5\\6\\7\\1\\1\\1\\1] at "
-		"dimensions (shape:kernel=0:2)");
+		"dimensions (shape:kernel=0:2)";
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
+	EXPECT_FATAL(parser(badkern, {imgshape, kernshape}), fatalmsg1.c_str());
 
 	marsh::Maps attrs;
 	packer.pack(attrs, {2, 1, 3});
@@ -309,8 +377,10 @@ TEST(SHAPER, Conv)
 }
 
 
-TEST(SHAPER, ConcatBinary)
+TEST_F(SHAPER, ConcatBinary)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+
 	egen::ShapeParser<egen::CONCAT> parser;
 	eigen::Packer<teq::RankT> packer;
 
@@ -319,9 +389,11 @@ TEST(SHAPER, ConcatBinary)
 
 	marsh::Maps badranks;
 	packer.pack(badranks, 1);
-	EXPECT_FATAL(parser(badranks, {a, b}),
-		"cannot group concat incompatible shapes [3\\4\\5\\6\\1\\1\\1\\1] and "
-		"[3\\4\\2\\6\\1\\1\\1\\1] along axis 1");
+	std::string fatalmsg = "cannot group concat incompatible shapes [3\\4\\5\\6\\1\\1\\1\\1] and "
+		"[3\\4\\2\\6\\1\\1\\1\\1] along axis 1";
+	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillOnce(Return(true));
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(parser(badranks, {a, b}), fatalmsg.c_str());
 
 	marsh::Maps attrs;
 	packer.pack(attrs, 2);
@@ -331,8 +403,11 @@ TEST(SHAPER, ConcatBinary)
 }
 
 
-TEST(SHAPER, ConcatNnary)
+TEST_F(SHAPER, ConcatNnary)
 {
+	EXPECT_CALL(*logger_, supports_level(An<const std::string&>())).WillRepeatedly(Return(false));
+	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillRepeatedly(Return(true));
+
 	egen::ShapeParser<egen::CONCAT> parser;
 	eigen::Packer<teq::RankT> packer;
 
@@ -341,15 +416,17 @@ TEST(SHAPER, ConcatNnary)
 
 	marsh::Maps badranks;
 	packer.pack(badranks, 1);
-	EXPECT_FATAL(parser(badranks, {a, a, b}),
-		"cannot group concat incompatible shapes [3\\4\\1\\6\\1\\1\\1\\1] and "
-		"[3\\4\\4\\6\\1\\1\\1\\1] along axis 1");
+	std::string fatalmsg = "cannot group concat incompatible shapes [3\\4\\1\\6\\1\\1\\1\\1] and "
+		"[3\\4\\4\\6\\1\\1\\1\\1] along axis 1";
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(parser(badranks, {a, a, b}), fatalmsg.c_str());
 
 	marsh::Maps attrs;
 	packer.pack(attrs, 2);
 
-	EXPECT_FATAL(parser(attrs, {a, b, a}),
-		"cannot group concat shapes with dimension that is not one");
+	std::string fatalmsg1 = "cannot group concat shapes with dimension that is not one";
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
+	EXPECT_FATAL(parser(attrs, {a, b, a}), fatalmsg1.c_str());
 
 	auto got = parser(attrs, {a, a, a});
 	teq::Shape expect({3, 4, 3, 6});

@@ -58,10 +58,9 @@ void optimize (std::string filename, const global::CfgMapptrT& ctx)
 	teq::TensptrSetT roots;
 	for (auto& rpairs : reg)
 	{
-		roots.emplace(rpairs.second);
+		roots.emplace(rpairs.second->get_tensor());
 	}
 
-	teq::OwnMapT changed;
 	teq::TensptrsT inroots(roots.begin(), roots.end());
 	auto outroots = optimize(inroots, rulefile,
 	[&ctx](opt::OptRulesT& rules, const opt::GraphInfo& ginfo)
@@ -69,14 +68,10 @@ void optimize (std::string filename, const global::CfgMapptrT& ctx)
 		generate_cstrules(rules, ginfo, ctx);
 	});
 	assert(inroots.size() == outroots.size());
+	auto& graphinfo = eteq::get_graphinfo(ctx);
 	for (size_t i = 0, n = inroots.size(); i < n; ++i)
 	{
-		changed.emplace(inroots[i].get(), outroots[i]);
-	}
-
-	for (auto& rpairs : reg)
-	{
-		rpairs.second = changed[rpairs.second.get()];
+		graphinfo.replace(inroots[i], outroots[i]);
 	}
 }
 

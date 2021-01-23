@@ -1,0 +1,219 @@
+name: InitAPI
+members:
+  - name: super
+    type: TenncorAPI*
+init:
+  args:
+    - name: super
+      type: TenncorAPI*
+  initlist:
+    super: super
+funcs:
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: random_normal
+    args:
+      - name: mean
+        type: T
+        default: 0
+      - name: stddev
+        type: T
+        default: 1
+    out:
+      type: layr::InitF<T>
+      val: |
+        //
+            auto ctx = super->ctx;
+            return
+            [ctx, mean, stddev](teq::Shape shape, std::string label)
+            {
+                std::vector<T> vec(shape.n_elems());
+                std::generate(vec.begin(), vec.end(), global::get_generator()->norm_decgen(mean, stddev));
+                return eteq::make_variable(vec.data(), shape, label, ctx);
+            };
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: random_uniform
+    args:
+      - name: minval
+        type: T
+        default: -0.05
+      - name: maxval
+        type: T
+        default: 0.05
+    out:
+      type: layr::InitF<T>
+      val: |
+        //
+            auto ctx = super->ctx;
+            return
+            [ctx, minval, maxval](teq::Shape shape, std::string label)
+            {
+                std::vector<T> vec(shape.n_elems());
+                std::generate(vec.begin(), vec.end(), global::get_generator()->unif_decgen(minval, maxval));
+                return eteq::make_variable(vec.data(), shape, label, ctx);
+            };
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: truncated_normal
+    args:
+      - name: mean
+        type: T
+        default: 0
+      - name: stddev
+        type: T
+        default: 1
+    out:
+      type: layr::InitF<T>
+      val: |
+        //
+            auto ctx = super->ctx;
+            return
+            [ctx, mean, stddev](teq::Shape shape, std::string label)
+            {
+                std::vector<T> vec(shape.n_elems());
+                layr::truncated_normal<T>(vec, shape, mean, stddev);
+                return eteq::make_variable(vec.data(), shape, label, ctx);
+            };
+  - template: typename T
+    name: zeros
+    description: Return initialization function that makes zero variables
+    out:
+      type: layr::InitF<T>
+      val: return constants<T>(0);
+  - template: typename T
+    name: ones
+    description: Return initialization function that makes zero variables
+    out:
+      type: layr::InitF<T>
+      val: return constants<T>(1);
+  - template: typename T
+    name: constants
+    description: Return initialization function that makes variables starting with a constant value
+    args:
+      - name: value
+        type: T
+        default: 0
+    out:
+      type: layr::InitF<T>
+      val: |
+        //
+            auto ctx = super->ctx;
+            return
+            [ctx, value](teq::Shape shape, std::string label)
+            {
+                return eteq::make_variable_scalar<T>(value, shape, label, ctx);
+            };
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: glorot_normal
+    description: same as xavier_normal
+    args:
+      - name: factor
+        type: T
+        default: 1.
+    out:
+      type: layr::InitF<T>
+      val: return xavier_normal(factor);
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: xavier_normal
+    description: |
+      Return initialization function that makes xavier initialized variables (that uses gaussian distribution)
+      (see https://andyljones.tumblr.com/post/110998971763/an-explanation-of-xavier-initialization)
+    args:
+      - name: factor
+        type: T
+        default: 1.
+    out:
+      type: layr::InitF<T>
+      val: |
+        //
+            auto ctx = super->ctx;
+            return
+            [ctx, factor](teq::Shape shape, std::string label)
+            {
+                std::vector<T> vec(shape.n_elems());
+                T stddev = factor * std::sqrt(2. / layr::fanio<T>(shape));
+                std::generate(vec.begin(), vec.end(), global::get_generator()->norm_decgen(0., stddev));
+                return eteq::make_variable(vec.data(), shape, label, ctx);
+            };
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: glorot_uniform
+    description: same as xavier_uniform
+    args:
+      - name: factor
+        type: T
+        default: 1.
+    out:
+      type: layr::InitF<T>
+      val: return xavier_uniform(factor);
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: xavier_uniform
+    description: |
+      Return initialization function that makes xavier initialized variables (that uses uniform distribution)
+      (see https://andyljones.tumblr.com/post/110998971763/an-explanation-of-xavier-initialization)
+    args:
+      - name: factor
+        type: T
+        default: 1.
+    out:
+      type: layr::InitF<T>
+      val: |
+        //
+            auto ctx = super->ctx;
+            return
+            [ctx, factor](teq::Shape shape, std::string label)
+            {
+                std::vector<T> vec(shape.n_elems());
+                T bound = factor * std::sqrt(6. / layr::fanio<T>(shape));
+                std::generate(vec.begin(), vec.end(),
+                    global::get_generator()->unif_decgen(-bound, bound));
+                return eteq::make_variable(vec.data(), shape, label, ctx);
+            };
+  - template: typename T
+    name: identity
+    args:
+      - name: gain
+        type: T
+        default: 1
+    out:
+      type: layr::InitF<T>
+      val: |
+        //
+            auto ctx = super->ctx;
+            return
+            [ctx,gain](teq::Shape shape, std::string label)
+            {
+                if (false == shape.compatible_after(teq::Shape(), 2))
+                {
+                    global::fatal("identity initialization can only be used for to 2D tensors");
+                }
+                std::vector<T> vec(shape.n_elems(), 0);
+                teq::DimT x = shape.at(0), y = shape.at(1);
+                teq::DimT minrank = std::min(x, y);
+                for (teq::DimT diag = 0; diag < minrank; ++diag)
+                {
+                    vec[diag + diag * x] = gain;
+                }
+                return eteq::make_variable(vec.data(), shape, label, ctx);
+            };
+  - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
+    name: variance_scaling
+    description: |
+      Return initialization function that makes variance scaling variables
+      (see https://www.tensorflow.org/versions/r1.14/api_docs/python/tf/contrib/layers/variance_scaling_initializer)
+    args:
+      - name: factor
+        type: T
+      - name: sfactor
+        type: layr::ShapeFactorF<T>
+        default: layr::ShapeFactorF<T>(layr::fanavg<T>)
+    out:
+      type: layr::InitF<T>
+      val: |
+        //
+            auto ctx = super->ctx;
+            return
+            [ctx, factor, sfactor](teq::Shape shape, std::string label)
+            {
+                std::vector<T> vec;
+                T stddev = std::sqrt(factor / sfactor(shape));
+                layr::truncated_normal<T>(vec, shape, 0, stddev);
+                return eteq::make_variable(vec.data(), shape, label, ctx);
+            };

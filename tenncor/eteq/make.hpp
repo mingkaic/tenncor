@@ -105,31 +105,42 @@ teq::TensptrT make_tfunctor (egen::_GENERATED_OPCODE opcode,
 	return make_tfuncattr<T>(opcode, children, attrs);
 }
 
+template <typename T>
+teq::TensptrT make_constant_tensor (T* data, teq::Shape shape)
+{
+	return teq::TensptrT(Constant<T>::get(data, shape));
+}
+
 /// Return constant node given raw array and shape
 template <typename T>
 ETensor make_constant (T* data, teq::Shape shape,
 	const global::CfgMapptrT& ctx = global::context())
 {
-	return ETensor(teq::TensptrT(
-		Constant<T>::get(data, shape)), ctx);
+	return ETensor(make_constant_tensor(data, shape), ctx);
 }
 
 #define _CHOOSE_CSTTYPE(REALTYPE){\
 std::vector<REALTYPE> tmp(data, data + shape.n_elems());\
-cst = make_constant<REALTYPE>(tmp.data(), shape, ctx);\
+cst = make_constant_tensor<REALTYPE>(tmp.data(), shape);\
+}
+
+template <typename T>
+teq::TensptrT make_constant_tensor (T* data, teq::Shape shape, egen::_GENERATED_DTYPE dtype)
+{
+	if (egen::get_type<T>() == dtype)
+	{
+		return make_constant_tensor<T>(data, shape);
+	}
+	teq::TensptrT cst;
+	TYPE_LOOKUP(_CHOOSE_CSTTYPE, dtype);
+	return cst;
 }
 
 template <typename T>
 ETensor make_constant (T* data, teq::Shape shape, egen::_GENERATED_DTYPE dtype,
 	const global::CfgMapptrT& ctx = global::context())
 {
-	if (egen::get_type<T>() == dtype)
-	{
-		return make_constant<T>(data, shape, ctx);
-	}
-	ETensor cst;
-	TYPE_LOOKUP(_CHOOSE_CSTTYPE, dtype);
-	return cst;
+	return ETensor(make_constant_tensor(data, shape, dtype), ctx);
 }
 
 #undef _CHOOSE_CSTTYPE
@@ -161,11 +172,11 @@ ETensor make_constant_like (T scalar, teq::TensptrT like,
 	ETensor cst;
 	if (like_type == egen::get_type<T>())
 	{
-		cst = make_constant_scalar<T>(scalar, teq::Shape());
+		cst = make_constant_scalar<T>(scalar, teq::Shape(), ctx);
 	}
 	else
 	{
-		cst = make_constant_scalar<T>(scalar, teq::Shape(), like_type);
+		cst = make_constant_scalar<T>(scalar, teq::Shape(), like_type, ctx);
 	}
 	return ETensor(make_functor(::egen::EXTEND,
 		teq::TensptrsT{cst}, (teq::TensptrT) like), ctx);
@@ -176,7 +187,7 @@ ETensor make_constant_like_uncast (T scalar, teq::TensptrT like,
 	const global::CfgMapptrT& ctx = global::context())
 {
 	return ETensor(make_functor(::egen::EXTEND,
-		teq::TensptrsT{make_constant_scalar<T>(scalar, teq::Shape())},
+		teq::TensptrsT{make_constant_scalar<T>(scalar, teq::Shape(), ctx)},
 		(teq::TensptrT) like), ctx);
 }
 

@@ -775,8 +775,7 @@ TEST_F(DISTRIB, CrossDerive)
 				"_________|_______|___|___`--[mgrF]:(variable:f1)\n"
 				"_________|_______|___`--[mgrD]:(variable:d1)\n"
 				"_________|_______`--[mgrF]:(variable:f2)\n"
-				"_________`--(CAST)\n"
-				"_____________`--(constant:1)\n";
+				"_________`--(constant:1)\n";
 			EXPECT_STREQ(expect.c_str(), ss.str().c_str());
 
 			auto gotshape = df1->shape();

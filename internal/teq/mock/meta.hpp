@@ -4,33 +4,17 @@
 
 #include "internal/teq/teq.hpp"
 
-struct MockMeta : public teq::iMetadata
+#include "gmock/gmock.h"
+
+struct MockMeta final : public teq::iMetadata
 {
-	size_t type_code (void) const override
-	{
-		return tcode_;
-	}
+	MOCK_CONST_METHOD0(type_code, size_t(void));
 
-	std::string type_label (void) const override
-	{
-		return tname_;
-	}
+	MOCK_CONST_METHOD0(type_label, std::string(void));
 
-	size_t type_size (void) const override
-	{
-		return 0;
-	}
+	MOCK_CONST_METHOD0(type_size, size_t(void));
 
-	size_t state_version (void) const override
-	{
-		return version_;
-	}
-
-	size_t tcode_ = 0;
-
-	std::string tname_ = "no_type";
-
-	size_t version_ = 0;
+	MOCK_CONST_METHOD0(state_version, size_t(void));
 };
 
 #endif // TEQ_MOCK_METADATA_HPP

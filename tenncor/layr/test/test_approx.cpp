@@ -1,5 +1,4 @@
-
-#define DISABLE_LAYR_APPROX_TEST
+#define DISABLE_LAYR_APPROX_TEST // tests moved to tenncor/test/test_approx.cpp
 #ifndef DISABLE_LAYR_APPROX_TEST
 
 

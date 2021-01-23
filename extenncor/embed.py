@@ -6,10 +6,10 @@ class Embedding(object):
     def __init__(self, vweight, wweight, words):
         nwords, vecsize = tuple(vweight.shape())
         self.embedding = tc.api.layer.dense([nwords], [vecsize],
-            weight_init=lambda shape, weight: vweight,
+            kernel_init=lambda shape, weight: vweight,
             bias_init=None)
         self.exbedding = tc.api.layer.dense([vecsize], [nwords],
-            weight_init=lambda shape, weight: wweight,
+            kernel_init=lambda shape, weight: wweight,
             bias_init=None)
         self.weight = vweight
         self.idx2word = words
@@ -37,7 +37,7 @@ class Embedding(object):
         word_vec[self.word2idx[word]] = 1
         return word_vec
 
-def embedding_weight_init(shape, label):
+def embedding_kernel_init(shape, label):
     if isinstance(shape, tc.Shape):
         shape = shape.as_list()
     return tc.variable(np.random.uniform(
@@ -49,8 +49,8 @@ def make_embedding(words, vecsize):
     vecsize     int denoting length of mapped vector
     '''
     nwords = len(words)
-    vweight = embedding_weight_init([nwords, vecsize], 'to_vec')
-    wweight = embedding_weight_init([vecsize, nwords], 'to_word')
+    vweight = embedding_kernel_init([nwords, vecsize], 'to_vec')
+    wweight = embedding_kernel_init([vecsize, nwords], 'to_word')
     return Embedding(vweight, wweight, words)
 
 def vdistance(v1, v2):

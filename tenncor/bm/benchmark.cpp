@@ -50,16 +50,20 @@ template <typename T>\
 static void NAME(benchmark::State& state)\
 {\
 	size_t n = state.range(0);\
+	teq::Shape shape = rand_shape(n);\
+	eteq::EVariable<T> var = eteq::make_variable_scalar<T>(0, shape, "var");\
+	eteq::ETensor out = FUNC(var);\
+	auto ctx = out.get_context();\
+	auto tens = out.get();\
+	eigen::Device device(std::numeric_limits<size_t>::max());\
 	for (auto _ : state)\
 	{\
 		state.PauseTiming();\
-		teq::Shape shape = rand_shape(n);\
 		std::vector<double> data = random_data(shape.n_elems(), -35, 35);\
 		std::vector<T> convdata(data.begin(), data.end());\
-		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::ETensor out = FUNC(var);\
+		var->assign(convdata.data(), shape);\
 		state.ResumeTiming();\
-		out.template calc<T>();\
+		teq::get_eval(ctx).evaluate(device, {tens});\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
@@ -70,16 +74,20 @@ template <typename T>\
 static void NAME(benchmark::State& state)\
 {\
 	size_t n = state.range(0);\
+	teq::Shape shape = rand_shape(n);\
+	eteq::EVariable<T> var = eteq::make_variable_scalar<T>(0, shape, "var");\
+	eteq::ETensor out = FUNC(var);\
+	auto ctx = out.get_context();\
+	auto tens = out.get();\
+	eigen::Device device(std::numeric_limits<size_t>::max());\
 	for (auto _ : state)\
 	{\
 		state.PauseTiming();\
-		teq::Shape shape = rand_shape(n);\
 		std::vector<double> data = random_data(shape.n_elems(), 0, 35);\
 		std::vector<T> convdata(data.begin(), data.end());\
-		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::ETensor out = FUNC(var);\
+		var->assign(convdata.data(), shape);\
 		state.ResumeTiming();\
-		out.template calc<T>();\
+		teq::get_eval(ctx).evaluate(device, {tens});\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
@@ -117,22 +125,46 @@ template <typename T>\
 static void NAME(benchmark::State& state)\
 {\
 	size_t n = state.range(0);\
+	teq::Shape shape = rand_shape(n);\
+	std::vector<double> data = random_data(shape.n_elems(), 1, 4);\
+	std::vector<double> data2 = random_data(shape.n_elems(), 1, 4);\
+	std::vector<T> convdata(data.begin(), data.end());\
+	std::vector<T> convdata2(data2.begin(), data2.end());\
+	eteq::EVariable<T> var = eteq::make_variable_scalar<T>(0, shape, "var");\
+	eteq::EVariable<T> var2 = eteq::make_variable_scalar<T>(0, shape, "var2");\
+	eteq::ETensor out = FUNC(var, var2);\
+	auto ctx = out.get_context();\
+	auto tens = out.get();\
+	eigen::Device device(std::numeric_limits<size_t>::max());\
 	for (auto _ : state)\
 	{\
 		state.PauseTiming();\
-		teq::Shape shape = rand_shape(n);\
 		std::vector<double> data = random_data(shape.n_elems(), 1, 4);\
 		std::vector<double> data2 = random_data(shape.n_elems(), 1, 4);\
 		std::vector<T> convdata(data.begin(), data.end());\
 		std::vector<T> convdata2(data2.begin(), data2.end());\
-		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), shape, "var");\
-		eteq::EVariable<T> var2 = eteq::make_variable<T>(convdata2.data(), shape, "var2");\
-		eteq::ETensor out = FUNC(var, var2);\
+		var->assign(convdata.data(), shape);\
+		var2->assign(convdata2.data(), shape);\
 		state.ResumeTiming();\
-		out.template calc<T>();\
+		teq::get_eval(ctx).evaluate(device, {tens});\
 	}\
 	state.SetComplexityN(state.range(0));\
 }
+
+
+DEFN_BENCHMARK(BM_Assign, tenncor().assign, DEFN_BINARY)
+
+
+DEFN_BENCHMARK(BM_AssignAdd, tenncor().assign_add, DEFN_BINARY)
+
+
+DEFN_BENCHMARK(BM_AssignSub, tenncor().assign_sub, DEFN_BINARY)
+
+
+DEFN_BENCHMARK(BM_AssignMul, tenncor().assign_mul, DEFN_BINARY)
+
+
+DEFN_BENCHMARK(BM_AssignDiv, tenncor().assign_div, DEFN_BINARY)
 
 
 DEFN_BENCHMARK(BM_Pow, tenncor().pow, DEFN_BINARY)
@@ -165,27 +197,30 @@ DEFN_BENCHMARK(BM_Gt, tenncor().gt, DEFN_BINARY)
 template <typename T>
 static void BM_Matmul(benchmark::State& state)
 {
-	size_t n = state.range(0);
+	teq::DimT common_dim = state.range(0);
+	std::uniform_int_distribution<> distsides(1, 255);
+	teq::DimT vari = distsides(mersenne_engine);
+	teq::DimT left_dim = common_dim + vari;
+	teq::DimT right_dim = common_dim + (255 - vari);
+	teq::Shape leftshape({common_dim, left_dim});
+	teq::Shape rightshape({right_dim, common_dim});
+	eteq::EVariable<T> var = eteq::make_variable_scalar<T>(0, leftshape, "var");
+	eteq::EVariable<T> var2 = eteq::make_variable_scalar<T>(0, rightshape, "var2");
+	eteq::ETensor out = tenncor().matmul(var, var2);
+	auto ctx = out.get_context();
+	auto tens = out.get();
+	eigen::Device device(std::numeric_limits<size_t>::max());
 	for (auto _ : state)
 	{
 		state.PauseTiming();
-		std::uniform_int_distribution<teq::DimT> distc(9, std::min(255ul, n - 1));
-		teq::DimT common_dim = distc(mersenne_engine);
-		int remaining = (double) n / common_dim;
-		std::uniform_int_distribution<> distsides(1, std::min(255, remaining));
-		teq::DimT left_dim = distsides(mersenne_engine);
-		teq::DimT right_dim = distsides(mersenne_engine);
-		teq::Shape leftshape({common_dim, left_dim});
-		teq::Shape rightshape({right_dim, common_dim});
 		std::vector<double> data = random_data(leftshape.n_elems(), -35, 35);
 		std::vector<double> data2 = random_data(rightshape.n_elems(), -35, 35);
 		std::vector<T> convdata(data.begin(), data.end());
 		std::vector<T> convdata2(data2.begin(), data2.end());
-		eteq::EVariable<T> var = eteq::make_variable<T>(convdata.data(), leftshape, "var");
-		eteq::EVariable<T> var2 = eteq::make_variable<T>(convdata2.data(), rightshape, "var2");
-		eteq::ETensor out = tenncor().matmul(var, var2);
+		var->assign(convdata.data(), leftshape);
+		var2->assign(convdata2.data(), rightshape);
 		state.ResumeTiming();
-		out.template calc<T>();
+		teq::get_eval(ctx).evaluate(device, {tens});
 	}
 	state.SetComplexityN(state.range(0));
 }
@@ -199,6 +234,51 @@ BENCHMARK_TEMPLATE(BM_Matmul, float)
 	->Complexity(benchmark::oN);
 
 BENCHMARK_TEMPLATE(BM_Matmul, int32_t)
+	->Range(64, 2048)
+	->Complexity(benchmark::oN);
+
+
+template <typename T>
+static void BM_Batch_Matmul(benchmark::State& state)
+{
+	teq::DimT common_dim = state.range(0);
+	std::uniform_int_distribution<> distsides(1, 255);
+	teq::DimT vari = distsides(mersenne_engine);
+	teq::DimT left_dim = common_dim + vari;
+	teq::DimT right_dim = common_dim + (255 - vari);
+	teq::DimT batch_dim = 2;
+	teq::Shape leftshape({common_dim, left_dim, batch_dim});
+	teq::Shape rightshape({right_dim, common_dim, batch_dim});
+	eteq::EVariable<T> var = eteq::make_variable_scalar<T>(0, leftshape, "var");
+	eteq::EVariable<T> var2 = eteq::make_variable_scalar<T>(0, rightshape, "var2");
+	eteq::ETensor out = tenncor().matmul(var, var2);
+	auto ctx = out.get_context();
+	eigen::Device device(std::numeric_limits<size_t>::max());
+	auto tens = out.get();
+	for (auto _ : state)
+	{
+		state.PauseTiming();
+		std::vector<double> data = random_data(leftshape.n_elems(), -35, 35);
+		std::vector<double> data2 = random_data(rightshape.n_elems(), -35, 35);
+		std::vector<T> convdata(data.begin(), data.end());
+		std::vector<T> convdata2(data2.begin(), data2.end());
+		var->assign(convdata.data(), leftshape);
+		var2->assign(convdata2.data(), rightshape);
+		state.ResumeTiming();
+		teq::get_eval(ctx).evaluate(device, {tens});
+	}
+	state.SetComplexityN(state.range(0));
+}
+
+BENCHMARK_TEMPLATE(BM_Batch_Matmul, double)
+	->Range(64, 2048)
+	->Complexity(benchmark::oN);
+
+BENCHMARK_TEMPLATE(BM_Batch_Matmul, float)
+	->Range(64, 2048)
+	->Complexity(benchmark::oN);
+
+BENCHMARK_TEMPLATE(BM_Batch_Matmul, int32_t)
 	->Range(64, 2048)
 	->Complexity(benchmark::oN);
 
@@ -225,6 +305,11 @@ static void BM_MatmulComplex(benchmark::State& state)
 	auto da = ders[0];
 	auto db = ders[1];
 	auto dc = ders[2];
+	auto ctx = da.get_context();
+	eigen::Device device(std::numeric_limits<size_t>::max());
+	auto datens = da.get();
+	auto dbtens = db.get();
+	auto dctens = dc.get();
 
 	for (auto _ : state)
 	{
@@ -235,13 +320,11 @@ static void BM_MatmulComplex(benchmark::State& state)
 		std::vector<int32_t> data(ddata.begin(), ddata.end());
 		std::vector<int32_t> data2(ddata2.begin(), ddata2.end());
 		std::vector<int32_t> data3(ddata3.begin(), ddata3.end());
-		state.ResumeTiming();
 		a->assign(data.data(), a->shape());
 		b->assign(data2.data(), b->shape());
 		c->assign(data3.data(), c->shape());
-		da.template calc<int32_t>();
-		db.template calc<int32_t>();
-		dc.template calc<int32_t>();
+		state.ResumeTiming();
+		teq::get_eval(ctx).evaluate(device, {datens, dbtens, dctens});
 	}
 }
 
@@ -282,6 +365,13 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	auto dw1 = ders[2];
 	auto db1 = ders[3];
 
+	auto ctx = dw0.get_context();
+	eigen::Device device(std::numeric_limits<size_t>::max());
+	auto dw0tens = dw0.get();
+	auto db0tens = db0.get();
+	auto dw1tens = dw1.get();
+	auto db1tens = db1.get();
+
 	for (auto _ : state)
 	{
 		state.PauseTiming();
@@ -291,17 +381,14 @@ static void BM_SigmoidMLP(benchmark::State& state)
 		std::vector<double> w1_data = random_data(weight1_shape.n_elems(), 0, 1);
 		std::vector<double> b1_data = random_data(bias1_shape.n_elems(), 0, 1);
 		std::vector<double> out_data = random_data(out_shape.n_elems(), 0, 1);
-		state.ResumeTiming();
 		in->assign(in_data.data(), in->shape());
 		out->assign(out_data.data(), out->shape());
 		weight0->assign(w0_data.data(), weight0->shape());
 		bias0->assign(b0_data.data(), bias0->shape());
 		weight1->assign(w1_data.data(), weight1->shape());
 		bias1->assign(b1_data.data(), bias1->shape());
-		dw0.template calc<double>();
-		db0.template calc<double>();
-		dw1.template calc<double>();
-		db1.template calc<double>();
+		state.ResumeTiming();
+		teq::get_eval(ctx).evaluate(device, {dw0tens, db0tens, dw1tens, db1tens});
 	}
 }
 
@@ -347,6 +434,13 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	// optimize
 	hone::optimize("cfg/optimizations.json");
 
+	auto ctx = dw0.get_context();
+	eigen::Device device(std::numeric_limits<size_t>::max());
+	auto dw0tens = dw0.get();
+	auto db0tens = db0.get();
+	auto dw1tens = dw1.get();
+	auto db1tens = db1.get();
+
 	for (auto _ : state)
 	{
 		state.PauseTiming();
@@ -356,17 +450,14 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 		std::vector<double> w1_data = random_data(weight1_shape.n_elems(), 0, 1);
 		std::vector<double> b1_data = random_data(bias1_shape.n_elems(), 0, 1);
 		std::vector<double> out_data = random_data(out_shape.n_elems(), 0, 1);
-		state.ResumeTiming();
 		in->assign(in_data.data(), in->shape());
 		out->assign(out_data.data(), out->shape());
 		weight0->assign(w0_data.data(), weight0->shape());
 		bias0->assign(b0_data.data(), bias0->shape());
 		weight1->assign(w1_data.data(), weight1->shape());
 		bias1->assign(b1_data.data(), bias1->shape());
-		dw0.template calc<double>();
-		db0.template calc<double>();
-		dw1.template calc<double>();
-		db1.template calc<double>();
+		state.ResumeTiming();
+		teq::get_eval(ctx).evaluate(device, {dw0tens, db0tens, dw1tens, db1tens});
 	}
 }
 

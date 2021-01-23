@@ -24,8 +24,14 @@ bool process_get_data (
 	reply.set_version(latest);
 
 	void* raw = tens->device().data();
-	auto dtype = (egen::_GENERATED_DTYPE) meta.type_code();
+	if (nullptr == raw)
+	{
+		global::errorf("cannot process tensor %s with null data",
+			tens->to_string().c_str());
+		return false;
+	}
 
+	auto dtype = (egen::_GENERATED_DTYPE) meta.type_code();
 	size_t nelems = tens->shape().n_elems();
 	google::protobuf::RepeatedField<double> field;
 	field.Resize(nelems, 0);

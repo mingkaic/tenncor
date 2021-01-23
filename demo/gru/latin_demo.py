@@ -36,9 +36,6 @@ def sample(inp, prob, seed_ix, n):
 
     return ixes
 
-def old_winit(shape, label):
-    return tc.variable(np.random.uniform(-0.05, 0.05, shape.as_list()), label)
-
 def encoded_loss(encoded_expect, encoded_result):
     return tc.api.reduce_sum(-tc.api.log(tc.api.reduce_sum(encoded_result * encoded_expect, 0, 1)))
 
@@ -93,11 +90,9 @@ def main(args):
 
     model = tc.api.layer.link([
         tc.api.layer.gru(tc.Shape([N]), h_size, seq_length,
-            weight_init=old_winit,
-            bias_init=tc.api.layer.zero_init()),
+            kernel_init=tc.api.init.random_uniform(-0.05, 0.05)),
         tc.api.layer.dense([h_size], [o_size],
-            weight_init=old_winit,
-            bias_init=tc.api.layer.zero_init()),
+            kernel_init=tc.api.init.random_uniform(-0.05, 0.05)),
         tc.api.layer.bind(lambda x: tc.api.softmax(x, 0, 1)),
     ])
     untrained_model = model.deep_clone()

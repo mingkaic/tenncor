@@ -36,7 +36,11 @@ cc_library(
     hdrs = [":eteq_hdrs"],
     srcs = [":eteq_srcs"],
     copts = ["-std=c++17"],
-    deps = ["//internal/eigen:eigen"],
+    deps = [
+        "//internal/eigen:eigen",
+        "@boost//:bimap",
+    ],
+    defines = ["SKIP_INIT"],
     visibility = ["//visibility:public"],
 )
 

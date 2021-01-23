@@ -4,8 +4,6 @@
 
 #include "gtest/gtest.h"
 
-#include "exam/exam.hpp"
-
 #include "testutil/tutil.hpp"
 
 #include "internal/teq/mock/mock.hpp"
@@ -13,30 +11,78 @@
 #include "tenncor/eteq/eteq.hpp"
 
 
+using ::testing::_;
+using ::testing::Return;
+using ::testing::ReturnRef;
+using ::testing::Throw;
+
+
+static void unary_derivative (egen::_GENERATED_OPCODE opcode, const std::string& graph)
+{
+	eteq::DerivativeFuncs der;
+
+	teq::Shape shape({3, 2});
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, shape, "super");
+	auto arg = make_var(data.data(), devref, shape, "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	auto op = make_fnc("op", opcode, teq::TensptrsT{arg});
+	EXPECT_CALL(*op, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*op, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+
+	auto result = der.lderive(op, super, 0);
+	EXPECT_GRAPHEQ(graph, result);
+}
+
+
+static void binary_derivative (egen::_GENERATED_OPCODE opcode, const std::string& graph)
+{
+	eteq::DerivativeFuncs der;
+
+	teq::Shape shape({3, 2});
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, shape, "super");
+	auto arg = make_var(data.data(), devref, shape, "arg1");
+	auto arg2 = make_var(data.data(), devref, shape, "arg2");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	auto op = make_fnc("op", opcode, teq::TensptrsT{arg,arg2});
+	EXPECT_CALL(*op, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*op, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+
+	auto result = der.lderive(op, super, 1);
+	EXPECT_GRAPHEQ(graph, result);
+}
+
+
 TEST(BACKPROP, Passthrough)
 {
 	// Identity, Cast, Round, Add
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg, arg2}, teq::Opcode{"op", egen::IDENTITY});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({3, 2}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3, 2}), "arg1");
+	auto arg2 = make_var(data.data(), devref, teq::Shape({3, 2}), "arg2");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	auto op = make_fnc("op", egen::IDENTITY, teq::TensptrsT{arg, arg2});
+	EXPECT_CALL(*op, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 
 	auto result = der.lderive(op, super, 1);
 	EXPECT_EQ(super.get(), result.get());
@@ -45,314 +91,116 @@ TEST(BACKPROP, Passthrough)
 
 TEST(BACKPROP, Neg)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::NEG});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::NEG,
 		"(NEG<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Tan)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::TAN});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::TAN,
 		"(DIV<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(SQUARE<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(COS<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_________`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_________`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Log)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::LOG});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::LOG,
 		"(DIV<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Sqrt)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::SQRT});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::SQRT,
 		"(DIV<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(EXTEND<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(constant:2<DOUBLE>[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(op<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_________`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_________`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Abs)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::ABS});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::ABS,
 		"(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(DIV<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(op<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|_______`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Sin)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::SIN});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::SIN,
 		"(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(COS<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Cos)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::COS});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::COS,
 		"(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(NEG<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(SIN<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|_______`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Exp)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::EXP});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::EXP,
 		"(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(op<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Square)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::SQUARE});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::SQUARE,
 		"(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(EXTEND<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___|___`--(constant:2<DOUBLE>[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Cube)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::CUBE});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::CUBE,
 		"(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(EXTEND<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___|___`--(constant:3<DOUBLE>[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(SQUARE<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|_______`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Sigmoid)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::SIGMOID});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::SIGMOID,
 		"(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(op<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -362,31 +210,13 @@ TEST(BACKPROP, Sigmoid)
 		"_|_______|___`--(constant:1<DOUBLE>[1\\1\\1\\1\\1\\1\\1\\1])\n"
 		"_|_______`--(op<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___________`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Tanh)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg}, teq::Opcode{"op", egen::TANH});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 0);
-	EXPECT_GRAPHEQ(
+	unary_derivative(egen::TANH,
 		"(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(SUB<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(EXTEND<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -394,36 +224,13 @@ TEST(BACKPROP, Tanh)
 		"_|___`--(SQUARE<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|_______`--(op<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___________`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Pow)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg, arg2}, teq::Opcode{"op", egen::POW});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 1);
-	EXPECT_GRAPHEQ(
+	binary_derivative(egen::POW,
 		"(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(LOG<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -431,135 +238,43 @@ TEST(BACKPROP, Pow)
 		"_|___`--(op<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|_______`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|_______`--(constant:arg2<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Mul)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg, arg2}, teq::Opcode{"op", egen::MUL});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 1);
-	EXPECT_GRAPHEQ(
+	binary_derivative(egen::MUL,
 		"(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, MinMax)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg, arg2}, teq::Opcode{"op", egen::MAX});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 1);
-	EXPECT_GRAPHEQ(
+	binary_derivative(egen::MAX,
 		"(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(EQ<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(op<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___|___`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___|___`--(constant:arg2<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(constant:arg2<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Sub)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg, arg2}, teq::Opcode{"op", egen::SUB});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 1);
-	EXPECT_GRAPHEQ(
+	binary_derivative(egen::SUB,
 		"(NEG<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
 TEST(BACKPROP, Div)
 {
-	eteq::DerivativeFuncs der;
-
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg, arg2}, teq::Opcode{"op", egen::DIV});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
-
-	auto result = der.lderive(op, super, 1);
-	EXPECT_GRAPHEQ(
+	binary_derivative(egen::DIV,
 		"(DIV<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(DIV<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(MUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -567,7 +282,7 @@ TEST(BACKPROP, Div)
 		"_|___|___|___`--(constant:super<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___|___`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_|___`--(constant:arg2<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(constant:arg2<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
+		"_`--(constant:arg2<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n");
 }
 
 
@@ -575,18 +290,16 @@ TEST(BACKPROP, ReduceSum)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = eteq::make_functor(egen::REDUCE_SUM,teq::TensptrsT{arg},
-		std::set<teq::RankT>{1});
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({3}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	auto op = eteq::make_functor(egen::REDUCE_SUM,teq::TensptrsT{arg},std::set<teq::RankT>{1});
 
 	auto result = der.lderive(std::dynamic_pointer_cast<teq::iFunctor>(op), super, 0);
 	EXPECT_GRAPHEQ(
@@ -599,18 +312,16 @@ TEST(BACKPROP, ReduceProd)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = eteq::make_functor(egen::REDUCE_PROD,teq::TensptrsT{arg},
-		std::set<teq::RankT>{1});
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({3}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	auto op = eteq::make_functor(egen::REDUCE_PROD,teq::TensptrsT{arg},std::set<teq::RankT>{1});
 
 	auto result = der.lderive(std::dynamic_pointer_cast<teq::iFunctor>(op), super, 0);
 	EXPECT_GRAPHEQ(
@@ -629,18 +340,16 @@ TEST(BACKPROP, ReduceMinMax)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = eteq::make_functor(egen::REDUCE_MAX,teq::TensptrsT{arg},
-		std::set<teq::RankT>{1});
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({3}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	auto op = eteq::make_functor(egen::REDUCE_MAX,teq::TensptrsT{arg},std::set<teq::RankT>{1});
 
 	auto result = der.lderive(std::dynamic_pointer_cast<teq::iFunctor>(op), super, 0);
 	EXPECT_GRAPHEQ(
@@ -659,18 +368,16 @@ TEST(BACKPROP, Extend)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2, 4}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto op = eteq::make_functor(egen::EXTEND,teq::TensptrsT{arg},
-		teq::DimsT{1, 1, 4});
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({3,2,4}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	auto op = eteq::make_functor(egen::EXTEND,teq::TensptrsT{arg},teq::DimsT{1, 1, 4});
 
 	auto result = der.lderive(std::dynamic_pointer_cast<teq::iFunctor>(op), super, 0);
 	EXPECT_GRAPHEQ(
@@ -683,16 +390,15 @@ TEST(BACKPROP, Permute)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({3,2}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
 	auto op = eteq::make_functor(egen::PERMUTE,teq::TensptrsT{arg},
 		teq::RanksT{1, 2, 0});
 
@@ -707,16 +413,15 @@ TEST(BACKPROP, Reshape)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6, 7, 8},
-		teq::Shape({2, 2, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6, 7, 8},
-		teq::Shape({4, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{1, 2, 3, 4, 5, 6, 7, 8};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({2,2,2}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({4,2}), "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
 	auto op = eteq::make_functor(egen::RESHAPE,teq::TensptrsT{arg},
 		teq::Shape({2, 2, 2}));
 
@@ -731,28 +436,24 @@ TEST(BACKPROP, Matmul)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4},
-		teq::Shape({2, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({2, 3}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
-	auto op = eteq::make_functor(egen::MATMUL, teq::TensptrsT{arg, arg2},
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({2,2}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	auto arg2 = make_var(data.data(), devref, teq::Shape({2,3}), "arg2");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	auto op = eteq::make_functor(egen::CONTRACT, teq::TensptrsT{arg, arg2},
 		eigen::PairVecT<teq::RankT>{{0, 1}});
 
 	auto result = der.lderive(std::dynamic_pointer_cast<teq::iFunctor>(op), super, 1);
 	EXPECT_GRAPHEQ(
 		"(PERMUTE<DOUBLE>[2\\3\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(MATMUL<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(CONTRACT<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(constant:super<DOUBLE>[2\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(constant:arg1<DOUBLE>[3\\2\\1\\1\\1\\1\\1\\1])\n", result);
 }
@@ -762,21 +463,17 @@ TEST(BACKPROP, Conv)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2},
-		teq::Shape({2, 1}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4},
-		teq::Shape({2, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({2}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	auto arg2 = make_var(data.data(), devref, teq::Shape({2,2}), "arg2");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
 	auto op = eteq::make_functor(egen::CONV, teq::TensptrsT{arg, arg2},
 		teq::RanksT{0, 1});
 
@@ -792,16 +489,15 @@ TEST(BACKPROP, Slice)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2},
-		teq::Shape({2, 1}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({2}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
 	auto op = eteq::make_functor(egen::SLICE, teq::TensptrsT{arg},
 		eigen::PairVecT<teq::DimT>{{1, 2}, {0, 1}});
 
@@ -816,16 +512,15 @@ TEST(BACKPROP, Pad)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6},
-		teq::Shape({4, 3}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({4,3}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
 	auto op = eteq::make_functor(egen::PAD, teq::TensptrsT{arg},
 		eigen::PairVecT<teq::DimT>{{1, 1}, {0, 1}});
 
@@ -840,21 +535,17 @@ TEST(BACKPROP, Concat)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 4}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({3,4}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	auto arg2 = make_var(data.data(), devref, teq::Shape({3,2}), "arg2");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
 	auto op = eteq::make_functor(egen::CONCAT, teq::TensptrsT{arg, arg2}, teq::RankT(1));
 
 	auto result = der.lderive(std::dynamic_pointer_cast<teq::iFunctor>(op), super, 1);
@@ -868,16 +559,15 @@ TEST(BACKPROP, Stride)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2},
-		teq::Shape({1, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({1,2}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
 	auto op = eteq::make_functor(egen::STRIDE, teq::TensptrsT{arg}, teq::DimsT{2, 1});
 
 	auto result = der.lderive(std::dynamic_pointer_cast<teq::iFunctor>(op), super, 0);
@@ -891,16 +581,15 @@ TEST(BACKPROP, Scatter)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 4}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{1, 2, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({3,4}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
 	auto op = eteq::make_functor(egen::SCATTER, teq::TensptrsT{arg},
 		teq::Shape({3, 4}), teq::DimsT{1, 2});
 
@@ -915,16 +604,15 @@ TEST(BACKPROP, Reverse)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, teq::Shape({3,2}), "super");
+	auto arg = make_var(data.data(), devref, teq::Shape({3,2}), "arg1");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
 	auto op = eteq::make_functor(egen::REVERSE, teq::TensptrsT{arg}, std::set<teq::RankT>{1});
 
 	auto result = der.lderive(std::dynamic_pointer_cast<teq::iFunctor>(op), super, 0);
@@ -938,30 +626,23 @@ TEST(BACKPROP, Select)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
-	auto arg3 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg3");
-	arg3->meta_.tcode_ = egen::DOUBLE;
-	arg3->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg, arg2, arg3}, teq::Opcode{"op", egen::SELECT});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
+	teq::Shape shape({3,2});
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, shape, "super");
+	auto arg = make_var(data.data(), devref, shape, "arg1");
+	auto arg2 = make_var(data.data(), devref, shape, "arg2");
+	auto arg3 = make_var(data.data(), devref, shape, "arg3");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg3, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	auto op = make_fnc("op", egen::SELECT, teq::TensptrsT{arg, arg2, arg3});
+	EXPECT_CALL(*op, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*op, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 
 	auto result = der.lderive(op, super, 1);
 	EXPECT_GRAPHEQ(
@@ -977,25 +658,21 @@ TEST(BACKPROP, Zeros)
 {
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg, arg2}, teq::Opcode{"op", egen::RAND_UNIF});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
+	teq::Shape shape({3,2});
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, shape, "super");
+	auto arg = make_var(data.data(), devref, shape, "arg1");
+	auto arg2 = make_var(data.data(), devref, shape, "arg2");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	auto op = make_fnc("op", egen::RAND_UNIF, teq::TensptrsT{arg, arg2});
+	EXPECT_CALL(*op, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*op, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 
 	auto result = der.lderive(op, super, 1);
 	EXPECT_GRAPHEQ(
@@ -1006,46 +683,63 @@ TEST(BACKPROP, Zeros)
 
 TEST(BACKPROP, Fatals)
 {
+	auto logger = new exam::MockLogger();
+	global::set_logger(logger);
+	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
+
 	eteq::DerivativeFuncs der;
 
-	auto super = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "super");
-	super->meta_.tcode_ = egen::DOUBLE;
-	super->meta_.tname_ = "DOUBLE";
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
-	auto op = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg, arg2}, teq::Opcode{"op", egen::ASSIGN});
-	op->meta_.tcode_ = egen::DOUBLE;
-	op->meta_.tname_ = "DOUBLE";
+	teq::Shape shape({3, 2});
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto super = make_var(data.data(), devref, shape, "super");
+	auto arg = make_var(data.data(), devref, shape, "arg1");
+	auto arg2 = make_var(data.data(), devref, shape, "arg2");
+	EXPECT_CALL(*super, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	auto op = make_fnc("op", egen::ASSIGN, teq::TensptrsT{arg, arg2});
+	EXPECT_CALL(*op, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*op, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 
-	EXPECT_FATAL(der.lderive(op, super, 1), "cannot derive op");
+	std::string fatalmsg = "cannot derive op";
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
+	EXPECT_FATAL(der.lderive(op, super, 1), fatalmsg.c_str());
 
-	auto op2 = std::make_shared<MockFunctor>(
-		teq::TensptrsT{arg, arg2}, teq::Opcode{"zop", 999999});
-	op2->meta_.tcode_ = egen::DOUBLE;
-	op2->meta_.tname_ = "DOUBLE";
-	EXPECT_FATAL(der.lderive(op2, super, 1), "Unknown op zop");
+	auto op2 = make_fnc("zop", 999999, teq::TensptrsT{arg, arg2});
+	EXPECT_CALL(*op2, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*op2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+
+	std::string fatalmsg1 = "Unknown op zop";
+	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
+	EXPECT_FATAL(der.lderive(op2, super, 1), fatalmsg1.c_str());
+
+	global::set_logger(new exam::NoSupportLogger());
 }
 
 
 TEST(BACKPROP, ZeroOnes)
 {
+	MockMeta mockmeta;
+	MockLeaf t1;
+	MockLeaf t2;
+	make_var(t1, teq::Shape({1, 2, 3}), "t1");
+	make_var(t2, teq::Shape({3, 2, 4}), "t2");
+	EXPECT_CALL(t1, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(t2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("FLOAT"));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::FLOAT));
 	eteq::DerivativeFuncs der;
 
-	auto result = der.get_const_zero(teq::Shape({1, 2, 3}));
+	auto result = der.get_const_zero(t1);
+	ASSERT_NE(nullptr, result);
 	EXPECT_GRAPHEQ("(constant:0<FLOAT>[1\\2\\3\\1\\1\\1\\1\\1])\n", result);
 
-	auto result2 = der.get_const_one(teq::Shape({3, 2, 4}));
+	auto result2 = der.get_const_one(t2);
+	ASSERT_NE(nullptr, result2);
 	EXPECT_GRAPHEQ("(constant:1<FLOAT>[3\\2\\4\\1\\1\\1\\1\\1])\n", result2);
 }
 
@@ -1054,21 +748,18 @@ TEST(BACKPROP, AddHelper)
 {
 	eteq::DerivativeFuncs der;
 
-	auto arg = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg1");
-	arg->meta_.tcode_ = egen::DOUBLE;
-	arg->meta_.tname_ = "DOUBLE";
-	auto arg2 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg2");
-	arg2->meta_.tcode_ = egen::DOUBLE;
-	arg2->meta_.tname_ = "DOUBLE";
-	auto arg3 = std::make_shared<MockLeaf>(
-		std::vector<double>{1, 2, 3, 4, 5, 6},
-		teq::Shape({3, 2}), "arg3");
-	arg3->meta_.tcode_ = egen::DOUBLE;
-	arg3->meta_.tname_ = "DOUBLE";
+	teq::Shape shape({3, 2});
+	std::vector<double> data{1, 2, 3, 4, 5, 6};
+	MockDeviceRef devref;
+	MockMeta mockmeta;
+	auto arg = make_var(data.data(), devref, shape, "arg1");
+	auto arg2 = make_var(data.data(), devref, shape, "arg2");
+	auto arg3 = make_var(data.data(), devref, shape, "arg3");
+	EXPECT_CALL(*arg, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*arg3, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
 
 	auto result = der.add({arg, arg2, arg3});
 	EXPECT_GRAPHEQ(

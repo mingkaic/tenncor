@@ -41,16 +41,20 @@ TEST_F(LOOKUP, LocalLookup)
 	// instance 1
 	distr::iDistrMgrptrT mgr(make_mgr("mgr1"));
 
-	auto c = std::make_shared<MockLeaf>(teq::Shape(), "3.5");
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto y = std::make_shared<MockLeaf>(teq::Shape(), "Y");
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{
-		std::make_shared<MockFunctor>(teq::TensptrsT{c,y}, teq::Opcode{"ADD", 0}),
-		std::make_shared<MockFunctor>(teq::TensptrsT{
-			std::make_shared<MockFunctor>(teq::TensptrsT{c}, teq::Opcode{"SIN", 0}),
-			std::make_shared<MockFunctor>(teq::TensptrsT{x,x}, teq::Opcode{"ADD", 0})
-		}, teq::Opcode{"MUL", 0})
-	}, teq::Opcode{"ADD", 0});
+	teq::Shape shape;
+	auto c = make_var(shape, "3.5");
+	auto x = make_var(shape, "X");
+	auto y = make_var(shape, "Y");
+	auto f = make_fnc("ADD", 0, teq::TensptrsT{c,y});
+	auto f1 = make_fnc("SIN", 0, teq::TensptrsT{c});
+	auto f2 = make_fnc("ADD", 0, teq::TensptrsT{x,x});
+	auto f3 = make_fnc("MUL", 0, teq::TensptrsT{f1,f2});
+	auto root = make_fnc("ADD", 0, teq::TensptrsT{f,f3});
+	EXPECT_CALL(*f, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*f1, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*f2, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*f3, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*root, shape()).WillRepeatedly(Return(shape));
 
 	std::stringstream condjson;
 	condjson <<
@@ -85,29 +89,31 @@ TEST_F(LOOKUP, RemoteLookup)
 	// instance 2
 	distr::iDistrMgrptrT mgr2(make_mgr("mgr2"));
 
-	auto c = std::make_shared<MockLeaf>(teq::Shape(), "3.5");
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
-	auto y = std::make_shared<MockLeaf>(teq::Shape(), "Y");
+	teq::Shape shape;
+	auto c = make_var(shape, "3.5");
+	auto x = make_var(shape, "X");
+	auto y = make_var(shape, "Y");
 
-	c->meta_.tcode_ = egen::DOUBLE;
-	x->meta_.tcode_ = egen::DOUBLE;
-	y->meta_.tcode_ = egen::DOUBLE;
-	c->meta_.tname_ = "DOUBLE";
-	x->meta_.tname_ = "DOUBLE";
-	y->meta_.tname_ = "DOUBLE";
+	MockMeta mockmeta;
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
 
-	auto f = std::make_shared<MockFunctor>(teq::TensptrsT{c}, teq::Opcode{"SIN", 0});
-	auto g = std::make_shared<MockFunctor>(teq::TensptrsT{x,x}, teq::Opcode{"ADD", 0});
-	auto f1 = std::make_shared<MockFunctor>(teq::TensptrsT{c,y}, teq::Opcode{"ADD", 0});
-	auto f2 = std::make_shared<MockFunctor>(teq::TensptrsT{f,g}, teq::Opcode{"MUL", 0});
-	f->meta_.tcode_ = egen::DOUBLE;
-	g->meta_.tcode_ = egen::DOUBLE;
-	f1->meta_.tcode_ = egen::DOUBLE;
-	f2->meta_.tcode_ = egen::DOUBLE;
-	f->meta_.tname_ = "DOUBLE";
-	g->meta_.tname_ = "DOUBLE";
-	f1->meta_.tname_ = "DOUBLE";
-	f2->meta_.tname_ = "DOUBLE";
+	EXPECT_CALL(*c, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*x, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*y, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+
+	auto f = make_fnc("SIN", 0, teq::TensptrsT{c});
+	auto g = make_fnc("ADD", 0, teq::TensptrsT{x,x});
+	auto f1 = make_fnc("ADD", 0, teq::TensptrsT{c,y});
+	auto f2 = make_fnc("MUL", 0, teq::TensptrsT{f,g});
+	EXPECT_CALL(*f, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*g, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*f1, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*f2, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*f, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*g, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*f1, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(*f2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 
 	auto& iosvc = distr::get_iosvc(*mgr);
 	auto& iosvc2 = distr::get_iosvc(*mgr2);
@@ -120,9 +126,9 @@ TEST_F(LOOKUP, RemoteLookup)
 	auto f2_ref = iosvc.lookup_node(err, f2_id);
 	ASSERT_NOERR(err);
 
-	auto root = std::make_shared<MockFunctor>(teq::TensptrsT{f1_ref, f2_ref}, teq::Opcode{"ADD", 0});
-	root->meta_.tcode_ = egen::DOUBLE;
-	root->meta_.tname_ = "DOUBLE";
+	auto root = make_fnc("ADD", 0, teq::TensptrsT{f1_ref, f2_ref});
+	EXPECT_CALL(*root, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*root, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 
 	std::stringstream condjson;
 	condjson <<

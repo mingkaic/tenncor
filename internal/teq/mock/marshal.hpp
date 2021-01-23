@@ -4,46 +4,19 @@
 
 #include "internal/teq/teq.hpp"
 
-struct MockTeqMarsh : public teq::iTeqMarshaler
+#include "gmock/gmock.h"
+
+struct MockTeqMarsh final : public teq::iTeqMarshaler
 {
-	virtual ~MockTeqMarsh (void) = default;
+	MOCK_METHOD1(marshal, void(const marsh::String&));
+	MOCK_METHOD1(marshal, void(const marsh::iNumber&));
+	MOCK_METHOD1(marshal, void(const marsh::iArray&));
+	MOCK_METHOD1(marshal, void(const marsh::iTuple&));
+	MOCK_METHOD1(marshal, void(const marsh::Maps&));
 
-	void marshal (const marsh::String& str) override
-	{
-		visited_.emplace(&str);
-	}
+	MOCK_METHOD1(marshal, void(const teq::TensorObj&));
 
-	void marshal (const marsh::iNumber& num) override
-	{
-		visited_.emplace(&num);
-	}
-
-	void marshal (const marsh::iArray& arr) override
-	{
-		visited_.emplace(&arr);
-	}
-
-	void marshal (const marsh::iTuple& tup) override
-	{
-		visited_.emplace(&tup);
-	}
-
-	void marshal (const marsh::Maps& mm) override
-	{
-		visited_.emplace(&mm);
-	}
-
-	void marshal (const teq::TensorObj& tens) override
-	{
-		visited_.emplace(&tens);
-	}
-
-	void marshal (const teq::LayerObj& layer) override
-	{
-		visited_.emplace(&layer);
-	}
-
-	std::unordered_set<const marsh::iObject*> visited_;
+	MOCK_METHOD1(marshal, void(const teq::LayerObj&));
 };
 
 #endif // TEQ_MOCK_MARSHALER_HPP

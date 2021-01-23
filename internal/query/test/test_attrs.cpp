@@ -12,23 +12,35 @@
 #include "internal/query/parse.hpp"
 
 
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Const;
+
+
 TEST(ATTRS, FindByAttrTensKeyDirectSubgraph)
 {
-	teq::TensptrT a(new MockLeaf(teq::Shape(), "A"));
-	teq::TensptrT b(new MockLeaf(teq::Shape(), "B"));
-	teq::TensptrT c(new MockLeaf(teq::Shape(), "C"));
+	auto a = make_var(teq::Shape(), "A");
+	auto b = make_var(teq::Shape(), "B");
+	auto c = make_var(teq::Shape(), "C");
 
-	auto df = new MockFunctor(teq::TensptrsT{b}, teq::Opcode{"SIN", 0});
-	teq::TensptrT d(df);
+	auto d = make_fnc("SIN", 0, teq::TensptrsT{b});
+	auto f = make_fnc("SUB", 1, teq::TensptrsT{a, c});
+	auto root = make_fnc("SUB", 1, teq::TensptrsT{f, d});
 
-	auto ff = new MockFunctor(teq::TensptrsT{a, c}, teq::Opcode{"SUB", 1});
-	ff->add_attr("yodoo", std::make_unique<teq::TensorObj>(c));
-	teq::TensptrT f(ff);
+	teq::TensorObj tensobjc(c);
+	marsh::Number<double> numobj(333.4);
+	teq::TensorObj tensobjf(f);
 
-	auto gf = new MockFunctor(teq::TensptrsT{f, d}, teq::Opcode{"SUB", 1});
-	gf->add_attr("numbers", std::make_unique<marsh::Number<double>>(333.4));
-	gf->add_attr("tensors", std::make_unique<teq::TensorObj>(f));
-	teq::TensptrT root(gf);
+	EXPECT_CALL(*f, size()).WillRepeatedly(Return(1));
+	EXPECT_CALL(*f, ls_attrs()).WillRepeatedly(Return(types::StringsT{"yodoo"}));
+	EXPECT_CALL(*f, get_attr("yodoo")).WillRepeatedly(Return(&tensobjc));
+	EXPECT_CALL(Const(*f), get_attr("yodoo")).WillRepeatedly(Return(&tensobjc));
+	EXPECT_CALL(*root, size()).WillRepeatedly(Return(2));
+	EXPECT_CALL(*root, ls_attrs()).WillRepeatedly(Return(types::StringsT{"numbers","tensors"}));
+	EXPECT_CALL(*root, get_attr("numbers")).WillRepeatedly(Return(&numobj));
+	EXPECT_CALL(*root, get_attr("tensors")).WillRepeatedly(Return(&tensobjf));
+	EXPECT_CALL(Const(*root), get_attr("numbers")).WillRepeatedly(Return(&numobj));
+	EXPECT_CALL(Const(*root), get_attr("tensors")).WillRepeatedly(Return(&tensobjf));
 
 	std::stringstream condjson;
 	condjson <<
@@ -63,21 +75,28 @@ TEST(ATTRS, FindByAttrTensKeyDirectSubgraph)
 
 TEST(ATTRS, FindByAttrTensKeyLayer)
 {
-	teq::TensptrT a(new MockLeaf(teq::Shape(), "A"));
-	teq::TensptrT b(new MockLeaf(teq::Shape(), "B"));
-	teq::TensptrT c(new MockLeaf(teq::Shape(), "C"));
+	auto a = make_var(teq::Shape(), "A");
+	auto b = make_var(teq::Shape(), "B");
+	auto c = make_var(teq::Shape(), "C");
 
-	auto df = new MockFunctor(teq::TensptrsT{b}, teq::Opcode{"SIN", 0});
-	teq::TensptrT d(df);
+	auto d = make_fnc("SIN", 0, teq::TensptrsT{b});
+	auto f = make_fnc("SUB", 1, teq::TensptrsT{a, c});
+	auto root = make_fnc("SUB", 1, teq::TensptrsT{f, d});
 
-	auto ff = new MockFunctor(teq::TensptrsT{a, c}, teq::Opcode{"SUB", 1});
-	ff->add_attr("yodoo", std::make_unique<teq::LayerObj>("funky", c));
-	teq::TensptrT f(ff);
+	teq::LayerObj layrobj("funky", c);
+	marsh::Number<double> numobj(333.4);
+	teq::TensorObj tensobj(f);
 
-	auto gf = new MockFunctor(teq::TensptrsT{f, d}, teq::Opcode{"SUB", 1});
-	gf->add_attr("numbers", std::make_unique<marsh::Number<double>>(333.4));
-	gf->add_attr("yodoo", std::make_unique<teq::TensorObj>(f));
-	teq::TensptrT root(gf);
+	EXPECT_CALL(*f, size()).WillRepeatedly(Return(1));
+	EXPECT_CALL(*f, ls_attrs()).WillRepeatedly(Return(types::StringsT{"yodoo"}));
+	EXPECT_CALL(*f, get_attr("yodoo")).WillRepeatedly(Return(&layrobj));
+	EXPECT_CALL(Const(*f), get_attr("yodoo")).WillRepeatedly(Return(&layrobj));
+	EXPECT_CALL(*root, size()).WillRepeatedly(Return(2));
+	EXPECT_CALL(*root, ls_attrs()).WillRepeatedly(Return(types::StringsT{"numbers","yodoo"}));
+	EXPECT_CALL(*root, get_attr("numbers")).WillRepeatedly(Return(&numobj));
+	EXPECT_CALL(*root, get_attr("yodoo")).WillRepeatedly(Return(&tensobj));
+	EXPECT_CALL(Const(*root), get_attr("numbers")).WillRepeatedly(Return(&numobj));
+	EXPECT_CALL(Const(*root), get_attr("yodoo")).WillRepeatedly(Return(&tensobj));
 
 	std::stringstream condjson;
 	condjson <<
@@ -115,21 +134,28 @@ TEST(ATTRS, FindByAttrTensKeyLayer)
 
 TEST(ATTRS, FindByAttrLayerKeyName)
 {
-	teq::TensptrT a(new MockLeaf(teq::Shape(), "A"));
-	teq::TensptrT b(new MockLeaf(teq::Shape(), "B"));
-	teq::TensptrT c(new MockLeaf(teq::Shape(), "C"));
+	auto a = make_var(teq::Shape(), "A");
+	auto b = make_var(teq::Shape(), "B");
+	auto c = make_var(teq::Shape(), "C");
 
-	auto df = new MockFunctor(teq::TensptrsT{b}, teq::Opcode{"SIN", 0});
-	teq::TensptrT d(df);
+	auto d = make_fnc("SIN", 0, teq::TensptrsT{b});
+	auto f = make_fnc("SUB", 1, teq::TensptrsT{a, c});
+	auto root = make_fnc("SUB", 1, teq::TensptrsT{f, d});
 
-	auto ff = new MockFunctor(teq::TensptrsT{a, c}, teq::Opcode{"SUB", 1});
-	ff->add_attr("yodoo", std::make_unique<teq::LayerObj>("funky", c));
-	teq::TensptrT f(ff);
+	teq::LayerObj layrobj("funky", c);
+	marsh::Number<double> numobj(333.4);
+	teq::LayerObj layrobj2("punky", f);
 
-	auto gf = new MockFunctor(teq::TensptrsT{f, d}, teq::Opcode{"SUB", 1});
-	gf->add_attr("numbers", std::make_unique<marsh::Number<double>>(333.4));
-	gf->add_attr("yodoo", std::make_unique<teq::LayerObj>("punky", f));
-	teq::TensptrT root(gf);
+	EXPECT_CALL(*f, size()).WillRepeatedly(Return(1));
+	EXPECT_CALL(*f, ls_attrs()).WillRepeatedly(Return(types::StringsT{"yodoo"}));
+	EXPECT_CALL(*f, get_attr("yodoo")).WillRepeatedly(Return(&layrobj));
+	EXPECT_CALL(Const(*f), get_attr("yodoo")).WillRepeatedly(Return(&layrobj));
+	EXPECT_CALL(*root, size()).WillRepeatedly(Return(2));
+	EXPECT_CALL(*root, ls_attrs()).WillRepeatedly(Return(types::StringsT{"numbers","yodoo"}));
+	EXPECT_CALL(*root, get_attr("numbers")).WillRepeatedly(Return(&numobj));
+	EXPECT_CALL(*root, get_attr("yodoo")).WillRepeatedly(Return(&layrobj2));
+	EXPECT_CALL(Const(*root), get_attr("numbers")).WillRepeatedly(Return(&numobj));
+	EXPECT_CALL(Const(*root), get_attr("yodoo")).WillRepeatedly(Return(&layrobj2));
 
 	std::stringstream condjson;
 	condjson <<
@@ -167,20 +193,25 @@ TEST(ATTRS, FindByAttrLayerKeyName)
 
 TEST(ATTRS, FindByAttrValDirectSubgraph)
 {
-	teq::TensptrT a(new MockLeaf(teq::Shape(), "A"));
-	teq::TensptrT b(new MockLeaf(teq::Shape(), "B"));
-	teq::TensptrT c(new MockLeaf(teq::Shape(), "C"));
+	auto a = make_var(teq::Shape(), "A");
+	auto b = make_var(teq::Shape(), "B");
+	auto c = make_var(teq::Shape(), "C");
 
-	auto df = new MockFunctor(teq::TensptrsT{b, c}, teq::Opcode{"SUB", 1});
-	df->add_attr("yodoo", std::make_unique<teq::TensorObj>(a));
-	teq::TensptrT d(df);
+	auto d = make_fnc("SUB", 1, teq::TensptrsT{b, c});
+	auto f = make_fnc("SUB", 1, teq::TensptrsT{a, d});
+	auto root = make_fnc("SUB", 1, teq::TensptrsT{f, d});
 
-	auto ff = new MockFunctor(teq::TensptrsT{a, d}, teq::Opcode{"SUB", 1});
-	ff->add_attr("yodoo", std::make_unique<teq::TensorObj>(d));
-	teq::TensptrT f(ff);
+	teq::TensorObj tensobja(a);
+	teq::TensorObj tensobjd(d);
 
-	auto gf = new MockFunctor(teq::TensptrsT{f, d}, teq::Opcode{"SUB", 1});
-	teq::TensptrT root(gf);
+	EXPECT_CALL(*d, size()).WillRepeatedly(Return(1));
+	EXPECT_CALL(*d, ls_attrs()).WillRepeatedly(Return(types::StringsT{"yodoo"}));
+	EXPECT_CALL(*d, get_attr("yodoo")).WillRepeatedly(Return(&tensobja));
+	EXPECT_CALL(Const(*d), get_attr("yodoo")).WillRepeatedly(Return(&tensobja));
+	EXPECT_CALL(*f, size()).WillRepeatedly(Return(1));
+	EXPECT_CALL(*f, ls_attrs()).WillRepeatedly(Return(types::StringsT{"yodoo"}));
+	EXPECT_CALL(*f, get_attr("yodoo")).WillRepeatedly(Return(&tensobjd));
+	EXPECT_CALL(Const(*f), get_attr("yodoo")).WillRepeatedly(Return(&tensobjd));
 
 	std::stringstream condjson;
 	condjson <<
@@ -230,21 +261,28 @@ TEST(ATTRS, FindByAttrValDirectSubgraph)
 
 TEST(ATTRS, FindByAttrTensKeyUnderAttrSubgraph)
 {
-	teq::TensptrT a(new MockLeaf(teq::Shape(), "A"));
-	teq::TensptrT b(new MockLeaf(teq::Shape(), "B"));
-	teq::TensptrT c(new MockLeaf(teq::Shape(), "C"));
+	auto a = make_var(teq::Shape(), "A");
+	auto b = make_var(teq::Shape(), "B");
+	auto c = make_var(teq::Shape(), "C");
 
-	auto df = new MockFunctor(teq::TensptrsT{b}, teq::Opcode{"SIN", 0});
-	teq::TensptrT d(df);
+	auto d = make_fnc("SIN", 0, teq::TensptrsT{b});
+	auto f = make_fnc("SUB", 1, teq::TensptrsT{a, c});
+	auto root = make_fnc("SUB", 1, teq::TensptrsT{a, d});
 
-	auto ff = new MockFunctor(teq::TensptrsT{a, c}, teq::Opcode{"SUB", 1});
-	ff->add_attr("yodoo", std::make_unique<teq::TensorObj>(c));
-	teq::TensptrT f(ff);
+	teq::TensorObj tensobjc(c);
+	marsh::Number<double> numobj(333.4);
+	teq::TensorObj tensobjf(f);
 
-	auto gf = new MockFunctor(teq::TensptrsT{a, d}, teq::Opcode{"SUB", 1});
-	gf->add_attr("numbers", std::make_unique<marsh::Number<double>>(333.4));
-	gf->add_attr("tensors", std::make_unique<teq::TensorObj>(f));
-	teq::TensptrT root(gf);
+	EXPECT_CALL(*f, size()).WillRepeatedly(Return(1));
+	EXPECT_CALL(*f, ls_attrs()).WillRepeatedly(Return(types::StringsT{"yodoo"}));
+	EXPECT_CALL(*f, get_attr("yodoo")).WillRepeatedly(Return(&tensobjc));
+	EXPECT_CALL(Const(*f), get_attr("yodoo")).WillRepeatedly(Return(&tensobjc));
+	EXPECT_CALL(*root, size()).WillRepeatedly(Return(2));
+	EXPECT_CALL(*root, ls_attrs()).WillRepeatedly(Return(types::StringsT{"numbers","tensors"}));
+	EXPECT_CALL(*root, get_attr("numbers")).WillRepeatedly(Return(&numobj));
+	EXPECT_CALL(*root, get_attr("tensors")).WillRepeatedly(Return(&tensobjf));
+	EXPECT_CALL(Const(*root), get_attr("numbers")).WillRepeatedly(Return(&numobj));
+	EXPECT_CALL(Const(*root), get_attr("tensors")).WillRepeatedly(Return(&tensobjf));
 
 	std::stringstream condjson;
 	condjson <<

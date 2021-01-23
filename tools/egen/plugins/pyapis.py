@@ -18,6 +18,8 @@ using {pybind} = {pybind_type};
 '''
 
 _source_template = '''
+#define STRINGIFY(X) #X
+
 namespace py = pybind11;
 
 //>>> global_decs
@@ -27,6 +29,12 @@ namespace py = pybind11;
 PYBIND11_MODULE({modname}, m_{modname})
 {{
 m_{modname}.doc() = "pybind for {modname} api";
+
+#ifdef VERSION_INFO
+m_{modname}.attr("__version__") = STRINGIFY(VERSION_INFO);
+#else
+m_{modname}.attr("__version__") = "dev";
+#endif
 
 //>>> input_defs
 {input_defs}
@@ -154,7 +162,7 @@ class PyAPIsPlugin:
 
         generated_files[_pyapi_header] = FileRep(
             _header_template.format(pybind=pybindt, pybind_type=bindtype),
-                user_includes=['"eteq/etens.hpp"'], internal_refs=[])
+                user_includes=['"tenncor/eteq/etens.hpp"'], internal_refs=[])
 
         # split modules by top-level namespaces
         modname = api['pybind_module']

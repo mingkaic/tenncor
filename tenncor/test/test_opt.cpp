@@ -12,7 +12,14 @@
 
 #include "tenncor/tenncor.hpp"
 
+
+#ifdef CMAKE_SOURCE_DIR
+const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
+const std::string optfile = std::string(CMAKE_SOURCE_DIR) + "cfg/optimizations.json";
+#else
 const std::string testdir = "models/test";
+const std::string optfile = "cfg/optimizations.json";
+#endif
 
 
 TEST(OPTIMIZE, Depends)
@@ -40,7 +47,7 @@ TEST(OPTIMIZE, Depends)
 
 	auto ass = tenncor().assign(target, tenncor().identity(b * d, {c}));
 
-	std::ifstream rulefile("cfg/optimizations.json");
+	std::ifstream rulefile(optfile);
 	ass = hone::optimize({ass}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
@@ -85,7 +92,7 @@ TEST(OPTIMIZE, DependsNnary)
 	double* expect_data = (double*) add->device().data();
 	std::vector<double> evdata(expect_data, expect_data + exshape.n_elems());
 
-	std::ifstream rulefile("cfg/optimizations.json");
+	std::ifstream rulefile(optfile);
 	add = hone::optimize({add}, rulefile)[0];
 
 	EXPECT_GRAPHEQ(
@@ -173,12 +180,12 @@ TEST(OPTIMIZE, RNNLayer)
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell = tenncor().nn.dense(cell_in, weight, bias);
+	auto cell = tenncor().layer.dense(cell_in, weight, bias);
 
 	auto state = tenncor().extend_like(istate,
 		tenncor().slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor().nn.rnn(in, state, cell,
+	auto output = tenncor().layer.rnn(in, state, cell,
 		[](const eteq::ETensor& x)
 		{
 			return tenncor().tanh(x);
@@ -189,15 +196,15 @@ TEST(OPTIMIZE, RNNLayer)
 	auto ders = tcr::derive(err, {weight, bias, istate});
 	teq::TensptrsT roots = {ders[0], ders[1], ders[2], err};
 
-	std::ifstream rulefile("cfg/optimizations.json");
+	std::ifstream rulefile(optfile);
 	roots = hone::optimize(roots, rulefile);
 
 	{
-	std::ofstream os("opt0.txt");
-	PrettyEquation artist;
-	artist.cfg_.showshape_ = true;
-	artist.cfg_.showtype_ = true;
-	artist.print(os, roots[0]);
+		std::ofstream os("opt0.txt");
+		PrettyEquation artist;
+		artist.cfg_.showshape_ = true;
+		artist.cfg_.showtype_ = true;
+		artist.print(os, roots[0]);
 
 		std::string expect_pbfile = testdir + "/opt0.txt";
 		std::ifstream expect_ifs(expect_pbfile);
@@ -207,11 +214,11 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[0]);
 	}
 	{
-	std::ofstream os("opt1.txt");
-	PrettyEquation artist;
-	artist.cfg_.showshape_ = true;
-	artist.cfg_.showtype_ = true;
-	artist.print(os, roots[1]);
+		std::ofstream os("opt1.txt");
+		PrettyEquation artist;
+		artist.cfg_.showshape_ = true;
+		artist.cfg_.showtype_ = true;
+		artist.print(os, roots[1]);
 
 		std::string expect_pbfile = testdir + "/opt1.txt";
 		std::ifstream expect_ifs(expect_pbfile);
@@ -221,11 +228,11 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[1]);
 	}
 	{
-	std::ofstream os("opt2.txt");
-	PrettyEquation artist;
-	artist.cfg_.showshape_ = true;
-	artist.cfg_.showtype_ = true;
-	artist.print(os, roots[2]);
+		std::ofstream os("opt2.txt");
+		PrettyEquation artist;
+		artist.cfg_.showshape_ = true;
+		artist.cfg_.showtype_ = true;
+		artist.print(os, roots[2]);
 
 		std::string expect_pbfile = testdir + "/opt2.txt";
 		std::ifstream expect_ifs(expect_pbfile);
@@ -235,11 +242,11 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[2]);
 	}
 	{
-	std::ofstream os("opt3.txt");
-	PrettyEquation artist;
-	artist.cfg_.showshape_ = true;
-	artist.cfg_.showtype_ = true;
-	artist.print(os, roots[3]);
+		std::ofstream os("opt3.txt");
+		PrettyEquation artist;
+		artist.cfg_.showshape_ = true;
+		artist.cfg_.showtype_ = true;
+		artist.print(os, roots[3]);
 
 		std::string expect_pbfile = testdir + "/opt3.txt";
 		std::ifstream expect_ifs(expect_pbfile);
@@ -330,7 +337,7 @@ TEST(OPTIMIZE, CNNLayer)
 
 	// construct CNN
 	auto model = tenncor().layer.link({ // input [2\4\4]
-		tenncor().layer.conv<double>({3, 3}, 2, 2,
+		tenncor().layer.conv2d<double>({3, 3}, 2, 2,
 			[&](teq::Shape shape, std::string label) -> eteq::EVariable<double>
 			{
 				return eteq::make_variable<double>(cweight_data.data(), shape, label);
@@ -340,7 +347,7 @@ TEST(OPTIMIZE, CNNLayer)
 				return eteq::make_variable<double>(cbias_data.data(), shape, label);
 			},
 			{{1, 1}, {1, 1}}), // outputs [2\4\4]
-		tenncor().layer.bind<double>(
+		tenncor().layer.bind(
 			[](const eteq::ETensor& x)
 			{
 				return tenncor().relu(x);
@@ -370,7 +377,7 @@ TEST(OPTIMIZE, CNNLayer)
 	}
 	auto err = tenncor().identity(layr::trail(error, umap), deps);
 
-	std::ifstream rulefile("cfg/optimizations.json");
+	std::ifstream rulefile(optfile);
 	err = hone::optimize({err}, rulefile)[0];
 
 	std::string expect_pbfile = testdir + "/cnn_opt.txt";

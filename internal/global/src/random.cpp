@@ -13,14 +13,14 @@ void set_generator (GenPtrT gen, CfgMapptrT ctx)
 	if (gen)
 	{
 		ctx->template add_entry<GenPtrT>(generator_key,
-			[=]{ return new GenPtrT(gen); });
+		[=]{ return new GenPtrT(gen); });
 	}
 }
 
 GenPtrT get_generator (const CfgMapptrT& ctx)
 {
 	auto gen = static_cast<GenPtrT*>(ctx->get_obj(generator_key));
-	if (nullptr != ctx->get_obj(generator_key))
+	if (nullptr != gen)
 	{
 		return *gen;
 	}

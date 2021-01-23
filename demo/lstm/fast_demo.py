@@ -53,8 +53,8 @@ def main(args):
     input_val_arr = [np.random.random(x_dim) for _ in y_list]
 
     model = tc.api.layer.lstm(tc.Shape([x_dim]), mem_cell_ct, len(y_list),
-        weight_init=tc.api.layer.unif_xavier_init(1),
-        bias_init=tc.api.layer.unif_xavier_init(1))
+        kernel_init=tc.api.init.xavier_uniform(1),
+        bias_init=tc.api.init.xavier_uniform(1))
     untrained_model = model.deep_clone()
     pretrained_model = model.deep_clone()
     try:

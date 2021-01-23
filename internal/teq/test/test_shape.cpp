@@ -6,11 +6,23 @@
 
 #include "exam/exam.hpp"
 
+#include "testutil/tutil.hpp"
+
 #include "internal/teq/shape.hpp"
 
 
-TEST(SHAPE, Init)
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Throw;
+
+
+struct SHAPE : public tutil::TestcaseWithLogger<> {};
+
+
+TEST_F(SHAPE, Init)
 {
+	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillRepeatedly(Return(true));
+
 	teq::Shape scalar;
 
 	teq::DimsT slist = {12, 43, 56};
@@ -23,7 +35,8 @@ TEST(SHAPE, Init)
 	teq::DimsT zerolist = {43, 2, 5, 33, 0, 2, 7};
 	std::string fatalmsg = "cannot create shape with vector containing zero: " +
 		fmts::to_string(zerolist.begin(), zerolist.end());
-	EXPECT_FATAL(teq::Shape junk(zerolist), fatalmsg.c_str());
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1);
+	teq::Shape junk(zerolist);
 
 	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
 	{
@@ -44,12 +57,14 @@ TEST(SHAPE, Init)
 		EXPECT_EQ(longlist[i], lvec.at(i));
 	}
 
-	EXPECT_FATAL(scalar.at(teq::rank_cap), "cannot access out of bounds index 8");
-	EXPECT_FATAL(vec.at(teq::rank_cap), "cannot access out of bounds index 8");
+	std::string fatalmsg1 = "cannot access out of bounds index 8";
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg1, _)).Times(2).WillRepeatedly(Throw(exam::TestException(fatalmsg1)));
+	EXPECT_FATAL(scalar.at(teq::rank_cap), fatalmsg1.c_str());
+	EXPECT_FATAL(vec.at(teq::rank_cap), fatalmsg1.c_str());
 }
 
 
-TEST(SHAPE, Iterators)
+TEST_F(SHAPE, Iterators)
 {
 	teq::Shape vec({12, 43, 56});
 	auto it = vec.begin();
@@ -73,8 +88,10 @@ TEST(SHAPE, Iterators)
 }
 
 
-TEST(SHAPE, VecAssign)
+TEST_F(SHAPE, VecAssign)
 {
+	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillRepeatedly(Return(true));
+
 	teq::DimsT zerolist = {3, 0, 11, 89};
 	teq::DimsT slist = {52, 58, 35, 46, 77, 80};
 	teq::DimsT junk = {7, 42};
@@ -92,11 +109,12 @@ TEST(SHAPE, VecAssign)
 
 	std::string fatalmsg = "cannot create shape with vector containing zero: " +
 		fmts::to_string(zerolist.begin(), zerolist.end());
+	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(vecassign = zerolist, fatalmsg.c_str());
 }
 
 
-TEST(SHAPE, Moves)
+TEST_F(SHAPE, Moves)
 {
 	teq::DimsT junk = {8, 51, 73};
 	teq::DimsT slist = {24, 11, 12, 16};
@@ -119,7 +137,7 @@ TEST(SHAPE, Moves)
 }
 
 
-TEST(SHAPE, NElems)
+TEST_F(SHAPE, NElems)
 {
 	teq::DimsT slist = {11, 12, 16};
 	teq::Shape shape(slist);
@@ -139,7 +157,7 @@ TEST(SHAPE, NElems)
 }
 
 
-TEST(SHAPE, Compatible)
+TEST_F(SHAPE, Compatible)
 {
 	teq::DimsT slist = {20, 48, 10, 27, 65, 74};
 	teq::Shape shape(slist);
@@ -183,7 +201,7 @@ TEST(SHAPE, Compatible)
 }
 
 
-TEST(SHAPE, ToString)
+TEST_F(SHAPE, ToString)
 {
 	teq::DimsT slist = {24, 11, 12, 16, 7, 71, 1, 1};
 	teq::Shape shape(slist);
@@ -194,7 +212,7 @@ TEST(SHAPE, ToString)
 }
 
 
-TEST(SHAPE, NarrowShape)
+TEST_F(SHAPE, NarrowShape)
 {
 	teq::DimsT slist = {1, 2, 3, 4, 1};
 	teq::DimsT elist = {1, 2, 3, 4};

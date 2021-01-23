@@ -9,17 +9,22 @@
 #include "internal/query/path.hpp"
 
 
+using ::testing::_;
+using ::testing::Return;
+using ::testing::Const;
+
+
 TEST(PATH, GetArgs)
 {
-	auto x = std::make_shared<MockLeaf>(teq::Shape(), "X");
+	auto x = make_var(teq::Shape(), "X");
 	query::Path path(x.get());
 	auto args = path.get_args();
 	EXPECT_EQ(0, args.size());
 
-	auto arg1 = std::make_shared<MockFunctor>(teq::TensptrsT{x}, teq::Opcode{"SIN", 0});
-	auto arg2 = std::make_shared<MockFunctor>(teq::TensptrsT{x,x}, teq::Opcode{"SUB", 0});
-	MockFunctor f(teq::TensptrsT{arg1, arg2});
-	query::Path path2(&f);
+	auto arg1 = make_fnc("SIN", 0, teq::TensptrsT{x});
+	auto arg2 = make_fnc("SUB", 0, teq::TensptrsT{x,x});
+	auto f = make_fnc("", 0, teq::TensptrsT{arg1, arg2});
+	query::Path path2(f.get());
 	auto args2 = path2.get_args();
 	ASSERT_EQ(2, args2.size());
 	EXPECT_EQ(0, args2[0].first);
@@ -31,7 +36,10 @@ TEST(PATH, GetArgs)
 
 TEST(PATH, Recall)
 {
-	MockLeaf x(teq::Shape(), "X");
+	MockLeaf x;
+	make_var(x, teq::Shape(), "X");
+	EXPECT_CALL(x, get_usage()).WillRepeatedly(Return(teq::IMMUTABLE));
+
 	auto noprev = std::make_shared<query::Path>(&x);
 	EXPECT_EQ(nullptr, noprev->recall());
 

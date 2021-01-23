@@ -50,6 +50,7 @@ cc_library(
     deps = [
         ":marsh",
         "@boost//:property_tree",
+        "@gtest//:gtest",
     ],
     visibility = ["//visibility:public"],
 )

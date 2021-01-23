@@ -11,7 +11,10 @@
 #include "internal/teq/evaluator.hpp"
 
 
-static MockDevice mdevice;
+using ::testing::_;
+using ::testing::Invoke;
+using ::testing::Return;
+using ::testing::ReturnRef;
 
 
 TEST(EVALUATOR, SetGet)
@@ -31,38 +34,41 @@ TEST(EVALUATOR, Update)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
+	auto a = make_var(shape);
+	auto b = make_var(shape);
+	auto c = make_var(shape);
 
-	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b});
-	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{x, c});
+	auto x = make_fnc("", 0, teq::TensptrsT{a, b});
+	auto target = make_fnc("", 0, teq::TensptrsT{x, c});
 
-	// * (target) = not updated
-	// `-- + (x) = not updated
+	// before
+	// (target) = not updated
+	// `-- (x) = not updated
 	// |   `-- a
 	// |   `-- b
 	// `-- c
 
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
+	// after
+	// (target) = updated
+	// `-- (x) = updated
+	// |   `-- a
+	// |   `-- b
+	// `-- c
+	const teq::iTensor* capx = nullptr;
+	const teq::iTensor* captarg = nullptr;
+	auto capture_x = [&](const teq::iTensor& arg, size_t){ capx = &arg; };
+	auto capture_target = [&](const teq::iTensor& arg, size_t){ captarg = &arg; };
+
+	MockDevice mdevice;
+	EXPECT_CALL(mdevice, calc(_,_)).Times(2).
+		WillOnce(Invoke(capture_x)).
+		WillOnce(Invoke(capture_target));
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, {target.get()});
 
-	// expected state:
-	// * (target) = updated
-	// `-- + (x) = updated
-	// |   `-- a
-	// |   `-- b
-	// `-- c
-
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
+	EXPECT_EQ(x.get(), capx);
+	EXPECT_EQ(target.get(), captarg);
 }
 
 
@@ -70,70 +76,71 @@ TEST(EVALUATOR, UpdateIgnore)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
-	teq::TensptrT d(new MockLeaf(shape));
+	auto a = make_var(shape);
+	auto b = make_var(shape);
+	auto c = make_var(shape);
+	auto d = make_var(shape);
 
-	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b}, teq::Opcode{"+", 0});
-	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{x, c}, teq::Opcode{"*", 1});
-	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d}, teq::Opcode{"-", 2});
+	auto x = make_fnc("", 0, teq::TensptrsT{a, b});
+	auto y = make_fnc("", 0, teq::TensptrsT{x, c});
+	auto target = make_fnc("", 0, teq::TensptrsT{y, d});
 
-	// - (target) = not updated
-	// `-- * (y) = not updated
-	// |   `-- + (x) = not updated
+	double mockdata = 0;
+	MockDeviceRef devref;
+	EXPECT_CALL(*y, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*x, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(devref, data()).WillRepeatedly(Return(&mockdata));
+
+	// before
+	// (target) = not updated
+	// `-- (y) = not updated
+	// |   `-- (x) = not updated
 	// |   |   `-- a
 	// |   |   `-- b
 	// |   `-- c
 	// `-- d
 
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		y->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
+	// after
+	// (target) = updated
+	// `-- (y) = not updated
+	// |   `-- (x) = not updated
+	// |   |   `-- a
+	// |   |   `-- b
+	// |   `-- c
+	// `-- d
+	const teq::iTensor* captarg = nullptr;
+	auto capture_target = [&](const teq::iTensor& arg,size_t){ captarg = &arg; };
+
+	MockDevice mdevice;
+	EXPECT_CALL(mdevice, calc(_,_)).Times(1).
+		WillOnce(Invoke(capture_target));
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, {target.get()}, {y.get()});
 
-	// expected state:
-	// - (target) = updated
-	// `-- * (y) = not updated
-	// |   `-- + (x) = not updated
+	EXPECT_EQ(target.get(), captarg);
+
+	// after
+	// (target) = updated
+	// `-- (y) = updated
+	// |   `-- (x) = not updated
 	// |   |   `-- a
 	// |   |   `-- b
 	// |   `-- c
 	// `-- d
+	const teq::iTensor* capy = nullptr;
+	const teq::iTensor* captarg2 = nullptr;
+	auto capture_y = [&](const teq::iTensor& arg, size_t){ capy = &arg; };
+	auto capture_target2 = [&](const teq::iTensor& arg, size_t){ captarg2 = &arg; };
 
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	EXPECT_FALSE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
-	EXPECT_FALSE(static_cast<MockDeviceRef*>(
-		y->data_.ref_.get())->updated_);
-
-	static_cast<MockDeviceRef*>(target->data_.ref_.get())->updated_ =
-	static_cast<MockDeviceRef*>(x->data_.ref_.get())->updated_ =
-	static_cast<MockDeviceRef*>(y->data_.ref_.get())->updated_ = false;
+	EXPECT_CALL(mdevice, calc(_,_)).Times(2).
+		WillOnce(Invoke(capture_y)).
+		WillOnce(Invoke(capture_target2));
 
 	eval.evaluate(mdevice, {target.get()}, {x.get()});
 
-	// expected state:
-	// - (target) = updated
-	// `-- * (y) = updated
-	// |   `-- + (x) = not updated
-	// |   |   `-- a
-	// |   |   `-- b
-	// |   `-- c
-	// `-- d
-
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		y->data_.ref_.get())->updated_);
-	EXPECT_FALSE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
+	EXPECT_EQ(y.get(), capy);
+	EXPECT_EQ(target.get(), captarg2);
 }
 
 
@@ -141,56 +148,62 @@ TEST(EVALUATOR, UpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
+	auto a = make_var(shape);
+	auto b = make_var(shape);
+	auto c = make_var(shape);
 
-	auto u = std::make_shared<MockFunctor>(teq::TensptrsT{a});
-	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b});
-	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u});
-	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{y, x});
+	auto u = make_fnc("", 0, teq::TensptrsT{a});
+	auto x = make_fnc("", 0, teq::TensptrsT{u, b});
+	auto y = make_fnc("", 0, teq::TensptrsT{c, u});
+	auto target = make_fnc("", 0, teq::TensptrsT{y, x});
 
-	// - (target) = not updated
-	// `-- / (y) = not updated
+	double mockdata = 0;
+	MockDeviceRef devref;
+	EXPECT_CALL(*y, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*x, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*u, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(devref, data()).WillRepeatedly(Return(&mockdata));
+
+	// before
+	// (target) = not updated
+	// `-- (y) = not updated
 	// |   `-- c
-	// |   `-- - (u) = not updated
+	// |   `-- (u) = not updated
 	// |       `-- a
-	// `-- * (x) = not updated
-	//     `-- - (u)
+	// `-- (x) = not updated
+	//     `-- (u)
 	//     |   `-- a
 	//     `-- b
 
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		y->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		u->data_.ref_.get())->updated_);
+	// after
+	// (target) = updated
+	// `-- (y) = not updated
+	// |   `-- c
+	// |   `-- (u) = updated
+	// |       `-- a
+	// `-- (x) = updated
+	//     `-- (u)
+	//     |   `-- a
+	//     `-- b
+	const teq::iTensor* capu = nullptr;
+	const teq::iTensor* capx = nullptr;
+	const teq::iTensor* captarg = nullptr;
+	auto capture_u = [&](const teq::iTensor& arg, size_t){ capu = &arg; };
+	auto capture_x = [&](const teq::iTensor& arg, size_t){ capx = &arg; };
+	auto capture_target = [&](const teq::iTensor& arg, size_t){ captarg = &arg; };
+
+	MockDevice mdevice;
+	EXPECT_CALL(mdevice, calc(_,_)).Times(3).
+		WillOnce(Invoke(capture_u)).
+		WillOnce(Invoke(capture_x)).
+		WillOnce(Invoke(capture_target));
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, {target.get()}, {y.get()});
 
-	// expected state:
-	// - (target) = updated
-	// `-- / (y) = not updated
-	// |   `-- c
-	// |   `-- - (u) = updated
-	// |       `-- a
-	// `-- * (x) = updated
-	//     `-- - (u)
-	//     |   `-- a
-	//     `-- b
-
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	EXPECT_FALSE(static_cast<MockDeviceRef*>(
-		y->data_.ref_.get())->updated_);
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		u->data_.ref_.get())->updated_);
+	EXPECT_EQ(u.get(), capu);
+	EXPECT_EQ(x.get(), capx);
+	EXPECT_EQ(target.get(), captarg);
 }
 
 
@@ -198,39 +211,37 @@ TEST(EVALUATOR, TargetedUpdate)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
+	auto a = make_var(shape);
+	auto b = make_var(shape);
+	auto c = make_var(shape);
 
-	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b});
-	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{x, c});
+	auto x = make_fnc("", 0, teq::TensptrsT{a, b});
+	auto target = make_fnc("", 0, teq::TensptrsT{x, c});
 
-	// * (target) = not updated
-	// `-- + (x) = not updated
+	// before
+	// (target) = not updated
+	// `-- (x) = not updated
 	// |   `-- a
 	// |   `-- b
 	// `-- c
 
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
+	// after
+	// (target) = not updated
+	// `-- (x) = updated
+	// |   `-- a
+	// |   `-- b
+	// `-- c
+	const teq::iTensor* capx = nullptr;
+	auto capture_x = [&](const teq::iTensor& arg, size_t){ capx = &arg; };
+
+	MockDevice mdevice;
+	EXPECT_CALL(mdevice, calc(_,_)).Times(1).
+		WillOnce(Invoke(capture_x));
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, teq::TensSetT{x.get()});
 
-	// expected state:
-	// * (target) = not updated
-	// `-- + (x) = updated
-	// |   `-- a
-	// |   `-- b
-	// `-- c
-
-	EXPECT_FALSE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
-
+	EXPECT_EQ(x.get(), capx);
 }
 
 
@@ -238,48 +249,49 @@ TEST(EVALUATOR, TargetedUpdateIgnore)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
-	teq::TensptrT d(new MockLeaf(shape));
+	auto a = make_var(shape);
+	auto b = make_var(shape);
+	auto c = make_var(shape);
+	auto d = make_var(shape);
 
-	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{a, b});
-	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{x, c});
-	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{y, d});
+	auto x = make_fnc("", 0, teq::TensptrsT{a, b});
+	auto y = make_fnc("", 0, teq::TensptrsT{x, c});
+	auto target = make_fnc("", 0, teq::TensptrsT{y, d});
 
-	// - (targetd) = not updated
-	// `-- * (y) = not updated
-	// |   `-- + (x) = not updated
+	double mockdata = 0;
+	MockDeviceRef devref;
+	EXPECT_CALL(*y, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*x, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(devref, data()).WillRepeatedly(Return(&mockdata));
+
+	// before
+	// (targetd) = not updated
+	// `-- (y) = not updated
+	// |   `-- (x) = not updated
 	// |   |   `-- a
 	// |   |   `-- b
 	// |   `-- c
 	// `-- d
 
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		y->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
+	// after
+	// (targetd) = not updated
+	// `-- (y) = updated
+	// |   `-- (x) = not updated
+	// |   |   `-- a
+	// |   |   `-- b
+	// |   `-- c
+	// `-- d
+	const teq::iTensor* capy = nullptr;
+	auto capture_y = [&](const teq::iTensor& arg, size_t){ capy = &arg; };
+
+	MockDevice mdevice;
+	EXPECT_CALL(mdevice, calc(_,_)).Times(1).
+		WillOnce(Invoke(capture_y));
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, {y.get()}, {x.get()});
 
-	// expected state:
-	// - (targetd) = not updated
-	// `-- * (y) = updated
-	// |   `-- + (x) = not updated
-	// |   |   `-- a
-	// |   |   `-- b
-	// |   `-- c
-	// `-- d
-
-	EXPECT_FALSE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		y->data_.ref_.get())->updated_);
-	EXPECT_FALSE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
+	EXPECT_EQ(y.get(), capy);
 }
 
 
@@ -287,66 +299,69 @@ TEST(EVALUATOR, TargetedUpdateIgnoreCommonDesc)
 {
 	teq::Shape shape;
 
-	teq::TensptrT a(new MockLeaf(shape));
-	teq::TensptrT b(new MockLeaf(shape));
-	teq::TensptrT c(new MockLeaf(shape));
-	teq::TensptrT d(new MockLeaf(shape));
+	auto a = make_var(shape);
+	auto b = make_var(shape);
+	auto c = make_var(shape);
+	auto d = make_var(shape);
 
-	auto u = std::make_shared<MockFunctor>(teq::TensptrsT{a});
-	auto x = std::make_shared<MockFunctor>(teq::TensptrsT{u, b});
-	auto y = std::make_shared<MockFunctor>(teq::TensptrsT{c, u});
-	auto z = std::make_shared<MockFunctor>(teq::TensptrsT{y, x});
-	auto target = std::make_shared<MockFunctor>(teq::TensptrsT{z, d});
+	auto u = make_fnc("", 0, teq::TensptrsT{a});
+	auto x = make_fnc("", 0, teq::TensptrsT{u, b});
+	auto y = make_fnc("", 0, teq::TensptrsT{c, u});
+	auto z = make_fnc("", 0, teq::TensptrsT{y, x});
+	auto target = make_fnc("", 0, teq::TensptrsT{z, d});
 
-	// pow (targeted) = not updated
-	// `-- - (z) = not updated
-	// |   `-- / (y) = not updated
+	double mockdata = 0;
+	MockDeviceRef devref;
+	EXPECT_CALL(*z, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*y, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*x, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(*u, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(devref, data()).WillRepeatedly(Return(&mockdata));
+
+	// before
+	// (targeted) = not updated
+	// `-- (z) = not updated
+	// |   `-- (y) = not updated
 	// |   |   `-- c
-	// |   |   `-- - (u) = not updated
+	// |   |   `-- (u) = not updated
 	// |   |       `-- a
-	// |   `-- * (x) = not updated
-	// |       `-- - (u)
+	// |   `-- (x) = not updated
+	// |       `-- (u)
 	// |       |   `-- a
 	// |       `-- b
 	// `-- d
 
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		z->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		y->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		u->data_.ref_.get())->updated_);
+	// after
+	// (targeted) = not updated
+	// `-- (z) = updated
+	// |   `-- (y) = not updated
+	// |   |   `-- c
+	// |   |   `-- (u) = updated
+	// |   |       `-- a
+	// |   `-- (x) = updated
+	// |       `-- (u)
+	// |       |   `-- a
+	// |       `-- b
+	// `-- d
+	const teq::iTensor* capu = nullptr;
+	const teq::iTensor* capx = nullptr;
+	const teq::iTensor* capz = nullptr;
+	auto capture_u = [&](const teq::iTensor& arg, size_t){ capu = &arg; };
+	auto capture_x = [&](const teq::iTensor& arg, size_t){ capx = &arg; };
+	auto capture_z = [&](const teq::iTensor& arg, size_t){ capz = &arg; };
+
+	MockDevice mdevice;
+	EXPECT_CALL(mdevice, calc(_,_)).Times(3).
+		WillOnce(Invoke(capture_u)).
+		WillOnce(Invoke(capture_x)).
+		WillOnce(Invoke(capture_z));
 
 	teq::Evaluator eval;
 	eval.evaluate(mdevice, {z.get()}, {y.get()});
 
-	// expected state:
-	// pow (targeted) = not updated
-	// `-- - (z) = updated
-	// |   `-- / (y) = not updated
-	// |   |   `-- c
-	// |   |   `-- - (u) = updated
-	// |   |       `-- a
-	// |   `-- * (x) = updated
-	// |       `-- - (u)
-	// |       |   `-- a
-	// |       `-- b
-	// `-- d
-
-	EXPECT_FALSE(static_cast<MockDeviceRef*>(
-		target->data_.ref_.get())->updated_);
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		z->data_.ref_.get())->updated_);
-	EXPECT_FALSE(static_cast<MockDeviceRef*>(
-		y->data_.ref_.get())->updated_);
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		x->data_.ref_.get())->updated_);
-	EXPECT_TRUE(static_cast<MockDeviceRef*>(
-		u->data_.ref_.get())->updated_);
+	EXPECT_EQ(u.get(), capu);
+	EXPECT_EQ(x.get(), capx);
+	EXPECT_EQ(z.get(), capz);
 }
 
 

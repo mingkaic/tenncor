@@ -15,6 +15,9 @@
 #include "tenncor/eteq/opsvc/mock/mock.hpp"
 
 
+using ::testing::Invoke;
+
+
 const std::string test_service = "tenncor.eteq.opsvc.test";
 
 
@@ -84,45 +87,65 @@ TEST_F(EVALUATE, SimpleGraph)
 	// instance 1
 	distr::iDistrMgrptrT mgr(make_mgr("mgr1"));
 
-	teq::TensptrT src = std::make_shared<MockLeaf>(data, shape, "src");
-	teq::TensptrT src2 = std::make_shared<MockLeaf>(data2, shape, "src2");
-	auto dest = std::make_shared<MockFunctor>(teq::TensptrsT{src, src2},
-		data, teq::Opcode{"ADD", 7});
-	dest->meta_.tcode_ = egen::DOUBLE;
-	dest->meta_.tname_ = "DOUBLE";
+	MockMeta mockmeta;
+	MockDeviceRef devref;
+	MockDeviceRef devref2;
+	auto src = make_var(data.data(), devref, shape, "src");
+	auto src2 = make_var(data2.data(), devref2, shape, "src2");
+	auto dest = make_fnc("ADD", 7, teq::TensptrsT{src, src2});
+	EXPECT_CALL(*dest, shape()).WillRepeatedly(Return(shape));
+	EXPECT_CALL(*dest, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
+	EXPECT_CALL(mockmeta, type_label()).WillRepeatedly(Return("DOUBLE"));
+	EXPECT_CALL(mockmeta, type_code()).WillRepeatedly(Return(egen::DOUBLE));
 	auto& svc = distr::get_iosvc(*mgr);
 	std::string id = svc.expose_node(dest);
 
 	// instance 2
 	distr::iDistrMgrptrT mgr2(make_mgr("mgr2"));
 
-	teq::TensptrT src3 = std::make_shared<MockLeaf>(data3, shape, "src3");
+	MockDeviceRef devref3;
+	auto src3 = make_var(data3.data(), devref3, shape, "src3");
 	auto& svc2 = distr::get_iosvc(*mgr2);
 	error::ErrptrT err = nullptr;
 	auto ref = svc2.lookup_node(err, id);
 	ASSERT_NOERR(err);
 	ASSERT_NE(nullptr, ref);
-	auto dest2 = std::make_shared<MockFunctor>(teq::TensptrsT{ref, src3},
-		teq::Opcode{"MUL", 8});
+	auto dest2 = make_fnc("MUL", 8, teq::TensptrsT{ref, src3});
+	EXPECT_CALL(*dest2, shape()).WillRepeatedly(Return(shape));
 
+	// before
 	// * (dest2) = not updated
 	// `-- mgr1:+ (ref/dest) = not updated
 	// |   `-- src
 	// |   `-- src2
 	// `-- src3
 
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		dest2->data_.ref_.get())->updated_);
-	ASSERT_FALSE(static_cast<MockDeviceRef*>(
-		dest->data_.ref_.get())->updated_);
+	// after
+	// * (dest2) = updated
+	// `-- mgr1:+ (ref/dest) = updated
+	// |   `-- src
+	// |   `-- src2
+	// `-- src3
 
-	MockDevice mdevice;
-	distr::get_opsvc(*mgr2).evaluate(mdevice, {dest2.get()});
+	MockDeviceRef destdev;
+	EXPECT_CALL(mockmeta, state_version()).WillOnce(Return(0));
+	EXPECT_CALL(*dest, device()).WillOnce(ReturnRef(destdev));
+	EXPECT_CALL(destdev, data()).Times(1).WillOnce(Return(data.data()));
 
-	ASSERT_TRUE(static_cast<MockDeviceRef*>(
-		dest2->data_.ref_.get())->updated_);
-	ASSERT_TRUE(static_cast<MockDeviceRef*>(
-		dest->data_.ref_.get())->updated_);
+	const teq::iTensor* capdest = nullptr;
+	const teq::iTensor* capdest2 = nullptr;
+	MockDevice* localdev = dynamic_cast<MockDevice*>(distr::get_opsvc(*mgr2).get_evaluator());
+	MockDevice* foreigndev = dynamic_cast<MockDevice*>(distr::get_opsvc(*mgr).get_evaluator());
+	ASSERT_NE(nullptr, localdev);
+	ASSERT_NE(nullptr, foreigndev);
+	EXPECT_CALL(*localdev, calc(_,_)).Times(1).
+		WillOnce(Invoke([&capdest2](const teq::iTensor& args, size_t){ capdest2 = &args; }));
+	EXPECT_CALL(*foreigndev, calc(_,_)).Times(1).
+		WillOnce(Invoke([&capdest](const teq::iTensor& args, size_t){ capdest = &args; }));
+	distr::get_opsvc(*mgr2).evaluate(*localdev, {dest2.get()});
+
+	EXPECT_EQ(dest.get(), capdest);
+	EXPECT_EQ(dest2.get(), capdest2);
 }
 
 

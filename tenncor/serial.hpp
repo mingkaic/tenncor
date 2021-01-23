@@ -27,6 +27,16 @@ eteq::ETensorsT load_model (
 	const distr::ox::TopographyT& topography =
 		distr::ox::TopographyT{});
 
+distr::ox::TopographyT save_model (
+	onnx::ModelProto& pb_model,
+	const global::CfgMapptrT& ctx = global::context());
+
+eteq::ETensorsT load_model (
+	global::CfgMapptrT& ctx,
+	const onnx::ModelProto& pb_model,
+	const distr::ox::TopographyT& topography =
+		distr::ox::TopographyT{});
+
 }
 
 #endif // TENNCOR_SERIAL_HPP

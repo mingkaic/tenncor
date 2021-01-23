@@ -61,11 +61,85 @@ eteq::ETensorsT load_model (
 	eteq::ETensorsT etens;
 	etens.reserve(tens.size());
 	std::transform(tens.begin(), tens.end(), std::back_inserter(etens),
-		[&ctx](teq::TensptrT t)
-		{
-			return eteq::ETensor(t, ctx);
-		});
+	[&ctx](teq::TensptrT t)
+	{
+		return eteq::ETensor(t, ctx);
+	});
 	return etens;
+}
+
+distr::ox::TopographyT save_model (
+	onnx::ModelProto& pb_model,
+	const global::CfgMapptrT& ctx)
+{
+	teq::TensptrSetT uniques;
+
+	eteq::ETensorsT etens;
+	onnx::TensptrIdT identified;
+
+	auto& graphinfo = eteq::get_graphinfo(ctx);
+#ifdef ORDERED_SAVE
+	types::StringsT ids;
+	graphinfo.foreach(
+	[&](teq::TensptrT tens, const std::string& id)
+	{
+		identified.insert({tens, id});
+		ids.push_back(id);
+	});
+	std::sort(ids.begin(), ids.end());
+	etens.reserve(ids.size());
+	std::transform(ids.begin(), ids.end(),
+		std::back_inserter(etens),
+		[&graphinfo, &ctx](std::string id)
+		{ return eteq::ETensor(graphinfo.get(id), ctx); });
+#else
+	graphinfo.foreach(
+	[&](teq::TensptrT tens, const std::string& id)
+	{
+		identified.insert({tens, id});
+		etens.push_back(eteq::ETensor(tens, ctx));
+	});
+#endif
+	return save_model(pb_model, etens, identified);
+}
+
+eteq::ETensorsT load_model (
+	global::CfgMapptrT& ctx,
+	const onnx::ModelProto& pb_model,
+	const distr::ox::TopographyT& topography)
+{
+	auto& graphinfo = eteq::get_graphinfo(ctx);
+
+	onnx::TensptrIdT ids;
+	teq::TensptrsT roots;
+	if (auto mgr = get_distrmgr(ctx))
+	{
+		roots = distr::get_oxsvc(*mgr).load_graph(
+			ids, pb_model.graph(), topography);
+	}
+	else
+	{
+		roots = serial::load_graph(ids, pb_model.graph());
+	}
+
+	// replace tensors mapped by id
+	for (auto& idpair : ids)
+	{
+		if (teq::TensptrT src = graphinfo.get(idpair.right))
+		{
+			graphinfo.replace(src, idpair.left);
+		}
+	}
+
+	eteq::ETensorsT out;
+	out.reserve(roots.size());
+	std::transform(roots.begin(), roots.end(),
+		std::back_inserter(out),
+		[&](teq::TensptrT tens)
+		{
+			return eteq::ETensor(tens, ctx);
+		});
+	return out;
 }
 
 }

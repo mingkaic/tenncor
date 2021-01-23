@@ -16,6 +16,13 @@
 using TensProcF = std::function<void(teq::TensptrsT&)>;
 
 
+#ifdef CMAKE_SOURCE_DIR
+const std::string optfile = std::string(CMAKE_SOURCE_DIR) + "cfg/optimizations.json";
+#else
+const std::string optfile = "cfg/optimizations.json";
+#endif
+
+
 static void matmul_complex (TensProcF root_proc = TensProcF())
 {
 	eigen::Device device;
@@ -26,48 +33,58 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 	teq::Shape bshape(blist);
 	teq::Shape cshape(clist);
 
-	std::vector<float> data = {
+	std::vector<double> data = {
 		40, 1, 23,
 		18, 50, 77,
 	};
-	std::vector<float> data2 = {
+	std::vector<double> data2 = {
 		62, 31, 90, 68,
 		68, 78, 55, 95,
 		16, 99, 97, 77,
 	};
-	std::vector<float> data3 = {
+	std::vector<double> data3 = {
 		29, 75,
 		39, 67,
 		37, 57,
 		48, 42,
 	};
-	std::vector<float> expect_ga = {
-		245250818048, 287692324864, 309372977152,
-		386310111232, 453162434560, 487312982016,
+	std::vector<double> expect_ga = {
+        245250819396, 287692321716, 309372966396,
+        386310114212, 453162415252, 487312973212
 	};
-	std::vector<float> expect_gb = {
-		38305894400, 72401903616, 78513586176, 74675994624,
-		44697538560, 84482736128, 91614191616, 87136288768,
-		80860676096, 152834621440, 165735874560, 157635051520,
+	std::vector<double> expect_gb = {
+        38305897056, 72401905296, 78513581412, 74675997396,
+        44697538896, 84482735736, 91614193342, 87136278086,
+        80860679232, 152834620512, 165735879064, 157635046712,
 	};
-	std::vector<float> expect_gc = {
-		112505257984, 278567649280,
-		112505257984, 278567649280,
-		112505257984, 278567649280,
-		112505257984, 278567649280,
+	std::vector<double> expect_gc = {
+        112505250488, 278567642140, 112505250488, 278567642140,
+        112505250488, 278567642140, 112505250488, 278567642140,
+	};
+	std::vector<double> expect_dest = {
+        3459449723918, 3300861981338, 2869600828654, 2447700178416,
+        3300861981338, 3149963703338, 2738532187294, 2336510524236,
+        2869600828654, 2738532187294, 2380870979642, 2031520939428,
+        2447700178416, 2336510524236, 2031520939428, 1734314854572,
 	};
 
-	eteq::EVariable<float> a =
-		eteq::make_variable<float>(data.data(), ashape);
-	eteq::EVariable<float> b =
-		eteq::make_variable<float>(data2.data(), bshape);
-	eteq::EVariable<float> c =
-		eteq::make_variable<float>(data3.data(), cshape);
+	eteq::EVariable<double> a =
+		eteq::make_variable<double>(data.data(), ashape);
+	eteq::EVariable<double> b =
+		eteq::make_variable<double>(data2.data(), bshape);
+	eteq::EVariable<double> c =
+		eteq::make_variable<double>(data3.data(), cshape);
 
 	auto d = tenncor().matmul(a, b);
 	auto e = tenncor().matmul(c, d);
 	auto f = tenncor().matmul(tenncor().transpose(d), tenncor().transpose(c));
 	auto dest = tenncor().matmul(e, f);
+
+	double* dstdata = dest.calc<double>();
+	for (size_t i = 0, n = dest->shape().n_elems(); i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(expect_dest[i], dstdata[i]);
+	}
 
 	auto ders = tcr::derive(dest, {a, b, c});
 	auto da = ders[0];
@@ -91,7 +108,7 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		auto gotshape = da->shape();
 		ASSERT_ARREQ(ashape, gotshape);
 	}
-	float* gaptr = (float*) da->device().data();
+	double* gaptr = (double*) da->device().data();
 	for (size_t i = 0, n = ashape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_ga[i], gaptr[i]);
@@ -101,17 +118,130 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
 		auto gotshape = db->shape();
 		ASSERT_ARREQ(bshape, gotshape);
 	}
-	float* gbptr = (float*) db->device().data();
+	double* gbptr = (double*) db->device().data();
 	for (size_t i = 0, n = bshape.n_elems(); i < n; ++i)
 	{
-		EXPECT_EQ(expect_gb[i], gbptr[i]);
+		EXPECT_DOUBLE_EQ(expect_gb[i], gbptr[i]);
 	}
 
 	{
 		auto gotshape = dc->shape();
 		ASSERT_ARREQ(cshape, gotshape);
 	}
-	float* gcptr = (float*) dc->device().data();
+	double* gcptr = (double*) dc->device().data();
+	for (size_t i = 0, n = cshape.n_elems(); i < n; ++i)
+	{
+		EXPECT_EQ(expect_gc[i], gcptr[i]);
+	}
+}
+
+
+static void contract_equivalent (TensProcF root_proc = TensProcF())
+{
+	eigen::Device device;
+	teq::DimsT alist = {3, 2};
+	teq::DimsT blist = {4, 3};
+	teq::DimsT clist = {2, 4};
+	teq::Shape ashape(alist);
+	teq::Shape bshape(blist);
+	teq::Shape cshape(clist);
+
+	std::vector<double> data = {
+		40, 1, 23,
+		18, 50, 77,
+	};
+	std::vector<double> data2 = {
+		62, 31, 90, 68,
+		68, 78, 55, 95,
+		16, 99, 97, 77,
+	};
+	std::vector<double> data3 = {
+		29, 75,
+		39, 67,
+		37, 57,
+		48, 42,
+	};
+	std::vector<double> expect_ga = {
+        245250819396, 287692321716, 309372966396,
+        386310114212, 453162415252, 487312973212
+	};
+	std::vector<double> expect_gb = {
+        38305897056, 72401905296, 78513581412, 74675997396,
+        44697538896, 84482735736, 91614193342, 87136278086,
+        80860679232, 152834620512, 165735879064, 157635046712,
+	};
+	std::vector<double> expect_gc = {
+        112505250488, 278567642140, 112505250488, 278567642140,
+        112505250488, 278567642140, 112505250488, 278567642140,
+	};
+	std::vector<double> expect_dest = {
+        3459449723918, 3300861981338, 2869600828654, 2447700178416,
+        3300861981338, 3149963703338, 2738532187294, 2336510524236,
+        2869600828654, 2738532187294, 2380870979642, 2031520939428,
+        2447700178416, 2336510524236, 2031520939428, 1734314854572,
+	};
+
+	eteq::EVariable<double> a =
+		eteq::make_variable<double>(data.data(), ashape);
+	eteq::EVariable<double> b =
+		eteq::make_variable<double>(data2.data(), bshape);
+	eteq::EVariable<double> c =
+		eteq::make_variable<double>(data3.data(), cshape);
+
+	auto d = tenncor().contract(a, b);
+	auto e = tenncor().contract(c, d);
+	auto f = tenncor().contract(tenncor().transpose(d), tenncor().transpose(c));
+	auto dest = tenncor().contract(e, f);
+
+	double* dstdata = dest.calc<double>();
+	for (size_t i = 0, n = dest->shape().n_elems(); i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(expect_dest[i], dstdata[i]);
+	}
+
+	auto ders = tcr::derive(dest, {a, b, c});
+	auto da = ders[0];
+	auto db = ders[1];
+	auto dc = ders[2];
+
+	teq::TensptrsT roots = {dest, da, db, dc};
+	if (root_proc)
+	{
+		root_proc(roots);
+	}
+
+	teq::Evaluator eval;
+	teq::TensSetT targets;
+	std::transform(roots.begin(), roots.end(),
+		std::inserter(targets, targets.end()),
+		[](teq::TensptrT g) { return g.get(); });
+	eval.evaluate(device, targets);
+
+	{
+		auto gotshape = da->shape();
+		ASSERT_ARREQ(ashape, gotshape);
+	}
+	double* gaptr = (double*) da->device().data();
+	for (size_t i = 0, n = ashape.n_elems(); i < n; ++i)
+	{
+		EXPECT_EQ(expect_ga[i], gaptr[i]);
+	}
+
+	{
+		auto gotshape = db->shape();
+		ASSERT_ARREQ(bshape, gotshape);
+	}
+	double* gbptr = (double*) db->device().data();
+	for (size_t i = 0, n = bshape.n_elems(); i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(expect_gb[i], gbptr[i]);
+	}
+
+	{
+		auto gotshape = dc->shape();
+		ASSERT_ARREQ(cshape, gotshape);
+	}
+	double* gcptr = (double*) dc->device().data();
 	for (size_t i = 0, n = cshape.n_elems(); i < n; ++i)
 	{
 		EXPECT_EQ(expect_gc[i], gcptr[i]);
@@ -303,8 +433,8 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 	teq::Evaluator eval;
 	teq::TensSetT targets;
 	std::transform(roots.begin(), roots.end(),
-		std::inserter(targets, targets.end()),
-		[](teq::TensptrT g) { return g.get(); });
+	std::inserter(targets, targets.end()),
+	[](teq::TensptrT g) { return g.get(); });
 	eval.evaluate(device, targets);
 
 	{
@@ -778,12 +908,12 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell = tenncor().nn.dense(cell_in, weight, bias);
+	auto cell = tenncor().layer.dense(cell_in, weight, bias);
 
 	auto state = tenncor().extend_like(istate,
 		tenncor().slice(in, 0, 1, seq_dim));
 
-	auto output = tenncor().nn.rnn(in, state, cell,
+	auto output = tenncor().layer.rnn(in, state, cell,
 		[](const eteq::ETensor& x)
 		{ return tenncor().tanh(x); }, seq_dim);
 
@@ -908,13 +1038,13 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 
 	teq::RankT seq_dim = 1;
 	eteq::ETensor cell_in(eteq::make_variable_scalar<double>(0, teq::Shape({10})));
-	auto cell = tenncor().nn.dense(cell_in, weight, bias);
+	auto cell = tenncor().layer.dense(cell_in, weight, bias);
 
 	auto state = tenncor().extend_like(istate,
 		tenncor().slice(in, 0, 1, seq_dim));
 
 	eteq::ETensor layer_in(eteq::make_variable_scalar<double>(0, teq::Shape({5, 3})));
-	auto layer = tenncor().nn.rnn(layer_in, state, cell,
+	auto layer = tenncor().layer.rnn(layer_in, state, cell,
 		[](const eteq::ETensor& x)
 		{ return tenncor().tanh(x); }, seq_dim);
 	auto output = layr::connect(layer, in);
@@ -977,6 +1107,12 @@ TEST(EQUATION, MatmulComplex)
 }
 
 
+TEST(EQUATION, ContractEquivalent)
+{
+	contract_equivalent();
+}
+
+
 TEST(EQUATION, SlowSigmoidMLP)
 {
 	sigmoid_MLP_slow();
@@ -1010,55 +1146,55 @@ TEST(EQUATION, TanhRNNLayerConnect)
 TEST(EQUATION, OptimizedMatmulComplex)
 {
 	matmul_complex(
-		[](teq::TensptrsT& roots)
-		{
-			std::ifstream file("cfg/optimizations.json");
-			roots = hone::optimize(roots, file);
-		});
+	[](teq::TensptrsT& roots)
+	{
+		std::ifstream file(optfile);
+		roots = hone::optimize(roots, file);
+	});
 }
 
 
 TEST(EQUATION, OptimizedSlowSigmoidMLP)
 {
 	sigmoid_MLP_slow(
-		[](teq::TensptrsT& roots)
-		{
-			std::ifstream file("cfg/optimizations.json");
-			roots = hone::optimize(roots, file);
-		});
+	[](teq::TensptrsT& roots)
+	{
+		std::ifstream file(optfile);
+		roots = hone::optimize(roots, file);
+	});
 }
 
 
 TEST(EQUATION, OptimizedFastSigmoidMLP)
 {
 	sigmoid_MLP_fast(
-		[](teq::TensptrsT& roots)
-		{
-			std::ifstream file("cfg/optimizations.json");
-			roots = hone::optimize(roots, file);
-		});
+	[](teq::TensptrsT& roots)
+	{
+		std::ifstream file(optfile);
+		roots = hone::optimize(roots, file);
+	});
 }
 
 
 TEST(EQUATION, OptimizedTanhRNN)
 {
 	tanh_RNN(
-		[](teq::TensptrsT& roots)
-		{
-			std::ifstream file("cfg/optimizations.json");
-			roots = hone::optimize(roots, file);
-		});
+	[](teq::TensptrsT& roots)
+	{
+		std::ifstream file(optfile);
+		roots = hone::optimize(roots, file);
+	});
 }
 
 
 TEST(EQUATION, OptimizedTanhRNNLayer)
 {
 	tanh_RNN_layer(
-		[](teq::TensptrsT& roots)
-		{
-			std::ifstream file("cfg/optimizations.json");
-			roots = hone::optimize(roots, file);
-		});
+	[](teq::TensptrsT& roots)
+	{
+		std::ifstream file(optfile);
+		roots = hone::optimize(roots, file);
+	});
 }
 
 

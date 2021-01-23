@@ -1,5 +1,5 @@
 
-#include "python/layr_ext.hpp"
+#include "tenncor/python/layr_ext.hpp"
 
 void layr_ext(py::module& m)
 {
@@ -92,7 +92,7 @@ void layr_ext(py::module& m)
 			py::arg("err_func") = layr::BErrorF(
 			[](const eteq::ETensor& l, const eteq::ETensor& r)
 			{
-				return tenncor().error.sqr_diff(l, r);
+				return tenncor().loss.mean_squared(l, r);
 			}),
 			py::arg("cdk") = 1,
 			py::arg("ctx") = global::context());

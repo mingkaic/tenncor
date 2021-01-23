@@ -2,146 +2,59 @@
 #ifndef EIGEN_MOCK_OBSERVABLE_HPP
 #define EIGEN_MOCK_OBSERVABLE_HPP
 
+#include "internal/eigen/eigen.hpp"
+
 #include "internal/teq/mock/mock.hpp"
 
-#include "internal/eigen/eigen.hpp"
+#include "gmock/gmock.h"
+
+using ::testing::_;
+using ::testing::Const;
+using ::testing::Return;
+using ::testing::ReturnRef;
 
 struct MockObservable : public eigen::Observable
 {
-	MockObservable (void) :
-		MockObservable(teq::TensptrsT{
-			std::make_shared<MockLeaf>(teq::Shape(), "A")},
-			std::vector<double>(0), teq::Opcode{}) {}
+	MockObservable (void) : Observable(teq::TensptrsT{}) {}
+	MockObservable (const teq::TensptrsT& args) : Observable(args) {}
+	MockObservable (const teq::TensptrsT& args, marsh::Maps&& attrs) : Observable(args, std::move(attrs)) {}
 
-	MockObservable (const teq::TensptrsT& args,
-		std::vector<double> data, teq::Opcode opcode) :
-		Observable(args), func_(args, data, opcode) {}
+	MOCK_CONST_METHOD0(to_string, std::string(void));
+	MOCK_METHOD0(device, teq::iDeviceRef&(void));
+	MOCK_CONST_METHOD0(device, const teq::iDeviceRef&(void));
+	MOCK_CONST_METHOD0(get_meta, const teq::iMetadata&(void));
+	MOCK_CONST_METHOD0(shape, teq::Shape(void));
+	MOCK_CONST_METHOD0(clone_impl, teq::iTensor*(void));
 
-	MockObservable (marsh::Maps&& attrs) :
-		MockObservable(std::move(attrs), teq::TensptrsT{
-			std::make_shared<MockLeaf>(teq::Shape(), "A")},
-			std::vector<double>(0), teq::Opcode{}) {}
+	MOCK_CONST_METHOD0(get_opcode, teq::Opcode(void));
+	MOCK_CONST_METHOD0(get_args, teq::TensptrsT(void));
+	MOCK_METHOD2(update_child, void(teq::TensptrT,size_t));
 
-	MockObservable (marsh::Maps&& attrs,
-		const teq::TensptrsT& args,
-		std::vector<double> data, teq::Opcode opcode) :
-		Observable(args, std::move(attrs)), func_(args, data, opcode) {}
-
-	virtual ~MockObservable (void) = default;
-
-	MockObservable (const MockObservable& other) = default;
-
-	MockObservable (MockObservable&& other) :
-		Observable(std::move(other)),
-		func_(std::move(other.func_)),
-		data_(std::move(other.data_)),
-		succeed_initial_(std::move(other.succeed_initial_)),
-		succeed_prop_(std::move(other.succeed_prop_)) {}
-
-	MockObservable& operator = (const MockObservable& other) = default;
-
-	MockObservable& operator = (MockObservable&& other)
-	{
-		if (&other != this)
-		{
-			Observable::operator = (std::move(other));
-			func_ = std::move(other.func_);
-			data_ = std::move(other.data_);
-			succeed_initial_ = std::move(other.succeed_initial_);
-			succeed_prop_ = std::move(other.succeed_prop_);
-		}
-		return *this;
-	}
-
-	std::string to_string (void) const override
-	{
-		return func_.to_string();
-	}
-
-	teq::Opcode get_opcode (void) const override
-	{
-		return func_.get_opcode();
-	}
-
-	teq::TensptrsT get_args (void) const override
-	{
-		return func_.get_args();
-	}
-
-	void update_child (teq::TensptrT arg, size_t index) override
-	{
-		func_.update_child(arg, index);
-	}
-
-	teq::iDeviceRef& device (void) override
-	{
-		return func_.device();
-	}
-
-	const teq::iDeviceRef& device (void) const override
-	{
-		return func_.device();
-	}
-
-	const teq::iMetadata& get_meta (void) const override
-	{
-		return func_.get_meta();
-	}
-
-	teq::Shape shape (void) const override
-	{
-		return func_.shape();
-	}
-
-	bool has_data (void) const override
-	{
-		return data_;
-	}
-
-	void uninitialize (void) override
-	{
-		data_ = false;
-	}
-
-	bool initialize (void) override
-	{
-		if (succeed_initial_)
-		{
-			data_ = true;
-		}
-		return succeed_initial_;
-	}
-
-	void must_initialize (void) override
-	{
-		if (succeed_initial_)
-		{
-			data_ = true;
-		}
-	}
-
-	bool prop_version (size_t max_version) override
-	{
-		if (max_version < func_.meta_.version_)
-		{
-			return false;
-		}
-		++func_.meta_.version_;
-		return succeed_prop_;
-	}
-
-	teq::iTensor* clone_impl (void) const override
-	{
-		return new MockObservable(*this);
-	}
-
-	MockFunctor func_;
-
-	bool data_ = false;
-
-	bool succeed_initial_ = true;
-
-	bool succeed_prop_ = true;
+	MOCK_CONST_METHOD0(has_data, bool(void));
+	MOCK_METHOD0(uninitialize, void(void));
+	MOCK_METHOD0(initialize, bool(void));
+	MOCK_METHOD0(must_initialize, void(void));
+	MOCK_METHOD0(cache_init, void(void));
+	MOCK_METHOD1(prop_version, bool(size_t));
 };
+
+using MockObsptrT = std::shared_ptr<MockObservable>;
+
+MockObsptrT make_obs (std::string opname, size_t opcode, teq::TensptrsT args);
+
+MockObsptrT make_obs (std::string opname, size_t opcode, teq::TensptrsT args, marsh::Maps&& attrs);
+
+template <typename T>
+MockObsptrT make_obs (T* data, MockDeviceRef& devref,
+	std::string opname, size_t opcode, teq::TensptrsT args)
+{
+	EXPECT_CALL(devref, data()).WillRepeatedly(Return(data));
+	EXPECT_CALL(Const(devref), data()).WillRepeatedly(Return(data));
+
+	auto out = make_obs(opname, opcode, args);
+	EXPECT_CALL(*out, device()).WillRepeatedly(ReturnRef(devref));
+	EXPECT_CALL(Const(*out), device()).WillRepeatedly(ReturnRef(devref));
+	return out;
+}
 
 #endif // EIGEN_MOCK_OBSERVABLE_HPP

@@ -8,7 +8,8 @@ install_test_deps:
 .PHONY: generate_testcases
 generate_testcases: install_test_deps
 	bazel run //testutil:tf_gen -- /tmp/tf_testcases.json
-	mv /tmp/tf_testcases.json models/test
+	mv /tmp/tf_testcases.json models/test/testcases/
+	jq -c . < /tmp/tf_testcases.json | split -b 10000000 --additional-suffix=.json - models/test/testcases/tf_cases_
 
 .PHONY: test_consul_up
 test_consul_up:
@@ -68,7 +69,12 @@ ${GRPC_CPP_PLUGIN}:
 	bazel build @com_github_grpc_grpc//src/compiler:grpc_cpp_plugin
 
 .PHONY: gen-proto
-gen-proto: gen-extenncor-proto gen-onnx-proto gen-gemit-proto gen-oxsvc-proto
+gen-proto: gen-gemit-proto gen-extenncor-proto gen-onnx-proto gen-oxsvc-proto
+
+.PHONY: gen-gemit-proto
+gen-gemit-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
+	./${PROTOC} --cpp_out=. -I . dbg/peval/emit/gemitter.proto
+	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . dbg/peval/emit/gemitter.proto
 
 .PHONY: gen-extenncor-proto
 gen-extenncor-proto: ${PROTOC}
@@ -77,11 +83,6 @@ gen-extenncor-proto: ${PROTOC}
 .PHONY: gen-onnx-proto
 gen-onnx-proto: ${PROTOC}
 	./${PROTOC} --cpp_out=. -I . internal/onnx/onnx.proto
-
-.PHONY: gen-gemit-proto
-gen-gemit-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
-	./${PROTOC} --cpp_out=. -I . dbg/peval/emit/gemitter.proto
-	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . dbg/peval/emit/gemitter.proto
 
 .PHONY: gen-oxsvc-proto
 gen-oxsvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
@@ -110,6 +111,8 @@ onnx_test_o2j: models/test/bad_onnx.onnx models/test/bad_onnx2.onnx models/test/
 eteq_test_o2j: models/test/eteq.onnx
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq.onnx --write /tmp/eteq.json
 	mv /tmp/eteq.json models/test
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq_ctx.onnx --write /tmp/eteq_ctx.json
+	mv /tmp/eteq_ctx.json models/test
 
 .PHONY: serial_test_o2j
 serial_test_o2j: models/test/serial.onnx
@@ -184,6 +187,8 @@ onnx_test_j2o: models/test/bad_onnx.json models/test/bad_onnx2.json models/test/
 eteq_test_j2o: models/test/eteq.json
 	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq.json --write /tmp/eteq.onnx
 	mv /tmp/eteq.onnx models/test
+	bazel run //internal/onnx:inspector -- --read ${CURDIR}/models/test/eteq_ctx.json --write /tmp/eteq_ctx.onnx
+	mv /tmp/eteq_ctx.onnx models/test
 
 .PHONY: serial_test_j2o
 serial_test_j2o: models/test/serial.json
@@ -388,3 +393,48 @@ cover_integration:
 	${CCOVER} --instrumentation_filter 'internal/*' 'tenncor/*' //tenncor:ctest
 	@make clean_test_coverage
 	lcov -a ${TMP_COVFILE} -o integ_coverage.info
+
+.PHONY: conan_remote
+conan_remote:
+	conan remote add inexorgame "https://api.bintray.com/conan/inexorgame/inexor-conan"
+	conan remote add mingkaic-co "https://gitlab.com/api/v4/projects/23299689/packages/conan"
+
+build/conanbuildinfo.cmake:
+	conan install -if build .
+
+.PHONY: conan_install
+conan_install: build/conanbuildinfo.cmake
+
+.PHONY: conan_build
+conan_build: build/conanbuildinfo.cmake
+	conan build -bf build .
+
+.PHONY: conan_create
+conan_create:
+	conan create . mingkaic-co/stable
+
+.PHONY: conan_upload
+conan_upload:
+	conan upload tenncor/${VERSION}@mingkaic-co/stable --all --remote mingkaic-co
+
+.PHONY: python_create
+python_create:
+	python3 setup.py sdist bdist_wheel
+
+#### demo tryout ####
+
+CC := gcc
+
+.PHONY: try_demos
+try_demos:
+	bazel run --config ${CC}_eigen_optimal //demo:w2v
+	bazel run --config ${CC}_eigen_optimal //demo:rnn -- --save /tmp/rnn.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:rbm -- --save /tmp/rbm.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:lstm_latin -- --save /tmp/latin_lstm.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:lstm_fast -- --save /tmp/fast_lstm.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:gru_latin -- --save /tmp/latin_gru.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:gru_fast -- --save /tmp/fast_gru.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:gd -- --save /tmp/gd.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:dqn -- --save /tmp/dqn.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:dbn -- --save /tmp/dbn.onnx
+	bazel run --config ${CC}_eigen_optimal //demo:cgd

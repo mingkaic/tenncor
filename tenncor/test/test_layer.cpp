@@ -7,11 +7,16 @@
 
 #include "testutil/tutil.hpp"
 
+#include "internal/global/mock/mock.hpp"
 #include "tenncor/distr/mock/mock.hpp"
 
 #include "tenncor/layr/layer.hpp"
 
 #include "tenncor/tenncor.hpp"
+
+
+using ::testing::_;
+using ::testing::Invoke;
 
 
 template <typename T=float>
@@ -30,12 +35,41 @@ static eteq::ETensor tc_sigmoid (const eteq::ETensor& x)
 
 TEST(DENSE, Connection)
 {
+	auto gen = std::make_shared<MockGenerator>();
+	global::set_generator(gen);
+	auto decgen = []{ return 0.; };
+	float xavier1 = 2.f * std::sqrt(6.f / 11.f);
+	float xavier2 = 4.f * std::sqrt(6.f / 5.f);
+	float xavier3 = 3.f * std::sqrt(6.f / 13.f);
+	EXPECT_CALL(*gen, unif_decgen(_,_)).
+	WillOnce(Invoke(
+	[decgen,xavier1](const double& e, const double& e2)
+	{
+		EXPECT_FLOAT_EQ(-xavier1, e);
+		EXPECT_FLOAT_EQ(xavier1, e2);
+		return decgen;
+	})).
+	WillOnce(Invoke(
+	[decgen,xavier2](const double& e, const double& e2)
+	{
+		EXPECT_FLOAT_EQ(-xavier2, e);
+		EXPECT_FLOAT_EQ(xavier2, e2);
+		return decgen;
+	})).
+	WillOnce(Invoke(
+	[decgen,xavier3](const double& e, const double& e2)
+	{
+		EXPECT_FLOAT_EQ(-xavier3, e);
+		EXPECT_FLOAT_EQ(xavier3, e2);
+		return decgen;
+	}));
+
 	teq::Shape shape({6});
 	teq::Shape shape2({7});
 	auto biased_dense = tenncor().layer.dense<float>(shape, {5},
-		tenncor().layer.unif_xavier_init<float>(2), tenncor().layer.unif_xavier_init<float>(4));
+		tenncor().init.xavier_uniform<float>(2), tenncor().init.xavier_uniform<float>(4));
 	auto dense = tenncor().layer.dense<float>(shape2, {6},
-		tenncor().layer.unif_xavier_init<float>(3), layr::InitF<float>());
+		tenncor().init.xavier_uniform<float>(3), layr::InitF<float>(), false);
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({6, 2}), "x");
@@ -47,7 +81,7 @@ TEST(DENSE, Connection)
 	EXPECT_GRAPHEQ(
 		"(IDENTITY<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(ADD<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(MATMUL<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(CONTRACT<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(variable:x<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(variable:weight<FLOAT>[5\\6\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(EXTEND<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -55,17 +89,18 @@ TEST(DENSE, Connection)
 
 	EXPECT_GRAPHEQ(
 		"(IDENTITY<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(MATMUL<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(CONTRACT<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(variable:x2<FLOAT>[7\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(variable:weight<FLOAT>[6\\7\\1\\1\\1\\1\\1\\1])", y);
+	global::set_generator(nullptr);
 }
 
 
 TEST(CONV, Connection)
 {
-	auto conv = tenncor().layer.conv<float>({6, 5}, 4, 3,
-		tenncor().layer.unif_xavier_init<float>(1),
-		tenncor().layer.zero_init<float>());
+	auto conv = tenncor().layer.conv2d<float>({6, 5}, 4, 3,
+		tenncor().init.xavier_uniform<float>(1),
+		tenncor().init.zeros<float>());
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({4, 10, 9, 2}), "x");
@@ -88,10 +123,10 @@ TEST(CONV, Connection)
 TEST(RBM, Connection)
 {
 	auto rrbm = tenncor().layer.rbm(6, 5,
-		tenncor().layer.unif_xavier_init<float>(2),
-		tenncor().layer.unif_xavier_init<float>(4));
+		tenncor().init.xavier_uniform<float>(2),
+		tenncor().init.xavier_uniform<float>(4));
 	auto nobias = tenncor().layer.rbm(7, 6,
-		tenncor().layer.unif_xavier_init<float>(3), layr::InitF<float>());
+		tenncor().init.xavier_uniform<float>(3), layr::InitF<float>(), false);
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<float>(0, teq::Shape({7, 2}), "x2");
@@ -101,7 +136,7 @@ TEST(RBM, Connection)
 	EXPECT_GRAPHEQ(
 		"(IDENTITY<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(ADD<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(MATMUL<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(CONTRACT<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(variable:x<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(variable:weight<FLOAT>[5\\6\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(EXTEND<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
@@ -109,7 +144,7 @@ TEST(RBM, Connection)
 
 	EXPECT_GRAPHEQ(
 		"(IDENTITY<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(MATMUL<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(CONTRACT<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(variable:x2<FLOAT>[7\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(variable:weight<FLOAT>[6\\7\\1\\1\\1\\1\\1\\1])", y);
 }
@@ -118,10 +153,10 @@ TEST(RBM, Connection)
 TEST(RBM, BackwardConnection)
 {
 	auto rrbm = tenncor().layer.rbm(6, 5,
-		tenncor().layer.unif_xavier_init<float>(2),
-		tenncor().layer.unif_xavier_init<float>(4));
+		tenncor().init.xavier_uniform<float>(2),
+		tenncor().init.xavier_uniform<float>(4));
 	auto nobias = tenncor().layer.rbm(7, 6,
-		tenncor().layer.unif_xavier_init<float>(3), layr::InitF<float>());
+		tenncor().init.xavier_uniform<float>(3), layr::InitF<float>(), false);
 
 	auto y = eteq::make_variable_scalar<float>(0, teq::Shape({5, 2}), "y");
 	auto y2 = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "y2");
@@ -131,7 +166,7 @@ TEST(RBM, BackwardConnection)
 	EXPECT_GRAPHEQ(
 		"(IDENTITY<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_`--(ADD<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_____`--(MATMUL<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_____`--(CONTRACT<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(variable:y<FLOAT>[5\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____|___`--(PERMUTE<FLOAT>[6\\5\\1\\1\\1\\1\\1\\1])\n"
 		"_____|_______`--(variable:weight<FLOAT>[5\\6\\1\\1\\1\\1\\1\\1])\n"
@@ -140,7 +175,7 @@ TEST(RBM, BackwardConnection)
 
 	EXPECT_GRAPHEQ(
 		"(IDENTITY<FLOAT>[7\\2\\1\\1\\1\\1\\1\\1])\n"
-		"_`--(MATMUL<FLOAT>[7\\2\\1\\1\\1\\1\\1\\1])\n"
+		"_`--(CONTRACT<FLOAT>[7\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(variable:y2<FLOAT>[6\\2\\1\\1\\1\\1\\1\\1])\n"
 		"_____`--(PERMUTE<FLOAT>[7\\6\\1\\1\\1\\1\\1\\1])\n"
 		"_________`--(variable:weight<FLOAT>[6\\7\\1\\1\\1\\1\\1\\1])", x);
@@ -149,7 +184,7 @@ TEST(RBM, BackwardConnection)
 
 TEST(BIND, Sigmoid)
 {
-	auto sgm = tenncor().layer.bind<float>(tc_sigmoid<float>);
+	auto sgm = tenncor().layer.bind(tc_sigmoid<float>);
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
 	auto s = layr::connect(sgm, eteq::ETensor(x));
@@ -163,13 +198,13 @@ TEST(BIND, Sigmoid)
 
 TEST(BIND, Softmax)
 {
-	auto sft0 = tenncor().layer.bind<float>(
+	auto sft0 = tenncor().layer.bind(
 		[](eteq::ETensor e)
 		{
 			return tenncor().softmax(e, 0, 1);
 		});
 
-	auto sft1 = tenncor().layer.bind<float>(
+	auto sft1 = tenncor().layer.bind(
 		[](eteq::ETensor e)
 		{
 			return tenncor().softmax(e, 1, 1);
@@ -484,6 +519,7 @@ TEST(CONNECT, DenseTanhRNN)
 		ASSERT_ARREQ(weight1_shape, gotshape);
 	}
 	double* gw1ptr = (double*) dw1->device().data();
+	ASSERT_NE(nullptr, gw1ptr);
 	for (size_t i = 0, n = weight1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw1[i], gw1ptr[i]);
@@ -494,6 +530,7 @@ TEST(CONNECT, DenseTanhRNN)
 		ASSERT_ARREQ(bias1_shape, gotshape);
 	}
 	double* gb1ptr = (double*) db1->device().data();
+	ASSERT_NE(nullptr, gb1ptr);
 	for (size_t i = 0, n = bias1_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb[i], gb1ptr[i]);
@@ -504,6 +541,7 @@ TEST(CONNECT, DenseTanhRNN)
 		ASSERT_ARREQ(state_shape, gotshape);
 	}
 	double* gstateptr = (double*) dstate->device().data();
+	ASSERT_NE(nullptr, gstateptr);
 	for (size_t i = 0, n = state_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gstate[i], gstateptr[i]);
@@ -514,6 +552,7 @@ TEST(CONNECT, DenseTanhRNN)
 		ASSERT_ARREQ(weight0_shape, gotshape);
 	}
 	double* gw0ptr = (double*) dw0->device().data();
+	ASSERT_NE(nullptr, gw0ptr);
 	for (size_t i = 0, n = weight0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gw0[i], gw0ptr[i]);
@@ -524,6 +563,7 @@ TEST(CONNECT, DenseTanhRNN)
 		ASSERT_ARREQ(bias0_shape, gotshape);
 	}
 	double* gb0ptr = (double*) db0->device().data();
+	ASSERT_NE(nullptr, gb0ptr);
 	for (size_t i = 0, n = bias0_shape.n_elems(); i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(expect_gb0[i], gb0ptr[i]);
@@ -661,7 +701,7 @@ TEST(CONNECT, TanhRNNFull)
 
 	auto layer = tenncor().layer.link({
 		indense, rnn, outdense,
-		tenncor().layer.bind<double>(tc_sigmoid<double>),
+		tenncor().layer.bind(tc_sigmoid<double>),
 	});
 
 	auto output = layr::connect(layer, in);
@@ -903,7 +943,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 
 	auto layer = tenncor().layer.link({
 		indense, rnn, outdense,
-		tenncor().layer.bind<double>(tc_sigmoid<double>),
+		tenncor().layer.bind(tc_sigmoid<double>),
 	});
 
 	auto output = layr::connect(layer, in);
@@ -1336,7 +1376,7 @@ TEST(CONNECT, TanhRNNTraining)
 
 	auto layer = tenncor().layer.link({
 		indense, rnn, outdense,
-		tenncor().layer.bind<double>(tc_sigmoid<double>),
+		tenncor().layer.bind(tc_sigmoid<double>),
 	});
 
 	auto output = layr::connect(layer, in);
@@ -1595,8 +1635,8 @@ TEST_F(LAYER_DISTRIB, DenseConnection)
 		tcr::set_distrmgr(mgrA, actx);
 
 		auto dense = TenncorAPI(actx).layer.dense<float>(shape, {5},
-			TenncorAPI(actx).layer.unif_xavier_init<float>(2),
-			TenncorAPI(actx).layer.unif_xavier_init<float>(4));
+			TenncorAPI(actx).init.xavier_uniform<float>(2),
+			TenncorAPI(actx).init.xavier_uniform<float>(4));
 
 		auto xa = eteq::make_variable<float>(indata.data(), inshape, "xa", actx);
 		auto ya = tcr::connect(dense, eteq::ETensor(xa));

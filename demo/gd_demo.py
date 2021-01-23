@@ -60,19 +60,15 @@ def main(args):
     train_input = tc.EVariable([nbatch, ninput])
     train_exout = tc.EVariable([nbatch, noutput])
     model = tc.api.layer.link([
-        tc.api.layer.dense([ninput], [nunits],
-            weight_init=tc.api.layer.unif_xavier_init(),
-            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.dense([ninput], [nunits]),
         tc.api.layer.bind(tc.api.sigmoid),
-        tc.api.layer.dense([nunits], [noutput],
-            weight_init=tc.api.layer.unif_xavier_init(),
-            bias_init=tc.api.layer.zero_init()),
+        tc.api.layer.dense([nunits], [noutput]),
         tc.api.layer.bind(tc.api.sigmoid),
     ], train_input)
 
     train = tc.apply_update([model],
         lambda err, leaves: tc.api.approx.sgd(err, leaves, learning_rate=0.9),
-        lambda models: tc.api.error.sqr_diff(train_exout, models[0].connect(train_input)))
+        lambda models: tc.api.loss.mean_squared(train_exout, models[0].connect(train_input)))
     untrained = model.deep_clone()
     trained = model.deep_clone()
     try:
