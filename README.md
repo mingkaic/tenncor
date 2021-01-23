@@ -83,3 +83,6 @@ Download bazel: https://docs.bazel.build/versions/master/install.html
 # Conan installation
 Before install package first add remote: `conan remote add mingkaic-co "https://gitlab.com/api/v4/projects/23299689/packages/conan"`
 Add requirement `tenncor/<version>@mingkaic-co/stable`
+
+# Pip installation
+Pypi repository is experimental. Best way for installation is to download from directory: `pip3 install $(path_to_tenncor)/tenncor/`
