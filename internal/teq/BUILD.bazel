@@ -48,6 +48,7 @@ cc_library(
     deps = [
         "//internal/marsh:marsh",
         "//internal/global:global",
+		"@com_github_mingkaic_cppkg//jobs:jobs",
     ],
     visibility = ["//visibility:public"],
 )
