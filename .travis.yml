@@ -30,6 +30,11 @@ jobs:
         - docker run --network=host -e CODECOV_TOKEN=${CODECOV_TOKEN}
           -e REMOTE_CACHE=${TEST_REMOTE_CACHE} --rm ${DOCKER_USERNAME}/tenncor-test:travis-${TRAVIS_COMMIT} all coverage
         - make test_consul_down
+    - if: branch = master
+      stage: conan_deploy
+      script:
+        - docker build -t $DOCKER_USERNAME/tenncor-cmake:travis-${TRAVIS_COMMIT} --build-arg CONAN_USR=${CONAN_USR} --build-arg CONAN_PWD=${CONAN_PWD} -f Dockerfile.conan .
+        - docker run --rm $DOCKER_USERNAME/tenncor-cmake:travis-${TRAVIS_COMMIT}
     #- stage: build docker image with C++ and python library
     #  if: branch = master
     #  script:

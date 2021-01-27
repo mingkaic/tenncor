@@ -388,6 +388,8 @@ cover_serial:
 
 #### integration coverages ####
 
+VERSION := $(shell ./get_version.sh)
+
 .PHONY: cover_integration
 cover_integration:
 	${CCOVER} --instrumentation_filter 'internal/*' 'tenncor/*' //tenncor:ctest
@@ -416,6 +418,9 @@ conan_create:
 .PHONY: conan_upload
 conan_upload:
 	conan upload tenncor/${VERSION}@mingkaic-co/stable --all --remote mingkaic-co
+
+.PHONY: conan_create_n_upload
+conan_create_n_upload: conan_create conan_upload
 
 .PHONY: python_create
 python_create:

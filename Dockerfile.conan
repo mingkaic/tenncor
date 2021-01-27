@@ -1,0 +1,15 @@
+FROM mkaichen/bionic_conan_cmake:latest
+
+ENV APP_DIR /usr/src/tenncor
+ARG CONAN_USR
+ARG CONAN_PWD
+
+# working directory
+RUN mkdir -p $APP_DIR
+WORKDIR $APP_DIR
+COPY . $APP_DIR
+
+RUN make conan_remote
+RUN conan user -r mingkaic-co -p $CONAN_PWD $CONAN_USR
+
+ENTRYPOINT [ "make", "conan_create_n_upload" ]

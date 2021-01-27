@@ -1,11 +1,18 @@
 import os
+import subprocess
 import sys
 
 from conans import ConanFile, CMake, tools
 
+def get_version():
+    get_vers = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'get_version.sh')
+    sp = subprocess.Popen(get_vers, shell=True, stdout=subprocess.PIPE)
+    version = sp.stdout.read().decode('utf-8')
+    return version.strip()
+
 class TenncorConan(ConanFile):
     name = "tenncor"
-    version = "0.1"
+    version = get_version()
     license = "MIT"
     author = "Ming Kai Chen <mingkaichen2009@gmail.com>"
     url = "https://github.com/mingkaic/tenncor"
