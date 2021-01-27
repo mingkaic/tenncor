@@ -105,14 +105,14 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    sample_inp = tc.EVariable([1, vocab_size], 0)
+    sample_inp = tc.Variable([1, vocab_size], 0)
 
     trained_prob = tc.api.slice(model.connect(sample_inp), 0, 1, 1)
     untrained_prob = tc.api.slice(untrained_model.connect(sample_inp), 0, 1, 1)
     pretrained_prob = tc.api.slice(pretrained_model.connect(sample_inp), 0, 1, 1)
 
-    train_inps = tc.EVariable([seq_length, vocab_size], 0)
-    train_exout = tc.EVariable([seq_length, vocab_size], 0)
+    train_inps = tc.Variable([seq_length, vocab_size], 0)
+    train_exout = tc.Variable([seq_length, vocab_size], 0)
 
     train_err = tc.apply_update([model],
         lambda error, leaves: tc.api.approx.adagrad(error, leaves, learning_rate=learning_rate, epsilon=1e-8),

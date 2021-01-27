@@ -35,6 +35,17 @@ struct iPermEigen : public iEigen
 	void extend_life (size_t) override {}
 };
 
+struct iSrcRef : public iPermEigen
+{
+	virtual ~iSrcRef (void) = default;
+
+	virtual void assign (const void* ptr,
+		egen::_GENERATED_DTYPE dtype,
+		const teq::Shape& shape) = 0;
+};
+
+using SrcRefptrT = std::unique_ptr<iSrcRef>;
+
 #ifdef PERM_OP
 
 template <typename T, typename INTYPE=T>
@@ -199,7 +210,7 @@ private:
 
 /// Source device reference useful for leaves
 template <typename T>
-struct SrcRef final : public iPermEigen
+struct SrcRef final : public iSrcRef
 {
 	SrcRef (T* data, teq::Shape shape) :
 		data_(make_tensmap(data, shape)) {}
@@ -239,6 +250,23 @@ struct SrcRef final : public iPermEigen
 	void assign (const TensorT<T>& input)
 	{
 		data_ = input;
+	}
+
+	void assign (const void* ptr,
+		egen::_GENERATED_DTYPE dtype,
+		const teq::Shape& shape) override
+	{
+		if (dtype != egen::get_type<T>())
+		{
+			size_t nelems = shape.n_elems();
+			std::vector<T> data(nelems);
+			egen::type_convert(&data[0], ptr, dtype, nelems);
+			data_ = eigen::make_tensmap<T>(data.data(), shape);
+		}
+		else
+		{
+			data_ = eigen::make_tensmap<T>((T*) ptr, shape);
+		}
 	}
 
 private:

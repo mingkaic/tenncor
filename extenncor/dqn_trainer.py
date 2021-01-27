@@ -75,16 +75,16 @@ class DQNEnv(ecache.EnvManager):
             batchin = [mbatch_size] + inshape
 
             # environment interaction
-            self.obs = tc.EVariable(inshape, 0, 'obs', ctx=self.ctx)
+            self.obs = tc.Variable(inshape, 0, 'obs', ctx=self.ctx)
             self.act_idx = tc.TenncorAPI(self.ctx).argmax(src_model.connect(self.obs))
             self.act_idx.tag("recovery", "act_idx")
 
             # training
-            self.src_obs = tc.EVariable(batchin, 0, 'src_obs', ctx=self.ctx)
-            self.nxt_obs = tc.EVariable(batchin, 0, 'nxt_obs', ctx=self.ctx)
-            self.src_outmask = tc.EVariable([mbatch_size] + list(src_model.shape()), 1, 'src_outmask', ctx=self.ctx)
-            self.nxt_outmask = tc.EVariable([mbatch_size], 1, 'nxt_outmask', ctx=self.ctx)
-            self.rewards = tc.EVariable([mbatch_size], 0, 'rewards', ctx=self.ctx)
+            self.src_obs = tc.Variable(batchin, 0, 'src_obs', ctx=self.ctx)
+            self.nxt_obs = tc.Variable(batchin, 0, 'nxt_obs', ctx=self.ctx)
+            self.src_outmask = tc.Variable([mbatch_size] + list(src_model.shape()), 1, 'src_outmask', ctx=self.ctx)
+            self.nxt_outmask = tc.Variable([mbatch_size], 1, 'nxt_outmask', ctx=self.ctx)
+            self.rewards = tc.Variable([mbatch_size], 0, 'rewards', ctx=self.ctx)
 
             self.prediction_err = tc.api.identity(tc.apply_update([src_model, nxt_model],
                 get_dqnupdate(update_fn, target_update_rate),

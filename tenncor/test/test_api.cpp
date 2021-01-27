@@ -594,8 +594,8 @@ TEST(API, Assign)
 	assert(data.size() == n);
 	assert(data2.size() == n);
 
-	eteq::EVariable<double> target1 = eteq::make_variable<double>(data.data(), shape);
-	eteq::EVariable<double> target2 = eteq::make_variable<double>(data.data(), shape);
+	eteq::EVariable target1 = eteq::make_variable<double>(data.data(), shape);
+	eteq::EVariable target2 = eteq::make_variable<double>(data.data(), shape);
 	eteq::ETensor src = eteq::make_constant<double>(data2.data(), shape);
 
 	auto ass1 = tenncor().assign(target1, src);
@@ -665,8 +665,8 @@ TEST(API, AssignHighToLowPrecision)
 	assert(data.size() == n);
 	assert(data2.size() == n);
 
-	eteq::EVariable<float> target1 = eteq::make_variable<float>(data.data(), shape, "target1");
-	eteq::EVariable<float> target2 = eteq::make_variable<float>(data.data(), shape, "target2");
+	eteq::EVariable target1 = eteq::make_variable<float>(data.data(), shape, "target1");
+	eteq::EVariable target2 = eteq::make_variable<float>(data.data(), shape, "target2");
 	eteq::ETensor src = eteq::make_constant<double>(data2.data(), shape);
 
 	auto ass1 = tenncor().assign(target1, src);
@@ -789,7 +789,7 @@ TEST(API, IdentityDependency)
 	assert(data.size() == n);
 	assert(data2.size() == n);
 
-	eteq::EVariable<double> target = eteq::make_variable<double>(data.data(), shape);
+	eteq::EVariable target = eteq::make_variable<double>(data.data(), shape);
 	eteq::ETensor a = eteq::make_constant<double>(data.data(), shape);
 	eteq::ETensor b = eteq::make_constant<double>(data2.data(), shape);
 	auto c = a + b;
@@ -844,7 +844,7 @@ TEST(API, DependsRunOnce)
 	assert(data.size() == n);
 	assert(data2.size() == n);
 
-	eteq::EVariable<double> target = eteq::make_variable_scalar<double>(0, shape);
+	eteq::EVariable target = eteq::make_variable_scalar<double>(0, shape);
 	eteq::ETensor a = eteq::make_constant<double>(data.data(), shape);
 	eteq::ETensor b = eteq::make_constant<double>(data2.data(), shape);
 	auto c = a + b;
@@ -2456,13 +2456,13 @@ TEST(API, DenseSerialization)
 	std::vector<float> bias_data;
 	{
 		auto x = eteq::make_variable_scalar<float>(0, teq::Shape({ninput, 2}), "x");
-		eteq::VarptrT<float> weight = eteq::make_variable_scalar<float>(
+		eteq::VarptrT weight = eteq::make_variable_scalar<float>(
 			0, teq::Shape({noutput, ninput}), "weight");
-		eteq::VarptrT<float> bias = eteq::make_variable_scalar<float>(
+		eteq::VarptrT bias = eteq::make_variable_scalar<float>(
 			0, teq::Shape({noutput}), "bias");
 		auto y = tenncor().layer.dense(eteq::ETensor(x),
 			eteq::ETensor(weight), eteq::ETensor(bias));
-		eteq::VarptrsT<float> contents = layr::get_storage<float>(y);
+		eteq::VarptrsT contents = layr::get_storage(y);
 		ASSERT_EQ(2, contents.size());
 		EXPECT_ARRHAS(contents, weight);
 		EXPECT_ARRHAS(contents, bias);

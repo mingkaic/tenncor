@@ -26,7 +26,7 @@ funcs:
       - name: error
         type: const eteq::ETensor&
       - name: variables
-        type: const eteq::EVariablesT<T>&
+        type: const eteq::EVariablesT&
       - name: learning_rate
         type: T
         default: 0.5
@@ -58,7 +58,7 @@ funcs:
       - name: error
         type: const eteq::ETensor&
       - name: variables
-        type: const eteq::EVariablesT<T>&
+        type: const eteq::EVariablesT&
       - name: learning_rate
         type: T
         default: 0.5
@@ -84,7 +84,7 @@ funcs:
                     der = apply(der);
                 }
 
-                eteq::EVariable<T> momentum = eteq::make_variable_like<T>(1,der,"momentum",super->ctx);
+                eteq::EVariable momentum = eteq::make_variable_like<T>(1,der,"momentum",super->ctx);
                 auto update = super->assign_add(momentum,super->square(der));
 
                 // assign momentums before leaves
@@ -105,7 +105,7 @@ funcs:
       Let f be the error,g be short hand for f'(x)
       β_1 denotes exponential decay coefficient for first moment m
       conversely β_2 denotes the exp decay coefficient for the second v
-      
+
       Initialize m = 0, v = 0
 
       m = β_1 * m_prev + (1 - β_1) * g
@@ -122,7 +122,7 @@ funcs:
       - name: error
         type: const eteq::ETensor&
       - name: variables
-        type: const eteq::EVariablesT<T>&
+        type: const eteq::EVariablesT&
       - name: step_rate
         type: T
         default: 0.001
@@ -198,7 +198,7 @@ funcs:
       - name: error
         type: const eteq::ETensor&
       - name: variables
-        type: const eteq::EVariablesT<T>&
+        type: const eteq::EVariablesT&
       - name: step_rate
         type: T
         default: 1
@@ -231,8 +231,8 @@ funcs:
                 }
 
                 T nodecay = 1. - decay;
-                eteq::EVariable<T> msg = eteq::make_variable_like<T>(0,der,"ex_sqr_grad",super->ctx);
-                eteq::EVariable<T> msd = eteq::make_variable_like<T>(0,der,"ex_sqr_delx",super->ctx);
+                eteq::EVariable msg = eteq::make_variable_like<T>(0,der,"ex_sqr_grad",super->ctx);
+                eteq::EVariable msd = eteq::make_variable_like<T>(0,der,"ex_sqr_delx",super->ctx);
 
                 auto msg_next = super->assign(msg,
                     super->add(
@@ -276,7 +276,7 @@ funcs:
       - name: error
         type: const eteq::ETensor&
       - name: variables
-        type: const eteq::EVariablesT<T>&
+        type: const eteq::EVariablesT&
       - name: learning_rate
         type: T
         default: 0.5
@@ -305,7 +305,7 @@ funcs:
                     der = apply(der);
                 }
 
-                eteq::EVariable<T> momentum = eteq::make_variable_like<T>(
+                eteq::EVariable momentum = eteq::make_variable_like<T>(
                     1,der,"momentum",super->ctx);
                 auto update = super->assign(momentum,
                     super->add(

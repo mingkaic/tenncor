@@ -57,7 +57,7 @@ layr::VarErrsT<T> bbernoulli_approx (const layr::VarErrsT<T>& assocs,
 			(learning_rate * (1 - discount_factor) / shape_factor) * err;
 
 		assigns.push_back({verrs.first,
-			tenncor().assign_add(eteq::EVariable<T>(verrs.first),
+			tenncor().assign_add(eteq::EVariable(verrs.first),
 				tenncor().assign(momentum, momentum_next))});
 	}
 	return assigns;
@@ -85,7 +85,7 @@ struct CDChainIO final
 template <typename T>
 layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 	const layr::RBMLayer<T>& model, size_t cdk = 1,
-	eteq::VarptrT<T> persistent = nullptr,
+	eteq::VarptrT persistent = nullptr,
 	global::CfgMapptrT context = global::context())
 {
 	if (nullptr == io.visible_)
@@ -106,14 +106,14 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 	io.visible_mean_ = tenncor().sigmoid(model.backward_connect(chain_it));
 	io.hidden_mean_ = tenncor().sigmoid(model.connect(io.visible_mean_));
 
-	eteq::VarptrsT<T> fcontent = layr::get_storage<T>(model.fwd_);
-	eteq::VarptrsT<T> bcontent = layr::get_storage<T>(model.bwd_);
-	types::StrUMapT<eteq::VarptrT<T>> vars;
-	for (eteq::VarptrT<T> var : fcontent)
+	eteq::VarptrsT fcontent = layr::get_storage(model.fwd_);
+	eteq::VarptrsT bcontent = layr::get_storage(model.bwd_);
+	types::StrUMapT<eteq::VarptrT> vars;
+	for (eteq::VarptrT var : fcontent)
 	{
 		vars.emplace(var->to_string(), var);
 	}
-	for (eteq::VarptrT<T> var : bcontent)
+	for (eteq::VarptrT var : bcontent)
 	{
 		vars.emplace(var->to_string(), var);
 	}
@@ -122,7 +122,7 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 		tenncor().matmul(tenncor().transpose(io.visible_), io.hidden_) -
 		tenncor().matmul(tenncor().transpose(io.visible_mean_), io.hidden_mean_);
 	layr::VarErrsT<T> varerrs = {
-		{eteq::EVariable<T>(vars[layr::weight_label], context), grad_w},
+		{eteq::EVariable(vars[layr::weight_label], context), grad_w},
 	};
 
 	std::string hid_key = "h" + layr::bias_label;
@@ -130,16 +130,16 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 	if (estd::has(vars, hid_key))
 	{
 		auto grad_hb = tenncor().reduce_mean_1d(io.hidden_ - io.hidden_mean_, 1);
-		varerrs.push_back({eteq::EVariable<T>(vars[hid_key], context), grad_hb});
+		varerrs.push_back({eteq::EVariable(vars[hid_key], context), grad_hb});
 	}
 	if (estd::has(vars, vis_key))
 	{
 		auto grad_vb = tenncor().reduce_mean_1d(io.visible_ - io.visible_mean_, 1);
-		varerrs.push_back({eteq::EVariable<T>(vars[vis_key], context), grad_vb});
+		varerrs.push_back({eteq::EVariable(vars[vis_key], context), grad_vb});
 	}
 	if (nullptr != persistent)
 	{
-		varerrs.push_back({eteq::EVariable<T>(persistent, context), gibbs_hvh(model, chain_it)});
+		varerrs.push_back({eteq::EVariable(persistent, context), gibbs_hvh(model, chain_it)});
 	}
 	return varerrs;
 }

@@ -138,7 +138,7 @@ int main (int argc, const char** argv)
 	size_t show_every_n = 500;
 	layr::ApproxF<float> approx =
 		[&](const eteq::ETensor& error,
-			const eteq::EVariablesT<float>& leaves)
+			const eteq::EVariablesT& leaves)
 		{
 			return tc.approx.sgd<float>(error, leaves, 0.9); // learning rate = 0.9
 		};
@@ -167,7 +167,7 @@ int main (int argc, const char** argv)
 				layr::connect(models.front(), train_input));
 		});
 
-	eteq::EVariable<float> testin = eteq::make_variable_scalar<float>(
+	eteq::EVariable testin = eteq::make_variable_scalar<float>(
 		0, teq::Shape({n_in}), "testin");
 	auto untrained_out = layr::connect(untrained_model, testin);
 	auto trained_out = layr::connect(trained_model, testin);

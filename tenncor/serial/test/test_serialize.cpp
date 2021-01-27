@@ -77,9 +77,9 @@ TEST(SERIALIZE, SaveGraph)
 
 		// subtree two
 		{
-			teq::TensptrT src(eteq::Variable<float>::get(
-				std::vector<float>(shape.n_elems()).data(), shape,
-					"s2src", teq::PLACEHOLDER));
+			teq::TensptrT src(eteq::Variable::get(
+				std::vector<float>(shape.n_elems()).data(),
+				egen::FLOAT, shape, "s2src", teq::PLACEHOLDER));
 			teq::TensptrT src2(eteq::make_variable<int32_t>(
 				std::vector<int32_t>(shape.n_elems()).data(), shape, "s2src2"));
 			teq::TensptrT src3(eteq::make_variable<double>(

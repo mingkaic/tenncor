@@ -8,37 +8,35 @@
 namespace eteq
 {
 
-template <typename T>
 struct EVariable final : public ETensor
 {
 	EVariable (void) = default;
 
-	EVariable (VarptrT<T> vars, const global::CfgMapptrT& ctx = global::context()) :
+	EVariable (VarptrT vars, const global::CfgMapptrT& ctx = global::context()) :
 		ETensor(vars, ctx) {}
 
-	friend bool operator == (const EVariable<T>& l, const EVariable<T>& r)
+	friend bool operator == (const EVariable& l, const EVariable& r)
 	{
 		return l.get() == r.get();
 	}
 
-	friend bool operator != (const EVariable<T>& l, const EVariable<T>& r)
+	friend bool operator != (const EVariable& l, const EVariable& r)
 	{
 		return l.get() != r.get();
 	}
 
-	operator VarptrT<T>() const
+	operator VarptrT() const
 	{
-		return std::static_pointer_cast<Variable<T>>(teq::TensptrT(*this));
+		return std::static_pointer_cast<Variable>(teq::TensptrT(*this));
 	}
 
-	Variable<T>* operator-> () const
+	Variable* operator-> () const
 	{
-		return static_cast<Variable<T>*>(this->get());
+		return static_cast<Variable*>(this->get());
 	}
 };
 
-template <typename T>
-using EVariablesT = std::vector<EVariable<T>>;
+using EVariablesT = std::vector<EVariable>;
 
 }
 

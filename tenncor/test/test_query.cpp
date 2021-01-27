@@ -77,15 +77,15 @@ static teq::TensptrsT rnn_setup (void)
 		0.037213495617765324, 0.19248718495392608, 0.13617200776678728, 0.11084523350674103, 0.081535346039776163,
 	};
 
-	eteq::EVariable<double> in =
+	eteq::EVariable in =
 		eteq::make_variable<double>(in_data.data(), in_shape, "input");
-	eteq::EVariable<double> weight =
+	eteq::EVariable weight =
 		eteq::make_variable<double>(weight_data.data(), weight_shape, "weight");
-	eteq::EVariable<double> bias =
+	eteq::EVariable bias =
 		eteq::make_variable<double>(bias_data.data(), bias_shape, "bias");
-	eteq::EVariable<double> istate =
+	eteq::EVariable istate =
 		eteq::make_variable<double>(state_data.data(), state_shape, "init_state");
-	eteq::EVariable<double> out =
+	eteq::EVariable out =
 		eteq::make_variable<double>(out_data.data(), out_shape, "output");
 
 	teq::RankT seq_dim = 1;

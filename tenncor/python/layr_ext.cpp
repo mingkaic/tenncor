@@ -72,7 +72,7 @@ void layr_ext(py::module& m)
 	m
 		// ==== inits ====
 		.def("variable_from_init",
-		[](layr::InitF<PybindT> init, py::list slist, std::string label)
+		[](layr::InitF init, py::list slist, std::string label)
 		{
 			return init(pyutils::p2cshape(slist), label);
 		},

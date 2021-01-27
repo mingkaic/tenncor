@@ -15,19 +15,19 @@ eteq::ETensor apply_update (const eteq::ETensorsT& models,
 	const global::CfgMapptrT& ctx = global::context())
 {
 	auto error = err_func(models);
-	eteq::EVariablesT<T> vars;
+	eteq::EVariablesT vars;
 	for (auto& model : models)
 	{
-		auto temp_vars = layr::get_storage<T>(model);
+		auto temp_vars = layr::get_storage(model);
 		std::transform(temp_vars.begin(), temp_vars.end(),
 			std::back_inserter(vars),
-			[&](eteq::VarptrT<T> var)
+			[&](eteq::VarptrT var)
 			{
-				return eteq::EVariable<T>(var, model.get_context());
+				return eteq::EVariable(var, model.get_context());
 			});
 	}
 	auto updates = update(error,
-		eteq::EVariablesT<T>(vars.begin(), vars.end()));
+		eteq::EVariablesT(vars.begin(), vars.end()));
 	teq::OwnMapT umap;
 	eteq::ETensorsT deps;
 	deps.reserve(updates.size());

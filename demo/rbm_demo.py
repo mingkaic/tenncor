@@ -81,7 +81,7 @@ def main(args):
 
     n_batch = 10
 
-    train_input = tc.EVariable([n_batch, n_visible])
+    train_input = tc.Variable([n_batch, n_visible])
     train_err = tc.rbm_train(model, train_input,
         learning_rate=learning_rate,
         discount_factor=momentum,

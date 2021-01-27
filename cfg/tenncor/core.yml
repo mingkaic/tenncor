@@ -118,51 +118,46 @@ funcs:
     out:
       type: eteq::ETensor
       val: return eteq::ETensor(eteq::make_tfunctor<T>(::egen::CAST,teq::TensptrsT{input},egen::get_type<T>()),ctx);
-  - support_type: SUPPORTED_TYPE
-    name: assign
+  - name: assign
     args:
       - name: target
-        type: const eteq::EVariable<SUPPORTED_TYPE>&
+        type: const eteq::EVariable&
       - name: source
         type: const eteq::ETensor&
     out:
       type: eteq::ETensor
       val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN,teq::TensptrsT{target,source}),ctx);
-  - support_type: SUPPORTED_TYPE
-    name: assign_add
+  - name: assign_add
     args:
       - name: target
-        type: const eteq::EVariable<SUPPORTED_TYPE>&
+        type: const eteq::EVariable&
       - name: source
         type: const eteq::ETensor&
     out:
       type: eteq::ETensor
       val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_ADD,teq::TensptrsT{target,source}),ctx);
-  - support_type: SUPPORTED_TYPE
-    name: assign_sub
+  - name: assign_sub
     args:
       - name: target
-        type: const eteq::EVariable<SUPPORTED_TYPE>&
+        type: const eteq::EVariable&
       - name: source
         type: const eteq::ETensor&
     out:
       type: eteq::ETensor
       val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_SUB,teq::TensptrsT{target,source}),ctx);
-  - support_type: SUPPORTED_TYPE
-    name: assign_mul
+  - name: assign_mul
     args:
       - name: target
-        type: const eteq::EVariable<SUPPORTED_TYPE>&
+        type: const eteq::EVariable&
       - name: source
         type: const eteq::ETensor&
     out:
       type: eteq::ETensor
       val: return eteq::ETensor(eteq::make_functor(::egen::ASSIGN_MUL,teq::TensptrsT{target,source}),ctx);
-  - support_type: SUPPORTED_TYPE
-    name: assign_div
+  - name: assign_div
     args:
       - name: target
-        type: const eteq::EVariable<SUPPORTED_TYPE>&
+        type: const eteq::EVariable&
       - name: source
         type: const eteq::ETensor&
     out:

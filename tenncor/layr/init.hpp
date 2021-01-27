@@ -15,8 +15,7 @@ namespace layr
 {
 
 /// Function that produces a variable given the variable's shape and label
-template <typename T>
-using InitF = std::function<eteq::EVariable<T>(teq::Shape,std::string)>;
+using InitF = std::function<eteq::EVariable(teq::Shape,std::string)>;
 
 /// Function that returns some metric of a shape
 template <typename T>

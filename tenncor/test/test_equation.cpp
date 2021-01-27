@@ -68,11 +68,11 @@ static void matmul_complex (TensProcF root_proc = TensProcF())
         2447700178416, 2336510524236, 2031520939428, 1734314854572,
 	};
 
-	eteq::EVariable<double> a =
+	eteq::EVariable a =
 		eteq::make_variable<double>(data.data(), ashape);
-	eteq::EVariable<double> b =
+	eteq::EVariable b =
 		eteq::make_variable<double>(data2.data(), bshape);
-	eteq::EVariable<double> c =
+	eteq::EVariable c =
 		eteq::make_variable<double>(data3.data(), cshape);
 
 	auto d = tenncor().matmul(a, b);
@@ -181,11 +181,11 @@ static void contract_equivalent (TensProcF root_proc = TensProcF())
         2447700178416, 2336510524236, 2031520939428, 1734314854572,
 	};
 
-	eteq::EVariable<double> a =
+	eteq::EVariable a =
 		eteq::make_variable<double>(data.data(), ashape);
-	eteq::EVariable<double> b =
+	eteq::EVariable b =
 		eteq::make_variable<double>(data2.data(), bshape);
-	eteq::EVariable<double> c =
+	eteq::EVariable c =
 		eteq::make_variable<double>(data3.data(), cshape);
 
 	auto d = tenncor().contract(a, b);
@@ -397,17 +397,17 @@ static void sigmoid_MLP_slow (TensProcF root_proc = TensProcF())
 		0.0083642760546029649, 0.055794840260731907, 0.013998520595663564, 0.07944113167106924, 0.012580279526871407,
 	};
 
-	eteq::EVariable<double> in =
+	eteq::EVariable in =
 		eteq::make_variable<double>(in_data.data(), in_shape);
-	eteq::EVariable<double> weight0 =
+	eteq::EVariable weight0 =
 		eteq::make_variable<double>(w0_data.data(), weight0_shape);
-	eteq::EVariable<double> bias0 =
+	eteq::EVariable bias0 =
 		eteq::make_variable<double>(b0_data.data(), bias0_shape);
-	eteq::EVariable<double> weight1 =
+	eteq::EVariable weight1 =
 		eteq::make_variable<double>(w1_data.data(), weight1_shape);
-	eteq::EVariable<double> bias1 =
+	eteq::EVariable bias1 =
 		eteq::make_variable<double>(b1_data.data(), bias1_shape);
-	eteq::EVariable<double> out =
+	eteq::EVariable out =
 		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	auto layer0 = tenncor().matmul(in, weight0) + tenncor().extend(bias0, 1, {3});
@@ -624,17 +624,17 @@ static void sigmoid_MLP_fast (TensProcF root_proc = TensProcF())
 		0.0083642760546030238, 0.055794840260732122, 0.013998520595663699, 0.079441131671069379, 0.012580279526871282,
 	};
 
-	eteq::EVariable<double> in =
+	eteq::EVariable in =
 		eteq::make_variable<double>(in_data.data(), in_shape);
-	eteq::EVariable<double> weight0 =
+	eteq::EVariable weight0 =
 		eteq::make_variable<double>(w0_data.data(), weight0_shape);
-	eteq::EVariable<double> bias0 =
+	eteq::EVariable bias0 =
 		eteq::make_variable<double>(b0_data.data(), bias0_shape);
-	eteq::EVariable<double> weight1 =
+	eteq::EVariable weight1 =
 		eteq::make_variable<double>(w1_data.data(), weight1_shape);
-	eteq::EVariable<double> bias1 =
+	eteq::EVariable bias1 =
 		eteq::make_variable<double>(b1_data.data(), bias1_shape);
-	eteq::EVariable<double> out =
+	eteq::EVariable out =
 		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	auto layer0 = tenncor().matmul(in, weight0) + tenncor().extend(bias0, 1, {3});
@@ -762,15 +762,15 @@ static void tanh_RNN (TensProcF root_proc = TensProcF())
 		0.037213495617765324, 0.19248718495392608, 0.13617200776678728, 0.11084523350674103, 0.081535346039776163
 	};
 
-	eteq::EVariable<double> in =
+	eteq::EVariable in =
 		eteq::make_variable<double>(in_data.data(), in_shape);
-	eteq::EVariable<double> weight =
+	eteq::EVariable weight =
 		eteq::make_variable<double>(weight_data.data(), weight_shape);
-	eteq::EVariable<double> bias =
+	eteq::EVariable bias =
 		eteq::make_variable<double>(bias_data.data(), bias_shape);
-	eteq::EVariable<double> istate =
+	eteq::EVariable istate =
 		eteq::make_variable<double>(state_data.data(), state_shape);
-	eteq::EVariable<double> out =
+	eteq::EVariable out =
 		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	teq::RankT seq_dim = 1;
@@ -895,15 +895,15 @@ static void tanh_RNN_layer (TensProcF root_proc = TensProcF())
 		0.037213495617765324, 0.19248718495392608, 0.13617200776678728, 0.11084523350674103, 0.081535346039776163,
 	};
 
-	eteq::EVariable<double> in =
+	eteq::EVariable in =
 		eteq::make_variable<double>(in_data.data(), in_shape);
-	eteq::EVariable<double> weight =
+	eteq::EVariable weight =
 		eteq::make_variable<double>(weight_data.data(), weight_shape);
-	eteq::EVariable<double> bias =
+	eteq::EVariable bias =
 		eteq::make_variable<double>(bias_data.data(), bias_shape);
-	eteq::EVariable<double> istate =
+	eteq::EVariable istate =
 		eteq::make_variable<double>(state_data.data(), state_shape);
-	eteq::EVariable<double> out =
+	eteq::EVariable out =
 		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	teq::RankT seq_dim = 1;
@@ -1025,15 +1025,15 @@ static void tanh_RNN_layer_connect (TensProcF root_proc = TensProcF())
 		0.037213495617765324, 0.19248718495392608, 0.13617200776678728, 0.11084523350674103, 0.081535346039776163,
 	};
 
-	eteq::EVariable<double> in =
+	eteq::EVariable in =
 		eteq::make_variable<double>(in_data.data(), in_shape);
-	eteq::EVariable<double> weight =
+	eteq::EVariable weight =
 		eteq::make_variable<double>(weight_data.data(), weight_shape);
-	eteq::EVariable<double> bias =
+	eteq::EVariable bias =
 		eteq::make_variable<double>(bias_data.data(), bias_shape);
-	eteq::EVariable<double> istate =
+	eteq::EVariable istate =
 		eteq::make_variable<double>(state_data.data(), state_shape);
-	eteq::EVariable<double> out =
+	eteq::EVariable out =
 		eteq::make_variable<double>(out_data.data(), out_shape);
 
 	teq::RankT seq_dim = 1;

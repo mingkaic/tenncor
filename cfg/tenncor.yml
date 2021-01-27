@@ -13,12 +13,12 @@ api:
     - teq::DimT
     - eigen::PairVecT<teq::RankT>
     - eteq::DimPairsT
-    - eteq::EVariable<T>
+    - eteq::EVariable
     - eteq::ETensorsT
-    - eteq::EVariablesT<T>
+    - eteq::EVariablesT
     - layr::UnaryF
     - layr::ShapeFactorF
-    - layr::InitF<T>
+    - layr::InitF
     - std::set<teq::RankT>
     - teq::DimsT
     - std::pair<eteq::DimPairsT,eteq::DimPairsT>

@@ -21,9 +21,9 @@ TEST(VARIABLE, CopyMove)
 	std::vector<int32_t> big_i = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 	teq::Shape shape({3, 4});
 
-	eteq::VarptrT<double> a(eteq::Variable<double>::get(big_d.data(), shape, "A"));
-	eteq::VarptrT<float> b(eteq::Variable<float>::get(big_f.data(), shape, "B"));
-	eteq::VarptrT<int32_t> c(eteq::Variable<int32_t>::get(big_i.data(), shape, "C"));
+	eteq::VarptrT a(eteq::Variable::get(big_d.data(), egen::DOUBLE, shape, "A"));
+	eteq::VarptrT b(eteq::Variable::get(big_f.data(), egen::FLOAT, shape, "B"));
+	eteq::VarptrT c(eteq::Variable::get(big_i.data(), egen::INT32, shape, "C"));
 
 	EXPECT_STREQ("A", a->to_string().c_str());
 	EXPECT_STREQ("B", b->to_string().c_str());
@@ -57,9 +57,9 @@ TEST(VARIABLE, Meta)
 	std::vector<int32_t> big_i = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 	teq::Shape shape({3, 4});
 
-	eteq::VarptrT<double> a(eteq::Variable<double>::get(big_d.data(), shape, "A"));
-	eteq::VarptrT<float> b(eteq::Variable<float>::get(big_f.data(), shape, "B", teq::PLACEHOLDER));
-	eteq::VarptrT<int32_t> c(eteq::Variable<int32_t>::get(big_i.data(), shape, "C", teq::IMMUTABLE));
+	eteq::VarptrT a(eteq::Variable::get(big_d.data(), egen::DOUBLE, shape, "A"));
+	eteq::VarptrT b(eteq::Variable::get(big_f.data(), egen::FLOAT, shape, "B", teq::PLACEHOLDER));
+	eteq::VarptrT c(eteq::Variable::get(big_i.data(), egen::INT32, shape, "C", teq::IMMUTABLE));
 
 	auto& ameta = a->get_meta();
 	auto& bmeta = b->get_meta();
@@ -93,12 +93,12 @@ TEST(VARIABLE, Assign)
 	std::vector<int32_t> big_i = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 	teq::Shape shape({3, 4});
 
-	eteq::EVariable<double> a(eteq::VarptrT<double>(
-		eteq::Variable<double>::get(big_d.data(), shape, "A")));
-	eteq::EVariable<float> b(eteq::VarptrT<float>(
-		eteq::Variable<float>::get(big_f.data(), shape, "B")));
-	eteq::EVariable<int32_t> c(eteq::VarptrT<int32_t>(
-		eteq::Variable<int32_t>::get(big_i.data(), shape, "C")));
+	eteq::EVariable a(eteq::VarptrT(
+		eteq::Variable::get(big_d.data(), egen::DOUBLE, shape, "A")));
+	eteq::EVariable b(eteq::VarptrT(
+		eteq::Variable::get(big_f.data(), egen::FLOAT, shape, "B")));
+	eteq::EVariable c(eteq::VarptrT(
+		eteq::Variable::get(big_i.data(), egen::INT32, shape, "C")));
 
 	std::vector<double> d = {3, 1, 222, 21, 17, 7, 91, 11, 71, 13, 81, 2};
 

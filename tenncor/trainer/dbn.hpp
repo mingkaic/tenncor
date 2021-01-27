@@ -48,8 +48,8 @@ struct DBNTrainer final
 			auto& rx = sample_pipes_[i];
 			auto& ry = sample_pipes_[i + 1];
 			teq::TensSetT to_learn;
-			auto fstorage = layr::get_storage<T>(rbm.fwd_);
-			auto bstorage = layr::get_storage<T>(rbm.bwd_);
+			auto fstorage = layr::get_storage(rbm.fwd_);
+			auto bstorage = layr::get_storage(rbm.bwd_);
 			for (auto var : fstorage)
 			{
 				to_learn.emplace(var.get());
@@ -68,9 +68,9 @@ struct DBNTrainer final
 				// if var is a weight or bias add assign with learning rate
 				// otherwise assign directly
 				auto assign = estd::has(to_learn, varerr.first.get()) ?
-					api.assign_add(eteq::EVariable<T>(varerr.first, context),
+					api.assign_add(eteq::EVariable(varerr.first, context),
 						pretrain_lr * varerr.second) :
-					api.assign(eteq::EVariable<T>(varerr.first, context), varerr.second);
+					api.assign(eteq::EVariable(varerr.first, context), varerr.second);
 				assigns.emplace(assign);
 				to_track.emplace(assign);
 			}
@@ -87,9 +87,9 @@ struct DBNTrainer final
 
 		// logistic layer training
 		// todo: improve this adhoc way of training log layer
-		auto contents = layr::get_storage<T>(dense);
-		eteq::VarptrT<T> w = contents[0];
-		eteq::VarptrT<T> b = contents[1];
+		auto contents = layr::get_storage(dense);
+		eteq::VarptrT w = contents[0];
+		eteq::VarptrT b = contents[1];
 		auto final_out = api.softmax(layr::connect(
 			dense, sample_pipes_.back()), softmax_dim, 1);
 		auto diff = trainy_ - final_out;
@@ -111,8 +111,8 @@ struct DBNTrainer final
 		auto dtrain_lr = tlr_placeholder * lr_scaling;
 
 		tupdate_ = api.assign(tlr_placeholder, api.identity(dtrain_lr, {
-			api.assign_add(eteq::EVariable<T>(w, context), dw),
-			api.assign_add(eteq::EVariable<T>(b, context), db),
+			api.assign_add(eteq::EVariable(w, context), dw),
+			api.assign_add(eteq::EVariable(b, context), db),
 		}));
 		tcost_ = -api.reduce_mean(
 			api.reduce_sum_1d(trainy_ * api.log(final_out) +
@@ -211,9 +211,9 @@ struct DBNTrainer final
 
 	size_t batch_size_;
 
-	eteq::EVariable<T> trainx_;
+	eteq::EVariable trainx_;
 
-	eteq::EVariable<T> trainy_;
+	eteq::EVariable trainy_;
 
 	eteq::ETensorsT sample_pipes_;
 

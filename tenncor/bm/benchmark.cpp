@@ -51,7 +51,7 @@ static void NAME(benchmark::State& state)\
 {\
 	size_t n = state.range(0);\
 	teq::Shape shape = rand_shape(n);\
-	eteq::EVariable<T> var = eteq::make_variable_scalar<T>(0, shape, "var");\
+	eteq::EVariable var = eteq::make_variable_scalar<T>(0, shape, "var");\
 	eteq::ETensor out = FUNC(var);\
 	auto ctx = out.get_context();\
 	auto tens = out.get();\
@@ -75,7 +75,7 @@ static void NAME(benchmark::State& state)\
 {\
 	size_t n = state.range(0);\
 	teq::Shape shape = rand_shape(n);\
-	eteq::EVariable<T> var = eteq::make_variable_scalar<T>(0, shape, "var");\
+	eteq::EVariable var = eteq::make_variable_scalar<T>(0, shape, "var");\
 	eteq::ETensor out = FUNC(var);\
 	auto ctx = out.get_context();\
 	auto tens = out.get();\
@@ -130,8 +130,8 @@ static void NAME(benchmark::State& state)\
 	std::vector<double> data2 = random_data(shape.n_elems(), 1, 4);\
 	std::vector<T> convdata(data.begin(), data.end());\
 	std::vector<T> convdata2(data2.begin(), data2.end());\
-	eteq::EVariable<T> var = eteq::make_variable_scalar<T>(0, shape, "var");\
-	eteq::EVariable<T> var2 = eteq::make_variable_scalar<T>(0, shape, "var2");\
+	eteq::EVariable var = eteq::make_variable_scalar<T>(0, shape, "var");\
+	eteq::EVariable var2 = eteq::make_variable_scalar<T>(0, shape, "var2");\
 	eteq::ETensor out = FUNC(var, var2);\
 	auto ctx = out.get_context();\
 	auto tens = out.get();\
@@ -204,8 +204,8 @@ static void BM_Matmul(benchmark::State& state)
 	teq::DimT right_dim = common_dim + (255 - vari);
 	teq::Shape leftshape({common_dim, left_dim});
 	teq::Shape rightshape({right_dim, common_dim});
-	eteq::EVariable<T> var = eteq::make_variable_scalar<T>(0, leftshape, "var");
-	eteq::EVariable<T> var2 = eteq::make_variable_scalar<T>(0, rightshape, "var2");
+	eteq::EVariable var = eteq::make_variable_scalar<T>(0, leftshape, "var");
+	eteq::EVariable var2 = eteq::make_variable_scalar<T>(0, rightshape, "var2");
 	eteq::ETensor out = tenncor().matmul(var, var2);
 	auto ctx = out.get_context();
 	auto tens = out.get();
@@ -249,8 +249,8 @@ static void BM_Batch_Matmul(benchmark::State& state)
 	teq::DimT batch_dim = 2;
 	teq::Shape leftshape({common_dim, left_dim, batch_dim});
 	teq::Shape rightshape({right_dim, common_dim, batch_dim});
-	eteq::EVariable<T> var = eteq::make_variable_scalar<T>(0, leftshape, "var");
-	eteq::EVariable<T> var2 = eteq::make_variable_scalar<T>(0, rightshape, "var2");
+	eteq::EVariable var = eteq::make_variable_scalar<T>(0, leftshape, "var");
+	eteq::EVariable var2 = eteq::make_variable_scalar<T>(0, rightshape, "var2");
 	eteq::ETensor out = tenncor().matmul(var, var2);
 	auto ctx = out.get_context();
 	eigen::Device device(std::numeric_limits<size_t>::max());
@@ -292,9 +292,9 @@ static void BM_MatmulComplex(benchmark::State& state)
 	teq::Shape bshape(blist);
 	teq::Shape cshape(clist);
 
-	eteq::EVariable<int32_t> a = eteq::make_variable<int32_t>(ashape);
-	eteq::EVariable<int32_t> b = eteq::make_variable<int32_t>(bshape);
-	eteq::EVariable<int32_t> c = eteq::make_variable<int32_t>(cshape);
+	eteq::EVariable a = eteq::make_variable<int32_t>(ashape);
+	eteq::EVariable b = eteq::make_variable<int32_t>(bshape);
+	eteq::EVariable c = eteq::make_variable<int32_t>(cshape);
 
 	auto d = tenncor().matmul(a, b);
 	auto e = tenncor().matmul(c, d);
@@ -340,12 +340,12 @@ static void BM_SigmoidMLP(benchmark::State& state)
 	teq::Shape bias1_shape({5});
 	teq::Shape out_shape({5,3});
 
-	eteq::EVariable<double> in = eteq::make_variable<double>(in_shape);
-	eteq::EVariable<double> weight0 = eteq::make_variable<double>(weight0_shape);
-	eteq::EVariable<double> bias0 = eteq::make_variable<double>(bias0_shape);
-	eteq::EVariable<double> weight1 = eteq::make_variable<double>(weight1_shape);
-	eteq::EVariable<double> bias1 = eteq::make_variable<double>(bias1_shape);
-	eteq::EVariable<double> out = eteq::make_variable<double>(out_shape);
+	eteq::EVariable in = eteq::make_variable<double>(in_shape);
+	eteq::EVariable weight0 = eteq::make_variable<double>(weight0_shape);
+	eteq::EVariable bias0 = eteq::make_variable<double>(bias0_shape);
+	eteq::EVariable weight1 = eteq::make_variable<double>(weight1_shape);
+	eteq::EVariable bias1 = eteq::make_variable<double>(bias1_shape);
+	eteq::EVariable out = eteq::make_variable<double>(out_shape);
 
 	auto layer0 =
 		tenncor().matmul(in, weight0) +
@@ -407,12 +407,12 @@ static void BM_OptimizedSigmoidMLP(benchmark::State& state)
 	teq::Shape bias1_shape({5});
 	teq::Shape out_shape({5,3});
 
-	eteq::EVariable<double> in = eteq::make_variable<double>(in_shape);
-	eteq::EVariable<double> weight0 = eteq::make_variable<double>(weight0_shape);
-	eteq::EVariable<double> bias0 = eteq::make_variable<double>(bias0_shape);
-	eteq::EVariable<double> weight1 = eteq::make_variable<double>(weight1_shape);
-	eteq::EVariable<double> bias1 = eteq::make_variable<double>(bias1_shape);
-	eteq::EVariable<double> out = eteq::make_variable<double>(out_shape);
+	eteq::EVariable in = eteq::make_variable<double>(in_shape);
+	eteq::EVariable weight0 = eteq::make_variable<double>(weight0_shape);
+	eteq::EVariable bias0 = eteq::make_variable<double>(bias0_shape);
+	eteq::EVariable weight1 = eteq::make_variable<double>(weight1_shape);
+	eteq::EVariable bias1 = eteq::make_variable<double>(bias1_shape);
+	eteq::EVariable out = eteq::make_variable<double>(out_shape);
 
 	auto layer0 =
 		tenncor().matmul(in, weight0) +

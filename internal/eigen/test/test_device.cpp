@@ -177,6 +177,8 @@ TEST(DEVICE, Calc)
 	make_devref(src, data.data());
 	auto obsref = std::make_shared<MockEigen>();
 	MockMeta mockmeta;
+	EXPECT_CALL(*obsref, valid_for(0)).WillOnce(Return(false));
+	EXPECT_CALL(*obsref, extend_life(0));
 
 	double mockdata = 0;
 	EXPECT_CALL(*obsref, data()).WillRepeatedly(Return(&mockdata));

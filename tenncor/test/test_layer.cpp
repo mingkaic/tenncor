@@ -69,7 +69,7 @@ TEST(DENSE, Connection)
 	auto biased_dense = tenncor().layer.dense<float>(shape, {5},
 		tenncor().init.xavier_uniform<float>(2), tenncor().init.xavier_uniform<float>(4));
 	auto dense = tenncor().layer.dense<float>(shape2, {6},
-		tenncor().init.xavier_uniform<float>(3), layr::InitF<float>(), false);
+		tenncor().init.xavier_uniform<float>(3), layr::InitF(), false);
 
 	auto x = eteq::make_variable_scalar<float>(
 		0, teq::Shape({6, 2}), "x");
@@ -122,11 +122,11 @@ TEST(CONV, Connection)
 
 TEST(RBM, Connection)
 {
-	auto rrbm = tenncor().layer.rbm(6, 5,
+	auto rrbm = tenncor().layer.rbm<float>(6, 5,
 		tenncor().init.xavier_uniform<float>(2),
 		tenncor().init.xavier_uniform<float>(4));
-	auto nobias = tenncor().layer.rbm(7, 6,
-		tenncor().init.xavier_uniform<float>(3), layr::InitF<float>(), false);
+	auto nobias = tenncor().layer.rbm<float>(7, 6,
+		tenncor().init.xavier_uniform<float>(3), layr::InitF(), false);
 
 	auto x = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "x");
 	auto x2 = eteq::make_variable_scalar<float>(0, teq::Shape({7, 2}), "x2");
@@ -152,11 +152,11 @@ TEST(RBM, Connection)
 
 TEST(RBM, BackwardConnection)
 {
-	auto rrbm = tenncor().layer.rbm(6, 5,
+	auto rrbm = tenncor().layer.rbm<float>(6, 5,
 		tenncor().init.xavier_uniform<float>(2),
 		tenncor().init.xavier_uniform<float>(4));
-	auto nobias = tenncor().layer.rbm(7, 6,
-		tenncor().init.xavier_uniform<float>(3), layr::InitF<float>(), false);
+	auto nobias = tenncor().layer.rbm<float>(7, 6,
+		tenncor().init.xavier_uniform<float>(3), layr::InitF(), false);
 
 	auto y = eteq::make_variable_scalar<float>(0, teq::Shape({5, 2}), "y");
 	auto y2 = eteq::make_variable_scalar<float>(0, teq::Shape({6, 2}), "y2");
@@ -333,7 +333,7 @@ TEST(CONNECT, TanhRNN)
 
 	auto output = layr::connect(layer, in);
 	auto err = tenncor().pow(out - output, 2.);
-	auto contents = layr::get_storage<double>(layer);
+	auto contents = layr::get_storage(layer);
 	auto istate = contents[0];
 	auto weight = contents[1];
 	auto bias = contents[2];
@@ -484,7 +484,7 @@ TEST(CONNECT, DenseTanhRNN)
 	auto output = layr::connect(layer, in);
 
 	auto err = tenncor().pow(out - output, 2.);
-	auto contents = layr::get_storage<double>(layer);
+	auto contents = layr::get_storage(layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];
@@ -707,7 +707,7 @@ TEST(CONNECT, TanhRNNFull)
 	auto output = layr::connect(layer, in);
 
 	auto err = tenncor().pow(out - output, 2.);
-	auto contents = layr::get_storage<double>(layer);
+	auto contents = layr::get_storage(layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];
@@ -952,7 +952,7 @@ TEST(CONNECT, TanhRNNCrossEntropyLoss)
 	auto common = output + epsilon;
 	auto err = tenncor().reduce_mean(-(out * tenncor().log(common) + (1. - out) * tenncor().log(1. - common)));
 
-	auto contents = layr::get_storage<double>(layer);
+	auto contents = layr::get_storage(layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];
@@ -1385,7 +1385,7 @@ TEST(CONNECT, TanhRNNTraining)
 	auto common = output + epsilon;
 	auto err = tenncor().reduce_mean(-(out * tenncor().log(common) + (1. - out) * tenncor().log(1. - common)));
 
-	auto contents = layr::get_storage<double>(layer);
+	auto contents = layr::get_storage(layer);
 	auto weight0 = contents[0];
 	auto bias0 = contents[1];
 	auto istate = contents[2];
@@ -1405,9 +1405,9 @@ TEST(CONNECT, TanhRNNTraining)
 	});
 	size_t nders = ders.size();
 
-	eteq::VarptrsT<double> targets = {weight0, bias0, weight1, bias1, istate, weight2, bias2};
-	eteq::VarptrsT<double> momentums;
-	eteq::VarptrsT<double> mvavg_sqrs;
+	eteq::VarptrsT targets = {weight0, bias0, weight1, bias1, istate, weight2, bias2};
+	eteq::VarptrsT momentums;
+	eteq::VarptrsT mvavg_sqrs;
 	for (auto root : ders)
 	{
 		momentums.push_back(eteq::make_variable_like<double>(0, root, "momentum_" + root->to_string()));
@@ -1422,7 +1422,7 @@ TEST(CONNECT, TanhRNNTraining)
 	{
 		momentum_tmps.push_back(eteq::ETensor(mom) * momentum_term);
 	}
-	eteq::VarptrsT<double> group1_left;
+	eteq::VarptrsT group1_left;
 	eteq::ETensorsT group1_right;
 	for (size_t i = 0; i < nders; ++i)
 	{
@@ -1433,7 +1433,7 @@ TEST(CONNECT, TanhRNNTraining)
 	}
 
 	// group 2
-	eteq::VarptrsT<double> group2_left;
+	eteq::VarptrsT group2_left;
 	eteq::ETensorsT group2_right;
 	for (size_t i = 0; i < nders; ++i)
 	{
@@ -1445,7 +1445,7 @@ TEST(CONNECT, TanhRNNTraining)
 	}
 
 	// group 3
-	eteq::VarptrsT<double> group3_left;
+	eteq::VarptrsT group3_left;
 	eteq::ETensorsT group3_right;
 	{
 		eteq::ETensorsT pgrad_norm_nodes;

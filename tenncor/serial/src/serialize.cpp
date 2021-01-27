@@ -18,12 +18,14 @@ static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 		out = teq::TensptrT(eteq::Constant<CAST>::get(ptr, shape));
 		break;
 	case teq::VARUSAGE:
-		out = teq::TensptrT(eteq::Variable<CAST>::get(ptr, shape, label, usage));
+		out = teq::TensptrT(eteq::Variable::get(
+			ptr, egen::get_type<CAST>(), shape, label, usage));
 		break;
 	case teq::PLACEHOLDER:
 	{
 		std::vector<CAST> z(shape.n_elems(), 0);
-		out = teq::TensptrT(eteq::Variable<CAST>::get(z.data(), shape, label, usage));
+		out = teq::TensptrT(eteq::Variable::get(
+			z.data(), egen::get_type<CAST>(), shape, label, usage));
 	}
 		break;
 	default:

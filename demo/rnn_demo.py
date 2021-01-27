@@ -162,8 +162,8 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    train_invar = tc.EVariable([n_batch, sequence_len, ninput])
-    train_exout = tc.EVariable([n_batch, sequence_len, noutput])
+    train_invar = tc.Variable([n_batch, sequence_len, ninput])
+    train_exout = tc.Variable([n_batch, sequence_len, noutput])
     tinput = tc.api.permute(train_invar, [0, 2, 1])
     toutput = tc.api.permute(train_exout, [0, 2, 1])
 
@@ -176,7 +176,7 @@ def main(args):
     print(f'train_input tensor shape: {train_input.shape}')
     print(f'train_output tensor shape: {train_output.shape}')
 
-    test_invar = tc.EVariable([n_test, sequence_len, ninput])
+    test_invar = tc.Variable([n_test, sequence_len, ninput])
     tin = tc.api.permute(test_invar, [0, 2, 1])
     untrained_out = tc.api.round(untrained.connect(tin))
     trained_out = tc.api.round(model.connect(tin))

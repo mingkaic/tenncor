@@ -25,7 +25,7 @@ TEST(APPROX, StochasticGD)
 	auto err = tenncor().abs(leaf);
 
 	auto groups = tenncor().approx.sgd<PybindT>(
-		err, eteq::EVariablesT<PybindT>{leaf}, 0.67);
+		err, eteq::EVariablesT{leaf}, 0.67);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
 		"(ASSIGN_SUB<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -52,7 +52,7 @@ TEST(APPROX, Adagrad)
 	auto err = tenncor().abs(leaf);
 
 	auto groups = tenncor().approx.adagrad<PybindT>(
-		err, eteq::EVariablesT<PybindT>{leaf}, 0.67);
+		err, eteq::EVariablesT{leaf}, 0.67);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
 		"(ASSIGN_SUB<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -98,7 +98,7 @@ TEST(APPROX, Adadelta)
 	PybindT decay = 0.91;
 	PybindT offset = 0.16;
 	auto groups = tenncor().approx.adadelta(
-		err, eteq::EVariablesT<PybindT>{leaf}, step_rate, decay, offset);
+		err, eteq::EVariablesT{leaf}, step_rate, decay, offset);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
 		"(ASSIGN_SUB<FLOAT>[18\\9\\3\\1\\1\\1\\1\\1])\n"
@@ -187,7 +187,7 @@ TEST(APPROX, Adadelta)
 	teq::Evaluator eval;
 	eval.evaluate(device, {groups.begin()->second.get()});
 
-	eteq::Variable<PybindT>* g;
+	eteq::Variable* g;
 	{
 		std::stringstream ss;
 		ss << "{\"leaf\":{\"label\":\"ex_sqr_grad\"}}";
@@ -196,10 +196,10 @@ TEST(APPROX, Adadelta)
 		query::Node cond;
 		query::json_parse(cond, ss);
 		auto results = itable.match(cond);
-		g = static_cast<eteq::Variable<PybindT>*>(results.front().root_);
+		g = static_cast<eteq::Variable*>(results.front().root_);
 	}
 
-	eteq::Variable<PybindT>* d;
+	eteq::Variable* d;
 	{
 		std::stringstream ss;
 		ss << "{\"leaf\":{\"label\":\"ex_sqr_delx\"}}";
@@ -208,7 +208,7 @@ TEST(APPROX, Adadelta)
 		query::Node cond;
 		query::json_parse(cond, ss);
 		auto results = itable.match(cond);
-		d = static_cast<eteq::Variable<PybindT>*>(results.front().root_);
+		d = static_cast<eteq::Variable*>(results.front().root_);
 	}
 
 	// g = decay * g + (1 - decay) * f'(x) ^ 2
@@ -287,7 +287,7 @@ TEST(APPROX, RmsMomentum)
 	PybindT learning_rate = 1.;
 	PybindT discount_rate = 0.52;
 	layr::VarErrsT<PybindT> groups = tenncor().approx.rms_momentum(
-		err, eteq::EVariablesT<PybindT>{leaf},
+		err, eteq::EVariablesT{leaf},
 		learning_rate, discount_rate,
 		std::numeric_limits<PybindT>::epsilon());
 	ASSERT_EQ(1, groups.size());
@@ -333,7 +333,7 @@ TEST(APPROX, RmsMomentum)
 	teq::Evaluator eval;
 	eval.evaluate(device, {groups[0].second.get()});
 
-	eteq::Variable<PybindT>* momentum;
+	eteq::Variable* momentum;
 	{
 		std::stringstream ss;
 		ss << "{\"leaf\":{\"label\":\"momentum\"}}";
@@ -342,7 +342,7 @@ TEST(APPROX, RmsMomentum)
 		query::Node cond;
 		query::json_parse(cond, ss);
 		auto results = itable.match(cond);
-		momentum = static_cast<eteq::Variable<PybindT>*>(
+		momentum = static_cast<eteq::Variable*>(
 			results.front().root_);
 	}
 

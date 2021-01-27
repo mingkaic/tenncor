@@ -39,7 +39,7 @@ TEST(OPTIMIZE, Depends)
 	assert(data.size() == n);
 	assert(data2.size() == n);
 
-	eteq::EVariable<double> target = eteq::make_variable<double>(data.data(), shape);
+	eteq::EVariable target = eteq::make_variable<double>(data.data(), shape);
 	eteq::ETensor a = eteq::make_constant<double>(data.data(), shape);
 	eteq::ETensor b = eteq::make_constant<double>(data2.data(), shape);
 	auto c = a + b;
@@ -78,7 +78,7 @@ TEST(OPTIMIZE, DependsNnary)
 	assert(data.size() == n);
 	assert(data2.size() == n);
 
-	eteq::EVariable<double> target = eteq::make_variable<double>(data.data(), shape);
+	eteq::EVariable target = eteq::make_variable<double>(data.data(), shape);
 	eteq::ETensor a = eteq::make_constant<double>(data.data(), shape);
 	eteq::ETensor b = eteq::make_constant<double>(data2.data(), shape);
 	auto c = a + b;
@@ -167,15 +167,15 @@ TEST(OPTIMIZE, RNNLayer)
 		0.037213495617765324, 0.19248718495392608, 0.13617200776678728, 0.11084523350674103, 0.081535346039776163,
 	};
 
-	eteq::EVariable<double> in =
+	eteq::EVariable in =
 		eteq::make_variable<double>(in_data.data(), in_shape, "in");
-	eteq::EVariable<double> weight =
+	eteq::EVariable weight =
 		eteq::make_variable<double>(weight_data.data(), weight_shape, "weight");
-	eteq::EVariable<double> bias =
+	eteq::EVariable bias =
 		eteq::make_variable<double>(bias_data.data(), bias_shape, "bias");
-	eteq::EVariable<double> istate =
+	eteq::EVariable istate =
 		eteq::make_variable<double>(state_data.data(), state_shape, "state");
-	eteq::EVariable<double> out =
+	eteq::EVariable out =
 		eteq::make_variable<double>(out_data.data(), out_shape, "out");
 
 	teq::RankT seq_dim = 1;
@@ -330,19 +330,19 @@ TEST(OPTIMIZE, CNNLayer)
 		0.8801580962, 0.5008790402,
 	};
 
-	eteq::EVariable<double> invar = eteq::make_variable<double>(
+	eteq::EVariable invar = eteq::make_variable<double>(
 		in_data.data(), in_shape, "invar");
-	eteq::EVariable<double> outvar = eteq::make_variable<double>(
+	eteq::EVariable outvar = eteq::make_variable<double>(
 		out_data.data(), out_shape, "outvar");
 
 	// construct CNN
 	auto model = tenncor().layer.link({ // input [2\4\4]
 		tenncor().layer.conv2d<double>({3, 3}, 2, 2,
-			[&](teq::Shape shape, std::string label) -> eteq::EVariable<double>
+			[&](teq::Shape shape, std::string label) -> eteq::EVariable
 			{
 				return eteq::make_variable<double>(cweight_data.data(), shape, label);
 			},
-			[&](teq::Shape shape, std::string label) -> eteq::EVariable<double>
+			[&](teq::Shape shape, std::string label) -> eteq::EVariable
 			{
 				return eteq::make_variable<double>(cbias_data.data(), shape, label);
 			},
@@ -363,9 +363,9 @@ TEST(OPTIMIZE, CNNLayer)
 		tenncor().log(train_out +
 			std::numeric_limits<double>::epsilon()));
 
-	eteq::VarptrsT<double> vars = layr::get_storage<double>(model);
+	eteq::VarptrsT vars = layr::get_storage(model);
 	auto updates = tenncor().approx.adadelta(
-		error, eteq::EVariablesT<double>(vars.begin(), vars.end()),
+		error, eteq::EVariablesT(vars.begin(), vars.end()),
 		learning_rate, l2_decay);
 	teq::OwnMapT umap;
 	eteq::ETensorsT deps;

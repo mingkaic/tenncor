@@ -170,27 +170,7 @@ private:
 	}
 };
 
-template <typename T>
-eteq::VarptrsT<T> get_storage (const eteq::ETensor& root)
-{
-	teq::RefMapT owner = teq::track_ownrefs(teq::TensptrsT{root});
-
-	auto intens = get_input(root).get();
-	VarExtract extra({intens});
-	root->accept(extra);
-
-	eteq::VarptrsT<T> vars;
-	vars.reserve(extra.variables_.size());
-	for (auto leaf : extra.variables_)
-	{
-		if (auto var = std::dynamic_pointer_cast<
-			eteq::Variable<T>>(owner.at(leaf).lock()))
-		{
-			vars.push_back(var);
-		}
-	}
-	return vars;
-}
+eteq::VarptrsT get_storage (const eteq::ETensor& root);
 
 template <typename T>
 struct RBMLayer final

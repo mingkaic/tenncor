@@ -19,7 +19,7 @@ funcs:
         type: T
         default: 1
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: |
         //
             auto ctx = super->ctx;
@@ -40,7 +40,7 @@ funcs:
         type: T
         default: 0.05
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: |
         //
             auto ctx = super->ctx;
@@ -61,7 +61,7 @@ funcs:
         type: T
         default: 1
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: |
         //
             auto ctx = super->ctx;
@@ -76,13 +76,13 @@ funcs:
     name: zeros
     description: Return initialization function that makes zero variables
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: return constants<T>(0);
   - template: typename T
     name: ones
     description: Return initialization function that makes zero variables
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: return constants<T>(1);
   - template: typename T
     name: constants
@@ -92,7 +92,7 @@ funcs:
         type: T
         default: 0
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: |
         //
             auto ctx = super->ctx;
@@ -109,7 +109,7 @@ funcs:
         type: T
         default: 1.
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: return xavier_normal(factor);
   - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
     name: xavier_normal
@@ -121,7 +121,7 @@ funcs:
         type: T
         default: 1.
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: |
         //
             auto ctx = super->ctx;
@@ -141,7 +141,7 @@ funcs:
         type: T
         default: 1.
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: return xavier_uniform(factor);
   - template: typename T, typename = std::enable_if_t<std::is_floating_point<T>::value>
     name: xavier_uniform
@@ -153,7 +153,7 @@ funcs:
         type: T
         default: 1.
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: |
         //
             auto ctx = super->ctx;
@@ -173,7 +173,7 @@ funcs:
         type: T
         default: 1
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: |
         //
             auto ctx = super->ctx;
@@ -205,7 +205,7 @@ funcs:
         type: layr::ShapeFactorF<T>
         default: layr::ShapeFactorF<T>(layr::fanavg<T>)
     out:
-      type: layr::InitF<T>
+      type: layr::InitF
       val: |
         //
             auto ctx = super->ctx;

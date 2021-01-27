@@ -25,47 +25,70 @@ static inline size_t get_lastvers (const global::CfgMapptrT& ctx)
 	return mvers;
 }
 
+#define TYPED_SRCREF(REALTYPE)\
+	out = std::make_unique<eigen::SrcRef<REALTYPE>>((REALTYPE*) data, shape);
+
+static eigen::SrcRefptrT get_srcref (const void* data,
+	egen::_GENERATED_DTYPE dtype, const teq::Shape& shape)
+{
+	eigen::SrcRefptrT out;
+	TYPE_LOOKUP(TYPED_SRCREF, dtype);
+	return out;
+}
+
+#undef TYPED_SRCREF
+
 /// Leaf node implementation containing mutable Eigen data
-template <typename T>
 struct Variable final : public eigen::iMutableLeaf
 {
 	/// Return Variable given raw pointer array whose size is denoted by shape
-	static Variable<T>* get (T* ptr, teq::Shape shape,
+	static Variable* get (const void* ptr, egen::_GENERATED_DTYPE dtype, teq::Shape shape,
 		std::string label = "", teq::Usage usage = teq::VARUSAGE)
 	{
-		return new Variable<T>(ptr, shape, label, usage);
+		return new Variable(ptr, dtype, shape, label, usage);
 	}
 
 	/// Return deep copy of this Variable
-	Variable<T>* clone (void) const
+	Variable* clone (void) const
 	{
-		return static_cast<Variable<T>*>(clone_impl());
+		return static_cast<Variable*>(clone_impl());
 	}
 
 	/// Return move of this Variable
-	Variable<T>* move (void)
+	Variable* move (void)
 	{
-		return new Variable<T>(std::move(*this));
+		return new Variable(std::move(*this));
 	}
 
-	Variable<T>& operator = (const Variable<T>& other) = delete;
+	Variable (const Variable& other) = delete;
 
-	Variable<T>& operator = (Variable<T>&& other) = delete;
+	Variable& operator = (const Variable& other) = delete;
 
+	Variable& operator = (Variable&& other) = delete;
+
+	template <typename T>
 	void assign (const eigen::TensMapT<T>& input,
 		const global::CfgMapptrT& ctx = global::context())
 	{
 		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
-		this->ref_.assign(input);
+		this->ref_->assign(input.data(), egen::get_type<T>(), eigen::get_shape(input));
 	}
 
+	template <typename T>
 	void assign (const eigen::TensorT<T>& input,
 		const global::CfgMapptrT& ctx = global::context())
 	{
 		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
-		this->ref_.assign(input);
+		this->ref_->assign(input.data(), egen::get_type<T>(), eigen::get_shape(input));
+	}
+
+	template <typename T>
+	void assign (const T* input, teq::Shape shape,
+		const global::CfgMapptrT& ctx = global::context())
+	{
+		assign(input, egen::get_type<T>(), shape, ctx);
 	}
 
 	/// Assign void pointer of specified data type enum and shape
@@ -77,16 +100,9 @@ struct Variable final : public eigen::iMutableLeaf
 			global::fatalf("assigning data shaped %s to tensor %s",
 				shape.to_string().c_str(), this->shape_.to_string().c_str());
 		}
-		size_t nelems = shape.n_elems();
-		std::vector<T> data(nelems);
-		egen::type_convert(&data[0], input, dtype, nelems);
-		assign(eigen::make_tensmap<T>(data.data(), shape), ctx);
-	}
-
-	void assign (const T* input, teq::Shape shape,
-		const global::CfgMapptrT& ctx = global::context())
-	{
-		assign(input, egen::get_type<T>(), shape, ctx);
+		size_t last_version = get_lastvers(ctx);
+		upversion(last_version + 1);
+		this->ref_->assign(input, dtype, shape);
 	}
 
 	/// Implementation of iTensor
@@ -98,13 +114,13 @@ struct Variable final : public eigen::iMutableLeaf
 	/// Implementation of iTensor
 	teq::iDeviceRef& device (void) override
 	{
-		return ref_;
+		return *ref_;
 	}
 
 	/// Implementation of iTensor
 	const teq::iDeviceRef& device (void) const override
 	{
-		return ref_;
+		return *ref_;
 	}
 
 	/// Implementation of iTensor
@@ -132,26 +148,28 @@ struct Variable final : public eigen::iMutableLeaf
 	}
 
 private:
-	Variable (T* data, teq::Shape shape, std::string label, teq::Usage usage) :
-		ref_(data, shape), shape_(shape), label_(label), usage_(usage) {}
+	Variable (const void* data, egen::_GENERATED_DTYPE dtype,
+		teq::Shape shape, std::string label, teq::Usage usage) :
+		ref_(get_srcref(data, dtype, shape)), shape_(shape),
+		meta_(dtype, 1), label_(label), usage_(usage) {}
 
-	Variable (const Variable<T>& other) = default;
-
-	Variable (Variable<T>&& other) = default;
+	Variable (Variable&& other) = default;
 
 	teq::iTensor* clone_impl (void) const override
 	{
-		return new Variable<T>(*this);
+		return new Variable(device().data(),
+			(egen::_GENERATED_DTYPE) meta_.type_code(),
+			shape_, label_, usage_);
 	}
 
 	/// Data Source
-	eigen::SrcRef<T> ref_;
+	eigen::SrcRefptrT ref_;
 
 	/// Shape utility to avoid excessive conversion between data_.dimensions()
 	teq::Shape shape_;
 
 	/// Variable metadata
-	eigen::EMetadata<T> meta_ = eigen::EMetadata<T>(1);
+	eigen::EMetadata2 meta_;
 
 	/// Label for distinguishing variable nodes
 	std::string label_;
@@ -160,11 +178,9 @@ private:
 };
 
 /// Smart pointer of variable nodes to preserve assign functions
-template <typename T>
-using VarptrT = std::shared_ptr<Variable<T>>;
+using VarptrT = std::shared_ptr<Variable>;
 
-template <typename T>
-using VarptrsT = std::vector<VarptrT<T>>;
+using VarptrsT = std::vector<VarptrT>;
 
 }
 

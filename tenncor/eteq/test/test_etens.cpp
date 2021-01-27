@@ -134,14 +134,14 @@ TEST(ETENS, DataCalc)
 	teq::Shape shape;
 	double data = 3;
 
-	eteq::EVariable<double> a(eteq::VarptrT<double>(
-		eteq::Variable<double>::get(&data, shape, "A")));
-	eteq::EVariable<double> b(eteq::VarptrT<double>(
-		eteq::Variable<double>::get(&data, shape, "B")));
-	eteq::EVariable<double> c(eteq::VarptrT<double>(
-		eteq::Variable<double>::get(&data, shape, "C")));
-	eteq::EVariable<double> d(eteq::VarptrT<double>(
-		eteq::Variable<double>::get(&data, shape, "D")));
+	eteq::EVariable a(eteq::VarptrT(
+		eteq::Variable::get(&data, egen::DOUBLE, shape, "A")));
+	eteq::EVariable b(eteq::VarptrT(
+		eteq::Variable::get(&data, egen::DOUBLE, shape, "B")));
+	eteq::EVariable c(eteq::VarptrT(
+		eteq::Variable::get(&data, egen::DOUBLE, shape, "C")));
+	eteq::EVariable d(eteq::VarptrT(
+		eteq::Variable::get(&data, egen::DOUBLE, shape, "D")));
 
 	marsh::Maps attrs;
 	teq::TensptrT u(eteq::Functor<double>::get(
@@ -254,14 +254,14 @@ TEST(ETENS, DefaultEvaluate)
 	teq::Shape shape;
 	double data = 3;
 
-	eteq::EVariable<double> a(eteq::VarptrT<double>(
-		eteq::Variable<double>::get(&data, shape, "A")));
-	eteq::EVariable<double> b(eteq::VarptrT<double>(
-		eteq::Variable<double>::get(&data, shape, "B")));
-	eteq::EVariable<double> c(eteq::VarptrT<double>(
-		eteq::Variable<double>::get(&data, shape, "C")));
-	eteq::EVariable<double> d(eteq::VarptrT<double>(
-		eteq::Variable<double>::get(&data, shape, "D")));
+	eteq::EVariable a(eteq::VarptrT(
+		eteq::Variable::get(&data, egen::DOUBLE, shape, "A")));
+	eteq::EVariable b(eteq::VarptrT(
+		eteq::Variable::get(&data, egen::DOUBLE, shape, "B")));
+	eteq::EVariable c(eteq::VarptrT(
+		eteq::Variable::get(&data, egen::DOUBLE, shape, "C")));
+	eteq::EVariable d(eteq::VarptrT(
+		eteq::Variable::get(&data, egen::DOUBLE, shape, "D")));
 
 	marsh::Maps attrs;
 	teq::TensptrT u(eteq::Functor<double>::get(
@@ -425,8 +425,8 @@ TEST(ETENS, EVarRegistry)
 	std::vector<double> big_d = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
 	teq::Shape shape({3, 4});
 
-	eteq::EVariable<double> a(eteq::VarptrT<double>(
-		eteq::Variable<double>::get(big_d.data(), shape, "A")));
+	eteq::EVariable a(eteq::VarptrT(
+		eteq::Variable::get(big_d.data(), egen::DOUBLE, shape, "A")));
 
 	auto& registry = eteq::get_reg();
 	EXPECT_EQ(1, registry.size());

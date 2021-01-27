@@ -75,6 +75,27 @@ eteq::ETensor deep_clone (const eteq::ETensor& root)
 	return eteq::ETensor(kamino.clones_.at(root.get()), root.get_context());
 }
 
+eteq::VarptrsT get_storage (const eteq::ETensor& root)
+{
+	teq::RefMapT owner = teq::track_ownrefs(teq::TensptrsT{root});
+
+	auto intens = get_input(root).get();
+	VarExtract extra({intens});
+	root->accept(extra);
+
+	eteq::VarptrsT vars;
+	vars.reserve(extra.variables_.size());
+	for (auto leaf : extra.variables_)
+	{
+		if (auto var = std::dynamic_pointer_cast<
+			eteq::Variable>(owner.at(leaf).lock()))
+		{
+			vars.push_back(var);
+		}
+	}
+	return vars;
+}
+
 }
 
 #endif

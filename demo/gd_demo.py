@@ -57,8 +57,8 @@ def main(args):
     noutput = int(ninput / 2)
     nbatch = args.nbatch
 
-    train_input = tc.EVariable([nbatch, ninput])
-    train_exout = tc.EVariable([nbatch, noutput])
+    train_input = tc.Variable([nbatch, ninput])
+    train_exout = tc.Variable([nbatch, noutput])
     model = tc.api.layer.link([
         tc.api.layer.dense([ninput], [nunits]),
         tc.api.layer.bind(tc.api.sigmoid),
@@ -79,7 +79,7 @@ def main(args):
         print(e)
         print('failed to load from "{}"'.format(args.load))
 
-    testin = tc.EVariable([ninput], label='testin')
+    testin = tc.Variable([ninput], label='testin')
     untrained_out = untrained.connect(testin)
     trained_out = model.connect(testin)
     pretrained_out = trained.connect(testin)

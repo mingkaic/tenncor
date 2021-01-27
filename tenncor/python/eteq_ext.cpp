@@ -176,15 +176,14 @@ void eteq_ext (py::module& m)
 		.def("get_storage",
 		[](const eteq::ETensor& self)
 		{
-			auto contents = layr::get_storage<PybindT>(self);
-			eteq::EVariablesT<PybindT> vars;
+			auto contents = layr::get_storage(self);
+			eteq::EVariablesT vars;
 			vars.reserve(contents.size());
 			std::transform(contents.begin(), contents.end(),
 				std::back_inserter(vars),
-				[](eteq::VarptrT<PybindT> var)
+				[](eteq::VarptrT var)
 				{
-					return eteq::EVariable<PybindT>(var,
-						global::context());
+					return eteq::EVariable(var, global::context());
 				});
 			return vars;
 		})
@@ -233,10 +232,9 @@ void eteq_ext (py::module& m)
 		.def(py::init([]{ return std::make_shared<teq::Evaluator>(); }));
 
 	// ==== variable ====
-	py::class_<eteq::EVariable<PybindT>,eteq::ETensor> evar(m, "EVariable");
+	py::class_<eteq::EVariable,eteq::ETensor> evar(m, "Variable");
 
-	evar
-		.def(py::init(
+	evar.def(py::init(
 		[](py::list slist, PybindT scalar,
 			const std::string& label, global::CfgMapptrT context)
 		{
@@ -248,7 +246,7 @@ void eteq_ext (py::module& m)
 		py::arg("label") = "",
 		py::arg("ctx") = global::context())
 		.def("assign",
-		[](eteq::EVariable<PybindT>& self, py::array data,
+		[](eteq::EVariable& self, py::array data,
 			global::CfgMapptrT ctx)
 		{
 			teq::Shape shape;
@@ -347,8 +345,8 @@ void eteq_ext (py::module& m)
 			{
 				ctx = context;
 			}
-			return eteq::EVariable<PybindT>(std::dynamic_pointer_cast<
-				eteq::Variable<PybindT>>((teq::TensptrT) tens), ctx);
+			return eteq::EVariable(std::dynamic_pointer_cast<
+				eteq::Variable>((teq::TensptrT) tens), ctx);
 		},
 		py::arg("tens"),
 		py::arg("ctx") = global::context())

@@ -46,8 +46,8 @@ class LAYRTest(unittest.TestCase):
             ])],
             lambda err, vars: api.approx.sgd(err, vars, learning_rate=0.9),
             lambda models: api.loss.mean_squared(
-                tc.EVariable([n_batch, noutput]), models[0].connect(
-                    tc.EVariable([n_batch, ninput]))),
+                tc.Variable([n_batch, noutput]), models[0].connect(
+                    tc.Variable([n_batch, ninput]))),
             ctx=context)
         self.assertEqual(1, len(context.get_actives()))
         err_str = graph_to_str(train_err)
@@ -74,7 +74,7 @@ class LAYRTest(unittest.TestCase):
                 seq_dim = 2,
                 kernel_init=tc.api.init.zeros(),
                 bias_init=tc.api.init.zeros()), # input of [20, 2647, 128, 1] -> output of [20, 2647, 128]
-        ], tc.EVariable([128, 2647, 1], label='input'))
+        ], tc.Variable([128, 2647, 1], label='input'))
 
         # state = [x, 2647]
         # concat([20, 2647] [x, 2647]) -> [20 + x, 2647]

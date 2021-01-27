@@ -12,9 +12,19 @@ namespace eteq
 
 using DimPairsT = std::pair<teq::DimT,teq::DimT>;
 
+/// Return variable node given raw array and shape
+template <typename T>
+EVariable make_variable (T* data, teq::Shape shape,
+	const std::string& label = "",
+	const global::CfgMapptrT& ctx = global::context())
+{
+	return EVariable(VarptrT(
+		Variable::get(data, egen::get_type<T>(), shape, label)), ctx);
+}
+
 /// Return variable node given scalar and shape
 template <typename T>
-EVariable<T> make_variable_scalar (T scalar,
+EVariable make_variable_scalar (T scalar,
 	teq::Shape shape, std::string label = "",
 	const global::CfgMapptrT& ctx = global::context())
 {
@@ -23,13 +33,12 @@ EVariable<T> make_variable_scalar (T scalar,
 		label = fmts::to_string(scalar);
 	}
 	std::vector<T> data(shape.n_elems(), scalar);
-	return EVariable<T>(VarptrT<T>(
-		Variable<T>::get(data.data(), shape, label)), ctx);
+	return make_variable(data.data(), shape, label, ctx);
 }
 
 /// Return zero-initialized variable node of specified shape
 template <typename T>
-EVariable<T> make_variable (teq::Shape shape,
+EVariable make_variable (teq::Shape shape,
 	std::string label = "",
 	const global::CfgMapptrT& ctx = global::context())
 {
@@ -38,21 +47,11 @@ EVariable<T> make_variable (teq::Shape shape,
 
 /// Return variable node filled with scalar matching link shape
 template <typename T>
-EVariable<T> make_variable_like (T scalar, teq::TensptrT like,
+EVariable make_variable_like (T scalar, teq::TensptrT like,
 	std::string label = "",
 	const global::CfgMapptrT& ctx = global::context())
 {
 	return make_variable_scalar(scalar, like->shape(), label, ctx);
-}
-
-/// Return variable node given raw array and shape
-template <typename T>
-EVariable<T> make_variable (T* data, teq::Shape shape,
-	std::string label = "",
-	const global::CfgMapptrT& ctx = global::context())
-{
-	return EVariable<T>(VarptrT<T>(
-		Variable<T>::get(data, shape, label)), ctx);
 }
 
 teq::TensptrT make_funcattr (egen::_GENERATED_OPCODE opcode,

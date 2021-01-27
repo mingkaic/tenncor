@@ -72,11 +72,11 @@ funcs:
       - name: hidden_dims
         type: const teq::DimsT&
       - name: kernel_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: bias_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: with_bias
         type: bool
         default: "true"
@@ -88,7 +88,7 @@ funcs:
       val: |
         //
             eteq::ETensor input(eteq::make_variable_scalar<T>(0,inshape,layr::input_label,super->ctx));
-            return dense(input,hidden_dims,kernel_init,bias_init,with_bias,dims);
+            return dense<T>(input,hidden_dims,kernel_init,bias_init,with_bias,dims);
   - template: typename T
     name: dense
     args:
@@ -97,11 +97,11 @@ funcs:
       - name: hidden_dims
         type: const teq::DimsT&
       - name: kernel_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: bias_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: with_bias
         type: bool
         default: "true"
@@ -116,8 +116,8 @@ funcs:
             {
                 kernel_init = super->init.glorot_uniform<T>();
             }
-            eteq::EVariable<T> kernel = kernel_init(layr::gen_rshape(hidden_dims,input->shape(),dims),layr::weight_label);
-            eteq::EVariable<T> bias;
+            eteq::EVariable kernel = kernel_init(layr::gen_rshape(hidden_dims,input->shape(),dims),layr::weight_label);
+            eteq::EVariable bias;
             if (with_bias)
             {
                 if (!bias_init)
@@ -137,11 +137,11 @@ funcs:
       - name: out_ncol
         type: teq::DimT
       - name: kernel_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: bias_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: zero_padding
         type: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
         default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
@@ -155,7 +155,7 @@ funcs:
             // image must be in form [in,iwidth,iheight,batch]
             eteq::ETensor input(eteq::make_variable_scalar<T>(0,teq::Shape({
                 in_ncol,kernel_hw.second,kernel_hw.first,1}),layr::input_label,super->ctx));
-            return conv2d(input,out_ncol,kernel_hw,kernel_init,bias_init,zero_padding,with_bias);
+            return conv2d<T>(input,out_ncol,kernel_hw,kernel_init,bias_init,zero_padding,with_bias);
   - template: typename T
     name: conv2d
     args:
@@ -166,11 +166,11 @@ funcs:
       - name: kernel_hw
         type: const eteq::DimPairsT&
       - name: kernel_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: bias_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: padding
         type: const std::string&
         default: "\"valid\""
@@ -205,7 +205,7 @@ funcs:
             {
                 global::fatalf("unsupported padding type %s", padding.c_str());
             }
-            return conv2d(input,out_ncol,kernel_hw,kernel_init,bias_init,zero_padding,with_bias);
+            return conv2d<T>(input,out_ncol,kernel_hw,kernel_init,bias_init,zero_padding,with_bias);
   - template: typename T
     name: conv2d
     args:
@@ -216,11 +216,11 @@ funcs:
       - name: kernel_hw
         type: const eteq::DimPairsT&
       - name: kernel_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: bias_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: zero_padding
         type: const std::pair<eteq::DimPairsT,eteq::DimPairsT>&
         default: "std::pair<eteq::DimPairsT,eteq::DimPairsT>{{0,0},{0,0}}"
@@ -237,9 +237,9 @@ funcs:
             }
             // image must be in form [in,iwidth,iheight,...]
             teq::Shape inshape = input->shape();
-            eteq::EVariable<T> kernel = kernel_init(teq::Shape({out_ncol,
+            eteq::EVariable kernel = kernel_init(teq::Shape({out_ncol,
                 inshape.at(0),kernel_hw.second,kernel_hw.first}),layr::weight_label);
-            eteq::EVariable<T> bias;
+            eteq::EVariable bias;
             if (with_bias)
             {
                 if (!bias_init)
@@ -261,11 +261,11 @@ funcs:
       - name: nseq
         type: teq::DimT
       - name: kernel_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: bias_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: seq_dim
         type: teq::RankT
         default: "1"
@@ -284,7 +284,7 @@ funcs:
             eteq::ETensor input(eteq::make_variable_scalar<T>(
                 0,teq::Shape(inslist),layr::input_label,super->ctx));
 
-            auto cell = this->dense(teq::Shape({(teq::DimT) (hidden_dim + indim)}),
+            auto cell = this->dense<T>(teq::Shape({(teq::DimT) (hidden_dim + indim)}),
                 {hidden_dim},kernel_init,bias_init,with_bias);
 
             auto init_state = eteq::make_variable<T>(
@@ -303,11 +303,11 @@ funcs:
       - name: nseq
         type: teq::DimT
       - name: kernel_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: bias_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: seq_dim
         type: teq::RankT
         default: "1"
@@ -334,10 +334,10 @@ funcs:
             teq::Shape inputshape(inputlist);
             teq::Shape stateshape(statelist);
             teq::DimsT hid_dims = {hidden_dim};
-            auto ggate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
-            auto forgate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
-            auto ingate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
-            auto outgate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto ggate = this->dense<T>(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto forgate = this->dense<T>(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto ingate = this->dense<T>(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto outgate = this->dense<T>(inputshape,hid_dims,kernel_init,bias_init,with_bias);
 
             auto state = eteq::make_constant_scalar<T>(0,stateshape,super->ctx);
             auto hidden = eteq::make_constant_scalar<T>(0,stateshape,super->ctx);
@@ -353,11 +353,11 @@ funcs:
       - name: nseq
         type: teq::DimT
       - name: kernel_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: bias_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: seq_dim
         type: teq::RankT
         default: "1"
@@ -384,9 +384,9 @@ funcs:
             teq::Shape inputshape(inputlist);
             teq::Shape stateshape(statelist);
             teq::DimsT hid_dims = {hidden_dim};
-            auto ugate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
-            auto rgate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
-            auto hgate = this->dense(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto ugate = this->dense<T>(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto rgate = this->dense<T>(inputshape,hid_dims,kernel_init,bias_init,with_bias);
+            auto hgate = this->dense<T>(inputshape,hid_dims,kernel_init,bias_init,with_bias);
 
             auto state = eteq::make_constant_scalar<T>(0,stateshape,super->ctx);
 
@@ -399,11 +399,11 @@ funcs:
       - name: nhidden
         type: teq::DimT
       - name: kernel_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: bias_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: with_bias
         type: bool
         default: "true"
@@ -420,10 +420,10 @@ funcs:
                 0,teq::Shape({nvisible}),layr::input_label,super->ctx));
             eteq::ETensor bwdinput(eteq::make_variable_scalar<T>(
                 0,teq::Shape({nhidden}),layr::input_label,super->ctx));
-            eteq::EVariable<T> kernel = kernel_init(
+            eteq::EVariable kernel = kernel_init(
                 teq::Shape({nhidden,nvisible}),layr::weight_label);
-            eteq::EVariable<T> hbias;
-            eteq::EVariable<T> vbias;
+            eteq::EVariable hbias;
+            eteq::EVariable vbias;
             if (with_bias)
             {
                 if (!bias_init)
@@ -539,11 +539,11 @@ funcs:
         check_null: false
         default: eteq::ETensor()
       - name: moving_mean_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: moving_var_init
-        type: layr::InitF<T>
-        default: layr::InitF<T>()
+        type: layr::InitF
+        default: layr::InitF()
       - name: axis
         type: teq::RankT
         default: teq::rank_cap

@@ -429,9 +429,9 @@ TEST_F(DISTRIB, RemoteDeriving)
 
 		std::vector<double> df_data;
 		{
-			eteq::EVariable<double> a = eteq::make_variable<double>(data.data(), ashape, "a");
-			eteq::EVariable<double> b = eteq::make_variable<double>(data2.data(), bshape, "b");
-			eteq::EVariable<double> c = eteq::make_variable<double>(data3.data(), cshape, "c");
+			eteq::EVariable a = eteq::make_variable<double>(data.data(), ashape, "a");
+			eteq::EVariable b = eteq::make_variable<double>(data2.data(), bshape, "b");
+			eteq::EVariable c = eteq::make_variable<double>(data3.data(), cshape, "c");
 
 			auto d = tenncor().matmul(b, a);
 			auto e = tenncor().matmul(c, d);
@@ -453,9 +453,9 @@ TEST_F(DISTRIB, RemoteDeriving)
 		auto mgr = make_mgr("mgr1");
 		tcr::set_distrmgr(mgr);
 
-		eteq::EVariable<double> a = eteq::make_variable<double>(data.data(), ashape, "a");
-		eteq::EVariable<double> b = eteq::make_variable<double>(data2.data(), bshape, "b");
-		eteq::EVariable<double> c = eteq::make_variable<double>(data3.data(), cshape, "c");
+		eteq::EVariable a = eteq::make_variable<double>(data.data(), ashape, "a");
+		eteq::EVariable b = eteq::make_variable<double>(data2.data(), bshape, "b");
+		eteq::EVariable c = eteq::make_variable<double>(data3.data(), cshape, "c");
 
 		auto d = tenncor().matmul(b, a);
 		auto e = tenncor().matmul(c, d);

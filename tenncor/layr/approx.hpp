@@ -16,7 +16,7 @@ namespace layr
 
 /// Association between variable and error root
 template <typename T>
-using VarErrT = std::pair<eteq::EVariable<T>,eteq::ETensor>;
+using VarErrT = std::pair<eteq::EVariable,eteq::ETensor>;
 
 /// Ordered association between variable and error
 template <typename T>
@@ -32,7 +32,7 @@ using ErrorF = std::function<eteq::ETensor(const eteq::ETensorsT&)>;
 /// Function that approximate error of sources
 /// given a vector of variables and its corresponding errors
 template <typename T>
-using ApproxF = std::function<VarErrsT<T>(const eteq::ETensor&,const eteq::EVariablesT<T>&)>;
+using ApproxF = std::function<VarErrsT<T>(const eteq::ETensor&,const eteq::EVariablesT&)>;
 
 }
 
