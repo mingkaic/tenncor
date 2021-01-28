@@ -408,7 +408,7 @@ funcs:
         type: bool
         default: "true"
     out:
-      type: layr::RBMLayer<T>
+      type: layr::RBMLayer
       val: |
         //
             if (!kernel_init)
@@ -433,7 +433,7 @@ funcs:
                 hbias = bias_init(teq::Shape({nhidden}),"h" + layr::bias_label);
                 vbias = bias_init(teq::Shape({nvisible}),"v" + layr::bias_label);
             }
-            return layr::RBMLayer<T>{
+            return layr::RBMLayer{
                 dense(fwdinput,kernel,hbias,{{0,1}}),
                 dense(bwdinput,super->transpose(kernel),vbias,{{0,1}})
             };

@@ -4,34 +4,34 @@
 void layr_ext(py::module& m)
 {
 	// ==== layer ====
-	py::class_<layr::RBMLayer<PybindT>> rbmlayer(m, "RBMLayer");
+	py::class_<layr::RBMLayer> rbmlayer(m, "RBMLayer");
 
 	rbmlayer
 		.def(py::init(
 		[](eteq::ETensor fwd, eteq::ETensor bwd)
 		{
-			return layr::RBMLayer<PybindT>{fwd, bwd};
+			return layr::RBMLayer{fwd, bwd};
 		}))
-		.def("deep_clone", &layr::RBMLayer<PybindT>::deep_clone)
+		.def("deep_clone", &layr::RBMLayer::deep_clone)
 		.def("fwd",
-		[](layr::RBMLayer<PybindT>& self)
+		[](layr::RBMLayer& self)
 		{
 			return self.fwd_;
 		})
 		.def("bwd",
-		[](layr::RBMLayer<PybindT>& self)
+		[](layr::RBMLayer& self)
 		{
 			return self.bwd_;
 		})
-		.def("connect", &layr::RBMLayer<PybindT>::connect)
-		.def("backward_connect", &layr::RBMLayer<PybindT>::backward_connect);
+		.def("connect", &layr::RBMLayer::connect)
+		.def("backward_connect", &layr::RBMLayer::backward_connect);
 
 	// ==== DBN trainer ====
 	py::class_<trainer::DBNTrainer<PybindT>> dbntrainer(m, "DBNTrainer");
 
 	dbntrainer
 		.def(py::init<
-			const std::vector<layr::RBMLayer<PybindT>>&,eteq::ETensor,
+			const std::vector<layr::RBMLayer>&,eteq::ETensor,
 			teq::RankT,teq::DimT,PybindT,PybindT,size_t,PybindT,PybindT,global::CfgMapptrT>(),
 			py::arg("rbms"), py::arg("dense"),
 			py::arg("softmax_dim"), py::arg("batch_size"),

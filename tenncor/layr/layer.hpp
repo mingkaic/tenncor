@@ -172,12 +172,11 @@ private:
 
 eteq::VarptrsT get_storage (const eteq::ETensor& root);
 
-template <typename T>
 struct RBMLayer final
 {
-	RBMLayer<T> deep_clone (void) const
+	RBMLayer deep_clone (void) const
 	{
-		return RBMLayer<T>{
+		return RBMLayer{
 			::layr::deep_clone(fwd_),
 			::layr::deep_clone(bwd_)
 		};

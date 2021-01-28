@@ -20,11 +20,11 @@ TEST(APPROX, StochasticGD)
 {
 	teq::DimsT slist = {18, 9, 3};
 
-	auto leaf = eteq::make_variable_scalar<PybindT>(
+	auto leaf = eteq::make_variable_scalar<float>(
 		0, teq::Shape(slist), "leaf");
 	auto err = tenncor().abs(leaf);
 
-	auto groups = tenncor().approx.sgd<PybindT>(
+	auto groups = tenncor().approx.sgd<float>(
 		err, eteq::EVariablesT{leaf}, 0.67);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
@@ -47,11 +47,11 @@ TEST(APPROX, Adagrad)
 {
 	teq::DimsT slist = {18, 9, 3};
 
-	auto leaf = eteq::make_variable_scalar<PybindT>(
+	auto leaf = eteq::make_variable_scalar<float>(
 		0, teq::Shape(slist), "leaf");
 	auto err = tenncor().abs(leaf);
 
-	auto groups = tenncor().approx.adagrad<PybindT>(
+	auto groups = tenncor().approx.adagrad<float>(
 		err, eteq::EVariablesT{leaf}, 0.67);
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
@@ -90,13 +90,13 @@ TEST(APPROX, Adadelta)
 	teq::DimsT slist = {18, 9, 3};
 	teq::Shape shape(slist);
 
-	auto leaf = eteq::make_variable_scalar<PybindT>(
+	auto leaf = eteq::make_variable_scalar<float>(
 		0, shape, "leaf");
 	auto err = tenncor().sin(leaf);
 
-	PybindT step_rate = 1;
-	PybindT decay = 0.91;
-	PybindT offset = 0.16;
+	float step_rate = 1;
+	float decay = 0.91;
+	float offset = 0.16;
 	auto groups = tenncor().approx.adadelta(
 		err, eteq::EVariablesT{leaf}, step_rate, decay, offset);
 	ASSERT_EQ(1, groups.size());
@@ -250,24 +250,24 @@ TEST(APPROX, Adadelta)
 	//   = -0.43451121964  / sqrt(0.25)
 	//   = -0.86902243929
 
-	PybindT* og = (PybindT*) g->device().data();
-	PybindT exog = 0.09;
+	float* og = (float*) g->device().data();
+	float exog = 0.09;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		ASSERT_GT(0.001, abs((exog - og[i]) / exog)) <<
 			"expect: " << exog << ", got: " << og[i];
 	}
 
-	PybindT* od = (PybindT*) d->device().data();
-	PybindT exod = 0.0576;
+	float* od = (float*) d->device().data();
+	float exod = 0.0576;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		ASSERT_GT(0.001, abs((exod - od[i]) / exod)) <<
 			"expect: " << exod << ", got: " << od[i];
 	}
 
-	PybindT* data = (PybindT*) leaf->device().data();
-	PybindT exdval = -0.8;
+	float* data = (float*) leaf->device().data();
+	float exdval = -0.8;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		ASSERT_GT(0.001, abs((exdval - data[i]) / exdval)) <<
@@ -281,15 +281,15 @@ TEST(APPROX, RmsMomentum)
 	eigen::Device device;
 	teq::Shape shape({5});
 
-	auto leaf = eteq::make_variable_scalar<PybindT>(0, shape, "leaf");
+	auto leaf = eteq::make_variable_scalar<float>(0, shape, "leaf");
 	auto err = tenncor().sin(leaf) / 2.f;
 
-	PybindT learning_rate = 1.;
-	PybindT discount_rate = 0.52;
-	layr::VarErrsT<PybindT> groups = tenncor().approx.rms_momentum(
+	float learning_rate = 1.;
+	float discount_rate = 0.52;
+	layr::VarErrsT<float> groups = tenncor().approx.rms_momentum(
 		err, eteq::EVariablesT{leaf},
 		learning_rate, discount_rate,
-		std::numeric_limits<PybindT>::epsilon());
+		std::numeric_limits<float>::epsilon());
 	ASSERT_EQ(1, groups.size());
 	EXPECT_GRAPHEQ(
 		"(ASSIGN_SUB<FLOAT>[5\\1\\1\\1\\1\\1\\1\\1])\n"
@@ -360,13 +360,13 @@ TEST(APPROX, RmsMomentum)
 	// leaf = leaf - 1 * err / sqrt(momentum)
 	//      = 0 - 1 * 0.5 / sqrt(1) = -0.5
 
-	PybindT* o = (PybindT*) momentum->device().data();
-	std::vector<PybindT> expecto(shape.n_elems(), 0.64);
-	std::vector<PybindT> ovec(o, o + shape.n_elems());
+	float* o = (float*) momentum->device().data();
+	std::vector<float> expecto(shape.n_elems(), 0.64);
+	std::vector<float> ovec(o, o + shape.n_elems());
 	EXPECT_VECEQ(expecto, ovec);
 
-	PybindT* d = (PybindT*) leaf->device().data();
-	PybindT exdval = -0.625;
+	float* d = (float*) leaf->device().data();
+	float exdval = -0.625;
 	for (size_t i = 0, n = shape.n_elems(); i < n; ++i)
 	{
 		ASSERT_GT(0.001, abs((exdval - d[i]) / exdval)) <<

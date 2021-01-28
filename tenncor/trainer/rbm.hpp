@@ -7,25 +7,22 @@
 namespace trainer
 {
 
-template <typename T>
-eteq::ETensor sample_v2h (
-	const layr::RBMLayer<T>& model, eteq::ETensor vis)
+static eteq::ETensor sample_v2h (
+	const layr::RBMLayer& model, eteq::ETensor vis)
 {
 	return tenncor().random.rand_binom_one(
 		tenncor().sigmoid(model.connect(vis)));
 }
 
-template <typename T>
-eteq::ETensor sample_h2v (
-	const layr::RBMLayer<T>& model, eteq::ETensor hid)
+static eteq::ETensor sample_h2v (
+	const layr::RBMLayer& model, eteq::ETensor hid)
 {
 	return tenncor().random.rand_binom_one(
 		tenncor().sigmoid(model.backward_connect(hid)));
 }
 
-template <typename T>
-eteq::ETensor gibbs_hvh (
-	const layr::RBMLayer<T>& model, eteq::ETensor hid)
+static eteq::ETensor gibbs_hvh (
+	const layr::RBMLayer& model, eteq::ETensor hid)
 {
 	return sample_v2h(model, sample_h2v(model, hid));
 }
@@ -84,7 +81,7 @@ struct CDChainIO final
 /// using backprop calculated gradient
 template <typename T>
 layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
-	const layr::RBMLayer<T>& model, size_t cdk = 1,
+	const layr::RBMLayer& model, size_t cdk = 1,
 	eteq::VarptrT persistent = nullptr,
 	global::CfgMapptrT context = global::context())
 {
@@ -145,7 +142,7 @@ layr::VarErrsT<T> cd_grad_approx (CDChainIO<T>& io,
 }
 
 template <typename T>
-eteq::ETensor rbm (const layr::RBMLayer<T>& model,
+eteq::ETensor rbm (const layr::RBMLayer& model,
 	eteq::ETensor visible, T learning_rate, T discount_factor,
 	layr::BErrorF err_func = [](const eteq::ETensor& a, const eteq::ETensor& b)
 	{

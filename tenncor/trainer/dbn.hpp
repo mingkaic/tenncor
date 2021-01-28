@@ -13,7 +13,7 @@ namespace trainer
 template <typename T>
 struct DBNTrainer final
 {
-	DBNTrainer (const std::vector<layr::RBMLayer<T>>& rbms, eteq::ETensor dense,
+	DBNTrainer (const std::vector<layr::RBMLayer>& rbms, eteq::ETensor dense,
 		teq::RankT softmax_dim, teq::DimT batch_size,
 		T pretrain_lr = 0.1, T train_lr = 0.1,
 		size_t cdk = 10, T l2_reg = 0., T lr_scaling = 0.95,

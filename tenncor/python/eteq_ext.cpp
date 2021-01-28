@@ -19,13 +19,11 @@ static py::array get_releasedata (eteq::ETensor& self)
 
 void eteq_ext (py::module& m)
 {
-#define DEF_GENERATED_DTYPE_ENUM(CODE,REALTYPE).value(#REALTYPE, CODE)
-
+#define _DEF_GENERATED_DTYPE_ENUM(CODE,REALTYPE).value(#REALTYPE, CODE)
 	py::enum_<egen::_GENERATED_DTYPE>(m, "Dtype", py::module_local())
-	EVERY_TYPE(DEF_GENERATED_DTYPE_ENUM)
+	EVERY_TYPE(_DEF_GENERATED_DTYPE_ENUM)
 	.export_values();
-
-#undef DEF_GENERATED_DTYPE_ENUM
+#undef _DEF_GENERATED_DTYPE_ENUM
 
 	py::class_<estd::ConfigMap<>,global::CfgMapptrT> context(m, "Context");
 
@@ -236,15 +234,21 @@ void eteq_ext (py::module& m)
 
 	evar.def(py::init(
 		[](py::list slist, PybindT scalar,
-			const std::string& label, global::CfgMapptrT context)
+			const std::string& label, global::CfgMapptrT context,
+			egen::_GENERATED_DTYPE dtype)
 		{
-			return eteq::make_variable_scalar<PybindT>(
-				scalar, pyutils::p2cshape(slist), label, context);
+			eteq::EVariable out;
+#define _MAKE_VAR(REALTYPE) out = eteq::make_variable_scalar<REALTYPE>(\
+	(REALTYPE) scalar, pyutils::p2cshape(slist), label, context);
+			TYPE_LOOKUP(_MAKE_VAR, dtype);
+#undef _MAKE_VAR
+			return out;
 		}),
 		py::arg("shape"),
 		py::arg("scalar") = 0,
 		py::arg("label") = "",
-		py::arg("ctx") = global::context())
+		py::arg("ctx") = global::context(),
+		py::arg("dtype") = egen::get_type<PybindT>())
 		.def("assign",
 		[](eteq::EVariable& self, py::array data,
 			global::CfgMapptrT ctx)
