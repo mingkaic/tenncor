@@ -232,10 +232,10 @@ void eteq_ext (py::module& m)
 	// ==== variable ====
 	py::class_<eteq::EVariable,eteq::ETensor> evar(m, "Variable");
 
-	evar.def(py::init(
-		[](py::list slist, PybindT scalar,
-			const std::string& label, global::CfgMapptrT context,
-			egen::_GENERATED_DTYPE dtype)
+	evar
+		.def(py::init(
+		[](py::list slist, PybindT scalar, const std::string& label,
+			global::CfgMapptrT context, egen::_GENERATED_DTYPE dtype)
 		{
 			eteq::EVariable out;
 #define _MAKE_VAR(REALTYPE) out = eteq::make_variable_scalar<REALTYPE>(\
@@ -246,6 +246,23 @@ void eteq_ext (py::module& m)
 		}),
 		py::arg("shape"),
 		py::arg("scalar") = 0,
+		py::arg("label") = "",
+		py::arg("ctx") = global::context(),
+		py::arg("dtype") = egen::get_type<PybindT>())
+		.def(py::init(
+		[](py::array content, const std::string& label,
+			global::CfgMapptrT context, egen::_GENERATED_DTYPE dtype)
+		{
+			teq::Shape shape;
+			eteq::EVariable out;
+#define _MAKE_VAR(REALTYPE){\
+	auto vec = pyutils::arr2shapedarr<REALTYPE>(shape, content);\
+	out = eteq::make_variable<REALTYPE>(vec.data(), shape, label, context); }
+			TYPE_LOOKUP(_MAKE_VAR, dtype);
+#undef _MAKE_VAR
+			return out;
+		}),
+		py::arg("content"),
 		py::arg("label") = "",
 		py::arg("ctx") = global::context(),
 		py::arg("dtype") = egen::get_type<PybindT>())

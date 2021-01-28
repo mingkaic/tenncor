@@ -209,6 +209,30 @@ class ApiTest(ArrTest):
 
             self._array_close(np.array(out), ex.get())
 
+    def test_varcreate(self):
+        scalar = tc.Variable([3, 2, 4], 5, 'scalar')
+        identity = tc.Variable(np.identity(3), 'identity')
+
+        sshape = scalar.shape()
+        ishape = identity.shape()
+
+        self._array_eq(sshape, [3, 2, 4])
+        self._array_eq(ishape, [3, 3])
+
+        sdata = scalar.data()
+        idata = identity.data()
+
+        self._array_eq(sdata, np.array([
+            [[5.,5.,5.,5.], [5.,5.,5.,5.]],
+            [[5.,5.,5.,5.], [5.,5.,5.,5.]],
+            [[5.,5.,5.,5.], [5.,5.,5.,5.]],
+        ]))
+        self._array_eq(idata, np.array([
+            [1.,0.,0.],
+            [0.,1.,0.],
+            [0.,0.,1.],
+        ]))
+
     def test_variable(self):
         shapes = [[3, 4, 5]]
         if 'elementary.shape' in _test_data:
