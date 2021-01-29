@@ -1,14 +1,16 @@
 import os
-import subprocess
+import re
 import sys
 
 from conans import ConanFile, CMake, tools
 
 def get_version():
-    get_vers = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'get_version.sh')
-    sp = subprocess.Popen(get_vers, shell=True, stdout=subprocess.PIPE)
-    version = sp.stdout.read().decode('utf-8')
-    return version.strip()
+    try:
+        content = tools.load("tenncor/VERSION.hpp")
+        version = re.search(b"#define TENNCOR_VERSION \"(.+)\"", content).group(1)
+        return version.strip()
+    except Exception as e:
+        return None
 
 class TenncorConan(ConanFile):
     name = "tenncor"

@@ -1,3 +1,4 @@
+#include "tenncor/VERSION.hpp"
 #include "tenncor/serial.hpp"
 
 #ifdef TENNCOR_SERIAL_HPP
@@ -5,9 +6,8 @@
 namespace tcr
 {
 
-const std::string app_name = "tenncor";
-const std::string app_version = "1.0.0";
-const std::string tenncor_dom = "com.mingkaic.tenncor";
+inline const std::string app_name = "tenncor";
+inline const std::string tenncor_dom = "com.mingkaic.tenncor";
 
 distr::ox::TopographyT save_model (
 	onnx::ModelProto& pb_model,
@@ -16,7 +16,7 @@ distr::ox::TopographyT save_model (
 {
 	pb_model.set_ir_version(onnx::IR_VERSION);
 	pb_model.set_producer_name(app_name);
-	pb_model.set_producer_version(app_version);
+	pb_model.set_producer_version(TENNCOR_VERSION);
 	pb_model.set_domain(tenncor_dom);
 	pb_model.set_model_version(onnx::IR_VERSION);
 	// onnx::OperatorSetIdProto* opset = pb_model.add_opset_import();

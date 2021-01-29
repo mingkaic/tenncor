@@ -388,7 +388,7 @@ cover_serial:
 
 #### integration coverages ####
 
-VERSION := $(shell ./get_version.sh)
+VERSION := $(shell sed -n 's/\#define TENNCOR_VERSION "\(.*\)"/\1/p' tenncor/VERSION.hpp)
 
 .PHONY: cover_integration
 cover_integration:
