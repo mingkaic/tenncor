@@ -7,7 +7,6 @@ jobs:
   include:
     - stage: build test docker image
       script:
-        - git checkout ${TRAVIS_BRANCH}
         - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
         - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=travis-${TRAVIS_COMMIT} build_test_image
         - docker images
@@ -33,16 +32,10 @@ jobs:
     - if: branch = master
       stage: conan_deploy
       script:
-        - docker build -t $DOCKER_USERNAME/tenncor-cmake:travis-${TRAVIS_COMMIT} --build-arg CONAN_USR=${CONAN_USR} --build-arg CONAN_PWD=${CONAN_PWD} -f Dockerfile.conan .
-        - docker run --rm $DOCKER_USERNAME/tenncor-cmake:travis-${TRAVIS_COMMIT}
-    #- stage: build docker image with C++ and python library
-    #  if: branch = master
-    #  script:
-    #    - git checkout ${TRAVIS_BRANCH}
-    #    - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
-    #    - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=${TRAVIS_COMMIT} REMOTE_CACHE=${BUILD_REMOTE_CACHE} build_image
-    #    - docker images
-    #    - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=${TRAVIS_COMMIT} push_image
+        - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=travis-${TRAVIS_COMMIT} CONAN_USR=${CONAN_USR} CONAN_PWD=${CONAN_PWD} build_conandeploy_image
+        - make IMAGE_REPO=${DOCKER_USERNAME} IMAGE_TAG=travis-${TRAVIS_COMMIT} push_conandeploy_image
+        - docker run --rm ${DOCKER_USERNAME}/tenncor-cmake:travis-${TRAVIS_COMMIT}
 notifications:
   email: false
 branches:

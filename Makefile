@@ -28,13 +28,17 @@ IMAGE_REPO := mkaichen
 IMAGE_TAG := latest
 REMOTE_CACHE := ''
 
-all: build_test_image build_lib_image build_image
+all: build_test_image build_conandeploy_image build_lib_image build_image
 
-push: push_test_image push_lib_image push_image
+push: push_test_image push_conandeploy_image push_lib_image push_image
 
 .PHONY: build_test_image
 build_test_image:
 	docker build -f Dockerfile.test -t ${IMAGE_REPO}/tenncor-test:${IMAGE_TAG} .
+
+.PHONY: build_conandeploy_image
+build_conandeploy_image:
+	docker build -t ${IMAGE_REPO}/tenncor-cmake:${IMAGE_TAG} --build-arg CONAN_USR=${CONAN_USR} --build-arg CONAN_PWD=${CONAN_PWD} -f Dockerfile.conan .
 
 .PHONY: build_lib_image
 build_lib_image:
@@ -48,6 +52,10 @@ build_image: build_lib_image
 .PHONY: push_test_image
 push_test_image:
 	docker push ${IMAGE_REPO}/tenncor-test:${IMAGE_TAG}
+
+.PHONY: push_conandeploy_image
+push_conandeploy_image:
+	docker push ${IMAGE_REPO}/tenncor-cmake:${IMAGE_TAG}
 
 .PHONY: push_lib_image
 push_lib_image:
