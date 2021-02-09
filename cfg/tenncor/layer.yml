@@ -320,13 +320,13 @@ funcs:
         //
             // input needs to specify number of sequences,
             // since graph topography can't be traced
-            teq::DimsT inslist(inshape.begin(),inshape.end());
+            teq::DimsT inslist = inshape.to_list();
             inslist[seq_dim] = nseq;
             eteq::ETensor input(eteq::make_variable_scalar<T>(
                 0,teq::Shape(inslist),layr::input_label,super->ctx));
 
-            teq::DimsT inputlist(inshape.begin(),inshape.end());
-            teq::DimsT statelist(inshape.begin(),inshape.end());
+            auto inputlist = inshape.to_list();
+            auto statelist = inputlist;
             inputlist[0] += hidden_dim;
             statelist[0] = hidden_dim;
             inputlist[seq_dim] = statelist[seq_dim] = 1;
@@ -370,13 +370,13 @@ funcs:
         //
             // input needs to specify number of sequences,
             // since graph topography can't be traced
-            teq::DimsT inslist(inshape.begin(),inshape.end());
+            teq::DimsT inslist = inshape.to_list();
             inslist[seq_dim] = nseq;
             eteq::ETensor input(eteq::make_variable_scalar<T>(
                 0,teq::Shape(inslist),layr::input_label,super->ctx));
 
-            teq::DimsT inputlist(inshape.begin(),inshape.end());
-            teq::DimsT statelist(inshape.begin(),inshape.end());
+            auto inputlist = inshape.to_list();
+            auto statelist = inputlist;
             inputlist[0] += hidden_dim;
             statelist[0] = hidden_dim;
             inputlist[seq_dim] = statelist[seq_dim] = 1;

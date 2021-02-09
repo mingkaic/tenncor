@@ -18,6 +18,10 @@ teq::Shape p2cshape (const py::list& pyshape);
 
 teq::Shape p2cshape (const py::ssize_t* pslist, size_t ndim);
 
+teq::Shape p2cshape2 (const py::list& pyshape);
+
+teq::Shape p2cshape2 (const py::ssize_t* pslist, size_t ndim);
+
 template <typename T>
 std::vector<T> arr2shapedarr (teq::Shape& shape, py::array& data)
 {

@@ -5,14 +5,14 @@
 namespace teq
 {
 
-std::vector<DimT> narrow_shape (const Shape& sign)
+DimsT narrow_shape (const Shape& sign)
 {
 	auto it = sign.begin(), et = sign.end();
 	while (it != et && *(et - 1) <= 1)
 	{
 		--et;
 	}
-	return std::vector<DimT>(it, et);
+	return DimsT(it, et);
 }
 
 }

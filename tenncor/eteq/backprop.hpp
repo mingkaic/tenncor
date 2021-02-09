@@ -9,10 +9,14 @@
 #ifndef ETEQ_BACKPROP_HPP
 #define ETEQ_BACKPROP_HPP
 
+#include "internal/utils/coord/coord.hpp"
+
 #include "tenncor/eteq/make.hpp"
 
 namespace eteq
 {
+
+using EigenOpF = std::function<eigen::TensorT<size_t>(const eigen::TensMapT<size_t>&)>;
 
 /// Return reduction operator gradient of reduced functor node (bwd)
 static inline teq::TensptrT reduce_grad (teq::Shape shape, teq::TensptrT bwd, teq::FuncptrT fwd)
@@ -54,9 +58,813 @@ static inline teq::RanksT reorder_permute (
 	return reorder;
 }
 
-/// ETEQ implementation of TEQ's Backward Propagation Builder
-struct DerivativeFuncs final : public teq::iDerivativeFuncs
+static inline teq::TensptrT elem_jacobianize (teq::TensptrT x, teq::TensptrT prev_chain)
 {
+	teq::Shape jacshape = prev_chain->shape();
+	teq::DimT m = jacshape.at(0);
+	teq::DimT n = jacshape.at(1);
+	return make_functor(egen::EXTEND, {
+		make_functor(egen::RESHAPE, {x}, teq::Shape({1, n}))
+	}, teq::DimsT{m});
+}
+
+static teq::TensptrT lazy_jacobian (egen::_GENERATED_DTYPE dtype,
+	const teq::Shape& outshape, const teq::Shape& inshape, EigenOpF manidx)
+{
+	teq::DimT m = inshape.n_elems();
+	teq::DimT n = outshape.n_elems();
+	teq::Shape jacshape({m, n});
+	std::vector<size_t> is(m);
+	std::iota(is.begin(), is.end(), 0);
+	auto imap = eigen::make_tensmap(is.data(), inshape);
+	auto indices = manidx(imap);
+	size_t* idx = indices.data();
+	std::vector<float> mat(m * n, 0);
+	for (size_t y = 0; y < n; ++y)
+	{
+		if (idx[y] < m)
+		{
+			mat[y * m + idx[y]] = 1.f;
+		}
+	}
+	return make_constant_tensor(mat.data(), jacshape, dtype);
+}
+
+static teq::TensptrT permute_jacobian (teq::RanksT order,
+	teq::Shape outshape, teq::Shape inshape, egen::_GENERATED_DTYPE dtype)
+{
+	bool visited[teq::rank_cap];
+	std::fill(visited, visited + teq::rank_cap, false);
+	for (teq::RankT i = 0, n = order.size(); i < n; ++i)
+	{
+		visited[order[i]] = true;
+	}
+	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+	{
+		if (false == visited[i])
+		{
+			order.push_back(i);
+		}
+	}
+	auto reorder = eigen::internal::dim_copy<
+		teq::rank_cap,teq::RankT>(order);
+	return lazy_jacobian(dtype, outshape, inshape,
+	[reorder](const eigen::TensMapT<size_t>& index) ->
+		eigen::TensorT<size_t>
+	{
+		return index.shuffle(reorder);
+	});
+}
+
+static teq::TensptrT extend_jacobian (teq::DimsT bcast,
+	teq::Shape outshape, teq::Shape inshape, egen::_GENERATED_DTYPE dtype)
+{
+	teq::ShapeT coord;
+	std::fill(coord.begin(), coord.end(), 1);
+	std::copy(bcast.begin(), bcast.begin() +
+		std::min((size_t) teq::rank_cap, bcast.size()), coord.begin());
+	return lazy_jacobian(dtype, outshape, inshape,
+	[coord](const eigen::TensMapT<size_t>& index) ->
+		eigen::TensorT<size_t>
+	{
+		return index.broadcast(coord);
+	});
+}
+
+static teq::TensptrT rsum_jacobian (std::set<teq::RankT> ranks,
+	teq::Shape outshape, teq::Shape inshape, egen::_GENERATED_DTYPE dtype)
+{
+	teq::RanksT vranks(ranks.begin(), ranks.end());
+	teq::DimT m = inshape.n_elems();
+	teq::DimT n = outshape.n_elems();
+	teq::Shape jacshape({m, n});
+	std::vector<float> mat(m * n, 0);
+	for (size_t i = 0; i < m; ++i)
+	{
+		auto coord = teq::coordinate(inshape, i);
+		for (auto rank : vranks)
+		{
+			coord[rank] = 0;
+		}
+		size_t j = teq::index(outshape, coord);
+		mat[i + j * m] = 1;
+	}
+	return make_constant_tensor(mat.data(), jacshape, dtype);
+}
+
+static teq::TensptrT contract_jacobian (
+	teq::Shape outshape, egen::_GENERATED_DTYPE dtype,
+	teq::Shape lshape, teq::DimsT lexlist, teq::RanksT lpermlist,
+	teq::TensptrT right, teq::DimsT rexlist, teq::RanksT rpermlist)
+{
+	marsh::Maps extmap;
+	marsh::Maps permmap;
+	eigen::pack_attr(extmap, lexlist);
+	eigen::pack_attr(permmap, lpermlist);
+	auto exshape = egen::ShapeParser<
+		egen::EXTEND>()(extmap, {lshape});
+	auto permshape = egen::ShapeParser<
+		egen::PERMUTE>()(permmap, {exshape});
+
+	auto ltrans = make_functor(egen::MATMUL, {
+		permute_jacobian(
+			lpermlist, permshape, exshape, dtype),
+		extend_jacobian(
+			lexlist, exshape, lshape, dtype)
+	});
+	auto rtrans = make_functor(egen::PERMUTE, {
+		make_functor(egen::EXTEND, {right}, rexlist)
+	}, rpermlist);
+	return make_functor(egen::MATMUL, {
+		rsum_jacobian({2}, outshape, rtrans->shape(), dtype),
+		make_functor(egen::MUL, {
+			elem_jacobianize(rtrans, ltrans), ltrans
+		})
+	});
+}
+
+static teq::TensptrT matmul_jacobian (teq::FuncptrT op, size_t arg_idx)
+{
+	auto args = op->get_args();
+	auto ashape = args[0]->shape();
+	auto bshape = args[1]->shape();
+	auto cshape = op->shape();
+	auto dtype = (egen::_GENERATED_DTYPE) op->get_meta().type_code();
+	auto adim = ashape.at(1);
+	auto bdim = bshape.at(0);
+	teq::RankT an = teq::narrow_shape(ashape).size();
+	teq::RankT bn = teq::narrow_shape(bshape).size();
+	teq::DimsT aexlist(an, 1); aexlist.push_back(bdim);
+	teq::RanksT apermlist = arrs::concat<teq::RankT>(
+		{an, 1, 0}, arrs::range<teq::RankT>(2, an));
+	teq::DimsT bexlist(bn, 1); bexlist.push_back(adim);
+	teq::RanksT bpermlist = arrs::concat<teq::RankT>(
+		{0, bn, 1}, arrs::range<teq::RankT>(2, bn));
+	teq::TensptrT jacobian;
+	if (0 == arg_idx)
+	{
+		jacobian = contract_jacobian(cshape, dtype,
+			ashape, aexlist, apermlist,
+			args[1], bexlist, bpermlist);
+	}
+	else // if (1 == arg_idx)
+	{
+		jacobian = contract_jacobian(cshape, dtype,
+			bshape, bexlist, bpermlist,
+			args[0], aexlist, apermlist);
+	}
+	return jacobian;
+}
+
+/// ETEQ implementation of TEQ's Backward Propagation Builder
+struct DerivativeFuncs final : public teq::iBackpropFuncs
+{
+	teq::TensptrT jacobian_chain (teq::FuncptrT op,
+		teq::TensptrT prev_chain, size_t arg_idx) const override
+	{
+		auto args = op->get_args();
+		teq::Opcode opcode = op->get_opcode();
+		teq::TensptrT out = nullptr;
+		switch (opcode.code_)
+		{
+			case egen::IDENTITY:
+			case egen::CAST:
+			case egen::ROUND:
+			case egen::ADD:
+			case egen::RESHAPE:
+				out = prev_chain;
+				break;
+			case egen::NEG:
+				out = make_functor(egen::NEG, {prev_chain});
+				break;
+			case egen::TAN:
+				out =  make_functor(egen::DIV, {
+					prev_chain, elem_jacobianize(
+						make_functor(egen::SQUARE, {
+							make_functor(egen::COS, {args.front()}),
+						}),
+						prev_chain
+					)
+				});
+				break;
+			case egen::LOG:
+				out = make_functor(egen::DIV, {
+					prev_chain, elem_jacobianize(args.front(), prev_chain)
+				});
+				break;
+			case egen::SQRT:
+				out = make_functor(egen::DIV, {
+					prev_chain, elem_jacobianize(
+						make_functor(egen::MUL, {constant_like(2.f, op), op}),
+						prev_chain
+					)
+				});
+				break;
+			case egen::ABS:
+			case egen::SIN:
+			case egen::COS:
+			case egen::EXP:
+			case egen::SQUARE:
+			case egen::CUBE:
+			case egen::SIGMOID:
+			case egen::TANH:
+			case egen::POW:
+			case egen::MUL:
+			case egen::MAX:
+			case egen::MIN:
+			{
+				teq::TensptrT dfx;
+				switch (opcode.code_)
+				{
+					case egen::ABS:
+						dfx = make_functor(egen::DIV, {args.front(), op});
+						break;
+					case egen::SIN:
+						dfx = make_functor(egen::COS, {args.front()});
+						break;
+					case egen::COS:
+						dfx = make_functor(egen::NEG, {
+							make_functor(egen::SIN, {args.front()})});
+						break;
+					case egen::EXP:
+						dfx = op;
+						break;
+					case egen::SQUARE:
+						dfx = make_functor(egen::MUL, {
+							constant_like(2.f, args.front()),
+							args.front()
+						});
+						break;
+					case egen::CUBE:
+						dfx = make_functor(egen::MUL, {
+							constant_like(3.f, args.front()),
+							make_functor(egen::SQUARE, {args.front()}),
+						});
+						break;
+					case egen::SIGMOID:
+						dfx = make_functor(egen::MUL, {
+							op, make_functor(egen::SUB, {
+								constant_like(1.f, op), op
+							})
+						});
+						break;
+					case egen::TANH:
+						dfx = make_functor(egen::SUB, {
+							constant_like(1.f, op),
+							make_functor(egen::SQUARE, {op}),
+						});
+						break;
+					case egen::POW:
+						dfx = arg_idx == 0 ? make_functor(egen::MUL, {
+								args[1], make_functor(egen::POW, {
+									args[0], make_functor(egen::SUB, {
+										args[1], constant_like(1.f, args[1])
+									})
+								})
+							}) :
+							make_functor(egen::MUL, {
+								make_functor(egen::LOG, {args.front()}), op});
+						break;
+					case egen::MUL:
+					{
+						size_t nargs = args.size();
+						teq::TensptrsT nodes;
+						nodes.reserve(nargs);
+						for (size_t i = 0, n = nargs; i < n; ++i)
+						{
+							if (i != arg_idx)
+							{
+								nodes.push_back(args[i]);
+							}
+						}
+						dfx = make_functor(egen::MUL, nodes);
+					}
+						break;
+					case egen::MAX:
+					case egen::MIN:
+						dfx = make_functor(egen::EQ, {op, args.at(arg_idx)});
+						break;
+				}
+				out = make_functor(egen::MUL, {
+					elem_jacobianize(dfx, prev_chain), prev_chain});
+			}
+				break;
+			case egen::SUB:
+				out = arg_idx == 0 ? prev_chain : make_functor(egen::NEG, {prev_chain});
+				break;
+			case egen::DIV:
+				out = arg_idx == 0 ?
+					make_functor(egen::DIV, {
+						prev_chain,
+						elem_jacobianize(args[1], prev_chain)
+					}) :
+					make_functor(egen::MUL, {
+						make_functor(egen::NEG, {prev_chain}),
+						elem_jacobianize(make_functor(egen::DIV,
+							{op, args[1]}), prev_chain)
+					});
+				break;
+			case egen::SELECT:
+				if (0 == arg_idx)
+				{
+					out = get_const_zero(*prev_chain);
+				}
+				else if (1 == arg_idx)
+				{
+					out = make_functor(egen::SELECT, {
+						elem_jacobianize(args[0], prev_chain),
+						prev_chain, get_const_zero(*prev_chain)
+					});
+				}
+				else // if (2 <= arg_idx)
+				{
+					out = make_functor(egen::SELECT, {
+						elem_jacobianize(args[0], prev_chain),
+						get_const_zero(*prev_chain), prev_chain
+					});
+				}
+				break;
+			case egen::RAND_UNIF:
+			case egen::EQ:
+			case egen::NEQ:
+			case egen::GT:
+			case egen::LT:
+				out = get_const_zero(*prev_chain);
+				break;
+			// todo
+			case egen::REVERSE:
+			{
+				// too lazy to figure out the actual transformation of reverse
+				std::set<teq::RankT> dims;
+				eigen::Packer<std::set<teq::RankT>>().unpack(dims, *op);
+				std::array<bool,teq::rank_cap> do_reverse;
+				std::fill(do_reverse.begin(), do_reverse.end(), false);
+				for (teq::RankT i : dims)
+				{
+					do_reverse[i] = true;
+				}
+				out = make_functor(egen::MATMUL, {
+					lazy_jacobian(
+					(egen::_GENERATED_DTYPE) op->get_meta().type_code(),
+					op->shape(), args.front()->shape(),
+					[do_reverse](const eigen::TensMapT<size_t>& index) ->
+						eigen::TensorT<size_t>
+					{
+						return index.reverse(do_reverse);
+					}), prev_chain
+				});
+			}
+				break;
+			case egen::PERMUTE:
+			{
+				teq::RanksT order;
+				eigen::Packer<teq::RanksT>().unpack(order, *op);
+				out = make_functor(egen::MATMUL, {
+					permute_jacobian(order,
+						op->shape(), args.front()->shape(),
+						(egen::_GENERATED_DTYPE) op->get_meta().type_code()),
+					prev_chain
+				});
+			}
+				break;
+			case egen::EXTEND:
+			{
+				teq::DimsT bcast = *eigen::unpack_extend(
+					args.front()->shape(), *op);
+				out = make_functor(egen::MATMUL, {
+					extend_jacobian(bcast,
+						op->shape(), args.front()->shape(),
+						(egen::_GENERATED_DTYPE) op->get_meta().type_code()),
+					prev_chain
+				});
+			}
+				break;
+			case egen::CONCAT:
+			{
+				auto outshape = op->shape();
+				auto inshape = args.front()->shape();
+				teq::RankT axis;
+				eigen::Packer<teq::RankT>().unpack(axis, *op);
+				out = make_functor(egen::MATMUL, {
+					lazy_jacobian(
+					(egen::_GENERATED_DTYPE) op->get_meta().type_code(),
+					outshape, inshape,
+					[outshape, inshape, arg_idx, axis](
+						const eigen::TensMapT<size_t>& index) -> eigen::TensorT<size_t>
+					{
+						std::vector<size_t> empties(outshape.n_elems(),
+							inshape.n_elems());
+						eigen::TensorT<size_t> out =
+							eigen::make_tensmap<size_t>(empties.data(), outshape);
+						out.chip(arg_idx, axis) = index;
+						return out;
+					}), prev_chain
+				});
+			}
+				break;
+			case egen::SLICE:
+			{
+				eigen::PairVecT<teq::DimT> encoding;
+				eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(encoding, *op);
+				teq::Shape shape = args.front()->shape();
+				teq::ShapeT offsets;
+				teq::ShapeT extents;
+				std::fill(offsets.begin(), offsets.end(), 0);
+				std::copy(shape.begin(), shape.end(), extents.begin());
+				size_t n = std::min(encoding.size(), (size_t) teq::rank_cap);
+				for (size_t i = 0; i < n; ++i)
+				{
+					teq::DimT offset = std::min(encoding[i].first,
+						(teq::DimT) (shape.at(i) - 1));
+					offsets[i] = offset;
+					extents[i] = std::min(encoding[i].second,
+						(teq::DimT) (shape.at(i) - offset));
+				}
+				out = make_functor(egen::MATMUL, {
+					lazy_jacobian(
+					(egen::_GENERATED_DTYPE) op->get_meta().type_code(),
+					op->shape(), shape,
+					[offsets,extents](
+						const eigen::TensMapT<size_t>& index) -> eigen::TensorT<size_t>
+					{
+						return index.slice(offsets, extents);
+					}), prev_chain
+				});
+			}
+				break;
+			case egen::PAD:
+			{
+				eigen::PairVecT<teq::DimT> encoding;
+				eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(encoding, *op);
+				std::array<std::pair<teq::DimT,teq::DimT>,teq::rank_cap> paddings;
+				std::fill(paddings.begin(), paddings.end(),
+					std::pair<teq::DimT,teq::DimT>{0, 0});
+				std::copy(encoding.begin(), encoding.begin() +
+					std::min((size_t) teq::rank_cap, encoding.size()),
+					paddings.begin());
+				out = make_functor(egen::MATMUL, {
+					lazy_jacobian(
+					(egen::_GENERATED_DTYPE) op->get_meta().type_code(),
+					op->shape(), args.front()->shape(),
+					[paddings](
+						const eigen::TensMapT<size_t>& index) -> eigen::TensorT<size_t>
+					{
+						return index.pad(paddings);
+					}), prev_chain
+				});
+			}
+				break;
+			case egen::STRIDE:
+			{
+				teq::DimsT c;
+				eigen::Packer<teq::DimsT>().unpack(c, *op);
+				Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
+				std::fill(incrs.begin(), incrs.end(), 1);
+				std::copy(c.begin(), c.begin() + std::min((size_t) teq::rank_cap,
+					c.size()), incrs.begin());
+				out = make_functor(egen::MATMUL, {
+					lazy_jacobian(
+					(egen::_GENERATED_DTYPE) op->get_meta().type_code(),
+					op->shape(), args.front()->shape(),
+					[incrs](
+						const eigen::TensMapT<size_t>& index) -> eigen::TensorT<size_t>
+					{
+						return index.stride(incrs);
+					}), prev_chain
+				});
+			}
+				break;
+			case egen::SCATTER:
+			{
+				auto outshape = op->shape();
+				auto inshape = args.front()->shape();
+				teq::DimsT dims;
+				eigen::Packer<teq::DimsT>().unpack(dims, *op);
+				Eigen::array<Eigen::DenseIndex,teq::rank_cap> incrs;
+				std::fill(incrs.begin(), incrs.end(), 1);
+				std::copy(dims.begin(), dims.begin() +
+					std::min((size_t) teq::rank_cap, dims.size()), incrs.begin());
+				out = make_functor(egen::MATMUL, {
+					lazy_jacobian(
+					(egen::_GENERATED_DTYPE) op->get_meta().type_code(),
+					outshape, inshape,
+					[outshape, inshape, incrs](
+						const eigen::TensMapT<size_t>& index) -> eigen::TensorT<size_t>
+					{
+						std::vector<size_t> empties(outshape.n_elems(),
+							inshape.n_elems());
+						eigen::TensorT<size_t> out =
+							eigen::make_tensmap<size_t>(empties.data(), outshape);
+						out.stride(incrs) = index;
+						return out;
+					}), prev_chain
+				});
+			}
+				break;
+			case egen::REDUCE_SUM:
+			{
+				std::set<teq::RankT> ranks;
+				eigen::Packer<std::set<teq::RankT>>().unpack(ranks, *op);
+				out = make_functor(egen::MATMUL, {
+					rsum_jacobian(ranks,
+						op->shape(), args.front()->shape(),
+						(egen::_GENERATED_DTYPE) op->get_meta().type_code()),
+					prev_chain
+				});
+			}
+				break;
+			case egen::REDUCE_PROD:
+			{
+				std::set<teq::RankT> ranks;
+				eigen::Packer<std::set<teq::RankT>>().unpack(ranks, *op);
+				auto arg = args.front();
+				teq::RanksT vranks(ranks.begin(), ranks.end());
+				auto outshape = op->shape();
+				auto inshape = arg->shape();
+				auto dtype = (egen::_GENERATED_DTYPE) op->get_meta().type_code();
+				teq::DimT m = inshape.n_elems();
+				teq::DimT n = outshape.n_elems();
+				teq::Shape jxyshape({m, n});
+				teq::Shape jxzshape({m, 1, m});
+				std::vector<float> matxy(m * n, 0);
+				std::vector<float> matxz(m * m, 1);
+				std::vector<size_t> outbins[n];
+				for (size_t i = 0; i < m; ++i)
+				{
+					auto coord = teq::coordinate(inshape, i);
+					for (auto rank : vranks)
+					{
+						coord[rank] = 0;
+					}
+					size_t j = teq::index(outshape, coord);
+					matxy[i + j * m] = 1;
+					outbins[j].push_back(i);
+				}
+				for (size_t i = 0; i < n; ++i)
+				{
+					auto& bin = outbins[i];
+					for (auto x : bin)
+					{
+						for (auto z : bin)
+						{
+							if (x != z)
+							{
+								matxz[x + z * m] = 0;
+							}
+						}
+					}
+				}
+				auto xymask = make_constant_tensor(matxy.data(), jxyshape, dtype);
+				auto xzmask = make_constant_tensor(matxz.data(), jxzshape, dtype);
+				auto flatz = make_functor(egen::RESHAPE, {arg}, teq::Shape({1, 1, m}));
+				auto xzplane = make_functor(egen::EXTEND, {flatz}, teq::DimsT{m});
+				auto maskedxz = make_functor(egen::SELECT, {xzmask, xzmask, xzplane});
+				auto flatx = make_functor(egen::REDUCE_PROD,
+					{maskedxz}, std::set<teq::RankT>{2});
+				auto xyplane = make_functor(egen::EXTEND, {flatx}, teq::DimsT{1, n});
+				auto jacobian = make_functor(egen::MUL, {xymask, xyplane});
+				out = make_functor(egen::MATMUL, {jacobian, prev_chain});
+			}
+				break;
+			case egen::REDUCE_MAX:
+			case egen::REDUCE_MIN:
+			{
+				std::set<teq::RankT> ranks;
+				eigen::Packer<std::set<teq::RankT>>().unpack(ranks, *op);
+				teq::RanksT vranks(ranks.begin(), ranks.end());
+				auto arg = args.front();
+				auto dtype = (egen::_GENERATED_DTYPE) op->get_meta().type_code();
+				auto outshape = op->shape();
+				auto inshape = arg->shape();
+				teq::DimT m = inshape.n_elems();
+				teq::DimT n = outshape.n_elems();
+				teq::Shape jacshape({(teq::DimT) m, (teq::DimT) n});
+				std::vector<float> mat(m * n, 0);
+				for (size_t i = 0; i < m; ++i)
+				{
+					auto coord = teq::coordinate(inshape, i);
+					for (auto rank : vranks)
+					{
+						coord[rank] = 0;
+					}
+					size_t j = teq::index(outshape, coord);
+					mat[i + j * m] = 1.f;
+				}
+				auto flatx = make_functor(egen::RESHAPE, {arg}, teq::Shape({m}));
+				auto flaty = make_functor(egen::RESHAPE, {op}, teq::Shape({1, n}));
+				auto onemask = make_constant_tensor(mat.data(), jacshape, dtype);
+				auto jacobian = make_functor(egen::MUL, {
+					make_functor(egen::EQ, {
+						make_functor(egen::EXTEND, {flatx}, teq::DimsT{1, n}),
+						make_functor(egen::EXTEND, {flaty}, teq::DimsT{m})
+					}),
+					onemask
+				});
+				out = make_functor(egen::MATMUL, {jacobian, prev_chain});
+			}
+				break;
+			case egen::MATMUL:
+			{
+				auto jacobian = matmul_jacobian(op, arg_idx);
+				out = make_functor(egen::MATMUL, {jacobian, prev_chain});
+			}
+				break;
+			case egen::CONTRACT:
+			{
+				eigen::PairVecT<teq::RankT> dims;
+				eigen::Packer<eigen::PairVecT<teq::RankT>>().unpack(dims, *op);
+
+				auto ashape = args[0]->shape();
+				auto bshape = args[1]->shape();
+				auto cshape = op->shape();
+				auto dtype = (egen::_GENERATED_DTYPE) op->get_meta().type_code();
+				teq::RankT an = teq::narrow_shape(ashape).size();
+				teq::RankT bn = teq::narrow_shape(bshape).size();
+
+				std::array<bool,teq::rank_cap> lvisit;
+				std::array<bool,teq::rank_cap> rvisit;
+				std::fill(lvisit.begin(), lvisit.end(), false);
+				std::fill(rvisit.begin(), rvisit.end(), false);
+				teq::RanksT lucom_ranks, rucom_ranks, lcom_ranks, rcom_ranks;
+				lcom_ranks.reserve(dims.size());
+				rcom_ranks.reserve(dims.size());
+				lucom_ranks.reserve(teq::rank_cap - dims.size());
+				rucom_ranks.reserve(teq::rank_cap - dims.size());
+				for (auto coms : dims)
+				{
+					lvisit[coms.first] = true;
+					rvisit[coms.second] = true;
+					lcom_ranks.push_back(coms.first);
+					rcom_ranks.push_back(coms.second);
+				}
+				teq::DimsT adims;
+				for (teq::RankT i = 0; i < an; ++i)
+				{
+					if (false == lvisit[i])
+					{
+						lucom_ranks.push_back(i);
+						adims.push_back(ashape.at(i));
+					}
+				}
+				teq::DimsT bdims;
+				for (teq::RankT i = 0 ; i < bn; ++i)
+				{
+					if (false == rvisit[i])
+					{
+						rucom_ranks.push_back(i);
+						bdims.push_back(bshape.at(i));
+					}
+				}
+
+				auto aexlist = arrs::concat(teq::DimsT(an, 1), bdims);
+				teq::RanksT apermlist = arrs::concat(
+					arrs::range<teq::RankT>(an, an + bdims.size()),
+					lucom_ranks,
+					lcom_ranks);
+				auto bexlist = arrs::concat(teq::DimsT(bn, 1), adims);
+				teq::RanksT bpermlist = arrs::concat<teq::RankT>(
+					rucom_ranks,
+					arrs::range<teq::RankT>(bn, bn + adims.size()),
+					rcom_ranks);
+
+				marsh::Maps extmap;
+				marsh::Maps permmap;
+				teq::TensptrT jacobian;
+				if (0 == arg_idx)
+				{
+					jacobian = contract_jacobian(cshape, dtype,
+						ashape, aexlist, apermlist,
+						args[1], bexlist, bpermlist);
+				}
+				else // if (1 == arg_idx)
+				{
+					jacobian = contract_jacobian(cshape, dtype,
+						bshape, bexlist, bpermlist,
+						args[0], aexlist, apermlist);
+				}
+				out = make_functor(egen::MATMUL, {jacobian, prev_chain});
+			}
+				break;
+			case egen::CONV:
+			{
+				// treat convolution as a matrix multiplication
+				// then apply jacobian transformation
+				teq::RanksT order;
+				eigen::Packer<teq::RanksT>().unpack(order, *op);
+				bool visited[teq::rank_cap];
+				std::fill(visited, visited + teq::rank_cap, false);
+				for (teq::RankT i = 0, n = order.size(); i < n; ++i)
+				{
+					visited[order[i]] = true;
+				}
+				for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+				{
+					if (false == visited[i])
+					{
+						order.push_back(i);
+					}
+				}
+
+				auto img = args[0];
+				auto krn = args[1];
+				auto ishape = img->shape();
+				auto kshape = krn->shape();
+				auto cshape = op->shape();
+				auto dtype = (egen::_GENERATED_DTYPE) op->get_meta().type_code();
+
+				teq::RankT minkrank = teq::narrow_shape(kshape).size();
+				teq::NElemT pk = ishape.n_elems_between(0, minkrank);
+				teq::NElemT next = ishape.n_elems_between(minkrank, ishape.n_ranks());
+				teq::NElemT nk = kshape.n_elems();
+				teq::NElemT okn = cshape.n_elems_between(0, minkrank);
+				teq::NElemT nkindices = okn * ishape.n_elems();
+				teq::DimT shavex = 0;
+				teq::NElemT nextra = 1;
+				for (size_t i = 0; i < minkrank; ++i)
+				{
+					teq::RankT j = order[i];
+					shavex += (ishape.at(i) - kshape.at(j)) * nextra;
+					nextra *= ishape.at(i);
+				}
+				teq::NElemT nflat = pk - shavex;
+
+				std::vector<size_t> projkern(pk, 0);
+				for (size_t i = 0; i < nk; ++i)
+				{
+					auto coord = teq::coordinate(kshape, i);
+					size_t j = teq::index(ishape, coord);
+					projkern[j] = i + 1;
+				}
+				auto projit = projkern.begin();
+				std::vector<size_t> mink(projit, projit + nflat);
+				std::vector<size_t> maskindices;
+				for (size_t i = 0; i < okn; ++i)
+				{
+					auto coord = teq::coordinate(cshape, i);
+					auto prepad = teq::index(ishape, coord);
+					auto postpad = pk - nflat - prepad;
+					auto row = arrs::concat(
+						std::vector<size_t>(prepad, 0),
+						mink,
+						std::vector<size_t>(postpad, 0));
+					maskindices.insert(maskindices.end(), row.begin(), row.end());
+				}
+				std::vector<size_t> kindices;
+				for (size_t i = 0; i < next; ++i)
+				{
+					kindices.insert(kindices.end(),
+						maskindices.begin(), maskindices.end());
+				}
+
+				std::vector<float> kernelmask(nkindices * nk, 0);
+				for (size_t i = 0; i < nkindices; ++i)
+				{
+					if (size_t j = kindices[i])
+					{
+						kernelmask[i * nk + j - 1] = 1;
+					}
+				}
+
+				teq::DimsT halfi(ishape.begin() + minkrank, ishape.end());
+				teq::Shape maskshape(teq::DimsT{nk, nkindices});
+				auto mask = make_constant_tensor(
+					kernelmask.data(), maskshape, dtype);
+				auto transkin = make_functor(egen::MATMUL, {
+					mask,
+					make_functor(egen::RESHAPE, {krn}, teq::Shape({1, nk}))
+				});
+				teq::Shape transkshape(arrs::concat(teq::DimsT{pk, okn}, halfi));
+				auto transk = make_functor(egen::RESHAPE, {transkin}, transkshape);
+
+				teq::Shape transishape(arrs::concat(teq::DimsT{1, pk}, halfi));
+				auto transi = make_functor(egen::RESHAPE, {img}, transishape);
+
+				teq::FuncptrT simulated_op = std::static_pointer_cast<
+					teq::iFunctor>(make_functor(egen::MATMUL, {transk, transi}));
+
+				auto jacobian = matmul_jacobian(simulated_op, arg_idx == 0);
+				if (arg_idx == 1)
+				{
+					jacobian = make_functor(egen::MATMUL, {jacobian, mask});
+				}
+				out = make_functor(egen::MATMUL, {jacobian, prev_chain});
+			}
+				break;
+			default:
+				global::fatalf("Unsupported op derivation %s", opcode.name_.c_str());
+		}
+		return (teq::TensptrT) out;
+	}
+
+	teq::TensptrT dejacobianize (
+		teq::TensptrT jacobian, teq::TensptrT x) const
+	{
+		teq::Shape outshape = x->shape();
+		auto flatten = make_functor(egen::REDUCE_SUM, {jacobian},
+			std::set<teq::RankT>{1});
+		return make_functor(egen::RESHAPE, {flatten}, outshape);
+	}
+
 	/// Implementation of iDerivativeFuncs
 	teq::TensptrT lderive (teq::FuncptrT op,
 		teq::TensptrT supgrad, size_t arg_idx) const override
@@ -253,7 +1061,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 				if (arg_idx == 0)
 				{
 					out = make_functor(egen::MATMUL, {
-						supgrad, 
+						supgrad,
 						make_functor(egen::PERMUTE, {args[1]}, teq::RanksT{1, 0})
 					});
 				}
@@ -262,7 +1070,7 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 					// (sup^T @ arg0)^T = arg0^T @ sup
 					out = make_functor(egen::MATMUL, {
 						make_functor(egen::PERMUTE, {args[0]}, teq::RanksT{1, 0}),
-						supgrad 
+						supgrad
 					});
 				}
 				break;
@@ -541,6 +1349,18 @@ struct DerivativeFuncs final : public teq::iDerivativeFuncs
 		return (teq::TensptrT) out;
 	}
 
+	teq::TensptrT get_const_eye (teq::NElemT n, size_t type_code) const override
+	{
+		auto reftype = (egen::_GENERATED_DTYPE) type_code;
+		teq::Shape shape({(teq::DimT) n, (teq::DimT) n});
+		std::vector<float> data(shape.n_elems(), 0.f);
+		for (size_t i = 0; i < n; ++i)
+		{
+			data[i + n * i] = 1.f;
+		}
+		return make_constant_tensor(data.data(), shape, reftype);
+	}
+
 	/// Implementation of iDerivativeFuncs
 	teq::TensptrT get_const_one (teq::iTensor& reference) const override
 	{
@@ -572,6 +1392,13 @@ private:
 		auto like_type = (egen::_GENERATED_DTYPE) like->get_meta().type_code();
 		teq::TensptrT cst = make_constant_tensor(&scalar, teq::Shape(), like_type);
 		return make_functor(::egen::EXTEND, teq::TensptrsT{cst}, (teq::TensptrT) like);
+	}
+
+	teq::TensptrT constant (float scalar, teq::Shape shape,
+		egen::_GENERATED_DTYPE dtype) const
+	{
+		std::vector<float> svec(shape.n_elems(), scalar);
+		return make_constant_tensor(svec.data(), shape, dtype);
 	}
 };
 

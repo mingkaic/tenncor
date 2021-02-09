@@ -101,12 +101,10 @@ struct DBNTrainer final
 		auto tlr_placeholder = eteq::make_variable_scalar<T>(
 			train_lr, teq::Shape(), "learning_rate", context);
 		auto dw =
-			api.extend(tlr_placeholder, 0,
-				teq::DimsT(wshape.begin(), wshape.end())) *
+			api.extend(tlr_placeholder, 0, wshape.to_list()) *
 			l2_regularized;
 		auto db =
-			api.extend(tlr_placeholder, 0,
-				teq::DimsT(bshape.begin(), bshape.end())) *
+			api.extend(tlr_placeholder, 0, bshape.to_list()) *
 			api.reduce_mean_1d(diff, 1);
 		auto dtrain_lr = tlr_placeholder * lr_scaling;
 

@@ -57,10 +57,12 @@ TEST_F(SHAPE, Init)
 		EXPECT_EQ(longlist[i], lvec.at(i));
 	}
 
-	std::string fatalmsg1 = "cannot access out of bounds index 8";
-	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg1, _)).Times(2).WillRepeatedly(Throw(exam::TestException(fatalmsg1)));
-	EXPECT_FATAL(scalar.at(teq::rank_cap), fatalmsg1.c_str());
-	EXPECT_FATAL(vec.at(teq::rank_cap), fatalmsg1.c_str());
+	EXPECT_EQ(0, scalar.n_ranks());
+	EXPECT_EQ(slist.size(), vec.n_ranks());
+	EXPECT_EQ(longlist.size(), lvec.n_ranks());
+	EXPECT_EQ(1, scalar.at(teq::rank_cap));
+	EXPECT_EQ(1, vec.at(teq::rank_cap));
+	EXPECT_EQ(longlist.at(teq::rank_cap), lvec.at(teq::rank_cap));
 }
 
 
@@ -69,21 +71,21 @@ TEST_F(SHAPE, Iterators)
 	teq::Shape vec({12, 43, 56});
 	auto it = vec.begin();
 	auto et = vec.end();
-	for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+	teq::RankT rank = vec.n_ranks();
+	EXPECT_EQ(std::distance(it, et), rank);
+	for (teq::RankT i = 0; i < rank; ++i)
 	{
 		EXPECT_NE(it + i, et);
 	}
-	EXPECT_EQ(it + teq::rank_cap, et);
 
 	{
 		const teq::Shape cvec({12, 43, 56});
 		auto cit = cvec.begin();
 		auto cet = cvec.end();
-		for (teq::RankT i = 0; i < teq::rank_cap; ++i)
+		for (teq::RankT i = 0; i < cvec.n_ranks(); ++i)
 		{
 			EXPECT_NE(cit + i, cet);
 		}
-		EXPECT_EQ(cit + teq::rank_cap, cet);
 	}
 }
 
@@ -100,11 +102,11 @@ TEST_F(SHAPE, VecAssign)
 	teq::Shape vecassign2(junk);
 
 	vecassign = slist;
-	teq::DimsT vlist(vecassign.begin(), vecassign.end());
+	teq::DimsT vlist = vecassign.to_list();
 	EXPECT_ARREQ(slist, vlist);
 
 	vecassign2 = slist;
-	teq::DimsT vlist2(vecassign2.begin(), vecassign2.end());
+	teq::DimsT vlist2 = vecassign2.to_list();
 	EXPECT_ARREQ(slist, vlist2);
 
 	std::string fatalmsg = "cannot create shape with vector containing zero: " +
@@ -124,15 +126,15 @@ TEST_F(SHAPE, Moves)
 	teq::Shape orig(slist);
 
 	teq::Shape mv(std::move(orig));
-	teq::DimsT mlist(mv.begin(), mv.end());
+	teq::DimsT mlist = mv.to_list();
 	EXPECT_ARREQ(slist, mlist);
 
 	mvassign = std::move(mv);
-	teq::DimsT alist(mvassign.begin(), mvassign.end());
+	teq::DimsT alist = mvassign.to_list();
 	EXPECT_ARREQ(slist, alist);
 
 	mvassign2 = std::move(mvassign);
-	teq::DimsT alist2(mvassign2.begin(), mvassign2.end());
+	teq::DimsT alist2 = mvassign2.to_list();
 	EXPECT_ARREQ(slist, alist2);
 }
 

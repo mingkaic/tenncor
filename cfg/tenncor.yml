@@ -308,6 +308,16 @@ api:
       out:
         type: eteq::ETensor
         val: return TenncorAPI(arg.get_context()).gt(scalar,arg);
+    - description: Matrix multiplication replacing the modulo operator
+      operator: "%"
+      args:
+        - name: a
+          type: const eteq::ETensor&
+        - name: b
+          type: const eteq::ETensor&
+      out:
+        type: eteq::ETensor
+        val: return TenncorAPI(a.get_context()).matmul(a,b);
   classes:
     - core.yml
     - approx.yml

@@ -27,7 +27,8 @@ void marshal_attrs (PbAttrsT& out, const marsh::iAttributed& attrib,
 void marshal_tensorshape (TensorShapeProto& out,
 	const teq::Shape& shape)
 {
-	for (teq::DimT dim : shape)
+	auto slist = shape.to_list();
+	for (teq::DimT dim : slist)
 	{
 		out.add_dim()->set_dim_value(dim);
 	}

@@ -1247,7 +1247,8 @@ funcs:
             auto overflow_preventer = this->extend_like(
                 this->reduce_max(arg,offset,ndims),arg);
             auto exarg = this->exp(this->sub(arg,overflow_preventer));
-            auto it = shape.begin() + offset;
+            auto slist = shape.to_list();
+            auto it = slist.begin() + offset;
             teq::DimsT xlist(it,it + ndims);
             return this->div(exarg,
                 this->extend_like(this->add(

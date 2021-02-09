@@ -15,7 +15,7 @@ using ::testing::Return;
 
 TEST(TRAVELER, GraphStat)
 {
-	auto a = make_var(teq::Shape()); 
+	auto a = make_var(teq::Shape());
 	auto b = make_var(teq::Shape());
 	auto c = make_var(teq::Shape());
 

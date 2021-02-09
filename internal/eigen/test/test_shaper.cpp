@@ -34,7 +34,7 @@ TEST_F(SHAPER, Default)
 		teq::Shape({3, 2, 5}),
 	};
 
-	std::string fatalmsg = "cannot ABS with incompatible shapes [3\\2\\5\\1\\1\\1\\1\\1] and [3\\4\\5\\1\\1\\1\\1\\1]";
+	std::string fatalmsg = "cannot ABS with incompatible shapes [3\\2\\5] and [3\\4\\5]";
 	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillOnce(Return(true));
 	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(parser(empty, conflicting), fatalmsg.c_str());
@@ -152,7 +152,7 @@ TEST_F(SHAPER, Extend)
 	std::string fatalmsg = "cannot extend using zero dimensions [1\\2\\0]";
 	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(parser(bad, {goodshape}), fatalmsg.c_str());
-	std::string fatalmsg1 = "cannot extend non-singular dimension 1 of shape [3\\4\\6\\7\\3\\1\\1\\1]: bcast=[1\\2\\1]";
+	std::string fatalmsg1 = "cannot extend non-singular dimension 1 of shape [3\\4\\6\\7\\3]: bcast=[1\\2\\1]";
 	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
 	EXPECT_FATAL(parser(good, {badshape}), fatalmsg1.c_str());
 
@@ -178,7 +178,7 @@ TEST_F(SHAPER, Reshape)
 	EXPECT_FATAL(parser(shaped, {}), eigen::no_argument_err.c_str());
 
 	teq::Shape conflicting({3, 4, 5});
-	std::string fatalmsg = "cannot RESHAPE with shapes of different sizes 60 (shape [3\\4\\5\\1\\1\\1\\1\\1]) and 72 (shape [3\\4\\6\\1\\1\\1\\1\\1])";
+	std::string fatalmsg = "cannot RESHAPE with shapes of different sizes 60 (shape [3\\4\\5]) and 72 (shape [3\\4\\6])";
 	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillOnce(Return(true));
 	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(parser(shaped, {conflicting}), fatalmsg.c_str());
@@ -315,7 +315,7 @@ TEST_F(SHAPER, Matmul)
 	marsh::Maps transposed;
 	packer.pack(transposed, {{1, 0}});
 
-	std::string fatalmsg1 = "invalid shapes [3\\4\\6\\1\\1\\1\\1\\1] and [3\\4\\6\\1\\1\\1\\1\\1] "
+	std::string fatalmsg1 = "invalid shapes [3\\4\\6] and [3\\4\\6] "
 		"do not match common dimensions [1:0]";
 	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
 	EXPECT_FATAL(parser(transposed, {c, c}), fatalmsg1.c_str());
@@ -357,14 +357,14 @@ TEST_F(SHAPER, Conv)
 	marsh::Maps badranks;
 	packer.pack(badranks, {0, 2});
 	std::string fatalmsg = "cannot have ambiguous ranks not specified in kernelshape "
-		"[3\\2\\5\\1\\1\\1\\1\\1] (ranks=[0\\2])";
+		"[3\\2\\5] (ranks=[0\\2])";
 	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg.c_str(), _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(parser(badranks, {imgshape, kernshape}), fatalmsg.c_str());
 
 	marsh::Maps badkern;
 	packer.pack(badkern, {2, 1, 0});
-	std::string fatalmsg1 = "cannot convolve a kernel of shape [3\\2\\5\\1\\1\\1\\1\\1] "
-		"against smaller image of shape [4\\5\\6\\7\\1\\1\\1\\1] at "
+	std::string fatalmsg1 = "cannot convolve a kernel of shape [3\\2\\5] "
+		"against smaller image of shape [4\\5\\6\\7] at "
 		"dimensions (shape:kernel=0:2)";
 	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
 	EXPECT_FATAL(parser(badkern, {imgshape, kernshape}), fatalmsg1.c_str());
@@ -389,8 +389,8 @@ TEST_F(SHAPER, ConcatBinary)
 
 	marsh::Maps badranks;
 	packer.pack(badranks, 1);
-	std::string fatalmsg = "cannot group concat incompatible shapes [3\\4\\5\\6\\1\\1\\1\\1] and "
-		"[3\\4\\2\\6\\1\\1\\1\\1] along axis 1";
+	std::string fatalmsg = "cannot group concat incompatible shapes [3\\4\\5\\6] and "
+		"[3\\4\\2\\6] along axis 1";
 	EXPECT_CALL(*logger_, supports_level(logs::throw_err_level)).WillOnce(Return(true));
 	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(parser(badranks, {a, b}), fatalmsg.c_str());
@@ -416,8 +416,8 @@ TEST_F(SHAPER, ConcatNnary)
 
 	marsh::Maps badranks;
 	packer.pack(badranks, 1);
-	std::string fatalmsg = "cannot group concat incompatible shapes [3\\4\\1\\6\\1\\1\\1\\1] and "
-		"[3\\4\\4\\6\\1\\1\\1\\1] along axis 1";
+	std::string fatalmsg = "cannot group concat incompatible shapes [3\\4\\1\\6] and "
+		"[3\\4\\4\\6] along axis 1";
 	EXPECT_CALL(*logger_, log(logs::throw_err_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(parser(badranks, {a, a, b}), fatalmsg.c_str());
 

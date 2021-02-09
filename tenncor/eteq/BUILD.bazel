@@ -38,6 +38,7 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//internal/eigen:eigen",
+        "//internal/utils/coord:coord",
         "@boost//:bimap",
     ],
     defines = ["SKIP_INIT"],

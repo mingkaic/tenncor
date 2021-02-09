@@ -55,6 +55,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 		roots_.emplace(&leaf);
 		tens_.emplace(&leaf, id);
 		teq::Shape shape = leaf.shape();
+		auto shapel = shape.to_list();
 		if (estd::has(stops_, &leaf))
 		{
 			if (false == estd::has(preexisting_ids_, id))
@@ -66,7 +67,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 				TypeProto::Tensor* tens_type = pb_type->mutable_tensor_type();
 				tens_type->set_elem_type(marshaler_.get_typecode(leaf));
 				auto dims = tens_type->mutable_shape()->mutable_dim();
-				for (teq::DimT d : shape)
+				for (teq::DimT d : shapel)
 				{
 					dims->Add()->set_dim_value(d);
 				}
@@ -90,7 +91,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 			TypeProto::Tensor* tens_type = pb_type->mutable_tensor_type();
 			tens_type->set_elem_type(marshaler_.get_typecode(leaf));
 			auto dims = tens_type->mutable_shape()->mutable_dim();
-			for (teq::DimT d : shape)
+			for (teq::DimT d : shapel)
 			{
 				dims->Add()->set_dim_value(d);
 			}
@@ -100,7 +101,7 @@ struct OnnxMarshaler final : public teq::iTraveler
 			TensorProto* pb_tens = pb_graph_.add_initializer();
 			pb_tens->set_name(id);
 			google::protobuf::RepeatedField<int64_t> slist(
-				shape.begin(), shape.end());
+				shapel.begin(), shapel.end());
 			pb_tens->mutable_dims()->Swap(&slist);
 			marshaler_.marsh_leaf(*pb_tens, leaf);
 		}
@@ -129,7 +130,8 @@ struct OnnxMarshaler final : public teq::iTraveler
 				tens_type->set_elem_type(marshaler_.get_typecode(func));
 				auto dims = tens_type->mutable_shape()->mutable_dim();
 				auto shape = func.shape();
-				for (teq::DimT d : shape)
+				auto shapel = shape.to_list();
+				for (teq::DimT d : shapel)
 				{
 					dims->Add()->set_dim_value(d);
 				}
@@ -230,7 +232,8 @@ private:
 		tens_type->set_elem_type(marshaler_.get_typecode(*input));
 		auto dims = tens_type->mutable_shape()->mutable_dim();
 		auto cshape = input->shape();
-		for (teq::DimT d : cshape)
+		auto cshapel = cshape.to_list();
+		for (teq::DimT d : cshapel)
 		{
 			dims->Add()->set_dim_value(d);
 		}

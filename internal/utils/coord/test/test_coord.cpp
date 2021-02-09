@@ -40,7 +40,7 @@ TEST(SHAPE, Coordinates)
 	}
 	std::string shapestr = shape.to_string();
 	std::string fatalmsg = fmts::sprintf("cannot get index of bad coordinate "
-		"%s for shape %s", shapestr.c_str(), shapestr.c_str());
+		"%s for shape %s", shape.old_string().c_str(), shapestr.c_str());
 	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(teq::index(shape, coord), fatalmsg.c_str());
 

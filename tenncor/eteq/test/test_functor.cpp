@@ -176,8 +176,7 @@ TEST_F(FUNCTOR, UpdateChild)
 	EXPECT_EQ(c, children.back());
 
 	std::string fatalmsg = "cannot update child 1 to argument "
-		"with incompatible shape [3\\4\\1\\1\\1\\1\\1\\1] (requires shape "
-		"[4\\3\\1\\1\\1\\1\\1\\1])";
+		"with incompatible shape [3\\4] (requires shape [4\\3])";
 	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(f->update_child(d, 1), fatalmsg.c_str());
 

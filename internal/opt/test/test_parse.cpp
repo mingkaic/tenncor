@@ -56,7 +56,7 @@ TEST(PARSE, Parse)
 
 	opt::json_parse(rules, ss, mockfac);
 
-	// verify target 
+	// verify target
 	ASSERT_EQ(1, rules.size());
 	opt::OptRule& rule = rules.front();
 	auto troot = rule.target_;

@@ -163,6 +163,18 @@ static void unary_generic (UnaryOpF<double> op,
 	ASSERT_ARREQ(shape, gotshape);
 	double* goptr = (double*) gs->device().data();
 	bwverify(goptr, data);
+
+	eteq::DerivativeFuncs dfuncs;
+	auto gsrc2 = teq::backprop(dest, {src}, dfuncs);
+	ASSERT_EQ(1, gsrc2.size());
+	auto gs2 = gsrc2.front();
+	ASSERT_NE(nullptr, gs2);
+	eval.evaluate(device, {gs2.get()});
+
+	auto gotshape2 = gs2->shape();
+	ASSERT_ARREQ(shape, gotshape2);
+	double* goptr2 = (double*) gs2->device().data();
+	bwverify(goptr2, data);
 }
 
 
@@ -210,6 +222,21 @@ static void unar_elem (std::vector<double> data,
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i]), goptr[i]);
+	}
+
+	eteq::DerivativeFuncs dfuncs;
+	auto gsrc2 = teq::backprop(uninit_dest, {src}, dfuncs);
+	ASSERT_EQ(1, gsrc2.size());
+	auto gs2 = tenncor().cast<double>(gsrc2.front());
+	ASSERT_NE(nullptr, gs2);
+	eval.evaluate(device, {gs2.get()});
+
+	auto gotshape2 = gs2->shape();
+	ASSERT_ARREQ(shape, gotshape2);
+	double* goptr2 = (double*) gs2->device().data();
+	for (size_t i = 0; i < n; ++i)
+	{
+		EXPECT_DOUBLE_EQ(bwd(data[i]), goptr2[i]);
 	}
 }
 
@@ -337,6 +364,52 @@ static void binar_elem (std::vector<double> data, std::vector<double> data2,
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 0., 1.), goptr3[i]);
+	}
+
+	eteq::DerivativeFuncs dfuncs;
+	auto gsame2 = teq::backprop(dest2, {src}, dfuncs);
+	ASSERT_EQ(1, gsame2.size());
+	auto gs2 = gsame2.front();
+	ASSERT_NE(nullptr, gs2);
+	eval.evaluate(device, {gs2.get()});
+	{
+		auto gotshape = gs2->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		double* gptr = (double*) gs2->device().data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1., 1.), gptr[i]);
+		}
+	}
+
+	auto gleft2 = teq::backprop(dest, {src}, dfuncs);
+	ASSERT_EQ(1, gleft2.size());
+	auto gl2 = gleft2.front();
+	ASSERT_NE(nullptr, gl2 );
+	eval.evaluate(device, {gl2 .get()});
+	{
+		auto gotshape = gl2 ->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		double* gptr = (double*) gl2->device().data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 1., 0.), gptr[i]);
+		}
+	}
+
+	auto gright2 = teq::backprop(dest, {src2}, dfuncs);
+	ASSERT_EQ(1, gright2.size());
+	auto gr2 = gright2.front();
+	ASSERT_NE(nullptr, gr2 );
+	eval.evaluate(device, {gr2 .get()});
+	{
+		auto gotshape = gr2 ->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		double* gptr = (double*) gr2->device().data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 0., 1.), gptr[i]);
+		}
 	}
 }
 
@@ -478,6 +551,52 @@ static void binar_elem_int (std::vector<int32_t> data, std::vector<int32_t> data
 	for (size_t i = 0; i < n; ++i)
 	{
 		EXPECT_EQ(bwd(data[i], data2[i], 0., 1.), goptr3[i]);
+	}
+
+	eteq::DerivativeFuncs dfuncs;
+	auto gsame2 = teq::backprop(dest2, {src}, dfuncs);
+	ASSERT_EQ(1, gsame2.size());
+	auto gs2 = gsame2.front();
+	ASSERT_NE(nullptr, gs2);
+	eval.evaluate(device, {gs2.get()});
+	{
+		auto gotshape = gs2->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		int32_t* gptr = (int32_t*) gs2->device().data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(bwd(data[i], data[i], 1., 1.), gptr[i]);
+		}
+	}
+
+	auto gleft2 = teq::backprop(dest, {src}, dfuncs);
+	ASSERT_EQ(1, gleft2.size());
+	auto gl2 = gleft2.front();
+	ASSERT_NE(nullptr, gl2 );
+	eval.evaluate(device, {gl2 .get()});
+	{
+		auto gotshape = gl2 ->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		int32_t* gptr = (int32_t*) gl2->device().data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 1., 0.), gptr[i]);
+		}
+	}
+
+	auto gright2 = teq::backprop(dest, {src2}, dfuncs);
+	ASSERT_EQ(1, gright2.size());
+	auto gr2 = gright2.front();
+	ASSERT_NE(nullptr, gr2 );
+	eval.evaluate(device, {gr2 .get()});
+	{
+		auto gotshape = gr2 ->shape();
+		ASSERT_ARREQ(shape, gotshape);
+		int32_t* gptr = (int32_t*) gr2->device().data();
+		for (size_t i = 0; i < n; ++i)
+		{
+			EXPECT_DOUBLE_EQ(bwd(data[i], data2[i], 0., 1.), gptr[i]);
+		}
 	}
 }
 
@@ -1563,7 +1682,7 @@ TEST(API, Rsum)
 		[](eteq::ETensor& src) { return tenncor().reduce_sum(src, 1, 1); },
 		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
-			teq::DimsT expect_list(shape.begin(), shape.end());
+			teq::DimsT expect_list = shape.to_list();
 			expect_list[1] = 1;
 			teq::Shape gotshape = out->shape();
 			EXPECT_ARREQ(expect_list, gotshape);
@@ -1633,7 +1752,7 @@ TEST(API, Rprod)
 	eigen::Device(true).calc(*dtens2,0);
 	eigen::Device(true).calc(*dtens2,0); // idempotency check
 	{
-		teq::DimsT expect_list(shape.begin(), shape.end());
+		teq::DimsT expect_list = shape.to_list();
 		expect_list[1] = 1;
 		teq::Shape gotshape = dest2->shape();
 		EXPECT_ARREQ(expect_list, gotshape);
@@ -1741,7 +1860,7 @@ TEST(API, Rmin)
 		[](eteq::ETensor& src) { return tenncor().reduce_min(src, 1, 1); },
 		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
-			teq::DimsT expect_list(shape.begin(), shape.end());
+			teq::DimsT expect_list = shape.to_list();
 			expect_list[1] = 1;
 			teq::Shape gotshape = out->shape();
 			EXPECT_ARREQ(expect_list, gotshape);
@@ -1823,7 +1942,7 @@ TEST(API, Rmax)
 		[](eteq::ETensor& src) { return tenncor().reduce_max(src, 1, 1); },
 		[](eteq::ETensor out, teq::Shape& shape, std::vector<double>& data)
 		{
-			teq::DimsT expect_list(shape.begin(), shape.end());
+			teq::DimsT expect_list = shape.to_list();
 			expect_list[1] = 1;
 			teq::Shape gotshape = out->shape();
 			EXPECT_ARREQ(expect_list, gotshape);
@@ -1926,6 +2045,21 @@ TEST(API, Permute)
 	{
 		EXPECT_EQ(1, goptr[i]);
 	}
+
+	eteq::DerivativeFuncs dfuncs;
+	auto gsrc2 = teq::backprop(dest, {src}, dfuncs);
+	ASSERT_EQ(1, gsrc2.size());
+	auto gs2 = gsrc2.front();
+	ASSERT_NE(nullptr, gs2);
+	eval.evaluate(device, {gs2.get()});
+
+	auto gotshape2 = gs2->shape();
+	ASSERT_ARREQ(shape, gotshape2);
+	double* goptr2 = (double*) gs2->device().data();
+	for (size_t i = 0, n = data.size(); i < n; ++i)
+	{
+		EXPECT_EQ(1, goptr2[i]);
+	}
 }
 
 
@@ -1979,6 +2113,21 @@ TEST(API, Extend)
 	for (size_t i = 0, n = data.size(); i < n; ++i)
 	{
 		EXPECT_EQ(ext_nelem, goptr[i]);
+	}
+
+	eteq::DerivativeFuncs dfuncs;
+	auto gsrc2 = teq::backprop(dest, {src}, dfuncs);
+	ASSERT_EQ(1, gsrc2.size());
+	auto gs2 = gsrc2.front();
+	ASSERT_NE(nullptr, gs2);
+	eval.evaluate(device, {gs2.get()});
+
+	auto gotshape2 = gs2->shape();
+	ASSERT_ARREQ(shape, gotshape2);
+	double* goptr2 = (double*) gs2->device().data();
+	for (size_t i = 0, n = data.size(); i < n; ++i)
+	{
+		EXPECT_EQ(ext_nelem, goptr2[i]);
 	}
 }
 
@@ -2083,6 +2232,43 @@ TEST(API, Matmul)
 		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
 		ASSERT_VECEQ(expect_gb, gb_data);
 	}
+
+	eteq::DerivativeFuncs dfuncs;
+	teq::TensptrsT gsame2 = teq::backprop(dest2, {c}, dfuncs);
+	ASSERT_EQ(1, gsame2.size());
+	auto gs2 = gsame2.front();
+	ASSERT_NE(nullptr, gs2);
+	eval.evaluate(device, {gs2.get()});
+	teq::Shape gcshape2 = gs2->shape();
+	ASSERT_ARREQ(cshape, gcshape2);
+
+	teq::TensptrsT gleft2 = teq::backprop(dest, {a}, dfuncs);
+	ASSERT_EQ(1, gleft2.size());
+	auto gl2 = gleft2.front();
+	ASSERT_NE(nullptr, gl2);
+	eval.evaluate(device, {gl2.get()});
+	teq::Shape gashape2 = gl2->shape();
+	{
+		ASSERT_ARREQ(ashape, gashape2);
+		int32_t* ga = (int32_t*) gl2->device().data();
+		ASSERT_NE(nullptr, ga);
+		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
+		ASSERT_VECEQ(expect_ga, ga_data);
+	}
+
+	teq::TensptrsT gright2 = teq::backprop(dest, {b}, dfuncs);
+	ASSERT_EQ(1, gright2.size());
+	auto gr2 = gright2.front();
+	ASSERT_NE(nullptr, gr2);
+	eval.evaluate(device, {gr2.get()});
+	teq::Shape gbshape2 = gr2->shape();
+	{
+		ASSERT_ARREQ(bshape, gbshape2);
+		int32_t* gb = (int32_t*) gr2->device().data();
+		ASSERT_NE(nullptr, gb);
+		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
+		ASSERT_VECEQ(expect_gb, gb_data);
+	}
 }
 
 
@@ -2183,6 +2369,43 @@ TEST(API, Contract)
 	{
 		ASSERT_ARREQ(bshape, gbshape);
 		int32_t* gb = (int32_t*) gr->device().data();
+		ASSERT_NE(nullptr, gb);
+		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
+		ASSERT_VECEQ(expect_gb, gb_data);
+	}
+
+	eteq::DerivativeFuncs dfuncs;
+	teq::TensptrsT gsame2 = teq::backprop(dest2, {c}, dfuncs);
+	ASSERT_EQ(1, gsame2.size());
+	auto gs2 = gsame2.front();
+	ASSERT_NE(nullptr, gs2);
+	eval.evaluate(device, {gs2.get()});
+	teq::Shape gcshape2 = gs2->shape();
+	ASSERT_ARREQ(cshape, gcshape2);
+
+	teq::TensptrsT gleft2 = teq::backprop(dest, {a}, dfuncs);
+	ASSERT_EQ(1, gleft2.size());
+	auto gl2 = gleft2.front();
+	ASSERT_NE(nullptr, gl2);
+	eval.evaluate(device, {gl2.get()});
+	teq::Shape gashape2 = gl2->shape();
+	{
+		ASSERT_ARREQ(ashape, gashape2);
+		int32_t* ga = (int32_t*) gl2->device().data();
+		ASSERT_NE(nullptr, ga);
+		std::vector<int32_t> ga_data(ga, ga + gashape.n_elems());
+		ASSERT_VECEQ(expect_ga, ga_data);
+	}
+
+	teq::TensptrsT gright2 = teq::backprop(dest, {b}, dfuncs);
+	ASSERT_EQ(1, gright2.size());
+	auto gr2 = gright2.front();
+	ASSERT_NE(nullptr, gr2);
+	eval.evaluate(device, {gr2.get()});
+	teq::Shape gbshape2 = gr2->shape();
+	{
+		ASSERT_ARREQ(bshape, gbshape2);
+		int32_t* gb = (int32_t*) gr2->device().data();
 		ASSERT_NE(nullptr, gb);
 		std::vector<int32_t> gb_data(gb, gb + gbshape.n_elems());
 		ASSERT_VECEQ(expect_gb, gb_data);
@@ -2368,6 +2591,37 @@ TEST(API, Convolution)
 		ASSERT_ARREQ(kshape, gbshape);
 		double* gb = (double*) gr->device().data();
 		std::vector<double> gb_data(gb, gb + gbshape.n_elems());
+		ASSERT_VECEQ(expect_gb, gb_data);
+	}
+
+	eteq::DerivativeFuncs dfuncs;
+	teq::TensptrsT gleft2 = teq::backprop(dest, {img}, dfuncs);
+	ASSERT_EQ(1, gleft2.size());
+	auto gl2 = gleft2.front();
+
+	ASSERT_NE(nullptr, gl2);
+	eval.evaluate(device, {gl2.get()});
+	teq::Shape gashape2 = gl2->shape();
+	{
+		ASSERT_ARREQ(shape, gashape2);
+		double* ga = (double*) gl2->device().data();
+		ASSERT_NE(nullptr, ga);
+		std::vector<double> ga_data(ga, ga + gashape2.n_elems());
+		ASSERT_VECEQ(expect_ga, ga_data);
+	}
+
+	teq::TensptrsT gright2 = teq::backprop(dest, {kernel}, dfuncs);
+	ASSERT_EQ(1, gright2.size());
+	auto gr2 = gright2.front();
+
+	ASSERT_NE(nullptr, gr2);
+	eval.evaluate(device, {gr2.get()});
+	teq::Shape gbshape2 = gr2->shape();
+	{
+		ASSERT_ARREQ(kshape, gbshape2);
+		double* gb = (double*) gr2->device().data();
+		ASSERT_NE(nullptr, gb);
+		std::vector<double> gb_data(gb, gb + gbshape2.n_elems());
 		ASSERT_VECEQ(expect_gb, gb_data);
 	}
 }

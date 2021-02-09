@@ -40,7 +40,8 @@ static void test_reduce (
 		std::vector<double> expect_raw{2, 3, 4, 5, 6, 7};
 		MockLeaf edge;
 		MockDeviceRef mockdev;
-		make_var(edge, expect_raw.data(), mockdev, teq::Shape({3, 2}), "", incr_life);
+		make_var(edge, expect_raw.data(), mockdev,
+			teq::Shape({3, 2}), "", incr_life);
 
 #ifndef PERM_OP
 		auto outbytes = 3 * sizeof(double);
@@ -2577,7 +2578,7 @@ TEST(OPERATOR, Convolution)
 		make_var(image, orig_raw.data(), mockdev, teq::Shape({3, 3}));
 		make_var(kernel, orig_raw2.data(), mockdev2, teq::Shape({2, 2}));
 
-		std::string fatalmsg1 = "given kernel shape [2\\2\\1\\1\\1\\1\\1\\1], unspecified non-singular kernel dimension 1 is undefined";
+		std::string fatalmsg1 = "given kernel shape [2\\2], unspecified non-singular kernel dimension 1 is undefined";
 		EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
 		EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));;
 		EXPECT_FATAL(eigen::convolution<double>(outshape, image, kernel, mvalues), fatalmsg1.c_str());

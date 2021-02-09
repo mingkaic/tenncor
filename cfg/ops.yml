@@ -131,7 +131,7 @@ opcode:
                     std::set<teq::RankT> ranks;
                     eigen::Packer<std::set<teq::RankT>>().unpack(ranks, attrs);
                     teq::Shape shape = shapes.front();
-                    teq::DimsT slist(shape.begin(), shape.end());
+                    teq::DimsT slist = shape.to_list();
                     for (teq::RankT i : ranks)
                     {
                         slist[i] = 1;
@@ -158,7 +158,8 @@ opcode:
                     teq::RankT return_dim;
                     eigen::Packer<teq::RankT>().unpack(return_dim, attrs);
                     teq::Shape shape = args.front()->shape();
-                    bool redundant = return_dim < teq::rank_cap && shape.at(return_dim) == 1;
+                    bool redundant = return_dim < teq::rank_cap &&
+                        shape.to_list().at(return_dim) == 1;
                     if (redundant)
                     {
                         global::debugf("argreducing with no significant dimensions... "
@@ -181,7 +182,7 @@ opcode:
                         return teq::Shape();
                     }
                     teq::Shape shape = shapes.front();
-                    teq::DimsT slist(shape.begin(), shape.end());
+                    teq::DimsT slist = shape.to_list();
                     slist[return_dim] = 1;
                     return teq::Shape(slist);
     PERMUTE:
@@ -269,7 +270,7 @@ opcode:
                         global::throw_errf("cannot extend using zero dimensions %s",
                             fmts::to_string(bcast.begin(), bcast.end()).c_str());
                     }
-                    teq::DimsT slist(shape.begin(), shape.end());
+                    teq::DimsT slist = shape.to_list();
                     for (size_t i = 0, nbcasts = bcast.size(); i < nbcasts; ++i)
                     {
                         if (bcast.at(i) > 1 && shape.at(i) > 1)
@@ -358,7 +359,7 @@ opcode:
                     eigen::PairVecT<teq::DimT> extents;
                     eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(extents, attrs);
                     teq::Shape shape = shapes.front();
-                    teq::DimsT slist(shape.begin(), shape.end());
+                    teq::DimsT slist = shape.to_list();
                     for (size_t i = 0, n = std::min(extents.size(),
                         (size_t) teq::rank_cap); i < n; ++i)
                     {
@@ -400,7 +401,7 @@ opcode:
                     eigen::PairVecT<teq::DimT> paddings;
                     eigen::Packer<eigen::PairVecT<teq::DimT>>().unpack(paddings, attrs);
                     teq::Shape shape = shapes.front();
-                    teq::DimsT slist(shape.begin(), shape.end());
+                    teq::DimsT slist = shape.to_list();
                     for (size_t i = 0, n = std::min(paddings.size(),
                         (size_t) teq::rank_cap); i < n; ++i)
                     {
@@ -430,7 +431,7 @@ opcode:
                     {
                         coords[i] = incrs[i];
                     }
-                    teq::DimsT slist(shape.begin(), shape.end());
+                    teq::DimsT slist = shape.to_list();
                     for (size_t i = 0; i < n; ++i)
                     {
                         slist[i] = std::round((double) slist[i] / incrs[i]);
@@ -510,7 +511,11 @@ opcode:
                             ashape.to_string().c_str(), bshape.to_string().c_str());
                     }
                     teq::DimsT outlist = {bshape.at(0), ashape.at(1)};
-                    outlist.insert(outlist.end(), ashape.begin() + 2, ashape.end());
+                    if (ashape.n_ranks() > 1)
+                    {
+                        outlist.insert(outlist.end(),
+                            ashape.begin() + 2, ashape.end());
+                    }
                     return teq::Shape(outlist);
     CONTRACT:
       stmt: out = eigen::contract<T>(outshape, *in[0], *in[1], attrib);
@@ -582,7 +587,7 @@ opcode:
                             fmts::to_string(ranks.begin(), ranks.end()).c_str());
                     }
                     teq::Shape imgshape = shapes[0];
-                    teq::DimsT slist(imgshape.begin(), imgshape.end());
+                    teq::DimsT slist = imgshape.to_list();
                     for (size_t i = 0; i < n; ++i)
                     {
                         teq::DimT& sdim = slist[ranks[i]];
@@ -636,12 +641,12 @@ opcode:
                             global::throw_err("cannot group concat shapes "
                                 "with dimension that is not one");
                         }
-                        teq::DimsT slist(initshape.begin(), initshape.end());
+                        teq::DimsT slist = initshape.to_list();
                         slist[axis] = shapes.size();
                         return teq::Shape(slist);
                     }
                     teq::Shape backshape = shapes[1];
-                    teq::DimsT slist(initshape.begin(), initshape.end());
+                    teq::DimsT slist = initshape.to_list();
                     if (slist[axis] == 0 || backshape.at(axis) == 0)
                     {
                         slist[axis] = 0;

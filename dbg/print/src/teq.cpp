@@ -26,7 +26,7 @@ void ten_stream (std::ostream& out,
 	}
 	if (cfg.showshape_)
 	{
-		out << root->shape().to_string();
+		out << root->shape().old_string();
 	}
 	if (cfg.showvers_)
 	{

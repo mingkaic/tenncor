@@ -78,6 +78,8 @@ void eteq_ext (py::module& m)
 		.def("__getitem__",
 		[](teq::Shape& shape, size_t idx) { return shape.at(idx); },
 		py::is_operator())
+		.def("n_ranks",
+		[](teq::Shape& shape) { return shape.n_ranks(); })
 		.def("n_elems",
 		[](teq::Shape& shape) { return shape.n_elems(); })
 		.def("as_list",

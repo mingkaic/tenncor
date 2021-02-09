@@ -102,7 +102,7 @@ TEST(VARIABLE, Assign)
 
 	std::vector<double> d = {3, 1, 222, 21, 17, 7, 91, 11, 71, 13, 81, 2};
 
-	std::string fatalmsg = "assigning data shaped [3\\7\\1\\1\\1\\1\\1\\1] to tensor [3\\4\\1\\1\\1\\1\\1\\1]";
+	std::string fatalmsg = "assigning data shaped [3\\7] to tensor [3\\4]";
 	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
 	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(a->assign(d.data(), teq::Shape({3, 7})), fatalmsg.c_str());

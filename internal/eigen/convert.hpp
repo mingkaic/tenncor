@@ -30,7 +30,7 @@ using MatMapT = Eigen::Map<MatrixT<T>>;
 
 /// Eigen Tensor
 template <typename T>
-using TensorT = Eigen::Tensor<T,8>;
+using TensorT = Eigen::Tensor<T,teq::rank_cap>;
 
 /// Eigen Tensor Map (reference)
 template <typename T>
@@ -82,15 +82,17 @@ inline MatMapT<T> make_matmap (T* data, const teq::Shape& shape)
 	{
 		global::fatal("cannot get matmap from nullptr");
 	}
-	return MatMapT<T>(data, shape.at(1), shape.at(0));
+	auto shapel = shape.to_list();
+	return MatMapT<T>(data, shapel.at(1), shapel.at(0));
 }
 
 /// Return Eigen Tensor given raw data and teq Shape
 template <typename T>
 inline TensMapT<T> make_tensmap (T* data, const teq::Shape& shape)
 {
+	auto shapel = shape.to_list();
 	std::array<Eigen::Index,teq::rank_cap> slist;
-	std::copy(shape.begin(), shape.end(), slist.begin());
+	std::copy(shapel.begin(), shapel.end(), slist.begin());
 	if (nullptr == data)
 	{
 		global::fatal("cannot get tensmap from nullptr");

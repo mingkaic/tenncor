@@ -29,7 +29,7 @@ namespace internal
 
 /// Return array of input vector
 template <size_t N, typename T=teq::RankT>
-inline std::array<T,N> dim_copy (std::vector<T> d)
+inline std::array<T,N> dim_copy (const std::vector<T>& d)
 {
 	std::array<T,N> out;
 	auto it = d.begin();
@@ -220,7 +220,8 @@ EigenptrT slice (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAtt
 	teq::ShapeT offsets;
 	teq::ShapeT extents;
 	std::fill(offsets.begin(), offsets.end(), 0);
-	std::copy(shape.begin(), shape.end(), extents.begin());
+	auto shapel = shape.to_list();
+	std::copy(shapel.begin(), shapel.end(), extents.begin());
 	size_t n = std::min(encoding.size(), (size_t) teq::rank_cap);
 	for (size_t i = 0; i < n; ++i)
 	{
@@ -354,9 +355,10 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 		return arg.get();
 	});
 	std::array<Eigen::Index,teq::rank_cap-1> reshaped;
-	auto it = outshape.begin();
+	auto outlist = outshape.to_list();
+	auto it = outlist.begin();
 	std::copy(it, it + axis, reshaped.begin());
-	std::copy(it + axis + 1, outshape.end(), reshaped.begin() + axis);
+	std::copy(it + axis + 1, outlist.end(), reshaped.begin() + axis);
 	return std::make_shared<TensOp<T>>(outshape, args,
 	[axis,reshaped](TensMapT<T>& out, const std::vector<TensMapT<T>>& args)
 	{
@@ -1091,7 +1093,7 @@ EigenptrT contract (teq::Shape outshape, const teq::iTensor& a, const teq::iTens
 		dims.size() == 1 && dims[0].first == 1 && dims[0].second == 0)
 	{
 		return std::make_shared<MatOp<T>>(outshape,teq::CTensT{&a,&b},
-		[](MatMapT<T>& out, const std::vector<MatMapT<T>>& args)
+		[ashape,bshape](MatMapT<T>& out, const std::vector<MatMapT<T>>& args)
 		{
 			out = args[0] * args[1];
 		});

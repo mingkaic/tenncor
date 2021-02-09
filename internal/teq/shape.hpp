@@ -48,10 +48,10 @@ const RankT rank_cap = 8;
 using ShapeT = std::array<DimT,rank_cap>;
 
 /// Type of iterator used to iterate through internal array
-using SiteratorT = ShapeT::iterator;
+using SiteratorT = DimsT::iterator;
 
 /// Type of constant iterator used to iterate through internal array
-using CstSiteratorT = ShapeT::const_iterator;
+using CstSiteratorT = DimsT::const_iterator;
 
 /// Models an aligned shape using an array of DimT values
 /// For each DimT at index i, DimT value is number of elements at dimension i
@@ -59,12 +59,9 @@ using CstSiteratorT = ShapeT::const_iterator;
 /// (In cartesian coordinate, we treat values along the X-axis as dimension 0)
 struct Shape final : public fmts::iStringable
 {
-	Shape (void)
-	{
-		std::fill(dims_.begin(), dims_.end(), 1);
-	}
+	Shape (void) {}
 
-	Shape (std::vector<DimT> dims)
+	Shape (DimsT dims)
 	{
 		vector_assign(dims);
 	}
@@ -77,13 +74,19 @@ struct Shape final : public fmts::iStringable
 
 	Shape& operator = (Shape&& other) = default;
 
-	Shape& operator = (const std::vector<DimT>& dims)
+	Shape& operator = (const DimsT& dims)
 	{
 		vector_assign(dims);
 		return *this;
 	}
 
 	// >>>> ACCESSORS <<<<
+
+	std::string old_string (void) const
+	{
+		auto out = to_list();
+		return fmts::to_string(out.begin(), out.end());
+	}
 
 	/// Implementation of iStringable
 	std::string to_string (void) const override
@@ -94,18 +97,22 @@ struct Shape final : public fmts::iStringable
 	/// Return DimT element at idx for any index in range [0:rank_cap)
 	DimT at (RankT idx) const
 	{
-		if (rank_cap <= idx)
+		if (n_ranks() <= idx)
 		{
-			global::throw_errf("cannot access out of bounds index %d", idx);
+			return 1;
 		}
 		return dims_.at(idx);
+	}
+
+	RankT n_ranks (void) const
+	{
+		return dims_.size();
 	}
 
 	/// Return the total number of elements represented by the shape
 	NElemT n_elems (void) const
 	{
-		auto it = dims_.begin();
-		return std::accumulate(it, it + rank_cap, (NElemT) 1,
+		return std::accumulate(dims_.begin(), dims_.end(), (NElemT) 1,
 			std::multiplies<NElemT>());
 	}
 
@@ -114,7 +121,8 @@ struct Shape final : public fmts::iStringable
 	bool compatible_before (const Shape& other, RankT idx) const
 	{
 		auto it = dims_.begin();
-		return std::equal(it, it + std::min(idx, rank_cap), other.begin(),
+		return std::equal(it, it + std::min(idx,
+			std::min(n_ranks(), other.n_ranks())), other.begin(),
 			[](DimT a, DimT b) { return a == 0 || b == 0 || a == b; });
 	}
 
@@ -123,9 +131,19 @@ struct Shape final : public fmts::iStringable
 	/// Set idx to 0 to compare entire shape
 	bool compatible_after (const Shape& other, RankT idx) const
 	{
-		return idx < rank_cap && std::equal(
-			dims_.begin() + idx, dims_.end(), other.begin() + idx,
-			[](DimT a, DimT b) { return a == 0 || b == 0 || a == b; });
+		auto is_one = std::bind(std::equal_to<teq::RankT>(),
+			1, std::placeholders::_1);
+		size_t common_rank = std::min(n_ranks(), other.n_ranks());
+		if (idx >= common_rank)
+		{
+			return std::all_of(dims_.begin() + common_rank, dims_.end(), is_one) &&
+				std::all_of(other.begin() + common_rank, other.end(), is_one);
+		}
+		auto it = dims_.begin();
+		auto ot = other.begin();
+		return std::equal(it + idx, it + common_rank, ot + idx) &&
+			std::all_of(it + common_rank, dims_.end(), is_one) &&
+			std::all_of(ot + common_rank, other.end(), is_one);
 	}
 
 	// >>>> INTERNAL CONTROL <<<<
@@ -154,8 +172,32 @@ struct Shape final : public fmts::iStringable
 		return dims_.end();
 	}
 
+	DimsT to_list (void) const
+	{
+		auto it = begin();
+		DimsT out(it, it + std::min(rank_cap, n_ranks()));
+		if (n_ranks() < rank_cap)
+		{
+			out.insert(out.end(), rank_cap - n_ranks(), 1);
+		}
+		return out;
+	}
+
+	NElemT n_elems_between (RankT begin_idx, RankT end_idx)
+	{
+		auto n = n_ranks();
+		if (begin_idx >= n)
+		{
+			return 1;
+		}
+		auto it = begin();
+		return std::accumulate(it + begin_idx,
+			it + std::min(n, end_idx), 1,
+			std::multiplies<NElemT>());
+	}
+
 private:
-	void vector_assign (const std::vector<DimT>& dims)
+	void vector_assign (const DimsT& dims)
 	{
 		if (std::any_of(dims.begin(), dims.end(),
 			[](DimT d)
@@ -167,21 +209,17 @@ private:
 				"cannot create shape with vector containing zero: %s",
 				fmts::to_string(dims.begin(), dims.end()).c_str());
 		}
-		RankT rank = std::min((size_t) rank_cap, dims.size());
-		auto src = dims.begin();
-		auto dest = this->begin();
-		std::copy(src, src + rank, dest);
-		std::fill(dest + rank, dest + rank_cap, 1);
+		dims_ = dims;
 	}
 
-	/// Array of dimension values
-	ShapeT dims_;
+	/// Shape dimensions
+	DimsT dims_;
 };
 
 using ShapesT = std::vector<Shape>;
 
 /// Return list of shape dimensions with trailing ones/zeros trimmed
-std::vector<DimT> narrow_shape (const Shape& sign);
+DimsT narrow_shape (const Shape& sign);
 
 }
 

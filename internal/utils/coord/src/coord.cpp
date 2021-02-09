@@ -37,12 +37,12 @@ CoordT coordinate (const Shape& shape, NElemT idx)
 	}
 	CoordT coord;
 	DimT xd;
-	auto it = shape.begin();
 	for (RankT i = 0; i < rank_cap; ++i)
 	{
-		xd = idx % *(it + i);
+		auto s = shape.at(i);
+		xd = idx % s;
 		coord[i] = xd;
-		idx = (idx - xd) / *(it + i);
+		idx = (idx - xd) / s;
 	}
 	return coord;
 }

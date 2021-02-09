@@ -50,7 +50,9 @@ TEST(NN, Dropout)
 		"_____________`--(constant:10<FLOAT>[1\\1\\1\\1\\1\\1\\1\\1])",
 		f);
 
-	ASSERT_ARREQ(shape, f->shape());
+	auto slist = shape.to_list();
+	auto flist = f->shape().to_list();
+	ASSERT_ARREQ(slist, flist);
 	auto data = f.calc<float>();
 
 	float values = 0;

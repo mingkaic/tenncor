@@ -106,7 +106,7 @@ TEST(GRAPH, Find)
 	teq::Shape b1_shape({3});
 	teq::Shape out_shape({3,3});
 
-	double s1 = 1, s2 = 2; 
+	double s1 = 1, s2 = 2;
 	std::vector<double> indata{2, 8, 4, 5, 2, 1};
 	std::vector<double> w0data{3, 7, 5, 8, 1, 1, 0, 9};
 	std::vector<double> b0data{2, 1, 8, 4};
@@ -202,7 +202,7 @@ TEST(GRAPH, Replace)
 	teq::Shape b1_shape({3});
 	teq::Shape out_shape({3,3});
 
-	double s1 = 1, s2 = 2; 
+	double s1 = 1, s2 = 2;
 	std::vector<double> indata{2, 8, 4, 5, 2, 1};
 	std::vector<double> w0data{3, 7, 5, 8, 1, 1, 0, 9};
 	std::vector<double> b0data{2, 1, 8, 4};
