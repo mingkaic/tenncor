@@ -1395,16 +1395,8 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 			case egen::LT:
 				out = constant_like(0.f, args.front());
 				break;
-			case egen::ASSIGN:
-			case egen::ASSIGN_ADD:
-			case egen::ASSIGN_SUB:
-			case egen::ASSIGN_MUL:
-			case egen::ASSIGN_DIV:
-			case egen::ARGMAX:
-				global::fatalf("cannot derive %s", opcode.name_.c_str());
-				break;
 			default:
-				global::fatalf("Unknown op %s", opcode.name_.c_str());
+				global::fatalf("Unsupported op derivation %s", opcode.name_.c_str());
 		}
 		return (teq::TensptrT) out;
 	}

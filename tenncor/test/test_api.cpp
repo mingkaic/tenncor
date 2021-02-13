@@ -753,7 +753,7 @@ TEST(API, Assign)
 		EXPECT_DOUBLE_EQ(-data2[i], aptr2[i]);
 	}
 
-	std::string fatalmsg = "cannot derive ASSIGN";
+	std::string fatalmsg = "Unsupported op derivation ASSIGN";
 	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
 	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(2).WillRepeatedly(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(tcr::derive(ass1, {src}), fatalmsg.c_str());
@@ -843,7 +843,7 @@ TEST(API, AssignHighToLowPrecision)
 		EXPECT_DOUBLE_EQ(-data2[i], aptr2[i]);
 	}
 
-	std::string fatalmsg = "cannot derive ASSIGN";
+	std::string fatalmsg = "Unsupported op derivation ASSIGN";
 	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
 	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(2).WillRepeatedly(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(tcr::derive(ass1, {src}), fatalmsg.c_str());
@@ -1647,7 +1647,7 @@ TEST(API, Argmax)
 	double* ptr = (double*) dest->device().data();
 	EXPECT_EQ(8, *ptr);
 
-	std::string fatalmsg = "cannot derive ARGMAX";
+	std::string fatalmsg = "Unsupported op derivation ARGMAX";
 	EXPECT_CALL(*logger, supports_level(logs::fatal_level)).WillOnce(Return(true));
 	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(tcr::derive(dest, {src}), fatalmsg.c_str());
@@ -2545,6 +2545,147 @@ TEST(API, Convolution)
 	eteq::ETensor kernel = eteq::make_constant<double>(data2.data(), kshape);
 	teq::RanksT dims(teq::rank_cap);
 	std::iota(dims.begin(), dims.end(), 0);
+	eteq::ETensor dest = tenncor().convolution(img, kernel, dims);
+
+	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());
+	ASSERT_NE(nullptr, dtens);
+	eigen::Device(true).calc(*dtens,0);
+	eigen::Device(true).calc(*dtens,0); // idempotency check
+	{
+		auto gotshape = dest->shape();
+		ASSERT_ARREQ(expectslist, gotshape);
+
+		double* optr = (double*) dest->device().data();
+		ASSERT_NE(nullptr, optr);
+		std::vector<double> outdata(optr, optr + gotshape.n_elems());
+		ASSERT_VECEQ(expect_out, outdata);
+	}
+
+	teq::Evaluator eval;
+	eteq::ETensorsT gleft = tcr::derive(dest, {img});
+	ASSERT_EQ(1, gleft.size());
+	auto gl = gleft.front();
+	ASSERT_NE(nullptr, gl);
+	gl = tenncor().cast<double>(gl);
+	teq::TensSetT ltargets = {gl.get()};
+	eval.evaluate(device, ltargets);
+	eval.evaluate(device, ltargets); // idempotency check
+	{
+		auto gashape = gl->shape();
+		ASSERT_ARREQ(shape, gashape);
+		double* ga = (double*) gl->device().data();
+		std::vector<double> ga_data(ga, ga + gashape.n_elems());
+		ASSERT_VECEQ(expect_ga, ga_data);
+	}
+
+	eteq::ETensorsT gright = tcr::derive(dest, {kernel});
+	ASSERT_EQ(1, gright.size());
+	auto gr = gright.front();
+	ASSERT_NE(nullptr, gr);
+	gr = tenncor().cast<double>(gr);
+	teq::TensSetT rtargets = {gr.get()};
+	eval.evaluate(device, rtargets);
+	eval.evaluate(device, rtargets); // idempotency check
+	{
+		auto gbshape = gr->shape();
+		ASSERT_ARREQ(kshape, gbshape);
+		double* gb = (double*) gr->device().data();
+		std::vector<double> gb_data(gb, gb + gbshape.n_elems());
+		ASSERT_VECEQ(expect_gb, gb_data);
+	}
+
+	eteq::DerivativeFuncs dfuncs;
+	teq::TensptrsT gleft2 = teq::backprop(dest, {img}, dfuncs);
+	ASSERT_EQ(1, gleft2.size());
+	auto gl2 = gleft2.front();
+
+	ASSERT_NE(nullptr, gl2);
+	eval.evaluate(device, {gl2.get()});
+	teq::Shape gashape2 = gl2->shape();
+	{
+		ASSERT_ARREQ(shape, gashape2);
+		double* ga = (double*) gl2->device().data();
+		ASSERT_NE(nullptr, ga);
+		std::vector<double> ga_data(ga, ga + gashape2.n_elems());
+		ASSERT_VECEQ(expect_ga, ga_data);
+	}
+
+	teq::TensptrsT gright2 = teq::backprop(dest, {kernel}, dfuncs);
+	ASSERT_EQ(1, gright2.size());
+	auto gr2 = gright2.front();
+
+	ASSERT_NE(nullptr, gr2);
+	eval.evaluate(device, {gr2.get()});
+	teq::Shape gbshape2 = gr2->shape();
+	{
+		ASSERT_ARREQ(kshape, gbshape2);
+		double* gb = (double*) gr2->device().data();
+		ASSERT_NE(nullptr, gb);
+		std::vector<double> gb_data(gb, gb + gbshape2.n_elems());
+		ASSERT_VECEQ(expect_gb, gb_data);
+	}
+}
+
+
+TEST(API, ConvolutionWithDimensions)
+{
+	eigen::Device device;
+	teq::DimsT alist = {2, 4, 3, 3};
+	teq::DimsT blist = {2, 2};
+	teq::Shape shape(alist);
+	teq::Shape kshape(blist);
+	teq::DimsT expectslist = {
+		2, 3, 2, 3, 1, 1, 1, 1,
+	};
+
+	std::vector<double> data = {
+		37, 93, 33, 47, 87, 39, 69, 10,
+		74, 67, 32, 4, 99, 89, 85, 64,
+		49, 61, 27, 89, 100, 41, 52, 66,
+
+		71, 54, 7, 90, 8, 89, 20, 53,
+		59, 32, 66, 55, 71, 37, 7, 98,
+		48, 66, 58, 77, 61, 20, 48, 31,
+
+		71, 20, 30, 26, 48, 3, 15, 78,
+		70, 70, 58, 11, 58, 82, 57, 56,
+		39, 88, 58, 63, 35, 69, 35, 62
+	};
+	std::vector<double> data2 = {
+		2,3,
+		2,4,
+	};
+	std::vector<double> expect_out = {
+		449, 477, 787, 575, 919, 542,
+		450, 624, 815, 617, 861, 716,
+
+		545, 662, 454, 705, 246, 803,
+		644, 669, 705, 455, 477, 532,
+
+		604, 302, 552, 411, 485, 628,
+		624, 601, 546, 670, 497, 718
+	};
+	std::vector<double> expect_ga = {
+		2, 2, 5, 5, 5, 5, 3, 3,
+		4, 4, 11, 11, 11, 11, 7, 7,
+		2, 2, 6, 6, 6, 6, 4, 4,
+
+		2, 2, 5, 5, 5, 5, 3, 3,
+		4, 4, 11, 11, 11, 11, 7, 7,
+		2, 2, 6, 6, 6, 6, 4, 4,
+
+		2, 2, 5, 5, 5, 5, 3, 3,
+		4, 4, 11, 11, 11, 11, 7, 7,
+		2, 2, 6, 6, 6, 6, 4, 4
+	};
+	std::vector<double> expect_gb = {
+		1887, 1781,
+		2083, 2021,
+	};
+
+	eteq::ETensor img = eteq::make_constant<double>(data.data(), shape);
+	eteq::ETensor kernel = eteq::make_constant<double>(data2.data(), kshape);
+	teq::RanksT dims = {1, 2};
 	eteq::ETensor dest = tenncor().convolution(img, kernel, dims);
 
 	auto dtens = dynamic_cast<eteq::Functor<double>*>(dest.get());

@@ -705,7 +705,7 @@ TEST(BACKPROP, Fatals)
 	EXPECT_CALL(*op, shape()).WillRepeatedly(Return(shape));
 	EXPECT_CALL(*op, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 
-	std::string fatalmsg = "cannot derive op";
+	std::string fatalmsg = "Unsupported op derivation op";
 	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));
 	EXPECT_FATAL(der.lderive(op, super, 1), fatalmsg.c_str());
 
@@ -713,7 +713,7 @@ TEST(BACKPROP, Fatals)
 	EXPECT_CALL(*op2, shape()).WillRepeatedly(Return(shape));
 	EXPECT_CALL(*op2, get_meta()).WillRepeatedly(ReturnRef(mockmeta));
 
-	std::string fatalmsg1 = "Unknown op zop";
+	std::string fatalmsg1 = "Unsupported op derivation zop";
 	EXPECT_CALL(*logger, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));
 	EXPECT_FATAL(der.lderive(op2, super, 1), fatalmsg1.c_str());
 
