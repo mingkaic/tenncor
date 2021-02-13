@@ -220,6 +220,7 @@ EigenptrT slice (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAtt
 	teq::ShapeT offsets;
 	teq::ShapeT extents;
 	std::fill(offsets.begin(), offsets.end(), 0);
+	std::fill(extents.begin(), extents.end(), 1);
 	auto shapel = shape.to_list();
 	std::copy(shapel.begin(), shapel.end(), extents.begin());
 	size_t n = std::min(encoding.size(), (size_t) teq::rank_cap);

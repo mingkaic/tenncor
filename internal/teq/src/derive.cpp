@@ -10,8 +10,7 @@ namespace teq
 
 static const std::string target_label = "target";
 
-TensptrsT backprop (
-	TensptrT root,
+TensptrsT backprop (TensptrT root,
 	const TensptrsT& targets,
 	const iBackpropFuncs& funcs)
 {
@@ -19,13 +18,8 @@ TensptrsT backprop (
 	TensptrsT outs;
 	outs.reserve(n);
 
-	if (targets.empty())
-	{
-		return outs;
-	}
-
 	// map X -> J(X,T) for each T in targets
-	TensMapT<TensMapT<TensptrsT>> jacobians;
+	JLinkMapT jacobians;
 	for (auto targ : targets)
 	{
 		auto targptr = targ.get();
@@ -38,40 +32,74 @@ TensptrsT backprop (
 		});
 	}
 
+	TensSetT targset;
+	std::transform(targets.begin(), targets.end(),
+	std::inserter(targset, targset.end()),
+	[](TensptrT target) { return target.get(); });
+	link_jacobian(jacobians, {root}, targset, funcs);
+
+	TensMapT<TensptrsT> root_chain;
+	estd::get(root_chain, jacobians, root.get());
+	for (auto target : targets)
+	{
+		TensptrT der;
+		TensptrsT chains;
+		if (estd::get(chains, root_chain, target.get()) && chains.size() > 0)
+		{
+			auto jacobian = chains.size() == 1 ? chains.front() : funcs.add(chains);
+			// given NxM matrix and target tensor of M cardinality
+			// accept derivative of root wrt target by mapped by jacobian
+			der = funcs.dejacobianize(jacobian, target);
+		}
+		else
+		{
+			der = funcs.get_const_zero(*target);
+		}
+		outs.push_back(der);
+	}
+	return outs;
+}
+
+void link_jacobian (JLinkMapT& jacobians,
+	const TensptrSetT& parents, const TensSetT& targets,
+	const iBackpropFuncs& funcs)
+{
+	if (targets.empty())
+	{
+		return;
+	}
+
+	TensSetT parset;
+	std::transform(parents.begin(), parents.end(),
+		std::inserter(parset, parset.end()),
+		[](TensptrT tens) { return tens.get(); });
 	TensMapT<std::string> tids;
 	for (auto& target : targets)
 	{
-		if (nullptr != target && root != target)
+		if (nullptr != target && false == estd::has(parset, target))
 		{
-			tids.emplace(target.get(), target_label);
+			tids.emplace(target, target_label);
 		}
 	}
 
 	PathFinder pfinder(tids, [](iFunctor& f){ return f.get_args(); });
-	if (root != nullptr)
-	{
-		root->accept(pfinder);
-	}
+	multi_visit(pfinder, parents);
 	if (pfinder.roadmap_.empty())
 	{
-		std::transform(targets.begin(), targets.end(),
-		std::back_inserter(outs),
-		[&](const TensptrT& target)
-		{
-			return funcs.get_const_zero(*target);
-		});
-		return outs;
+		return;
 	}
 
 	// else there exists a path to wrt
 	// using pathfinder, breadth first traverse from this to wrt
-	RefMapT owners = track_ownrefs(TensptrsT{root});
+	RefMapT owners = track_ownrefs(parents);
 	GraphStat stat;
 	GraphIndex indexer;
-	root->accept(stat);
-	root->accept(indexer);
+	multi_visit(stat, parents);
+	multi_visit(indexer, parents);
 
-	std::list<iFunctor*> tovisits; // todo: make parent order not dependent on sorting algorithm by sorting by order visited
+	// todo: make parent order not dependent on sorting algorithm
+	// by sorting by order visited
+	std::list<iFunctor*> tovisits;
 	std::transform(pfinder.roadmap_.begin(), pfinder.roadmap_.end(),
 	std::back_inserter(tovisits),
 	[](std::pair<iTensor*,PathNodeT> parent)
@@ -121,29 +149,6 @@ TensptrsT backprop (
 			}
 		}
 	}
-
-	TensMapT<TensptrsT> root_chain = estd::must_getf(
-		jacobians, root.get(),
-		"failed to find existing jacobian for %s",
-		root->to_string().c_str());
-	for (auto target : targets)
-	{
-		TensptrT der;
-		TensptrsT chains;
-		if (estd::get(chains, root_chain, target.get()) && chains.size() > 0)
-		{
-			auto jacobian = chains.size() == 1 ? chains.front() : funcs.add(chains);
-			// given NxM matrix and target tensor of M cardinality
-			// accept derivative of root wrt target by mapped by jacobian
-			der = funcs.dejacobianize(jacobian, target);
-		}
-		else
-		{
-			der = funcs.get_const_zero(*target);
-		}
-		outs.push_back(der);
-	}
-	return outs;
 }
 
 TensptrsT derive (
@@ -223,10 +228,6 @@ void partial_derive (TensMapT<TensptrsT>& grads,
 				tids.emplace(target, target_label);
 			}
 		}
-	}
-	if (tids.empty())
-	{
-		return;
 	}
 
 	PathFinder pfinder(tids, [](iFunctor& f){ return f.get_args(); });

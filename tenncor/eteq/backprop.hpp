@@ -175,11 +175,17 @@ static teq::TensptrT contract_jacobian (
 	auto rtrans = make_functor(egen::PERMUTE, {
 		make_functor(egen::EXTEND, {right}, rexlist)
 	}, rpermlist);
+	auto out = make_functor(egen::MUL, {
+		elem_jacobianize(rtrans, ltrans), ltrans
+	});
+	auto minrtrans = teq::narrow_shape(rtrans->shape());
+	if (minrtrans.empty())
+	{
+		return out;
+	}
 	return make_functor(egen::MATMUL, {
-		rsum_jacobian({2}, outshape, rtrans->shape(), dtype),
-		make_functor(egen::MUL, {
-			elem_jacobianize(rtrans, ltrans), ltrans
-		})
+		rsum_jacobian({minrtrans.size() - 1},
+			outshape, rtrans->shape(), dtype), out
 	});
 }
 
@@ -419,10 +425,10 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 			{
 				teq::RanksT order;
 				eigen::Packer<teq::RanksT>().unpack(order, *op);
-				out = make_functor(egen::MATMUL, {
-					permute_jacobian(order,
+				auto jacobian = permute_jacobian(order,
 						op->shape(), args.front()->shape(),
-						(egen::_GENERATED_DTYPE) op->get_meta().type_code()),
+						(egen::_GENERATED_DTYPE) op->get_meta().type_code());
+				out = make_functor(egen::MATMUL, {jacobian,
 					prev_chain
 				});
 			}
@@ -442,23 +448,67 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 			case egen::CONCAT:
 			{
 				auto outshape = op->shape();
-				auto inshape = args.front()->shape();
+				auto inshape = args[arg_idx]->shape();
 				teq::RankT axis;
 				eigen::Packer<teq::RankT>().unpack(axis, *op);
-				out = make_functor(egen::MATMUL, {
-					lazy_jacobian(
+				teq::TensptrT jacobian;
+				if (args.size() == 2)
+				{
+					if (arg_idx == 0)
+					{
+						auto bshape = args[1]->shape();
+						jacobian = lazy_jacobian(
+						(egen::_GENERATED_DTYPE) op->get_meta().type_code(),
+						outshape, inshape,
+						[outshape, bshape, arg_idx, axis](
+							const eigen::TensMapT<size_t>& index) -> eigen::TensorT<size_t>
+						{
+							std::vector<size_t> ovec(
+								bshape.n_elems(), outshape.n_elems());
+							auto other = eigen::make_tensmap(ovec.data(), bshape);
+							return index.concatenate(other,axis);
+						});
+					}
+					else
+					{
+						auto ashape = args[0]->shape();
+						jacobian = lazy_jacobian(
+						(egen::_GENERATED_DTYPE) op->get_meta().type_code(),
+						outshape, inshape,
+						[outshape, ashape, arg_idx, axis](
+							const eigen::TensMapT<size_t>& index) -> eigen::TensorT<size_t>
+						{
+							std::vector<size_t> ovec(
+								ashape.n_elems(), outshape.n_elems());
+							auto other = eigen::make_tensmap(ovec.data(), ashape);
+							return other.concatenate(index,axis);
+						});
+					}
+				}
+				else
+				{
+					jacobian = lazy_jacobian(
 					(egen::_GENERATED_DTYPE) op->get_meta().type_code(),
 					outshape, inshape,
 					[outshape, inshape, arg_idx, axis](
 						const eigen::TensMapT<size_t>& index) -> eigen::TensorT<size_t>
 					{
-						std::vector<size_t> empties(outshape.n_elems(),
-							inshape.n_elems());
+						std::vector<size_t> empties(
+							outshape.n_elems(), inshape.n_elems());
 						eigen::TensorT<size_t> out =
 							eigen::make_tensmap<size_t>(empties.data(), outshape);
-						out.chip(arg_idx, axis) = index;
+						std::array<Eigen::Index,teq::rank_cap-1> reshaped;
+						auto outlist = outshape.to_list();
+						auto it = outlist.begin();
+						std::copy(it, it + axis, reshaped.begin());
+						std::copy(it + axis + 1, outlist.end(),
+							reshaped.begin() + axis);
+						out.chip(arg_idx, axis) = index.reshape(reshaped);
 						return out;
-					}), prev_chain
+					});
+				}
+				out = make_functor(egen::MATMUL, {
+					jacobian, prev_chain
 				});
 			}
 				break;
@@ -470,6 +520,7 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 				teq::ShapeT offsets;
 				teq::ShapeT extents;
 				std::fill(offsets.begin(), offsets.end(), 0);
+				std::fill(extents.begin(), extents.end(), 1);
 				std::copy(shape.begin(), shape.end(), extents.begin());
 				size_t n = std::min(encoding.size(), (size_t) teq::rank_cap);
 				for (size_t i = 0; i < n; ++i)
@@ -765,30 +816,31 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 					}
 				}
 
+				egen::ShapeParser<egen::PERMUTE> orderer;
 				auto img = args[0];
 				auto krn = args[1];
-				auto ishape = img->shape();
+				auto ishape = orderer(*op, {img->shape()});
 				auto kshape = krn->shape();
-				auto cshape = op->shape();
+				auto cshape = orderer(*op, {op->shape()});
 				auto dtype = (egen::_GENERATED_DTYPE) op->get_meta().type_code();
 
 				teq::RankT minkrank = teq::narrow_shape(kshape).size();
-				teq::NElemT pk = ishape.n_elems_between(0, minkrank);
-				teq::NElemT next = ishape.n_elems_between(minkrank, ishape.n_ranks());
+				teq::NElemT nih1 = ishape.n_elems_between(0, minkrank);
+				teq::NElemT nih2 = ishape.n_elems_between(minkrank, ishape.n_ranks());
 				teq::NElemT nk = kshape.n_elems();
-				teq::NElemT okn = cshape.n_elems_between(0, minkrank);
-				teq::NElemT nkindices = okn * ishape.n_elems();
+				teq::NElemT noh1 = cshape.n_elems_between(0, minkrank);
+				// indices map
+				teq::NElemT nkindices = noh1 * ishape.n_elems();
 				teq::DimT shavex = 0;
 				teq::NElemT nextra = 1;
 				for (size_t i = 0; i < minkrank; ++i)
 				{
-					teq::RankT j = order[i];
-					shavex += (ishape.at(i) - kshape.at(j)) * nextra;
+					shavex += (ishape.at(i) - kshape.at(i)) * nextra;
 					nextra *= ishape.at(i);
 				}
-				teq::NElemT nflat = pk - shavex;
+				teq::NElemT nflat = nih1 - shavex;
 
-				std::vector<size_t> projkern(pk, 0);
+				std::vector<size_t> projkern(nih1, 0);
 				for (size_t i = 0; i < nk; ++i)
 				{
 					auto coord = teq::coordinate(kshape, i);
@@ -798,11 +850,11 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 				auto projit = projkern.begin();
 				std::vector<size_t> mink(projit, projit + nflat);
 				std::vector<size_t> maskindices;
-				for (size_t i = 0; i < okn; ++i)
+				for (size_t i = 0; i < noh1; ++i)
 				{
 					auto coord = teq::coordinate(cshape, i);
 					auto prepad = teq::index(ishape, coord);
-					auto postpad = pk - nflat - prepad;
+					auto postpad = nih1 - nflat - prepad;
 					auto row = arrs::concat(
 						std::vector<size_t>(prepad, 0),
 						mink,
@@ -810,7 +862,7 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 					maskindices.insert(maskindices.end(), row.begin(), row.end());
 				}
 				std::vector<size_t> kindices;
-				for (size_t i = 0; i < next; ++i)
+				for (size_t i = 0; i < nih2; ++i)
 				{
 					kindices.insert(kindices.end(),
 						maskindices.begin(), maskindices.end());
@@ -833,17 +885,25 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 					mask,
 					make_functor(egen::RESHAPE, {krn}, teq::Shape({1, nk}))
 				});
-				teq::Shape transkshape(arrs::concat(teq::DimsT{pk, okn}, halfi));
+				teq::Shape transkshape(arrs::concat(teq::DimsT{nih1, noh1}, halfi));
 				auto transk = make_functor(egen::RESHAPE, {transkin}, transkshape);
 
-				teq::Shape transishape(arrs::concat(teq::DimsT{1, pk}, halfi));
-				auto transi = make_functor(egen::RESHAPE, {img}, transishape);
+				teq::Shape transishape(arrs::concat(teq::DimsT{1, nih1}, halfi));
+				auto transi = make_functor(egen::RESHAPE, {
+					make_functor(egen::PERMUTE, {img}, order)
+				}, transishape);
 
 				teq::FuncptrT simulated_op = std::static_pointer_cast<
 					teq::iFunctor>(make_functor(egen::MATMUL, {transk, transi}));
 
 				auto jacobian = matmul_jacobian(simulated_op, arg_idx == 0);
-				if (arg_idx == 1)
+				if (arg_idx == 0)
+				{
+					auto prm_jacobian = permute_jacobian(order,
+						ishape, img->shape(), dtype);
+					jacobian = make_functor(egen::MATMUL, {jacobian, prm_jacobian});
+				}
+				else
 				{
 					jacobian = make_functor(egen::MATMUL, {jacobian, mask});
 				}

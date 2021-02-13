@@ -59,12 +59,18 @@ struct iBackpropFuncs : public iDerivativeFuncs
 	virtual TensptrT get_const_eye (NElemT n, size_t type_code) const = 0;
 };
 
+using JLinkMapT = TensMapT<TensMapT<TensptrsT>>;
+
 using GradMapT = TensMapT<TensptrsT>;
 
 /// Derive using backpropagation
 TensptrsT backprop (
 	TensptrT root,
 	const TensptrsT& targets,
+	const iBackpropFuncs& funcs);
+
+void link_jacobian (JLinkMapT& jacobians,
+	const TensptrSetT& parents, const TensSetT& targets,
 	const iBackpropFuncs& funcs);
 
 /// Define manditory definitions required for tensor differentiation

@@ -9,7 +9,7 @@ opcode:
       name: FuncOpt
       args:
         - name: attrs
-          type: const marsh::Maps&
+          type: const marsh::iAttributed&
         - name: args
           type: const teq::TensptrsT&
       out:
@@ -18,7 +18,7 @@ opcode:
     - name: ShapeParser
       args:
         - name: attrs
-          type: const marsh::Maps&
+          type: const marsh::iAttributed&
         - name: shapes
           type: const teq::ShapesT&
       out:
@@ -44,7 +44,7 @@ opcode:
     - name: TypeParser
       args:
         - name: attrs
-          type: const marsh::Maps&
+          type: const marsh::iAttributed&
         - name: dtypes
           type: const eigen::DTypesT&
       out:

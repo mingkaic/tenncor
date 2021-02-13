@@ -24,9 +24,7 @@ namespace teq
 using RankT = uint8_t;
 
 /// Type used for shape dimension
-#if !defined(SDIM_BYTES) || SDIM_BYTES <= 2
-using DimT = uint16_t;
-#elif SDIM_BYTES <= 4
+#if !defined(SDIM_BYTES) || SDIM_BYTES <= 4
 using DimT = uint32_t;
 #else
 using DimT = uint64_t;

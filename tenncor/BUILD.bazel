@@ -168,6 +168,19 @@ py_binary(
     deps = [":tenncor_py"],
 )
 
+py_binary(
+    name = "comparator",
+    srcs = [
+        "bm/compare.py",
+        "bm/compare_matmul.py",
+        "bm/compare_mlp.py",
+        "bm/compare_mlp_grad.py",
+    ],
+    main = "bm/compare.py",
+    deps = [":tenncor_py"],
+    data = ["//cfg:optimizations"],
+)
+
 ######### TEST #########
 
 cc_test(
