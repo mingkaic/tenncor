@@ -110,6 +110,13 @@ teq::TensptrT make_constant_tensor (T* data, teq::Shape shape)
 	return teq::TensptrT(Constant<T>::get(data, shape));
 }
 
+template <typename T>
+teq::TensptrT make_constant_tensor (T* data,
+	const eigen::OptSparseT& sparse_info, teq::Shape shape)
+{
+	return teq::TensptrT(Constant<T>::get(data, sparse_info, shape));
+}
+
 /// Return constant node given raw array and shape
 template <typename T>
 ETensor make_constant (T* data, teq::Shape shape,
@@ -135,14 +142,39 @@ teq::TensptrT make_constant_tensor (T* data, teq::Shape shape, egen::_GENERATED_
 	return cst;
 }
 
+#undef _CHOOSE_CSTTYPE
+
+#define _CHOOSE_SPARSE_CSTTYPE(REALTYPE){\
+std::vector<REALTYPE> tmp(data, data + nelems);\
+cst = make_constant_tensor<REALTYPE>(tmp.data(), sparse_info, shape);\
+}
+
+template <typename T>
+teq::TensptrT make_constant_tensor (T* data, teq::Shape shape,
+	egen::_GENERATED_DTYPE dtype, const eigen::OptSparseT& sparse_info)
+{
+	if (egen::get_type<T>() == dtype)
+	{
+		return make_constant_tensor<T>(data, sparse_info, shape);
+	}
+	teq::NElemT nelems = shape.n_elems();
+	if (sparse_info)
+	{
+		nelems = sparse_info->non_zeros_;
+	}
+	teq::TensptrT cst;
+	TYPE_LOOKUP(_CHOOSE_SPARSE_CSTTYPE, dtype);
+	return cst;
+}
+
+#undef _CHOOSE_SPARSE_CSTTYPE
+
 template <typename T>
 ETensor make_constant (T* data, teq::Shape shape, egen::_GENERATED_DTYPE dtype,
 	const global::CfgMapptrT& ctx = global::context())
 {
 	return ETensor(make_constant_tensor(data, shape, dtype), ctx);
 }
-
-#undef _CHOOSE_CSTTYPE
 
 /// Return constant node given scalar and shape
 template <typename T>

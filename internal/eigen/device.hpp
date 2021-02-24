@@ -9,9 +9,13 @@
 namespace eigen
 {
 
+using OptSparseT = std::optional<SparseInfo>;
+
 struct iEigen : public teq::iDeviceRef
 {
 	virtual ~iEigen (void) = default;
+
+	virtual OptSparseT sparse_info (void) const = 0;
 
 	virtual void assign (size_t ttl, RTMemptrT& runtime) = 0;
 
@@ -19,6 +23,41 @@ struct iEigen : public teq::iDeviceRef
 
 	virtual void extend_life (size_t ttl) = 0;
 };
+
+inline bool is_sparse (const teq::iTensor& tens)
+{
+	auto dev = dynamic_cast<const iEigen*>(&tens.device());
+	return dev != nullptr && bool(dev->sparse_info());
+}
+
+template <typename T>
+inline teq::Once<MatMapT<T>> make_matmap (const teq::iTensor& tens)
+{
+	auto& dev = tens.device();
+	teq::Once<const void*> data = dev.odata();
+	assert(nullptr != data.get());
+	return teq::Once<MatMapT<T>>(make_matmap(
+		(T*) data.get(), tens.shape()), std::move(data));
+}
+
+template <typename T>
+inline teq::Once<SMatMapT<T>> make_smatmap (const teq::iTensor& tens)
+{
+	auto dev = dynamic_cast<const iEigen*>(&tens.device());
+	std::optional<SparseInfo> sinfo;
+	if (nullptr != dev)
+	{
+		sinfo = dev->sparse_info();
+	}
+	if (false == bool(sinfo))
+	{
+		global::fatal("cannot make sparse matrix from non-sparse device reference");
+	}
+	teq::Once<const void*> data = dev->odata();
+	assert(nullptr != data.get());
+	return teq::Once<SMatMapT<T>>(make_smatmap(
+		(T*) data.get(), *sinfo, tens.shape()), std::move(data));
+}
 
 /// Smart point of generic Eigen data object
 using EigenptrT = std::shared_ptr<iEigen>;
@@ -39,9 +78,18 @@ struct iSrcRef : public iPermEigen
 {
 	virtual ~iSrcRef (void) = default;
 
+	iSrcRef* clone (void) const
+	{
+		return clone_impl();
+	}
+
 	virtual void assign (const void* ptr,
 		egen::_GENERATED_DTYPE dtype,
+		const OptSparseT& sparse_info,
 		const teq::Shape& shape) = 0;
+
+protected:
+	virtual iSrcRef* clone_impl (void) const = 0;
 };
 
 using SrcRefptrT = std::unique_ptr<iSrcRef>;
@@ -87,6 +135,11 @@ struct PermTensOp final : public iPermEigen
 	{
 		teq::Once<const void*> out(data());
 		return out;
+	}
+
+	OptSparseT sparse_info (void) const override
+	{
+		return OptSparseT();
 	}
 
 	/// Implementation of iEigen
@@ -146,6 +199,11 @@ struct PermMatOp final : public iPermEigen
 		return out;
 	}
 
+	OptSparseT sparse_info (void) const override
+	{
+		return OptSparseT();
+	}
+
 	/// Implementation of iEigen
 	void assign (size_t, RTMemptrT&) override
 	{
@@ -198,6 +256,11 @@ struct CacheEigen final : public iPermEigen
 		return out;
 	}
 
+	OptSparseT sparse_info (void) const override
+	{
+		return OptSparseT();
+	}
+
 	/// Implementation of iEigen
 	void assign (size_t ttl, RTMemptrT& runtime) override
 	{
@@ -239,6 +302,11 @@ struct SrcRef final : public iSrcRef
 		return out;
 	}
 
+	OptSparseT sparse_info (void) const override
+	{
+		return OptSparseT();
+	}
+
 	/// Implementation of iEigen
 	void assign (size_t, RTMemptrT&) override {}
 
@@ -254,6 +322,7 @@ struct SrcRef final : public iSrcRef
 
 	void assign (const void* ptr,
 		egen::_GENERATED_DTYPE dtype,
+		const OptSparseT& sparse_info,
 		const teq::Shape& shape) override
 	{
 		if (dtype != egen::get_type<T>())
@@ -270,8 +339,94 @@ struct SrcRef final : public iSrcRef
 	}
 
 private:
+	iSrcRef* clone_impl (void) const
+	{
+		return new SrcRef<T>(*this);
+	}
+
 	/// Data Source
 	TensorT<T> data_;
+};
+
+template <typename T>
+struct SparseSrcRef final : public iSrcRef
+{
+	SparseSrcRef (T* data, const SparseInfo& sparse_info, teq::Shape shape) :
+		data_(make_smatmap(data, sparse_info, shape)) {}
+
+	/// Implementation of iDeviceRef
+	void* data (void) override
+	{
+		return data_.valuePtr();
+	}
+
+	/// Implementation of iDeviceRef
+	const void* data (void) const override
+	{
+		return data_.valuePtr();
+	}
+
+	teq::Once<void*> odata (void) override
+	{
+		teq::Once<void*> out(data());
+		return out;
+	}
+
+	teq::Once<const void*> odata (void) const override
+	{
+		teq::Once<const void*> out(data());
+		return out;
+	}
+
+	OptSparseT sparse_info (void) const override
+	{
+		return SparseInfo{
+			data_.innerIndexPtr(),
+			data_.outerIndexPtr(),
+			data_.nonZeros(),
+		};
+	}
+
+	/// Implementation of iEigen
+	void assign (size_t, RTMemptrT&) override {}
+
+	void assign (const SMatMapT<T>& input)
+	{
+		data_ = input;
+	}
+
+	void assign (const SMatrixT<T>& input)
+	{
+		data_ = input;
+	}
+
+	void assign (const void* ptr,
+		egen::_GENERATED_DTYPE dtype,
+		const OptSparseT& sparse_info,
+		const teq::Shape& shape) override
+	{
+		assert(bool(sparse_info));
+		if (dtype != egen::get_type<T>())
+		{
+			size_t nelems = shape.n_elems();
+			std::vector<T> data(nelems);
+			egen::type_convert(&data[0], ptr, dtype, nelems);
+			data_ = eigen::make_smatmap<T>(data.data(), *sparse_info, shape);
+		}
+		else
+		{
+			data_ = eigen::make_smatmap<T>((T*) ptr, *sparse_info, shape);
+		}
+	}
+
+private:
+	iSrcRef* clone_impl (void) const
+	{
+		return new SparseSrcRef<T>(*this);
+	}
+
+	/// Data Source
+	mutable SMatrixT<T> data_;
 };
 
 template <typename T>
@@ -328,6 +483,11 @@ struct TensOp final : public iTmpEigen<T>
 	TensOp (const teq::Shape& outshape, const teq::CTensT& args, OpF op) :
 		outshape_(outshape), op_(op), args_(args) {}
 
+	OptSparseT sparse_info (void) const override
+	{
+		return OptSparseT();
+	}
+
 	/// Implementation of iEigen
 	void assign (size_t ttl, RTMemptrT& runtime) override
 	{
@@ -372,6 +532,11 @@ struct MatOp final : public iTmpEigen<T>
 	MatOp (const teq::Shape& outshape, const teq::CTensT& args, OpF op) :
 		outshape_(outshape), op_(op), args_(args) {}
 
+	OptSparseT sparse_info (void) const override
+	{
+		return OptSparseT();
+	}
+
 	/// Implementation of iEigen
 	void assign (size_t ttl, RTMemptrT& runtime) override
 	{
@@ -408,11 +573,115 @@ private:
 	teq::CTensT args_;
 };
 
+template <typename T>
+struct SparseMatOp final : public iPermEigen
+{
+	using OpF = std::function<SMatrixT<T>(const teq::CTensT&)>;
+
+	SparseMatOp (const teq::CTensT& args, OpF op) :
+		op_(op), args_(args) {}
+
+	/// Implementation of iDeviceRef
+	void* data (void) override
+	{
+		return data_.valuePtr();
+	}
+
+	/// Implementation of iDeviceRef
+	const void* data (void) const override
+	{
+		return data_.valuePtr();
+	}
+
+	teq::Once<void*> odata (void) override
+	{
+		teq::Once<void*> out(data());
+		return out;
+	}
+
+	teq::Once<const void*> odata (void) const override
+	{
+		teq::Once<const void*> out(data());
+		return out;
+	}
+
+	OptSparseT sparse_info (void) const override
+	{
+		return SparseInfo{
+			data_.innerIndexPtr(),
+			data_.outerIndexPtr(),
+			data_.nonZeros()
+		};
+	}
+
+	/// Implementation of iEigen
+	void assign (size_t ttl, RTMemptrT& runtime) override
+	{
+		data_ = op_(args_);
+	}
+
+private:
+	OpF op_;
+
+	mutable SMatrixT<T> data_;
+
+	/// Tensor operator arguments
+	teq::CTensT args_;
+};
+
+template <typename T>
+struct GenericMatOp final : public iTmpEigen<T>
+{
+	using OpF = std::function<void(MatMapT<T>&,const teq::CTensT&)>;
+
+	GenericMatOp (const teq::Shape& outshape, const teq::CTensT& args, OpF op) :
+		outshape_(outshape), op_(op), args_(args) {}
+
+	OptSparseT sparse_info (void) const override
+	{
+		return OptSparseT();
+	}
+
+	/// Implementation of iEigen
+	void assign (size_t ttl, RTMemptrT& runtime) override
+	{
+		if (this->data_.is_expired())
+		{
+			this->data_.borrow(runtime, outshape_.n_elems(), ttl);
+		}
+		else
+		{
+			this->data_.extend_life(ttl);
+		}
+		// argument transformation is the most expensive operation
+		auto out = make_matmap(this->data_.get(), outshape_);
+		op_(out, args_);
+	}
+
+private:
+	teq::Shape outshape_;
+
+	OpF op_;
+
+	/// Tensor operator arguments
+	teq::CTensT args_;
+};
+
 struct iRefEigen : public iEigen
 {
 	iRefEigen (teq::iTensor& ref) : ref_(&ref) {}
 
 	virtual ~iRefEigen (void) = default;
+
+	OptSparseT sparse_info (void) const override
+	{
+		OptSparseT sinfo;
+		if (auto dev = dynamic_cast<iEigen*>(&ref_->device()))
+		{
+			sinfo = dev->sparse_info();
+		}
+		return sinfo;
+	}
 
 	teq::Once<void*> odata (void) override
 	{
@@ -562,6 +831,87 @@ struct TensAssign final : public iRefEigen
 		auto src_data = (T*) arg_->device().data();
 		auto out = make_tensmap(dst_data, this->ref_->shape());
 		assign_(out, make_tensmap(src_data, arg_->shape()));
+	}
+
+private:
+	/// Assignment argument
+	const teq::iTensor* arg_;
+
+	AssignF assign_;
+};
+
+template <typename T>
+struct MatAssign final : public iRefEigen
+{
+	using AssignF = std::function<void(MatMapT<T>&,const teq::iTensor&)>;
+
+	MatAssign (teq::iTensor& target, const teq::iTensor& arg, AssignF assign) :
+		iRefEigen(target), arg_(&arg), assign_(assign) {}
+
+	/// Implementation of iDeviceRef
+	void* data (void) override
+	{
+		return this->ref_->device().data();
+	}
+
+	/// Implementation of iDeviceRef
+	const void* data (void) const override
+	{
+		return this->ref_->device().data();
+	}
+
+	/// Implementation of iEigen
+	void assign (size_t ttl, RTMemptrT&) override
+	{
+		extend_life(ttl);
+		auto next_version = arg_->get_meta().state_version() + 1;
+		static_cast<iMutableLeaf*>(this->ref_)->upversion(next_version);
+		auto dst_data = (T*) this->ref_->device().data();
+		auto out = make_matmap(dst_data, this->ref_->shape());
+		assign_(out, *arg_);
+	}
+
+private:
+	/// Assignment argument
+	const teq::iTensor* arg_;
+
+	AssignF assign_;
+};
+
+template <typename T>
+struct SparseMatAssign final : public iRefEigen
+{
+	using AssignF = std::function<void(SMatMapT<T>&,const SMatMapT<T>&)>;
+
+	SparseMatAssign (teq::iTensor& target, const teq::iTensor& arg, AssignF assign) :
+		iRefEigen(target), arg_(&arg), assign_(assign) {}
+
+	/// Implementation of iDeviceRef
+	void* data (void) override
+	{
+		return this->ref_->device().data();
+	}
+
+	/// Implementation of iDeviceRef
+	const void* data (void) const override
+	{
+		return this->ref_->device().data();
+	}
+
+	/// Implementation of iEigen
+	void assign (size_t ttl, RTMemptrT&) override
+	{
+		extend_life(ttl);
+		auto next_version = arg_->get_meta().state_version() + 1;
+		static_cast<iMutableLeaf*>(this->ref_)->upversion(next_version);
+		auto dev = dynamic_cast<const iEigen*>(&this->ref_->device());
+		assert(dev != nullptr);
+		auto dst_data = (T*) dev->data();
+		auto sinfo = dev->sparse_info();
+		assert(bool(sinfo));
+		auto out = make_smatmap(dst_data, *sinfo, this->ref_->shape());
+		auto src = make_smatmap<T>(*arg_);
+		assign_(out, src.get());
 	}
 
 private:

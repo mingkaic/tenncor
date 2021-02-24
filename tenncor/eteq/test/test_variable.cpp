@@ -116,7 +116,7 @@ TEST(VARIABLE, Assign)
 
 	eigen::TensorT<double> atensor(3, 4, 1, 1, 1, 1, 1, 1);
 	atensor.setZero();
-	a->assign(atensor);
+	a->assign<double>(atensor);
 	EXPECT_EQ(5, a->get_meta().state_version());
 
 	auto adata = (double*) a->device().data();

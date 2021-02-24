@@ -1,4 +1,4 @@
-//
+///
 /// etens.hpp
 /// eteq
 ///
@@ -106,12 +106,12 @@ struct ETensor
 		return nullptr;
 	}
 
-	teq::iTensor& operator* () const
+	teq::iTensor& operator* (void) const
 	{
 		return *get();
 	}
 
-	teq::iTensor* operator-> () const
+	teq::iTensor* operator-> (void) const
 	{
 		return get();
 	}

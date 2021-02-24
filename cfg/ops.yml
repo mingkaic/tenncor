@@ -102,9 +102,9 @@ opcode:
       stmt: out = eigen::rand_uniform<T>(outshape, *in[0], *in[1]);
       idempotent: False
     REVERSE:
-      stmt: out = eigen::reverse<T>(outshape, *in[0], attrib);
+      stmt: out = eigen::reverse<T>(outshape, in[0], attrib);
     REDUCE_SUM:
-      stmt: out = eigen::reduce_sum<T>(outshape, *in[0], attrib);
+      stmt: out = eigen::reduce_sum<T>(outshape, in[0], attrib);
       FuncOpt:
         out:
           val: |
@@ -138,19 +138,19 @@ opcode:
                     }
                     return teq::Shape(slist);
     REDUCE_PROD:
-      stmt: out = eigen::reduce_prod<T>(outshape, *in[0], attrib);
+      stmt: out = eigen::reduce_prod<T>(outshape, in[0], attrib);
       FuncOpt: REDUCE_SUM
       ShapeParser: REDUCE_SUM
     REDUCE_MIN:
-      stmt: out = eigen::reduce_min<T>(outshape, *in[0], attrib);
+      stmt: out = eigen::reduce_min<T>(outshape, in[0], attrib);
       FuncOpt: REDUCE_SUM
       ShapeParser: REDUCE_SUM
     REDUCE_MAX:
-      stmt: out = eigen::reduce_max<T>(outshape, *in[0], attrib);
+      stmt: out = eigen::reduce_max<T>(outshape, in[0], attrib);
       FuncOpt: REDUCE_SUM
       ShapeParser: REDUCE_SUM
     ARGMAX:
-      stmt: out = eigen::argmax<T>(outshape, *in[0], attrib);
+      stmt: out = eigen::argmax<T>(outshape, in[0], attrib);
       FuncOpt:
         out:
           val: |
@@ -186,7 +186,7 @@ opcode:
                     slist[return_dim] = 1;
                     return teq::Shape(slist);
     PERMUTE:
-      stmt: out = eigen::permute<T>(outshape, *in[0], attrib);
+      stmt: out = eigen::permute<T>(outshape, in[0], attrib);
       FuncOpt:
         out:
           val: |
@@ -238,7 +238,7 @@ opcode:
                     }
                     return teq::Shape(slist);
     EXTEND:
-      stmt: out = eigen::extend<T>(outshape, *in[0], attrib);
+      stmt: out = eigen::extend<T>(outshape, in[0], attrib);
       FuncOpt:
         out:
           val: |

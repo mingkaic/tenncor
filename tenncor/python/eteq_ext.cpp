@@ -274,7 +274,7 @@ void eteq_ext (py::module& m)
 		{
 			teq::Shape shape;
 			auto vec = pyutils::arr2shapedarr<PybindT>(shape, data);
-			self->assign(vec.data(), shape, ctx);
+			self->assign(vec.data(), eigen::OptSparseT(), shape, ctx);
 		},
 		"Assign numpy data array to variable",
 		py::arg("data"),

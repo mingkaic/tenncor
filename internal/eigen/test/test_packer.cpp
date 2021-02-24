@@ -123,10 +123,10 @@ TEST_F(PACKER, MakeEigenmap)
 	EXPECT_ARREQ(shape, tshape);
 
 	EXPECT_CALL(*logger_, supports_level(logs::fatal_level)).WillRepeatedly(Return(true));
-	std::string fatalmsg = "cannot get matmap from nullptr";
+	std::string fatalmsg = "cannot get matrix map with null data";
 	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg)));;
 	EXPECT_FATAL(eigen::make_matmap<double>(nullptr, teq::Shape()), fatalmsg.c_str());
-	std::string fatalmsg1 = "cannot get tensmap from nullptr";
+	std::string fatalmsg1 = "cannot get tensor map with null data";
 	EXPECT_CALL(*logger_, log(logs::fatal_level, fatalmsg1, _)).Times(1).WillOnce(Throw(exam::TestException(fatalmsg1)));;
 	EXPECT_FATAL(eigen::make_tensmap<double>(nullptr, teq::Shape()), fatalmsg1.c_str());
 }

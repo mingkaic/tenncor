@@ -22,7 +22,13 @@ struct Constant final : public teq::iLeaf
 	/// shape.n_elems() values of data pointer
 	static Constant<T>* get (T* data, teq::Shape shape)
 	{
-		return new Constant(data, shape);
+		return new Constant(data, eigen::OptSparseT(), shape);
+	}
+
+	static Constant<T>* get (T* data,
+		const eigen::OptSparseT& sparse_info, teq::Shape shape)
+	{
+		return new Constant(data, sparse_info, shape);
 	}
 
 	Constant<T>* clone (void) const
@@ -45,13 +51,13 @@ struct Constant final : public teq::iLeaf
 	/// Implementation of iTensor
 	teq::iDeviceRef& device (void) override
 	{
-		return ref_;
+		return *ref_;
 	}
 
 	/// Implementation of iTensor
 	const teq::iDeviceRef& device (void) const override
 	{
-		return ref_;
+		return *ref_;
 	}
 
 	/// Implementation of iTensor
@@ -82,10 +88,13 @@ struct Constant final : public teq::iLeaf
 	}
 
 private:
-	Constant (T* data, teq::Shape shape) :
-		ref_(data, shape), shape_(shape) {}
+	Constant (T* data, const eigen::OptSparseT& sparse_info, teq::Shape shape) :
+		ref_(bool(sparse_info) ?
+			(eigen::SrcRef<T>*) new eigen::SparseSrcRef<T>(data, *sparse_info, shape) :
+			(eigen::SrcRef<T>*) new eigen::SrcRef<T>(data, shape)), shape_(shape) {}
 
-	Constant (const Constant<T>& other) = default;
+	Constant (const Constant<T>& other) :
+		ref_(other.ref_->clone()), shape_(other.shape_), meta_(other.meta_) {}
 
 	teq::iTensor* clone_impl (void) const override
 	{
@@ -93,7 +102,7 @@ private:
 	}
 
 	/// Data Source
-	eigen::SrcRef<T> ref_;
+	eigen::SrcRefptrT ref_;
 
 	/// Shape utility to avoid excessive conversion between data_.dimensions()
 	teq::Shape shape_;

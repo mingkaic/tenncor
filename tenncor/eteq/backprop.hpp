@@ -79,15 +79,25 @@ static teq::TensptrT lazy_jacobian (egen::_GENERATED_DTYPE dtype,
 	auto imap = eigen::make_tensmap(is.data(), inshape);
 	auto indices = manidx(imap);
 	size_t* idx = indices.data();
-	std::vector<float> mat(m * n, 0);
+
+	std::vector<eigen::StorageIdxT> inner;
+	std::vector<eigen::StorageIdxT> outer;
+	inner.reserve(n);
+	outer.reserve(n + 1);
+	outer.push_back(0);
 	for (size_t y = 0; y < n; ++y)
 	{
 		if (idx[y] < m)
 		{
-			mat[y * m + idx[y]] = 1.f;
+			inner.push_back(idx[y]);
 		}
+		outer.push_back(inner.size());
 	}
-	return make_constant_tensor(mat.data(), jacshape, dtype);
+	std::vector<float> smat(inner.size(), 1);
+	return make_constant_tensor(smat.data(), jacshape, dtype,
+	eigen::SparseInfo{
+		inner.data(), outer.data(), inner.size()
+	});
 }
 
 static teq::TensptrT permute_jacobian (teq::RanksT order,
@@ -138,7 +148,9 @@ static teq::TensptrT rsum_jacobian (std::set<teq::RankT> ranks,
 	teq::DimT m = inshape.n_elems();
 	teq::DimT n = outshape.n_elems();
 	teq::Shape jacshape({m, n});
-	std::vector<float> mat(m * n, 0);
+
+	std::vector<Eigen::Triplet<bool>> triplets;
+	triplets.reserve(m);
 	for (size_t i = 0; i < m; ++i)
 	{
 		auto coord = teq::coordinate(inshape, i);
@@ -147,9 +159,16 @@ static teq::TensptrT rsum_jacobian (std::set<teq::RankT> ranks,
 			coord[rank] = 0;
 		}
 		size_t j = teq::index(outshape, coord);
-		mat[i + j * m] = 1;
+		triplets.push_back(Eigen::Triplet<bool>(j, i, true));
 	}
-	return make_constant_tensor(mat.data(), jacshape, dtype);
+	eigen::SMatrixT<bool> mimick(n, m);
+	mimick.setFromTriplets(triplets.begin(), triplets.end());
+	auto nzs = mimick.nonZeros();
+	std::vector<float> smat(nzs, 1);
+	return make_constant_tensor(smat.data(), jacshape, dtype,
+	eigen::SparseInfo{
+		mimick.innerIndexPtr(), mimick.outerIndexPtr(), nzs
+	});
 }
 
 static teq::TensptrT contract_jacobian (
@@ -640,6 +659,9 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 				std::vector<float> matxy(m * n, 0);
 				std::vector<float> matxz(m * m, 1);
 				std::vector<size_t> outbins[n];
+				//eigen::SMatrixT<float> matxy(n, m);
+				//eigen::TripletsT<float> tripxy;
+				//tripxy.reserve(m);
 				for (size_t i = 0; i < m; ++i)
 				{
 					auto coord = teq::coordinate(inshape, i);
@@ -648,6 +670,7 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 						coord[rank] = 0;
 					}
 					size_t j = teq::index(outshape, coord);
+					//tripxy.push_back(eigen::TripletT<T>(j, i, 1));
 					matxy[i + j * m] = 1;
 					outbins[j].push_back(i);
 				}
@@ -690,7 +713,8 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 				teq::DimT m = inshape.n_elems();
 				teq::DimT n = outshape.n_elems();
 				teq::Shape jacshape({(teq::DimT) m, (teq::DimT) n});
-				std::vector<float> mat(m * n, 0);
+				eigen::TripletsT<float> trips;
+				trips.reserve(m);
 				for (size_t i = 0; i < m; ++i)
 				{
 					auto coord = teq::coordinate(inshape, i);
@@ -699,11 +723,16 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 						coord[rank] = 0;
 					}
 					size_t j = teq::index(outshape, coord);
-					mat[i + j * m] = 1.f;
+					trips.push_back(eigen::TripletT<float>(j, i, 1));
 				}
+				eigen::SMatrixT<float> mat(n, m);
+				mat.setFromTriplets(trips.begin(), trips.end());
 				auto flatx = make_functor(egen::RESHAPE, {arg}, teq::Shape({m}));
 				auto flaty = make_functor(egen::RESHAPE, {op}, teq::Shape({1, n}));
-				auto onemask = make_constant_tensor(mat.data(), jacshape, dtype);
+				auto onemask = make_constant_tensor(mat.valuePtr(), jacshape, dtype,
+					eigen::SparseInfo{
+						mat.innerIndexPtr(), mat.outerIndexPtr(), mat.nonZeros()
+					});
 				auto jacobian = make_functor(egen::MUL, {
 					make_functor(egen::EQ, {
 						make_functor(egen::EXTEND, {flatx}, teq::DimsT{1, n}),

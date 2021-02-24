@@ -79,7 +79,7 @@ if '__main__' == __name__:
             elif args.testname == 'tf':
                 compare = tf_matmul
             else:
-                print('unknown {} benchmark: {}'.format(args.bmtype, args.testcase))
+                print('unknown {} benchmark: {}'.format(args.bmtype, args.testname))
                 exit(1)
         elif args.bmtype == 'mlp':
             if args.testname == 'tc':
@@ -87,7 +87,7 @@ if '__main__' == __name__:
             elif args.testname == 'tf':
                 compare = tf_mlp
             else:
-                print('unsupported {} benchmark: {}'.format(args.bmtype, args.testcase))
+                print('unsupported {} benchmark: {}'.format(args.bmtype, args.testname))
                 exit(1)
         elif args.bmtype == 'mlp_grad':
             if args.testname == 'tc':
@@ -95,7 +95,7 @@ if '__main__' == __name__:
             elif args.testname == 'tf':
                 compare = tf_mlp_grad
             else:
-                print('unsupported {} benchmark: {}'.format(args.bmtype, args.testcase))
+                print('unsupported {} benchmark: {}'.format(args.bmtype, args.testname))
                 exit(1)
         else:
             print('unknown benchmark: {}'.format(args.bmtype))

@@ -67,32 +67,69 @@ struct Variable final : public eigen::iMutableLeaf
 	Variable& operator = (Variable&& other) = delete;
 
 	template <typename T>
-	void assign (const eigen::TensMapT<T>& input,
-		const global::CfgMapptrT& ctx = global::context())
-	{
-		size_t last_version = get_lastvers(ctx);
-		upversion(last_version + 1);
-		this->ref_->assign(input.data(), egen::get_type<T>(), eigen::get_shape(input));
-	}
-
-	template <typename T>
 	void assign (const eigen::TensorT<T>& input,
 		const global::CfgMapptrT& ctx = global::context())
 	{
 		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
-		this->ref_->assign(input.data(), egen::get_type<T>(), eigen::get_shape(input));
+		this->ref_->assign(input.data(), egen::get_type<T>(),
+			eigen::OptSparseT(), eigen::get_shape(input));
 	}
+
+	template <typename T>
+	void assign (const eigen::TensMapT<T>& input,
+		const global::CfgMapptrT& ctx = global::context())
+	{
+		size_t last_version = get_lastvers(ctx);
+		upversion(last_version + 1);
+		this->ref_->assign(input.data(), egen::get_type<T>(),
+			eigen::OptSparseT(), eigen::get_shape(input));
+	}
+
+	template <typename T>
+	void assign (const eigen::MatBaseT<T>& input,
+		const global::CfgMapptrT& ctx = global::context())
+	{
+		size_t last_version = get_lastvers(ctx);
+		upversion(last_version + 1);
+		this->ref_->assign(input.data(), egen::get_type<T>(),
+			eigen::OptSparseT(), teq::Shape({input.cols(), input.rows()}));
+	}
+
+	//template <typename T>
+	//void assign (const eigen::SparseBaseT<T>& input,
+		//const global::CfgMapptrT& ctx = global::context())
+	//{
+		//size_t last_version = get_lastvers(ctx);
+		//upversion(last_version + 1);
+		//this->ref_->assign(input.valuePtr(), egen::get_type<T>(),
+			//eigen::OptSparseT({input.innerIndexPtr(), input.outerIndexPtr(),
+				//input.nonZeros()}), teq::Shape({input.cols(), input.rows()}));
+	//}
 
 	template <typename T>
 	void assign (const T* input, teq::Shape shape,
 		const global::CfgMapptrT& ctx = global::context())
 	{
-		assign(input, egen::get_type<T>(), shape, ctx);
+		assign(input, egen::get_type<T>(), eigen::OptSparseT(), shape, ctx);
+	}
+
+	template <typename T>
+	void assign (const T* input, const eigen::OptSparseT& sparse_info,
+		teq::Shape shape, const global::CfgMapptrT& ctx = global::context())
+	{
+		assign(input, egen::get_type<T>(), sparse_info, shape, ctx);
+	}
+
+	void assign (const void* input, egen::_GENERATED_DTYPE dtype,
+		teq::Shape shape, const global::CfgMapptrT& ctx = global::context())
+	{
+		assign(input, dtype, eigen::OptSparseT(), shape, ctx);
 	}
 
 	/// Assign void pointer of specified data type enum and shape
-	void assign (const void* input, egen::_GENERATED_DTYPE dtype,
+	void assign (const void* input,
+		egen::_GENERATED_DTYPE dtype, const eigen::OptSparseT& sparse_info,
 		teq::Shape shape, const global::CfgMapptrT& ctx = global::context())
 	{
 		if (false == shape.compatible_after(this->shape_, 0))
@@ -102,7 +139,7 @@ struct Variable final : public eigen::iMutableLeaf
 		}
 		size_t last_version = get_lastvers(ctx);
 		upversion(last_version + 1);
-		this->ref_->assign(input, dtype, shape);
+		this->ref_->assign(input, dtype, sparse_info, shape);
 	}
 
 	/// Implementation of iTensor

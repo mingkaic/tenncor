@@ -10,6 +10,7 @@
 #define EIGEN_CONVERT_HPP
 
 #include "Eigen/Core"
+#include "Eigen/Sparse"
 #include "unsupported/Eigen/CXX11/Tensor"
 
 #include "internal/teq/teq.hpp"
@@ -20,21 +21,52 @@ namespace eigen
 /// Eigen shape
 using DimensionsT = std::array<Eigen::Index,teq::rank_cap>;
 
+using StorageIdxT = int32_t;
+
+template <typename T>
+using TripletT = Eigen::Triplet<T>;
+
+template <typename T>
+using TripletsT = std::vector<TripletT<T>>;
+
+/// Sparse Eigen Matrix
+template <typename T>
+using SMatrixT = Eigen::SparseMatrix<T,Eigen::RowMajor,StorageIdxT>;
+
+/// Eigen Sparse Matrix Map
+template <typename T>
+using SMatMapT = Eigen::Map<SMatrixT<T>>;
+
+template <typename T>
+using SparseBaseT = Eigen::MatrixBase<SMatrixT<T>>; // either SMatrixT or SMatMapT
+
 /// Eigen Matrix
 template <typename T>
-using  MatrixT = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor>;
+using MatrixT = Eigen::Matrix<T,Eigen::Dynamic,Eigen::Dynamic,Eigen::RowMajor>;
 
-/// Eigen Matrix Map (reference)
+/// Eigen Matrix Map
 template <typename T>
 using MatMapT = Eigen::Map<MatrixT<T>>;
+
+template <typename T>
+using MatBaseT = Eigen::MatrixBase<MatrixT<T>>; // either MatrixT or MatMapT
 
 /// Eigen Tensor
 template <typename T>
 using TensorT = Eigen::Tensor<T,teq::rank_cap>;
 
-/// Eigen Tensor Map (reference)
+/// Eigen Tensor Map
 template <typename T>
 using TensMapT = Eigen::TensorMap<TensorT<T>>;
+
+struct SparseInfo final
+{
+	StorageIdxT* inner_indices_;
+
+	StorageIdxT* outer_indices_;
+
+	int64_t non_zeros_;
+};
 
 /// Return Matrix Map given Tensor
 template <typename T>
@@ -80,10 +112,21 @@ inline MatMapT<T> make_matmap (T* data, const teq::Shape& shape)
 {
 	if (nullptr == data)
 	{
-		global::fatal("cannot get matmap from nullptr");
+		global::fatal("cannot get matrix map with null data");
 	}
-	auto shapel = shape.to_list();
-	return MatMapT<T>(data, shapel.at(1), shapel.at(0));
+	return MatMapT<T>(data, shape.at(1), shape.at(0));
+}
+
+template <typename T>
+inline SMatMapT<T> make_smatmap (T* nzdata,
+	const SparseInfo& sinfo, const teq::Shape& shape)
+{
+	if (nullptr == nzdata)
+	{
+		global::fatal("cannot get sparse matrix map with null data");
+	}
+	return SMatMapT<T>(shape.at(1), shape.at(0), sinfo.non_zeros_,
+		sinfo.outer_indices_, sinfo.inner_indices_, nzdata);
 }
 
 /// Return Eigen Tensor given raw data and teq Shape
@@ -95,7 +138,7 @@ inline TensMapT<T> make_tensmap (T* data, const teq::Shape& shape)
 	std::copy(shapel.begin(), shapel.end(), slist.begin());
 	if (nullptr == data)
 	{
-		global::fatal("cannot get tensmap from nullptr");
+		global::fatal("cannot get tensor map with null data");
 	}
 	return TensMapT<T>(data, slist);
 }

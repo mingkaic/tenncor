@@ -37,9 +37,19 @@ struct Once final : public jobs::ScopeGuard
 		return obj_;
 	}
 
-	T get (void) const
+	const T& get (void) const
 	{
 		return obj_;
+	}
+
+	T* operator-> (void)
+	{
+		return &obj_;
+	}
+
+	const T* operator-> (void) const
+	{
+		return &obj_;
 	}
 
 private:
