@@ -536,9 +536,6 @@ TEST(OPERATOR, SparseArgMax)
 	auto edge2 = make_sparse_var(orig_raw2, inner_indices, outer_indices,
 		mockdev2, teq::Shape({3, 2}), "", incr_life);
 
-	EXPECT_CALL(mockdev2, sparse_info()).WillRepeatedly(Return(eigen::SparseInfo{
-		inner_indices.data(), outer_indices.data(), 3}));
-
 	std::vector<double> outdata2(6);
 	{
 #ifndef PERM_OP
@@ -3159,25 +3156,30 @@ TEST(OPERATOR, SparseMatmul)
 {
 	std::vector<double> outdata(6);
 	auto memory = std::make_shared<MockRuntimeMemory>();
+	MockEigen mockdeva;
+	MockEigen mockdevb;
 	teq::Shape outshape({2, 3});
 	teq::Shape lshape({4, 3});
 	teq::Shape rshape({2, 4});
-	std::vector<double> orig_rawa{2, 5, 7, 3};
-	std::vector<double> orig_rawb{1, 9, 8};
-	MockEigen mockdeva;
-	MockEigen mockdevb;
-	auto edgea = make_var(orig_rawa.data(), mockdeva, lshape);
-	auto edgeb = make_var(orig_rawb.data(), mockdevb, rshape);
-
-	std::vector<eigen::StorageIdxT> inner_indicesa = {0, 3, 1, 3};
-	std::vector<eigen::StorageIdxT> outer_indicesa = {0, 2, 3, 4};
-	std::vector<eigen::StorageIdxT> inner_indicesb = {0, 1, 1};
-	std::vector<eigen::StorageIdxT> outer_indicesb = {0, 1, 2, 2, 3};
-
-	EXPECT_CALL(mockdeva, sparse_info()).WillRepeatedly(Return(eigen::SparseInfo{
-		inner_indicesa.data(), outer_indicesa.data(), 3}));
-	EXPECT_CALL(mockdevb, sparse_info()).WillRepeatedly(Return(eigen::SparseInfo{
-		inner_indicesb.data(), outer_indicesb.data(), 3}));
+	std::vector<double> orig_rawa{
+		2, 0, 0, 5,
+		0, 7, 0, 0,
+		0, 0, 0, 3,
+	};
+	std::vector<double> orig_rawb{
+		1, 0,
+		0, 9,
+		0, 0,
+		0, 8,
+	};
+	std::vector<eigen::StorageIdxT> inner_indicesa;
+	std::vector<eigen::StorageIdxT> outer_indicesa;
+	std::vector<eigen::StorageIdxT> inner_indicesb;
+	std::vector<eigen::StorageIdxT> outer_indicesb;
+	auto edgea = make_sparse_var(orig_rawa,
+		inner_indicesa, outer_indicesa, mockdeva, lshape);
+	auto edgeb = make_sparse_var(orig_rawb,
+		inner_indicesb, outer_indicesb, mockdevb, rshape);
 
 	marsh::Maps mvalues;
 	eigen::Packer<eigen::PairVecT<teq::RankT>>().pack(mvalues, {{0, 1}});
@@ -3203,31 +3205,12 @@ TEST(OPERATOR, SparseMatmul)
 	double* raw = (double*) r->data();
 	ASSERT_NE(nullptr, raw);
 
-	// 2, 40,
-	// 0, 63,
-	// 0, 24
 	std::vector<double> expect_raw = {
-		2, 40, 63, 24
+		2, 40,
+		0, 63,
+		0, 24,
 	};
-	std::vector<double> expect_inner = {
-		0, 1, 1, 1
-	};
-	std::vector<double> expect_outer = {
-		0, 2, 3, 4
-	};
-	auto sinfo = r->sparse_info();
-	ASSERT_TRUE(sinfo);
-	ASSERT_EQ(4, sinfo->non_zeros_);
-
-	std::vector<double> got_raw(raw, raw + 4);
-	EXPECT_VECEQ(expect_raw, got_raw);
-
-	std::vector<eigen::StorageIdxT> out_inner(
-		sinfo->inner_indices_, sinfo->inner_indices_ + 4);
-	std::vector<eigen::StorageIdxT> out_outer(
-		sinfo->outer_indices_, sinfo->outer_indices_ + 4);
-	EXPECT_VECEQ(expect_inner, out_inner);
-	EXPECT_VECEQ(expect_outer, out_outer);
+	expect_sparse_eq(expect_raw, outshape, r);
 }
 
 

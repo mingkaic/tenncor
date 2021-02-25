@@ -95,9 +95,7 @@ static teq::TensptrT lazy_jacobian (egen::_GENERATED_DTYPE dtype,
 	}
 	std::vector<float> smat(inner.size(), 1);
 	return make_constant_tensor(smat.data(), jacshape, dtype,
-	eigen::SparseInfo{
-		inner.data(), outer.data(), inner.size()
-	});
+		eigen::SparseInfo{ inner.data(), outer.data(), inner.size() });
 }
 
 static teq::TensptrT permute_jacobian (teq::RanksT order,
@@ -165,10 +163,8 @@ static teq::TensptrT rsum_jacobian (std::set<teq::RankT> ranks,
 	mimick.setFromTriplets(triplets.begin(), triplets.end());
 	auto nzs = mimick.nonZeros();
 	std::vector<float> smat(nzs, 1);
-	return make_constant_tensor(smat.data(), jacshape, dtype,
-	eigen::SparseInfo{
-		mimick.innerIndexPtr(), mimick.outerIndexPtr(), nzs
-	});
+	return make_constant_tensor(smat.data(),
+		jacshape, dtype, eigen::SparseInfo::get<bool>(mimick));
 }
 
 static teq::TensptrT contract_jacobian (
@@ -687,10 +683,8 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 						}
 					}
 				}
-				auto xymask = make_constant_tensor(matxy.valuePtr(), jxyshape, dtype,
-				eigen::SparseInfo{
-					matxy.innerIndexPtr(), matxy.outerIndexPtr(), matxy.nonZeros(),
-				});
+				auto xymask = make_constant_tensor(matxy.valuePtr(),
+					jxyshape, dtype, eigen::SparseInfo::get<float>(matxy));
 				auto xzmask = make_constant_tensor(matxz.data(), jxzshape, dtype);
 				auto flatz = make_functor(egen::RESHAPE, {arg}, teq::Shape({1, 1, m}));
 				auto xzplane = make_functor(egen::EXTEND, {flatz}, teq::DimsT{m});
@@ -731,10 +725,8 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 				mat.setFromTriplets(trips.begin(), trips.end());
 				auto flatx = make_functor(egen::RESHAPE, {arg}, teq::Shape({m}));
 				auto flaty = make_functor(egen::RESHAPE, {op}, teq::Shape({1, n}));
-				auto onemask = make_constant_tensor(mat.valuePtr(), jacshape, dtype,
-				eigen::SparseInfo{
-					mat.innerIndexPtr(), mat.outerIndexPtr(), mat.nonZeros()
-				});
+				auto onemask = make_constant_tensor(mat.valuePtr(),
+					jacshape, dtype, eigen::SparseInfo::get<float>(mat));
 				auto jacobian = make_functor(egen::MUL, {
 					make_functor(egen::EQ, {
 						make_functor(egen::EXTEND, {flatx}, teq::DimsT{1, n}),
@@ -913,10 +905,8 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 
 				teq::DimsT halfi(ishape.begin() + minkrank, ishape.end());
 				teq::Shape maskshape(teq::DimsT{nk, nkindices});
-				auto mask = make_constant_tensor(kernelmask.valuePtr(), maskshape, dtype,
-				eigen::SparseInfo{
-					kernelmask.innerIndexPtr(), kernelmask.outerIndexPtr(), kernelmask.nonZeros(),
-				});
+				auto mask = make_constant_tensor(kernelmask.valuePtr(),
+					maskshape, dtype, eigen::SparseInfo::get<float>(kernelmask));
 				auto transkin = make_functor(egen::MATMUL, {
 					mask,
 					make_functor(egen::RESHAPE, {krn}, teq::Shape({1, nk}))

@@ -380,11 +380,7 @@ struct SparseSrcRef final : public iSrcRef
 
 	OptSparseT sparse_info (void) const override
 	{
-		return SparseInfo{
-			data_.innerIndexPtr(),
-			data_.outerIndexPtr(),
-			data_.nonZeros(),
-		};
+		return SparseInfo::get<T>(data_);
 	}
 
 	/// Implementation of iEigen
@@ -607,11 +603,7 @@ struct SparseMatOp final : public iPermEigen
 
 	OptSparseT sparse_info (void) const override
 	{
-		return SparseInfo{
-			data_.innerIndexPtr(),
-			data_.outerIndexPtr(),
-			data_.nonZeros()
-		};
+		return SparseInfo::get<T>(data_);
 	}
 
 	/// Implementation of iEigen

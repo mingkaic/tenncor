@@ -12,6 +12,8 @@
 
 #include "tenncor/tenncor.hpp"
 
+#define EXPORT_TESTDATA
+
 
 #ifdef CMAKE_SOURCE_DIR
 const std::string testdir = std::string(CMAKE_SOURCE_DIR) + "models/test";
@@ -200,11 +202,13 @@ TEST(OPTIMIZE, RNNLayer)
 	roots = hone::optimize(roots, rulefile);
 
 	{
-		std::ofstream os("opt0.txt");
+#ifdef EXPORT_TESTDATA
+		std::ofstream os("/tmp/opt0.txt");
 		PrettyEquation artist;
 		artist.cfg_.showshape_ = true;
 		artist.cfg_.showtype_ = true;
 		artist.print(os, roots[0]);
+#endif
 
 		std::string expect_pbfile = testdir + "/opt0.txt";
 		std::ifstream expect_ifs(expect_pbfile);
@@ -214,11 +218,13 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[0]);
 	}
 	{
-		std::ofstream os("opt1.txt");
+#ifdef EXPORT_TESTDATA
+		std::ofstream os("/tmp/opt1.txt");
 		PrettyEquation artist;
 		artist.cfg_.showshape_ = true;
 		artist.cfg_.showtype_ = true;
 		artist.print(os, roots[1]);
+#endif
 
 		std::string expect_pbfile = testdir + "/opt1.txt";
 		std::ifstream expect_ifs(expect_pbfile);
@@ -228,11 +234,13 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[1]);
 	}
 	{
-		std::ofstream os("opt2.txt");
+#ifdef EXPORT_TESTDATA
+		std::ofstream os("/tmp/opt2.txt");
 		PrettyEquation artist;
 		artist.cfg_.showshape_ = true;
 		artist.cfg_.showtype_ = true;
 		artist.print(os, roots[2]);
+#endif
 
 		std::string expect_pbfile = testdir + "/opt2.txt";
 		std::ifstream expect_ifs(expect_pbfile);
@@ -242,11 +250,13 @@ TEST(OPTIMIZE, RNNLayer)
 		EXPECT_GRAPHEQ(expect, roots[2]);
 	}
 	{
-		std::ofstream os("opt3.txt");
+#ifdef EXPORT_TESTDATA
+		std::ofstream os("/tmp/opt3.txt");
 		PrettyEquation artist;
 		artist.cfg_.showshape_ = true;
 		artist.cfg_.showtype_ = true;
 		artist.print(os, roots[3]);
+#endif
 
 		std::string expect_pbfile = testdir + "/opt3.txt";
 		std::ifstream expect_ifs(expect_pbfile);
@@ -387,11 +397,13 @@ TEST(OPTIMIZE, CNNLayer)
 		(std::istreambuf_iterator<char>()));
 	EXPECT_GRAPHEQ(expect.c_str(), err);
 
-	std::ofstream os("cnn_opt.txt");
+#ifdef EXPORT_TESTDATA
+	std::ofstream os("/tmp/cnn_opt.txt");
 	PrettyEquation artist;
 	artist.cfg_.showshape_ = true;
 	artist.cfg_.showtype_ = true;
 	artist.print(os, err);
+#endif
 
 	teq::Evaluator eval;
 	eval.evaluate(device, {err.get()});

@@ -49,7 +49,7 @@ def tc_mlp_grad(matrix_dim):
     start = time.time()
     train_input.assign(test_batch)
     train_output.assign(test_batch_out)
-    train_err.release_get()
+    print(train_err.release_get())
     dur = time.time() - start
     return dur
 

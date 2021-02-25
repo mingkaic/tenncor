@@ -61,6 +61,15 @@ using TensMapT = Eigen::TensorMap<TensorT<T>>;
 
 struct SparseInfo final
 {
+	template <typename T>
+	static SparseInfo get (SMatrixT<T>& base)
+	{
+		return SparseInfo(base.innerIndexPtr(), base.outerIndexPtr(), base.nonZeros());
+	}
+
+	SparseInfo (StorageIdxT* inner, StorageIdxT* outer, int64_t non_zeros) :
+		inner_indices_(inner), outer_indices_(outer), non_zeros_(non_zeros) {}
+
 	StorageIdxT* inner_indices_;
 
 	StorageIdxT* outer_indices_;
