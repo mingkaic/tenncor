@@ -656,12 +656,11 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 				teq::DimT n = outshape.n_elems();
 				teq::Shape jxyshape({m, n});
 				teq::Shape jxzshape({m, 1, m});
-				std::vector<float> matxy(m * n, 0);
+				eigen::SMatrixT<float> matxy(n, m);
 				std::vector<float> matxz(m * m, 1);
 				std::vector<size_t> outbins[n];
-				//eigen::SMatrixT<float> matxy(n, m);
-				//eigen::TripletsT<float> tripxy;
-				//tripxy.reserve(m);
+				eigen::TripletsT<float> tripxy;
+				tripxy.reserve(m);
 				for (size_t i = 0; i < m; ++i)
 				{
 					auto coord = teq::coordinate(inshape, i);
@@ -670,10 +669,10 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 						coord[rank] = 0;
 					}
 					size_t j = teq::index(outshape, coord);
-					//tripxy.push_back(eigen::TripletT<T>(j, i, 1));
-					matxy[i + j * m] = 1;
+					tripxy.push_back(eigen::TripletT<float>(j, i, 1));
 					outbins[j].push_back(i);
 				}
+				matxy.setFromTriplets(tripxy.begin(), tripxy.end());
 				for (size_t i = 0; i < n; ++i)
 				{
 					auto& bin = outbins[i];
@@ -688,7 +687,10 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 						}
 					}
 				}
-				auto xymask = make_constant_tensor(matxy.data(), jxyshape, dtype);
+				auto xymask = make_constant_tensor(matxy.valuePtr(), jxyshape, dtype,
+				eigen::SparseInfo{
+					matxy.innerIndexPtr(), matxy.outerIndexPtr(), matxy.nonZeros(),
+				});
 				auto xzmask = make_constant_tensor(matxz.data(), jxzshape, dtype);
 				auto flatz = make_functor(egen::RESHAPE, {arg}, teq::Shape({1, 1, m}));
 				auto xzplane = make_functor(egen::EXTEND, {flatz}, teq::DimsT{m});
@@ -730,9 +732,9 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 				auto flatx = make_functor(egen::RESHAPE, {arg}, teq::Shape({m}));
 				auto flaty = make_functor(egen::RESHAPE, {op}, teq::Shape({1, n}));
 				auto onemask = make_constant_tensor(mat.valuePtr(), jacshape, dtype,
-					eigen::SparseInfo{
-						mat.innerIndexPtr(), mat.outerIndexPtr(), mat.nonZeros()
-					});
+				eigen::SparseInfo{
+					mat.innerIndexPtr(), mat.outerIndexPtr(), mat.nonZeros()
+				});
 				auto jacobian = make_functor(egen::MUL, {
 					make_functor(egen::EQ, {
 						make_functor(egen::EXTEND, {flatx}, teq::DimsT{1, n}),
@@ -897,19 +899,24 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 						maskindices.begin(), maskindices.end());
 				}
 
-				std::vector<float> kernelmask(nkindices * nk, 0);
+				eigen::SMatrixT<float> kernelmask(nkindices, nk);
+				eigen::TripletsT<float> trips;
+				trips.reserve(nkindices);
 				for (size_t i = 0; i < nkindices; ++i)
 				{
 					if (size_t j = kindices[i])
 					{
-						kernelmask[i * nk + j - 1] = 1;
+						trips.push_back(eigen::TripletT<float>(i, j - 1, 1.));
 					}
 				}
+				kernelmask.setFromTriplets(trips.begin(), trips.end());
 
 				teq::DimsT halfi(ishape.begin() + minkrank, ishape.end());
 				teq::Shape maskshape(teq::DimsT{nk, nkindices});
-				auto mask = make_constant_tensor(
-					kernelmask.data(), maskshape, dtype);
+				auto mask = make_constant_tensor(kernelmask.valuePtr(), maskshape, dtype,
+				eigen::SparseInfo{
+					kernelmask.innerIndexPtr(), kernelmask.outerIndexPtr(), kernelmask.nonZeros(),
+				});
 				auto transkin = make_functor(egen::MATMUL, {
 					mask,
 					make_functor(egen::RESHAPE, {krn}, teq::Shape({1, nk}))
