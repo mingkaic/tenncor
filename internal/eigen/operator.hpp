@@ -845,7 +845,6 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 					for (auto& arg : args)
 					{
 						auto smat = make_smatmap<T>(*arg);
-						auto nzs = smat->nonZeros();
 						for (int i = 0, n = smat->outerSize(); i < n; ++i)
 						{
 							for (typename SMatMapT<T>::InnerIterator it(smat.get(), i); it; ++it)
@@ -907,7 +906,6 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 					for (auto& arg : args)
 					{
 						auto smat = make_smatmap<T>(*arg);
-						auto nzs = smat->nonZeros();
 						for (int i = 0, n = smat->outerSize(); i < n; ++i)
 						{
 							for (typename SMatMapT<T>::InnerIterator it(smat.get(), i); it; ++it)
@@ -1988,35 +1986,59 @@ EigenptrT convolution (teq::Shape outshape, const teq::iTensor& input,
 	});
 }
 
-#define ASSIGN_OP(ASS)\
-if (is_2d(target.shape())){\
-	if (is_sparse(target)){\
-		return std::make_shared<SparseMatAssign<T>>(target, source,\
-		[](SMatMapT<T>& target, const SMatMapT<T>& source){\
-			target ASS source;\
-		});\
-	}return std::make_shared<MatAssign<T>>(target, source,\
-	[](MatMapT<T>& target, const teq::iTensor& source){\
-		if (is_sparse(source)){\
-			target ASS make_smatmap<T>(source).get();\
-		}else{\
-			target ASS make_matmap<T>(source).get();\
-		}\
-	});\
-}return std::make_shared<TensAssign<T>>(target, source,\
-[](TensMapT<T>& target, const TensMapT<T>& source){\
-	target ASS source;\
-});
-
 template <typename T>
 EigenptrT assign (teq::iTensor& target, const teq::iTensor& source)
 {
-	ASSIGN_OP(=)
+	if (is_2d(target.shape()))
+	{
+		if (is_sparse(target))
+		{
+			assert(is_sparse(source));
+			return std::make_shared<SparseMatAssign<T>>(target, source,
+			[](const SMatMapT<T>& target, const SMatMapT<T>& source) -> SMatrixT<T>
+			{
+				return source;
+			});
+		}
+		else if (is_sparse(source))
+		{
+			return std::make_shared<MatAssign<T>>(target, source,
+			[](MatMapT<T>& target, const teq::iTensor& source)
+			{
+				target = make_smatmap<T>(source).get();
+			});
+		}
+	}
+	return std::make_shared<TensAssign<T>>(target, source,
+	[](TensMapT<T>& target, const TensMapT<T>& source)
+	{
+		target = source;
+	});
 }
 
 template <typename T>
 EigenptrT assign_add (teq::iTensor& target, const teq::iTensor& source)
 {
+	if (is_2d(target.shape()))
+	{
+		if (is_sparse(target))
+		{
+			assert(is_sparse(source));
+			return std::make_shared<SparseMatAssign<T>>(target, source,
+			[](const SMatMapT<T>& target, const SMatMapT<T>& source) -> SMatrixT<T>
+			{
+				return target + source;
+			});
+		}
+		else if (is_sparse(source))
+		{
+			return std::make_shared<MatAssign<T>>(target, source,
+			[](MatMapT<T>& target, const teq::iTensor& source)
+			{
+				target += make_smatmap<T>(source).get();
+			});
+		}
+	}
 	return std::make_shared<TensAssign<T>>(target, source,
 	[](TensMapT<T>& target, const TensMapT<T>& source)
 	{
@@ -2027,6 +2049,26 @@ EigenptrT assign_add (teq::iTensor& target, const teq::iTensor& source)
 template <typename T>
 EigenptrT assign_sub (teq::iTensor& target, const teq::iTensor& source)
 {
+	if (is_2d(target.shape()))
+	{
+		if (is_sparse(target))
+		{
+			assert(is_sparse(source));
+			return std::make_shared<SparseMatAssign<T>>(target, source,
+			[](const SMatMapT<T>& target, const SMatMapT<T>& source) -> SMatrixT<T>
+			{
+				return target - source;
+			});
+		}
+		else if (is_sparse(source))
+		{
+			return std::make_shared<MatAssign<T>>(target, source,
+			[](MatMapT<T>& target, const teq::iTensor& source)
+			{
+				target -= make_smatmap<T>(source).get();
+			});
+		}
+	}
 	return std::make_shared<TensAssign<T>>(target, source,
 	[](TensMapT<T>& target, const TensMapT<T>& source)
 	{
@@ -2037,6 +2079,26 @@ EigenptrT assign_sub (teq::iTensor& target, const teq::iTensor& source)
 template <typename T>
 EigenptrT assign_mul (teq::iTensor& target, const teq::iTensor& source)
 {
+	if (is_2d(target.shape()))
+	{
+		if (is_sparse(target))
+		{
+			assert(is_sparse(source));
+			return std::make_shared<SparseMatAssign<T>>(target, source,
+			[](const SMatMapT<T>& target, const SMatMapT<T>& source) -> SMatrixT<T>
+			{
+				return target.cwiseProduct(source);
+			});
+		}
+		else if (is_sparse(source))
+		{
+			return std::make_shared<MatAssign<T>>(target, source,
+			[](MatMapT<T>& target, const teq::iTensor& source)
+			{
+				target = target.cwiseProduct(make_smatmap<T>(source).get());
+			});
+		}
+	}
 	return std::make_shared<TensAssign<T>>(target, source,
 	[](TensMapT<T>& target, const TensMapT<T>& source)
 	{
@@ -2047,6 +2109,27 @@ EigenptrT assign_mul (teq::iTensor& target, const teq::iTensor& source)
 template <typename T>
 EigenptrT assign_div (teq::iTensor& target, const teq::iTensor& source)
 {
+	if (is_2d(target.shape()))
+	{
+		if (is_sparse(target))
+		{
+			assert(is_sparse(source));
+			return std::make_shared<SparseMatAssign<T>>(target, source,
+			[](const SMatMapT<T>& target, const SMatMapT<T>& source) -> SMatrixT<T>
+			{
+				return target.cwiseQuotient(source);
+			});
+		}
+		else if (is_sparse(source))
+		{
+			return std::make_shared<MatAssign<T>>(target, source,
+			[](MatMapT<T>& target, const teq::iTensor& source)
+			{
+				MatrixT<T> sm = make_smatmap<T>(source).get();
+				target = target.cwiseQuotient(sm);
+			});
+		}
+	}
 	return std::make_shared<TensAssign<T>>(target, source,
 	[](TensMapT<T>& target, const TensMapT<T>& source)
 	{

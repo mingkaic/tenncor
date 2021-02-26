@@ -51,55 +51,80 @@ struct MarshFuncs final : public onnx::iMarshFuncs
 		return name2onnxtype.at(code_name);
 	}
 
-	void marsh_leaf (onnx::TensorProto& out, const teq::iLeaf& leaf) const override
+	void marsh_leaf (
+		onnx::InitBuildF build_init, onnx::SInitBuildF build_sinit,
+		const teq::iLeaf& leaf) const override
 	{
 		char* data = (char*) leaf.device().data();
-		size_t nelems = leaf.shape().n_elems();
 		auto type_code = (egen::_GENERATED_DTYPE) leaf.get_meta().type_code();
 		auto code_name = egen::name_type(type_code);
 		auto onnx_type = name2onnxtype.at(code_name);
-		out.set_data_type(onnx_type);
+		auto shape = leaf.shape();
+		size_t nelems;
+		onnx::TensorProto* out;
+		if (auto sinfo = eigen::sparse_info(leaf))
+		{
+			auto sinit = build_sinit();
+			out = sinit->mutable_values();
+			nelems = sinfo->non_zeros_;
+
+			// encode inner indices as onnx.indices, outer as onnx.dims
+			auto inptr = sinfo->inner_indices_;
+			auto outptr = sinfo->outer_indices_;
+			google::protobuf::RepeatedField<int32_t> inner(inptr, inptr + nelems);
+			google::protobuf::RepeatedField<int64_t> outer(outptr, outptr + shape.at(1) + 1);
+			auto indices = sinit->mutable_indices();
+			indices->add_dims(nelems);
+			indices->mutable_int32_data()->Swap(&inner);
+			sinit->mutable_dims()->Swap(&outer);
+		}
+		else
+		{
+			out = build_init();
+			nelems = shape.n_elems();
+		}
+		out->set_data_type(onnx_type);
 		switch (onnx_type)
 		{
 			case onnx::TensorProto::DOUBLE:
-				pack<double>(data, nelems, out,
+				pack<double>(data, nelems, *out,
 					&onnx::TensorProto::add_double_data);
 				break;
 			case onnx::TensorProto::FLOAT:
-				pack<float>(data, nelems, out,
+				pack<float>(data, nelems, *out,
 					&onnx::TensorProto::add_float_data);
 				break;
 			case onnx::TensorProto::INT32:
-				pack<int32_t>(data, nelems, out,
+				pack<int32_t>(data, nelems, *out,
 					&onnx::TensorProto::add_int32_data);
 				break;
 #ifdef EGEN_FULLTYPE
 			case onnx::TensorProto::UINT8:
-				pack<uint8_t>(data, nelems, out,
+				pack<uint8_t>(data, nelems, *out,
 					&onnx::TensorProto::add_int32_data);
 				break;
 			case onnx::TensorProto::INT8:
-				pack<int8_t>(data, nelems, out,
+				pack<int8_t>(data, nelems, *out,
 					&onnx::TensorProto::add_int32_data);
 				break;
 			case onnx::TensorProto::UINT16:
-				pack<uint16_t>(data, nelems, out,
+				pack<uint16_t>(data, nelems, *out,
 					&onnx::TensorProto::add_int32_data);
 				break;
 			case onnx::TensorProto::INT16:
-				pack<int16_t>(data, nelems, out,
+				pack<int16_t>(data, nelems, *out,
 					&onnx::TensorProto::add_int32_data);
 				break;
 			case onnx::TensorProto::UINT32:
-				pack<uint32_t>(data, nelems, out,
+				pack<uint32_t>(data, nelems, *out,
 					&onnx::TensorProto::add_uint64_data);
 				break;
 			case onnx::TensorProto::UINT64:
-				pack<uint64_t>(data, nelems, out,
+				pack<uint64_t>(data, nelems, *out,
 					&onnx::TensorProto::add_uint64_data);
 				break;
 			case onnx::TensorProto::INT64:
-				pack<int64_t>(data, nelems, out,
+				pack<int64_t>(data, nelems, *out,
 					&onnx::TensorProto::add_int64_data);
 				break;
 #endif // EGEN_FULLTYPE

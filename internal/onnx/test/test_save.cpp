@@ -35,7 +35,9 @@ struct MockMarshFuncs final : public onnx::iMarshFuncs
 {
 	size_t get_typecode (const teq::iTensor&) const override { return 0; }
 
-	void marsh_leaf (onnx::TensorProto&, const teq::iLeaf&) const override {}
+	void marsh_leaf (
+		InitBuildF build_init, SInitBuildF build_sinit,
+		const teq::iLeaf& leaf) const override {}
 };
 
 

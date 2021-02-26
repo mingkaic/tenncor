@@ -14,6 +14,10 @@
 namespace onnx
 {
 
+using InitBuildF = std::function<TensorProto*()>;
+
+using SInitBuildF = std::function<SparseTensorProto*()>;
+
 struct iMarshFuncs
 {
 	virtual ~iMarshFuncs (void) = default;
@@ -21,7 +25,8 @@ struct iMarshFuncs
 	virtual size_t get_typecode (const teq::iTensor& tens) const = 0;
 
 	virtual void marsh_leaf (
-		TensorProto& pb_tens, const teq::iLeaf& leaf) const = 0;
+		InitBuildF build_init, SInitBuildF build_sinit,
+		const teq::iLeaf& leaf) const = 0;
 };
 
 struct OnnxMarshaler final : public teq::iTraveler
@@ -98,12 +103,26 @@ struct OnnxMarshaler final : public teq::iTraveler
 		}
 		else // IMMUTABLE or Variable
 		{
-			TensorProto* pb_tens = pb_graph_.add_initializer();
-			pb_tens->set_name(id);
-			google::protobuf::RepeatedField<int64_t> slist(
-				shapel.begin(), shapel.end());
-			pb_tens->mutable_dims()->Swap(&slist);
-			marshaler_.marsh_leaf(*pb_tens, leaf);
+			marshaler_.marsh_leaf(
+			[this,id,shapel]() -> TensorProto*
+			{
+				auto pb_tens = this->pb_graph_.add_initializer();
+				pb_tens->set_name(id);
+				google::protobuf::RepeatedField<int64_t> slist(
+					shapel.begin(), shapel.end());
+				pb_tens->mutable_dims()->Swap(&slist);
+				return pb_tens;
+			},
+			[this,id,shapel]() -> SparseTensorProto*
+			{
+				auto pb_stens = this->pb_graph_.add_sparse_initializer();
+				auto pb_tens = pb_stens->mutable_values();
+				pb_tens->set_name(id);
+				google::protobuf::RepeatedField<int64_t> slist(
+					shapel.begin(), shapel.end());
+				pb_tens->mutable_dims()->Swap(&slist);
+				return pb_stens;
+			}, leaf);
 		}
 	}
 

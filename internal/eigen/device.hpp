@@ -30,6 +30,15 @@ inline bool is_sparse (const teq::iTensor& tens)
 	return dev != nullptr && bool(dev->sparse_info());
 }
 
+inline OptSparseT sparse_info (const teq::iTensor& tens)
+{
+	if (auto dev = dynamic_cast<const iEigen*>(&tens.device()))
+	{
+		return dev->sparse_info();
+	}
+	return OptSparseT();
+}
+
 template <typename T>
 inline teq::Once<MatMapT<T>> make_matmap (const teq::iTensor& tens)
 {
@@ -873,7 +882,7 @@ private:
 template <typename T>
 struct SparseMatAssign final : public iRefEigen
 {
-	using AssignF = std::function<void(SMatMapT<T>&,const SMatMapT<T>&)>;
+	using AssignF = std::function<SMatrixT<T>(const SMatMapT<T>&,const SMatMapT<T>&)>;
 
 	SparseMatAssign (teq::iTensor& target, const teq::iTensor& arg, AssignF assign) :
 		iRefEigen(target), arg_(&arg), assign_(assign) {}
@@ -896,14 +905,11 @@ struct SparseMatAssign final : public iRefEigen
 		extend_life(ttl);
 		auto next_version = arg_->get_meta().state_version() + 1;
 		static_cast<iMutableLeaf*>(this->ref_)->upversion(next_version);
-		auto dev = dynamic_cast<const iEigen*>(&this->ref_->device());
+		auto dev = dynamic_cast<SparseSrcRef<T>*>(&this->ref_->device());
 		assert(dev != nullptr);
-		auto dst_data = (T*) dev->data();
-		auto sinfo = dev->sparse_info();
-		assert(bool(sinfo));
-		auto out = make_smatmap(dst_data, *sinfo, this->ref_->shape());
+		auto out = make_smatmap<T>(*this->ref_);
 		auto src = make_smatmap<T>(*arg_);
-		assign_(out, src.get());
+		dev->assign(assign_(out.get(), src.get()));
 	}
 
 private:

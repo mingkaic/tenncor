@@ -37,7 +37,11 @@ namespace hone
 {
 
 #define _CHOOSE_CST_TARGETTYPE(REALTYPE)\
-out = eteq::make_constant<REALTYPE>((REALTYPE*)data, root->shape());
+if (auto sinfo = eigen::sparse_info(*root)){\
+	out = eteq::make_constant_tensor<REALTYPE>((REALTYPE*)data, *sinfo, root->shape());\
+}else{\
+	out = eteq::make_constant_tensor<REALTYPE>((REALTYPE*)data, root->shape());\
+}
 
 // custom target for calculating constant values
 struct ConstantTarget final : public opt::iTarget

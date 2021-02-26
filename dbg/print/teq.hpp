@@ -43,27 +43,27 @@ void ten_stream (std::ostream& out,
 struct PrettyEquation final
 {
 	PrettyEquation (void) : renderer_(
-		[](teq::iTensor*& root, size_t) -> teq::TensT
+	[](teq::iTensor*& root, size_t) -> teq::TensT
+	{
+		if (auto f = dynamic_cast<teq::iFunctor*>(root))
 		{
-			if (auto f = dynamic_cast<teq::iFunctor*>(root))
-			{
-				auto args = f->get_args();
-				teq::TensT tens;
-				tens.reserve(args.size());
-				std::transform(args.begin(), args.end(),
-					std::back_inserter(tens),
-					[](teq::TensptrT child)
-					{
-						return child.get();
-					});
-				return tens;
-			}
-			return {};
-		},
-		[this](std::ostream& out, teq::iTensor*& root, const std::string& prefix)
-		{
-			ten_stream(out, root, prefix, this->cfg_);
-		}) {}
+			auto args = f->get_args();
+			teq::TensT tens;
+			tens.reserve(args.size());
+			std::transform(args.begin(), args.end(),
+				std::back_inserter(tens),
+				[](teq::TensptrT child)
+				{
+					return child.get();
+				});
+			return tens;
+		}
+		return {};
+	},
+	[this](std::ostream& out, teq::iTensor*& root, const std::string& prefix)
+	{
+		ten_stream(out, root, prefix, this->cfg_);
+	}) {}
 
 	/// Stream equation of ptr to out
 	void print (std::ostream& out, const teq::TensptrT& ptr)

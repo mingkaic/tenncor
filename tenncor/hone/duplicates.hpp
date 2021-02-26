@@ -31,9 +31,20 @@ private:
 			std::string label = leaf.shape().to_string() + "|";
 			auto& meta = leaf.get_meta();
 			auto data = (const char*) leaf.device().data();
-			label += meta.type_label() + std::string(
-				data, data + leaf.shape().n_elems() *
-				egen::type_size(egen::_GENERATED_DTYPE(meta.type_code())));
+			label += meta.type_label();
+			if (auto sinfo = eigen::sparse_info(leaf))
+			{
+				// this has ambiguities
+				label += std::string(
+					data, data + sinfo->non_zeros_ *
+					egen::type_size(egen::_GENERATED_DTYPE(meta.type_code())));
+			}
+			else
+			{
+				label += std::string(
+					data, data + leaf.shape().n_elems() *
+					egen::type_size(egen::_GENERATED_DTYPE(meta.type_code())));
+			}
 			encode_label(&leaf, label);
 		}
 		else

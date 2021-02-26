@@ -21,6 +21,9 @@ struct iUnmarshFuncs
 	virtual teq::TensptrT unmarsh_leaf (const TensorProto& pb_tens,
 		teq::Usage usage, std::string name) const = 0;
 
+	virtual teq::TensptrT unmarsh_leaf (const SparseTensorProto& pb_stens,
+		teq::Usage usage, std::string name) const = 0;
+
 	virtual teq::TensptrT unmarsh_func (std::string opname,
 		const teq::TensptrsT& children, marsh::Maps&& attrs) const = 0;
 

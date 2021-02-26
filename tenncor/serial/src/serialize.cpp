@@ -34,6 +34,24 @@ static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
 	return out;
 }
 
+template <typename CAST, typename T>
+static inline teq::TensptrT unpack (teq::Usage usage, teq::Shape shape,
+	std::string label, eigen::SparseInfo& sinfo,
+	const google::protobuf::RepeatedField<T>& data)
+{
+	std::vector<CAST> cdata(data.begin(), data.end());
+	CAST* ptr = cdata.data();
+	teq::TensptrT out;
+	switch (usage) {
+	case teq::IMMUTABLE:
+		out = teq::TensptrT(eteq::Constant<CAST>::get(ptr, sinfo, shape));
+		break;
+	default:
+		global::fatal("unsupported sparse usage");
+	}
+	return out;
+}
+
 struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 {
 	teq::TensptrT unmarsh_leaf (const onnx::TensorProto& pb_tens,
@@ -84,6 +102,68 @@ struct UnmarshFuncs final : public onnx::iUnmarshFuncs
 			case onnx::TensorProto::INT64:
 				out = unpack<int64_t>(usage, shape, label,
 					pb_tens.int64_data());
+				break;
+#endif // EGEN_FULLTYPE
+			default:
+				global::fatalf("unknown onnx type %d", onnx_type);
+		}
+		return out;
+	}
+
+	teq::TensptrT unmarsh_leaf (const onnx::SparseTensorProto& pb_stens,
+		teq::Usage usage, std::string label) const override
+	{
+		const onnx::TensorProto& pb_tens = pb_stens.values();
+		teq::TensptrT out;
+		teq::Shape shape = onnx::unmarshal_shape(pb_tens);
+		auto onnx_type = pb_tens.data_type();
+		auto& inner = pb_stens.indices().int32_data();
+		auto& outer = pb_stens.dims();
+		std::vector<eigen::StorageIdxT> ins(inner.begin(), inner.end());
+		std::vector<eigen::StorageIdxT> outs(outer.begin(), outer.end());
+		eigen::SparseInfo sinfo(ins.data(), outs.data(), outs.size());
+		switch (onnx_type)
+		{
+			case onnx::TensorProto::DOUBLE:
+				out = unpack<double>(usage, shape, label,
+					sinfo, pb_tens.double_data());
+				break;
+			case onnx::TensorProto::FLOAT:
+				out = unpack<float>(usage, shape, label,
+					sinfo, pb_tens.float_data());
+				break;
+			case onnx::TensorProto::INT32:
+				out = unpack<int32_t>(usage, shape, label,
+					sinfo, pb_tens.int32_data());
+				break;
+#ifdef EGEN_FULLTYPE
+			case onnx::TensorProto::UINT8:
+				out = unpack<uint8_t>(usage, shape, label,
+					sinfo, pb_tens.int32_data());
+				break;
+			case onnx::TensorProto::INT8:
+				out = unpack<int8_t>(usage, shape, label,
+					sinfo, pb_tens.int32_data());
+				break;
+			case onnx::TensorProto::UINT16:
+				out = unpack<uint16_t>(usage, shape, label,
+					sinfo, pb_tens.int32_data());
+				break;
+			case onnx::TensorProto::INT16:
+				out = unpack<int16_t>(usage, shape, label,
+					sinfo, pb_tens.int32_data());
+				break;
+			case onnx::TensorProto::UINT32:
+				out = unpack<uint32_t>(usage, shape, label,
+					sinfo, pb_tens.uint64_data());
+				break;
+			case onnx::TensorProto::UINT64:
+				out = unpack<uint64_t>(usage, shape, label,
+					sinfo, pb_tens.uint64_data());
+				break;
+			case onnx::TensorProto::INT64:
+				out = unpack<int64_t>(usage, shape, label,
+					sinfo, pb_tens.int64_data());
 				break;
 #endif // EGEN_FULLTYPE
 			default:

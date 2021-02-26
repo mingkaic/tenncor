@@ -59,6 +59,28 @@ teq::TensptrsT load_graph (TensptrIdT& identified_tens,
 			pb_ten, usage, name), id});
 	}
 
+	const auto& pb_stens = pb_graph.sparse_initializer();
+	for (const SparseTensorProto& pb_sten : pb_stens)
+	{
+		const TensorProto& pb_ten = pb_sten.values();
+		std::string id = pb_ten.name();
+		if (estd::has(identified_tens.right, id))
+		{
+			continue; // allow previously defined ids
+		}
+		std::string name;
+		teq::Usage usage = teq::UNKNOWN_USAGE;
+		if (estd::has(annotations, id))
+		{
+			AnnotationsT& ans = annotations[id];
+			name = estd::try_get(ans, leafname_key, "");
+			usage = teq::get_named_usage(
+				estd::try_get(ans, leafusage_key, ""));
+		}
+		identified_tens.insert({unmarshaler.unmarsh_leaf(
+			pb_sten, usage, name), id});
+	}
+
 	const auto& pb_nodes = pb_graph.node();
 	for (const NodeProto& pb_node : pb_nodes)
 	{

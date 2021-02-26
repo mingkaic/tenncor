@@ -108,7 +108,7 @@ private:
 	teq::Shape shape_;
 
 	/// Variable metadata
-	eigen::EMetadata<T> meta_ = eigen::EMetadata<T>(1);
+	eigen::EMetadata2 meta_ = eigen::EMetadata2(egen::get_type<T>(), 1);
 };
 
 }
