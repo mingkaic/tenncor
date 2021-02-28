@@ -200,6 +200,8 @@ TEST_F(SHAPE, Compatible)
 			" to be compatible with " << ishape2.to_string() <<
 			" after idx " << unsigned(idx);
 	}
+
+	EXPECT_TRUE(teq::Shape({126}).compatible_after(teq::Shape({126, 126}), 2));
 }
 
 

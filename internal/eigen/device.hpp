@@ -63,7 +63,7 @@ inline teq::Once<SMatMapT<T>> make_smatmap (const teq::iTensor& tens)
 		global::fatal("cannot make sparse matrix from non-sparse device reference");
 	}
 	teq::Once<const void*> data = dev->odata();
-	assert(nullptr != data.get());
+	assert(nullptr != data.get() || 0 == sinfo->non_zeros_);
 	return teq::Once<SMatMapT<T>>(make_smatmap(
 		(T*) data.get(), *sinfo, tens.shape()), std::move(data));
 }
@@ -581,10 +581,10 @@ private:
 template <typename T>
 struct SparseMatOp final : public iPermEigen
 {
-	using OpF = std::function<SMatrixT<T>(const teq::CTensT&)>;
+	using OpF = std::function<void(SMatrixT<T>&,const teq::CTensT&)>;
 
-	SparseMatOp (const teq::CTensT& args, OpF op) :
-		op_(op), args_(args) {}
+	SparseMatOp (const teq::Shape& outshape, const teq::CTensT& args, OpF op) :
+		op_(op), args_(args), data_(outshape.at(1), outshape.at(0)) {}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override
@@ -618,16 +618,16 @@ struct SparseMatOp final : public iPermEigen
 	/// Implementation of iEigen
 	void assign (size_t ttl, RTMemptrT& runtime) override
 	{
-		data_ = op_(args_);
+		op_(data_, args_);
 	}
 
 private:
 	OpF op_;
 
-	mutable SMatrixT<T> data_;
-
 	/// Tensor operator arguments
 	teq::CTensT args_;
+
+	mutable SMatrixT<T> data_;
 };
 
 template <typename T>
@@ -673,16 +673,6 @@ struct iRefEigen : public iEigen
 	iRefEigen (teq::iTensor& ref) : ref_(&ref) {}
 
 	virtual ~iRefEigen (void) = default;
-
-	OptSparseT sparse_info (void) const override
-	{
-		OptSparseT sinfo;
-		if (auto dev = dynamic_cast<iEigen*>(&ref_->device()))
-		{
-			sinfo = dev->sparse_info();
-		}
-		return sinfo;
-	}
 
 	teq::Once<void*> odata (void) override
 	{
@@ -731,10 +721,62 @@ private:
 	mutable size_t ref_ttl_ = 0;
 };
 
-/// Directly proxy the iDeviceRef of an argument tensor and perform pointer manipulation if available
-struct TensRef final : public iRefEigen
+struct ProjectOp final : public iRefEigen
 {
-	TensRef (teq::iTensor& ref) : iRefEigen(ref) {}
+	ProjectOp (teq::iTensor& ref,
+		const StorageIndicesT& inner, const StorageIndicesT& outer) :
+		iRefEigen(ref), inner_(inner), outer_(outer) {}
+
+	/// Implementation of iDeviceRef
+	void* data (void) override
+	{
+		return this->ref_->device().data();
+	}
+
+	/// Implementation of iDeviceRef
+	const void* data (void) const override
+	{
+		return this->ref_->device().data();
+	}
+
+	OptSparseT sparse_info (void) const override
+	{
+		return SparseInfo(inner_.data(), outer_.data(), inner_.size());
+	}
+
+	/// Implementation of iEigen
+	void assign (size_t ttl, RTMemptrT& runtime) override
+	{
+		extend_life(ttl);
+	}
+
+private:
+	mutable StorageIndicesT inner_;
+
+	mutable StorageIndicesT outer_;
+};
+
+struct iSparseRef : public iRefEigen
+{
+	iSparseRef (teq::iTensor& ref) : iRefEigen(ref) {}
+
+	virtual ~iSparseRef (void) = default;
+
+	OptSparseT sparse_info (void) const override
+	{
+		OptSparseT sinfo;
+		if (auto dev = dynamic_cast<iEigen*>(&ref_->device()))
+		{
+			sinfo = dev->sparse_info();
+		}
+		return sinfo;
+	}
+};
+
+/// Directly proxy the iDeviceRef of an argument tensor and perform pointer manipulation if available
+struct TensRef final : public iSparseRef
+{
+	TensRef (teq::iTensor& ref) : iSparseRef(ref) {}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override
@@ -757,10 +799,10 @@ struct TensRef final : public iRefEigen
 
 // Same as TensRef except increment output pointers by specific increment of template type
 template <typename T>
-struct UnsafeTensRef final : public iRefEigen
+struct UnsafeTensRef final : public iSparseRef
 {
 	UnsafeTensRef (teq::iTensor& ref, size_t ptr_incrs) :
-		iRefEigen(ref), incrs_(ptr_incrs)
+		iSparseRef(ref), incrs_(ptr_incrs)
 	{
 		if (incrs_ == 0)
 		{
@@ -803,12 +845,12 @@ private:
 };
 
 template <typename T>
-struct TensAssign final : public iRefEigen
+struct TensAssign final : public iSparseRef
 {
 	using AssignF = std::function<void(TensMapT<T>&,const TensMapT<T>&)>;
 
 	TensAssign (teq::iTensor& target, const teq::iTensor& arg, AssignF assign) :
-		iRefEigen(target), arg_(&arg), assign_(assign) {}
+		iSparseRef(target), arg_(&arg), assign_(assign) {}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override
@@ -842,12 +884,12 @@ private:
 };
 
 template <typename T>
-struct MatAssign final : public iRefEigen
+struct MatAssign final : public iSparseRef
 {
 	using AssignF = std::function<void(MatMapT<T>&,const teq::iTensor&)>;
 
 	MatAssign (teq::iTensor& target, const teq::iTensor& arg, AssignF assign) :
-		iRefEigen(target), arg_(&arg), assign_(assign) {}
+		iSparseRef(target), arg_(&arg), assign_(assign) {}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override
@@ -880,12 +922,12 @@ private:
 };
 
 template <typename T>
-struct SparseMatAssign final : public iRefEigen
+struct SparseMatAssign final : public iSparseRef
 {
 	using AssignF = std::function<SMatrixT<T>(const SMatMapT<T>&,const SMatMapT<T>&)>;
 
 	SparseMatAssign (teq::iTensor& target, const teq::iTensor& arg, AssignF assign) :
-		iRefEigen(target), arg_(&arg), assign_(assign) {}
+		iSparseRef(target), arg_(&arg), assign_(assign) {}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override

@@ -16,6 +16,7 @@
 
 
 using ::testing::_;
+using ::testing::An;
 using ::testing::Invoke;
 using ::testing::Return;
 using ::testing::Throw;
@@ -31,6 +32,8 @@ const std::string testdir = "models/test";
 struct MockUnmarshFuncs final : public onnx::iUnmarshFuncs
 {
 	MOCK_CONST_METHOD3(unmarsh_leaf, teq::TensptrT(const onnx::TensorProto&,teq::Usage,std::string));
+
+	MOCK_CONST_METHOD3(unmarsh_leaf, teq::TensptrT(const onnx::SparseTensorProto&,teq::Usage,std::string));
 
 	MOCK_CONST_METHOD3(unmarsh_func, teq::TensptrT(std::string,const teq::TensptrsT&,marsh::Maps&&));
 
@@ -92,7 +95,7 @@ TEST(LOAD, BadGraph)
 		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
 
 		MockUnmarshFuncs unmarsh;
-		EXPECT_CALL(unmarsh, unmarsh_leaf(_,_,_)).Times(7).
+		EXPECT_CALL(unmarsh, unmarsh_leaf(An<const onnx::TensorProto&>(),_,_)).Times(7).
 			WillOnce(Invoke(handle_leaf(exshape3,"a"))).
 			WillOnce(Invoke(handle_leaf(exshape,"b"))).
 			WillOnce(Invoke(handle_leaf(exshape1,"c"))).
@@ -119,7 +122,7 @@ TEST(LOAD, BadGraph)
 		ASSERT_TRUE(model.ParseFromIstream(&inputstr));
 
 		MockUnmarshFuncs unmarsh;
-		EXPECT_CALL(unmarsh, unmarsh_leaf(_,_,_)).Times(7).
+		EXPECT_CALL(unmarsh, unmarsh_leaf(An<const onnx::TensorProto&>(),_,_)).Times(7).
 			WillOnce(Invoke(handle_leaf(exshape3, "a"))).
 			WillOnce(Invoke(handle_leaf(exshape,"b"))).
 			WillOnce(Invoke(handle_leaf(exshape1,"c"))).
@@ -159,7 +162,7 @@ TEST(LOAD, SimpleGraph)
 	teq::Shape exshape3({7, 3, 1});
 
 	MockUnmarshFuncs unmarsh;
-	EXPECT_CALL(unmarsh, unmarsh_leaf(_,_,_)).Times(7).
+	EXPECT_CALL(unmarsh, unmarsh_leaf(An<const onnx::TensorProto&>(),_,_)).Times(7).
 		WillOnce(Invoke(handle_leaf(exshape,"a"))).
 		WillOnce(Invoke(handle_leaf(exshape1,"b"))).
 		WillOnce(Invoke(handle_leaf(exshape1,"c"))).
@@ -207,7 +210,7 @@ TEST(LOAD, LayerGraph)
 	teq::Shape exshape0;
 
 	MockUnmarshFuncs unmarsh;
-	EXPECT_CALL(unmarsh, unmarsh_leaf(_,_,_)).Times(7).
+	EXPECT_CALL(unmarsh, unmarsh_leaf(An<const onnx::TensorProto&>(),_,_)).Times(7).
 		WillOnce(Invoke(handle_leaf(exshape3,"a"))).
 		WillOnce(Invoke(handle_leaf(exshape,"b"))).
 		WillOnce(Invoke(handle_leaf(exshape1,"c"))).
@@ -262,7 +265,7 @@ TEST(LOAD, ReplaceLayerGraph)
 	teq::Shape exshape3({7, 3, 1});
 
 	MockUnmarshFuncs unmarsh;
-	EXPECT_CALL(unmarsh, unmarsh_leaf(_,_,_)).Times(13).
+	EXPECT_CALL(unmarsh, unmarsh_leaf(An<const onnx::TensorProto&>(),_,_)).Times(13).
 		WillOnce(Invoke(handle_leaf(exshape3,"a"))).
 		WillOnce(Invoke(handle_leaf(exshape,"b"))).
 		WillOnce(Invoke(handle_leaf(exshape1,"c"))).
@@ -334,7 +337,7 @@ TEST(LOAD, SimpleGraphEarlyStop)
 	teq::Shape exshape3({7, 3, 1});
 
 	MockUnmarshFuncs unmarsh;
-	EXPECT_CALL(unmarsh, unmarsh_leaf(_,_,_)).Times(8).
+	EXPECT_CALL(unmarsh, unmarsh_leaf(An<const onnx::TensorProto&>(),_,_)).Times(8).
 		WillOnce(Invoke(handle_leaf(exshape,"a"))).
 		WillOnce(Invoke(handle_leaf(exshape1,"b"))).
 		WillOnce(Invoke(handle_leaf(exshape2,"c"))).

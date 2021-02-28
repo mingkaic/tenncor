@@ -51,6 +51,7 @@ Desktop.ini
 venv
 node_modules
 *.log
+*.gexf
 
 # Application specific folder structure
 bin/

@@ -1,0 +1,38 @@
+licenses(["notice"])
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":profile_hdrs",
+        ":profile_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "profile_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "profile_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "profile",
+    hdrs = [":profile_hdrs"],
+    srcs = [":profile_srcs"],
+    copts = ["-std=c++17"],
+    deps = [
+        "//internal/eigen:eigen",
+        "@boost//:uuid",
+        "@boost//:pool",
+        "@com_github_eigenteam_eigen//:eigen",
+        "@libgexf_unofficial//:libgexf",
+    ],
+    visibility = ["//visibility:public"],
+)

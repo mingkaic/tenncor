@@ -44,7 +44,7 @@ template <typename T>
 using UnaryMatOpF = std::function<void(MatMapT<T>&,const MatMapT<T>&)>;
 
 template <typename T>
-using UnarySMatOpF = std::function<SMatrixT<T>(const SMatMapT<T>&)>;
+using UnarySMatOpF = std::function<void(SMatrixT<T>&,const SMatMapT<T>&)>;
 
 template <typename T>
 static EigenptrT unary_smatop (
@@ -53,11 +53,11 @@ static EigenptrT unary_smatop (
 {
 	if (is_sparse(arg))
 	{
-		return std::make_shared<SparseMatOp<T>>(teq::CTensT{&arg},
-		[sparse_op](const teq::CTensT& args)
+		return std::make_shared<SparseMatOp<T>>(outshape, teq::CTensT{&arg},
+		[sparse_op](SMatrixT<T>& out, const teq::CTensT& args)
 		{
 			auto smat = make_smatmap<T>(*args.front());
-			return sparse_op(smat.get());
+			sparse_op(out, smat.get());
 		});
 	}
 	return std::make_shared<MatOp<T>>(outshape, teq::CTensT{&arg},
@@ -350,7 +350,7 @@ EigenptrT argmax (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAt
 {
 	Packer<teq::RankT> packer;
 	bool alldims = attrib.get_attr(packer.get_key()) == nullptr;
-	teq::RankT return_dim;
+	teq::RankT return_dim = 0;
 	DimensionsT outdims = shape_convert(outshape);
 	if (false == alldims)
 	{
@@ -439,7 +439,8 @@ EigenptrT extend (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAt
 		if (colext > 1 && rowext > 1)
 		{
 			return internal::unary_smatop<T>(outshape, *in,
-			[rowext,colext,incols,inrows](const SMatMapT<T>& arg)
+			[rowext,colext,incols,inrows](
+				SMatrixT<T>& out, const SMatMapT<T>& arg)
 			{
 				auto nzs = arg.nonZeros();
 				TripletsT<T> trips;
@@ -457,9 +458,7 @@ EigenptrT extend (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAt
 						}
 					}
 				}
-				SMatrixT<T> out(inrows * rowext, incols * colext);
 				out.setFromTriplets(trips.begin(), trips.end());
-				return out;
 			},
 			[rowext,colext,incols,inrows](MatMapT<T>& out, const MatrixT<T>& arg)
 			{
@@ -475,7 +474,8 @@ EigenptrT extend (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAt
 		else if (colext > 1)
 		{
 			return internal::unary_smatop<T>(outshape, *in,
-			[colext,incols,inrows](const SMatMapT<T>& arg)
+			[colext,incols,inrows](
+				SMatrixT<T>& out, const SMatMapT<T>& arg)
 			{
 				auto nzs = arg.nonZeros();
 				TripletsT<T> trips;
@@ -490,9 +490,7 @@ EigenptrT extend (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAt
 						}
 					}
 				}
-				SMatrixT<T> out(inrows, incols * colext);
 				out.setFromTriplets(trips.begin(), trips.end());
-				return out;
 			},
 			[colext,incols,inrows](MatMapT<T>& out, const MatrixT<T>& arg)
 			{
@@ -505,7 +503,8 @@ EigenptrT extend (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAt
 		else if (rowext > 1)
 		{
 			return internal::unary_smatop<T>(outshape, *in,
-			[rowext,incols,inrows](const SMatMapT<T>& arg)
+			[rowext,incols,inrows](
+				SMatrixT<T>& out, const SMatMapT<T>& arg)
 			{
 				auto nzs = arg.nonZeros();
 				TripletsT<T> trips;
@@ -520,9 +519,7 @@ EigenptrT extend (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAt
 						}
 					}
 				}
-				SMatrixT<T> out(inrows * rowext, incols);
 				out.setFromTriplets(trips.begin(), trips.end());
-				return out;
 			},
 			[rowext,incols,inrows](MatMapT<T>& out, const MatrixT<T>& arg)
 			{
@@ -579,9 +576,9 @@ EigenptrT permute (teq::Shape outshape, const teq::TensptrT& in, const marsh::iA
 	{
 		// use matrix when possible
 		return internal::unary_smatop<T>(outshape, *in,
-		[](const SMatMapT<T>& arg)
+		[](SMatrixT<T>& out, const SMatMapT<T>& arg)
 		{
-			return arg.transpose();
+			out = arg.transpose();
 		},
 		[](MatMapT<T>& out, const MatMapT<T>& arg)
 		{
@@ -618,9 +615,9 @@ EigenptrT slice (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAtt
 	}
 	auto slist = teq::narrow_shape(shape);
 	auto sparse_op =
-	[offsets,extents](const SMatMapT<T>& arg)
+	[offsets,extents](SMatrixT<T>& out, const SMatMapT<T>& arg)
 	{
-		return arg.
+		out = arg.
 			middleRows(offsets.at(1), extents.at(1)).
 			middleCols(offsets.at(0), extents.at(0));
 	};
@@ -641,11 +638,12 @@ EigenptrT slice (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAtt
 		}
 		if (is_sparse(*in)) // sparse input does not work with below optimization
 		{
-			return std::make_shared<SparseMatOp<T>>(teq::CTensT{in.get()},
-			[sparse_op](const teq::CTensT& args)
+			return std::make_shared<SparseMatOp<T>>(
+			outshape, teq::CTensT{in.get()},
+			[sparse_op](SMatrixT<T>& out, const teq::CTensT& args)
 			{
 				auto smat = make_smatmap<T>(*args.front());
-				return sparse_op(smat.get());
+				sparse_op(out, smat.get());
 			});
 		}
 		return std::make_shared<UnsafeTensRef<T>>(*in, index * batchsize);
@@ -837,8 +835,8 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 				return is_sparse(*arg);
 			}))
 			{
-				return std::make_shared<SparseMatOp<T>>(args,
-				[outshape](const teq::CTensT& args)
+				return std::make_shared<SparseMatOp<T>>(outshape, args,
+				[outshape](SMatrixT<T>& out, const teq::CTensT& args)
 				{
 					TripletsT<T> trips;
 					teq::DimT cols = 0;
@@ -854,9 +852,7 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 						}
 						cols += smat->cols();
 					}
-					SMatrixT<T> out(outshape.at(1), outshape.at(0));
 					out.setFromTriplets(trips.begin(), trips.end());
-					return out;
 				});
 			}
 			return internal::nnary_matop<T>(outshape, args,
@@ -898,8 +894,8 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 				return is_sparse(*arg);
 			}))
 			{
-				return std::make_shared<SparseMatOp<T>>(args,
-				[outshape](const teq::CTensT& args)
+				return std::make_shared<SparseMatOp<T>>(outshape, args,
+				[outshape](SMatrixT<T>& out, const teq::CTensT& args)
 				{
 					TripletsT<T> trips;
 					teq::DimT rows = 0;
@@ -915,9 +911,7 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 						}
 						rows += smat->rows();
 					}
-					SMatrixT<T> out(outshape.at(1), outshape.at(0));
 					out.setFromTriplets(trips.begin(), trips.end());
-					return out;
 				});
 			}
 			return internal::nnary_matop<T>(outshape, args,
@@ -978,6 +972,8 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 /// Given reference to output array, and input vector ref,
 /// make output elements referencing input tensor
 EigenptrT ref (const teq::TensptrT& in);
+
+EigenptrT project (const teq::TensptrT& in, const marsh::iAttributed& attrib);
 
 /// Given reference to output array, and input vector ref,
 /// make output elements take absolute value of inputs
@@ -1429,10 +1425,9 @@ EigenptrT mul (teq::Shape outshape, const teq::TensptrsT& group)
 			return is_sparse(*arg);
 		}))
 		{
-			return std::make_shared<SparseMatOp<T>>(args,
-			[](const teq::CTensT& args) -> SMatrixT<T>
+			return std::make_shared<SparseMatOp<T>>(outshape, args,
+			[](SMatrixT<T>& out, const teq::CTensT& args)
 			{
-				SMatrixT<T> out;
 				if (is_sparse(*args.front()))
 				{
 					out = make_smatmap<T>(*args.front()).get();
@@ -1453,7 +1448,6 @@ EigenptrT mul (teq::Shape outshape, const teq::TensptrsT& group)
 						out = out.cwiseProduct(make_matmap<T>(*arg).get());
 					}
 				}
-				return out;
 			});
 		}
 		return std::make_shared<MatOp<T>>(outshape, args,
@@ -1492,24 +1486,29 @@ EigenptrT mul (teq::Shape outshape, const teq::TensptrsT& group)
 		auto asparse = is_sparse(a);\
 		auto bsparse = is_sparse(b);\
 		if (asparse && bsparse){\
-			return std::make_shared<SparseMatOp<T>>(teq::CTensT{&a,&b},\
-			[](const teq::CTensT& args) -> SMatrixT<T>{\
-				return make_smatmap<T>(*args.front())->OP(make_smatmap<T>(*args.back()).get());\
+			return std::make_shared<SparseMatOp<T>>(\
+			outshape, teq::CTensT{&a,&b},\
+			[](SMatrixT<T>& out, const teq::CTensT& args){\
+				out = make_smatmap<T>(*args.front())->OP(\
+					make_smatmap<T>(*args.back()).get());\
 			});\
 		}else if (asparse && !bsparse){\
-			return std::make_shared<GenericMatOp<T>>(outshape,teq::CTensT{&a,&b},\
+			return std::make_shared<GenericMatOp<T>>(\
+			outshape,teq::CTensT{&a,&b},\
 			[](MatMapT<T>& out, const teq::CTensT& args){\
 				MatrixT<T> am = make_smatmap<T>(*args.front()).get();\
 				out = am.OP(make_matmap<T>(*args.back()).get());\
 			});\
 		}else if (!asparse && bsparse){\
-			return std::make_shared<GenericMatOp<T>>(outshape,teq::CTensT{&a,&b},\
+			return std::make_shared<GenericMatOp<T>>(\
+			outshape,teq::CTensT{&a,&b},\
 			[](MatMapT<T>& out, const teq::CTensT& args){\
 				MatrixT<T> bm = make_smatmap<T>(*args.back()).get();\
 				out = make_matmap<T>(*args.front())->OP(bm);\
 			});\
 		}else{\
-			return std::make_shared<MatOp<T>>(outshape, teq::CTensT{&a,&b},\
+			return std::make_shared<MatOp<T>>(\
+			outshape, teq::CTensT{&a,&b},\
 			[](MatMapT<T>& out, const std::vector<MatMapT<T>>& args){\
 				out = args.front().OP(args.back());\
 			});\
@@ -1783,7 +1782,9 @@ return std::make_shared<TensOp<T>>(outshape,teq::CTensT{&a,&b},\
 /// Only applies to 2-d tensors
 /// Apply matrix multiplication of a and b
 template <typename T>
-EigenptrT contract (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b, const marsh::iAttributed& attrib)
+EigenptrT contract (teq::Shape outshape,
+	const teq::iTensor& a, const teq::iTensor& b,
+	const marsh::iAttributed& attrib)
 {
 	PairVecT<teq::RankT> dims;
 	Packer<PairVecT<teq::RankT>>().unpack(dims, attrib);
@@ -1802,28 +1803,35 @@ EigenptrT contract (teq::Shape outshape, const teq::iTensor& a, const teq::iTens
 		auto bsparse = is_sparse(b);
 		if (asparse && bsparse)
 		{
-			return std::make_shared<SparseMatOp<T>>(teq::CTensT{&a,&b},
-			[](const teq::CTensT& args) -> SMatrixT<T>
+			return std::make_shared<SparseMatOp<T>>(
+			outshape, teq::CTensT{&a,&b},
+			[](SMatrixT<T>& out, const teq::CTensT& args)
 			{
-				return make_smatmap<T>(*args.front()).get() * make_smatmap<T>(*args.back()).get();
+				out =
+					make_smatmap<T>(*args.front()).get() *
+					make_smatmap<T>(*args.back()).get();
 			});
 		}
 		else if (asparse && !bsparse)
 		{
-			return std::make_shared<GenericMatOp<T>>(outshape,teq::CTensT{&a,&b},
+			return std::make_shared<GenericMatOp<T>>(
+			outshape,teq::CTensT{&a,&b},
 			[](MatMapT<T>& out, const teq::CTensT& args)
 			{
-			auto a = make_smatmap<T>(*args.front()).get();
-			auto b = make_matmap<T>(*args.back()).get();
-				out = a * b;
+				out =
+					make_smatmap<T>(*args.front()).get() *
+					make_matmap<T>(*args.back()).get();
 			});
 		}
 		else if (!asparse && bsparse)
 		{
-			return std::make_shared<GenericMatOp<T>>(outshape,teq::CTensT{&a,&b},
+			return std::make_shared<GenericMatOp<T>>(
+			outshape,teq::CTensT{&a,&b},
 			[](MatMapT<T>& out, const teq::CTensT& args)
 			{
-				out = make_matmap<T>(*args.front()).get() * make_smatmap<T>(*args.back()).get();
+				out =
+					make_matmap<T>(*args.front()).get() *
+					make_smatmap<T>(*args.back()).get();
 			});
 		}
 		else
@@ -2139,12 +2147,12 @@ EigenptrT assign_div (teq::iTensor& target, const teq::iTensor& source)
 
 #define _EIGEN_MATCAST_CASE(INTYPE)\
 if (is_sparse(*input)){\
-	out = std::make_shared<SparseMatOp<T>>(teq::CTensT{input.get()},\
-	[](const teq::CTensT& args) -> SMatrixT<T> {\
-		return make_smatmap<INTYPE>(*args.front())->template cast<T>();\
+	out = std::make_shared<SparseMatOp<T>>(shape, teq::CTensT{input.get()},\
+	[](SMatrixT<T>& out, const teq::CTensT& args){\
+		out = make_smatmap<INTYPE>(*args.front())->template cast<T>();\
 	});\
 }else{\
-	out = std::make_shared<MatOp<T,INTYPE>>(input->shape(), teq::CTensT{input.get()},\
+	out = std::make_shared<MatOp<T,INTYPE>>(shape, teq::CTensT{input.get()},\
 	[](MatMapT<T>& out, const std::vector<MatMapT<INTYPE>>& args){\
 		out = args.front().template cast<T>();\
 	});\
@@ -2168,8 +2176,9 @@ EigenptrT cast (const teq::TensptrT& input)
 		return std::make_shared<TensRef>(*input);
 	}
 
+	teq::Shape shape = input->shape();
 	EigenptrT out;
-	if (is_2d(input->shape()))
+	if (is_2d(shape))
 	{
 		TYPE_LOOKUP(_EIGEN_MATCAST_CASE, intype);
 	}

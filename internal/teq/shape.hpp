@@ -51,6 +51,12 @@ using SiteratorT = DimsT::iterator;
 /// Type of constant iterator used to iterate through internal array
 using CstSiteratorT = DimsT::const_iterator;
 
+template <typename IT, typename UNARY>
+static bool all_of_or_empty (IT begin, IT end, UNARY p)
+{
+	return begin == end || std::all_of(begin, end, p);
+}
+
 /// Models an aligned shape using an array of DimT values
 /// For each DimT at index i, DimT value is number of elements at dimension i
 /// For example, shape={3, 2} can model tensor [[x, y, z], [u, v, w]]
@@ -131,17 +137,21 @@ struct Shape final : public fmts::iStringable
 	{
 		auto is_one = std::bind(std::equal_to<teq::RankT>(),
 			1, std::placeholders::_1);
-		size_t common_rank = std::min(n_ranks(), other.n_ranks());
-		if (idx >= common_rank)
-		{
-			return std::all_of(dims_.begin() + common_rank, dims_.end(), is_one) &&
-				std::all_of(other.begin() + common_rank, other.end(), is_one);
-		}
+		RankT rank = n_ranks();
+		RankT orank = other.n_ranks();
+		RankT common_rank = std::min(rank, orank);
 		auto it = dims_.begin();
 		auto ot = other.begin();
+		if (idx >= common_rank)
+		{
+			return all_of_or_empty(it + std::min(rank, idx),
+					dims_.end(), is_one) &&
+				all_of_or_empty(ot + std::min(orank, idx),
+					other.end(), is_one);
+		}
 		return std::equal(it + idx, it + common_rank, ot + idx) &&
-			std::all_of(it + common_rank, dims_.end(), is_one) &&
-			std::all_of(ot + common_rank, other.end(), is_one);
+			all_of_or_empty(it + common_rank, dims_.end(), is_one) &&
+			all_of_or_empty(ot + common_rank, other.end(), is_one);
 	}
 
 	// >>>> INTERNAL CONTROL <<<<

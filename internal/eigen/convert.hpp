@@ -23,6 +23,8 @@ using DimensionsT = std::array<Eigen::Index,teq::rank_cap>;
 
 using StorageIdxT = int32_t;
 
+using StorageIndicesT = std::vector<StorageIdxT>;
+
 template <typename T>
 using TripletT = Eigen::Triplet<T>;
 
@@ -130,10 +132,6 @@ template <typename T>
 inline SMatMapT<T> make_smatmap (T* nzdata,
 	const SparseInfo& sinfo, const teq::Shape& shape)
 {
-	if (nullptr == nzdata)
-	{
-		global::fatal("cannot get sparse matrix map with null data");
-	}
 	return SMatMapT<T>(shape.at(1), shape.at(0), sinfo.non_zeros_,
 		sinfo.outer_indices_, sinfo.inner_indices_, nzdata);
 }

@@ -27,7 +27,8 @@ funcs:
                 0,inshape,layr::input_label,super->ctx));
             auto output = unary(input);
             auto layer_root = super->identity(output);
-            return eteq::ETensor(layr::make_layer(layer_root,layr::bind_name,input),super->ctx);
+            return eteq::ETensor(
+                layr::make_layer(layer_root,layr::bind_name,input),super->ctx);
   - name: link
     args:
       - name: layers
@@ -63,7 +64,8 @@ funcs:
                 }
             }
             auto layer_root = super->identity(output);
-            return eteq::ETensor(layr::make_layer(layer_root,layr::link_name,input),super->ctx);
+            return eteq::ETensor(
+              layr::make_layer(layer_root,layr::link_name,input),super->ctx);
   - template: typename T
     name: dense
     args:

@@ -714,3 +714,23 @@ opcode:
                     }
                     return dtypes.front();
       idempotent: False
+    PROJECT:
+      stmt: out = eigen::project(in[0], attrib);
+      ShapeParser:
+        out:
+          val: |
+            //
+                    if (shapes.empty())
+                    {
+                        global::fatal(eigen::no_argument_err);
+                    }
+                    teq::Shape outshape;
+                    eigen::Packer<teq::Shape>().unpack(outshape, attrs);
+                    if (shapes.front().n_elems() < outshape.n_elems())
+                    {
+                        global::throw_errf("cannot PROJECT from larger "
+                            "input shape %s to smaller %s",
+                            outshape.to_string().c_str(),
+                            shapes.front().to_string().c_str());
+                    }
+                    return outshape;

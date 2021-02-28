@@ -55,3 +55,14 @@ pybind_py_library(
     copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )
+
+pybind_py_library(
+    name = "tenncor_profile_py",
+    cc_srcs = ["python/profile.cpp"],
+    cc_deps = [
+        "//dbg/profile:profile",
+        "//tenncor:tenncor",
+    ],
+    copts = ["-std=c++17"],
+    visibility = ["//visibility:public"],
+)

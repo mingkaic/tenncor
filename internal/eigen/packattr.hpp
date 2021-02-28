@@ -4,6 +4,7 @@
 
 #include "internal/teq/teq.hpp"
 #include "internal/eigen/generated/dtype.hpp"
+#include "internal/eigen/convert.hpp"
 
 namespace eigen
 {
@@ -231,6 +232,32 @@ struct Packer<teq::RanksT>
 		auto& narr = static_cast<const marsh::NumArray<int64_t>&>(*attr);
 		auto& encoding = narr.contents_;
 		out = teq::RanksT(encoding.begin(), encoding.end());
+	}
+};
+
+template <>
+struct Packer<StorageIndicesT>
+{
+	static std::string key_;
+
+	std::string get_key (void) const
+	{
+		return key_;
+	}
+
+	void pack (marsh::iAttributed& attrib, const StorageIndicesT& dims) const
+	{
+		std::vector<int64_t> idims(dims.begin(), dims.end());
+		attrib.add_attr(key_,
+			std::make_unique<marsh::NumArray<int64_t>>(idims));
+	}
+
+	void unpack (StorageIndicesT& out, const marsh::iAttributed& attrib) const
+	{
+		auto attr = get_attr(*this, attrib);
+		auto& narr = static_cast<const marsh::NumArray<int64_t>&>(*attr);
+		auto& encoding = narr.contents_;
+		out = StorageIndicesT(encoding.begin(), encoding.end());
 	}
 };
 

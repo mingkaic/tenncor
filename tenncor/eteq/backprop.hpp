@@ -58,14 +58,16 @@ static inline teq::RanksT reorder_permute (
 	return reorder;
 }
 
-static inline teq::TensptrT elem_jacobianize (teq::TensptrT x, teq::TensptrT prev_chain)
+static inline teq::TensptrT jacobian_project (teq::TensptrT x)
 {
-	teq::Shape jacshape = prev_chain->shape();
-	teq::DimT m = jacshape.at(0);
-	teq::DimT n = jacshape.at(1);
-	return make_functor(egen::EXTEND, {
-		make_functor(egen::RESHAPE, {x}, teq::Shape({1, n}))
-	}, teq::DimsT{m});
+	teq::DimT n = x->shape().n_elems();
+	eigen::StorageIndicesT indices(n * 2 + 1);
+	auto it = indices.begin();
+	std::iota(it, it + n, 0);
+	std::iota(it + n, indices.end(), 0);
+
+	return make_functor(egen::PROJECT, teq::TensptrsT{x},
+		teq::Shape({n, n}), indices);
 }
 
 static teq::TensptrT lazy_jacobian (egen::_GENERATED_DTYPE dtype,
@@ -182,17 +184,13 @@ static teq::TensptrT contract_jacobian (
 		egen::PERMUTE>()(permmap, {exshape});
 
 	auto ltrans = make_functor(egen::MATMUL, {
-		permute_jacobian(
-			lpermlist, permshape, exshape, dtype),
-		extend_jacobian(
-			lexlist, exshape, lshape, dtype)
+		permute_jacobian(lpermlist, permshape, exshape, dtype),
+		extend_jacobian(lexlist, exshape, lshape, dtype)
 	});
 	auto rtrans = make_functor(egen::PERMUTE, {
 		make_functor(egen::EXTEND, {right}, rexlist)
 	}, rpermlist);
-	auto out = make_functor(egen::MUL, {
-		elem_jacobianize(rtrans, ltrans), ltrans
-	});
+	auto out = make_functor(egen::MATMUL, {jacobian_project(rtrans), ltrans});
 	auto minrtrans = teq::narrow_shape(rtrans->shape());
 	if (minrtrans.empty())
 	{
@@ -258,39 +256,20 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 			case egen::NEG:
 				out = make_functor(egen::NEG, {prev_chain});
 				break;
-			case egen::TAN:
-				out =  make_functor(egen::DIV, {
-					prev_chain, elem_jacobianize(
-						make_functor(egen::SQUARE, {
-							make_functor(egen::COS, {args.front()}),
-						}),
-						prev_chain
-					)
-				});
-				break;
-			case egen::LOG:
-				out = make_functor(egen::DIV, {
-					prev_chain, elem_jacobianize(args.front(), prev_chain)
-				});
-				break;
-			case egen::SQRT:
-				out = make_functor(egen::DIV, {
-					prev_chain, elem_jacobianize(
-						make_functor(egen::MUL, {constant_like(2.f, op), op}),
-						prev_chain
-					)
-				});
-				break;
 			case egen::ABS:
 			case egen::SIN:
 			case egen::COS:
+			case egen::TAN:
 			case egen::EXP:
+			case egen::LOG:
+			case egen::SQRT:
 			case egen::SQUARE:
 			case egen::CUBE:
 			case egen::SIGMOID:
 			case egen::TANH:
 			case egen::POW:
 			case egen::MUL:
+			case egen::DIV:
 			case egen::MAX:
 			case egen::MIN:
 			{
@@ -307,8 +286,27 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 						dfx = make_functor(egen::NEG, {
 							make_functor(egen::SIN, {args.front()})});
 						break;
+					case egen::TAN:
+						dfx = make_functor(egen::DIV, {
+							get_const_one(*op),
+							make_functor(egen::SQUARE, {
+								make_functor(egen::COS, {args.front()}),
+							})
+						});
+						break;
 					case egen::EXP:
 						dfx = op;
+						break;
+					case egen::LOG:
+						dfx = make_functor(egen::DIV, {
+							get_const_one(*op), args.front()});
+						break;
+					case egen::SQRT:
+						dfx = make_functor(egen::DIV, {
+							get_const_one(*op),
+							make_functor(egen::MUL, {
+								constant_like(2.f, op), op})
+						});
 						break;
 					case egen::SQUARE:
 						dfx = make_functor(egen::MUL, {
@@ -361,29 +359,28 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 						dfx = make_functor(egen::MUL, nodes);
 					}
 						break;
+					case egen::DIV:
+						dfx = arg_idx == 0 ?
+							make_functor(egen::DIV, {
+								constant(1, op->shape(), egen::FLOAT),
+								args[1]
+							}) :
+							make_functor(egen::DIV, {
+								make_functor(egen::NEG, {op}), args[1]
+							});
+						break;
 					case egen::MAX:
 					case egen::MIN:
 						dfx = make_functor(egen::EQ, {op, args.at(arg_idx)});
 						break;
 				}
-				out = make_functor(egen::MUL, {
-					elem_jacobianize(dfx, prev_chain), prev_chain});
+				out = make_functor(egen::MATMUL, {
+					jacobian_project(dfx), prev_chain});
 			}
 				break;
 			case egen::SUB:
-				out = arg_idx == 0 ? prev_chain : make_functor(egen::NEG, {prev_chain});
-				break;
-			case egen::DIV:
-				out = arg_idx == 0 ?
-					make_functor(egen::DIV, {
-						prev_chain,
-						elem_jacobianize(args[1], prev_chain)
-					}) :
-					make_functor(egen::MUL, {
-						make_functor(egen::NEG, {prev_chain}),
-						elem_jacobianize(make_functor(egen::DIV,
-							{op, args[1]}), prev_chain)
-					});
+				out = arg_idx == 0 ? prev_chain :
+					make_functor(egen::NEG, {prev_chain});
 				break;
 			case egen::SELECT:
 				if (0 == arg_idx)
@@ -392,16 +389,20 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 				}
 				else if (1 == arg_idx)
 				{
-					out = make_functor(egen::SELECT, {
-						elem_jacobianize(args[0], prev_chain),
-						prev_chain, get_const_zero(*prev_chain)
+					out = make_functor(egen::MATMUL, {
+						jacobian_project(make_functor(egen::SELECT, {args[0],
+							get_const_one(*prev_chain),
+							get_const_zero(*prev_chain)})),
+						prev_chain
 					});
 				}
 				else // if (2 <= arg_idx)
 				{
-					out = make_functor(egen::SELECT, {
-						elem_jacobianize(args[0], prev_chain),
-						get_const_zero(*prev_chain), prev_chain
+					out = make_functor(egen::MATMUL, {
+						jacobian_project(make_functor(egen::SELECT, {args[0],
+							get_const_zero(*prev_chain)})),
+							get_const_one(*prev_chain),
+						prev_chain
 					});
 				}
 				break;
@@ -1430,13 +1431,14 @@ struct DerivativeFuncs final : public teq::iBackpropFuncs
 	teq::TensptrT get_const_eye (teq::NElemT n, size_t type_code) const override
 	{
 		auto reftype = (egen::_GENERATED_DTYPE) type_code;
-		teq::Shape shape({(teq::DimT) n, (teq::DimT) n});
-		std::vector<float> data(shape.n_elems(), 0.f);
-		for (size_t i = 0; i < n; ++i)
-		{
-			data[i + n * i] = 1.f;
-		}
-		return make_constant_tensor(data.data(), shape, reftype);
+		std::vector<float> data(n, 1);
+		eigen::StorageIndicesT inner(n);
+		eigen::StorageIndicesT outer(n + 1);
+		std::iota(inner.begin(), inner.end(), 0);
+		std::iota(outer.begin(), outer.end(), 0);
+		return make_constant_tensor(data.data(),
+			teq::Shape({(teq::DimT) n, (teq::DimT) n}), reftype,
+			eigen::SparseInfo{ inner.data(), outer.data(), n });
 	}
 
 	/// Implementation of iDerivativeFuncs

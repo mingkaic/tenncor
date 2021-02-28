@@ -15,6 +15,8 @@ std::string Packer<teq::DimsT>::key_ = "dimensions";
 
 std::string Packer<teq::RanksT>::key_ = "ranks";
 
+std::string Packer<StorageIndicesT>::key_ = "storage_indices";
+
 std::string Packer<std::set<teq::RankT>>::key_ = "rank_set";
 
 std::string Packer<teq::RankT>::key_ = "rank";

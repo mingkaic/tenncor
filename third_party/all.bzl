@@ -8,6 +8,8 @@ load("//third_party:repos/consul.bzl", "consul_repository")
 load("//third_party:repos/curl.bzl", "curl_repository")
 load("//third_party:repos/g3log.bzl", "g3log_repository")
 load("//third_party:repos/onnxds.bzl", "onnxds_repository")
+load("//third_party:repos/libxml.bzl", "libxml_repository")
+load("//third_party:repos/libgexf.bzl", "libgexf_repository")
 
 def dependencies(excludes = []):
     ignores = native.existing_rules().keys() + excludes
@@ -41,3 +43,9 @@ def dependencies(excludes = []):
 
     if "com_github_mingkaic_onnxds" not in ignores:
         onnxds_repository()
+
+    if "libgexf_unofficial" not in ignores:
+        libgexf_repository()
+
+    if "libxml_archive" not in ignores:
+        libxml_repository()
