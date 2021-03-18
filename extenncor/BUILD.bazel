@@ -46,16 +46,8 @@ proto_library(
     visibility = ["//visibility:public"],
 )
 
-# python_proto_library(
-#     name = "extenncor_py_pb",
-#     deps = [":extenncor_pb"],
-#     visibility = ["//visibility:public"],
-# )
-
-py_library(
+python_proto_library(
     name = "extenncor_py_pb",
-    srcs = [
-        "dataset_trainer_pb2.py",
-        "dqn_trainer_pb2.py",
-    ],
+    deps = [":extenncor_pb"],
+    visibility = ["//visibility:public"],
 )

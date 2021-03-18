@@ -1,5 +1,7 @@
 licenses(["notice"])
 
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+
 filegroup(
     name = "srcs",
     srcs = [
@@ -52,25 +54,9 @@ proto_library(
     visibility = ["//visibility:public"],
 )
 
-# cpp_grpc_library(
-#     name = "profile_cc_grpc",
-#     deps = [":profile_pb"],
-#     visibility = ["//visibility:public"],
-# )
-
-cc_library(
+cpp_grpc_library(
     name = "profile_cc_grpc",
-    hdrs = [
-        "profile.pb.h",
-        "profile.grpc.pb.h",
-    ],
-    srcs = [
-        "profile.pb.cc",
-        "profile.grpc.pb.cc",
-    ],
-    deps = [
-        "//internal/onnx:onnx_cc_pb",
-        "@com_github_grpc_grpc//:grpc++",
-    ],
+    deps = [":profile_pb"],
+    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )

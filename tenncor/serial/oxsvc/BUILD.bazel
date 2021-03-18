@@ -69,27 +69,10 @@ proto_library(
     visibility = ["//visibility:public"],
 )
 
-# cpp_grpc_library(
-#     name = "oxsvc_cc_grpc",
-#     deps = [":oxsvc_pb"],
-#     visibility = ["//visibility:public"],
-# )
-
-cc_library(
+cpp_grpc_library(
     name = "oxsvc_cc_grpc",
-    hdrs = [
-        "distr.ox.pb.h",
-        "distr.ox.grpc.pb.h",
-    ],
-    srcs = [
-        "distr.ox.pb.cc",
-        "distr.ox.grpc.pb.cc",
-    ],
-    deps = [
-        "//internal/onnx:onnx_cc_pb",
-        "//tenncor/eteq/opsvc:opsvc_cc_grpc",
-        "@com_github_grpc_grpc//:grpc++",
-    ],
+    deps = [":oxsvc_pb"],
+    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )
 

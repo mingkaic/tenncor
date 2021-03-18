@@ -65,43 +65,6 @@ push_lib_image:
 push_image:
 	docker push ${IMAGE_REPO}/tenncor:${IMAGE_TAG}
 
-######## MANUALLY GENERATE PROTOBUF ########
-
-PROTOC := bazel-bin/external/com_google_protobuf/protoc
-GRPC_CPP_PLUGIN := bazel-bin/external/com_github_grpc_grpc/src/compiler/grpc_cpp_plugin
-
-${PROTOC}:
-	bazel build @com_google_protobuf//:protoc
-
-${GRPC_CPP_PLUGIN}:
-	bazel build @com_github_grpc_grpc//src/compiler:grpc_cpp_plugin
-
-.PHONY: gen-proto
-gen-proto: gen-gemit-proto gen-extenncor-proto gen-onnx-proto gen-oxsvc-proto gen-profile-proto
-
-.PHONY: gen-gemit-proto
-gen-gemit-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
-	./${PROTOC} --cpp_out=. -I . dbg/peval/emit/gemitter.proto
-	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . dbg/peval/emit/gemitter.proto
-
-.PHONY: gen-extenncor-proto
-gen-extenncor-proto: ${PROTOC}
-	./${PROTOC} --python_out=. -I . extenncor/dataset_trainer.proto extenncor/dqn_trainer.proto
-
-.PHONY: gen-onnx-proto
-gen-onnx-proto: ${PROTOC}
-	./${PROTOC} --cpp_out=. -I . internal/onnx/onnx.proto
-
-.PHONY: gen-oxsvc-proto
-gen-oxsvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
-	./${PROTOC} --cpp_out=. -I . tenncor/serial/oxsvc/distr.ox.proto
-	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . tenncor/serial/oxsvc/distr.ox.proto
-
-.PHONY: gen-profile-proto
-gen-profile-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
-	./${PROTOC} --cpp_out=. -I . dbg/profile/profile.proto
-	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . dbg/profile/profile.proto
-
 ######## MODEL FILE GENERATION ########
 
 .PHONY: onnx2json

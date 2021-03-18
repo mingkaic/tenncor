@@ -64,6 +64,7 @@ proto_library(
 cpp_grpc_library(
     name = "printsvc_cc_grpc",
     deps = [":printsvc_pb"],
+    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )
 

@@ -70,6 +70,7 @@ proto_library(
 cpp_grpc_library(
     name = "iosvc_cc_grpc",
     deps = [":iosvc_pb"],
+    copts = ["-std=c++17"],
     visibility = ["//visibility:public"],
 )
 
