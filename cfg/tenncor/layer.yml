@@ -185,8 +185,9 @@ funcs:
         //
             std::pair<eteq::DimPairsT,eteq::DimPairsT> zero_padding;
             std::string zpadding;
-            std::transform(padding.begin(), padding.end(), std::back_inserter(zpadding),
-                [](unsigned char c){ return std::tolower(c); });
+            std::transform(padding.begin(), padding.end(),
+            std::back_inserter(zpadding),
+            [](unsigned char c){ return std::tolower(c); });
             if ("valid" == zpadding)
             {
                 zero_padding = {

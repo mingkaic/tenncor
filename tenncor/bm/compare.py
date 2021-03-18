@@ -30,15 +30,16 @@ def main(outdir, bmtype, testname, measure):
         dur = measure(matrix_dim)
         durs.append(dur)
     print('{} durations: {}'.format(testname, durs))
+    target_file = os.path.join(outdir, '{}_results.json'.format(bmtype))
     try:
-        with open('{}_results.json'.format(bmtype), 'r') as f:
+        with open(target_file.format(bmtype), 'r') as f:
             existing_content = f.read()
             if len(existing_content) == 0:
                 existing_content = '{}'
             results = json.loads(existing_content)
     except Exception as e:
         results = {}
-    with open(os.path.join(outdir, '{}_results.json'.format(bmtype)), 'w') as f:
+    with open(target_file, 'w') as f:
         results[testname] = durs
         f.write(json.dumps(results))
 

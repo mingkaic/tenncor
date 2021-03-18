@@ -1,0 +1,58 @@
+licenses(["notice"])
+
+package(
+    default_visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "srcs",
+    srcs = [
+        ":sparse_hdrs",
+        ":sparse_srcs",
+		":test_srcs",
+        "BUILD.bazel",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "sparse_hdrs",
+    srcs = glob(["*.hpp"]),
+)
+
+filegroup(
+    name = "sparse_srcs",
+    srcs = glob(["src/*.cpp"]),
+)
+
+filegroup(
+    name = "test_srcs",
+    srcs = glob(["test/*.cpp"]),
+    visibility = ["//visibility:public"],
+)
+
+######### LIBRARY #########
+
+cc_library(
+    name = "sparse",
+    hdrs = [":sparse_hdrs"],
+    srcs = [":sparse_srcs"],
+    deps = [
+        "//internal/eigen:eigen",
+        "//internal/utils/coord:coord",
+    ],
+    copts = ["-std=c++17"],
+)
+
+######### TEST #########
+
+cc_test(
+    name = "test",
+    srcs = [":test_srcs"],
+    deps = [
+        ":sparse",
+        "@gtest//:gtest",
+        "//testutil:tutil",
+    ],
+    copts = ["-std=c++17"],
+)

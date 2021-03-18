@@ -97,36 +97,26 @@ struct Query final : public teq::iOnceTraveler
 	QResultsT match (const Node& cond) const
 	{
 		PathsT paths;
-		switch (cond.val_case())
+		auto condcase = cond.val_case();
+		if (condcase != Node::ValCase::kOp)
+		{
+			paths.reserve(visited_.size());
+			std::transform(visited_.begin(), visited_.end(),
+			std::back_inserter(paths),
+			[](teq::iTensor* node)
+			{
+				return std::make_shared<Path>(node);
+			});
+		}
+		switch (condcase)
 		{
 			case Node::ValCase::kSymb:
-				paths.reserve(visited_.size());
-				std::transform(visited_.begin(), visited_.end(),
-					std::back_inserter(paths),
-					[](teq::iTensor* node)
-					{
-						return std::make_shared<Path>(node);
-					});
 				symb_filter(paths, cond.symb());
 				break;
 			case Node::ValCase::kCst:
-				paths.reserve(visited_.size());
-				std::transform(visited_.begin(), visited_.end(),
-					std::back_inserter(paths),
-					[](teq::iTensor* node)
-					{
-						return std::make_shared<Path>(node);
-					});
-				leaf_filter(paths, cond.cst());
+				cst_filter(paths, cond.cst());
 				break;
 			case Node::ValCase::kLeaf:
-				paths.reserve(visited_.size());
-				std::transform(visited_.begin(), visited_.end(),
-					std::back_inserter(paths),
-					[](teq::iTensor* node)
-					{
-						return std::make_shared<Path>(node);
-					});
 				leaf_filter(paths, cond.leaf());
 				break;
 			case Node::ValCase::kOp:
@@ -136,11 +126,11 @@ struct Query final : public teq::iOnceTraveler
 				{
 					paths.reserve(nodes.size());
 					std::transform(nodes.begin(), nodes.end(),
-						std::back_inserter(paths),
-						[](teq::iTensor* node)
-						{
-							return std::make_shared<Path>(node);
-						});
+					std::back_inserter(paths),
+					[](teq::iTensor* node)
+					{
+						return std::make_shared<Path>(node);
+					});
 					match_helper(paths, cond);
 				}
 			}
@@ -326,15 +316,28 @@ private:
 		paths = PathsT(mpaths.begin(), mpaths.end());
 	}
 
-	template <typename T>
-	void leaf_filter (PathsT& paths, T leaf) const
+	void cst_filter (PathsT& paths, double leaf) const
 	{
 		estd::remove_if(paths,
-			[&](PathptrT root)
-			{
-				return false == equals(
-					dynamic_cast<teq::iLeaf*>(root->tens_), leaf);
-			});
+		[&](PathptrT root)
+		{
+			return false == equals(
+				dynamic_cast<teq::iLeaf*>(root->tens_), leaf);
+		});
+	}
+
+	void leaf_filter (PathsT& paths, const Leaf& leaf) const
+	{
+		estd::remove_if(paths,
+		[&](PathptrT root)
+		{
+			return false == equals(
+				dynamic_cast<teq::iLeaf*>(root->tens_), leaf);
+		});
+		if (Leaf::kCapture == leaf.nullable_capture_case())
+		{
+			symb_filter(paths, leaf.capture());
+		}
 	}
 
 	void func_filter (PathsT& paths, const Operator& cond) const
@@ -366,7 +369,7 @@ private:
 				symb_filter(paths, cond.symb());
 				break;
 			case Node::ValCase::kCst:
-				leaf_filter(paths, cond.cst());
+				cst_filter(paths, cond.cst());
 				break;
 			case Node::ValCase::kLeaf:
 				leaf_filter(paths, cond.leaf());

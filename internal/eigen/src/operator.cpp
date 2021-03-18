@@ -25,6 +25,13 @@ EigenptrT project (const teq::TensptrT& in, const marsh::iAttributed& attrib)
 	return std::make_shared<ProjectOp>(*in, inner, outer);
 }
 
+numbers::Fraction matmul_density (
+    const numbers::Fraction& ldensity, const numbers::Fraction& rdensity,
+	teq::DimT common_dim)
+{
+    return reverse(pow(reverse(ldensity * rdensity), common_dim));
+}
+
 }
 
 #endif

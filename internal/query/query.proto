@@ -2,6 +2,10 @@ syntax = "proto3";
 
 package query;
 
+message Const {
+	string symb = 1;
+}
+
 // Union of matchable nodes
 message Node {
     oneof val {
@@ -11,7 +15,6 @@ message Node {
         Leaf leaf = 2;
         // match by functor node
         Operator op = 3;
-
         // match by some selectable symbol that can match anything
         string symb = 4;
     }
@@ -36,6 +39,11 @@ message Leaf {
         bool usage_nil = 6;
         string usage = 7;
     }
+
+	oneof nullable_capture {
+		bool capture_nil = 8;
+		string capture = 9;
+	}
 }
 
 // Match functors

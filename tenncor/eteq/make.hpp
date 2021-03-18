@@ -22,6 +22,16 @@ EVariable make_variable (T* data, teq::Shape shape,
 		Variable::get(data, egen::get_type<T>(), shape, label)), ctx);
 }
 
+template <typename T>
+EVariable make_variable (T* data,
+	const eigen::SparseInfo& sinfo, teq::Shape shape,
+	const std::string& label = "",
+	const global::CfgMapptrT& ctx = global::context())
+{
+	return EVariable(VarptrT(
+		Variable::get(data, egen::get_type<T>(), sinfo, shape, label)), ctx);
+}
+
 /// Return variable node given scalar and shape
 template <typename T>
 EVariable make_variable_scalar (T scalar,
@@ -34,6 +44,20 @@ EVariable make_variable_scalar (T scalar,
 	}
 	std::vector<T> data(shape.n_elems(), scalar);
 	return make_variable(data.data(), shape, label, ctx);
+}
+
+template <typename T>
+EVariable make_variable_scalar (T scalar,
+	const eigen::SparseInfo& sinfo,
+	teq::Shape shape, std::string label = "",
+	const global::CfgMapptrT& ctx = global::context())
+{
+	if (label.empty())
+	{
+		label = fmts::to_string(scalar);
+	}
+	std::vector<T> data(shape.n_elems(), scalar);
+	return make_variable(data.data(), sinfo, shape, label, ctx);
 }
 
 /// Return zero-initialized variable node of specified shape
@@ -131,7 +155,8 @@ cst = make_constant_tensor<REALTYPE>(tmp.data(), shape);\
 }
 
 template <typename T>
-teq::TensptrT make_constant_tensor (T* data, teq::Shape shape, egen::_GENERATED_DTYPE dtype)
+teq::TensptrT make_constant_tensor (T* data,
+	teq::Shape shape, egen::_GENERATED_DTYPE dtype)
 {
 	if (egen::get_type<T>() == dtype)
 	{

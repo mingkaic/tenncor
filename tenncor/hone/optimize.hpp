@@ -12,6 +12,7 @@
 
 #include "tenncor/hone/duplicates.hpp"
 #include "tenncor/hone/cstrules.hpp"
+#include "tenncor/hone/matchain.hpp"
 #include "tenncor/hone/target.hpp"
 
 namespace hone

@@ -283,9 +283,7 @@ TEST(SERIALIZE, LoadContext)
 	EXPECT_EQ(4, out.size());
 
 	teq::TensSetT outset;
-	std::transform(out.begin(), out.end(),
-		std::inserter(outset, outset.end()),
-		[](eteq::ETensor& etens){ return etens.get(); });
+	teq::multi_get(out.begin(), out.end(), std::inserter(outset, outset.end()));
 
 	ASSERT_HAS(outset, dw0.get());
 	ASSERT_HAS(outset, db0.get());

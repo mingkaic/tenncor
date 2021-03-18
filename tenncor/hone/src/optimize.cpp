@@ -22,11 +22,14 @@ static teq::TensptrsT general_optimize (
 		gen_cst(rules, graph); // populate with constant rules
 	}
 	apply_rules(rules, impl_factory);
+
 	bool converted = true;
 	for (size_t i = 0; converted && i < convert_round_limit; ++i)
 	{
 		converted = opt::optimize(graph, rules);
 	}
+
+	matrix_chain(graph); // matrix chaining
 	// apply new roots
 	return graph.get_roots();
 }

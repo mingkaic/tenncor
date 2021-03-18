@@ -181,6 +181,18 @@ py_binary(
     data = ["//cfg:optimizations"],
 )
 
+py_binary(
+    name = "profile_mlp_grad",
+    srcs = [
+        "bm/profile_mlp_grad.py",
+    ],
+    deps = [
+        ":tenncor_py",
+        "//dbg:tenncor_profile_py",
+    ],
+    data = ["//cfg:optimizations"],
+)
+
 ######### TEST #########
 
 cc_test(

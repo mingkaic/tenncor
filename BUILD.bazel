@@ -76,9 +76,7 @@ load("@com_grail_bazel_compdb//:aspects.bzl", "compilation_database")
 compilation_database(
     name = "compdb",
     targets = [
-        "//internal/utils/stabilizer:stabilizer",
-        "//internal/utils/coord:coord",
+        "//internal/utils:utils",
         "//tenncor:tenncor",
     ],
-    exec_root = "",
 )

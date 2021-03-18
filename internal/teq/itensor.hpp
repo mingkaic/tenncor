@@ -118,6 +118,25 @@ void multi_visit (iTraveler& traveler, const TS& tensors)
 	}
 }
 
+template <typename IT>
+using ItValT = typename std::iterator_traits<IT>::value_type;
+
+template <typename IT, typename OIT> // use concepts to confirm Get relationship
+OIT multi_get (IT begin, IT end, OIT out)
+{
+	return std::transform(begin, end, out,
+	[](ItValT<IT> getter){ return getter.get(); });
+}
+
+template <typename T, typename GETTABLE=std::shared_ptr<T>> // todo: use concepts
+std::vector<T*> multi_get (const std::vector<GETTABLE>& ins)
+{
+	std::vector<T*> out;
+	out.reserve(ins.size());
+	multi_get(ins.begin(), ins.end(), std::back_inserter(out));
+	return out;
+}
+
 }
 
 #endif // TEQ_ITENSOR_HPP

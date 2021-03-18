@@ -20,6 +20,11 @@ filegroup(
     srcs = glob(["src/*.cpp"]),
 )
 
+filegroup(
+    name = "protos",
+    srcs = glob(["*.proto"]),
+)
+
 ######### LIBRARY #########
 
 cc_library(
@@ -28,11 +33,44 @@ cc_library(
     srcs = [":profile_srcs"],
     copts = ["-std=c++17"],
     deps = [
+		":profile_cc_grpc",
         "//internal/eigen:eigen",
+        "//tenncor:tenncor",
         "@boost//:uuid",
         "@boost//:pool",
-        "@com_github_eigenteam_eigen//:eigen",
         "@libgexf_unofficial//:libgexf",
+        "@com_github_eigenteam_eigen//:eigen",
+		"@com_github_mingkaic_cppkg//egrpc:egrpc",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+proto_library(
+    name = "profile_pb",
+    srcs = [":protos"],
+    deps = ["//internal/onnx:onnx_pb"],
+    visibility = ["//visibility:public"],
+)
+
+# cpp_grpc_library(
+#     name = "profile_cc_grpc",
+#     deps = [":profile_pb"],
+#     visibility = ["//visibility:public"],
+# )
+
+cc_library(
+    name = "profile_cc_grpc",
+    hdrs = [
+        "profile.pb.h",
+        "profile.grpc.pb.h",
+    ],
+    srcs = [
+        "profile.pb.cc",
+        "profile.grpc.pb.cc",
+    ],
+    deps = [
+        "//internal/onnx:onnx_cc_pb",
+        "@com_github_grpc_grpc//:grpc++",
     ],
     visibility = ["//visibility:public"],
 )

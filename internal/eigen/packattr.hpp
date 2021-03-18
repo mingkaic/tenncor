@@ -380,6 +380,21 @@ struct Packer<teq::TensptrT>
 
 void pack_attr (marsh::iAttributed& attrib);
 
+struct AttrKeyVal final
+{
+	std::string key_;
+
+	std::string val_;
+};
+
+template <typename ...ARGS>
+void pack_attr (marsh::iAttributed& attrib, const AttrKeyVal& attr_val, ARGS... args)
+{
+	attrib.add_attr(attr_val.key_,
+		std::make_unique<marsh::String>(attr_val.val_));
+	pack_attr(attrib, args...);
+}
+
 template <typename T, typename ...ARGS>
 void pack_attr (marsh::iAttributed& attrib, T attr_val, ARGS... args)
 {

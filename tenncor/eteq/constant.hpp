@@ -88,10 +88,13 @@ struct Constant final : public teq::iLeaf
 	}
 
 private:
-	Constant (T* data, const eigen::OptSparseT& sparse_info, teq::Shape shape) :
+	Constant (T* data,
+		const eigen::OptSparseT& sparse_info, teq::Shape shape) :
 		ref_(bool(sparse_info) ?
-			(eigen::SrcRef<T>*) new eigen::SparseSrcRef<T>(data, *sparse_info, shape) :
-			(eigen::SrcRef<T>*) new eigen::SrcRef<T>(data, shape)), shape_(shape) {}
+			(eigen::SrcRef<T>*) new eigen::SparseSrcRef<T>(
+				data, *sparse_info, shape) :
+			(eigen::SrcRef<T>*) new eigen::SrcRef<T>(
+				data, shape)), shape_(shape) {}
 
 	Constant (const Constant<T>& other) :
 		ref_(other.ref_->clone()), shape_(other.shape_), meta_(other.meta_) {}

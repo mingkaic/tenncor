@@ -129,7 +129,7 @@ struct Expirable final
 private:
 	friend struct iRuntimeMemory;
 
-	size_t ttl_ = 0;
+	int64_t ttl_ = 0;
 
 	T* ptr_ = nullptr;
 

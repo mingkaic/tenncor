@@ -58,11 +58,11 @@ proto_library(
     visibility = ["//visibility:public"],
 )
 
-# cpp_proto_library(
-#     name = "onnx_cc_pb",
-#     deps = [":onnx_pb"],
-#     visibility = ["//visibility:public"],
-# )
+#cpp_proto_library(
+    #name = "onnx_cc_pb",
+    #deps = [":onnx_pb"],
+    #visibility = ["//visibility:public"],
+#)
 
 cc_library(
     name = "onnx_cc_pb",

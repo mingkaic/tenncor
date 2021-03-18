@@ -49,7 +49,7 @@ cc_test(
     copts = ["-std=c++17"],
     deps = [
         ":hone",
-        "//internal/utils/coord:coord",
+        "//internal/utils/sparse:sparse",
         "//testutil:tutil",
         "@com_github_mingkaic_cppkg//diff:diff",
         "@com_github_mingkaic_cppkg//exam:exam",

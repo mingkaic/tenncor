@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+import "internal/onnx/onnx.proto";
+
+package tenncor_profile;
+
+message CreateProfileRequest {
+	onnx.ModelProto model = 1;
+
+	map<string,int64> runtime = 2;
+}
+
+message CreateProfileResponse {}
+
+service TenncorProfileService  {
+	rpc CreateProfile (CreateProfileRequest) returns (CreateProfileResponse);
+}

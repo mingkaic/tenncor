@@ -24,6 +24,8 @@ Toplevel object is a node which can take on `op`, `var`, `cst`, or `symb`.
 
 - `symb` matches against any node
 
+- `cstnode` matches against any constant leaf
+
 ## Any Node Selection
 
 Subgraphs can be ambiguously selected by the `symb` Node field. These fields can be referenced in rule's `dest` field.

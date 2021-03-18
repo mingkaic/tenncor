@@ -100,6 +100,7 @@ cc_library(
     copts = ["-std=c++17"],
     deps = [
         "//internal/teq:teq",
+        "//internal/utils/coord:coord",
         "@boost//:uuid",
         "@boost//:pool",
         "@com_github_eigenteam_eigen//:eigen",

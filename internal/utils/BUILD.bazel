@@ -9,3 +9,15 @@ filegroup(
     ],
     visibility = ["//visibility:public"],
 )
+
+######### LIBRARY #########
+
+cc_library(
+    name = "utils",
+    deps = [
+        "//internal/utils/coord:coord",
+        "//internal/utils/sparse:sparse",
+        "//internal/utils/stabilizer:stabilizer",
+    ],
+    visibility = ["//visibility:public"],
+)

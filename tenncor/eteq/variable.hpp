@@ -25,27 +25,49 @@ static inline size_t get_lastvers (const global::CfgMapptrT& ctx)
 	return mvers;
 }
 
-#define TYPED_SRCREF(REALTYPE)\
-	out = std::make_unique<eigen::SrcRef<REALTYPE>>((REALTYPE*) data, shape);
+template <typename T>
+static eigen::SrcRefptrT per_srcref (T* data,
+	const eigen::OptSparseT& sparse_info, const teq::Shape& shape)
+{
+	if (bool(sparse_info))
+	{
+		return std::make_unique<eigen::SparseSrcRef<T>>(
+			data, *sparse_info, shape);
+	}
+	return std::make_unique<eigen::SrcRef<T>>(data, shape);
+}
 
-static eigen::SrcRefptrT get_srcref (const void* data,
-	egen::_GENERATED_DTYPE dtype, const teq::Shape& shape)
+#define _TYPED_SRCREF(REALTYPE)\
+	out = per_srcref<REALTYPE>((REALTYPE*) data, sparse_info, shape);
+
+static eigen::SrcRefptrT get_srcref (
+	const void* data, egen::_GENERATED_DTYPE dtype,
+	const eigen::OptSparseT& sparse_info, const teq::Shape& shape)
 {
 	eigen::SrcRefptrT out;
-	TYPE_LOOKUP(TYPED_SRCREF, dtype);
+	TYPE_LOOKUP(_TYPED_SRCREF, dtype);
 	return out;
 }
 
-#undef TYPED_SRCREF
+#undef _TYPED_SRCREF
 
 /// Leaf node implementation containing mutable Eigen data
 struct Variable final : public eigen::iMutableLeaf
 {
 	/// Return Variable given raw pointer array whose size is denoted by shape
-	static Variable* get (const void* ptr, egen::_GENERATED_DTYPE dtype, teq::Shape shape,
+	static Variable* get (const void* ptr,
+		egen::_GENERATED_DTYPE dtype, teq::Shape shape,
 		std::string label = "", teq::Usage usage = teq::VARUSAGE)
 	{
-		return new Variable(ptr, dtype, shape, label, usage);
+		return new Variable(ptr, dtype,
+			eigen::OptSparseT(), shape, label, usage);
+	}
+
+	static Variable* get (const void* ptr, egen::_GENERATED_DTYPE dtype,
+		const eigen::OptSparseT& sparse_info, teq::Shape shape,
+		std::string label = "", teq::Usage usage = teq::VARUSAGE)
+	{
+		return new Variable(ptr, dtype, sparse_info, shape, label, usage);
 	}
 
 	/// Return deep copy of this Variable
@@ -186,8 +208,9 @@ struct Variable final : public eigen::iMutableLeaf
 
 private:
 	Variable (const void* data, egen::_GENERATED_DTYPE dtype,
-		teq::Shape shape, std::string label, teq::Usage usage) :
-		ref_(get_srcref(data, dtype, shape)), shape_(shape),
+		const eigen::OptSparseT& sparse_info, teq::Shape shape,
+		std::string label, teq::Usage usage) :
+		ref_(get_srcref(data, dtype, sparse_info, shape)), shape_(shape),
 		meta_(dtype, 1), label_(label), usage_(usage) {}
 
 	Variable (Variable&& other) = default;
@@ -196,7 +219,7 @@ private:
 	{
 		return new Variable(device().data(),
 			(egen::_GENERATED_DTYPE) meta_.type_code(),
-			shape_, label_, usage_);
+			eigen::sparse_info(*this), shape_, label_, usage_);
 	}
 
 	/// Data Source

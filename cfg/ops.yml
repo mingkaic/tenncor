@@ -726,11 +726,11 @@ opcode:
                     }
                     teq::Shape outshape;
                     eigen::Packer<teq::Shape>().unpack(outshape, attrs);
-                    if (shapes.front().n_elems() < outshape.n_elems())
+                    if (shapes.front().n_elems() > outshape.n_elems())
                     {
                         global::throw_errf("cannot PROJECT from larger "
                             "input shape %s to smaller %s",
-                            outshape.to_string().c_str(),
-                            shapes.front().to_string().c_str());
+                            shapes.front().to_string().c_str(),
+                            outshape.to_string().c_str());
                     }
                     return outshape;

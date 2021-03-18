@@ -2,9 +2,13 @@
 #ifndef EIGEN_DEVICE_HPP
 #define EIGEN_DEVICE_HPP
 
+#include "internal/eigen/decimal.hpp"
+
 #include "internal/eigen/convert.hpp"
 #include "internal/eigen/observable.hpp"
 #include "internal/eigen/memory.hpp"
+
+#include "internal/utils/coord/coord.hpp"
 
 namespace eigen
 {
@@ -22,13 +26,9 @@ struct iEigen : public teq::iDeviceRef
 	virtual bool valid_for (size_t desired_ttl) const = 0;
 
 	virtual void extend_life (size_t ttl) = 0;
-};
 
-inline bool is_sparse (const teq::iTensor& tens)
-{
-	auto dev = dynamic_cast<const iEigen*>(&tens.device());
-	return dev != nullptr && bool(dev->sparse_info());
-}
+	virtual void expire (void) = 0;
+};
 
 inline OptSparseT sparse_info (const teq::iTensor& tens)
 {
@@ -37,6 +37,39 @@ inline OptSparseT sparse_info (const teq::iTensor& tens)
 		return dev->sparse_info();
 	}
 	return OptSparseT();
+}
+
+inline bool is_sparse (const teq::iTensor& tens)
+{
+	return bool(sparse_info(tens));
+}
+
+template <typename T>
+inline MatMapT<T> make_matmap_ro (const teq::iTensor& tens)
+{
+	auto& dev = tens.device();
+	const void* data = dev.data();
+	assert(nullptr != data);
+	return make_matmap((T*) data, tens.shape());
+}
+
+template <typename T>
+inline SMatMapT<T> make_smatmap_ro (const teq::iTensor& tens)
+{
+	auto dev = dynamic_cast<const iEigen*>(&tens.device());
+	std::optional<SparseInfo> sinfo;
+	if (nullptr != dev)
+	{
+		sinfo = dev->sparse_info();
+	}
+	if (false == bool(sinfo))
+	{
+		global::fatal("cannot make sparse matrix "
+			"from non-sparse device reference");
+	}
+	const void* data = dev->data();
+	assert(nullptr != data || 0 == sinfo->non_zeros_);
+	return make_smatmap((T*) data, *sinfo, tens.shape());
 }
 
 template <typename T>
@@ -60,12 +93,24 @@ inline teq::Once<SMatMapT<T>> make_smatmap (const teq::iTensor& tens)
 	}
 	if (false == bool(sinfo))
 	{
-		global::fatal("cannot make sparse matrix from non-sparse device reference");
+		global::fatal("cannot make sparse matrix "
+			"from non-sparse device reference");
 	}
 	teq::Once<const void*> data = dev->odata();
 	assert(nullptr != data.get() || 0 == sinfo->non_zeros_);
 	return teq::Once<SMatMapT<T>>(make_smatmap(
 		(T*) data.get(), *sinfo, tens.shape()), std::move(data));
+}
+
+// Return decimal from 0 to 1 denoting density/sparsity with 0 being most sparse,
+// and 1 being most dense. The value is a ratio of non_zeros to shape n_elems
+inline numbers::Fraction calc_density (const teq::iTensor& tens)
+{
+	if (auto sinfo = sparse_info(tens))
+	{
+		return numbers::Fraction(sinfo->non_zeros_, tens.shape().n_elems());
+	}
+	return numbers::Fraction(1, 1);
 }
 
 /// Smart point of generic Eigen data object
@@ -81,6 +126,8 @@ struct iPermEigen : public iEigen
 	}
 
 	void extend_life (size_t) override {}
+
+	void expire (void) override {}
 };
 
 struct iSrcRef : public iPermEigen
@@ -476,6 +523,11 @@ struct iTmpEigen : public iEigen
 		data_.extend_life(ttl);
 	}
 
+	void expire (void) override
+	{
+		data_.expire();
+	}
+
 protected:
 	mutable Expirable<T> data_;
 };
@@ -583,8 +635,20 @@ struct SparseMatOp final : public iPermEigen
 {
 	using OpF = std::function<void(SMatrixT<T>&,const teq::CTensT&)>;
 
-	SparseMatOp (const teq::Shape& outshape, const teq::CTensT& args, OpF op) :
-		op_(op), args_(args), data_(outshape.at(1), outshape.at(0)) {}
+	SparseMatOp (const teq::Shape& outshape, const teq::CTensT& args,
+		const numbers::Fraction& default_density, OpF op) :
+		op_(op), args_(args), data_(outshape.at(1), outshape.at(0))
+	{
+		auto nzs = outshape.n_elems() * double(default_density);
+		eigen::TripletsT<T> trips;
+		trips.reserve(nzs);
+		for (size_t i = 0; i < nzs; ++i)
+		{
+			auto dims = teq::coordinate(outshape, i);
+			trips.push_back(eigen::TripletT<T>(dims.at(1), dims.at(0), 1));
+		}
+		data_.setFromTriplets(trips.begin(), trips.end());
+	}
 
 	/// Implementation of iDeviceRef
 	void* data (void) override
@@ -622,6 +686,8 @@ struct SparseMatOp final : public iPermEigen
 	}
 
 private:
+	numbers::Fraction default_density_;
+
 	OpF op_;
 
 	/// Tensor operator arguments
@@ -713,12 +779,18 @@ struct iRefEigen : public iEigen
 		}
 	}
 
+	void expire (void) override
+	{
+		ref_ttl_ = 0;
+		this->ref_->device().odata();
+	}
+
 protected:
 	teq::iTensor* ref_;
 
 private:
 	// Ref has an independent from its reference, to accurately reflect dependencies
-	mutable size_t ref_ttl_ = 0;
+	mutable int64_t ref_ttl_ = 0;
 };
 
 struct ProjectOp final : public iRefEigen
@@ -992,6 +1064,31 @@ struct Device final : public teq::iDevice
 private:
 	RTMemptrT memory_;
 };
+
+struct CacheClear final : public teq::iTraveler
+{
+	/// Implementation of iTraveler
+	void visit (teq::iLeaf& leaf) override {}
+
+	/// Implementation of iTraveler
+	void visit (teq::iFunctor& func) override
+	{
+		auto& devref = func.device();
+		if (auto edev = dynamic_cast<iEigen*>(&devref))
+		{
+			edev->expire();
+		}
+		auto args = func.get_args();
+		teq::multi_visit(*this, args);
+	}
+};
+
+template <typename TS>
+void clear_cache (const TS& roots)
+{
+	CacheClear scrubs;
+	teq::multi_visit(scrubs, roots);
+}
 
 }
 

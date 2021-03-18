@@ -23,12 +23,8 @@ namespace teq
 /// Type used for shape rank
 using RankT = uint8_t;
 
-/// Type used for shape dimension
-#if !defined(SDIM_BYTES) || SDIM_BYTES <= 4
-using DimT = uint32_t;
-#else
+/// Type used for shape dimensions
 using DimT = uint64_t;
-#endif
 
 using RanksT = std::vector<RankT>;
 

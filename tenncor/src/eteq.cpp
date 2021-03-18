@@ -16,12 +16,8 @@ eteq::ETensorsT derive_with_manager (
 		{root.get(), {builder.get_const_one(*root)}}
 	};
 	teq::TensSetT targset;
-	std::transform(targets.begin(), targets.end(),
-		std::inserter(targset, targset.end()),
-		[](const eteq::ETensor& etens)
-		{
-			return etens.get();
-		});
+	teq::multi_get(targets.begin(), targets.end(),
+		std::inserter(targset, targset.end()));
 	auto tgrads = distr::get_opsvc(mgr).derive(
 		grads, {root}, distr::op::BackpropMeta{targset});
 
@@ -63,15 +59,16 @@ eteq::ETensorsT derive (eteq::ETensor root, const eteq::ETensorsT& targets)
 
 	eteq::DerivativeFuncs builder;
 	teq::TensptrsT targs(targets.begin(), targets.end());
-	teq::TensptrsT derivatives = teq::derive(root, targs, builder);
+	//teq::TensptrsT derivatives = teq::backprop(root, targs, builder);
+    teq::TensptrsT derivatives = teq::derive(root, targs, builder);
 	eteq::ETensorsT out;
 	out.reserve(derivatives.size());
 	std::transform(derivatives.begin(), derivatives.end(),
-		std::back_inserter(out),
-		[&root,&root_ctx](teq::TensptrT tens)
-		{
-			return eteq::ETensor(tens, root_ctx);
-		});
+	std::back_inserter(out),
+	[&root,&root_ctx](teq::TensptrT tens)
+	{
+		return eteq::ETensor(tens, root_ctx);
+	});
 	return out;
 }
 

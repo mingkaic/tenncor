@@ -1,4 +1,4 @@
-//
+///
 /// functor.hpp
 /// eteq
 ///

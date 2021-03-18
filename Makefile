@@ -77,7 +77,7 @@ ${GRPC_CPP_PLUGIN}:
 	bazel build @com_github_grpc_grpc//src/compiler:grpc_cpp_plugin
 
 .PHONY: gen-proto
-gen-proto: gen-gemit-proto gen-extenncor-proto gen-onnx-proto gen-oxsvc-proto
+gen-proto: gen-gemit-proto gen-extenncor-proto gen-onnx-proto gen-oxsvc-proto gen-profile-proto
 
 .PHONY: gen-gemit-proto
 gen-gemit-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
@@ -96,6 +96,11 @@ gen-onnx-proto: ${PROTOC}
 gen-oxsvc-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
 	./${PROTOC} --cpp_out=. -I . tenncor/serial/oxsvc/distr.ox.proto
 	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . tenncor/serial/oxsvc/distr.ox.proto
+
+.PHONY: gen-profile-proto
+gen-profile-proto: ${PROTOC} ${GRPC_CPP_PLUGIN}
+	./${PROTOC} --cpp_out=. -I . dbg/profile/profile.proto
+	./${PROTOC} --grpc_out=. --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I . dbg/profile/profile.proto
 
 ######## MODEL FILE GENERATION ########
 
@@ -451,3 +456,15 @@ try_demos:
 	bazel run --config ${CC}_eigen_optimal //demo:dqn -- --save /tmp/dqn.onnx
 	bazel run --config ${CC}_eigen_optimal //demo:dbn -- --save /tmp/dbn.onnx
 	bazel run --config ${CC}_eigen_optimal //demo:cgd
+
+#### compile db
+
+EXEC_ROOT := $(shell bazel info execution_root)
+
+COMP_FILE := $(shell bazel info bazel-bin)/compile_commands.json
+
+.PHONY: compdb
+compdb:
+	bazel build //:compdb
+	sed -i.bak "s@__EXEC_ROOT__@${EXEC_ROOT}@" "${COMP_FILE}"
+	ln -s "${COMP_FILE}" compile_commands.json

@@ -16,10 +16,12 @@
 namespace eteq
 {
 
-using EigenOpF = std::function<eigen::TensorT<size_t>(const eigen::TensMapT<size_t>&)>;
+using EigenOpF = std::function<eigen::TensorT<size_t>(
+	const eigen::TensMapT<size_t>&)>;
 
 /// Return reduction operator gradient of reduced functor node (bwd)
-static inline teq::TensptrT reduce_grad (teq::Shape shape, teq::TensptrT bwd, teq::FuncptrT fwd)
+static inline teq::TensptrT reduce_grad (
+	teq::Shape shape, teq::TensptrT bwd, teq::FuncptrT fwd)
 {
 	teq::DimsT bcast(teq::rank_cap, 1);
 	std::set<teq::RankT> ranks;

@@ -36,12 +36,7 @@ Target operates on "root"
 namespace hone
 {
 
-#define _CHOOSE_CST_TARGETTYPE(REALTYPE)\
-if (auto sinfo = eigen::sparse_info(*root)){\
-	out = eteq::make_constant_tensor<REALTYPE>((REALTYPE*)data, *sinfo, root->shape());\
-}else{\
-	out = eteq::make_constant_tensor<REALTYPE>((REALTYPE*)data, root->shape());\
-}
+teq::TensptrT constantize (teq::iTensor* func, const global::CfgMapptrT& ctx);
 
 // custom target for calculating constant values
 struct ConstantTarget final : public opt::iTarget
@@ -52,21 +47,13 @@ struct ConstantTarget final : public opt::iTarget
 	teq::TensptrT convert (const query::SymbMapT& candidates) const override
 	{
 		teq::iTensor* root = candidates.at("root");
-		eigen::Device device;
-		teq::get_eval(ctx_).evaluate(device, {root});
-		void* data = root->device().data();
-		auto outtype = (egen::_GENERATED_DTYPE) root->get_meta().type_code();
-		teq::TensptrT out;
-		TYPE_LOOKUP(_CHOOSE_CST_TARGETTYPE, outtype);
-		return out;
+		return constantize(root, ctx_);
 	}
 
 	const opt::GraphInfo* graph_;
 
 	global::CfgMapptrT ctx_;
 };
-
-#undef _CHOOSE_CST_TARGETTYPE
 
 // source graph for certain branching factor of certain operator
 static inline void get_cstsource (query::Node& node, std::string opname, size_t nbranch)

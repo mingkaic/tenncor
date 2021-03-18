@@ -88,10 +88,9 @@ distr::ox::TopographyT save_model (
 	});
 	std::sort(ids.begin(), ids.end());
 	etens.reserve(ids.size());
-	std::transform(ids.begin(), ids.end(),
-		std::back_inserter(etens),
-		[&graphinfo, &ctx](std::string id)
-		{ return eteq::ETensor(graphinfo.get(id), ctx); });
+	std::transform(ids.begin(), ids.end(), std::back_inserter(etens),
+	[&graphinfo, &ctx](std::string id)
+	{ return eteq::ETensor(graphinfo.get(id), ctx); });
 #else
 	graphinfo.foreach(
 	[&](teq::TensptrT tens, const std::string& id)

@@ -53,7 +53,8 @@ static EigenptrT unary_smatop (
 {
 	if (is_sparse(arg))
 	{
-		return std::make_shared<SparseMatOp<T>>(outshape, teq::CTensT{&arg},
+		return std::make_shared<SparseMatOp<T>>(
+		outshape, teq::CTensT{&arg}, calc_density(arg),
 		[sparse_op](SMatrixT<T>& out, const teq::CTensT& args)
 		{
 			auto smat = make_smatmap<T>(*args.front());
@@ -74,7 +75,8 @@ static EigenptrT unary_matop (
 {
 	if (is_sparse(arg))
 	{
-		return std::make_shared<GenericMatOp<T>>(outshape, teq::CTensT{&arg}, sparse_op);
+		return std::make_shared<GenericMatOp<T>>(
+			outshape, teq::CTensT{&arg}, sparse_op);
 	}
 	return std::make_shared<MatOp<T>>(outshape, teq::CTensT{&arg},
 	[norm_op](MatMapT<T>& out, const std::vector<MatMapT<T>>& args)
@@ -188,7 +190,8 @@ return std::make_shared<TensOp<T>>(outshape,teq::CTensT{in.get()},\
 
 /// Return Eigen data object representing reduction where aggregation is sum
 template <typename T>
-EigenptrT reduce_sum (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAttributed& attrib)
+EigenptrT reduce_sum (teq::Shape outshape, const teq::TensptrT& in,
+	const marsh::iAttributed& attrib)
 {
 	DimensionsT outdims = shape_convert(outshape);
 	std::set<teq::RankT> ranks;
@@ -639,7 +642,7 @@ EigenptrT slice (teq::Shape outshape, const teq::TensptrT& in, const marsh::iAtt
 		if (is_sparse(*in)) // sparse input does not work with below optimization
 		{
 			return std::make_shared<SparseMatOp<T>>(
-			outshape, teq::CTensT{in.get()},
+			outshape, teq::CTensT{in.get()}, calc_density(*in),
 			[sparse_op](SMatrixT<T>& out, const teq::CTensT& args)
 			{
 				auto smat = make_smatmap<T>(*args.front());
@@ -827,6 +830,16 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 	Packer<teq::RankT>().unpack(axis, attrib);
 	if (is_2d(outshape))
 	{
+		auto get_density = [&]()
+		{
+			std::vector<size_t> nzs;
+			nzs.reserve(args.size());
+			std::transform(args.begin(), args.end(), std::back_inserter(nzs),
+			[](const teq::iTensor* arg)
+			{ return sparse_info(*arg)->non_zeros_; });
+			return numbers::Fraction(
+				std::accumulate(nzs.begin(), nzs.end(), 0), outshape.n_elems());
+		};
 		if (axis == 0)
 		{
 			if (std::all_of(args.begin(), args.end(),
@@ -835,7 +848,8 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 				return is_sparse(*arg);
 			}))
 			{
-				return std::make_shared<SparseMatOp<T>>(outshape, args,
+				return std::make_shared<SparseMatOp<T>>(
+				outshape, args, get_density(),
 				[outshape](SMatrixT<T>& out, const teq::CTensT& args)
 				{
 					TripletsT<T> trips;
@@ -894,7 +908,8 @@ EigenptrT concat (teq::Shape outshape, const teq::TensptrsT& group, const marsh:
 				return is_sparse(*arg);
 			}))
 			{
-				return std::make_shared<SparseMatOp<T>>(outshape, args,
+				return std::make_shared<SparseMatOp<T>>(
+				outshape, args, get_density(),
 				[outshape](SMatrixT<T>& out, const teq::CTensT& args)
 				{
 					TripletsT<T> trips;
@@ -1425,7 +1440,15 @@ EigenptrT mul (teq::Shape outshape, const teq::TensptrsT& group)
 			return is_sparse(*arg);
 		}))
 		{
-			return std::make_shared<SparseMatOp<T>>(outshape, args,
+			std::vector<numbers::Fraction> densities;
+			densities.reserve(args.size());
+			std::transform(args.begin(), args.end(),
+			std::back_inserter(densities),
+			[](const teq::iTensor* arg) { return calc_density(*arg); });
+			auto density = std::accumulate(
+				densities.begin() + 1, densities.end(), densities.front(),
+				std::multiplies<numbers::Fraction>());
+			return std::make_shared<SparseMatOp<T>>(outshape, args, density,
 			[](SMatrixT<T>& out, const teq::CTensT& args)
 			{
 				if (is_sparse(*args.front()))
@@ -1487,7 +1510,7 @@ EigenptrT mul (teq::Shape outshape, const teq::TensptrsT& group)
 		auto bsparse = is_sparse(b);\
 		if (asparse && bsparse){\
 			return std::make_shared<SparseMatOp<T>>(\
-			outshape, teq::CTensT{&a,&b},\
+			outshape, teq::CTensT{&a,&b}, get_density(),\
 			[](SMatrixT<T>& out, const teq::CTensT& args){\
 				out = make_smatmap<T>(*args.front())->OP(\
 					make_smatmap<T>(*args.back()).get());\
@@ -1525,6 +1548,10 @@ EigenptrT div (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 	{
 		global::warn("denominator is sparse, most likely divide by zero");
 	}
+	auto get_density = [&]()
+	{
+		return calc_density(a);
+	};
 	_BINARY_MATOP_CRISSCROSS(cwiseQuotient)
 	return std::make_shared<TensOp<T>>(outshape,teq::CTensT{&a,&b},
 	[](TensMapT<T>& out, const std::vector<TensMapT<T>>& args)
@@ -1646,6 +1673,10 @@ EigenptrT gt (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 template <typename T>
 EigenptrT min (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
+	auto get_density = [&]()
+	{
+		return calc_density(a) * calc_density(b);
+	};
 	_BINARY_MATOP_CRISSCROSS(cwiseMin);
 	return std::make_shared<TensOp<T>>(outshape,teq::CTensT{&a,&b},
 	[](TensMapT<T>& out, const std::vector<TensMapT<T>>& args)
@@ -1659,6 +1690,10 @@ EigenptrT min (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b
 template <typename T>
 EigenptrT max (teq::Shape outshape, const teq::iTensor& a, const teq::iTensor& b)
 {
+	auto get_density = [&]()
+	{
+		return calc_density(a) * calc_density(b);
+	};
 	_BINARY_MATOP_CRISSCROSS(cwiseMax)
 	return std::make_shared<TensOp<T>>(outshape,teq::CTensT{&a,&b},
 	[](TensMapT<T>& out, const std::vector<TensMapT<T>>& args)
@@ -1779,6 +1814,10 @@ return std::make_shared<TensOp<T>>(outshape,teq::CTensT{&a,&b},\
 	out = args[1].contract(args[0], internal::dim_copy<N>(ARR)).reshape(outdims);\
 });
 
+numbers::Fraction matmul_density (
+	const numbers::Fraction& ldensity, const numbers::Fraction& rdensity,
+	teq::DimT common_dim);
+
 /// Only applies to 2-d tensors
 /// Apply matrix multiplication of a and b
 template <typename T>
@@ -1803,8 +1842,24 @@ EigenptrT contract (teq::Shape outshape,
 		auto bsparse = is_sparse(b);
 		if (asparse && bsparse)
 		{
+			// is outshape has is strictly smaller than both arguments,
+			// it is highly unlikely to be sparse
+			teq::NElemT outn = outshape.n_elems();
+			auto estimate_density = matmul_density(
+				calc_density(a), calc_density(b), ashape.at(0));
+			if (estimate_density > 0.5)
+			{
+				return std::make_shared<GenericMatOp<T>>(
+				outshape,teq::CTensT{&a,&b},
+				[](MatMapT<T>& out, const teq::CTensT& args)
+				{
+					out =
+						make_smatmap<T>(*args.front()).get() *
+						make_smatmap<T>(*args.back()).get();
+				});
+			}
 			return std::make_shared<SparseMatOp<T>>(
-			outshape, teq::CTensT{&a,&b},
+			outshape, teq::CTensT{&a,&b}, estimate_density,
 			[](SMatrixT<T>& out, const teq::CTensT& args)
 			{
 				out =
@@ -2147,7 +2202,8 @@ EigenptrT assign_div (teq::iTensor& target, const teq::iTensor& source)
 
 #define _EIGEN_MATCAST_CASE(INTYPE)\
 if (is_sparse(*input)){\
-	out = std::make_shared<SparseMatOp<T>>(shape, teq::CTensT{input.get()},\
+	out = std::make_shared<SparseMatOp<T>>(\
+	shape, teq::CTensT{input.get()}, calc_density(*input),\
 	[](SMatrixT<T>& out, const teq::CTensT& args){\
 		out = make_smatmap<INTYPE>(*args.front())->template cast<T>();\
 	});\
@@ -2159,7 +2215,8 @@ if (is_sparse(*input)){\
 }
 
 #define _EIGEN_TENSCAST_CASE(INTYPE)\
-out = std::make_shared<TensOp<T,INTYPE>>(input->shape(),teq::CTensT{input.get()},\
+out = std::make_shared<TensOp<T,INTYPE>>(\
+input->shape(),teq::CTensT{input.get()},\
 [](TensMapT<T>& out, const std::vector<TensMapT<INTYPE>>& args){\
 	out = args[0].template cast<T>();\
 });
